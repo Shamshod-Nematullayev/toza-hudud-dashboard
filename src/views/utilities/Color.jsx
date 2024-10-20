@@ -159,26 +159,6 @@ const UIColor = () => {
           </SubCard>
         </Grid>
         <Grid item xs={12}>
-          <SubCard title="Orange Color">
-            <Grid container spacing={gridSpacing}>
-              <Grid item xs={12} sm={6} md={4} lg={2}>
-                <ColorBox
-                  bgcolor="orange.light"
-                  data={{ label: 'DeepOrange-50', color: theme.palette.error.light }}
-                  title="error.light"
-                  dark
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4} lg={2}>
-                <ColorBox bgcolor="orange.main" data={{ label: 'DeepOrange-200', color: theme.palette.orange.main }} title="orange.main" />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4} lg={2}>
-                <ColorBox bgcolor="orange.dark" data={{ label: 'DeepOrange-800', color: theme.palette.orange.dark }} title="orange.dark" />
-              </Grid>
-            </Grid>
-          </SubCard>
-        </Grid>
-        <Grid item xs={12}>
           <SubCard title="Error Color">
             <Grid container spacing={gridSpacing}>
               <Grid item xs={12} sm={6} md={4} lg={2}>
