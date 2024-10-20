@@ -147,7 +147,7 @@ export default function componentStyleOverrides(theme) {
           width: '4px'
         },
         valueLabel: {
-          backgroundColor: theme.background
+          backgroundColor: theme.customization.mode === 'dark' ? theme.background : theme.lightTextPrimary
         }
       }
     },

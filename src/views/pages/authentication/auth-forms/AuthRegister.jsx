@@ -79,7 +79,7 @@ const AuthRegister = ({ ...others }) => {
               size="large"
               sx={{
                 color: 'grey.700',
-                backgroundColor: theme.palette.grey[50],
+                backgroundColor: theme.background,
                 borderColor: theme.palette.grey[100]
               }}
             >
