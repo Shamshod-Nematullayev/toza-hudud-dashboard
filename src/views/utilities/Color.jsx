@@ -164,8 +164,8 @@ const UIColor = () => {
               <Grid item xs={12} sm={6} md={4} lg={2}>
                 <ColorBox
                   bgcolor="orange.light"
-                  data={{ label: 'DeepOrange-50', color: theme.palette.orange.light }}
-                  title="orange.light"
+                  data={{ label: 'DeepOrange-50', color: theme.palette.error.light }}
+                  title="error.light"
                   dark
                 />
               </Grid>

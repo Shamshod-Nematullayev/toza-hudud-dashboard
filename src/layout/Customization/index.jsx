@@ -37,6 +37,11 @@ const Customization = () => {
   const theme = useTheme();
   const { customization, setCustomization } = useCustomizationStore();
 
+
+  const [mode, setMode] = useState('light');
+  useEffect(() => {
+    setCustomization({ mode })
+  }, [mode])
   // drawer on/off
   const [open, setOpen] = useState(false);
   const handleToggle = () => {
@@ -49,9 +54,11 @@ const Customization = () => {
     setBorderRadius(newValue);
   };
 
+
   useEffect(() => {
     setCustomization({ borderRadius });
   }, [setCustomization, borderRadius]);
+
 
   let initialFont;
   switch (customization.fontFamily) {
@@ -128,6 +135,22 @@ const Customization = () => {
       >
         <PerfectScrollbar component="div">
           <Grid container spacing={gridSpacing} sx={{ p: 3 }}>
+            <Grid item xs={12}>
+              <SubCard title="Mode">
+                <FormControl>
+                  <RadioGroup aria-label='mode' value={mode} onChange={e => setMode(e.target.value)} name='mode-radio-buttons'>
+                    <FormControlLabel value="dark" control={<Radio />} label="Dark" sx={{
+                      '& .MuiSvgIcon-root': { fontSize: 28 },
+                      '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }
+                    }} />
+                    <FormControlLabel value="light" control={<Radio />} label="Light" sx={{
+                      '& .MuiSvgIcon-root': { fontSize: 28 },
+                      '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }
+                    }} />
+                  </RadioGroup>
+                </FormControl>
+              </SubCard>
+            </Grid>
             <Grid item xs={12}>
               {/* font family */}
               <SubCard title="Font Family">

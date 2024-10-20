@@ -6,7 +6,8 @@ const initialState = {
   defaultId: 'default',
   fontFamily: config.fontFamily,
   borderRadius: config.borderRadius,
-  opened: true
+  opened: true,
+  mode: "dark"
 };
 
 const useCustomizationStore = create((set) => ({

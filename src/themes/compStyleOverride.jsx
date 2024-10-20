@@ -1,5 +1,6 @@
 export default function componentStyleOverrides(theme) {
-  const bgColor = theme.colors?.grey50;
+  const bgColor = theme?.customization?.mode === 'dark' ? theme.colors.darkBackground : theme.colors?.grey50;
+  console.log(theme)
   return {
     MuiButton: {
       styleOverrides: {
@@ -146,7 +147,7 @@ export default function componentStyleOverrides(theme) {
           width: '4px'
         },
         valueLabel: {
-          color: theme?.colors?.primaryLight
+          backgroundColor: theme.background
         }
       }
     },

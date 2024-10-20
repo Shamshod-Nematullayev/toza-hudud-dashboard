@@ -36,6 +36,12 @@ $warningLight: #fff8e1;
 $warningMain: #ffe57f;
 $warningDark: #ffc107;
 
+// Light theme text variants
+$lightText: #fff;
+$lightTextPrimary: #212121;
+$lightTextSecondary: #757575;
+$lightTextTitle: #333333;
+
 // grey
 $grey50: #f8fafc;
 $grey100: #eef2f6;
@@ -125,6 +131,12 @@ $darkTextSecondary: #8492c4;
   grey600: $grey600;
   grey700: $grey700;
   grey900: $grey900;
+
+  // Light theme text variants
+  lightText: $lightText;
+  lightTextPrimary: $lightTextPrimary;
+  lightTextSecondary: $lightTextSecondary;
+  lightTextTitle: $lightTextTitle;
 
   // ==============================|| DARK THEME VARIANTS ||============================== //
 

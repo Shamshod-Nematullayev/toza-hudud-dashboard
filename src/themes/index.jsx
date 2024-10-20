@@ -18,16 +18,16 @@ export const theme = (customization) => {
 
   const themeOption = {
     colors: color,
-    heading: color.grey900,
-    paper: color.paper,
-    backgroundDefault: color.paper,
-    background: color.primaryLight,
-    darkTextPrimary: color.grey700,
-    darkTextSecondary: color.grey500,
-    textDark: color.grey900,
-    menuSelected: color.secondaryDark,
-    menuSelectedBack: color.secondaryLight,
-    divider: color.grey200,
+    heading: customization.mode === 'dark' ? color.grey100 : color.grey900,
+    paper: customization.mode === 'dark' ? color.darkPaper : color.paper,
+    backgroundDefault: customization.mode === 'dark' ? color.darkBackground : color.lightBackground,
+    background: customization.mode === 'dark' ? color.primaryDark : color.primaryLight,
+    darkTextPrimary: customization.mode === 'dark' ? color.lightText : color.grey700,
+    darkTextSecondary: customization.mode === 'dark' ? color.lightTextSecondary : color.grey500,
+    textDark: customization.mode === 'dark' ? color.lightText : color.grey900,
+    menuSelected: customization.mode === 'dark' ? color.secondary200 : color.secondaryDark,
+    menuSelectedBack: customization.mode === 'dark' ? color.secondaryDark : color.secondaryLight,
+    divider: customization.mode === 'dark' ? color.grey700 : color.grey200,
     customization
   };
 
@@ -51,5 +51,6 @@ export const theme = (customization) => {
 
   return themes;
 };
+
 
 export default theme;
