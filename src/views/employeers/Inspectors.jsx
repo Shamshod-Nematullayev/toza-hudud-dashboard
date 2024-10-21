@@ -7,10 +7,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import useCustomizationStore from 'store/customizationStore';
 
 function Inspectors() {
   const [mahallalar, setMahallalar] = useState([]);
   const [rows, setRows] = useState([]);
+  const { customization } = useCustomizationStore();
 
   async function updateData() {
     try {
@@ -64,16 +67,16 @@ function Inspectors() {
         {mfy ? (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <IconButton onClick={() => handleEdit(mfy.mfy_id)}>
-              <EditIcon />
+              <EditIcon sx={{ color: customization.mode === "dark" ? "primary.200" : "primary.main" }} />
             </IconButton>
             <IconButton onClick={() => handleDelete(mfy.mfy_id)}>
-              <DeleteIcon />
+              <DeleteIcon sx={{ color: customization.mode === "dark" ? "error.light" : "error.main" }} />
             </IconButton>
           </div>
         ) : (
           <div>
             <IconButton onClick={() => handleOpenDialog(`choosing mfy ${mfyNumber}`, id)}>
-              <AddCircleIcon />
+              <AddCircleIcon sx={{ color: customization.mode === "dark" ? "success.200" : "success.main" }} />
             </IconButton>
           </div>
         )}
@@ -82,11 +85,21 @@ function Inspectors() {
     );
   };
 
+  // handlers
+
   const handleEdit = (mfy_id) => {
     // todo
   };
-  const handleDelete = (mfy_id) => {
-    // todo
+  const handleDelete = async (mfy_id) => {
+    try {
+      const { data } = await axios.post("/inspectors/unset-inspector-to-mfy/" + mfy_id)
+
+      if (!data.ok) return toast.error(data.message)
+      updateData();
+      toast.success(data.message);
+    } catch (error) {
+      console.error(error)
+    }
   };
   const handleOpenDialog = (mfy_id) => {
     // todo
@@ -136,8 +149,8 @@ function Inspectors() {
               <ListItem
                 key={item.id}
                 secondaryAction={
-                  <IconButton edge="end">
-                    <DeleteIcon />
+                  <IconButton edge="end" onClick={() => handleDelete(item.id)}>
+                    <DeleteIcon sx={{ color: customization.mode === "dark" ? "error.light" : "error.main" }} />
                   </IconButton>
                 }
               >
