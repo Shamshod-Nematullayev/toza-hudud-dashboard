@@ -23,10 +23,11 @@ import '@fontsource/poppins/700.css';
 import 'assets/scss/style.scss';
 import reportWebVitals from 'reportWebVitals';
 import axios from 'axios';
+import { SERVER_URL } from 'store/constant';
 
 const container = document.getElementById('root');
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
-axios.defaults.baseURL = import.meta.env.SERVER_URL
+axios.defaults.baseURL = SERVER_URL;
 
 // ==============================|| REACT DOM RENDER  ||============================== //
 
