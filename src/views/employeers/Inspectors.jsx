@@ -1,4 +1,4 @@
-import { IconButton, List, ListItem, ListItemButton, Typography } from '@mui/material';
+import { IconButton, List, ListItem, ListItemButton, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
@@ -9,11 +9,17 @@ import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import useCustomizationStore from 'store/customizationStore';
+import ModalChoose from './ModalChoose';
 
 function Inspectors() {
   const [mahallalar, setMahallalar] = useState([]);
   const [rows, setRows] = useState([]);
   const { customization } = useCustomizationStore();
+  const [activeInspector, setActiveInspector] = useState(null);
+  const [activeMFY, setActiveMFY] = useState(null);
+  const [openAddModal, setOpenAddModal] = useState(false);
+  const [choosingMethod, setChoosingMethod] = useState(null);
+  const [forChoose, setForChoose] = useState([]);
 
   async function updateData() {
     try {
@@ -67,16 +73,16 @@ function Inspectors() {
         {mfy ? (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <IconButton onClick={() => handleEdit(mfy.mfy_id)}>
-              <EditIcon sx={{ color: customization.mode === "dark" ? "primary.200" : "primary.main" }} />
+              <EditIcon sx={{ color: customization.mode === 'dark' ? 'primary.200' : 'primary.main' }} />
             </IconButton>
             <IconButton onClick={() => handleDelete(mfy.mfy_id)}>
-              <DeleteIcon sx={{ color: customization.mode === "dark" ? "error.light" : "error.main" }} />
+              <DeleteIcon sx={{ color: customization.mode === 'dark' ? 'error.light' : 'error.main' }} />
             </IconButton>
           </div>
         ) : (
           <div>
-            <IconButton onClick={() => handleOpenDialog(`choosing mfy ${mfyNumber}`, id)}>
-              <AddCircleIcon sx={{ color: customization.mode === "dark" ? "success.200" : "success.main" }} />
+            <IconButton onClick={() => openChooseModal({ type: 'mfy', focus: id })}>
+              <AddCircleIcon sx={{ color: customization.mode === 'dark' ? 'success.200' : 'success.main' }} />
             </IconButton>
           </div>
         )}
@@ -92,20 +98,42 @@ function Inspectors() {
   };
   const handleDelete = async (mfy_id) => {
     try {
-      const { data } = await axios.post("/inspectors/unset-inspector-to-mfy/" + mfy_id)
+      const { data } = await axios.post('/inspectors/unset-inspector-to-mfy/' + mfy_id);
 
-      if (!data.ok) return toast.error(data.message)
+      if (!data.ok) return toast.error(data.message);
       updateData();
       toast.success(data.message);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   };
-  const handleOpenDialog = (mfy_id) => {
-    // todo
+  const openChooseModal = ({ type, focus }) => {
+    switch (type) {
+      case 'inspector':
+        setForChoose(rows);
+        setActiveMFY(focus);
+        break;
+      case 'mfy':
+        setForChoose(mahallalar.filter((mfy) => mfy.reja > 0 && mfy.biriktirilganNazoratchi.inspactor_id == null));
+        setActiveInspector(focus);
+        break;
+      default:
+        break;
+    }
+    setChoosingMethod(type);
+    setOpenAddModal(true);
   };
   return (
     <MainCard title="Nazoratchilar" sx={{ height: '85vh' }} contentSX={{ height: '100%' }}>
+      <ModalChoose
+        activeInspector={activeInspector}
+        activeMFY={activeMFY}
+        choosingMethod={choosingMethod}
+        openAddModal={openAddModal}
+        setOpenAddModal={setOpenAddModal}
+        forChoose={forChoose}
+        updateData={updateData}
+      />
       <div style={{ display: 'flex', height: '100%', maxHeight: '100%' }}>
         <List sx={{ margin: '0 25px 0 0', height: '90%', overflow: 'auto' }}>
           <Typography sx={{ fontWeight: '700' }}>Bo'sh mahallalar</Typography>
@@ -115,8 +143,8 @@ function Inspectors() {
               <ListItem
                 key={item.id}
                 secondaryAction={
-                  <IconButton edge="end">
-                    <PersonAddAltIcon />
+                  <IconButton edge="end" onClick={() => openChooseModal({ type: 'inspector', focus: item.id })}>
+                    <PersonAddAltIcon sx={{ color: customization.mode === 'dark' ? 'success.200' : 'success.main' }} />
                   </IconButton>
                 }
               >
@@ -141,7 +169,7 @@ function Inspectors() {
             }
           }}
         />
-        <List sx={{ margin: '0 0 0 25px', height: '90%', overflow: 'auto' }}>
+        <List sx={{ padding: '0 55px', height: '90%', overflow: 'auto' }}>
           <Typography sx={{ fontWeight: '700' }}>Biriktirilgan mahallalar</Typography>
           {mahallalar
             .filter((mfy) => mfy.reja > 0 && mfy.biriktirilganNazoratchi.inspactor_id != null)
@@ -150,7 +178,7 @@ function Inspectors() {
                 key={item.id}
                 secondaryAction={
                   <IconButton edge="end" onClick={() => handleDelete(item.id)}>
-                    <DeleteIcon sx={{ color: customization.mode === "dark" ? "error.light" : "error.main" }} />
+                    <DeleteIcon sx={{ color: customization.mode === 'dark' ? 'error.light' : 'error.main' }} />
                   </IconButton>
                 }
               >
