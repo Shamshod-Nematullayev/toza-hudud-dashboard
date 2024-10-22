@@ -33,7 +33,7 @@ const NavCollapse = ({ menu, level }) => {
     setOpen(!open);
     setSelected(!selected ? menu.id : null);
     if (menu?.id !== 'authentication') {
-      navigate(menu.children[0]?.url);
+      // navigate(menu.children[0]?.url);
     }
   };
 

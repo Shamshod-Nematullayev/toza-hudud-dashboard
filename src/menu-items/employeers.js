@@ -1,24 +1,23 @@
 //assets
-import BadgeIcon from '@mui/icons-material/Badge';
+import BadgeIcon from '@mui/icons-material/BadgeOutlined';
 //contans
-const icons = {BadgeIcon}
+const icons = { BadgeIcon };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
-
 const employeers = {
-    id: 'employeers',
-    title: "Xodimlar",
-    type: "group",
-    children: [
-        {
-            id: 'inspectors',
-            title: "Nazoratchilar",
-            type: 'item',
-            url: '/employeers/inspectors',
-            icon: icons.BadgeIcon,
-             breadcrumbs: false
-        }
-    ]
-}
+  id: 'employeers',
+  title: 'Xodimlar',
+  type: 'group',
+  children: [
+    {
+      id: 'inspectors',
+      title: 'Nazoratchilar',
+      type: 'item',
+      url: '/employeers/inspectors',
+      icon: icons.BadgeIcon,
+      breadcrumbs: false
+    }
+  ]
+};
 
-export default employeers
+export default employeers;
