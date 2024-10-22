@@ -4,6 +4,7 @@ import { lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import Inspectors from 'views/employeers/Inspectors';
+import Recalculate from 'views/billing';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -70,6 +71,15 @@ const MainRoutes = {
         {
           path: 'inspectors',
           element: <Inspectors />
+        }
+      ]
+    },
+    {
+      path: 'billing',
+      children: [
+        {
+          path: 'recalculation',
+          element: <Recalculate />
         }
       ]
     },

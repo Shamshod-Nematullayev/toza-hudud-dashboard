@@ -18,7 +18,6 @@ const billing = {
       type: 'item',
       url: '/billing/recalculation',
       icon: icons.CalculateIcon,
-      target: true
     },
     {
       id: 'deleteDublicate',
