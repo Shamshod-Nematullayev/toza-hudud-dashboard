@@ -5,6 +5,8 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import Inspectors from 'views/employeers/Inspectors';
 import Recalculate from 'views/billing';
+import WarningLetters from 'views/jurist/WarningLetters/index';
+import CourtProcesses from 'views/jurist/CourtProcesses';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -80,6 +82,19 @@ const MainRoutes = {
         {
           path: 'recalculation',
           element: <Recalculate />
+        }
+      ]
+    },
+    {
+      path: 'jurist',
+      children: [
+        {
+          path: 'warningLetter',
+          element: <WarningLetters />
+        },
+        {
+          path: 'courtProccesses',
+          element: <CourtProcesses />
         }
       ]
     },

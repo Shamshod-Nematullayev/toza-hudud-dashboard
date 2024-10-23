@@ -17,6 +17,20 @@
 
 // ==============================|| PERFECT SCROLLBAR ||============================== //
 
+::-webkit-scrollbar {
+  width: 10px;
+  // height: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+::-webkit-scrollbar-thumb {
+  background-color: $grey500;
+  border-radius: 6px;
+  width: 5px;
+  height: 5px;
+}
+
 .scrollbar-container {
   .ps__rail-y {
     &:hover > .ps__thumb-y,
