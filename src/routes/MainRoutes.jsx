@@ -6,7 +6,7 @@ import Loadable from 'ui-component/Loadable';
 import Inspectors from 'views/employeers/Inspectors';
 import Recalculate from 'views/billing';
 import WarningLetters from 'views/jurist/WarningLetters/index';
-import CourtProcesses from 'views/jurist/CourtProcesses';
+import CourtProcesses from 'views/jurist/CourtProcesses/index';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
