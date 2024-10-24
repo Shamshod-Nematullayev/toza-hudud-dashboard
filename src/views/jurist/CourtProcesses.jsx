@@ -9,9 +9,10 @@ function CourtProcesses() {
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'licshet', headerName: 'licshet', width: 120 },
-    { field: 'name', headerName: 'Name', width: 200 },
-    { field: 'warningDate', headerName: 'Date', width: 150 },
+    { field: 'davo_summa', headerName: 'Davo summasi', width: 100 },
+    { field: 'warningDate', headerName: 'Ogohlantirilgan sanasi', width: 150 },
     { field: 'status', headerName: 'Status', width: 150 },
+    { field: 'bildirish_xati', headerName: '', width: 150 },
     { field: 'actions', headerName: 'Actions', width: 100, renderCell: () => <div>Action 1</div> }
   ];
   const [rows, setRows] = useState([]);
