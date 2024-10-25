@@ -1,10 +1,11 @@
-import { Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import { Button } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import MainCard from 'ui-component/cards/MainCard';
 import SelectInputComponent from './SelectInputComponent';
+import DialogForCreateAriza from './DialogForCreateAriza';
 const formatDate = (data) => {
   const date = new Date(data);
   return ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
@@ -49,6 +50,8 @@ function CourtProcesses() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [filterModel, setFilterModel] = useState({});
   const [totalRows, setTotalRows] = useState(0);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [showCreateArizaModal, setShowCreateArizaModal] = useState(false)
 
   // ================================|HANDLE FUNCTIONS|==================================================
   const fetchData = async () => {
@@ -56,6 +59,7 @@ function CourtProcesses() {
       const { data } = await axios.get('/sudAkts/', { params: paginationModel });
       const rows = data.rows.map((row, i) => ({
         id: i + 1,
+        _id: row._id,
         licshet: row.licshet,
         warningDate: row.warningDate,
         status: row.status,
@@ -71,8 +75,17 @@ function CourtProcesses() {
   useEffect(() => {
     fetchData();
   }, [paginationModel]);
+
+  const handleCreateArizaButtonClick = () => {
+    setShowCreateArizaModal(true)
+  }
+  const handleCloseModal = () => {
+    setShowCreateArizaModal(false)
+  }
+
   return (
     <MainCard contentSX={{ display: 'flex' }}>
+      <DialogForCreateAriza showCreateArizaModal={showCreateArizaModal} handleCloseModal={handleCloseModal} />
       <DataGrid
         checkboxSelection
         rows={rows}
@@ -85,6 +98,9 @@ function CourtProcesses() {
         onFilterModelChange={(model) => {
           setFilterModel(model.items[0]);
         }}
+        onRowSelectionModelChange={(rowSelectionModel) =>
+          setSelectedRows(rows.filter(row => rowSelectionModel.includes(row.id)))
+        }
         initialState={{ pagination: { paginationModel: { pageSize: paginationModel.pageSize } } }}
         sortingMode="server"
         paginationMode="server"
@@ -97,7 +113,7 @@ function CourtProcesses() {
         }}
       />
       <div className="tools-container" style={{ margin: '0 25px' }}>
-        <Button variant="outlined" color="secondary">
+        <Button variant="outlined" color="secondary" onClick={handleCreateArizaButtonClick}>
           Ariza chiqorish
         </Button>
       </div>

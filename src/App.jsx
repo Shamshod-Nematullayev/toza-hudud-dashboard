@@ -14,6 +14,8 @@ import themes from 'themes';
 import NavigationScroll from 'layout/NavigationScroll';
 import useCustomizationStore from 'store/customizationStore';
 import { ToastContainer } from 'react-toastify';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
 // ==============================|| APP ||============================== //
 
@@ -23,11 +25,13 @@ const App = () => {
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={themes(customization)}>
-        <ToastContainer autoClose="5000" theme={customization.mode} position='top-right' />
-        <CssBaseline />
-        <NavigationScroll>
-          <RouterProvider router={router} />
-        </NavigationScroll>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <ToastContainer autoClose="5000" theme={customization.mode} position='top-right' />
+          <CssBaseline />
+          <NavigationScroll>
+            <RouterProvider router={router} />
+          </NavigationScroll>
+        </LocalizationProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   );
