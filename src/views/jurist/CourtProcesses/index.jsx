@@ -38,7 +38,12 @@ function CourtProcesses() {
             }
             return ({ value }) => value === filterItem.value;
           },
-          InputComponent: (props) => <SelectInputComponent {...props} valueOptions={['yangi', 'jarayonda', 'tugallangan']} />
+          InputComponent: (props) => (
+            <SelectInputComponent
+              {...props}
+              valueOptions={['yangi', 'ariza_yaratildi', 'sudga_ariza_berildi', 'sud_qarori_chiqorildi', 'rad_etildi']}
+            />
+          )
         }
       ]
     },
@@ -54,9 +59,11 @@ function CourtProcesses() {
   const [showCreateArizaModal, setShowCreateArizaModal] = useState(false)
 
   // ================================|HANDLE FUNCTIONS|==================================================
-  const fetchData = async () => {
+  const fetchData = async ({ filterModel = {} }) => {
     try {
-      const { data } = await axios.get('/sudAkts/', { params: paginationModel });
+      const { data } = await axios.get('/sudAkts/', {
+        params: { ...paginationModel, status: filterModel.value === 'Hammasi' ? '' : filterModel.value }
+      });
       const rows = data.rows.map((row, i) => ({
         id: i + 1,
         _id: row._id,
@@ -73,16 +80,20 @@ function CourtProcesses() {
     }
   };
   useEffect(() => {
-    fetchData();
+    fetchData({ filterModel });
   }, [paginationModel]);
 
   const handleCreateArizaButtonClick = () => {
-    setShowCreateArizaModal(true)
-  }
+    setShowCreateArizaModal(true);
+  };
   const handleCloseModal = () => {
-    setShowCreateArizaModal(false)
-  }
+    setShowCreateArizaModal(false);
+  };
 
+  const handleFilterChange = (model) => {
+    setFilterModel(model.items[0]);
+    fetchData({ filterModel: model.items[0] });
+  };
   return (
     <MainCard contentSX={{ display: 'flex' }}>
       <DialogForCreateAriza showCreateArizaModal={showCreateArizaModal} handleCloseModal={handleCloseModal} />
@@ -95,12 +106,8 @@ function CourtProcesses() {
         onPaginationModelChange={(newPaginationModel) => {
           setPaginationModel(newPaginationModel);
         }}
-        onFilterModelChange={(model) => {
-          setFilterModel(model.items[0]);
-        }}
-        onRowSelectionModelChange={(rowSelectionModel) =>
-          setSelectedRows(rows.filter(row => rowSelectionModel.includes(row.id)))
-        }
+        onFilterModelChange={handleFilterChange}
+        onRowSelectionModelChange={(rowSelectionModel) => setSelectedRows(rows.filter((row) => rowSelectionModel.includes(row.id)))}
         initialState={{ pagination: { paginationModel: { pageSize: paginationModel.pageSize } } }}
         sortingMode="server"
         paginationMode="server"
