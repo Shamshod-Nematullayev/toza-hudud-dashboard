@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import MainCard from 'ui-component/cards/MainCard';
 import SelectInputComponent from './SelectInputComponent';
 import DialogForCreateAriza from './DialogForCreateAriza';
+import useStore from './useStore';
 const formatDate = (data) => {
   const date = new Date(data);
   return ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
@@ -50,7 +51,6 @@ function CourtProcesses() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [filterModel, setFilterModel] = useState({});
   const [totalRows, setTotalRows] = useState(0);
-  const [selectedRows, setSelectedRows] = useState([]);
   const [showCreateArizaModal, setShowCreateArizaModal] = useState(false)
 
   // ================================|HANDLE FUNCTIONS|==================================================
