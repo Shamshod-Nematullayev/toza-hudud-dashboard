@@ -37,11 +37,10 @@ const Customization = () => {
   const theme = useTheme();
   const { customization, setCustomization } = useCustomizationStore();
 
-
   const [mode, setMode] = useState('light');
   useEffect(() => {
-    setCustomization({ mode })
-  }, [mode])
+    setCustomization({ mode });
+  }, [mode]);
   // drawer on/off
   const [open, setOpen] = useState(false);
   const handleToggle = () => {
@@ -54,11 +53,9 @@ const Customization = () => {
     setBorderRadius(newValue);
   };
 
-
   useEffect(() => {
     setCustomization({ borderRadius });
   }, [setCustomization, borderRadius]);
-
 
   let initialFont;
   switch (customization.fontFamily) {
@@ -67,6 +64,9 @@ const Customization = () => {
       break;
     case `'Poppins', sans-serif`:
       initialFont = 'Poppins';
+      break;
+    case `'TimesNewRoman', sans-serif`:
+      initialFont = 'TimesNewRoman';
       break;
     case `'Roboto', sans-serif`:
     default:
@@ -84,6 +84,9 @@ const Customization = () => {
         break;
       case 'Poppins':
         newFont = `'Poppins', sans-serif`;
+        break;
+      case `'TimesNewRoman', sans-serif`:
+        initialFont = 'TimesNewRoman';
         break;
       case 'Roboto':
       default:
@@ -138,15 +141,25 @@ const Customization = () => {
             <Grid item xs={12}>
               <SubCard title="Mode">
                 <FormControl>
-                  <RadioGroup aria-label='mode' value={mode} onChange={e => setMode(e.target.value)} name='mode-radio-buttons'>
-                    <FormControlLabel value="dark" control={<Radio />} label="Dark" sx={{
-                      '& .MuiSvgIcon-root': { fontSize: 28 },
-                      '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }
-                    }} />
-                    <FormControlLabel value="light" control={<Radio />} label="Light" sx={{
-                      '& .MuiSvgIcon-root': { fontSize: 28 },
-                      '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }
-                    }} />
+                  <RadioGroup aria-label="mode" value={mode} onChange={(e) => setMode(e.target.value)} name="mode-radio-buttons">
+                    <FormControlLabel
+                      value="dark"
+                      control={<Radio />}
+                      label="Dark"
+                      sx={{
+                        '& .MuiSvgIcon-root': { fontSize: 28 },
+                        '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }
+                      }}
+                    />
+                    <FormControlLabel
+                      value="light"
+                      control={<Radio />}
+                      label="Light"
+                      sx={{
+                        '& .MuiSvgIcon-root': { fontSize: 28 },
+                        '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }
+                      }}
+                    />
                   </RadioGroup>
                 </FormControl>
               </SubCard>
@@ -174,6 +187,15 @@ const Customization = () => {
                       value="Poppins"
                       control={<Radio />}
                       label="Poppins"
+                      sx={{
+                        '& .MuiSvgIcon-root': { fontSize: 28 },
+                        '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }
+                      }}
+                    />
+                    <FormControlLabel
+                      value="TimesNewRoman"
+                      control={<Radio />}
+                      label="Times New Roman"
                       sx={{
                         '& .MuiSvgIcon-root': { fontSize: 28 },
                         '& .MuiFormControlLabel-label': { color: theme.palette.grey[900] }

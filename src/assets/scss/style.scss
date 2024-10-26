@@ -140,3 +140,11 @@
     transform: translateX(10px);
   }
 }
+
+/* src/fonts.css */
+@font-face {
+  font-family: 'TimesNewRoman';
+  src: url('../fonts/Times\ New\ Roman.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}

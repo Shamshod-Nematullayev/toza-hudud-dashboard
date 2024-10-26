@@ -1,12 +1,14 @@
 import { Button } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import MainCard from 'ui-component/cards/MainCard';
 import SelectInputComponent from './SelectInputComponent';
 import DialogForCreateAriza from './DialogForCreateAriza';
 import useStore from './useStore';
+import PrintSection from './PrintSection';
+import { useReactToPrint } from 'react-to-print';
 const formatDate = (data) => {
   const date = new Date(data);
   return ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
@@ -52,11 +54,12 @@ function CourtProcesses() {
   ];
 
   // =================================|STATES|===============================================
+  const { selectedRows, setSelectedRows, rowsForPrint, setRowsForPrint } = useStore();
   const [rows, setRows] = useState([]);
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [filterModel, setFilterModel] = useState({});
   const [totalRows, setTotalRows] = useState(0);
-  const [showCreateArizaModal, setShowCreateArizaModal] = useState(false)
+  const [showCreateArizaModal, setShowCreateArizaModal] = useState(false);
 
   // ================================|HANDLE FUNCTIONS|==================================================
   const fetchData = async ({ filterModel = {} }) => {
@@ -84,11 +87,35 @@ function CourtProcesses() {
   }, [paginationModel]);
 
   const handleCreateArizaButtonClick = () => {
+    if (selectedRows.length === 0) return toast.error('Ariza yaratish uchun qatorni tanlang tanlang!');
     setShowCreateArizaModal(true);
   };
+
+  const printContentRef = useRef();
+  const printFunc = useReactToPrint({
+    pageStyle: `@media print {
+        @page {
+        margin: 15mm 15mm 15mm 25mm;
+        size: A4;
+        }
+        .page {
+        page-break-after: always;
+        }    
+    }
+    `,
+    documentTitle: 'Printing',
+    contentRef: printContentRef,
+    onAfterPrint: () => setRowsForPrint([])
+  });
   const handleCloseModal = () => {
     setShowCreateArizaModal(false);
   };
+  useEffect(() => {
+    if (rowsForPrint.length > 0) {
+      printFunc();
+      fetchData({ filterModel });
+    }
+  }, [rowsForPrint]);
 
   const handleFilterChange = (model) => {
     setFilterModel(model.items[0]);
@@ -97,6 +124,7 @@ function CourtProcesses() {
   return (
     <MainCard contentSX={{ display: 'flex' }}>
       <DialogForCreateAriza showCreateArizaModal={showCreateArizaModal} handleCloseModal={handleCloseModal} />
+      <PrintSection printContentRef={printContentRef} />
       <DataGrid
         checkboxSelection
         rows={rows}
@@ -123,6 +151,7 @@ function CourtProcesses() {
         <Button variant="outlined" color="secondary" onClick={handleCreateArizaButtonClick}>
           Ariza chiqorish
         </Button>
+        <PrintSection />
       </div>
     </MainCard>
   );
