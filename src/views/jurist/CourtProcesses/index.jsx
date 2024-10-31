@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -9,6 +9,9 @@ import DialogForCreateAriza from './DialogForCreateAriza';
 import useStore from './useStore';
 import PrintSection from './PrintSection';
 import { useReactToPrint } from 'react-to-print';
+import theme from 'themes';
+import ToolsContainer from './ToolsContainer';
+import { Outlet } from 'react-router-dom';
 const formatDate = (data) => {
   const date = new Date(data);
   return ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
@@ -86,11 +89,6 @@ function CourtProcesses() {
     fetchData({ filterModel });
   }, [paginationModel]);
 
-  const handleCreateArizaButtonClick = () => {
-    if (selectedRows.length === 0) return toast.error('Ariza yaratish uchun qatorni tanlang tanlang!');
-    setShowCreateArizaModal(true);
-  };
-
   const printContentRef = useRef();
   const printFunc = useReactToPrint({
     pageStyle: `@media print {
@@ -147,12 +145,8 @@ function CourtProcesses() {
           }
         }}
       />
-      <div className="tools-container" style={{ margin: '0 25px' }}>
-        <Button variant="outlined" color="secondary" onClick={handleCreateArizaButtonClick}>
-          Ariza chiqorish
-        </Button>
-        <PrintSection />
-      </div>
+      <ToolsContainer setShowCreateArizaModal={setShowCreateArizaModal} selectedRows={selectedRows} />
+      <Outlet />
     </MainCard>
   );
 }

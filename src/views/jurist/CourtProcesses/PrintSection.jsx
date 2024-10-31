@@ -26,7 +26,8 @@ function PrintSection({ printContentRef }) {
                       </p>
                       <p style={{ borderBottomStyle: 'double' }}>Каттақўрғон тумани, Пайшанба шаҳарчаси</p>
                       <p>
-                        2024 йил «{new Date(row.ariza_date).getDate()}» {oylar[new Date(row.ariza_date).getMonth()]}
+                        {new Date(row.ariza_date).getFullYear()} йил «{new Date(row.ariza_date).getDate()}»{' '}
+                        {oylar[new Date(row.ariza_date).getMonth()]}
                       </p>
                       <p>№ 10.2/______-24</p>
                     </td>
