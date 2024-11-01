@@ -55,7 +55,7 @@ const billing = {
           id: 'courtProccesses',
           title: 'Sud jarayonlari',
           type: 'item',
-          url: '/jurist/courtProccesses',
+          url: '/jurist/courtProccesses/default',
           icon: icons.GavelIcon
         }
       ]

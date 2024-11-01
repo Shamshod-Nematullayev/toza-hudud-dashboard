@@ -1,5 +1,6 @@
-import { Button, Typography } from '@mui/material';
+import { Button, Card, Typography } from '@mui/material';
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 function ToolsContainer({ setShowCreateArizaModal, selectedRows }) {
@@ -8,14 +9,20 @@ function ToolsContainer({ setShowCreateArizaModal, selectedRows }) {
     setShowCreateArizaModal(true);
   };
   return (
-    <div className="tools-container" style={{ margin: '0 25px', width: '10%' }}>
-      <Typography component={Button} variant="subtitle1" onClick={handleCreateArizaButtonClick} fullWidth>
-        Ariza chiqorish
-      </Typography>
-      <Typography component={Button} variant="subtitle1" onClick={'todo'} fullWidth>
-        Arizalarni tizimga kiritish
-      </Typography>
-    </div>
+    <Card className="tools-container" style={{ margin: '0 25px 0 0', width: '10%' }}>
+      <ul style={{ listStyle: 'none' }}>
+        <li>
+          <Typography component={Button} variant="subtitle1" onClick={handleCreateArizaButtonClick}>
+            Ariza chiqorish
+          </Typography>
+        </li>
+        <li>
+          <Typography component={Link} variant="subtitle1" to="/jurist/courtProccesses/import-petition">
+            Arizalarni tizimga kiritish
+          </Typography>
+        </li>
+      </ul>
+    </Card>
   );
 }
 
