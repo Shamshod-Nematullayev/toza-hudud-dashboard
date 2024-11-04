@@ -16,11 +16,6 @@ function ToolsContainer({ setShowCreateArizaModal, selectedRows }) {
             Ariza chiqorish
           </Typography>
         </li>
-        <li>
-          <Typography component={Link} variant="subtitle1" to="/jurist/courtProccesses/import-petition">
-            Arizalarni tizimga kiritish
-          </Typography>
-        </li>
       </ul>
     </Card>
   );

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { createGlobalStyle } from 'styled-components';
+import useStore from './useStore';
 
 const CustomStyle = createGlobalStyle`
   .drop-zone {
@@ -50,22 +51,41 @@ const CustomStyle = createGlobalStyle`
     text-align: center;
   }
 `;
-
-function ImportPetition() {
+function FileInputDrop() {
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // =============================|States|================================================
+  const { setPdfFiles } = useStore();
 
   useEffect(() => {
     const dropZoneElement = dropZoneRef.current;
     const inputElement = fileInputRef.current;
 
-    const handleDrop = (e) => {
+    const handleDrop = async (e) => {
       e.preventDefault();
       dropZoneElement.classList.remove('drop-zone--over');
 
       if (e.dataTransfer.files.length) {
         inputElement.files = e.dataTransfer.files;
         updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
+        const files = Array.from(e.dataTransfer.files).filter((file) => file.type === 'application/pdf');
+        const filesWithUrl = [];
+        const promises = files.map((file) => {
+          return new Promise(async (resolve, reject) => {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
+            const url = URL.createObjectURL(pdfBlob);
+            filesWithUrl.push({
+              file,
+              url,
+              blob: pdfBlob
+            });
+            resolve('Successfully');
+          });
+        });
+        await Promise.all(promises);
+        setPdfFiles(filesWithUrl);
       }
     };
 
@@ -85,6 +105,7 @@ function ImportPetition() {
     const handleChange = () => {
       if (inputElement.files.length) {
         updateThumbnail(dropZoneElement, inputElement.files[0]);
+        console.log(inputElement.files);
       }
     };
 
@@ -130,16 +151,23 @@ function ImportPetition() {
       thumbnailElement.style.backgroundImage = null;
     }
   };
-
   return (
-    <div style={{ display: 'block', position: 'relative', height: '70vh', width: '100%' }}>
+    <>
       <CustomStyle />
       <label className="drop-zone" ref={dropZoneRef}>
-        <input type="file" name="myFile" className="drop-zone__input" ref={fileInputRef} accept=".pdf" style={{ display: 'none' }} />
-        <div className="drop-zone__prompt">Select or drop file</div>
+        <input
+          type="file"
+          name="myFile"
+          className="drop-zone__input"
+          disabled
+          ref={fileInputRef}
+          accept=".pdf"
+          style={{ display: 'none' }}
+        />
+        <div className="drop-zone__prompt">Drop your pdf files</div>
       </label>
-    </div>
+    </>
   );
 }
 
-export default ImportPetition;
+export default FileInputDrop;

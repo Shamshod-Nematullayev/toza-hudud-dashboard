@@ -5,8 +5,9 @@ import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOnOutlined';
 import BookIcon from '@mui/icons-material/BookOutlined';
 import MailIcon from '@mui/icons-material/MailOutline';
 import GavelIcon from '@mui/icons-material/GavelOutlined';
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 //contans
-const icons = { ImportantDevicesOutlinedIcon, CalculateIcon, DoNotDisturbOnIcon, BookIcon, MailIcon, GavelIcon };
+const icons = { ImportantDevicesOutlinedIcon, CalculateIcon, DoNotDisturbOnIcon, BookIcon, MailIcon, GavelIcon, FileDownloadOutlinedIcon };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
 const billing = {
@@ -55,8 +56,15 @@ const billing = {
           id: 'courtProccesses',
           title: 'Sud jarayonlari',
           type: 'item',
-          url: '/jurist/courtProccesses/default',
+          url: '/jurist/courtProccesses',
           icon: icons.GavelIcon
+        },
+        {
+          id: 'importPetition',
+          title: 'Sudga arizalar kiritish',
+          type: 'item',
+          url: '/jurist/importPetition',
+          icon: icons.FileDownloadOutlinedIcon
         }
       ]
     }

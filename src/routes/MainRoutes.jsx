@@ -7,8 +7,7 @@ import Inspectors from 'views/employeers/Inspectors';
 import Recalculate from 'views/billing';
 import WarningLetters from 'views/jurist/WarningLetters/index';
 import CourtProcesses from 'views/jurist/CourtProcesses/index';
-import ImportPetition from 'views/jurist/CourtProcesses/ImportPetition.jsx';
-import DataTable from 'views/jurist/CourtProcesses/DataTable';
+import ImportPetition from 'views/jurist/ImportPetition.jsx/index';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -96,17 +95,11 @@ const MainRoutes = {
         },
         {
           path: 'courtProccesses',
-          element: <CourtProcesses />,
-          children: [
-            {
-              path: 'default',
-              element: <DataTable />
-            },
-            {
-              path: 'import-petition',
-              element: <ImportPetition />
-            }
-          ]
+          element: <CourtProcesses />
+        },
+        {
+          path: 'importPetition',
+          element: <ImportPetition />
         }
       ]
     },
