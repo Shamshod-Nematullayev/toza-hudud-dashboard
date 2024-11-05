@@ -13,12 +13,15 @@ function ImportPetition() {
 
   return (
     <MainCard contentSX={{ height: '75vh' }}>
-      {pdfFiles.length == 0 && <FileInputDrop />}
-      <div style={{ display: 'flex', height: '100%' }}>
-        <FilesList />
-        <iframe style={{ margin: 'auto 25px' }} src={currentFile.url} width="50%" height="100%"></iframe>
-        <FindedDataTable />
-      </div>
+      {pdfFiles.length == 0 ? (
+        <FileInputDrop />
+      ) : (
+        <div style={{ display: 'flex', height: '100%' }}>
+          <FilesList />
+          <iframe style={{ margin: 'auto 25px' }} src={currentFile?.url} width="50%" height="100%"></iframe>
+          <FindedDataTable />
+        </div>
+      )}
     </MainCard>
   );
 }

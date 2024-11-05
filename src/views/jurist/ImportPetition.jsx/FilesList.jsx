@@ -22,8 +22,8 @@ function FilesList() {
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               paddingRight: '10px',
-              color: currentFile.file?.name == pdfFile.file?.name ? theme.colors.menuSelected : '',
-              background: currentFile.file?.name == pdfFile.file?.name ? theme.colors.menuSelectedBack : ''
+              color: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelected : '',
+              background: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelectedBack : ''
             }}
             onClick={() => handleListItemClick(pdfFile.file.name)}
           >
