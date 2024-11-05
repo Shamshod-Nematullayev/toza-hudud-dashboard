@@ -31,6 +31,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 import Google from 'assets/images/icons/social-google.svg';
 import useCustomizationStore from 'store/customizationStore';
+import { toast } from 'react-toastify';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
@@ -42,6 +43,31 @@ const AuthLogin = ({ ...others }) => {
 
   const googleHandler = async () => {
     console.error('Login');
+  };
+  const handleLogin = async (values, { setSubmitting, setErrors }) => {
+    try {
+      console.log(values)
+      const response = await fakeLoginApi(values.email, values.password);
+      if (response.success) {
+        toast.success('Login successful')
+      } else {
+        toast.error(response.message)
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error("An error occured")
+    }
+  }
+  const fakeLoginApi = (email, password) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (email === "test@example.com" && password === "password") {
+          resolve({ success: true, token: "fakeToken123" });
+        } else {
+          resolve({ success: false, message: "login yoki parol noto'g'ri" });
+        }
+      }, 3000);
+    });
   };
 
   const [showPassword, setShowPassword] = useState(false);
@@ -124,6 +150,7 @@ const AuthLogin = ({ ...others }) => {
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
           password: Yup.string().max(255).required('Password is required')
         })}
+        onSubmit={handleLogin}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit} {...others}>

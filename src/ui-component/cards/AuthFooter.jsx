@@ -10,8 +10,8 @@ const AuthFooter = () => (
     <Typography variant="subtitle2" component={Link} href="https://berrydashboard.io" target="_blank" underline="hover">
       berrydashboard.io
     </Typography>
-    <Typography variant="subtitle2" component={Link} href="https://codedthemes.com" target="_blank" underline="hover">
-      &copy; codedthemes.com
+    <Typography variant="subtitle2" component={Link} href="https://t.me/oliy_ong_leader" target="_blank" underline="hover">
+      &copy; oliy_ong
     </Typography>
   </Stack>
 );
