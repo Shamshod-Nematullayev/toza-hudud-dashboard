@@ -1,15 +1,11 @@
 import MainCard from 'ui-component/cards/MainCard';
 import FileInputDrop from './FileInputDrop';
 import useStore from './useStore';
-import { useEffect } from 'react';
 import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
 
 function ImportPetition() {
   const { pdfFiles, currentFile } = useStore();
-  useEffect(() => {
-    console.log(pdfFiles, currentFile);
-  }, [pdfFiles]);
 
   return (
     <MainCard contentSX={{ height: '75vh' }}>
