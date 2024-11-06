@@ -8,7 +8,9 @@ const useStore = create((set) => ({
   setCurrentFile: (file_name) =>
     set((state) => {
       return { currentFile: state.pdfFiles.find(({ file }) => file.name == file_name) };
-    })
+    }),
+    ariza: {},
+    setAriza: ariza => set({ariza})
 }));
 
 export default useStore;

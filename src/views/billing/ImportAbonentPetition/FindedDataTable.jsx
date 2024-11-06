@@ -1,12 +1,14 @@
-import { Button, FormControl, IconButton, TextField, Typography } from '@mui/material';
+import { Button, FormControl, IconButton, TextField, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import useStore from './useStore';
 import api from 'utils/api';
-import LinkIcon from '@mui/icons-material/Link';
+import FileUploadOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
+import Visibility from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
 
 function KeyValue({ kalit, value }) {
   return (
@@ -20,10 +22,14 @@ function KeyValue({ kalit, value }) {
 }
 
 function FindedDataTable() {
-  const { currentFile, removePdfFile, setCurrentFile } = useStore();
+  const { currentFile, removePdfFile, setCurrentFile, ariza } = useStore();
   const [rows, setRows] = useState([]);
   const [licshetInput, setLicshetInput] = useState('');
   const [activeRow, setActiveRow] = useState({});
+  const [inputDisabled, setInputDisabled] = useState(true);
+  const [showSpoiler, setShowSpoiler] = useState(false)
+
+  const theme = useTheme()
 
   // Fetch data from API or any other source
   const fetchData = async () => {
@@ -57,6 +63,16 @@ function FindedDataTable() {
     }
   };
 
+  useEffect(() => {
+    if (ariza.isScanedFromQR) {
+      setInputDisabled(true);
+    } else setInputDisabled(false)
+
+    if (!currentFile.url) {
+      setInputDisabled(true)
+    }
+  }, [ariza])
+
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchData();
@@ -64,10 +80,6 @@ function FindedDataTable() {
   const handlePrimaryButtonClick = async (e) => {
     try {
       e.preventDefault();
-      if (!activeRow._id) {
-        toast.error('Sud akti tanlanmadi');
-        return;
-      }
       if (!currentFile.url) {
         toast.error('Fayl tanlanmadi');
         return;
@@ -81,8 +93,6 @@ function FindedDataTable() {
         toast.error(data.message);
         return;
       }
-      setActiveRow({});
-      setRows([]);
       removePdfFile(currentFile.file.name);
       setCurrentFile({});
       toast.success(data.message);
@@ -104,11 +114,11 @@ function FindedDataTable() {
     <div>
       <form onSubmit={handleSubmit}>
         <FormControl style={{ display: 'flex', flexDirection: 'row' }}>
-          <IconButton sx={{ padding: '15px' }}>
+          <IconButton sx={{ padding: '15px' }} >
             <RefreshOutlinedIcon />
           </IconButton>
           <TextField
-            // fullWidth
+            disabled={inputDisabled}
             variant="outlined"
             name="licshet_input"
             placeholder="Ariza raqami"
@@ -116,24 +126,28 @@ function FindedDataTable() {
             onChange={(e) => setLicshetInput(e.target.value)}
           />
           <Button sx={{ margin: 'auto 15px', padding: '15px 20px' }} onClick={handlePrimaryButtonClick}>
-            <LinkIcon />
-            Biriktirish
+            <FileUploadOutlinedIcon />
+            kiritish
           </Button>
           <Button sx={{ padding: '15px 20px', color: 'error.main' }} onClick={handleDeleteButtonClick}>
             <DeleteOutlinedIcon />
-            O'chirish
+            o'chirish
           </Button>
+          <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)}>
+            {showSpoiler ? <VisibilityOff /> : <Visibility />}
+          </IconButton>
         </FormControl>
       </form>
 
       <DataGrid
         columns={[
           { field: 'id', headerName: 't/r', width: 10 },
-          { field: 'licshet', headerName: 'Licshet', width: 120 },
-          { field: 'fio', headerName: 'F. I. Sh.', width: 250 },
-          { field: 'davo_summa', headerName: 'Davo Summasi', type: 'number', width: 80 },
-          { field: 'warningDate', headerName: 'Ogohlantirilgan Sanasi', type: 'date', width: 100 }
-          //   { field: 'actions', headerName: 'Harakatlar' }
+          { field: 'davr', headerName: 'davr' },
+          { field: 'saldo_n', headerName: 'saldo boshi', type: 'number' },
+          { field: 'nachis', headerName: 'Hisoblandi', type: 'number' },
+          { field: 'saldo_k', headerName: 'Saldo oxiri', type: 'number' },
+          { field: 'akt', headerName: 'Akt', type: 'number' },
+          { field: 'yashovchilar_soni', headerName: 'Yashovchi soni', type: 'number', width: 10 },
         ]}
         disableColumnFilter
         disableColumnSorting
@@ -143,11 +157,15 @@ function FindedDataTable() {
         onRowClick={(e) => setActiveRow(e.row)}
       />
       <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}>
+          <Typography variant="subtitle1" className="key">
+            <div>Akt summasi:</div>
+          </Typography>
+          <Typography className="value"><input type='text' style={{ background: "none", outline: "none", border: "none", color: theme.colors.darkTextPrimary }} x={console.log(useTheme().colors.darkTextPrimary)} defaultValue="15+1500" /></Typography>
+        </div>
         <KeyValue kalit={'Licshet'} value={activeRow.licshet} />
         <KeyValue kalit={'F. I. Sh'} value={activeRow.fio} />
-        <KeyValue kalit={'Davo summa'} value={activeRow.davo_summa?.toLocaleString()} />
-        <KeyValue kalit={'Mahalla'} value={activeRow.mfy_name} />
-        <KeyValue kalit={'Ogohlantirilgan sanasi'} value={activeRow.warningDate?.toLocaleDateString()} />
+        <KeyValue kalit={'Yashovchi soni'} value={activeRow.yashovchi_soni?.toLocaleString()} />
         <KeyValue kalit={'Yaratilgan sanasi'} value={activeRow.createdAt?.toLocaleDateString()} />
       </div>
     </div>
