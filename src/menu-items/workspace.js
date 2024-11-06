@@ -6,8 +6,18 @@ import BookIcon from '@mui/icons-material/BookOutlined';
 import MailIcon from '@mui/icons-material/MailOutline';
 import GavelIcon from '@mui/icons-material/GavelOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 //contans
-const icons = { ImportantDevicesOutlinedIcon, CalculateIcon, DoNotDisturbOnIcon, BookIcon, MailIcon, GavelIcon, FileDownloadOutlinedIcon };
+const icons = {
+  ImportantDevicesOutlinedIcon,
+  CalculateIcon,
+  DoNotDisturbOnIcon,
+  BookIcon,
+  MailIcon,
+  GavelIcon,
+  FileDownloadOutlinedIcon,
+  UploadFileOutlinedIcon
+};
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
 const billing = {
@@ -33,8 +43,14 @@ const billing = {
           title: `Ikkilamchi kodlarni o'chirish`,
           type: 'item',
           url: '/billing/deleteDublicate',
-          icon: icons.DoNotDisturbOnIcon,
-          target: true
+          icon: icons.DoNotDisturbOnIcon
+        },
+        {
+          id: 'importAbonentPetition',
+          title: 'Abonent arizalari kiritish',
+          type: 'item',
+          url: '/billing/importAbonentPetition',
+          icon: icons.UploadFileOutlinedIcon
         }
       ]
     },

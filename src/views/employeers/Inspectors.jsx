@@ -6,10 +6,10 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import useCustomizationStore from 'store/customizationStore';
 import ModalChoose from './ModalChoose';
+import api from 'utils/api';
 
 function Inspectors() {
   const [mahallalar, setMahallalar] = useState([]);
@@ -23,7 +23,7 @@ function Inspectors() {
 
   async function updateData() {
     try {
-      axios.get('/inspectors').then((res) => {
+      api.get('/inspectors').then((res) => {
         const result = [];
         res.data.rows.forEach((row) => {
           result.push({
@@ -98,7 +98,7 @@ function Inspectors() {
   };
   const handleDelete = async (mfy_id) => {
     try {
-      const { data } = await axios.post('/inspectors/unset-inspector-to-mfy/' + mfy_id);
+      const { data } = await api.post('/inspectors/unset-inspector-to-mfy/' + mfy_id);
 
       if (!data.ok) return toast.error(data.message);
       updateData();

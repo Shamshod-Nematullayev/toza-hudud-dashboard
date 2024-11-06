@@ -3,9 +3,9 @@ import { DataGrid } from '@mui/x-data-grid';
 import SelectInputComponent from './SelectInputComponent';
 import useStore from './useStore';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
 import PrintSection from './PrintSection';
+import api from 'utils/api';
 
 const formatDate = (data) => {
   const date = new Date(data);
@@ -63,7 +63,7 @@ function DataTable() {
   // ================================|HANDLE FUNCTIONS|==================================================
   const fetchData = async ({ filterModel = {} }) => {
     try {
-      const { data } = await axios.get('/sudAkts/', {
+      const { data } = await api.get('/sudAkts/', {
         params: { ...paginationModel, status: filterModel.value === 'Hammasi' ? '' : filterModel.value }
       });
       const rows = data.rows.map((row, i) => ({

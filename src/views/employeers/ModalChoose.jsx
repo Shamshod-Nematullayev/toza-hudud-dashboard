@@ -1,7 +1,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup } from '@mui/material';
-import axios from 'axios';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import api from 'utils/api';
 
 function ModalChoose({ openAddModal, setOpenAddModal, activeInspector, activeMFY, choosingMethod, forChoose, updateData }) {
   const [radioBtnValue, setRadioBtnValue] = useState(null);
@@ -14,7 +14,7 @@ function ModalChoose({ openAddModal, setOpenAddModal, activeInspector, activeMFY
     switch (choosingMethod) {
       case 'inspector':
         if (!activeMFY || !radioBtnValue) return toast.error(`Majburiy qiymatlar tanlanmagan`);
-        await axios.post('/inspectors/set-inspector-to-mfy/' + activeMFY, { inspector_id: radioBtnValue }).then(({ data }) => {
+        await api.post('/inspectors/set-inspector-to-mfy/' + activeMFY, { inspector_id: radioBtnValue }).then(({ data }) => {
           toast.success(data.message);
           handleCloseDialog();
           updateData();
@@ -22,7 +22,7 @@ function ModalChoose({ openAddModal, setOpenAddModal, activeInspector, activeMFY
         break;
       case 'mfy':
         if (!activeInspector || !radioBtnValue) return toast.error(`Majburiy qiymatlar tanlanmagan`);
-        axios.post('/inspectors/set-inspector-to-mfy/' + radioBtnValue, { inspector_id: activeInspector }).then(({ data }) => {
+        api.post('/inspectors/set-inspector-to-mfy/' + radioBtnValue, { inspector_id: activeInspector }).then(({ data }) => {
           if (!data.ok) return toast.error(data.message);
           toast.success(data.message);
           handleCloseDialog();

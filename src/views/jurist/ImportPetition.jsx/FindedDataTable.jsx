@@ -1,11 +1,11 @@
-import { Button, FormControl, ListItem, TextField, Typography } from '@mui/material';
+import { Button, FormControl, TextField, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import useStore from './useStore';
 import LinkIcon from '@mui/icons-material/Link';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import api from 'utils/api';
 
 function KeyValue({ kalit, value }) {
   return (
@@ -29,7 +29,7 @@ function FindedDataTable() {
     try {
       setActiveRow({});
       setRows([]);
-      const { data } = await axios.get('/sudAkts/search-by-licshet', { params: { licshet: licshetInput } });
+      const { data } = await api.get('/sudAkts/search-by-licshet', { params: { licshet: licshetInput } });
       if (!data.ok) {
         toast.error(data.message);
         return;
@@ -75,7 +75,7 @@ function FindedDataTable() {
       formData.append('file', currentFile.blob, currentFile.file.name);
       formData.append('sud_akt_id', activeRow._id);
 
-      const { data } = await axios.post('/sudAkts/upload-ariza-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const { data } = await api.post('/sudAkts/upload-ariza-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (!data.ok) {
         toast.error(data.message);
         return;

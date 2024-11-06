@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import config from 'config';
 
 const initialState = {
@@ -7,12 +8,20 @@ const initialState = {
   fontFamily: config.fontFamily,
   borderRadius: config.borderRadius,
   opened: true,
-  mode: "dark"
+  mode: 'dark'
 };
 
-const useCustomizationStore = create((set) => ({
-  customization: initialState,
-  setCustomization: (customization) => set((state) => ({ customization: { ...state.customization, ...customization } }))
-}));
+const useCustomizationStore = create(
+  persist(
+    (set) => ({
+      customization: initialState,
+      setCustomization: (customization) => set((state) => ({ customization: { ...state.customization, ...customization } }))
+    }),
+    {
+      name: 'customization-store',
+      storage: window.localStorage
+    }
+  )
+);
 
 export default useCustomizationStore;

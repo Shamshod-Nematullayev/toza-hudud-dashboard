@@ -4,10 +4,12 @@ import { lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import Inspectors from 'views/employeers/Inspectors';
-import Recalculate from 'views/billing';
+import Recalculate from 'views/billing/Recalculate';
+import DeleteDublicate from 'views/billing/DeleteDublicate';
 import WarningLetters from 'views/jurist/WarningLetters/index';
 import CourtProcesses from 'views/jurist/CourtProcesses/index';
 import ImportPetition from 'views/jurist/ImportPetition.jsx/index';
+import ImportAbonentPetition from 'views/billing/ImportAbonentPetition';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -83,6 +85,14 @@ const MainRoutes = {
         {
           path: 'recalculation',
           element: <Recalculate />
+        },
+        {
+          path: 'deleteDublicate',
+          element: <DeleteDublicate />
+        },
+        {
+          path: 'importAbonentPetition',
+          element: <ImportAbonentPetition />
         }
       ]
     },

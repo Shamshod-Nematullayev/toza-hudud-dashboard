@@ -32,6 +32,8 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Google from 'assets/images/icons/social-google.svg';
 import useCustomizationStore from 'store/customizationStore';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import api from 'utils/api';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
@@ -40,29 +42,34 @@ const AuthLogin = ({ ...others }) => {
   const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
   const { customization } = useCustomizationStore();
   const [checked, setChecked] = useState(true);
+  const navigate = useNavigate();
 
   const googleHandler = async () => {
     console.error('Login');
   };
   const handleLogin = async (values, { setSubmitting, setErrors }) => {
     try {
-      console.log(values)
-      const response = await fakeLoginApi(values.email, values.password);
-      if (response.success) {
-        toast.success('Login successful')
+      console.log(values);
+      // const response = await fakeLoginApi(values.email, values.password)
+      const { data } = await api.post('/auth/login', { login: values.email, password: values.password });
+      console.log(data);
+      if (data.ok) {
+        toast.success('Login successful');
+        sessionStorage.setItem('auth-token', data.token);
+        navigate('/');
       } else {
-        toast.error(response.message)
+        toast.error(data.message);
       }
     } catch (error) {
-      console.error(error)
-      toast.error("An error occured")
+      console.error(error);
+      toast.error('An error occured');
     }
-  }
+  };
   const fakeLoginApi = (email, password) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        if (email === "test@example.com" && password === "password") {
-          resolve({ success: true, token: "fakeToken123" });
+        if (email === 'test@example.com' && password === 'password') {
+          resolve({ success: true, token: 'fakeToken123' });
         } else {
           resolve({ success: false, message: "login yoki parol noto'g'ri" });
         }
@@ -135,7 +142,7 @@ const AuthLogin = ({ ...others }) => {
         </Grid>
         <Grid item xs={12} container alignItems="center" justifyContent="center">
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1">Sign in with Email address</Typography>
+            <Typography variant="subtitle1">Sign in with Email address | Login</Typography>
           </Box>
         </Grid>
       </Grid>
@@ -147,7 +154,7 @@ const AuthLogin = ({ ...others }) => {
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+          email: Yup.string().max(255).required('Email is required'),
           password: Yup.string().max(255).required('Password is required')
         })}
         onSubmit={handleLogin}

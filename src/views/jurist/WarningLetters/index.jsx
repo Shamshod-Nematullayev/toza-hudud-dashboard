@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import MainCard from 'ui-component/cards/MainCard';
 import useCustomizationStore from 'store/customizationStore';
 import { IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import EditModal from './EditModal';
+import api from 'utils/api';
 
 function WarningLetters() {
   const { customization } = useCustomizationStore();
@@ -69,7 +69,7 @@ function WarningLetters() {
   const fetchData = async (page, pageSize, sortModel) => {
     setShowBackrop(true);
     try {
-      const respond = await axios.get(`/sudAkts/hybrid-mails`, {
+      const respond = await api.get(`/sudAkts/hybrid-mails`, {
         params: {
           page: page + 1, // DataGrid uses 0-indexing, but your server expects 1-indexing
           limit: pageSize,

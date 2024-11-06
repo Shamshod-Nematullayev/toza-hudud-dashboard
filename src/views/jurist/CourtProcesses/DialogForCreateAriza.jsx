@@ -2,9 +2,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import useStore from './useStore';
+import api from 'utils/api';
 
 function DialogForCreateAriza({ showCreateArizaModal, handleCloseModal }) {
   // ==================STATES========================
@@ -15,7 +15,7 @@ function DialogForCreateAriza({ showCreateArizaModal, handleCloseModal }) {
   // =================HANDLERS=======================
   const handleSubmitButtonClick = async () => {
     const sudAktIds = selectedRows.map((row) => row._id);
-    const { data } = await axios.put('/sudAkts/create-many-ariza', {
+    const { data } = await api.put('/sudAkts/create-many-ariza', {
       sudAktIds,
       ariza_type: arizaType,
       ariza_date: arizaDate.$d
