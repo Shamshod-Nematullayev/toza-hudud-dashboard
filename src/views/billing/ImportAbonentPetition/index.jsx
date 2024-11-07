@@ -8,7 +8,7 @@ function ImportAbonentPetition() {
   const { pdfFiles, currentFile } = useStore();
 
   return (
-    <MainCard contentSX={{ minHieght: '75vh' }}>
+    <MainCard contentSX={{ height: '75vh' }}>
       {pdfFiles.length == 0 ? (
         <FileInputDrop />
       ) : (

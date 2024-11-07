@@ -7,6 +7,7 @@ import MailIcon from '@mui/icons-material/MailOutline';
 import GavelIcon from '@mui/icons-material/GavelOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
+import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 //contans
 const icons = {
   ImportantDevicesOutlinedIcon,
@@ -16,7 +17,8 @@ const icons = {
   MailIcon,
   GavelIcon,
   FileDownloadOutlinedIcon,
-  UploadFileOutlinedIcon
+  UploadFileOutlinedIcon,
+  NoteAddOutlinedIcon
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -31,6 +33,13 @@ const billing = {
       type: 'collapse',
       icon: icons.ImportantDevicesOutlinedIcon,
       children: [
+        {
+          id: 'createAbonentAriza',
+          title: 'Abonent arizasi yaratish',
+          type: 'item',
+          url: '/billing/createAbonentAriza',
+          icon: icons.NoteAddOutlinedIcon
+        },
         {
           id: 'recalculation',
           title: 'Qayta hisob-kitob',

@@ -10,6 +10,7 @@ import WarningLetters from 'views/jurist/WarningLetters/index';
 import CourtProcesses from 'views/jurist/CourtProcesses/index';
 import ImportPetition from 'views/jurist/ImportPetition.jsx/index';
 import ImportAbonentPetition from 'views/billing/ImportAbonentPetition';
+import CreateAbonentPetition from 'views/billing/CreateAbonentPetition.jsx';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -82,6 +83,10 @@ const MainRoutes = {
     {
       path: 'billing',
       children: [
+        {
+          path: 'createAbonentAriza',
+          element: <CreateAbonentPetition />
+        },
         {
           path: 'recalculation',
           element: <Recalculate />

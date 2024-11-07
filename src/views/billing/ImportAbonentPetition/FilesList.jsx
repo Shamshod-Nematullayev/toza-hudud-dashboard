@@ -25,17 +25,15 @@ function FilesList() {
       if (data.result.split('_')[0] !== 'ariza') {
         return toast.error("Noma'lum QR kod");
       }
-      let ariza = await api.get('/arizalar/get-ariza-by-id/' + data.result.split("_"))[1];
+      let ariza = (await api.get('/arizalar/get-ariza-by-id/' + data.result.split('_')[1])).data;
       if (!ariza.ok) {
-        return toast.error(ariza.message)
+        return toast.error(ariza.message);
       }
-      ariza = ariza.ariza
-      if (ariza.document_number != response.result.split("_")[2]) {
-        return toast.error(
-          "QR koddagi va bazadagi ariza raqamlari o'zaro mos emas"
-        );
+      ariza = ariza.ariza;
+      if (ariza.document_number != data.result.split('_')[2]) {
+        return toast.error("QR koddagi va bazadagi ariza raqamlari o'zaro mos emas");
       }
-      setAriza({ ...ariza, isScanedFromQR: true })
+      setAriza({ ...ariza, isScanedFromQR: true });
       setCurrentFile(file_name);
     } catch (error) {
       console.error(error);
