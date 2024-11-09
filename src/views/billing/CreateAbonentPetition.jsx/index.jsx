@@ -3,6 +3,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import PrintSection from './PrintSection';
 import InputForm from './InputForm';
 import DHJTable from './DHJTable';
+import Recalculate from './Recalculate';
 
 function CreateAbonentPetition() {
   return (
@@ -13,6 +14,7 @@ function CreateAbonentPetition() {
           <DHJTable />
         </div>
         <InputForm />
+        <Recalculate />
       </div>
     </MainCard>
   );
