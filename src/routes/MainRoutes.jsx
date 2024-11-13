@@ -11,6 +11,7 @@ import CourtProcesses from 'views/jurist/CourtProcesses/index';
 import ImportPetition from 'views/jurist/ImportPetition.jsx/index';
 import ImportAbonentPetition from 'views/billing/ImportAbonentPetition';
 import CreateAbonentPetition from 'views/billing/CreateAbonentPetition.jsx';
+import PrintAbonentsList from 'views/billing/PrintAbonentsList';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -98,6 +99,10 @@ const MainRoutes = {
         {
           path: 'importAbonentPetition',
           element: <ImportAbonentPetition />
+        },
+        {
+          path: 'printAbonentsList',
+          element: <PrintAbonentsList />
         }
       ]
     },

@@ -8,6 +8,7 @@ import GavelIcon from '@mui/icons-material/GavelOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
+import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 //contans
 const icons = {
   ImportantDevicesOutlinedIcon,
@@ -18,7 +19,8 @@ const icons = {
   GavelIcon,
   FileDownloadOutlinedIcon,
   UploadFileOutlinedIcon,
-  NoteAddOutlinedIcon
+  NoteAddOutlinedIcon,
+  PrintOutlinedIcon
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -60,6 +62,13 @@ const billing = {
           type: 'item',
           url: '/billing/importAbonentPetition',
           icon: icons.UploadFileOutlinedIcon
+        },
+        {
+          id: 'printAbonentsList',
+          title: "Abonentlar ro'yxatini chop etish",
+          type: 'item',
+          url: '/billing/printAbonentsList',
+          icon: icons.PrintOutlinedIcon
         }
       ]
     },
