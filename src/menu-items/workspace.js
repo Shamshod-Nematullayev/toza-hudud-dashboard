@@ -68,7 +68,8 @@ const billing = {
           title: "Abonentlar ro'yxatini chop etish",
           type: 'item',
           url: '/billing/printAbonentsList',
-          icon: icons.PrintOutlinedIcon
+          icon: icons.PrintOutlinedIcon,
+          breadcrumbs: false
         }
       ]
     },
