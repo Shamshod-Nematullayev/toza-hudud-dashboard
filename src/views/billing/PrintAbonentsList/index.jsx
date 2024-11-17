@@ -36,7 +36,7 @@ table {
 }
 @page {
   size: portrait;
-  margin: 15px 20px 10px 15px;
+  margin: 20px 25px 20px 20px;
 }
 `;
 

@@ -12,7 +12,9 @@ import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
 
 function KeyValue({ kalit, value }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}>
+    <div
+      style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0 0 0', borderBottom: '1px solid #ccc' }}
+    >
       <Typography variant="subtitle1" className="key">
         <div>{kalit}:</div>
       </Typography>
@@ -20,75 +22,140 @@ function KeyValue({ kalit, value }) {
     </div>
   );
 }
+const counterDiffMonth = function (initialDate) {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  const initialYear = initialDate.getFullYear();
+  const initialMonth = initialDate.getMonth();
+  return (currentYear - initialYear) * 12 - (currentMonth - initialMonth);
+};
 
 function FindedDataTable() {
-  const { currentFile, removePdfFile, setCurrentFile, ariza } = useStore();
+  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza } = useStore();
   const [rows, setRows] = useState([]);
-  const [licshetInput, setLicshetInput] = useState('');
-  const [activeRow, setActiveRow] = useState({});
+  const [arizaNumberInput, setArizaNumberInput] = useState('');
   const [inputDisabled, setInputDisabled] = useState(true);
-  const [showSpoiler, setShowSpoiler] = useState(false)
+  const [showSpoiler, setShowSpoiler] = useState(false);
+  const [aktSumm, setAktSumm] = useState('');
+  const [rowAfterAkt, setRowAfterAkt] = useState();
 
-  const theme = useTheme()
-
-  // Fetch data from API or any other source
-  const fetchData = async () => {
-    try {
-      setActiveRow({});
-      setRows([]);
-      const { data } = await api.get('/sudAkts/search-by-licshet', { params: { licshet: licshetInput } });
-      if (!data.ok) {
-        toast.error(data.message);
-        return;
-      }
-      if (data.rows.length < 1) {
-        toast.info('No results found');
-        return;
-      }
-      const rows = data.rows.map((row, i) => {
-        return {
-          id: i + 1,
-          ...row,
-          warningDate: new Date(row.warningDate),
-          createdAt: new Date(row.createdAt)
-        };
-      });
-      if (rows.length == 1) {
-        setActiveRow(rows[0]);
-      }
-      setRows(rows);
-    } catch (err) {
-      toast.error("Couldn't fetch data");
-      console.error(err);
-    }
-  };
+  const theme = useTheme();
 
   useEffect(() => {
-    if (ariza.isScanedFromQR) {
-      setInputDisabled(true);
-    } else setInputDisabled(false)
+    api
+      .get('/billing/get-abonent-dxj-by-licshet/' + ariza.licshet)
 
-    if (!currentFile.url) {
-      setInputDisabled(true)
+      .catch((err) => {
+        toast.error(err.message);
+      })
+      .then(({ data }) => {
+        if (!data.ok) {
+          toast.error(data.message || 'Xatolik kuzatildi');
+          return;
+        }
+        setShowSpoiler(false);
+        setRows(
+          data.rows.map((row, i) => ({
+            id: i + 1,
+            davr: row.period,
+            saldo_n: row.nSaldo,
+            nachis: row.accrual,
+            saldo_k: row.kSaldo,
+            akt: row.actAmount,
+            yashovchilar_soni: row.inhabitantCount,
+            allPaymentsSum: row.allPaymentsSum
+          }))
+        );
+        setRowAfterAkt(
+          data.rows.map((row, i) => ({
+            id: i + 1,
+            davr: row.period,
+            saldo_n: row.nSaldo,
+            nachis: row.accrual,
+            saldo_k: row.kSaldo,
+            akt: row.actAmount,
+            yashovchilar_soni: row.inhabitantCount,
+            allPaymentsSum: row.allPaymentsSum
+          }))[0]
+        );
+      });
+    const diffMonth = counterDiffMonth(new Date(ariza.sana));
+    const lateAktSumm =
+      (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) *
+      4625 *
+      diffMonth;
+    if (lateAktSumm > 0) {
+      setAktSumm(ariza.aktSummasi + '+' + lateAktSumm);
+    } else {
+      setAktSumm(ariza.aktSummasi);
     }
-  }, [ariza])
+    if (ariza.isScanedFromQR) {
+      setArizaNumberInput(ariza.document_number);
+      setInputDisabled(true);
+    } else setInputDisabled(false);
+
+    if (!currentFile?.url) {
+      setInputDisabled(true);
+    }
+  }, [ariza]);
+
+  useEffect(() => {
+    const joriyTarif = 4624;
+    if (showSpoiler) {
+      const yashovchilar_soni = isNaN(ariza.next_prescribed_cnt) ? rowAfterAkt.yashovchilar_soni : ariza.next_prescribed_cnt;
+      const nachis = isNaN(yashovchilar_soni) ? rowAfterAkt.nachis : joriyTarif * yashovchilar_soni;
+      setRowAfterAkt({
+        id: 1,
+        davr: rowAfterAkt.davr,
+        saldo_n: rowAfterAkt.saldo_n,
+        nachis,
+        saldo_k: rowAfterAkt.saldo_n + nachis - rowAfterAkt.allPaymentsSum - eval(aktSumm),
+        akt: rowAfterAkt.akt + eval(aktSumm),
+        yashovchilar_soni: yashovchilar_soni,
+        allPaymentsSum: rowAfterAkt.allPaymentsSum
+      });
+    } else {
+      setRowAfterAkt(rows[0]);
+    }
+  }, [showSpoiler]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchData();
   };
+  const handleClickRefreshButton = async (e) => {
+    try {
+      const { data } = await api.get('/arizalar/get-ariza-by-document-number/' + arizaNumberInput);
+      if (!data.ok) {
+        toast.error(data.message);
+        return;
+      }
+      setAriza(data.ariza);
+    } catch (err) {
+      console.log(err);
+      toast.error("Serverga so'rov yuborilmadi");
+    }
+  };
   const handlePrimaryButtonClick = async (e) => {
     try {
       e.preventDefault();
-      if (!currentFile.url) {
+      if (!currentFile?.url) {
         toast.error('Fayl tanlanmadi');
         return;
       }
       const formData = new FormData();
       formData.append('file', currentFile.blob, currentFile.file.name);
-      formData.append('sud_akt_id', activeRow._id);
+      formData.append('document_type', ariza.document_type);
+      formData.append('ariza_id', ariza._id);
+      formData.append('licshet', ariza.licshet);
+      formData.append('next_inhabitant_count', ariza.next_prescribed_cnt);
+      formData.append('akt_sum', eval(aktSumm));
+      formData.append('description', 'fuqaro arizasi ' + ariza.comment);
 
-      const { data } = await api.post('/sudAkts/upload-ariza-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const { data } = await api.post('/billing/create-full-akt', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       if (!data.ok) {
         toast.error(data.message);
         return;
@@ -98,23 +165,25 @@ function FindedDataTable() {
       toast.success(data.message);
     } catch (err) {
       console.error(err);
-      toast.error("Serverga so'rov yuborilmadi");
     }
   };
   const handleDeleteButtonClick = async () => {
-    if (!currentFile.url) {
+    if (!currentFile?.url) {
       toast.error('Fayl tanlanmadi');
       return;
     }
     removePdfFile(currentFile.file.name);
     setCurrentFile({});
-    setLicshetInput('');
+    setAriza({});
+    setArizaNumberInput('');
+    setRows([]);
+    setAktSumm('');
   };
   return (
     <div>
       <form onSubmit={handleSubmit}>
         <FormControl style={{ display: 'flex', flexDirection: 'row' }}>
-          <IconButton sx={{ padding: '15px' }} >
+          <IconButton sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
             <RefreshOutlinedIcon />
           </IconButton>
           <TextField
@@ -122,10 +191,14 @@ function FindedDataTable() {
             variant="outlined"
             name="licshet_input"
             placeholder="Ariza raqami"
-            value={licshetInput}
-            onChange={(e) => setLicshetInput(e.target.value)}
+            value={arizaNumberInput}
+            onChange={(e) => setArizaNumberInput(e.target.value)}
           />
-          <Button sx={{ margin: 'auto 15px', padding: '15px 20px' }} onClick={handlePrimaryButtonClick}>
+          <Button
+            sx={{ margin: 'auto 15px', padding: '15px 20px' }}
+            onClick={handlePrimaryButtonClick}
+            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false : true}
+          >
             <FileUploadOutlinedIcon />
             kiritish
           </Button>
@@ -134,40 +207,50 @@ function FindedDataTable() {
             o'chirish
           </Button>
           <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)}>
-            {showSpoiler ? <VisibilityOff /> : <Visibility />}
+            {showSpoiler ? <Visibility /> : <VisibilityOff />}
           </IconButton>
         </FormControl>
       </form>
-
+      <div>
+        <div
+          style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}
+        >
+          <Typography variant="subtitle1" className="key">
+            <div>Akt summasi:</div>
+          </Typography>
+          <Typography className="value">
+            <input
+              type="text"
+              style={{ background: 'none', outline: 'none', border: 'none', color: theme.colors.darkTextPrimary, textAlign: 'right' }}
+              x={console.log(useTheme().colors.darkTextPrimary)}
+              value={aktSumm}
+              onChange={(e) => setAktSumm(e.target.value)}
+            />
+          </Typography>
+        </div>
+        <KeyValue kalit={'Licshet'} value={ariza.licshet} />
+        <KeyValue kalit={'F. I. Sh'} value={ariza.fio} />
+        <KeyValue kalit={'Yashovchi soni'} value={ariza.next_prescribed_cnt} />
+        <KeyValue kalit={'Yaratilgan sanasi'} value={new Date(ariza.sana)?.toLocaleDateString()} />
+        <KeyValue kalit={'Ariza holati'} value={ariza.status} />
+      </div>
       <DataGrid
         columns={[
           { field: 'id', headerName: 't/r', width: 10 },
           { field: 'davr', headerName: 'davr' },
           { field: 'saldo_n', headerName: 'saldo boshi', type: 'number' },
           { field: 'nachis', headerName: 'Hisoblandi', type: 'number' },
+          { field: 'allPaymentsSum', headerName: 'Tushum', type: 'number' },
           { field: 'saldo_k', headerName: 'Saldo oxiri', type: 'number' },
           { field: 'akt', headerName: 'Akt', type: 'number' },
-          { field: 'yashovchilar_soni', headerName: 'Yashovchi soni', type: 'number', width: 10 },
+          { field: 'yashovchilar_soni', headerName: 'Yashovchi soni', type: 'number', width: 10 }
         ]}
         disableColumnFilter
         disableColumnSorting
         hideFooter
-        rows={rows}
-        style={{ margin: '25px auto', height: '30vh' }}
-        onRowClick={(e) => setActiveRow(e.row)}
+        rows={rows.length > 0 ? [rowAfterAkt, ...rows.slice(1)] : []}
+        style={{ margin: '0 auto', height: '40vh' }}
       />
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}>
-          <Typography variant="subtitle1" className="key">
-            <div>Akt summasi:</div>
-          </Typography>
-          <Typography className="value"><input type='text' style={{ background: "none", outline: "none", border: "none", color: theme.colors.darkTextPrimary }} x={console.log(useTheme().colors.darkTextPrimary)} defaultValue="15+1500" /></Typography>
-        </div>
-        <KeyValue kalit={'Licshet'} value={activeRow.licshet} />
-        <KeyValue kalit={'F. I. Sh'} value={activeRow.fio} />
-        <KeyValue kalit={'Yashovchi soni'} value={activeRow.yashovchi_soni?.toLocaleString()} />
-        <KeyValue kalit={'Yaratilgan sanasi'} value={activeRow.createdAt?.toLocaleDateString()} />
-      </div>
     </div>
   );
 }
