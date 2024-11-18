@@ -11,7 +11,7 @@ dayjs.locale('uz-latn');
 function Recalculate() {
   const [currentTotal, setCurrentTotal] = React.useState(0);
   const [startDate, setStartDate] = React.useState({});
-  const [endDate, setEndDate] = React.useState({});
+  const [endDate, setEndDate] = React.useState(dayjs());
   const qaytaHisob = ({ fromMoon, fromYear, toMoon, toYear, yashovchilar = 1 }) => {
     let summ = 0;
     let nds = 0;
@@ -68,13 +68,19 @@ function Recalculate() {
             maxDate={dayjs()}
             label="gacha"
             sx={{ margin: 'auto 10px' }}
+            defaultValue={dayjs()}
             onChange={(e) => handleDatePickerChange(e, 'to')}
           />
         </LocalizationProvider>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', margin: '20px auto' }}>
         <IconButton sx={{ margin: 'auto 10px' }}>
           <ArrowCircleDownIcon sx={{ color: 'green', fontSize: '30px' }} />
         </IconButton>
-        <Typography>{currentTotal}</Typography>
+        <Typography variant="h3" sx={{ minWidth: 300 }}>
+          {currentTotal}
+        </Typography>
+        <Typography variant="h2">Jami: {currentTotal} so`m</Typography>
       </div>
     </div>
   );

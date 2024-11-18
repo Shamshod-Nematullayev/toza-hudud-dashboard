@@ -3,9 +3,11 @@ import FileInputDrop from './FileInputDrop';
 import useStore from './useStore';
 import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
+import CancelDialog from './CancelDialog';
+import { useState } from 'react';
 
 function ImportAbonentPetition() {
-  const { pdfFiles, currentFile } = useStore();
+  const { pdfFiles, currentFile, showDialog, setShowDialog } = useStore();
 
   return (
     <MainCard contentSX={{ height: '75vh' }}>
@@ -18,6 +20,7 @@ function ImportAbonentPetition() {
           <FindedDataTable />
         </div>
       )}
+      <CancelDialog showDialog={showDialog} setShowDialog={setShowDialog} />
     </MainCard>
   );
 }

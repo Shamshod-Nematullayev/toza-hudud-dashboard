@@ -2,6 +2,7 @@ import { Button, FormControl, MenuItem, Select, TextField, Typography, useTheme 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
+import useStore from './useStore';
 
 function KeyValue({ kalit, value }) {
   return (
@@ -15,17 +16,13 @@ function KeyValue({ kalit, value }) {
 }
 
 function InputForm() {
-  const [aktType, setAktType] = useState('odam_soni');
+  const { aktType, setAktType, abonentData, setAbonentData, abonentData2, setAbonentData2 } = useStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const [yashovchiSoniInput, setYashovchiSoniInput] = useState('');
   const [aktSummaInput, setAktSummaInput] = useState('');
   const inputRef = React.useRef(null);
   const dublicateLicshetInput = React.useRef(null);
-  const [abonentData, setAbonentData] = useState({});
-  const [abonentData2, setAbonentData2] = useState({});
-  const [createButtonDisabled, setCreateButtonDisabled] = useState(true);
-  const theme = useTheme();
 
   const handleFocus = (e, type) => {
     if (!e.target.value) {
@@ -82,6 +79,8 @@ function InputForm() {
         setAbonentData(data.abonentData);
       }
       fetchData();
+    } else {
+      setAbonentData({});
     }
   }, [licshet]);
   useEffect(() => {
@@ -95,6 +94,8 @@ function InputForm() {
         setAbonentData2(data.abonentData);
       }
       fetchData();
+    } else {
+      setAbonentData2({});
     }
   }, [dublicateLicshet]);
 
@@ -161,7 +162,12 @@ function InputForm() {
       </div>
       <div style={{ margin: 'auto 20px' }}>
         <FormControl sx={{ display: 'flex', flexDirection: 'row' }}>
-          <Button variant="contained" color={'primary'} sx={{ margin: '10px 20px' }}>
+          <Button
+            variant="contained"
+            color={'primary'}
+            sx={{ margin: '10px 20px' }}
+            disabled={!abonentData.licshet || (aktType == 'dvaynik' && !abonentData2.licshet)}
+          >
             Yaratish
           </Button>
           <Button variant="outlined" color={'error'} sx={{ margin: '10px 0' }} onClick={handleClearButtonClick}>

@@ -32,13 +32,14 @@ const counterDiffMonth = function (initialDate) {
 };
 
 function FindedDataTable() {
-  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza } = useStore();
+  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog } = useStore();
   const [rows, setRows] = useState([]);
   const [arizaNumberInput, setArizaNumberInput] = useState('');
   const [inputDisabled, setInputDisabled] = useState(true);
   const [showSpoiler, setShowSpoiler] = useState(false);
   const [aktSumm, setAktSumm] = useState('');
   const [rowAfterAkt, setRowAfterAkt] = useState();
+  const [isUploading, setIsUploading] = useState(false);
 
   const theme = useTheme();
 
@@ -140,6 +141,7 @@ function FindedDataTable() {
   const handlePrimaryButtonClick = async (e) => {
     try {
       e.preventDefault();
+      setIsUploading(true);
       if (!currentFile?.url) {
         toast.error('Fayl tanlanmadi');
         return;
@@ -162,6 +164,8 @@ function FindedDataTable() {
       }
       removePdfFile(currentFile.file.name);
       setCurrentFile({});
+      setAriza({});
+      setIsUploading(false);
       toast.success(data.message);
     } catch (err) {
       console.error(err);
@@ -197,14 +201,22 @@ function FindedDataTable() {
           <Button
             sx={{ margin: 'auto 15px', padding: '15px 20px' }}
             onClick={handlePrimaryButtonClick}
-            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false : true}
+            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false && isUploading : true}
           >
             <FileUploadOutlinedIcon />
             kiritish
           </Button>
-          <Button sx={{ padding: '15px 20px', color: 'error.main' }} onClick={handleDeleteButtonClick}>
+          <Button sx={{ padding: '15px 20px', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
             <DeleteOutlinedIcon />
-            o'chirish
+            faylni o'chirish
+          </Button>
+          <Button
+            sx={{ padding: '15px 20px', color: 'error.main' }}
+            onClick={() => setShowDialog(true)}
+            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false && isUploading : true}
+          >
+            <DeleteOutlinedIcon />
+            bekor qilish
           </Button>
           <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)}>
             {showSpoiler ? <Visibility /> : <VisibilityOff />}
