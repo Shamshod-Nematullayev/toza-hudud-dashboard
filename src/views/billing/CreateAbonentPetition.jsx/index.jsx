@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import PrintSection from './PrintSection';
 import InputForm from './InputForm';
 import DHJTable from './DHJTable';
 import Recalculate from './Recalculate';
-import CancelDialog from '../ImportAbonentPetition/CancelDialog';
 import useStore from './useStore';
 
 function CreateAbonentPetition() {
-  const { aktType, abonentData, abonentData2 } = useStore();
+  const { aktType, abonentData, abonentData2, showPrintSection } = useStore();
   return (
     <MainCard>
-      {/* <PrintSection /> */}
+      <PrintSection show={showPrintSection} />
       <div style={{ display: 'flex' }}>
         <InputForm />
 

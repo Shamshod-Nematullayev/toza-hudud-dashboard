@@ -16,13 +16,62 @@ function KeyValue({ kalit, value }) {
 }
 
 function InputForm() {
-  const { aktType, setAktType, abonentData, setAbonentData, abonentData2, setAbonentData2 } = useStore();
+  const { aktType, setAktType, abonentData, setAbonentData, abonentData2, setAbonentData2, recalculationPeriods, setShowPrintSection } =
+    useStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const [yashovchiSoniInput, setYashovchiSoniInput] = useState('');
-  const [aktSummaInput, setAktSummaInput] = useState('');
+  const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
   const inputRef = React.useRef(null);
   const dublicateLicshetInput = React.useRef(null);
+  const [aktSummaInputDisabled, setAktSummaInputDisabled] = useState(true);
+
+  useEffect(() => {
+    if (String(licshet).length === 12) {
+      async function fetchData() {
+        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + licshet);
+        if (!data.ok) {
+          toast.error(data.message);
+          return;
+        }
+        setAbonentData(data.abonentData);
+      }
+      fetchData();
+    } else {
+      setAbonentData({});
+    }
+  }, [licshet]);
+
+  useEffect(() => {
+    let total = 0;
+    let totalWithQQS = 0;
+    let withoutQQSTotal = 0;
+    recalculationPeriods.forEach((period) => {
+      total += period.total;
+      totalWithQQS += period.withQQSTotal;
+      withoutQQSTotal += period.withoutQQSTotal;
+    });
+    setAktSummaInput({
+      total,
+      totalWithQQS,
+      withoutQQSTotal
+    });
+  }, [recalculationPeriods]);
+  useEffect(() => {
+    if (String(dublicateLicshet).length === 12) {
+      async function fetchData() {
+        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + dublicateLicshet);
+        if (!data.ok) {
+          toast.error(data.message);
+          return;
+        }
+        setAbonentData2(data.abonentData);
+      }
+      fetchData();
+    } else {
+      setAbonentData2({});
+    }
+  }, [dublicateLicshet]);
 
   const handleFocus = (e, type) => {
     if (!e.target.value) {
@@ -59,6 +108,14 @@ function InputForm() {
     }
   };
 
+  const handleGetAktSummButtonClick = (e) => {
+    if (aktType === 'odam_soni' && yashovchiSoniInput === '') {
+      return toast.error('Yashovchi soniga qiymat kiritilmadi');
+    }
+    console.log(isNaN(yashovchiSoniInput), { yashovchiSoniInput });
+    setShowPrintSection(true);
+  };
+
   const handleClearButtonClick = (e) => {
     setLicshet('');
     setDublicateLicshet('');
@@ -68,40 +125,9 @@ function InputForm() {
     setAktSummaInput('');
   };
 
-  useEffect(() => {
-    if (String(licshet).length === 12) {
-      async function fetchData() {
-        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + licshet);
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        setAbonentData(data.abonentData);
-      }
-      fetchData();
-    } else {
-      setAbonentData({});
-    }
-  }, [licshet]);
-  useEffect(() => {
-    if (String(dublicateLicshet).length === 12) {
-      async function fetchData() {
-        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + dublicateLicshet);
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        setAbonentData2(data.abonentData);
-      }
-      fetchData();
-    } else {
-      setAbonentData2({});
-    }
-  }, [dublicateLicshet]);
-
   return (
     <div style={{ margin: '25px', width: '25%', borderRight: '1px solid #ccc' }}>
-      <div style={{ height: 200 }}>
+      <div style={{ height: 200, display: 'flex' }}>
         <FormControl sx={{ margin: 'auto 20px', width: 190 }}>
           <Select value={aktType} onChange={(e) => setAktType(e.target.value)}>
             <MenuItem value="odam_soni">Odam soni</MenuItem>
@@ -122,7 +148,8 @@ function InputForm() {
           <TextField
             label="Aktlar summasi"
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
-            value={aktSummaInput}
+            value={aktSumma.total}
+            disabled={aktSummaInputDisabled}
             onChange={(e) => {
               if (!isNaN(e.target.value)) {
                 setAktSummaInput(e.target.value);
@@ -130,7 +157,7 @@ function InputForm() {
             }}
           />
         </FormControl>
-        <FormControl>
+        <FormControl sx={{ margin: 'auto 20px', width: 190 }}>
           <TextField
             label="Hisob raqam"
             inputRef={inputRef}
@@ -167,6 +194,7 @@ function InputForm() {
             color={'primary'}
             sx={{ margin: '10px 20px' }}
             disabled={!abonentData.licshet || (aktType == 'dvaynik' && !abonentData2.licshet)}
+            onClick={handleGetAktSummButtonClick}
           >
             Yaratish
           </Button>

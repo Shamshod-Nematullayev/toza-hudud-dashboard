@@ -66,8 +66,9 @@ function FilesList() {
       // pdfjsLib yordamida PDFni yuklash
       const data = await extractQRCodeFromPDF(pdfData);
 
+      setCurrentFile(file_name);
       if (!data.ok) {
-        return toast.error(response.result);
+        return toast.error(data.message);
       }
       if (data.result.split('_')[0] !== 'ariza') {
         return toast.error("Noma'lum QR kod");
@@ -81,7 +82,6 @@ function FilesList() {
         return toast.error("QR koddagi va bazadagi ariza raqamlari o'zaro mos emas");
       }
       setAriza({ ...ariza, isScanedFromQR: true });
-      setCurrentFile(file_name);
     } catch (error) {
       console.error(error);
       toast.error('An error occurred');

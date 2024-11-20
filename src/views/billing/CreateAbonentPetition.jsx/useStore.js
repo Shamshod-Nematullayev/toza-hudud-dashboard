@@ -3,6 +3,8 @@ import { create } from 'zustand';
 const useStore = create((set) => ({
   aktType: 'odam_soni',
   setAktType: (aktType) => set({ aktType }),
+  showPrintSection: false,
+  setShowPrintSection: (state) => set({ showPrintSection: state }),
   rows: [],
   setRows: (files) => set({ rows: files }),
   rowsDublicat: [],
@@ -10,7 +12,9 @@ const useStore = create((set) => ({
   abonentData: {},
   setAbonentData: (data) => set({ abonentData: data }),
   abonentData2: {},
-  setAbonentData2: (data) => set({ abonentData2: data })
+  setAbonentData2: (data) => set({ abonentData2: data }),
+  recalculationPeriods: [],
+  setRecalculationPeriods: (data) => set({ recalculationPeriods: data })
 }));
 
 export default useStore;

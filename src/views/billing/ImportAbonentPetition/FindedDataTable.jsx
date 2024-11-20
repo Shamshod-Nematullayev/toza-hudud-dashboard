@@ -159,6 +159,7 @@ function FindedDataTable() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (!data.ok) {
+        setIsUploading(false);
         toast.error(data.message);
         return;
       }
@@ -201,7 +202,7 @@ function FindedDataTable() {
           <Button
             sx={{ margin: 'auto 15px', padding: '15px 20px' }}
             onClick={handlePrimaryButtonClick}
-            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false && isUploading : true}
+            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false || isUploading : true}
           >
             <FileUploadOutlinedIcon />
             kiritish

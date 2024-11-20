@@ -3,6 +3,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import styled from 'styled-components';
 import { kirillga } from '../../../helpers/lotinKiril';
 import { Button, Dialog, DialogActions, DialogContent } from '@mui/material';
+import useStore from './useStore';
 const StyledTable = styled.table`
   margin: auto;
   width: 100%;
@@ -441,16 +442,25 @@ function renderSwitch({
   }
 }
 
-function PrintSection({ componentRef, ...props }) {
+function PrintSection({ componentRef, show, ...props }) {
+  const { setShowPrintSection } = useStore();
   return (
-    <Dialog open>
+    <Dialog
+      open={show}
+      sx={{
+        '& .MuiDialog-paper': {
+          width: '80%', // kenglikni belgilash
+          maxWidth: '800px' // maksimal kenglik
+        }
+      }}
+    >
       <DialogContent style={{ margin: '40px 55px', fontSize: 14 }}>
         <div id="print" ref={componentRef}>
           {renderSwitch(props)}
         </div>
       </DialogContent>
       <DialogActions>
-        <Button>Chiqish</Button>
+        <Button onClick={() => setShowPrintSection(false)}>Chiqish</Button>
         <Button variant="contained" color="primary">
           Chop etish
         </Button>

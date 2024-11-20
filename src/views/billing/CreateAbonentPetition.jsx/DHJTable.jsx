@@ -2,7 +2,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import useStore from './useStore';
 import api from 'utils/api';
-import { Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 
 function DHJTable({ abonentData, title }) {
   const [rows, setRows] = useState([]);
@@ -28,7 +28,7 @@ function DHJTable({ abonentData, title }) {
     }
   }, [abonentData]);
   return (
-    <div style={{ minHeight: 700, maxHeight: '70vh', display: 'flex', flexDirection: 'column', margin: 'auto 10px' }}>
+    <Stack sx={{ display: 'flex', flexDirection: 'column', margin: 'auto 10px', minHeight: 700, maxHeight: '70vh' }}>
       <Typography variant="h3">{title}</Typography>
       <DataGrid
         columns={[
@@ -45,11 +45,10 @@ function DHJTable({ abonentData, title }) {
         hideFooter
         rows={rows}
         sx={{
-          margin: '25px auto',
-          height: '100%'
+          margin: '25px auto'
         }}
       />
-    </div>
+    </Stack>
   );
 }
 

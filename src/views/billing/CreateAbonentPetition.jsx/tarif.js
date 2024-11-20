@@ -62,13 +62,13 @@ export default [
   { month: 1, year: 2024, hisoblandi: 4129 },
   { month: 2, year: 2024, hisoblandi: 4129 },
   { month: 3, year: 2024, hisoblandi: 4129 },
-  { month: 4, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 5, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 6, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 7, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 8, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 9, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 10, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 11, year: 2024, hisoblandi: 4624, nds: 555 },
-  { month: 12, year: 2024, hisoblandi: 4624, nds: 555 }
+  { month: 4, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 5, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 6, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 7, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 8, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 9, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 10, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 11, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 12, year: 2024, hisoblandi: 4624, nds: 555, withQQS: true }
 ];

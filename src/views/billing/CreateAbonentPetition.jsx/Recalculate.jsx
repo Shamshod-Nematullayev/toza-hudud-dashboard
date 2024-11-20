@@ -1,35 +1,42 @@
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
-import { IconButton, Typography } from '@mui/material';
+import { Icon, IconButton, List, ListItem, Typography } from '@mui/material';
 import hisoblandiJadval from './tarif.js';
 import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown';
+import useStore from './useStore.js';
+import { toast } from 'react-toastify';
+import Delete from '@mui/icons-material/Delete';
+import { DataGrid } from '@mui/x-data-grid';
 
 dayjs.locale('uz-latn');
 function Recalculate() {
-  const [currentTotal, setCurrentTotal] = React.useState(0);
-  const [startDate, setStartDate] = React.useState({});
-  const [endDate, setEndDate] = React.useState(dayjs());
+  const { recalculationPeriods, setRecalculationPeriods } = useStore();
+  const [currentTotal, setCurrentTotal] = useState(0);
+  const [withQQS, setWithQQS] = useState(0);
+  const [totalSumm, setTotalSumm] = useState(0);
+  const [startDate, setStartDate] = useState({});
+  const [endDate, setEndDate] = useState(dayjs());
   const qaytaHisob = ({ fromMoon, fromYear, toMoon, toYear, yashovchilar = 1 }) => {
     let summ = 0;
-    let nds = 0;
+    let withQQS = 0;
     for (let i = 0; i < hisoblandiJadval.length; i++) {
       const davr = hisoblandiJadval[i];
 
       if ((davr.year == fromYear && davr.month >= fromMoon) || davr.year > fromYear) {
         if (davr.year < toYear || (davr.year == toYear && davr.month <= toMoon)) {
-          if (davr.nds) {
-            nds += davr.nds * yashovchilar;
+          if (davr.withQQS) {
+            withQQS += davr.hisoblandi * yashovchilar;
           }
           summ += davr.hisoblandi * yashovchilar;
         }
       }
     }
-    console.log(fromMoon, fromYear, toMoon, toYear, yashovchilar);
-    // setCurrentNds(nds);
+    setWithQQS(withQQS);
     setCurrentTotal(summ);
+    console.log({ withQQS, summ });
   };
 
   useEffect(() => {
@@ -41,6 +48,14 @@ function Recalculate() {
     });
   }, [startDate, endDate]);
 
+  useEffect(() => {
+    let total = 0;
+    recalculationPeriods.forEach((period) => {
+      total += period.total;
+    });
+    setTotalSumm(total);
+  }, [recalculationPeriods]);
+
   const handleDatePickerChange = (e, name) => {
     switch (name) {
       case 'from':
@@ -50,6 +65,26 @@ function Recalculate() {
         setEndDate(dayjs(e));
         break;
     }
+  };
+
+  const handleAddButtonClick = () => {
+    console.log(recalculationPeriods);
+    if (currentTotal === 0) {
+      return toast.info('Qiymat kiriting');
+    }
+    setRecalculationPeriods([
+      ...recalculationPeriods,
+      {
+        withQQSTotal: withQQS,
+        withoutQQSTotal: currentTotal - withQQS,
+        total: currentTotal,
+        startDate,
+        endDate
+      }
+    ]);
+  };
+  const deleteItem = function (index) {
+    setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
   };
   return (
     <div style={{ margin: '25px' }}>
@@ -74,14 +109,46 @@ function Recalculate() {
         </LocalizationProvider>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', margin: '20px auto' }}>
-        <IconButton sx={{ margin: 'auto 10px' }}>
+        <IconButton sx={{ margin: 'auto 10px' }} onClick={handleAddButtonClick}>
           <ArrowCircleDownIcon sx={{ color: 'green', fontSize: '30px' }} />
         </IconButton>
         <Typography variant="h3" sx={{ minWidth: 300 }}>
           {currentTotal}
         </Typography>
-        <Typography variant="h2">Jami: {currentTotal} so`m</Typography>
+        <Typography variant="h2">Jami: {totalSumm} so`m</Typography>
       </div>
+      <DataGrid
+        columns={[
+          { field: 'id', headerName: '№', width: 50 },
+          { field: 'startDate', headerName: 'qachondan', width: 100 },
+          { field: 'endDate', headerName: 'qachongacha', width: 100 },
+          { field: 'withQQSTotal', headerName: 'QQS bilan', width: 100 },
+          { field: 'withoutQQSTotal', headerName: 'QQS siz', width: 100 },
+          { field: 'total', headerName: 'Jami', width: 100 },
+          {
+            field: 'actions',
+            headerName: 'Harakatlar',
+            renderCell: (cell) => {
+              return (
+                <IconButton onClick={() => deleteItem(cell.row.id - 1)}>
+                  <Delete />
+                </IconButton>
+              );
+            }
+          }
+        ]}
+        rows={recalculationPeriods.map((period, i) => ({
+          id: i + 1,
+          startDate: dayjs(period.startDate).format('MM.YYYY'),
+          endDate: dayjs(period.endDate).format('MM.YYYY'),
+          withQQSTotal: period.withQQSTotal,
+          withoutQQSTotal: period.withoutQQSTotal,
+          total: period.total
+        }))}
+        sx={{
+          maxHeight: 500
+        }}
+      />
     </div>
   );
 }
