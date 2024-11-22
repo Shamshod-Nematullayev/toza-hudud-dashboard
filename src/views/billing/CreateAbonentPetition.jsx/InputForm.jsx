@@ -16,8 +16,18 @@ function KeyValue({ kalit, value }) {
 }
 
 function InputForm() {
-  const { aktType, setAktType, abonentData, setAbonentData, abonentData2, setAbonentData2, recalculationPeriods, setShowPrintSection } =
-    useStore();
+  const {
+    aktType,
+    setAktType,
+    abonentData,
+    setAbonentData,
+    abonentData2,
+    setAbonentData2,
+    recalculationPeriods,
+    setShowPrintSection,
+    setMahalla,
+    setMahallaDublicat
+  } = useStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const [yashovchiSoniInput, setYashovchiSoniInput] = useState('');
@@ -112,8 +122,26 @@ function InputForm() {
     if (aktType === 'odam_soni' && yashovchiSoniInput === '') {
       return toast.error('Yashovchi soniga qiymat kiritilmadi');
     }
-    console.log(isNaN(yashovchiSoniInput), { yashovchiSoniInput });
-    setShowPrintSection(true);
+    api.get('/billing/get-mfy-by-id/' + abonentData.mahallas_id).then(({ data }) => {
+      if (!data.ok) {
+        toast.error(data.message);
+        return;
+      }
+      setMahalla(data.data);
+
+      if (aktType === 'dvaynik') {
+        api.get('/billing/get-mfy-by-id/' + abonentData2.mahallas_id).then(({ data }) => {
+          if (!data.ok) {
+            toast.error(data.message);
+            return;
+          }
+          setMahallaDublicat(data.data);
+          setShowPrintSection(true);
+        });
+      } else {
+        setShowPrintSection(true);
+      }
+    });
   };
 
   const handleClearButtonClick = (e) => {

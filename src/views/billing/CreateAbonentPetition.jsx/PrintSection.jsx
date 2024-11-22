@@ -24,11 +24,9 @@ function renderSwitch({
   abonentData = {},
   abonentData2 = {},
   asoslantiruvchi = '',
-  licshet,
-  mahalla = {},
+  mahalla,
   mahalla2,
   aniqlanganYashovchiSoni,
-  ikkilamchiKod,
   documentType = 'odam_soni',
   arizaData = {}
 }) {
@@ -300,9 +298,9 @@ function renderSwitch({
               textIndent: '40px'
             }}
           >
-            Шуни ёзиб маълум қиламанки менинг {ikkilamchiKod} иккиламчи хисоб ракамимни ҳакикий {licshet} ҳисоб рақамимга далолатнома
-            асосида иккиламчи хисоб-рақамимда тўловлар мавжуд бўлса, асосий ҳисоб-рақамга кўчириб, иккиламчи ҳисоб-рақамимни ўчириб
-            беришингизни сурайман.
+            Шуни ёзиб маълум қиламанки менинг {abonentData2.licshet} иккиламчи хисоб ракамимни ҳакикий {abonentData.licshet} ҳисоб рақамимга
+            далолатнома асосида иккиламчи хисоб-рақамимда тўловлар мавжуд бўлса, асосий ҳисоб-рақамга кўчириб, иккиламчи ҳисоб-рақамимни
+            ўчириб беришингизни сурайман.
           </p>
           <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
             "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData.fio}

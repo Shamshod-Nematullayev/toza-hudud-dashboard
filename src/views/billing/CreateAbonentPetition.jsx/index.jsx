@@ -7,10 +7,19 @@ import Recalculate from './Recalculate';
 import useStore from './useStore';
 
 function CreateAbonentPetition() {
-  const { aktType, abonentData, abonentData2, showPrintSection } = useStore();
+  const { aktType, abonentData, abonentData2, showPrintSection, mahalla, mahallaDublicat } = useStore();
   return (
     <MainCard>
-      <PrintSection show={showPrintSection} />
+      <PrintSection
+        show={showPrintSection}
+        aniqlanganYashovchiSoni={5}
+        abonentData={abonentData}
+        abonentData2={abonentData2}
+        asoslantiruvchi="hozircha izoh"
+        documentType={aktType}
+        mahalla={mahalla}
+        mahalla2={mahallaDublicat}
+      />
       <div style={{ display: 'flex' }}>
         <InputForm />
 

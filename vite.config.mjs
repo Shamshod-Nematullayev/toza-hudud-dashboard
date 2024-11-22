@@ -26,6 +26,7 @@ export default defineConfig({
     // ]
   },
   server: {
+    host: true,
     // this ensures that the browser opens upon server start
     open: true,
     // this sets a default port to 3000
