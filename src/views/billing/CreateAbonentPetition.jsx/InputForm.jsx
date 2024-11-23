@@ -26,7 +26,9 @@ function InputForm() {
     recalculationPeriods,
     setShowPrintSection,
     setMahalla,
-    setMahallaDublicat
+    setMahallaDublicat,
+    setAriza,
+    setRecalculationPeriods
   } = useStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
@@ -34,7 +36,6 @@ function InputForm() {
   const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
   const inputRef = React.useRef(null);
   const dublicateLicshetInput = React.useRef(null);
-  const [aktSummaInputDisabled, setAktSummaInputDisabled] = useState(true);
 
   useEffect(() => {
     if (String(licshet).length === 12) {
@@ -118,30 +119,66 @@ function InputForm() {
     }
   };
 
-  const handleGetAktSummButtonClick = (e) => {
+  const handleCreateAktButtonClick = (e) => {
     if (aktType === 'odam_soni' && yashovchiSoniInput === '') {
       return toast.error('Yashovchi soniga qiymat kiritilmadi');
     }
-    api.get('/billing/get-mfy-by-id/' + abonentData.mahallas_id).then(({ data }) => {
-      if (!data.ok) {
-        toast.error(data.message);
-        return;
+    function generateSummary(data) {
+      function formatDateToMMYYYY(dateString) {
+        const date = new Date(dateString);
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}.${year}`;
       }
-      setMahalla(data.data);
+      // Har bir elementni matn shaklida formatlash
+      const details = data
+        .map((item) => `Davr: ${formatDateToMMYYYY(item.startDate)} - ${formatDateToMMYYYY(item.endDate)}, Summa: ${item.total}`)
+        .join('\n'); // Har bir elementni yangi qatorga joylash
 
-      if (aktType === 'dvaynik') {
-        api.get('/billing/get-mfy-by-id/' + abonentData2.mahallas_id).then(({ data }) => {
+      // Umumiy yig'indini hisoblash
+
+      const totalSum = data.reduce((total, item) => total + item.total, 0);
+
+      // Yakuniy matnni yaratish
+      return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
+    }
+    api
+      .post('/arizalar/create', {
+        licshet,
+        ikkilamchi_licshet: abonentData2.accountNumber,
+        document_type: aktType,
+        akt_summasi: aktSumma,
+        current_prescribed_cnt: abonentData.house.inhabitantCnt,
+        next_prescribed_cnt: yashovchiSoniInput,
+        comment: generateSummary(recalculationPeriods)
+      })
+      .then((res) => {
+        if (!res.data.ok) {
+          toast.error(res.data.message);
+          return;
+        }
+        setAriza(res.data.ariza);
+        api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId).then(({ data }) => {
           if (!data.ok) {
             toast.error(data.message);
             return;
           }
-          setMahallaDublicat(data.data);
-          setShowPrintSection(true);
+          setMahalla(data.data);
+
+          if (aktType === 'dvaynik') {
+            api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId).then(({ data }) => {
+              if (!data.ok) {
+                toast.error(data.message);
+                return;
+              }
+              setMahallaDublicat(data.data);
+              setShowPrintSection(true);
+            });
+          } else {
+            setShowPrintSection(true);
+          }
         });
-      } else {
-        setShowPrintSection(true);
-      }
-    });
+      });
   };
 
   const handleClearButtonClick = (e) => {
@@ -151,6 +188,7 @@ function InputForm() {
     setAbonentData2({});
     setYashovchiSoniInput('');
     setAktSummaInput('');
+    setRecalculationPeriods([]);
   };
 
   return (
@@ -177,7 +215,7 @@ function InputForm() {
             label="Aktlar summasi"
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
             value={aktSumma.total}
-            disabled={aktSummaInputDisabled}
+            disabled
             onChange={(e) => {
               if (!isNaN(e.target.value)) {
                 setAktSummaInput(e.target.value);
@@ -221,8 +259,8 @@ function InputForm() {
             variant="contained"
             color={'primary'}
             sx={{ margin: '10px 20px' }}
-            disabled={!abonentData.licshet || (aktType == 'dvaynik' && !abonentData2.licshet)}
-            onClick={handleGetAktSummButtonClick}
+            disabled={!abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber)}
+            onClick={handleCreateAktButtonClick}
           >
             Yaratish
           </Button>

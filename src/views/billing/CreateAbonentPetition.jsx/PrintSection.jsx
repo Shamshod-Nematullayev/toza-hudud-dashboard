@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import styled from 'styled-components';
-import { kirillga } from '../../../helpers/lotinKiril';
-import { Button, Dialog, DialogActions, DialogContent } from '@mui/material';
+import { kirillga, lotinga } from '../../../helpers/lotinKiril';
+import { Button, Dialog, DialogActions, DialogContent, FormControl, TextareaAutosize } from '@mui/material';
 import useStore from './useStore';
+import { useReactToPrint } from 'react-to-print';
 const StyledTable = styled.table`
   margin: auto;
   width: 100%;
@@ -17,7 +18,22 @@ const StyledTable = styled.table`
   }
 `;
 const oylar = ['Январ', 'Февраль', 'Март', 'Апрель', 'Май', 'Июн', 'Июл', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабр'];
-const raqamlar = ['Нол', 'Бир', 'Икки', 'Уч', 'Тўрт', 'Беш', 'Олти', 'Етти', 'Саккиз', 'Тўққиз', 'Ўн', 'Ўн бир', 'Ўн икки'];
+const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
+
+function fullNameToShortName(name) {
+  if (!name) return '';
+  name = formatName(name);
+  name = lotinga(name);
+  return `${name?.split(' ')[1][0]}.${name?.split(' ')[0]}`;
+}
+function formatName(name) {
+  if (!name) return '';
+  return name
+    .toLowerCase() // Hamma harflarni kichik qilib o'zgartiradi
+    .split(' ') // Har bir so'zni bo'lish uchun bo'sh joydan ajratadi
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Har bir so'zning birinchi harfini bosh harf qiladi
+    .join(' '); // Ajratilgan so'zlarni bo'sh joy bilan birlashtiradi
+}
 
 function renderSwitch({
   date = new Date(),
@@ -30,324 +46,192 @@ function renderSwitch({
   documentType = 'odam_soni',
   arizaData = {}
 }) {
+  const { recalculationPeriods, ariza } = useStore();
+  const [olderPeriod, setOlderPeriod] = useState(new Date());
+
+  useEffect(() => {
+    if (recalculationPeriods.length)
+      setOlderPeriod(
+        new Date(
+          recalculationPeriods.reduce((a, b) => (new Date(a.startDate).getTime() > new Date(b.startDate).getTime() ? a : b)).startDate
+        )
+      );
+  }, [recalculationPeriods]);
   switch (documentType) {
     case 'odam_soni':
       return (
         <>
-          <p style={{ textAlign: 'center' }}>
-            <b>
-              Абонентлар бўйича ўзгаришлар тўғрисидаги маълумотларга киритилмаган ва улар ҳақида Санитар тозалаш марказига тақдим этилмаган
-              янги абонентлар ёки бирга истиқомат қилувчи шахслар сонини аниқлаш
-            </b>
-          </p>
-          <p style={{ textAlign: 'center' }}>
-            <b>ДАЛОЛАТНОМАСИ</b>
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              lineHeight: '50px'
-            }}
-          >
-            <div>
-              "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил
-            </div>
-            <div>Каттақўрғон тумани</div>
-          </div>
-          <p>
-            <b>Қуйидаги манзил бўйича:</b>
-          </p>
-          <p>МФЙ номи: {abonentData?.mahalla_name}</p>
-          <p>Манзил: {abonentData?.address}</p>
-          <p>Шахсий ҳисоб рақами: {abonentData?.licshet}</p>
-          <p>
-            <b>Абонент: {abonentData?.fio}</b>
-          </p>
-          <p>
-            Жами {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) нафар шахc 20__ йилнинг “___” _______ ойидан буён бирга
-            истиқомат қилиши аниқланди.
-          </p>
-          <p>
-            Юқоридагиларга ва асослантирувчи ҳужжатларга мувофиқ, {date.getFullYear()} йилнинг {oylar[date.getMonth()]} ойида ҳисобга
-            олишнинг ягона электрон тизимида мазкур абонент тўғрисидаги маълумотларга тегишли ўзгартиришлар киритиш ҳамда тўловларни қайта
-            ҳисоб-китоб қилишни мақсадга мувофиқ деб ҳисоблаймиз.
-          </p>
-          <p>Асослантирувчи ҳужжатлар*:</p>
-          <p>{kirillga(asoslantiruvchi)}</p>
-
-          {asoslantiruvchi.length === 0 ? <p>_______________________________________________________________</p> : ''}
-          {asoslantiruvchi.length < 70 ? <p>_______________________________________________________________</p> : ''}
-
-          <p>
-            *) асослантирувчи ҳужжатлар (доимий ёки вақтинча прописка қилинганлигини тасдиғи, ФҲДЁнинг туғилганликни қайд этиш тўғрисидаги
-            ва бошқа маълумотлар) мавжуд бўлса уларнинг нусхалари илова қилинади.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>"Анваржон бизнес инвест" МЧЖ Каттақўрғон туман филиали рахбари:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>А.Садриддинов</div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>Абонентлар билан ишлаш бўлими ходими:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>Ш.Нематуллаев</div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>Ахоли назоратчиси:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>{mahalla.biriktirilganNazoratchi?.inspector_name}</div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>Абонент:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>{abonentData?.fio}</div>
-          </div>
-          <br />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>{mahalla.name} МФЙ раиси:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>{`${mahalla.mfy_rais_name?.split(' ')[1][0]}. ${mahalla.mfy_rais_name?.split(' ')[0]}`}</div>
-          </div>
-          <br />
-          <br />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div></div>
+          <div className="page" style={{ fontSize: '16px', textAlign: 'justify' }}>
+            <p style={{ textAlign: 'center' }}>
+              <b>
+                Abonentlar bo‘yicha o‘zgarishlar to‘g‘risidagi ma’lumotlarga kiritilmagan va ular haqida Sanitar tozalash markaziga taqdim
+                etilmagan yangi abonentlar yoki birga istiqomat qiluvchi shaxslar sonini aniqlash
+              </b>
+            </p>
+            <p style={{ textAlign: 'center' }}>
+              <b>DALOLATNOMASI</b>
+            </p>
             <div
               style={{
-                width: 300,
-                textAlign: 'justify',
+                display: 'flex',
+                justifyContent: 'space-between',
+                lineHeight: '50px'
+              }}
+            >
+              <div>
+                "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
+              </div>
+              <div>Kattaqo‘rg‘on tumani</div>
+            </div>
+            <p>
+              <b>Quyidagi manzil bo‘yicha:</b>
+            </p>
+            <p>MFY nomi: {abonentData?.mahalla_name}</p>
+            <p>
+              Manzil: {abonentData?.mahallaName} {abonentData.streetName}
+            </p>
+            <p>Shaxsiy hisob raqami: {abonentData?.accountNumber}</p>
+            <p>
+              <b>Abonent: {abonentData?.fullName}</b>
+            </p>
+            <p>
+              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.getFullYear()} yilning “01”{' '}
+              {lotinga(oylar[olderPeriod.getMonth()])} oyidan buyon birga istiqomat qilishi aniqlandi.
+            </p>
+            <p>
+              Yuqoridagilarga va asoslantiruvchi hujjatlarga muvofiq, {date.getFullYear()} yilning {lotinga(oylar[date.getMonth()])} oyida
+              hisobga olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda
+              to‘lovlarni qayta hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
+            </p>
+            <p>Asoslantiruvchi hujjatlar*:</p>
+            <p>{asoslantiruvchi}</p>
+
+            {asoslantiruvchi.length === 0 ? <p>_______________________________________________________________</p> : ''}
+            {asoslantiruvchi.length < 70 ? <p>_______________________________________________________________</p> : ''}
+
+            <p>
+              *) asoslantiruvchi hujjatlar (doimiy yoki vaqtincha propiska qilinganligini tasdig‘i, FHDYOning tug‘ilganlikni qayd etish
+              to‘g‘risidagi va boshqa ma’lumotlar) mavjud bo‘lsa ularning nusxalari ilova qilinadi.
+            </p>
+            <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} mahalla2={mahalla2} />
+          </div>
+          <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+            <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
+            <ArizaHeading abonentData={abonentData} mahalla={mahalla} />
+            <br />
+            <ArizaTitle type="odam soni" />
+            <br />
+            <p
+              style={{
                 fontWeight: 'bold',
+                lineHeight: '40px',
                 textIndent: '40px'
               }}
             >
-              Каттақўрғон туман “Анваржон бизнес инвест” МЧЖ рахбари А.А.Садриддиновга. Каттақўрғон туман {mahalla.name} МФЙ да яшовчи
-              фукаро {abonentData?.fio} томонидан
-            </div>
+              Shuni yozib ma’lum qilamanki mening {abonentData?.licshet} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli
+              dalolatnoma taqdim kilyapman. Ushbu dalolatnomam asosida qayta hisob-kitob qilib berishingizni so‘rayman.
+            </p>
+            <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
+              "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData?.fullName}
+            </p>
+            {!ariza._id ? (
+              ''
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <QRCodeCanvas
+                  value={`ariza_${ariza._id}_${ariza.document_number}`}
+                  size={150}
+                  bgColor={'#ffffff'}
+                  fgColor={'#000000'}
+                  level={'Q'}
+                  includeMargin={true}
+                />
+              </div>
+            )}
           </div>
-          <br />
-          <h1
-            style={{
-              textAlign: 'center',
-              margin: 'auto 0 0 0',
-              fontSize: '24px'
-            }}
-          >
-            АРИЗА
-          </h1>
-          <br />
-          <p
-            style={{
-              fontWeight: 'bold',
-              lineHeight: '40px',
-              textIndent: '40px'
-            }}
-          >
-            Шуни ёзиб маълум қиламанки менинг {abonentData?.licshet} хисоб рақамим онлайн базага нотўғри хисоб китоб қилингани сабабли
-            далолатнома тақдим киляпман. Ушбу далолатномам асосида қайта хисоб китоб қилиб беришингизни сурайман.
-          </p>
-          <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
-            "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData?.fio}
-          </p>
-          {!arizaData._id ? (
-            ''
-          ) : (
-            <>
-              <QRCodeCanvas
-                value={`ariza_${arizaData._id}_${arizaData.document_number}`}
-                size={150}
-                bgColor={'#ffffff'}
-                fgColor={'#000000'}
-                level={'Q'}
-                includeMargin={true}
-              />
-              <p>{arizaData.document_number}</p>
-            </>
-          )}
         </>
       );
     case 'dvaynik':
       return (
         <>
-          <p style={{ textAlign: 'center' }}>
-            <b>ДАЛОЛАТНОМА</b>
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              lineHeight: '50px'
-            }}
-          >
-            <div>
-              "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил
-            </div>
-            <div>Каттақўрғон тумани</div>
-          </div>
-          <p
-            style={{
-              textAlign: 'justify',
-              textIndent: '40px'
-            }}
-          >
-            Биз қуйидаги имзо чекувчилар, Самарқанд вилояти, Каттакургон тумани, {mahalla.name} МФЙ раиси{' '}
-            {`${mahalla.mfy_rais_name?.split(' ')[1][0]}. ${mahalla.mfy_rais_name?.split(' ')[0]}`} , “АНВАРЖОН БИЗНЕС ИНВЕСТ” МЧЖ
-            Каттақўрғон туман аҳоли назоратчиси {mahalla.biriktirilganNazoratchi?.inspector_name}, Абонентлар билан ишлаш бўлими бошлиғи
-            Ш.Неъматуллаев мазкур далолатномани шу ҳақида туздик. МФЙ рўйхатини ўрганиш натижасида куйидаги абонент
-          </p>
-          <StyledTable border={1} style={{ borderCollapse: 'collapse' }}>
-            <tr>
-              <th>Хакикий хисоб ракам</th>
-              <th>Абонент И.Ф.Ш</th>
-              <th>Икиламчи хисоб ракам</th>
-              <th>Абонент И.Ф.Ш</th>
-            </tr>
-            <tr>
-              <td>{abonentData.licshet}</td>
-              <td>{abonentData.fio}</td>
-              <td>{abonentData2.licshet}</td>
-              <td>{abonentData2.fio}</td>
-            </tr>
-          </StyledTable>
-          <p
-            style={{
-              textAlign: 'justify',
-              textIndent: '40px'
-            }}
-          >
-            Ушбу абонентлар иккиламчи ҳисоб рақам бўлганлиги сабабли ягона электрон тизимда иккиламчи хисоб ракамга тушган пул маблағларини
-            хақиқий ҳисоб рақамга ўтказиб, иккиламчи абонентларни ўчиришни мақсадга мувофиқ деб ҳисоблаймиз.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>"Анваржон бизнес инвест" МЧЖ Каттақўрғон туман филиали рахбари:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>А.Садриддинов</div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>Абонентлар билан ишлаш бўлими ходими:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>Ш.Нематуллаев</div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>Ахоли назоратчиси:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>{mahalla.biriktirilganNazoratchi?.inspector_name}</div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>Абонент:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>{abonentData.fio}</div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ width: 300 }}>{mahalla.name} МФЙ раиси:</div>
-            <div>___________</div>
-            <div style={{ width: 200 }}>{`${mahalla.mfy_rais_name?.split(' ')[1][0]}. ${mahalla.mfy_rais_name?.split(' ')[0]}`}</div>
-          </div>
-          {mahalla2 ? (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div style={{ width: 300 }}>{mahalla2.name} МФЙ раиси:</div>
-              <div>___________</div>
-              <div style={{ width: 200 }}>{`${mahalla2.mfy_rais_name?.split(' ')[1][0]}. ${mahalla2.mfy_rais_name?.split(' ')[0]}`}</div>
-            </div>
-          ) : (
-            ''
-          )}
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div></div>
+          <div className="page" style={{ fontSize: '16px', textAlign: 'justify' }}>
+            <p style={{ textAlign: 'center' }}>
+              <b>DALOLATNOMA</b>
+            </p>
             <div
               style={{
-                width: 300,
+                display: 'flex',
+                justifyContent: 'space-between',
+                lineHeight: '50px'
+              }}
+            >
+              <div>
+                "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
+              </div>
+              <div>Kattaqo‘rg‘on tumani</div>
+            </div>
+            <p
+              style={{
                 textAlign: 'justify',
-                fontWeight: 'bold',
                 textIndent: '40px'
               }}
             >
-              Каттақўрғон туман “Анваржон бизнес инвест” МЧЖ рахбари А.А.Садриддиновга. Каттақўрғон туман {mahalla.name} МФЙ да яшовчи
-              фукаро {abonentData.fio} томонидан
-            </div>
+              Biz quyidagi imzo chekuvchilar, Samarqand viloyati, Kattakurgon tumani, {lotinga(mahalla.name)} MFY raisi{' '}
+              {fullNameToShortName(mahalla.mfy_rais_name)} , “ANVARJON BIZNES INVEST” MCHJ Kattaqo‘rg‘on tuman aholi nazoratchisi{' '}
+              {fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi boshlig‘i
+              Sh.Ne’matullayev mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida kuyidagi abonent
+            </p>
+            <StyledTable border={1} style={{ borderCollapse: 'collapse' }}>
+              <tr>
+                <th>Haqiqiy hisob raqam</th>
+                <th>Abonent F. I. O.</th>
+                <th>Ikkilamchi hisob raqam</th>
+                <th>Abonent F. I. O.</th>
+              </tr>
+              <tr>
+                <td>{abonentData.accountNumber}</td>
+                <td>{abonentData.fullName}</td>
+                <td>{abonentData2.accountNumber}</td>
+                <td>{abonentData2.fullName}</td>
+              </tr>
+            </StyledTable>
+            <p
+              style={{
+                textAlign: 'justify',
+                textIndent: '40px'
+              }}
+            >
+              Ushbu abonentlar ikkilamchi hisob raqam bo‘lganligi sababli yagona elektron tizimda ikkilamchi hisob rakamga tushgan pul
+              mablag‘larini xaqiqiy hisob raqamga o‘tkazib, ikkilamchi abonentlarni o‘chirishni maqsadga muvofiq deb hisoblaymiz.
+            </p>
+            <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} mahalla2={mahalla2} />
           </div>
-          <h1
-            style={{
-              textAlign: 'center',
-              margin: 'auto 0 0 0',
-              fontSize: '24px'
-            }}
-          >
-            АРИЗА
-          </h1>
-          <br />
-          <p
-            style={{
-              fontWeight: 'bold',
-              lineHeight: '40px',
-              textIndent: '40px'
-            }}
-          >
-            Шуни ёзиб маълум қиламанки менинг {abonentData2.licshet} иккиламчи хисоб ракамимни ҳакикий {abonentData.licshet} ҳисоб рақамимга
-            далолатнома асосида иккиламчи хисоб-рақамимда тўловлар мавжуд бўлса, асосий ҳисоб-рақамга кўчириб, иккиламчи ҳисоб-рақамимни
-            ўчириб беришингизни сурайман.
-          </p>
-          <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
-            "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData.fio}
-          </p>
-          {!arizaData._id ? (
-            ''
-          ) : (
-            <>
-              <QRCodeCanvas
-                value={`ariza_${arizaData._id}_${arizaData.document_number}`}
-                size={150}
-                bgColor={'#ffffff'}
-                fgColor={'#000000'}
-                level={'Q'}
-                includeMargin={true}
-              />
-              <p>{arizaData.document_number}</p>
-            </>
-          )}
+          <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+            <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
+            <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+            <ArizaTitle type="ikkilamchi kod" />
+            <p
+              style={{
+                fontWeight: 'bold',
+                lineHeight: '40px',
+                textIndent: '40px'
+              }}
+            >
+              Shuni yozib ma’lum qilamanki mening {abonentData2.accountNumber} ikkilamchi hisob raqamimni haqiqiy{' '}
+              {abonentData.accountNumber} hisob raqamimga dalolatnoma asosida ikkilamchi hisob-raqamimda to‘lovlar mavjud bo‘lsa, asosiy
+              hisob-raqamga ko‘chirib, ikkilamchi hisob-raqamimni o‘chirib berishingizni surayman.
+            </p>
+            <QRSection abonentData={abonentData} ariza={ariza} date={date} />
+          </div>
         </>
       );
     case 'viza':
       return (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div></div>
-            <div
-              style={{
-                width: 300,
-                textAlign: 'justify',
-                fontWeight: 'bold',
-                textIndent: '40px'
-              }}
-            >
-              Каттақўрғон туман “Анваржон бизнес инвест” МЧЖ рахбари А.А.Садриддиновга. Каттақўрғон туман {mahalla.name} МФЙ да яшовчи
-              фукаро {abonentData.fio} томонидан
-            </div>
-          </div>
-          <h1
-            style={{
-              textAlign: 'center',
-              margin: 'auto 0 0 0',
-              fontSize: '24px'
-            }}
-          >
-            АРИЗА
-          </h1>
+        <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+          <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
+          <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+          <br />
+          <ArizaTitle type="pasport viza" />
           <br />
           <p
             style={{
@@ -356,57 +240,20 @@ function renderSwitch({
               textIndent: '40px'
             }}
           >
-            Шуни ёзиб маълум қиламанки менинг {abonentData.licshet} хисоб рақамим онлайн базага нотўғри хисоб китоб қилингани сабабли
-            паспорт визалари тақдим киляпман. Ушбу паспорт визаларим асосида қайта хисоб китоб қилиб беришингизни сурайман.
+            Shuni yozib ma’lum qilamanki mening <span style={{ textDecoration: 'underline' }}>{abonentData.accountNumber}</span> hisob
+            raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli pasport vizalari taqdim kilyapman. Ushbu pasport vizalarim asosida
+            O‘zbekistonda yashamagan davrimni qayta hisob-kitob qilib berishingizni surayman.
           </p>
-          <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
-            "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData.fio}
-          </p>
-          {!arizaData._id ? (
-            ''
-          ) : (
-            <>
-              <QRCodeCanvas
-                value={`ariza_${arizaData._id}_${arizaData.document_number}`}
-                size={150}
-                bgColor={'#ffffff'}
-                fgColor={'#000000'}
-                level={'Q'}
-                includeMargin={true}
-              />
-              <p>{arizaData.document_number}</p>
-            </>
-          )}
-        </>
+          <QRSection abonentData={abonentData} ariza={ariza} date={date} />
+        </div>
       );
     case 'death':
       return (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div></div>
-            <div
-              style={{
-                width: 300,
-                textAlign: 'justify',
-                fontWeight: 'bold',
-                textIndent: '40px'
-              }}
-            >
-              Каттақўрғон туман “Анваржон бизнес инвест” МЧЖ рахбари А.А.Садриддиновга. Каттақўрғон туман {mahalla.name} МФЙ да яшовчи
-              фукаро {abonentData.fio} томонидан
-            </div>
-          </div>
+        <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+          <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
+          <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
           <br />
-          <h1
-            style={{
-              textAlign: 'center',
-              margin: 'auto 0 0 0',
-              fontSize: '24px'
-            }}
-          >
-            АРИЗА
-          </h1>
-          <br />
+          <ArizaTitle type="oʻlim guvohnomasi" />
           <p
             style={{
               fontWeight: 'bold',
@@ -414,34 +261,117 @@ function renderSwitch({
               textIndent: '40px'
             }}
           >
-            Шуни ёзиб маълум қиламанки менинг {abonentData.licshet} хисоб рақамим онлайн базага нотўғри хисоб китоб қилингани сабабли ўлим
-            гувоҳнома тақдим киляпман. Ушбу гувоҳнома асосида қайта хисоб китоб қилиб беришингизни сурайман.
+            Shuni yozib ma’lum qilamanki mening {abonentData.licshet} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli
+            o‘lim guvohnoma taqdim kilyapman. Ushbu guvohnoma asosida qayta hisob-kitob qilib berishingizni surayman.
           </p>
-          <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
-            "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData.fio}
-          </p>
-          {!arizaData._id ? (
-            ''
-          ) : (
-            <>
-              <QRCodeCanvas
-                value={`ariza_${arizaData._id}_${arizaData.document_number}`}
-                size={150}
-                bgColor={'#ffffff'}
-                fgColor={'#000000'}
-                level={'Q'}
-                includeMargin={true}
-              />
-              <p>{arizaData.document_number}</p>
-            </>
-          )}
-        </>
+
+          <QRSection ariza={ariza} date={date} abonentData={abonentData} />
+        </div>
       );
   }
 }
 
-function PrintSection({ componentRef, show, ...props }) {
+const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <div style={{ width: 300 }}>{label}</div>
+    <div>{placeholder}</div>
+    <div style={{ width: 200 }}>{fullNameToShortName(name)}</div>
+  </div>
+);
+const ImzolashJoyi = ({ mahalla, abonentData, mahalla2 }) => {
+  return (
+    <>
+      <ImzoJoyiRow label='"Anvarjon biznes invest" MCHJ Kattaqo‘rg‘on tuman filiali raxbari:' name="Sadriddinov Aziz" />
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name="Ne’matullayev Shamshod" />
+      <br />
+      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla.biriktirilganNazoratchi?.inspector_name)} />
+      <br />
+      <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
+      <br />
+      <ImzoJoyiRow label={`${lotinga(mahalla.name)} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />
+
+      {mahalla2.id !== mahalla.id && <ImzoJoyiRow label={`${mahalla.name} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />}
+    </>
+  );
+};
+
+function ArizaHeading({ mahalla, abonentData }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div></div>
+      <p
+        style={{
+          width: 300,
+          textAlign: 'justify',
+          fontWeight: 'bold',
+          textIndent: '40px',
+          lineHeight: '30px'
+        }}
+      >
+        Kattaqoʻrgʻon tumani “Anvarjon biznes invest” MChJ rahbari A.A.Sadriddinovga Kattaqoʻrgʻon tuman {lotinga(mahalla.name)} MFY-da
+        yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan
+      </p>
+    </div>
+  );
+}
+function ArizaTitle({ type }) {
+  return (
+    <>
+      <h1
+        style={{
+          textAlign: 'center',
+          fontSize: '24px',
+          letterSpacing: 5
+        }}
+      >
+        ARIZA
+      </h1>
+      <p style={{ textAlign: 'center' }}>
+        <i>({type})</i>
+      </p>
+    </>
+  );
+}
+
+function QRSection({ ariza, date, abonentData }) {
+  return (
+    <>
+      <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
+        "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil _______ {abonentData.fullName}
+      </p>
+      {ariza._id && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <QRCodeCanvas
+            value={`ariza_${ariza._id}_${ariza.document_number}`}
+            size={150}
+            bgColor={'#ffffff'}
+            fgColor={'#000000'}
+            level={'Q'}
+            includeMargin={true}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
+function PrintSection({ show, ...props }) {
+  const componentRef = useRef(null);
+  const printFunction = useReactToPrint({
+    pageStyle: `@media print {
+        @page {
+        margin: 15mm 15mm 15mm 25mm;
+        size: A4;
+        }
+        .page {
+        page-break-after: always;
+        }
+    }`,
+    documentTitle: 'Printing',
+    contentRef: componentRef
+  });
   const { setShowPrintSection } = useStore();
+  const [comment, setComment] = useState('');
   return (
     <Dialog
       open={show}
@@ -454,12 +384,22 @@ function PrintSection({ componentRef, show, ...props }) {
     >
       <DialogContent style={{ margin: '40px 55px', fontSize: 14 }}>
         <div id="print" ref={componentRef}>
-          {renderSwitch(props)}
+          {renderSwitch({ ...props, asoslantiruvchi: comment })}
         </div>
+      </DialogContent>
+      <DialogContent>
+        <FormControl fullWidth>
+          <TextareaAutosize
+            minRows={3}
+            placeholder="Qoʻshimcha izohlar uchun"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={() => setShowPrintSection(false)}>Chiqish</Button>
-        <Button variant="contained" color="primary">
+        <Button variant="contained" color="primary" onClick={printFunction}>
           Chop etish
         </Button>
       </DialogActions>

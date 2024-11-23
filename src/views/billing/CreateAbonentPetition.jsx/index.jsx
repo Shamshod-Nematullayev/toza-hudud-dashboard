@@ -23,8 +23,12 @@ function CreateAbonentPetition() {
       <div style={{ display: 'flex' }}>
         <InputForm />
 
-        <DHJTable abonentData={abonentData} title={`DHJ jadval: ${abonentData.licshet}`} />
-        {aktType === 'dvaynik' ? <DHJTable abonentData={abonentData2} title={`Ikkilamchi: ${abonentData2.licshet}`} /> : <Recalculate />}
+        <DHJTable abonentData={abonentData} title={`DHJ jadval: ${abonentData.accountNumber}`} />
+        {aktType === 'dvaynik' ? (
+          <DHJTable abonentData={abonentData2} title={`Ikkilamchi: ${abonentData2.accountNumber}`} />
+        ) : (
+          <Recalculate />
+        )}
       </div>
     </MainCard>
   );

@@ -13,6 +13,8 @@ const useStore = create((set) => ({
   setAbonentData: (data) => set({ abonentData: data }),
   abonentData2: {},
   setAbonentData2: (data) => set({ abonentData2: data }),
+  ariza: {},
+  setAriza: (data) => set({ ariza: data }),
   mahalla: {},
   setMahalla: (mfy) => set({ mahalla: mfy }),
   mahallaDublicat: {},

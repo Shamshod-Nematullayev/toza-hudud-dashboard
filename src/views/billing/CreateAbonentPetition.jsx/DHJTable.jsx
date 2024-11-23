@@ -7,8 +7,8 @@ import { Stack, Typography } from '@mui/material';
 function DHJTable({ abonentData, title }) {
   const [rows, setRows] = useState([]);
   useEffect(() => {
-    if (abonentData.licshet) {
-      api.get('/billing/get-abonent-dxj-by-licshet/' + abonentData.licshet).then(({ data }) => {
+    if (abonentData.accountNumber) {
+      api.get('/billing/get-abonent-dxj-by-licshet/' + abonentData.accountNumber).then(({ data }) => {
         if (!data.ok) return toast.error(data.message);
         setRows(
           data.rows.map((row, i) => ({
