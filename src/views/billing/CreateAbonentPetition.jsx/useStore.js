@@ -20,7 +20,9 @@ const useStore = create((set) => ({
   mahallaDublicat: {},
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
   recalculationPeriods: [],
-  setRecalculationPeriods: (data) => set({ recalculationPeriods: data })
+  setRecalculationPeriods: (data) => set({ recalculationPeriods: data }),
+  yashovchiSoniInput: '',
+  setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: data })
 }));
 
 export default useStore;

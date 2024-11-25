@@ -28,11 +28,12 @@ function InputForm() {
     setMahalla,
     setMahallaDublicat,
     setAriza,
-    setRecalculationPeriods
+    setRecalculationPeriods,
+    yashovchiSoniInput,
+    setYashovchiSoniInput
   } = useStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
-  const [yashovchiSoniInput, setYashovchiSoniInput] = useState('');
   const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
   const inputRef = React.useRef(null);
   const dublicateLicshetInput = React.useRef(null);
@@ -269,20 +270,20 @@ function InputForm() {
           </Button>
         </FormControl>
       </div>
-      {abonentData.licshet && (
+      {abonentData.accountNumber && (
         <div>
-          <KeyValue kalit="Licshet" value={abonentData.licshet} />
-          <KeyValue kalit="F. I. Sh" value={abonentData.fio} />
-          <KeyValue kalit="Mahalla" value={abonentData.mahalla_name} />
-          <KeyValue kalit="Yashovchi soni" value={abonentData.yashovchiSoni} />
+          <KeyValue kalit="Licshet" value={abonentData.accountNumber} />
+          <KeyValue kalit="F. I. Sh" value={abonentData.fullName} />
+          <KeyValue kalit="Mahalla" value={abonentData.mahallaName} />
+          <KeyValue kalit="Yashovchi soni" value={abonentData.house.inhabitantCnt} />
         </div>
       )}
-      {abonentData2.licshet && (
+      {abonentData2.accountNumber && (
         <div>
-          <KeyValue kalit="Ikkilamchi" value={abonentData2.licshet} />
-          <KeyValue kalit="F. I. Sh" value={abonentData2.fio} />
-          <KeyValue kalit="Mahalla" value={abonentData2.mahalla_name} />
-          <KeyValue kalit="Yashovchi soni" value={abonentData2.yashovchiSoni} />
+          <KeyValue kalit="Ikkilamchi" value={abonentData2.accountNumber} />
+          <KeyValue kalit="F. I. Sh" value={abonentData2.fullName} />
+          <KeyValue kalit="Mahalla" value={abonentData2.mahallaName} />
+          <KeyValue kalit="Yashovchi soni" value={abonentData2.house.inhabitantCnt} />
         </div>
       )}
     </div>

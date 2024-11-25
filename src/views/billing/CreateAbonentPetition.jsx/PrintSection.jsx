@@ -86,7 +86,7 @@ function renderSwitch({
             <p>
               <b>Quyidagi manzil bo‘yicha:</b>
             </p>
-            <p>MFY nomi: {abonentData?.mahalla_name}</p>
+            <p>MFY nomi: {mahalla.name && lotinga(mahalla?.name)}</p>
             <p>
               Manzil: {abonentData?.mahallaName} {abonentData.streetName}
             </p>
@@ -113,7 +113,7 @@ function renderSwitch({
               *) asoslantiruvchi hujjatlar (doimiy yoki vaqtincha propiska qilinganligini tasdig‘i, FHDYOning tug‘ilganlikni qayd etish
               to‘g‘risidagi va boshqa ma’lumotlar) mavjud bo‘lsa ularning nusxalari ilova qilinadi.
             </p>
-            <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} mahalla2={mahalla2} />
+            <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} mahalla2={mahalla2} documentType={documentType} />
           </div>
           <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
             <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
@@ -128,8 +128,8 @@ function renderSwitch({
                 textIndent: '40px'
               }}
             >
-              Shuni yozib ma’lum qilamanki mening {abonentData?.licshet} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli
-              dalolatnoma taqdim kilyapman. Ushbu dalolatnomam asosida qayta hisob-kitob qilib berishingizni so‘rayman.
+              Shuni yozib ma’lum qilamanki mening {abonentData?.accountNumber} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani
+              sababli dalolatnoma taqdim qilyapman. Ushbu dalolatnomam asosida qayta hisob-kitob qilib berishingizni so‘rayman.
             </p>
             <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
               "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData?.fullName}
@@ -219,7 +219,7 @@ function renderSwitch({
             >
               Shuni yozib ma’lum qilamanki mening {abonentData2.accountNumber} ikkilamchi hisob raqamimni haqiqiy{' '}
               {abonentData.accountNumber} hisob raqamimga dalolatnoma asosida ikkilamchi hisob-raqamimda to‘lovlar mavjud bo‘lsa, asosiy
-              hisob-raqamga ko‘chirib, ikkilamchi hisob-raqamimni o‘chirib berishingizni surayman.
+              hisob-raqamga ko‘chirib, ikkilamchi hisob-raqamimni o‘chirib berishingizni so‘rayman.
             </p>
             <QRSection abonentData={abonentData} ariza={ariza} date={date} />
           </div>
@@ -241,8 +241,8 @@ function renderSwitch({
             }}
           >
             Shuni yozib ma’lum qilamanki mening <span style={{ textDecoration: 'underline' }}>{abonentData.accountNumber}</span> hisob
-            raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli pasport vizalari taqdim kilyapman. Ushbu pasport vizalarim asosida
-            O‘zbekistonda yashamagan davrimni qayta hisob-kitob qilib berishingizni surayman.
+            raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli pasport vizalari taqdim qilyapman. Ushbu pasport vizalarim asosida
+            O‘zbekistonda yashamagan davrimni qayta hisob-kitob qilib berishingizni so‘rayman.
           </p>
           <QRSection abonentData={abonentData} ariza={ariza} date={date} />
         </div>
@@ -262,7 +262,7 @@ function renderSwitch({
             }}
           >
             Shuni yozib ma’lum qilamanki mening {abonentData.licshet} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli
-            o‘lim guvohnoma taqdim kilyapman. Ushbu guvohnoma asosida qayta hisob-kitob qilib berishingizni surayman.
+            o‘lim guvohnoma taqdim qilyapman. Ushbu guvohnoma asosida qayta hisob-kitob qilib berishingizni so‘rayman.
           </p>
 
           <QRSection ariza={ariza} date={date} abonentData={abonentData} />
@@ -278,7 +278,7 @@ const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
     <div style={{ width: 200 }}>{fullNameToShortName(name)}</div>
   </div>
 );
-const ImzolashJoyi = ({ mahalla, abonentData, mahalla2 }) => {
+const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType }) => {
   return (
     <>
       <ImzoJoyiRow label='"Anvarjon biznes invest" MCHJ Kattaqo‘rg‘on tuman filiali raxbari:' name="Sadriddinov Aziz" />
@@ -290,7 +290,9 @@ const ImzolashJoyi = ({ mahalla, abonentData, mahalla2 }) => {
       <br />
       <ImzoJoyiRow label={`${lotinga(mahalla.name)} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />
 
-      {mahalla2.id !== mahalla.id && <ImzoJoyiRow label={`${mahalla.name} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />}
+      {documentType === 'dvaynik' && mahalla2.id !== mahalla.id && (
+        <ImzoJoyiRow label={`${mahalla.name} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />
+      )}
     </>
   );
 };

@@ -7,12 +7,12 @@ import Recalculate from './Recalculate';
 import useStore from './useStore';
 
 function CreateAbonentPetition() {
-  const { aktType, abonentData, abonentData2, showPrintSection, mahalla, mahallaDublicat } = useStore();
+  const { aktType, abonentData, abonentData2, showPrintSection, mahalla, mahallaDublicat, yashovchiSoniInput } = useStore();
   return (
     <MainCard>
       <PrintSection
         show={showPrintSection}
-        aniqlanganYashovchiSoni={5}
+        aniqlanganYashovchiSoni={parseInt(yashovchiSoniInput)}
         abonentData={abonentData}
         abonentData2={abonentData2}
         asoslantiruvchi="hozircha izoh"

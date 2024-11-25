@@ -44,7 +44,7 @@ function Header({ printContentRef, getAbonents }) {
         page-break-after: always;
         }
     }`,
-    documentTitle: 'Printing',
+    documentTitle: abonents[0]?.mahallaName + '_' + new Date().getTime(),
     contentRef: printContentRef
   });
 
