@@ -23,8 +23,11 @@ const odamSoniXatlovStore = create((set) => ({
   setLoading: (loading) => set({ loading }),
   dalolatnomaData: { data: {}, mahalla: {} },
   setDalolatnomaData: (dalolatnomaData) => set({ dalolatnomaData }),
-  openPrintSection: true,
-  setOpenPrintSection: (openPrintSection) => set({ openPrintSection })
+  openPrintSection: false,
+  setOpenPrintSection: (openPrintSection) => set({ openPrintSection }),
+  pdfFiles: [],
+  setPdfFiles: (pdfFiles) => set({ pdfFiles: [pdfFiles[0]] }),
+  clearPdfFiles: () => set({ pdfFiles: [] })
 }));
 
 export default odamSoniXatlovStore;

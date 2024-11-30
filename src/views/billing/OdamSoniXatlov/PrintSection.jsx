@@ -155,7 +155,7 @@ function PrintSection() {
             <br />
             <ImzoJoyiRow label='"Anvarjon biznes invest" MCHJ Kattaqo‘rg‘on tuman filiali raxbari:' name="Sadriddinov Aziz" />
             <br />
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas
                 value={`XatlovOdamSoni_${data._id}_${data.documentNumber}`}
                 size={150}
@@ -164,6 +164,7 @@ function PrintSection() {
                 level={'Q'}
                 includeMargin={true}
               />
+              <p>{data.documentNumber}</p>
             </div>
           </div>
         </div>
