@@ -5,6 +5,7 @@ import { kirillga, lotinga } from '../../../helpers/lotinKiril';
 import { Button, Dialog, DialogActions, DialogContent, FormControl, TextareaAutosize } from '@mui/material';
 import useStore from './useStore';
 import { useReactToPrint } from 'react-to-print';
+import fullNameToShortName from 'views/tools/fullNameToShortName';
 const StyledTable = styled.table`
   margin: auto;
   width: 100%;
@@ -20,12 +21,6 @@ const StyledTable = styled.table`
 const oylar = ['Январ', 'Февраль', 'Март', 'Апрель', 'Май', 'Июн', 'Июл', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабр'];
 const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
-function fullNameToShortName(name) {
-  if (!name) return '';
-  name = formatName(name);
-  name = lotinga(name);
-  return `${name?.split(' ')[1][0]}.${name?.split(' ')[0]}`;
-}
 function formatName(name) {
   if (!name) return '';
   return name

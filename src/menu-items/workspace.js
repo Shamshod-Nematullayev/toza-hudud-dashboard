@@ -9,6 +9,7 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 //contans
 const icons = {
   ImportantDevicesOutlinedIcon,
@@ -20,7 +21,8 @@ const icons = {
   FileDownloadOutlinedIcon,
   UploadFileOutlinedIcon,
   NoteAddOutlinedIcon,
-  PrintOutlinedIcon
+  PrintOutlinedIcon,
+  PersonAddAltIcon
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -69,6 +71,14 @@ const billing = {
           type: 'item',
           url: '/billing/printAbonentsList',
           icon: icons.PrintOutlinedIcon,
+          breadcrumbs: false
+        },
+        {
+          id: 'xatlovOdamSoni',
+          title: 'Xatlov odam soni',
+          type: 'item',
+          url: '/billing/xatlovOdamSoni',
+          icon: icons.PersonAddAltIcon,
           breadcrumbs: false
         }
       ]

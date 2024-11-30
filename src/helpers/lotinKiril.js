@@ -331,6 +331,7 @@ function kirillga(originalMessage) {
 /*====================lotinga o'girish==============================*/
 
 function lotinga(CyrillicMessage) {
+  if (!CyrillicMessage) return;
   var LatinTranslated = ''; //lotin ga o'girilgan xabar
 
   function Eliser2(currentWord) {
