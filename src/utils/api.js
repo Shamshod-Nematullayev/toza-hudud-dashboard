@@ -30,7 +30,7 @@ api.interceptors.response.use(
       window.location.href = '/startpage/pages/login/login3/';
       // handle unauthorized error
     }
-    if (error.response && error.response.status === 400) {
+    if (error.response && error.response.status >= 400) {
       toast.error(error.response.data.message);
     }
     return Promise.reject(error);

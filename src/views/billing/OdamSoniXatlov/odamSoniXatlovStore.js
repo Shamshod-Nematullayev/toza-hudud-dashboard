@@ -27,7 +27,11 @@ const odamSoniXatlovStore = create((set) => ({
   setOpenPrintSection: (openPrintSection) => set({ openPrintSection }),
   pdfFiles: [],
   setPdfFiles: (pdfFiles) => set({ pdfFiles: [pdfFiles[0]] }),
-  clearPdfFiles: () => set({ pdfFiles: [] })
+  clearPdfFiles: () => set({ pdfFiles: [] }),
+  uploadingDalolatnoma: {},
+  setUploadingDalolatnoma: (uploadingDalolatnoma) => set({ uploadingDalolatnoma }),
+  uploadingDalolatnomaRows: [],
+  setUploadingDalolatnomaRows: (uploadingDalolatnomaRows) => set({ uploadingDalolatnomaRows })
 }));
 
 export default odamSoniXatlovStore;
