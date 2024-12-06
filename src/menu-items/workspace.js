@@ -45,11 +45,19 @@ const billing = {
           icon: icons.NoteAddOutlinedIcon
         },
         {
+          id: 'importAbonentPetition',
+          title: 'Abonent arizalari kiritish',
+          type: 'item',
+          url: '/billing/importAbonentPetition',
+          icon: icons.UploadFileOutlinedIcon
+        },
+        {
           id: 'recalculation',
-          title: 'Qayta hisob-kitob',
+          title: 'Abonent arizalari',
           type: 'item',
           url: '/billing/recalculation',
-          icon: icons.CalculateIcon
+          icon: icons.CalculateIcon,
+          breadcrumbs: false
         },
         {
           id: 'deleteDublicate',
@@ -57,13 +65,6 @@ const billing = {
           type: 'item',
           url: '/billing/deleteDublicate',
           icon: icons.DoNotDisturbOnIcon
-        },
-        {
-          id: 'importAbonentPetition',
-          title: 'Abonent arizalari kiritish',
-          type: 'item',
-          url: '/billing/importAbonentPetition',
-          icon: icons.UploadFileOutlinedIcon
         },
         {
           id: 'printAbonentsList',

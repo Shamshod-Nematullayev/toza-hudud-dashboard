@@ -4,7 +4,7 @@ import { lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import Inspectors from 'views/employeers/Inspectors';
-import Recalculate from 'views/billing/Recalculate';
+import AbonentPetitions from 'views/billing/AbonentPetitions';
 import DeleteDublicate from 'views/billing/DeleteDublicate';
 import WarningLetters from 'views/jurist/WarningLetters/index';
 import CourtProcesses from 'views/jurist/CourtProcesses/index';
@@ -91,7 +91,7 @@ const MainRoutes = {
         },
         {
           path: 'recalculation',
-          element: <Recalculate />
+          element: <AbonentPetitions />
         },
         {
           path: 'deleteDublicate',

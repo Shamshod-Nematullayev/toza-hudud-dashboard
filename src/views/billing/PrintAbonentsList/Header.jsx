@@ -69,7 +69,7 @@ function Header({ printContentRef, getAbonents }) {
 
     try {
       for (let i = 0; i < rows.length; i += maxRowsPerImage) {
-        const clonedTable = printContentRef.current.cloneNode(true);
+        const clonedTable = printContentRef.current.querySelectorAll('table')[1].cloneNode(true);
         const tbody = clonedTable.querySelector('tbody');
 
         // Asosiy jadvalning kerakli qismini olish

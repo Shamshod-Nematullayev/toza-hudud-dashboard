@@ -86,7 +86,7 @@ function FindedDataTable() {
       (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) *
       4625 *
       diffMonth;
-    if (lateAktSumm > 0) {
+    if (lateAktSumm > 0 && ariza.document_type != 'viza') {
       setAktSumm(ariza.aktSummasi + '+' + lateAktSumm);
     } else {
       setAktSumm(ariza.aktSummasi);
