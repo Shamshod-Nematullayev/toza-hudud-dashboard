@@ -86,7 +86,13 @@ function FindedDataTable() {
       (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) *
       4625 *
       diffMonth;
-    if (lateAktSumm > 0 && ariza.document_type != 'viza') {
+    if (ariza.document_type == 'dvaynik') {
+      api.get('/billing/get-abonent-dxj-by-licshet/' + ariza.ikkilamchi_licshet).then(({ data }) => {
+        let summ = 0;
+        data.rows.forEach((item) => (summ += item.allPaymentsSum));
+        setAktSumm(summ);
+      });
+    } else if (lateAktSumm > 0 && ariza.document_type != 'viza') {
       setAktSumm(ariza.aktSummasi + '+' + lateAktSumm);
     } else {
       setAktSumm(ariza.aktSummasi);
@@ -155,7 +161,8 @@ function FindedDataTable() {
       formData.append('akt_sum', eval(aktSumm));
       formData.append('description', 'fuqaro arizasi ' + ariza.comment);
 
-      const { data } = await api.post('/billing/create-full-akt', formData, {
+      const url = ariza.document_type === 'dvaynik' ? '/billing/create-dvaynik-akt-by-ariza' : '/billing/create-full-akt';
+      const { data } = await api.post(url, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (!data.ok) {
@@ -202,7 +209,7 @@ function FindedDataTable() {
           <Button
             sx={{ margin: 'auto 15px', padding: '15px 20px' }}
             onClick={handlePrimaryButtonClick}
-            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false || isUploading : true}
+            disabled={ariza.status === 'yangi' || isUploading ? false : true}
           >
             <FileUploadOutlinedIcon />
             kiritish
