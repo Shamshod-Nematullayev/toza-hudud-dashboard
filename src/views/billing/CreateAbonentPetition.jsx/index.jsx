@@ -5,6 +5,7 @@ import InputForm from './InputForm';
 import DHJTable from './DHJTable';
 import Recalculate from './Recalculate';
 import useStore from './useStore';
+import PasteImageDialog from './PasteImageDialog';
 
 function CreateAbonentPetition() {
   const { aktType, abonentData, abonentData2, showPrintSection, mahalla, mahallaDublicat, yashovchiSoniInput } = useStore();
@@ -30,6 +31,7 @@ function CreateAbonentPetition() {
           <Recalculate />
         )}
       </div>
+      <PasteImageDialog />
     </MainCard>
   );
 }

@@ -18,7 +18,7 @@ const StyledTable = styled.table`
     text-align: left;
   }
 `;
-const oylar = ['Январ', 'Февраль', 'Март', 'Апрель', 'Май', 'Июн', 'Июл', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабр'];
+const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
 function formatName(name) {
@@ -38,10 +38,9 @@ function renderSwitch({
   mahalla,
   mahalla2,
   aniqlanganYashovchiSoni,
-  documentType = 'odam_soni',
-  arizaData = {}
+  documentType = 'odam_soni'
 }) {
-  const { recalculationPeriods, ariza } = useStore();
+  const { recalculationPeriods, ariza, muzlatiladi } = useStore();
   const [olderPeriod, setOlderPeriod] = useState(new Date());
 
   useEffect(() => {
@@ -51,6 +50,7 @@ function renderSwitch({
           recalculationPeriods.reduce((a, b) => (new Date(a.startDate).getTime() > new Date(b.startDate).getTime() ? a : b)).startDate
         )
       );
+    else setOlderPeriod(new Date());
   }, [recalculationPeriods]);
   switch (documentType) {
     case 'odam_soni':
@@ -197,7 +197,7 @@ function renderSwitch({
               }}
             >
               Ushbu abonentlar ikkilamchi hisob raqam bo‘lganligi sababli yagona elektron tizimda ikkilamchi hisob rakamga tushgan pul
-              mablag‘larini xaqiqiy hisob raqamga o‘tkazib, ikkilamchi abonentlarni o‘chirishni maqsadga muvofiq deb hisoblaymiz.
+              mablag‘larini haqiqiy hisob raqamga o‘tkazib, ikkilamchi abonentlarni o‘chirishni maqsadga muvofiq deb hisoblaymiz.
             </p>
             <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} mahalla2={mahalla2} />
           </div>
@@ -262,6 +262,72 @@ function renderSwitch({
 
           <QRSection ariza={ariza} date={date} abonentData={abonentData} />
         </div>
+      );
+    case 'gps':
+      return (
+        <>
+          <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+            <p style={{ textAlign: 'center' }}>
+              <b>Tegishli sifatdagi xizmat ko‘rsatilmaganligi va uning oqibatida noreal qarzdorlik vujudga kelganligi to‘g‘risidagi</b>
+            </p>
+            <p style={{ textAlign: 'center' }}>
+              <b>DALOLATNOMA</b>
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                lineHeight: '50px'
+              }}
+            >
+              <div>
+                "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
+              </div>
+              <div>Kattaqo‘rg‘on tumani</div>
+            </div>
+            <p>
+              <b>Quyidagi manzil bo‘yicha:</b>
+            </p>
+            <p>MFY nomi: {mahalla.name && lotinga(mahalla?.name)}</p>
+            <p>
+              Manzil: {abonentData?.mahallaName} {abonentData.streetName}
+            </p>
+            <p>Shaxsiy hisob raqami: {abonentData?.accountNumber}</p>
+            <p>
+              <b>Abonent: {abonentData?.fullName}</b>
+            </p>
+            <p>
+              Haqiqatdan ham abonent xonadoniga {new Date(recalculationPeriods[0]?.startDate).getFullYear()} yil{' '}
+              {oylar[new Date(recalculationPeriods[0]?.startDate).getMonth()]} oyidan{' '}
+              {new Date(recalculationPeriods[0]?.endDate).getFullYear()} yil {oylar[new Date(recalculationPeriods[0]?.endDate).getMonth()]}{' '}
+              gacha yo‘lning yaroqsizligi sababli tegishli sifatdagi xizmat ko‘rsatilmaganligi aniqlandi.{' '}
+              {muzlatiladi && <>Ushbu abonentga bugungi kunda ham xizmat ko‘rsatish imkoniyati mavjud emas.</>}
+            </p>
+            <p>
+              Yuqoridagilarga va asoslantiruvchi hujjatlar va GPS ma’lumotlariga muvofiq, {date.getFullYear()} yilning{' '}
+              {lotinga(oylar[date.getMonth()])} oyida hisobga olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi ma’lumotlarga
+              tegishli o‘zgartirishlar kiritish hamda to‘lovlarni qayta hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
+            </p>
+            <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={documentType} />
+          </div>
+          <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+            <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
+            <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+            <br />
+            <ArizaTitle type="xizmat ko'rsatilmagan" />
+            <p
+              style={{
+                fontWeight: 'bold',
+                lineHeight: '40px',
+                textIndent: '40px'
+              }}
+            >
+              Shuni yozib ma’lum qilamanki mening {abonentData.accountNumber} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani
+              sababli dalolatnoma taqdim qilayapman. Ushbu dalolatnoma asosida qayta hisob-kitob qilib berishingizni so‘rayman.
+            </p>
+            <QRSection ariza={ariza} date={date} abonentData={abonentData} />
+          </div>
+        </>
       );
   }
 }

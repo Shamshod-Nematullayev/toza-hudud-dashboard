@@ -5,6 +5,8 @@ const useStore = create((set) => ({
   setAktType: (aktType) => set({ aktType }),
   showPrintSection: false,
   setShowPrintSection: (state) => set({ showPrintSection: state }),
+  rowsDhjTable: [],
+  setRowsDhjTable: (rowsDhjTable) => set({ rowsDhjTable }),
   rows: [],
   setRows: (files) => set({ rows: files }),
   rowsDublicat: [],
@@ -22,7 +24,13 @@ const useStore = create((set) => ({
   recalculationPeriods: [],
   setRecalculationPeriods: (data) => set({ recalculationPeriods: data }),
   yashovchiSoniInput: '',
-  setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: data })
+  setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: data }),
+  pasteImageDialogOpen: false,
+  setPasteImageDialogOpen: (pasteImageDialogOpen) => set({ pasteImageDialogOpen }),
+  images: [],
+  setImages: (images) => set({ images }),
+  muzlatiladi: false,
+  setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi })
 }));
 
 export default useStore;

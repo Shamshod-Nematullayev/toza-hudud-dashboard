@@ -13,20 +13,39 @@ import { DataGrid } from '@mui/x-data-grid';
 
 dayjs.locale('uz-latn');
 function Recalculate() {
-  const { recalculationPeriods, setRecalculationPeriods } = useStore();
+  const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable } = useStore();
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
   const [totalSumm, setTotalSumm] = useState(0);
   const [startDate, setStartDate] = useState({});
   const [endDate, setEndDate] = useState(dayjs());
   const qaytaHisob = ({ fromMoon, fromYear, toMoon, toYear, yashovchilar = 1 }) => {
+    if (aktType === 'gps') {
+      let summ = 0;
+      let withNdsSumm = 0;
+      rowsDhjTable.forEach((row) => {
+        const [oy, yil] = row.davr.split('.');
+        if (((oy - 1 >= fromMoon && yil == fromYear) || yil > fromYear) && ((oy - 1 <= toMoon && yil == toYear) || yil < toYear)) {
+          const { withQQS } = hisoblandiJadval.find((row) => row.year == yil && row.month == oy);
+          if (withQQS) {
+            withNdsSumm += row.nachis;
+          }
+          summ += row.nachis;
+        }
+      });
+
+      console.log(rowsDhjTable);
+      setWithQQS(withNdsSumm);
+      setCurrentTotal(summ);
+      return;
+    }
     let summ = 0;
     let withQQS = 0;
     for (let i = 0; i < hisoblandiJadval.length; i++) {
       const davr = hisoblandiJadval[i];
 
-      if ((davr.year == fromYear && davr.month >= fromMoon) || davr.year > fromYear) {
-        if (davr.year < toYear || (davr.year == toYear && davr.month <= toMoon)) {
+      if ((davr.year == fromYear && davr.month - 1 >= fromMoon) || davr.year > fromYear) {
+        if (davr.year < toYear || (davr.year == toYear && davr.month - 1 <= toMoon)) {
           if (davr.withQQS) {
             withQQS += davr.hisoblandi * yashovchilar;
           }
@@ -36,7 +55,6 @@ function Recalculate() {
     }
     setWithQQS(withQQS);
     setCurrentTotal(summ);
-    console.log({ withQQS, summ });
   };
 
   useEffect(() => {
@@ -68,10 +86,19 @@ function Recalculate() {
   };
 
   const handleAddButtonClick = () => {
-    console.log(recalculationPeriods);
     if (currentTotal === 0) {
       return toast.info('Qiymat kiriting');
     }
+    if (aktType == 'gps')
+      return setRecalculationPeriods([
+        {
+          withQQSTotal: withQQS,
+          withoutQQSTotal: currentTotal - withQQS,
+          total: currentTotal,
+          startDate,
+          endDate
+        }
+      ]);
     setRecalculationPeriods([
       ...recalculationPeriods,
       {

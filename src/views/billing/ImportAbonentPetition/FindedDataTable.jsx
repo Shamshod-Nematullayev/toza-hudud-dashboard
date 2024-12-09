@@ -209,7 +209,7 @@ function FindedDataTable() {
           <Button
             sx={{ margin: 'auto 15px', padding: '15px 20px' }}
             onClick={handlePrimaryButtonClick}
-            disabled={ariza.status === 'yangi' || isUploading ? false : true}
+            disabled={ariza.status === 'yangi' && !isUploading ? false : true}
           >
             <FileUploadOutlinedIcon />
             kiritish

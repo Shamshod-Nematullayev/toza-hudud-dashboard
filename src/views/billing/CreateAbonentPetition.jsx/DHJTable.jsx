@@ -3,14 +3,15 @@ import React, { useEffect, useState } from 'react';
 import useStore from './useStore';
 import api from 'utils/api';
 import { Stack, Typography } from '@mui/material';
+import { toast } from 'react-toastify';
 
 function DHJTable({ abonentData, title }) {
-  const [rows, setRows] = useState([]);
+  const { rowsDhjTable, setRowsDhjTable } = useStore();
   useEffect(() => {
     if (abonentData.accountNumber) {
-      api.get('/billing/get-abonent-dxj-by-licshet/' + abonentData.accountNumber).then(({ data }) => {
+      api.get('/billing/get-abonent-dxj-by-id/' + abonentData.id).then(({ data }) => {
         if (!data.ok) return toast.error(data.message);
-        setRows(
+        setRowsDhjTable(
           data.rows.map((row, i) => ({
             id: i + 1,
             davr: row.period,
@@ -24,7 +25,7 @@ function DHJTable({ abonentData, title }) {
         );
       });
     } else {
-      setRows([]);
+      setRowsDhjTable([]);
     }
   }, [abonentData]);
   return (
@@ -43,7 +44,7 @@ function DHJTable({ abonentData, title }) {
         disableColumnFilter
         disableColumnSorting
         hideFooter
-        rows={rows}
+        rows={rowsDhjTable}
         sx={{
           margin: '25px auto'
         }}

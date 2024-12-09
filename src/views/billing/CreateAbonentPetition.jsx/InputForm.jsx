@@ -1,4 +1,4 @@
-import { Button, FormControl, MenuItem, Select, TextField, Typography, useTheme } from '@mui/material';
+import { Button, MenuItem, Select, TextField, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -30,13 +30,25 @@ function InputForm() {
     setAriza,
     setRecalculationPeriods,
     yashovchiSoniInput,
-    setYashovchiSoniInput
+    setYashovchiSoniInput,
+    setPasteImageDialogOpen,
+    images,
+    muzlatiladi,
+    setMuzlatiladi
   } = useStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
   const inputRef = React.useRef(null);
   const dublicateLicshetInput = React.useRef(null);
+
+  useEffect(() => {
+    if (muzlatiladi) {
+      setYashovchiSoniInput(0);
+    } else {
+      setYashovchiSoniInput(abonentData.house?.inhabitantCnt);
+    }
+  }, [muzlatiladi]);
 
   useEffect(() => {
     if (String(licshet).length === 12) {
@@ -151,7 +163,8 @@ function InputForm() {
         akt_summasi: aktSumma,
         current_prescribed_cnt: abonentData.house.inhabitantCnt,
         next_prescribed_cnt: yashovchiSoniInput,
-        comment: generateSummary(recalculationPeriods)
+        comment: generateSummary(recalculationPeriods),
+        photos: images
       })
       .then((res) => {
         if (!res.data.ok) {
@@ -195,16 +208,17 @@ function InputForm() {
   return (
     <div style={{ margin: '25px', width: '25%', borderRight: '1px solid #ccc' }}>
       <div style={{ height: 200, display: 'flex' }}>
-        <FormControl sx={{ margin: 'auto 20px', width: 190 }}>
+        <div style={{ margin: 'auto 20px', width: 190, display: 'flex', flexDirection: 'column' }}>
           <Select value={aktType} onChange={(e) => setAktType(e.target.value)}>
             <MenuItem value="odam_soni">Odam soni</MenuItem>
             <MenuItem value="viza">Pasport viza</MenuItem>
             <MenuItem value="death">O'lim guvohnoma</MenuItem>
             <MenuItem value="dvaynik">Ikkilamchi kod</MenuItem>
+            <MenuItem value="gps">Texnika bormagan</MenuItem>
           </Select>
           <TextField
             label="Yashovchi soni"
-            sx={{ margin: '10px 0', display: aktType === 'dvaynik' || aktType === 'viza' ? 'none' : 'inline' }}
+            sx={{ margin: '10px 0', display: aktType === 'dvaynik' || aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
             value={yashovchiSoniInput}
             onChange={(e) => {
               if (!isNaN(e.target.value)) {
@@ -212,6 +226,16 @@ function InputForm() {
               }
             }}
           />
+          <Select
+            value={muzlatiladi}
+            onChange={(e) => setMuzlatiladi(e.target.value)}
+            sx={{
+              display: aktType === 'gps' ? 'auto' : 'none'
+            }}
+          >
+            <MenuItem value={false}>Endi xizmat ko'rsatadi</MenuItem>
+            <MenuItem value={true}>Muzlatish</MenuItem>
+          </Select>
           <TextField
             label="Aktlar summasi"
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
@@ -223,8 +247,8 @@ function InputForm() {
               }
             }}
           />
-        </FormControl>
-        <FormControl sx={{ margin: 'auto 20px', width: 190 }}>
+        </div>
+        <div style={{ margin: 'auto 20px', width: 190, display: 'flex', flexDirection: 'column' }}>
           <TextField
             label="Hisob raqam"
             inputRef={inputRef}
@@ -252,10 +276,10 @@ function InputForm() {
               }
             }}
           />
-        </FormControl>
+        </div>
       </div>
       <div style={{ margin: 'auto 20px' }}>
-        <FormControl sx={{ display: 'flex', flexDirection: 'row' }}>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
           <Button
             variant="contained"
             color={'primary'}
@@ -265,10 +289,13 @@ function InputForm() {
           >
             Yaratish
           </Button>
+          <Button color="success" sx={{ margin: '10px 20px' }} variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
+            Rasm qo'shish
+          </Button>
           <Button variant="outlined" color={'error'} sx={{ margin: '10px 0' }} onClick={handleClearButtonClick}>
             Tozalash
           </Button>
-        </FormControl>
+        </div>
       </div>
       {abonentData.accountNumber && (
         <div>
