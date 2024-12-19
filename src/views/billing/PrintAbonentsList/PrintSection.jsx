@@ -54,7 +54,7 @@ function PrintSection({ printContentRef }) {
               <td style={{ textAlign: 'center' }}>{abonent.inhabitantCnt}</td>
               <td style={{ textAlign: 'right' }}>{Math.floor(Number(abonent.ksaldo)).toLocaleString()}</td>
               <td style={{ textAlign: 'right' }}>{abonent.lastPaymentAmount}</td>
-              <td>{abonent.lastPayDate}</td>
+              <td>{String(abonent.lastPayDate).split('T')[0]}</td>
               <td
                 style={{
                   textDecoration: abonent.isElektrKodConfirm ? 'line-through' : 'none'

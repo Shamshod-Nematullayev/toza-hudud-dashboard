@@ -30,7 +30,25 @@ const useStore = create((set) => ({
   images: [],
   setImages: (images) => set({ images }),
   muzlatiladi: false,
-  setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi })
+  setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi }),
+  setInitialState: () =>
+    set({
+      aktType: 'odam_soni',
+      showPrintSection: false,
+      rowsDhjTable: [],
+      rows: [],
+      rowsDublicat: [],
+      abonentData: {},
+      abonentData2: {},
+      ariza: {},
+      mahalla: {},
+      mahallaDublicat: {},
+      recalculationPeriods: [],
+      yashovchiSoniInput: '',
+      pasteImageDialogOpen: false,
+      images: [],
+      muzlatiladi: false
+    })
 }));
 
 export default useStore;

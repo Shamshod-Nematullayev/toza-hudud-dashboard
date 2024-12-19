@@ -34,7 +34,6 @@ function Recalculate() {
         }
       });
 
-      console.log(rowsDhjTable);
       setWithQQS(withNdsSumm);
       setCurrentTotal(summ);
       return;

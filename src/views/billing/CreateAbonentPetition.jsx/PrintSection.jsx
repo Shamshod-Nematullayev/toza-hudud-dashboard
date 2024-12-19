@@ -327,6 +327,10 @@ function renderSwitch({
             </p>
             <QRSection ariza={ariza} date={date} abonentData={abonentData} />
           </div>
+          <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+            <h3>MFY raisi:</h3>
+            <img />
+          </div>
         </>
       );
   }

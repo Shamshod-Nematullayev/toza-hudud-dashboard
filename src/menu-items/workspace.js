@@ -96,7 +96,7 @@ const billing = {
           type: 'item',
           url: '/jurist/warningLetter',
           icon: icons.MailIcon,
-          breadcrumbs: true
+          breadcrumbs: false
         },
         {
           id: 'courtProccesses',

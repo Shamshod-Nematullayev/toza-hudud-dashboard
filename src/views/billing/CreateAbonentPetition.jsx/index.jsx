@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import PrintSection from './PrintSection';
 import InputForm from './InputForm';
@@ -6,9 +6,15 @@ import DHJTable from './DHJTable';
 import Recalculate from './Recalculate';
 import useStore from './useStore';
 import PasteImageDialog from './PasteImageDialog';
+import { useLocation } from 'react-router-dom';
 
 function CreateAbonentPetition() {
-  const { aktType, abonentData, abonentData2, showPrintSection, mahalla, mahallaDublicat, yashovchiSoniInput } = useStore();
+  const { aktType, abonentData, abonentData2, showPrintSection, mahalla, mahallaDublicat, yashovchiSoniInput, setInitialState } =
+    useStore();
+  const location = useLocation();
+  useEffect(() => {
+    setInitialState();
+  }, [location]);
   return (
     <MainCard>
       <PrintSection

@@ -97,7 +97,7 @@ function PrintSection() {
               mazkur dalolatnomani shu haqida tuzdik.
             </p>
             <p style={{ textIndent: '25px' }}>
-              {lotinga(mahalla.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari ko‘payganligi ma'lum
+              {lotinga(mahalla.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma'lum
               bo‘ldi.
             </p>
             <table

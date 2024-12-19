@@ -51,22 +51,6 @@ function InputForm() {
   }, [muzlatiladi]);
 
   useEffect(() => {
-    if (String(licshet).length === 12) {
-      async function fetchData() {
-        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + licshet);
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        setAbonentData(data.abonentData);
-      }
-      fetchData();
-    } else {
-      setAbonentData({});
-    }
-  }, [licshet]);
-
-  useEffect(() => {
     let total = 0;
     let totalWithQQS = 0;
     let withoutQQSTotal = 0;
@@ -82,7 +66,22 @@ function InputForm() {
     });
   }, [recalculationPeriods]);
   useEffect(() => {
-    if (String(dublicateLicshet).length === 12) {
+    if (licshet.length === 12) {
+      async function fetchData() {
+        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + licshet);
+        if (!data.ok) {
+          toast.error(data.message);
+          return;
+        }
+        setAbonentData(data.abonentData);
+      }
+      fetchData();
+    } else {
+      if (abonentData.licshet) setAbonentData({});
+    }
+  }, [licshet]);
+  useEffect(() => {
+    if (dublicateLicshet.length === 12) {
       async function fetchData() {
         const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + dublicateLicshet);
         if (!data.ok) {
@@ -93,7 +92,7 @@ function InputForm() {
       }
       fetchData();
     } else {
-      setAbonentData2({});
+      if (abonentData2.licshet) setAbonentData2({});
     }
   }, [dublicateLicshet]);
 
@@ -164,7 +163,7 @@ function InputForm() {
         current_prescribed_cnt: abonentData.house.inhabitantCnt,
         next_prescribed_cnt: yashovchiSoniInput,
         comment: generateSummary(recalculationPeriods),
-        photos: images
+        photos: images.map((img) => img.document_id)
       })
       .then((res) => {
         if (!res.data.ok) {

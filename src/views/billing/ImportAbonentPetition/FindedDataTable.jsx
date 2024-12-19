@@ -44,6 +44,7 @@ function FindedDataTable() {
   const theme = useTheme();
 
   useEffect(() => {
+    if (!ariza.licshet) return setInputDisabled(false);
     api
       .get('/billing/get-abonent-dxj-by-licshet/' + ariza.licshet)
 
@@ -84,7 +85,7 @@ function FindedDataTable() {
     const diffMonth = counterDiffMonth(new Date(ariza.sana));
     const lateAktSumm =
       (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) *
-      4625 *
+      4624 *
       diffMonth;
     if (ariza.document_type == 'dvaynik') {
       api.get('/billing/get-abonent-dxj-by-licshet/' + ariza.ikkilamchi_licshet).then(({ data }) => {
@@ -209,7 +210,7 @@ function FindedDataTable() {
           <Button
             sx={{ margin: 'auto 15px', padding: '15px 20px' }}
             onClick={handlePrimaryButtonClick}
-            disabled={ariza.status === 'yangi' && !isUploading ? false : true}
+            disabled={/*ariza.status === 'yangi' && */ !isUploading ? false : true}
           >
             <FileUploadOutlinedIcon />
             kiritish
