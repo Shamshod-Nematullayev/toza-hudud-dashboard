@@ -3,17 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import useStore from './useStore';
-
-function KeyValue({ kalit, value }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}>
-      <Typography variant="subtitle1" className="key">
-        <div>{kalit} :</div>
-      </Typography>
-      <Typography className="value">{value}</Typography>
-    </div>
-  );
-}
+import AccountNumberInput from 'ui-component/AccountNumberInput';
+import KeyValue from 'ui-component/KeyValue';
 
 function InputForm() {
   const {
@@ -39,8 +30,6 @@ function InputForm() {
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
-  const inputRef = React.useRef(null);
-  const dublicateLicshetInput = React.useRef(null);
 
   useEffect(() => {
     if (muzlatiladi) {
@@ -96,41 +85,6 @@ function InputForm() {
     }
   }, [dublicateLicshet]);
 
-  const handleFocus = (e, type) => {
-    if (!e.target.value) {
-      const defaultValue = 105120;
-      if (type === 'licshet') {
-        setLicshet(defaultValue);
-        // Wait until the value is set before placing the cursor at the end
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.setSelectionRange(defaultValue.toString().length, defaultValue.toString().length);
-          }
-        }, 0);
-      }
-      if (type === 'dublicat') {
-        setDublicateLicshet(defaultValue);
-        // Wait until the value is set before placing the cursor at the end
-        setTimeout(() => {
-          if (dublicateLicshetInput.current) {
-            dublicateLicshetInput.current.setSelectionRange(defaultValue.toString().length, defaultValue.toString().length);
-          }
-        }, 0);
-      }
-    }
-  };
-
-  const handleChangeLicshet = (e, type) => {
-    if (!isNaN(e.target.value)) {
-      if (type === 'licshet') {
-        setLicshet(e.target.value);
-      }
-      if (type === 'dublicat') {
-        setDublicateLicshet(e.target.value);
-      }
-    }
-  };
-
   const handleCreateAktButtonClick = (e) => {
     if (aktType === 'odam_soni' && yashovchiSoniInput === '') {
       return toast.error('Yashovchi soniga qiymat kiritilmadi');
@@ -154,6 +108,40 @@ function InputForm() {
       // Yakuniy matnni yaratish
       return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
     }
+    function testApi() {
+      return new Promise((resolve) =>
+        resolve({
+          data: {
+            ok: true,
+            ariza: {
+              _id: {
+                $oid: '6764fbb0759b9bd6e4e47a21'
+              },
+              asosiy_licshet: '105120800305',
+              sana: {
+                $date: '2024-12-20T05:08:00.478Z'
+              },
+              document_type: 'gps',
+              document_number: 813,
+              licshet: '105120800305',
+              comment: "Davr: 06.2023 - 11.2024, Summa: 283636\n\nUmumiy yig'indisi: 283636",
+              aktSummasi: 283636,
+              aktSummCounts: {
+                total: 283636,
+                totalWithQQS: 147972,
+                withoutQQSTotal: 135664
+              },
+              current_prescribed_cnt: 4,
+              next_prescribed_cnt: 0,
+              status: 'yangi',
+              is_canceled: false,
+              photos: ['BQACAgIAAx0EXWkC5gACDMlnZPt5J7npWEdXp5s3hV6Jn7TCkQACEF0AAi7WKEu0RK4SeIpwuDYE'],
+              __v: 0
+            }
+          }
+        })
+      );
+    }
     api
       .post('/arizalar/create', {
         licshet,
@@ -165,6 +153,7 @@ function InputForm() {
         comment: generateSummary(recalculationPeriods),
         photos: images.map((img) => img.document_id)
       })
+      // testApi()
       .then((res) => {
         if (!res.data.ok) {
           toast.error(res.data.message);
@@ -248,32 +237,13 @@ function InputForm() {
           />
         </div>
         <div style={{ margin: 'auto 20px', width: 190, display: 'flex', flexDirection: 'column' }}>
-          <TextField
-            label="Hisob raqam"
-            inputRef={inputRef}
-            type="text"
-            value={licshet}
-            inputProps={{ maxLength: 12 }}
-            onChange={(e) => handleChangeLicshet(e, 'licshet')}
-            onFocus={(e) => handleFocus(e, 'licshet')}
-            onBlur={(e) => {
-              if (e.target.value == 105120) {
-                setLicshet('');
-              }
-            }}
-          />
-          <TextField
+          <AccountNumberInput label="Hisob raqam" value={licshet} setFunc={setLicshet} />
+
+          <AccountNumberInput
             label="Ikkilamchi kod"
-            inputRef={dublicateLicshetInput}
-            sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
             value={dublicateLicshet}
-            onChange={(e) => handleChangeLicshet(e, 'dublicat')}
-            onFocus={(e) => handleFocus(e, 'dublicat')}
-            onBlur={(e) => {
-              if (e.target.value == 105120) {
-                setDublicateLicshet('');
-              }
-            }}
+            setFunc={setDublicateLicshet}
+            sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
           />
         </div>
       </div>

@@ -140,6 +140,7 @@ function FindedDataTable() {
         return;
       }
       setAriza(data.ariza);
+      setIsUploading(false);
     } catch (err) {
       console.log(err);
       toast.error("Serverga so'rov yuborilmadi");
@@ -160,6 +161,7 @@ function FindedDataTable() {
       formData.append('licshet', ariza.licshet);
       formData.append('next_inhabitant_count', ariza.next_prescribed_cnt);
       formData.append('akt_sum', eval(aktSumm));
+      formData.append('amountWithoutQQS', ariza.aktSummCounts.withoutQQSTotal);
       formData.append('description', 'fuqaro arizasi ' + ariza.comment);
 
       const url = ariza.document_type === 'dvaynik' ? '/billing/create-dvaynik-akt-by-ariza' : '/billing/create-full-akt';
@@ -210,7 +212,7 @@ function FindedDataTable() {
           <Button
             sx={{ margin: 'auto 15px', padding: '15px 20px' }}
             onClick={handlePrimaryButtonClick}
-            disabled={/*ariza.status === 'yangi' && */ !isUploading ? false : true}
+            disabled={ariza.status === 'yangi' && !isUploading ? false : true}
           >
             <FileUploadOutlinedIcon />
             kiritish
