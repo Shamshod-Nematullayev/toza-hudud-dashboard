@@ -16,7 +16,9 @@ const useStore = create((set) => ({
   filter: {},
   setFilter: (filter) => set({ filter }),
   sort: '',
-  setSort: (sort) => set({ sort })
+  setSort: (sort) => set({ sort }),
+  documentNumber: '12',
+  setDocumentNumber: (documentNumber) => set({ documentNumber })
 }));
 
 export default useStore;
