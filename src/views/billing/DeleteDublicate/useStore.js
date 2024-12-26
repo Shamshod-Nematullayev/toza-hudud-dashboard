@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 const useStore = create((set) => ({
-  pdfFile: null,
+  pdfFile: {},
   setPdfFile: (file) => set({ pdfFile: file })
 }));
 

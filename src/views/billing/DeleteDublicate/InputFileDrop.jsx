@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import { createGlobalStyle } from 'styled-components';
-import useStore from './useContext';
 
 const CustomStyle = createGlobalStyle`
   .drop-zone {
@@ -51,12 +50,11 @@ const CustomStyle = createGlobalStyle`
     text-align: center;
   }
 `;
-function FileInputDrop() {
+function FileInputDrop({ setFunc }) {
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // =============================|States|================================================
-  const { setPdfFile } = useStore();
 
   useEffect(() => {
     const dropZoneElement = dropZoneRef.current;
@@ -67,7 +65,8 @@ function FileInputDrop() {
       dropZoneElement.classList.remove('drop-zone--over');
 
       updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
-      setPdfFile(e.dataTransfer.files[0]);
+
+      setFunc({ file: e.dataTransfer.files[0], url: URL.createObjectURL(e.dataTransfer.files[0]) });
     };
 
     const handleDragOver = (e) => {
@@ -82,7 +81,7 @@ function FileInputDrop() {
     const handleChange = (e) => {
       if (inputElement.files.length) {
         updateThumbnail(dropZoneElement, inputElement.files[0]);
-        setPdfFile(inputElement.files[0]);
+        setFunc({ file: inputElement.files[0], url: URL.createObjectURL(inputElement.files[0]) });
       }
     };
 

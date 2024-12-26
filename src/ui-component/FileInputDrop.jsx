@@ -50,7 +50,7 @@ const CustomStyle = createGlobalStyle`
     text-align: center;
   }
 `;
-function FileInputDrop({ setPdfFiles }) {
+function FileInputDrop({ setFunc }) {
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -65,23 +65,7 @@ function FileInputDrop({ setPdfFiles }) {
       if (e.dataTransfer.files.length) {
         inputElement.files = e.dataTransfer.files;
         updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
-        const files = Array.from(e.dataTransfer.files).filter((file) => file.type === 'application/pdf');
-        const filesWithUrl = [];
-        const promises = files.map((file) => {
-          return new Promise(async (resolve, reject) => {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
-            const url = URL.createObjectURL(pdfBlob);
-            filesWithUrl.push({
-              file,
-              url,
-              blob: pdfBlob
-            });
-            resolve('Successfully');
-          });
-        });
-        await Promise.all(promises);
-        setPdfFiles(filesWithUrl);
+        setFunc(inputElement.files);
       }
     };
 
