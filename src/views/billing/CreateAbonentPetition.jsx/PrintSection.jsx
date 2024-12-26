@@ -38,9 +38,11 @@ function renderSwitch({
   mahalla,
   mahalla2,
   aniqlanganYashovchiSoni,
-  documentType = 'odam_soni'
+  documentType = 'odam_soni',
+  recalculationPeriods,
+  ariza,
+  muzlatiladi
 }) {
-  const { recalculationPeriods, ariza, muzlatiladi } = useStore();
   const [olderPeriod, setOlderPeriod] = useState(new Date());
 
   useEffect(() => {
@@ -422,7 +424,7 @@ function QRSection({ ariza, date, abonentData }) {
   );
 }
 
-function PrintSection({ show, ...props }) {
+function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
   const componentRef = useRef(null);
   const printFunction = useReactToPrint({
     pageStyle: `@media print {
@@ -437,8 +439,8 @@ function PrintSection({ show, ...props }) {
     documentTitle: 'Printing',
     contentRef: componentRef
   });
-  const { setShowPrintSection } = useStore();
   const [comment, setComment] = useState('');
+
   return (
     <Dialog
       open={show}
@@ -451,19 +453,22 @@ function PrintSection({ show, ...props }) {
     >
       <DialogContent style={{ margin: '40px 55px', fontSize: 14 }}>
         <div id="print" ref={componentRef}>
-          {renderSwitch({ ...props, asoslantiruvchi: comment })}
+          {renderSwitch({ ...props, asoslantiruvchi: comment, ariza })}
         </div>
       </DialogContent>
-      <DialogContent>
-        <FormControl fullWidth>
-          <TextareaAutosize
-            minRows={3}
-            placeholder="Qoʻshimcha izohlar uchun"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
-        </FormControl>
-      </DialogContent>
+      {ariza.document_type === 'odam_soni' && (
+        <DialogContent>
+          <FormControl fullWidth>
+            <TextareaAutosize
+              minRows={3}
+              placeholder="Qoʻshimcha izohlar uchun"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+          </FormControl>
+        </DialogContent>
+      )}
+
       <DialogActions>
         <Button onClick={() => setShowPrintSection(false)}>Chiqish</Button>
         <Button variant="contained" color="primary" onClick={printFunction}>

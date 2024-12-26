@@ -9,8 +9,20 @@ import PasteImageDialog from './PasteImageDialog';
 import { useLocation } from 'react-router-dom';
 
 function CreateAbonentPetition() {
-  const { aktType, abonentData, abonentData2, showPrintSection, mahalla, mahallaDublicat, yashovchiSoniInput, setInitialState } =
-    useStore();
+  const {
+    aktType,
+    abonentData,
+    abonentData2,
+    showPrintSection,
+    setShowPrintSection,
+    mahalla,
+    mahallaDublicat,
+    yashovchiSoniInput,
+    setInitialState,
+    ariza,
+    muzlatiladi,
+    recalculationPeriods
+  } = useStore();
   const location = useLocation();
   useEffect(() => {
     setInitialState();
@@ -26,6 +38,10 @@ function CreateAbonentPetition() {
         documentType={aktType}
         mahalla={mahalla}
         mahalla2={mahallaDublicat}
+        ariza={ariza}
+        setShowPrintSection={setShowPrintSection}
+        muzlatiladi={muzlatiladi}
+        recalculationPeriods={recalculationPeriods}
       />
       <div style={{ display: 'flex' }}>
         <InputForm />

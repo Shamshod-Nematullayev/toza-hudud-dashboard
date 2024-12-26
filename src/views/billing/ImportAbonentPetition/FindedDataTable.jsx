@@ -224,7 +224,7 @@ function FindedDataTable() {
           <Button
             sx={{ padding: '15px 20px', color: 'error.main' }}
             onClick={() => setShowDialog(true)}
-            disabled={ariza.status === 'yangi' && ariza.document_type !== 'dvaynik' ? false && isUploading : true}
+            disabled={ariza.status === 'yangi' ? false && isUploading : true}
           >
             <DeleteOutlinedIcon />
             bekor qilish

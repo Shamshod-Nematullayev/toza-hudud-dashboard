@@ -151,7 +151,9 @@ function InputForm() {
         current_prescribed_cnt: abonentData.house.inhabitantCnt,
         next_prescribed_cnt: yashovchiSoniInput,
         comment: generateSummary(recalculationPeriods),
-        photos: images.map((img) => img.document_id)
+        photos: images.map((img) => img.document_id),
+        recalculationPeriods,
+        muzlatiladi
       })
       // testApi()
       .then((res) => {
