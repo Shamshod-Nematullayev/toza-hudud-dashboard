@@ -30,7 +30,9 @@ const useStore = create((set) => ({
   mahalla: {},
   setMahalla: (mfy) => set({ mahalla: mfy }),
   mahallaDublicat: {},
-  setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy })
+  setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
+  aktFileURL: {},
+  setAktFileURL: (aktFileURL) => set({ aktFileURL })
 }));
 
 export default useStore;

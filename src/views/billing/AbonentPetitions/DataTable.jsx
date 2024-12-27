@@ -21,7 +21,9 @@ function DataTable() {
     setShowPrintSection,
     setCurrentAriza,
     setAbonentData,
-    setMahalla
+    setMahalla,
+    setMahallaDublicat,
+    setAktFileURL
   } = useLocalStore();
   const [reloadEffect, setReloadEffect] = useState(false);
   function reload() {
@@ -75,17 +77,29 @@ function DataTable() {
       return toast.error(ariza.message);
     }
     const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + licshet)).data;
-    if (!abonentData.ok) {
-      toast.error(data.message);
-      return;
-    }
     setAbonentData(abonentData.abonentData);
-    const mahallaData = api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId).data;
-    setMahalla(mahallaData.data);
-
+    const mahallaData =(await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+    setMahalla(mahallaData);
+    if(ariza.document_type === "dvaynik"){
+      const abonentData = (await api.get("/billing/get-abonent-data-by-licshet/" + ariza.ikkilamchi_licshet)).data
+      setAbonentData(abonentData.abonentData);
+      const mahallaData = (await api.get("/billing/get-mfy-by-id/" + abonentData.mahallaId)).data;
+      setMahallaDublicat(mahallaData);
+    }
     setCurrentAriza(ariza.ariza);
     setShowPrintSection(true);
   };
+  const handleEnterButtonClick = async (ariza_id) => {
+    // bu yerga arizaga kirish kodini yozaman.
+    const arizaData = (await api.get("/arizalar/" + ariza_id)).data;
+    const aktFile = (await api.get("/billing/get-file/"+ariza.file_id))
+    const url = URL.createObjectURL(aktFile.data);
+    setAktFileURL(url)
+    // akt qilingan xujjatni ko'rishim kerak
+    // akt ma'lumotlarini ko'rishim kerak
+    // qayta akt qilish yoki aktga o'zgartirish kiritish bo'yicha ish ko'rish kerak
+    // menga uning tassavvuri aniq kelmyapti
+  }
   return (
     <div style={{ display: 'flex', height: '100%' }}>
       <DataGrid
