@@ -34,7 +34,6 @@ function CreateAbonentPetition() {
         aniqlanganYashovchiSoni={parseInt(yashovchiSoniInput)}
         abonentData={abonentData}
         abonentData2={abonentData2}
-        asoslantiruvchi="hozircha izoh"
         documentType={aktType}
         mahalla={mahalla}
         mahalla2={mahallaDublicat}

@@ -13,9 +13,8 @@ function ToolBar() {
   const [data, setData] = useState([]);
   const handleCreateButtonClick = async () => {
     // Create new account logic here
-    const request_ids = rows.map((row) => {
-      return row.status === 'yangi' && row._id;
-    });
+    const request_ids = rows.filter((row) => row.status === 'yangi');
+    if (request_ids.length < 1) return toast.error("yangi holatdagi qatorlar yo'q");
     const { data, mahalla } = (
       await api.post('/yashovchi-soni-xatlov', {
         request_ids,

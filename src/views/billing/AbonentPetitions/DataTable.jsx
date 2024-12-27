@@ -8,7 +8,21 @@ import CancelIcon from '@mui/icons-material/CancelOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 function DataTable() {
-  const { rows, pageNum, limit, total, setRows, setTotal, documentNumber, setPageNum, setLimit } = useLocalStore();
+  const {
+    rows,
+    pageNum,
+    limit,
+    total,
+    setRows,
+    setTotal,
+    documentNumber,
+    setPageNum,
+    setLimit,
+    setShowPrintSection,
+    setCurrentAriza,
+    setAbonentData,
+    setMahalla
+  } = useLocalStore();
   const [reloadEffect, setReloadEffect] = useState(false);
   function reload() {
     setReloadEffect(!reloadEffect);
@@ -55,6 +69,23 @@ function DataTable() {
         reload();
       });
   };
+  const handlePrintButtonClick = async (_id) => {
+    let ariza = (await api.get('/arizalar/get-ariza-by-id/' + _id)).data;
+    if (!ariza.ok) {
+      return toast.error(ariza.message);
+    }
+    const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + licshet)).data;
+    if (!abonentData.ok) {
+      toast.error(data.message);
+      return;
+    }
+    setAbonentData(abonentData.abonentData);
+    const mahallaData = api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId).data;
+    setMahalla(mahallaData.data);
+
+    setCurrentAriza(ariza.ariza);
+    setShowPrintSection(true);
+  };
   return (
     <div style={{ display: 'flex', height: '100%' }}>
       <DataGrid
@@ -81,7 +112,7 @@ function DataTable() {
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="chop etish" arrow enterDelay={1000}>
-                    <IconButton onClick={() => handleCancelIconClick(e.row._id)}>
+                    <IconButton onClick={() => handlePrintButtonClick(e.row._id)}>
                       <PrintOutlinedIcon />
                     </IconButton>
                   </Tooltip>

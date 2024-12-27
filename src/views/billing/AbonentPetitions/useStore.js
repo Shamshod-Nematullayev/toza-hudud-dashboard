@@ -18,7 +18,19 @@ const useStore = create((set) => ({
   sort: '',
   setSort: (sort) => set({ sort }),
   documentNumber: '',
-  setDocumentNumber: (documentNumber) => set({ documentNumber })
+  setDocumentNumber: (documentNumber) => set({ documentNumber }),
+  showPrintSection: false,
+  setShowPrintSection: (showPrintSection) => set({ showPrintSection }),
+  currentAriza: {},
+  setCurrentAriza: (ariza) => set({ currentAriza: ariza }),
+  abonentData: {},
+  setAbonentData: (data) => set({ abonentData: data }),
+  abonentData2: {},
+  setAbonentData2: (data) => set({ abonentData2: data }),
+  mahalla: {},
+  setMahalla: (mfy) => set({ mahalla: mfy }),
+  mahallaDublicat: {},
+  setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy })
 }));
 
 export default useStore;

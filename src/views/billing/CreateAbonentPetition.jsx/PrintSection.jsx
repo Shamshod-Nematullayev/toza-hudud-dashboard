@@ -39,7 +39,7 @@ function renderSwitch({
   mahalla2,
   aniqlanganYashovchiSoni,
   documentType = 'odam_soni',
-  recalculationPeriods,
+  recalculationPeriods = [],
   ariza,
   muzlatiladi
 }) {
