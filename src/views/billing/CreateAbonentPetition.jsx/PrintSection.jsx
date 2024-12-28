@@ -53,7 +53,7 @@ function renderSwitch({
         )
       );
     else setOlderPeriod(new Date());
-  }, [recalculationPeriods]);
+  }, []);
   switch (documentType) {
     case 'odam_soni':
       return (
@@ -179,18 +179,22 @@ function renderSwitch({
               Sh.Ne’matullayev mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida kuyidagi abonent
             </p>
             <StyledTable border={1} style={{ borderCollapse: 'collapse' }}>
-              <tr>
-                <th>Haqiqiy hisob raqam</th>
-                <th>Abonent F. I. O.</th>
-                <th>Ikkilamchi hisob raqam</th>
-                <th>Abonent F. I. O.</th>
-              </tr>
-              <tr>
-                <td>{abonentData.accountNumber}</td>
-                <td>{abonentData.fullName}</td>
-                <td>{abonentData2.accountNumber}</td>
-                <td>{abonentData2.fullName}</td>
-              </tr>
+              <thead>
+                <tr>
+                  <th>Haqiqiy hisob raqam</th>
+                  <th>Abonent F. I. O.</th>
+                  <th>Ikkilamchi hisob raqam</th>
+                  <th>Abonent F. I. O.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{abonentData.accountNumber}</td>
+                  <td>{abonentData.fullName}</td>
+                  <td>{abonentData2.accountNumber}</td>
+                  <td>{abonentData2.fullName}</td>
+                </tr>
+              </tbody>
             </StyledTable>
             <p
               style={{

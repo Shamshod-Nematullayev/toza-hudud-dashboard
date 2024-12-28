@@ -21,6 +21,7 @@ function DataTable() {
     setShowPrintSection,
     setCurrentAriza,
     setAbonentData,
+    setAbonentData2,
     setMahalla,
     setMahallaDublicat,
     setAktFileURL
@@ -76,30 +77,32 @@ function DataTable() {
     if (!ariza.ok) {
       return toast.error(ariza.message);
     }
-    const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + licshet)).data;
-    setAbonentData(abonentData.abonentData);
-    const mahallaData =(await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+    ariza = ariza.ariza;
+    const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet)).data.abonentData;
+    setAbonentData(abonentData);
+    console.log({ abonentData });
+    const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
     setMahalla(mahallaData);
-    if(ariza.document_type === "dvaynik"){
-      const abonentData = (await api.get("/billing/get-abonent-data-by-licshet/" + ariza.ikkilamchi_licshet)).data
-      setAbonentData(abonentData.abonentData);
-      const mahallaData = (await api.get("/billing/get-mfy-by-id/" + abonentData.mahallaId)).data;
+    if (ariza.document_type === 'dvaynik') {
+      const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet)).data.abonentData;
+      setAbonentData2(abonentData);
+      const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
       setMahallaDublicat(mahallaData);
     }
-    setCurrentAriza(ariza.ariza);
+    setCurrentAriza(ariza);
     setShowPrintSection(true);
   };
   const handleEnterButtonClick = async (ariza_id) => {
     // bu yerga arizaga kirish kodini yozaman.
-    const arizaData = (await api.get("/arizalar/" + ariza_id)).data;
-    const aktFile = (await api.get("/billing/get-file/"+ariza.file_id))
+    const arizaData = (await api.get('/arizalar/' + ariza_id)).data;
+    const aktFile = await api.get('/billing/get-file/' + ariza.file_id);
     const url = URL.createObjectURL(aktFile.data);
-    setAktFileURL(url)
+    setAktFileURL(url);
     // akt qilingan xujjatni ko'rishim kerak
     // akt ma'lumotlarini ko'rishim kerak
     // qayta akt qilish yoki aktga o'zgartirish kiritish bo'yicha ish ko'rish kerak
     // menga uning tassavvuri aniq kelmyapti
-  }
+  };
   return (
     <div style={{ display: 'flex', height: '100%' }}>
       <DataGrid
@@ -116,24 +119,35 @@ function DataTable() {
               return (
                 <>
                   <Tooltip title="qabul qilish" arrow enterDelay={1000}>
-                    <IconButton onClick={() => handleMoveToInboxIconClick(e.row._id)} disabled={e.row.status !== 'yangi' ? true : false}>
-                      <MoveToInboxOutlinedIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton onClick={() => handleMoveToInboxIconClick(e.row._id)} disabled={e.row.status !== 'yangi' ? true : false}>
+                        <MoveToInboxOutlinedIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title="bekor qilish" arrow enterDelay={1000}>
-                    <IconButton onClick={() => handleCancelIconClick(e.row._id)} disabled={e.row.status === 'tasdiqlangan' ? true : false}>
-                      <CancelIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        onClick={() => handleCancelIconClick(e.row._id)}
+                        disabled={e.row.status === 'tasdiqlangan' ? true : false}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title="chop etish" arrow enterDelay={1000}>
-                    <IconButton onClick={() => handlePrintButtonClick(e.row._id)}>
-                      <PrintOutlinedIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton onClick={() => handlePrintButtonClick(e.row._id)}>
+                        <PrintOutlinedIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title="aktga o'tish" arrow enterDelay={1000}>
-                    <IconButton onClick={() => handleCancelIconClick(e.row._id)}>
-                      <ArrowForwardIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton onClick={() => handleCancelIconClick(e.row._id)}>
+                        <ArrowForwardIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </>
               );

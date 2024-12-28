@@ -24,7 +24,10 @@ const useStore = create((set) => ({
   currentAriza: {},
   setCurrentAriza: (ariza) => set({ currentAriza: ariza }),
   abonentData: {},
-  setAbonentData: (data) => set({ abonentData: data }),
+  setAbonentData: (abonentData) => {
+    console.log(abonentData);
+    set({ abonentData });
+  },
   abonentData2: {},
   setAbonentData2: (data) => set({ abonentData2: data }),
   mahalla: {},
