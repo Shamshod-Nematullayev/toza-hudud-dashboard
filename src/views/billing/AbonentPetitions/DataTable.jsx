@@ -129,7 +129,7 @@ function DataTable() {
                     <span>
                       <IconButton
                         onClick={() => handleCancelIconClick(e.row._id)}
-                        disabled={e.row.status === 'tasdiqlangan' ? true : false}
+                        disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
                       >
                         <CancelIcon />
                       </IconButton>

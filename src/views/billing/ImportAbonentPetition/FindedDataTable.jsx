@@ -28,7 +28,7 @@ const counterDiffMonth = function (initialDate) {
   const currentMonth = currentDate.getMonth();
   const initialYear = initialDate.getFullYear();
   const initialMonth = initialDate.getMonth();
-  return (currentYear - initialYear) * 12 - (currentMonth - initialMonth);
+  return (currentYear - initialYear) * 12 - (currentMonth + initialMonth);
 };
 
 function FindedDataTable() {
@@ -84,7 +84,7 @@ function FindedDataTable() {
       });
     const diffMonth = counterDiffMonth(new Date(ariza.sana));
     const lateAktSumm =
-      (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) *
+      (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.current_prescribed_cnt - ariza.next_prescribed_cnt) *
       4624 *
       diffMonth;
     if (ariza.document_type == 'dvaynik') {
@@ -93,7 +93,7 @@ function FindedDataTable() {
         data.rows.forEach((item) => (summ += item.allPaymentsSum));
         setAktSumm(summ);
       });
-    } else if (lateAktSumm > 0 && ariza.document_type != 'viza') {
+    } else if (lateAktSumm !== 0 && ariza.document_type != 'viza') {
       setAktSumm(ariza.aktSummasi + '+' + lateAktSumm);
     } else {
       setAktSumm(ariza.aktSummasi);
