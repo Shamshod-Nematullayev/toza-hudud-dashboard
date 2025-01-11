@@ -163,6 +163,9 @@ function FindedDataTable() {
       formData.append('akt_sum', eval(aktSumm));
       formData.append('amountWithoutQQS', ariza.aktSummCounts.withoutQQSTotal);
       formData.append('description', 'fuqaro arizasi ' + ariza.comment);
+      ariza.photos.forEach((photo, index) => {
+        formData.append(`photos[${index}]`, photo);
+      });
 
       const url = ariza.document_type === 'dvaynik' ? '/billing/create-dvaynik-akt-by-ariza' : '/billing/create-full-akt';
       const { data } = await api.post(url, formData, {
@@ -212,7 +215,7 @@ function FindedDataTable() {
           <Button
             sx={{ margin: 'auto 15px', padding: '15px 20px' }}
             onClick={handlePrimaryButtonClick}
-            disabled={ariza.status === 'yangi' && !isUploading ? false : true}
+            disabled={(ariza.status === 'yangi' || ariza.status === 'qabul qilindi') && !isUploading ? false : true}
           >
             <FileUploadOutlinedIcon />
             kiritish

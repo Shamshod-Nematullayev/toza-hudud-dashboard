@@ -26,7 +26,7 @@ function Recalculate() {
       rowsDhjTable.forEach((row) => {
         const [oy, yil] = row.davr.split('.');
         if (((oy - 1 >= fromMoon && yil == fromYear) || yil > fromYear) && ((oy - 1 <= toMoon && yil == toYear) || yil < toYear)) {
-          const { withQQS } = hisoblandiJadval.find((row) => row.year == yil && row.month == oy);
+          const withQQS = hisoblandiJadval.find((row) => row.year == yil && row.month == oy)?.withQQS;
           if (withQQS) {
             withNdsSumm += row.nachis;
           }

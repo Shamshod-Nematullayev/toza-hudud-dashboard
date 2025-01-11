@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import useStore from './useStore';
-import { Card, IconButton, Paper } from '@mui/material';
+import { Card, Paper } from '@mui/material';
+import api from 'utils/api';
+const blobToBase64 = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result); // Base64 natija
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(blob); // Blobni o'qish va base64ga aylantirish
+  });
+};
 
 function DisplayFile() {
-  const { currentFile } = useStore();
+  const { currentFile, ariza } = useStore();
+  const [photos, setPhotos] = useState([]);
+  const [openImages, setOpenImages] = useState(false);
+  useEffect(() => {
+    setPhotos([]);
+    ariza.photos?.forEach((file_id) => {
+      api.get(`/fetchTelegram/${file_id}`, { responseType: 'blob' }).then(async (blob) => {
+        const base64 = await blobToBase64(blob.data);
+        setPhotos((prev) => [...prev, base64]);
+      });
+    });
+  }, [ariza]);
 
   return (
     <div
@@ -16,30 +36,39 @@ function DisplayFile() {
       }}
     >
       <iframe width="100%" height="100%" src={currentFile?.url}></iframe>
-      <Paper
-        sx={{
-          width: '100%',
-          boxShadow: 1,
-          position: 'absolute',
-          bottom: '-40px'
-        }}
-      >
-        <Card
+      {ariza.photos?.length && (
+        <Paper
           sx={{
+            width: '100%',
             boxShadow: 1,
             position: 'absolute',
-            top: '-100%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 100,
-            padding: '0 10px',
-            cursor: 'pointer'
+            transition: 0.5,
+            bottom: openImages ? 0 : undefined
           }}
         >
-          <b>Rasmlar</b>
-        </Card>
-        Rasm
-      </Paper>
+          <Card
+            sx={{
+              boxShadow: 1,
+              position: 'relative',
+              top: '0',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1000,
+              padding: '0 10px',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              setOpenImages(!openImages);
+              console.log(openImages);
+            }}
+          >
+            <b>Rasmlar</b>
+            {photos?.map((photo) => {
+              return <img src={photo} alt="" width="100%" />;
+            })}
+          </Card>
+        </Paper>
+      )}
     </div>
   );
 }

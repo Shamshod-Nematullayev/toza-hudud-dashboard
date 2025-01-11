@@ -255,7 +255,9 @@ function InputForm() {
             variant="contained"
             color={'primary'}
             sx={{ margin: '10px 20px' }}
-            disabled={!abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber)}
+            disabled={
+              !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !photos.length)
+            }
             onClick={handleCreateAktButtonClick}
           >
             Yaratish

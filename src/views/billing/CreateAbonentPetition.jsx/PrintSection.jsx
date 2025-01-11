@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import styled from 'styled-components';
-import { kirillga, lotinga } from '../../../helpers/lotinKiril';
+import { lotinga } from '../../../helpers/lotinKiril';
 import { Button, Dialog, DialogActions, DialogContent, FormControl, TextareaAutosize } from '@mui/material';
-import useStore from './useStore';
 import { useReactToPrint } from 'react-to-print';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
+import api from 'utils/api';
 const StyledTable = styled.table`
   margin: auto;
   width: 100%;
@@ -29,6 +29,14 @@ function formatName(name) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Har bir so'zning birinchi harfini bosh harf qiladi
     .join(' '); // Ajratilgan so'zlarni bo'sh joy bilan birlashtiradi
 }
+const blobToBase64 = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result); // Base64 natija
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(blob); // Blobni o'qish va base64ga aylantirish
+  });
+};
 
 function renderSwitch({
   date = new Date(),
@@ -44,6 +52,16 @@ function renderSwitch({
   muzlatiladi
 }) {
   const [olderPeriod, setOlderPeriod] = useState(new Date());
+  const [photos, setPhotos] = useState([]);
+  useEffect(() => {
+    setPhotos([]);
+    ariza.photos?.forEach((file_id) => {
+      api.get(`/fetchTelegram/${file_id}`, { responseType: 'blob' }).then(async (blob) => {
+        const base64 = await blobToBase64(blob.data);
+        setPhotos((prev) => [...prev, base64]);
+      });
+    });
+  }, [ariza]);
 
   useEffect(() => {
     if (recalculationPeriods.length)
@@ -53,7 +71,7 @@ function renderSwitch({
         )
       );
     else setOlderPeriod(new Date());
-  }, []);
+  }, [recalculationPeriods]);
   switch (documentType) {
     case 'odam_soni':
       return (
@@ -335,7 +353,9 @@ function renderSwitch({
           </div>
           <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
             <h3>MFY raisi:</h3>
-            <img />
+            {photos?.map((photo) => {
+              return <img src={photo} alt="" width="100%" />;
+            })}
           </div>
         </>
       );

@@ -34,6 +34,7 @@ import useCustomizationStore from 'store/customizationStore';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import api from 'utils/api';
+import Cookies from 'js-cookie';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
@@ -51,11 +52,12 @@ const AuthLogin = ({ ...others }) => {
     try {
       console.log(values);
       // const response = await fakeLoginApi(values.email, values.password)
-      const { data } = await api.post('/auth/login', { login: values.email, password: values.password });
-      console.log(data);
+      const response = await api.post('/auth/login', { login: values.email, password: values.password });
+      const data = response.data;
       if (data.ok) {
         toast.success('Login successful');
-        sessionStorage.setItem('auth-token', data.token);
+        Cookies.set('accessToken', data.accessToken);
+        Cookies.set('refreshToken', data.refreshToken);
         navigate('/');
       } else {
         toast.error(data.message);
