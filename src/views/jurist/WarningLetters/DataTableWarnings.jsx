@@ -161,7 +161,7 @@ function DataTableWarnings() {
         rowCount={totalRows} // Set total row count (ideally from the server)
         onRowSelectionModelChange={handleSelect}
         sx={{
-          height: '72vh',
+          height: 'calc(-260px + 100vh)',
           '& .MuiDataGrid-footerContainer': {
             flexShrink: 0 // Prevent shrinking of pagination area
           }

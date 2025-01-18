@@ -1,4 +1,4 @@
-import { IconButton, List, ListItem, ListItemButton, Typography, useTheme } from '@mui/material';
+import { Grid, IconButton, List, ListItem, ListItemButton, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import useCustomizationStore from 'store/customizationStore';
 import ModalChoose from './ModalChoose';
 import api from 'utils/api';
+import { gridSpacing } from 'store/constant';
 
 function Inspectors() {
   const [mahallalar, setMahallalar] = useState([]);
@@ -124,7 +125,7 @@ function Inspectors() {
     setOpenAddModal(true);
   };
   return (
-    <MainCard title="Nazoratchilar" sx={{ height: '85vh' }} contentSX={{ height: '100%' }}>
+    <MainCard title="Nazoratchilar" contentSX={{ height: '100%' }}>
       <ModalChoose
         activeInspector={activeInspector}
         activeMFY={activeMFY}
@@ -134,56 +135,74 @@ function Inspectors() {
         forChoose={forChoose}
         updateData={updateData}
       />
-      <div style={{ display: 'flex', height: '100%', maxHeight: '100%' }}>
-        <List sx={{ margin: '0 25px 0 0', height: '90%', overflow: 'auto' }}>
-          <Typography sx={{ fontWeight: '700' }}>Bo'sh mahallalar</Typography>
-          {mahallalar
-            .filter((mfy) => mfy.reja > 0 && !mfy.biriktirilganNazoratchi?.inspactor_id)
-            .map((item) => (
-              <ListItem
-                key={item.id}
-                secondaryAction={
-                  <IconButton edge="end" onClick={() => openChooseModal({ type: 'inspector', focus: item.id })}>
-                    <PersonAddAltIcon sx={{ color: customization.mode === 'dark' ? 'success.200' : 'success.main' }} />
-                  </IconButton>
-                }
-              >
-                {item.name}
-              </ListItem>
-            ))}
-        </List>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          pageSizeOptions={[10, 25, 50, 100]} // Add your desired options here
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 25 }
-            }
-          }}
-          getRowHeight={() => 120}
+      <Grid container spacing={1}>
+        <Grid
+          item
+          xs={2}
           sx={{
-            height: '90%'
+            display: { xs: 'none', sm: 'block' }
           }}
-        />
-        <List sx={{ padding: '0 55px', height: '90%', overflow: 'auto' }}>
-          <Typography sx={{ fontWeight: '700' }}>Biriktirilgan mahallalar</Typography>
-          {mahallalar
-            .filter((mfy) => mfy.reja > 0 && mfy.biriktirilganNazoratchi.inspactor_id != null)
-            .map((item) => (
-              <ListItem
-                key={item.id}
-                secondaryAction={
-                  <IconButton edge="end" onClick={() => handleDelete(item.id)}>
-                    <DeleteIcon sx={{ color: customization.mode === 'dark' ? 'error.light' : 'error.main' }} />
-                  </IconButton>
-                }
-              >
-                {item.name}
-              </ListItem>
-            ))}
-        </List>
-      </div>
+        >
+          <List sx={{ height: 'calc(-250px + 100vh)', overflow: 'auto' }}>
+            <Typography sx={{ fontWeight: '700' }}>Bo'sh mahallalar</Typography>
+            {mahallalar
+              .filter((mfy) => mfy.reja > 0 && !mfy.biriktirilganNazoratchi?.inspactor_id)
+              .map((item) => (
+                <ListItem
+                  key={item.id}
+                  secondaryAction={
+                    <IconButton edge="end" onClick={() => openChooseModal({ type: 'inspector', focus: item.id })}>
+                      <PersonAddAltIcon sx={{ color: customization.mode === 'dark' ? 'success.200' : 'success.main' }} />
+                    </IconButton>
+                  }
+                >
+                  {item.name}
+                </ListItem>
+              ))}
+          </List>
+        </Grid>
+        <Grid item xs={12} sm={8}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            pageSizeOptions={[10, 25, 50, 100]} // Add your desired options here
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 25 }
+              }
+            }}
+            getRowHeight={() => 120}
+            sx={{
+              height: 'calc(-250px + 100vh)'
+            }}
+          />
+        </Grid>
+        <Grid
+          item
+          xs={2}
+          sx={{
+            display: { xs: 'none', sm: 'block' }
+          }}
+        >
+          <List sx={{ height: 'calc(-250px + 100vh)', overflow: 'auto' }}>
+            <Typography sx={{ fontWeight: '700' }}>Biriktirilgan mahallalar</Typography>
+            {mahallalar
+              .filter((mfy) => mfy.reja > 0 && mfy.biriktirilganNazoratchi.inspactor_id != null)
+              .map((item) => (
+                <ListItem
+                  key={item.id}
+                  secondaryAction={
+                    <IconButton edge="end" onClick={() => handleDelete(item.id)}>
+                      <DeleteIcon sx={{ color: customization.mode === 'dark' ? 'error.light' : 'error.main' }} />
+                    </IconButton>
+                  }
+                >
+                  {item.name}
+                </ListItem>
+              ))}
+          </List>
+        </Grid>
+      </Grid>
     </MainCard>
   );
 }
