@@ -256,7 +256,7 @@ function InputForm() {
             color={'primary'}
             sx={{ margin: '10px 20px' }}
             disabled={
-              !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !photos.length)
+              !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
             }
             onClick={handleCreateAktButtonClick}
           >

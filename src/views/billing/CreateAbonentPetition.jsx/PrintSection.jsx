@@ -29,6 +29,12 @@ function formatName(name) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Har bir so'zning birinchi harfini bosh harf qiladi
     .join(' '); // Ajratilgan so'zlarni bo'sh joy bilan birlashtiradi
 }
+function formatPhoneNumber(phone) {
+  if (!phone) return '';
+  const compCode = phone.slice(0, 2);
+  const number = phone.slice(2, 9);
+  return `+998(${compCode})${number}`;
+}
 const blobToBase64 = (blob) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -402,7 +408,8 @@ function ArizaHeading({ mahalla, abonentData }) {
         }}
       >
         Kattaqoʻrgʻon tumani “Anvarjon biznes invest” MChJ rahbari A.A.Sadriddinovga Kattaqoʻrgʻon tuman {lotinga(mahalla.name)} MFY-da
-        yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan
+        yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
+        Telefon: {formatPhoneNumber(abonentData.citizen.phone)}
       </p>
     </div>
   );

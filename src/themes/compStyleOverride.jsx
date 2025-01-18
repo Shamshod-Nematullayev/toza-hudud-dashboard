@@ -182,6 +182,24 @@ export default function componentStyleOverrides(theme) {
           background: theme.colors?.grey700
         }
       }
+    },
+    MuiDataGrid: {
+      defaultProps: {
+        localeText: {
+          noRowsLabel: "Hech narsa yo'q",
+          MuiTablePagination: {
+            labelRowsPerPage: 'Sahifadagi qatorlar:',
+            labelDisplayedRows: ({ from, to, count }) => `${count} tadan ${from} dan ${to} gacha`
+          }
+        }
+      },
+      styleOverrides: {
+        root: {
+          '& .MuiDataGrid-footerContainer': {
+            flexShrink: 0 // Prevent shrinking of pagination area
+          }
+        }
+      }
     }
   };
 }

@@ -131,11 +131,7 @@ function DataTable() {
         paginationMode="server"
         filterMode="server"
         sx={{
-          height: '70vh',
-          // maxWidth: '55%',
-          '& .MuiDataGrid-footerContainer': {
-            flexShrink: 0 // Prevent shrinking of pagination area
-          }
+          height: '70vh'
         }}
       />
 

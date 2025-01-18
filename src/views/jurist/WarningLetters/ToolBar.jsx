@@ -41,12 +41,6 @@ function ToolBar() {
           onChange={(e) => handleDatePickerChange(e, 'to')}
         />
       </LocalizationProvider>
-      <FormControl sx={{ width: 150 }} variant="outlined">
-        <InputLabel id="status-label">Status</InputLabel>
-        <Select label="Status" labelId="status-label" variant="standard">
-          <MenuItem value="1">Nimadir</MenuItem>
-        </Select>
-      </FormControl>
     </div>
   );
 }

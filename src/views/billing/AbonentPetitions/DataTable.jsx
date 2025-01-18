@@ -170,10 +170,7 @@ function DataTable() {
           setLimit(newModel.pageSize);
         }}
         sx={{
-          height: '100%',
-          '& .MuiDataGrid-footerContainer': {
-            flexShrink: 0
-          }
+          height: '100%'
         }}
       />
     </div>

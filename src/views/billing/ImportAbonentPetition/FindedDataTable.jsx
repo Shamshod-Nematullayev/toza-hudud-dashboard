@@ -163,7 +163,7 @@ function FindedDataTable() {
       formData.append('akt_sum', eval(aktSumm));
       formData.append('amountWithoutQQS', ariza.aktSummCounts.withoutQQSTotal);
       formData.append('description', 'fuqaro arizasi ' + ariza.comment);
-      ariza.photos.forEach((photo, index) => {
+      ariza.photos?.forEach((photo, index) => {
         formData.append(`photos[${index}]`, photo);
       });
 

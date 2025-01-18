@@ -163,10 +163,7 @@ function Inspectors() {
           }}
           getRowHeight={() => 120}
           sx={{
-            height: '90%',
-            '& .MuiDataGrid-footerContainer': {
-              flexShrink: 0 // Prevent shrinking of pagination area
-            }
+            height: '90%'
           }}
         />
         <List sx={{ padding: '0 55px', height: '90%', overflow: 'auto' }}>

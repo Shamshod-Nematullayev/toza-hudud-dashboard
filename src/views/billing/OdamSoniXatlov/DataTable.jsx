@@ -40,7 +40,6 @@ function DataTable() {
         params: {
           page: pageNum,
           limit,
-          sort,
           ...filter
         }
       })
@@ -244,9 +243,6 @@ function DataTable() {
         }}
         sx={{
           height: '73vh',
-          '& .MuiDataGrid-footerContainer': {
-            flexShrink: 0 // Prevent shrinking of pagination area
-          },
           width: '100%'
         }}
       />

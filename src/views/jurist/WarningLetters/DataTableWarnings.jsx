@@ -24,6 +24,7 @@ function DataTableWarnings() {
   const [activRow, setActivRow] = useState({});
   const [showBackdrop, setShowBackrop] = useState(true);
   const [amount, setAmount] = useState();
+  const [filters, setFilters] = useState({});
 
   const handleEdit = async (row) => {
     setActivRow(row);
@@ -107,7 +108,7 @@ function DataTableWarnings() {
     }
   };
   useEffect(() => {
-    fetchData(page, pageSize, sortModel);
+    fetchData(page, pageSize, sortModel, filters);
   }, [page, pageSize, fromDate, toDate]);
 
   const handleSelect = (selectionModel) => {
@@ -155,7 +156,7 @@ function DataTableWarnings() {
         }}
         onSortModelChange={(newSortModel) => {
           fetchData(0, pageSize, newSortModel[0] || {});
-          setSortModel(newSortModel[0]);
+          setSortModel(newSortModel[0] || {});
         }}
         rowCount={totalRows} // Set total row count (ideally from the server)
         onRowSelectionModelChange={handleSelect}
@@ -167,6 +168,7 @@ function DataTableWarnings() {
         }}
         sortingMode="server"
         disableColumnFilter
+        onRowClick={(e) => console.log(e)}
       />
     </>
   );
