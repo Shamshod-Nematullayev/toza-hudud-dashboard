@@ -1,18 +1,11 @@
-import { DataGrid, GridToolbarContainer } from '@mui/x-data-grid';
+import { DataGrid, GridToolbarContainer, useGridApiRef, GridToolbarFilterButton } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import api from 'utils/api';
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import ToolBar from './ToolBar';
+import { lotinga } from 'helpers/lotinKiril';
 
-function CustomToolbar({ totalPages, currentPage }) {
-  return (
-    <GridToolbarContainer>
-      <div>
-        Page {currentPage} of {totalPages}
-      </div>
-    </GridToolbarContainer>
-  );
-}
 function DataTable() {
   const {
     rows,
@@ -33,6 +26,7 @@ function DataTable() {
   } = odamSoniXatlovStore();
   const [statusOptions, setStatusOptions] = useState([]);
   const [mahallaOptions, setMallaOptions] = useState([]);
+  const apiRef = useGridApiRef();
 
   useEffect(() => {
     api
@@ -74,16 +68,19 @@ function DataTable() {
       }
     });
     setStatusOptions(uniqueStatuses);
-    const uniqueMahallas = [];
-    rows.forEach((row) => {
-      if (!uniqueMahallas.some((item) => item.mahallaId === row.mahallaId.mahallaId)) {
-        uniqueMahallas.push({ mahallaId: row.mahallaId.mahallaId, mahallaName: row.mahallaId.mahallaName });
-      }
+
+    api.get('/yashovchi-soni-xatlov/mahallas').then(({ data }) => {
+      setMallaOptions(
+        data.data
+          .map((mfy) => ({ mahallaId: mfy.mahallaId, mahallaName: lotinga(mfy.mahallaName) }))
+          .sort((a, b) => a.mahallaName.localeCompare(b.mahallaName))
+      );
     });
-    setMallaOptions(uniqueMahallas);
   }, [rows]);
 
   const handleChangeFilterModel = (newModel) => {
+    console.log(newModel);
+    return;
     if (!newModel.items[0]) {
       setFilter({});
       return;
@@ -180,16 +177,15 @@ function DataTable() {
             headerName: 'Status',
             width: 100,
             sortable: false,
+            filterable: false,
             label: '',
             filterOperators: [
               {
-                label: 'Filter by status',
+                label: 'barobar',
                 value: 'statusFilter',
                 InputComponent: ({ item, applyValue }) => (
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel variant="standard" htmlFor="status">
-                      Status
-                    </InputLabel>
+                    <InputLabel htmlFor="status">Status</InputLabel>
                     <Select
                       value={item.value || ''}
                       onChange={(e) => applyValue({ ...item, value: e.target.value })}
@@ -231,18 +227,19 @@ function DataTable() {
           setPageNum(model.page + 1);
           setLimit(model.pageSize);
         }}
+        disableColumnMenu
+        disableColumnSorting
         onFilterModelChange={handleChangeFilterModel}
-        onSortModelChange={(model) => {
-          if (!model[0]) return setSort('');
-          let sort = '';
-          if (model[0].sort == 'desc') sort = '-';
-          setSort(sort + model[0].field);
-        }}
         slots={{
-          toolbar: () => <CustomToolbar totalPages={totalPages} currentPage={pageNum} />
+          toolbar: () => (
+            <GridToolbarContainer>
+              <ToolBar />
+              <GridToolbarFilterButton />
+            </GridToolbarContainer>
+          )
         }}
         sx={{
-          height: '73vh',
+          height: '80vh',
           width: '100%'
         }}
       />

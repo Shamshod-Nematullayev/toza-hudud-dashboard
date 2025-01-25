@@ -27,6 +27,9 @@ function CreateAbonentPetition() {
   useEffect(() => {
     setInitialState();
   }, [location]);
+  useEffect(() => {
+    if (!showPrintSection) return setInitialState();
+  }, [showPrintSection]);
   return (
     <MainCard>
       <PrintSection

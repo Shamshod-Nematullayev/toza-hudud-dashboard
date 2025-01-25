@@ -3,7 +3,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import ToolBar from './ToolBar';
 import DataTable from './DataTable';
 import SidePanel from './SidePanel';
-import { Backdrop, CircularProgress } from '@mui/material';
+import { Backdrop, CircularProgress, Grid } from '@mui/material';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import PrintSection from './PrintSection';
 
@@ -24,11 +24,14 @@ function XatlovOdamSoni() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      <ToolBar />
-      <div style={{ display: 'flex' }}>
-        <DataTable />
-        <SidePanel />
-      </div>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={5}>
+          <DataTable />
+        </Grid>
+        <Grid item xs={12} md={7}>
+          <SidePanel />
+        </Grid>
+      </Grid>
     </MainCard>
   );
 }

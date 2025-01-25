@@ -409,7 +409,7 @@ function ArizaHeading({ mahalla, abonentData }) {
       >
         Kattaqoʻrgʻon tumani “Anvarjon biznes invest” MChJ rahbari A.A.Sadriddinovga Kattaqoʻrgʻon tuman {lotinga(mahalla.name)} MFY-da
         yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
-        Telefon: {formatPhoneNumber(abonentData.citizen.phone)}
+        Telefon: {formatPhoneNumber(abonentData.citizen?.phone)}
       </p>
     </div>
   );

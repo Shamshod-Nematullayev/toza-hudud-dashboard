@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, useEffect, useState } from 'react';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import { DataGrid } from '@mui/x-data-grid';
-import { Button, IconButton, TextField } from '@mui/material';
+import { Button, Grid, IconButton, TextField } from '@mui/material';
 import * as pdfjsLib from 'pdfjs-dist';
 import jsQR from 'jsqr';
 import Refresh from '@mui/icons-material/Refresh';
@@ -11,6 +11,8 @@ import { toast } from 'react-toastify';
 import DoneOutline from '@mui/icons-material/DoneOutline';
 import Delete from '@mui/icons-material/Delete';
 import { DeleteOutline, DoneAllOutlined } from '@mui/icons-material';
+import Loadable from 'ui-component/Loadable';
+import Loader from 'ui-component/Loader';
 const extractQRCodeFromPDF = async (pdfData) => {
   const loadingTask = pdfjsLib.getDocument({ data: pdfData });
   const pdfDoc = await loadingTask.promise;
@@ -47,8 +49,8 @@ const extractQRCodeFromPDF = async (pdfData) => {
 const getStatusRequest = function (data) {
   if (data.isCancel) return 'bekor qilindi';
   if (!data.document_id) return 'yangi';
-  if (!data.akt_id) return 'xujjat yaratilgan';
-  if (data.akt.status !== 'tasdiqlandi') return 'akt qilingan';
+  if (!data.actId) return 'xujjat yaratilgan';
+  if (!data.confirm) return 'akt qilingan';
   return 'yakunlangan';
 };
 function SidePanel() {
@@ -59,7 +61,9 @@ function SidePanel() {
     uploadingDalolatnoma,
     setUploadingDalolatnoma,
     uploadingDalolatnomaRows,
-    setUploadingDalolatnomaRows
+    setUploadingDalolatnomaRows,
+    isLoading,
+    setIsLoading
   } = odamSoniXatlovStore();
   const [dalolatnomaNumber, setDalolatnomaNumber] = useState('');
   const getDalolatnomaData = async (params) => {
@@ -86,16 +90,43 @@ function SidePanel() {
         fullName: item.fio,
         YASHOVCHILAR: item.YASHOVCHILAR,
         status: getStatusRequest(item),
-        isCancel: item.isCancel
+        isCancel: item.isCancel,
+        actId: item.actId
       }))
     );
+  };
+
+  const handleClickDoneButton = async function (_id, isUpdate = true) {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append('file', pdfFiles[0]);
+    await api.put(`/yashovchi-soni-xatlov/confirm/${_id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    if (isUpdate) await getDalolatnomaData({ _id: uploadingDalolatnoma._id });
+    setIsLoading(false);
+  };
+  const handleClickAllDoneButton = async function () {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append('file', pdfFiles[0]);
+    for (const row of uploadingDalolatnomaRows) {
+      if (row.status === 'xujjat yaratilgan') {
+        await handleClickDoneButton(row._id, false);
+      }
+    }
+
+    setIsLoading(false);
   };
   useEffect(() => {
     if (pdfFiles.length > 0) {
       async function getDataFromQR() {
-        const arrayBuffer = await pdfFiles[0].file.arrayBuffer();
+        const arrayBuffer = await pdfFiles[0].arrayBuffer();
         const pdfData = new Uint8Array(arrayBuffer);
         const data = await extractQRCodeFromPDF(pdfData);
+        if (!data.ok) return toast.error(data.message);
         await getDalolatnomaData({
           _id: data.result.split('_')[1]
         });
@@ -128,12 +159,15 @@ function SidePanel() {
     await getDalolatnomaData({ _id: uploadingDalolatnoma._id });
   };
   return (
-    <div style={{ width: '100%', display: 'flex', justifyContent: 'left' }}>
+    <Grid container style={{ height: '100%' }} spacing={2}>
       {pdfFiles.length === 0 ? (
-        <FileInputDrop setPdfFiles={setPdfFiles} />
+        <Grid item xs={12}>
+          <FileInputDrop setFunc={setPdfFiles} />
+        </Grid>
       ) : (
         <>
-          <div style={{ margin: '0 20px', display: 'flex', flexDirection: 'column' }}>
+          {isLoading && <Loader />}
+          <Grid item md={3}>
             <div style={{ position: 'relative' }}>
               <TextField
                 sx={{ margin: 1 }}
@@ -146,28 +180,27 @@ function SidePanel() {
                 <Refresh />
               </IconButton>
             </div>
-            <Button variant="outlined" sx={{ margin: 1 }}>
+            <Button variant="outlined" sx={{ margin: 1 }} fullWidth onClick={handleClickAllDoneButton}>
               <DoneAllOutlined />
               Hammasini kiritish
             </Button>
-            <Button variant="outlined" sx={{ margin: 1 }} color="error" onClick={handleClickCancelAll}>
+            <Button variant="outlined" sx={{ margin: 1 }} color="error" onClick={handleClickCancelAll} fullWidth>
               <DeleteOutline />
               Hammasini bekor qilish
             </Button>
-            <Button variant="outlined" color="secondary" sx={{ margin: 1 }} onClick={() => clearPdfFiles()}>
+            <Button variant="outlined" color="secondary" sx={{ margin: 1 }} onClick={() => clearPdfFiles()} fullWidth>
               Tugatish
             </Button>
-          </div>
-          <div>
+          </Grid>
+          <Grid item md={9}>
             <DataGrid
-              disableColumnFilter
               disableColumnSorting
               disableColumnMenu
               columns={[
                 { field: 'id', headerName: '№', width: 50 },
                 { field: 'accountNumber', headerName: 'Hisob raqam', width: 120 },
                 { field: 'fullName', headerName: 'F.I.O.', width: 200 },
-                { field: 'YASHOVCHILAR', headerName: 'YASHOVCHILAR' },
+                { field: 'YASHOVCHILAR', headerName: 'YASHOVCHILAR', width: 50 },
                 { field: 'status', headerName: 'status' },
                 {
                   field: 'actions',
@@ -175,7 +208,10 @@ function SidePanel() {
                   renderCell: (params) => {
                     return (
                       <>
-                        <IconButton disabled={params.row.isCancel}>
+                        <IconButton
+                          disabled={params.row.isCancel || Boolean(params.row.actId)}
+                          onClick={() => handleClickDoneButton(params.row._id)}
+                        >
                           <DoneOutline />
                         </IconButton>
                         <IconButton disabled={params.row.isCancel} onClick={() => handleCancelById(params.row._id)}>
@@ -187,11 +223,12 @@ function SidePanel() {
                 }
               ]}
               rows={uploadingDalolatnomaRows}
+              sx={{ height: '100%' }}
             />
-          </div>
+          </Grid>
         </>
       )}
-    </div>
+    </Grid>
   );
 }
 

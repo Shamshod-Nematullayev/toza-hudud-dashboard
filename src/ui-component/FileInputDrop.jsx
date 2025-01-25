@@ -85,11 +85,10 @@ function FileInputDrop({ setFunc }) {
     const handleChange = () => {
       if (inputElement.files.length) {
         updateThumbnail(dropZoneElement, inputElement.files[0]);
-        console.log(inputElement.files);
+        setFunc(inputElement.files);
       }
     };
 
-    dropZoneElement.addEventListener('click', handleClick);
     dropZoneElement.addEventListener('dragover', handleDragOver);
     dropZoneElement.addEventListener('dragleave', handleDragLeave);
     dropZoneElement.addEventListener('dragend', handleDragLeave);
@@ -97,7 +96,6 @@ function FileInputDrop({ setFunc }) {
     inputElement.addEventListener('change', handleChange);
 
     return () => {
-      dropZoneElement.removeEventListener('click', handleClick);
       dropZoneElement.removeEventListener('dragover', handleDragOver);
       dropZoneElement.removeEventListener('dragleave', handleDragLeave);
       dropZoneElement.removeEventListener('dragend', handleDragLeave);
@@ -135,15 +133,7 @@ function FileInputDrop({ setFunc }) {
     <>
       <CustomStyle />
       <label className="drop-zone" ref={dropZoneRef} style={{ height: '100%', width: '100%' }}>
-        <input
-          type="file"
-          name="myFile"
-          className="drop-zone__input"
-          disabled
-          ref={fileInputRef}
-          accept=".pdf"
-          style={{ display: 'none' }}
-        />
+        <input type="file" name="myFile" className="drop-zone__input" ref={fileInputRef} accept=".pdf" style={{ display: 'none' }} />
         <div className="drop-zone__prompt">Drop your pdf files</div>
       </label>
     </>

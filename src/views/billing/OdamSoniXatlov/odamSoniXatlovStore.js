@@ -31,7 +31,9 @@ const odamSoniXatlovStore = create((set) => ({
   uploadingDalolatnoma: {},
   setUploadingDalolatnoma: (uploadingDalolatnoma) => set({ uploadingDalolatnoma }),
   uploadingDalolatnomaRows: [],
-  setUploadingDalolatnomaRows: (uploadingDalolatnomaRows) => set({ uploadingDalolatnomaRows })
+  setUploadingDalolatnomaRows: (uploadingDalolatnomaRows) => set({ uploadingDalolatnomaRows }),
+  isLoading: false,
+  setIsLoading: (isLoading) => set({ isLoading })
 }));
 
 export default odamSoniXatlovStore;

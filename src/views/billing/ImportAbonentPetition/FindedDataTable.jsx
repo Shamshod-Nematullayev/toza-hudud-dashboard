@@ -161,7 +161,7 @@ function FindedDataTable() {
       formData.append('licshet', ariza.licshet);
       formData.append('next_inhabitant_count', ariza.next_prescribed_cnt);
       formData.append('akt_sum', eval(aktSumm));
-      formData.append('amountWithoutQQS', ariza.aktSummCounts.withoutQQSTotal);
+      formData.append('amountWithoutQQS', ariza.aktSummCounts?.withoutQQSTotal || 0);
       formData.append('description', 'fuqaro arizasi ' + ariza.comment);
       ariza.photos?.forEach((photo, index) => {
         formData.append(`photos[${index}]`, photo);
