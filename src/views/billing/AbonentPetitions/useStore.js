@@ -13,12 +13,10 @@ const useStore = create((set) => ({
   setPageNum: (pageNum) => set({ pageNum }),
   totalPages: 0,
   setTotalPages: (totalPages) => set({ totalPages }),
-  filter: {},
-  setFilter: (filter) => set({ filter }),
-  sort: '',
-  setSort: (sort) => set({ sort }),
   documentNumber: '',
   setDocumentNumber: (documentNumber) => set({ documentNumber }),
+  filter: {},
+  setFilter: (filter) => set({ filter }),
   showPrintSection: false,
   setShowPrintSection: (showPrintSection) => set({ showPrintSection }),
   currentAriza: {},
@@ -35,7 +33,9 @@ const useStore = create((set) => ({
   mahallaDublicat: {},
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
   aktFileURL: {},
-  setAktFileURL: (aktFileURL) => set({ aktFileURL })
+  setAktFileURL: (aktFileURL) => set({ aktFileURL }),
+  isLoading: false,
+  setIsLoading: (isLoading) => set({ isLoading })
 }));
 
 export default useStore;

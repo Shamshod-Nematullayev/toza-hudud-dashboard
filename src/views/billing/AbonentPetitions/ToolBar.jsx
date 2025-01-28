@@ -1,49 +1,50 @@
 import { Add } from '@mui/icons-material';
 import { Button, Card, TextField } from '@mui/material';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLocalStore } from '.';
+import useStore from './useStore';
 
 function ToolBar() {
-  const { setDocumentNumber } = useLocalStore();
-  const [inputValue, setInputValue] = useState('');
+  const { setFilter, filter, documentNumber, setDocumentNumber } = useStore();
   const handleDocumentNumberChange = (e) => {
     if (!isNaN(e.target.value)) {
-      setInputValue(e.target.value);
+      setDocumentNumber(e.target.value);
     }
-    if (e.target.value == '') return setDocumentNumber('');
   };
   const handleDocumentNumberSubmit = (e) => {
     e.preventDefault();
-    setDocumentNumber(inputValue);
+    setFilter({ ...filter, document_number: documentNumber });
   };
   return (
     <Card
       sx={{
         display: 'flex',
+        justifyContent: 'space-between',
         borderRadius: 0,
-        padding: '5px 0 10px 0',
-        height: 50,
+        padding: '5px 0 15px 0',
+        height: 120,
         button: {
           margin: '0 10px'
         }
       }}
     >
-      <Link to="/billing/createAbonentAriza">
-        <Button color="primary" variant="contained">
-          <Add /> qo'shish
-        </Button>
-      </Link>
+      <div>
+        <Link to="/billing/createAbonentAriza">
+          <Button color="primary" variant="contained">
+            <Add /> qo'shish
+          </Button>
+        </Link>
 
-      <Link to="/billing/importAbonentPetition">
-        <Button color="secondary" variant="outlined">
-          arizalar import
-        </Button>
-      </Link>
+        <Link to="/billing/importAbonentPetition">
+          <Button color="secondary" variant="outlined">
+            arizalar import
+          </Button>
+        </Link>
+      </div>
       <form onSubmit={handleDocumentNumberSubmit}>
         <TextField
           placeholder="izlash"
-          value={inputValue}
+          value={documentNumber}
           onChange={handleDocumentNumberChange}
           inputProps={{ style: { padding: '10px 10px' } }}
           sx={{ width: 90 }}

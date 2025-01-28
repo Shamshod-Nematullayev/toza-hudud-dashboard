@@ -53,13 +53,14 @@ function renderSwitch({
   mahalla2,
   aniqlanganYashovchiSoni,
   documentType = 'odam_soni',
-  recalculationPeriods = [],
+  recalculationPeriods,
   ariza,
   muzlatiladi
 }) {
   const [olderPeriod, setOlderPeriod] = useState(new Date());
   const [photos, setPhotos] = useState([]);
   useEffect(() => {
+    console.log({ ariza });
     setPhotos([]);
     ariza.photos?.forEach((file_id) => {
       api.get(`/fetchTelegram/${file_id}`, { responseType: 'blob' }).then(async (blob) => {
@@ -70,14 +71,21 @@ function renderSwitch({
   }, [ariza]);
 
   useEffect(() => {
-    if (recalculationPeriods.length)
-      setOlderPeriod(
-        new Date(
-          recalculationPeriods.reduce((a, b) => (new Date(a.startDate).getTime() > new Date(b.startDate).getTime() ? a : b)).startDate
-        )
-      );
-    else setOlderPeriod(new Date());
+    if (recalculationPeriods?.length) {
+      const latestPeriod = recalculationPeriods.reduce((a, b) => {
+        const aTime = new Date(a.startDate).getTime();
+        const bTime = new Date(b.startDate).getTime();
+        return aTime > bTime ? a : b;
+      });
+
+      if (latestPeriod?.startDate) {
+        setOlderPeriod(new Date(latestPeriod.startDate));
+      }
+    } else {
+      setOlderPeriod(new Date());
+    }
   }, [recalculationPeriods]);
+
   switch (documentType) {
     case 'odam_soni':
       return (
