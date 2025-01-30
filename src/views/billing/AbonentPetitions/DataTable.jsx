@@ -1,7 +1,7 @@
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import api from 'utils/api';
-import { IconButton, Tooltip } from '@mui/material';
+import { Grid, IconButton, Tooltip } from '@mui/material';
 import MoveToInboxOutlinedIcon from '@mui/icons-material/MoveToInboxOutlined';
 import CancelIcon from '@mui/icons-material/CancelOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -9,6 +9,7 @@ import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import ToolBar from './ToolBar';
 import useStore from './useStore';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 function DataTable() {
   const {
     rows,
@@ -34,6 +35,8 @@ function DataTable() {
     setReloadEffect(!reloadEffect);
   }
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     setIsLoading(true);
     try {
@@ -53,7 +56,8 @@ function DataTable() {
               documentType: row.document_type,
               accountNumber: row.licshet,
               aktSummasi: row.aktSummasi,
-              status: row.status
+              status: row.status,
+              actStatus: row.actStatus
             }))
           );
           setTotal(data.meta.total);
@@ -105,95 +109,94 @@ function DataTable() {
     setShowPrintSection(true);
     setIsLoading(false);
   };
-  const handleEnterButtonClick = async (ariza_id) => {
+  const handleClickNextButton = async (ariza_id) => {
     // bu yerga arizaga kirish kodini yozaman.
-    const arizaData = (await api.get('/arizalar/' + ariza_id)).data;
-    const aktFile = await api.get('/billing/get-file/' + ariza.file_id);
-    const url = URL.createObjectURL(aktFile.data);
-    setAktFileURL(url);
-    // akt qilingan xujjatni ko'rishim kerak
-    // akt ma'lumotlarini ko'rishim kerak
-    // qayta akt qilish yoki aktga o'zgartirish kiritish bo'yicha ish ko'rish kerak
-    // menga uning tassavvuri aniq kelmyapti
+    navigate('/billing/recalculation/' + ariza_id);
   };
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
-      <DataGrid
-        slots={{
-          toolbar: () => <ToolBar />
-        }}
-        columns={[
-          { field: 'id', headerName: '№', width: 50 },
-          { field: 'documentType', headerName: 'Xujjat turi' },
-          { field: 'accountNumber', headerName: 'Hisob raqami', width: 120 },
-          { field: 'aktSummasi', headerName: 'akt summa', type: 'number' },
-          { field: 'status', headerName: 'status' },
-          {
-            field: 'actions',
-            headerName: 'Harakatlar',
-            renderCell: (e) => {
-              return (
-                <>
-                  <Tooltip title="qabul qilish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton onClick={() => handleMoveToInboxIconClick(e.row._id)} disabled={e.row.status !== 'yangi' ? true : false}>
-                        <MoveToInboxOutlinedIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title="bekor qilish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton
-                        onClick={() => handleCancelIconClick(e.row._id)}
-                        disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title="chop etish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton
-                        disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
-                        onClick={() => handlePrintButtonClick(e.row._id)}
-                      >
-                        <PrintOutlinedIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title="aktga o'tish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton onClick={() => handleCancelIconClick(e.row._id)}>
-                        <ArrowForwardIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </>
-              );
-            },
-            width: 180
-          }
-        ]}
-        paginationMode="server"
-        filterMode="server"
-        disableColumnSorting
-        disableColumnMenu
-        rows={rows}
-        rowCount={total}
-        initialState={{
-          pagination: {
-            paginationModel: { page: pageNum - 1, pageSize: limit }
-          }
-        }}
-        onPaginationModelChange={(newModel) => {
-          setPageNum(newModel.page + 1);
-          setLimit(newModel.pageSize);
-        }}
-        sx={{
-          height: 'calc(100vh - 200px)'
-        }}
-      />
-    </div>
+    <Grid container>
+      <Grid item xs={12}>
+        <ToolBar />
+      </Grid>
+      <Grid item xs={12}>
+        <DataGrid
+          columns={[
+            { field: 'id', headerName: '№', width: 50 },
+            { field: 'documentType', headerName: 'Xujjat turi' },
+            { field: 'accountNumber', headerName: 'Hisob raqami', width: 120 },
+            { field: 'aktSummasi', headerName: 'akt summa', type: 'number' },
+            { field: 'status', headerName: 'status' },
+            { field: 'actStatus', headerName: 'Akt holati' },
+            {
+              field: 'actions',
+              headerName: 'Harakatlar',
+              renderCell: (e) => {
+                return (
+                  <>
+                    <Tooltip title="qabul qilish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton
+                          onClick={() => handleMoveToInboxIconClick(e.row._id)}
+                          disabled={e.row.status !== 'yangi' ? true : false}
+                        >
+                          <MoveToInboxOutlinedIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="bekor qilish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton
+                          onClick={() => handleCancelIconClick(e.row._id)}
+                          disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
+                        >
+                          <CancelIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="chop etish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton
+                          disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
+                          onClick={() => handlePrintButtonClick(e.row._id)}
+                        >
+                          <PrintOutlinedIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="aktga o'tish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton onClick={() => handleClickNextButton(e.row._id)}>
+                          <ArrowForwardIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </>
+                );
+              },
+              width: 180
+            }
+          ]}
+          paginationMode="server"
+          filterMode="server"
+          disableColumnSorting
+          disableColumnMenu
+          rows={rows}
+          rowCount={total}
+          initialState={{
+            pagination: {
+              paginationModel: { page: pageNum - 1, pageSize: limit }
+            }
+          }}
+          onPaginationModelChange={(newModel) => {
+            setPageNum(newModel.page + 1);
+            setLimit(newModel.pageSize);
+          }}
+          sx={{
+            height: 'calc(100vh - 250px)'
+          }}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

@@ -21,7 +21,7 @@ const odamSoniXatlovStore = create((set) => ({
   refresh: () => set((state) => ({ refreshTrigger: !state.refreshTrigger })),
   loading: false,
   setLoading: (loading) => set({ loading }),
-  dalolatnomaData: { data: {}, mahalla: {} },
+  dalolatnomaData: { data: {}, mahalla: {}, rows: [] },
   setDalolatnomaData: (dalolatnomaData) => set({ dalolatnomaData }),
   openPrintSection: false,
   setOpenPrintSection: (openPrintSection) => set({ openPrintSection }),

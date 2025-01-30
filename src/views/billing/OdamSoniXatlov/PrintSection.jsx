@@ -125,7 +125,7 @@ function PrintSection() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, index) => (
+                {dalolatnomaData.rows.map((row, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{row.accountNumber}</td>

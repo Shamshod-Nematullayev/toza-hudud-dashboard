@@ -1,11 +1,12 @@
 import { Add } from '@mui/icons-material';
-import { Button, Card, TextField } from '@mui/material';
+import { Button, Card, TextField, useMediaQuery } from '@mui/material';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useStore from './useStore';
 
 function ToolBar() {
   const { setFilter, filter, documentNumber, setDocumentNumber } = useStore();
+  const isXs = useMediaQuery('(max-width:600px)');
   const handleDocumentNumberChange = (e) => {
     if (!isNaN(e.target.value)) {
       setDocumentNumber(e.target.value);
@@ -21,8 +22,7 @@ function ToolBar() {
         display: 'flex',
         justifyContent: 'space-between',
         borderRadius: 0,
-        padding: '5px 0 15px 0',
-        height: 120,
+        padding: '0 0 15px 0',
         button: {
           margin: '0 10px'
         }
@@ -31,7 +31,7 @@ function ToolBar() {
       <div>
         <Link to="/billing/createAbonentAriza">
           <Button color="primary" variant="contained">
-            <Add /> qo'shish
+            <Add /> {!isXs && " qo'shish"}
           </Button>
         </Link>
 

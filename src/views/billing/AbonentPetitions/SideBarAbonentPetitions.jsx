@@ -54,7 +54,7 @@ function SideBar() {
   };
 
   return (
-    <Card sx={{ border: '1px solid #ccc', height: 'calc(100vh - 200px)', padding: '5px 10px' }}>
+    <Card sx={{ border: '1px solid #ccc', minHeight: 'calc(100vh - 200px)', padding: '5px 10px' }}>
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <Typography variant="h3" sx={{ textAlign: 'center' }}>
