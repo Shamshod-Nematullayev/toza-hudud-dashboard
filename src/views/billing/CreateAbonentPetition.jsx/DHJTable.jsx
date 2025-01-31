@@ -6,7 +6,8 @@ import { Stack, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 
 function DHJTable({ abonentData, title }) {
-  const { rowsDhjTable, setRowsDhjTable } = useStore();
+  const [rowsDhjTable, setRowsDhjTable] = useState([]);
+  const store = useStore();
   useEffect(() => {
     if (abonentData.accountNumber) {
       api.get('/billing/get-abonent-dxj-by-id/' + abonentData.id).then(({ data }) => {
@@ -23,9 +24,22 @@ function DHJTable({ abonentData, title }) {
             allPaymentsSum: row.allPaymentsSum
           }))
         );
+        store.setRowsDhjTable(
+          data.rows.map((row, i) => ({
+            id: i + 1,
+            davr: row.period,
+            saldo_n: row.nSaldo,
+            nachis: row.accrual,
+            saldo_k: row.kSaldo,
+            akt: row.actAmount,
+            yashovchilar_soni: row.inhabitantCount,
+            allPaymentsSum: row.allPaymentsSum
+          }))
+        );
       });
     } else {
       setRowsDhjTable([]);
+      store.setRowsDhjTable([]);
     }
   }, [abonentData]);
   return (
@@ -34,7 +48,7 @@ function DHJTable({ abonentData, title }) {
       <div style={{ width: '100%', height: '60vh' }}>
         <DataGrid
           columns={[
-            { field: 'id', headerName: 't/r', width: 10 },
+            { field: 'id', headerName: 't/r', width: 20 },
             { field: 'davr', headerName: 'davr' },
             { field: 'saldo_n', headerName: 'Saldo boshi', type: 'number' },
             { field: 'nachis', headerName: 'Hisoblandi', type: 'number' },

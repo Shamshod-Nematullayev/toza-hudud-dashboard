@@ -79,8 +79,6 @@ function DataTable() {
   }, [rows]);
 
   const handleChangeFilterModel = (newModel) => {
-    console.log(newModel);
-    return;
     if (!newModel.items[0]) {
       setFilter({});
       return;

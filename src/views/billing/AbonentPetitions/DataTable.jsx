@@ -1,12 +1,15 @@
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import api from 'utils/api';
-import { useLocalStore } from '.';
-import { IconButton, Tooltip } from '@mui/material';
+import { Grid, IconButton, Tooltip } from '@mui/material';
 import MoveToInboxOutlinedIcon from '@mui/icons-material/MoveToInboxOutlined';
 import CancelIcon from '@mui/icons-material/CancelOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
+import ToolBar from './ToolBar';
+import useStore from './useStore';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 function DataTable() {
   const {
     rows,
@@ -15,7 +18,6 @@ function DataTable() {
     total,
     setRows,
     setTotal,
-    documentNumber,
     setPageNum,
     setLimit,
     setShowPrintSection,
@@ -24,36 +26,49 @@ function DataTable() {
     setAbonentData2,
     setMahalla,
     setMahallaDublicat,
-    setAktFileURL
-  } = useLocalStore();
+    setAktFileURL,
+    setIsLoading,
+    filter
+  } = useStore();
   const [reloadEffect, setReloadEffect] = useState(false);
   function reload() {
     setReloadEffect(!reloadEffect);
   }
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    api
-      .get('/arizalar', {
-        params: {
-          page: pageNum,
-          limit,
-          document_number: documentNumber != '' ? documentNumber : undefined
-        }
-      })
-      .then(({ data }) => {
-        setRows(
-          data.data.map((row, i) => ({
-            _id: row._id,
-            id: row.document_number,
-            documentType: row.document_type,
-            accountNumber: row.licshet,
-            aktSummasi: row.aktSummasi,
-            status: row.status
-          }))
-        );
-        setTotal(data.meta.total);
-      });
-  }, [pageNum, limit, total, documentNumber, reloadEffect]);
+    setIsLoading(true);
+    try {
+      api
+        .get('/arizalar', {
+          params: {
+            page: pageNum,
+            limit,
+            ...filter
+          }
+        })
+        .then(({ data }) => {
+          setRows(
+            data.data.map((row, i) => ({
+              _id: row._id,
+              id: row.document_number,
+              documentType: row.document_type,
+              accountNumber: row.licshet,
+              aktSummasi: row.aktSummasi,
+              status: row.status,
+              actStatus: row.actStatus
+            }))
+          );
+          setTotal(data.meta.total);
+          setIsLoading(false);
+        });
+    } catch (error) {
+      setIsLoading(false);
+      console.error(error);
+      toast.error('xatolik kuzatildi');
+    }
+  }, [pageNum, limit, reloadEffect, filter]);
 
   const handleMoveToInboxIconClick = (_id) => {
     api.patch('/arizalar/move-to-inbox/' + _id).then(() => {
@@ -73,6 +88,7 @@ function DataTable() {
       });
   };
   const handlePrintButtonClick = async (_id) => {
+    setIsLoading(true);
     let ariza = (await api.get('/arizalar/get-ariza-by-id/' + _id)).data;
     if (!ariza.ok) {
       return toast.error(ariza.message);
@@ -80,100 +96,107 @@ function DataTable() {
     ariza = ariza.ariza;
     const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet)).data.abonentData;
     setAbonentData(abonentData);
-    console.log({ abonentData });
     const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
-    setMahalla(mahallaData);
+    console.log(mahallaData);
+    setMahalla(mahallaData.data);
     if (ariza.document_type === 'dvaynik') {
       const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet)).data.abonentData;
       setAbonentData2(abonentData);
       const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
-      setMahallaDublicat(mahallaData);
+      setMahallaDublicat(mahallaData.data);
     }
     setCurrentAriza(ariza);
     setShowPrintSection(true);
+    setIsLoading(false);
   };
-  const handleEnterButtonClick = async (ariza_id) => {
+  const handleClickNextButton = async (ariza_id) => {
     // bu yerga arizaga kirish kodini yozaman.
-    const arizaData = (await api.get('/arizalar/' + ariza_id)).data;
-    const aktFile = await api.get('/billing/get-file/' + ariza.file_id);
-    const url = URL.createObjectURL(aktFile.data);
-    setAktFileURL(url);
-    // akt qilingan xujjatni ko'rishim kerak
-    // akt ma'lumotlarini ko'rishim kerak
-    // qayta akt qilish yoki aktga o'zgartirish kiritish bo'yicha ish ko'rish kerak
-    // menga uning tassavvuri aniq kelmyapti
+    navigate('/billing/recalculation/' + ariza_id);
   };
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
-      <DataGrid
-        columns={[
-          { field: 'id', headerName: '№', width: 50 },
-          { field: 'documentType', headerName: 'Xujjat turi' },
-          { field: 'accountNumber', headerName: 'Hisob raqami', width: 120 },
-          { field: 'aktSummasi', headerName: 'akt summa', type: 'number' },
-          { field: 'status', headerName: 'status' },
-          {
-            field: 'actions',
-            headerName: 'Harakatlar',
-            renderCell: (e) => {
-              return (
-                <>
-                  <Tooltip title="qabul qilish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton onClick={() => handleMoveToInboxIconClick(e.row._id)} disabled={e.row.status !== 'yangi' ? true : false}>
-                        <MoveToInboxOutlinedIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title="bekor qilish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton
-                        onClick={() => handleCancelIconClick(e.row._id)}
-                        disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title="chop etish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton onClick={() => handlePrintButtonClick(e.row._id)}>
-                        <PrintOutlinedIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title="aktga o'tish" arrow enterDelay={1000}>
-                    <span>
-                      <IconButton onClick={() => handleCancelIconClick(e.row._id)}>
-                        <ArrowForwardIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </>
-              );
-            },
-            width: 180
-          }
-        ]}
-        paginationMode="server"
-        filterMode="server"
-        disableColumnSorting
-        rows={rows}
-        rowCount={total}
-        initialState={{
-          pagination: {
-            paginationModel: { page: pageNum - 1, pageSize: limit }
-          }
-        }}
-        onPaginationModelChange={(newModel) => {
-          setPageNum(newModel.page + 1);
-          setLimit(newModel.pageSize);
-        }}
-        sx={{
-          height: '100%'
-        }}
-      />
-    </div>
+    <Grid container>
+      <Grid item xs={12}>
+        <ToolBar />
+      </Grid>
+      <Grid item xs={12}>
+        <DataGrid
+          columns={[
+            { field: 'id', headerName: '№', width: 50 },
+            { field: 'documentType', headerName: 'Xujjat turi' },
+            { field: 'accountNumber', headerName: 'Hisob raqami', width: 120 },
+            { field: 'aktSummasi', headerName: 'akt summa', type: 'number' },
+            { field: 'status', headerName: 'status' },
+            { field: 'actStatus', headerName: 'Akt holati' },
+            {
+              field: 'actions',
+              headerName: 'Harakatlar',
+              renderCell: (e) => {
+                return (
+                  <>
+                    <Tooltip title="qabul qilish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton
+                          onClick={() => handleMoveToInboxIconClick(e.row._id)}
+                          disabled={e.row.status !== 'yangi' ? true : false}
+                        >
+                          <MoveToInboxOutlinedIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="bekor qilish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton
+                          onClick={() => handleCancelIconClick(e.row._id)}
+                          disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
+                        >
+                          <CancelIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="chop etish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton
+                          disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
+                          onClick={() => handlePrintButtonClick(e.row._id)}
+                        >
+                          <PrintOutlinedIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title="aktga o'tish" arrow enterDelay={1000}>
+                      <span>
+                        <IconButton onClick={() => handleClickNextButton(e.row._id)}>
+                          <ArrowForwardIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </>
+                );
+              },
+              width: 180
+            }
+          ]}
+          paginationMode="server"
+          filterMode="server"
+          disableColumnSorting
+          disableColumnMenu
+          rows={rows}
+          rowCount={total}
+          initialState={{
+            pagination: {
+              paginationModel: { page: pageNum - 1, pageSize: limit }
+            }
+          }}
+          onPaginationModelChange={(newModel) => {
+            setPageNum(newModel.page + 1);
+            setLimit(newModel.pageSize);
+          }}
+          sx={{
+            height: 'calc(100vh - 250px)'
+          }}
+        />
+      </Grid>
+    </Grid>
   );
 }
 
