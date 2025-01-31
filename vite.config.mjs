@@ -19,7 +19,7 @@ export default defineConfig({
     }
   ],
   // https://github.com/jpuri/react-draft-wysiwyg/issues/1317
-  base: '/',
+  base: 'https://toza-hudud-dashboard.netlify.app/',
   define: {
     global: 'window'
   },
