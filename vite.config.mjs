@@ -7,7 +7,14 @@ import jsconfigPaths from 'vite-jsconfig-paths';
 // ----------------------------------------------------------------------
 
 export default defineConfig({
-  plugins: [react(), jsconfigPaths()],
+  plugins: [react(), jsconfigPaths(), 
+    {
+      name: 'copy-headers',
+      writeBundle() {
+        copyFileSync('_headers', 'dist/_headers');
+      }
+   
+           }],
   // https://github.com/jpuri/react-draft-wysiwyg/issues/1317
   base: '/startpage',
   define: {
