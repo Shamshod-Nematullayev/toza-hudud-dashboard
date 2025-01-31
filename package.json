@@ -7,7 +7,7 @@
     "email": "CodedThemes@gmail.com",
     "url": "https://codedthemes.com/"
   },
-  "homepage": "https://berrydashboard.io/free",
+  "homepage": "https://toza-hudud-dashboard.netlify.app/startpage",
   "scripts": {
     "start": "env-cmd -f .env vite",
     "build": "vite build",
