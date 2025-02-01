@@ -3,11 +3,21 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import jsconfigPaths from 'vite-jsconfig-paths';
+import { copyFileSync } from 'fs';
 
 // ----------------------------------------------------------------------
 
 export default defineConfig({
-  plugins: [react(), jsconfigPaths()],
+  plugins: [
+    react(),
+    jsconfigPaths(),
+    {
+      name: 'copy-headers',
+      writeBundle() {
+        copyFileSync('_headers', 'dist/_headers');
+      }
+    }
+  ],
   // https://github.com/jpuri/react-draft-wysiwyg/issues/1317
   base: '/',
   define: {
