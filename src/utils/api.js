@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 const api = axios.create({
   baseURL: SERVER_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': true
   },
   withCredentials: true
 });
