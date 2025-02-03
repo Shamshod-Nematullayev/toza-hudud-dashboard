@@ -70,11 +70,7 @@ function DataTable() {
     setStatusOptions(uniqueStatuses);
 
     api.get('/yashovchi-soni-xatlov/mahallas').then(({ data }) => {
-      setMallaOptions(
-        data.data
-          .map((mfy) => ({ mahallaId: mfy.mahallaId, mahallaName: lotinga(mfy.mahallaName) }))
-          .sort((a, b) => a.mahallaName.localeCompare(b.mahallaName))
-      );
+      setMallaOptions(data.data.map((mfy) => ({ mahallaId: mfy.mahallaId, mahallaName: lotinga(mfy.mahallaName) })));
     });
   }, [rows]);
 
