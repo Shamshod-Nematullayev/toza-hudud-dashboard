@@ -1,23 +1,23 @@
-import { Button, Card, Typography } from '@mui/material';
+import { PrintOutlined as Print } from '@mui/icons-material';
+import { Button, Grid, Typography, useMediaQuery } from '@mui/material';
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import useStore from './useStore';
 
 function ToolsContainer({ setShowCreateArizaModal, selectedRows }) {
+  const isXs = useMediaQuery('(max-width:600px)');
   const handleCreateArizaButtonClick = () => {
     if (selectedRows.length === 0) return toast.error('Ariza yaratish uchun qatorni tanlang tanlang!');
     setShowCreateArizaModal(true);
   };
   return (
-    <Card className="tools-container" style={{ margin: '0 25px 0 0', width: '10%' }}>
-      <ul style={{ listStyle: 'none' }}>
-        <li>
-          <Typography component={Button} variant="subtitle1" onClick={handleCreateArizaButtonClick}>
-            Ariza chiqorish
-          </Typography>
-        </li>
-      </ul>
-    </Card>
+    <Grid container>
+      <Grid item>
+        <Button variant="outlined" onClick={handleCreateArizaButtonClick} disabled={!selectedRows.length}>
+          <Print /> {isXs ? '' : 'Ariza chiqorish'}
+        </Button>
+      </Grid>
+    </Grid>
   );
 }
 

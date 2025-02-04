@@ -7,11 +7,6 @@ import { useReactToPrint } from 'react-to-print';
 import PrintSection from './PrintSection';
 import api from 'utils/api';
 
-const formatDate = (data) => {
-  const date = new Date(data);
-  return ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
-};
-
 function DataTable() {
   const columns = [
     { field: 'id', headerName: 'ID', width: 70, filterable: false },
@@ -22,55 +17,36 @@ function DataTable() {
       headerName: 'Ogohlantirilgan sanasi',
       width: 150,
       align: 'right',
-      renderCell: ({ row }) => formatDate(row.warningDate),
+      type: 'date',
       filterable: false
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 150,
-      filterOperators: [
-        {
-          label: 'Tanlash',
-          value: 'is',
-          getApplyFilterFn: (filterItem) => {
-            if (!filterItem.value) {
-              return null;
-            }
-            return ({ value }) => value === filterItem.value;
-          },
-          InputComponent: (props) => (
-            <SelectInputComponent
-              {...props}
-              valueOptions={['yangi', 'ariza_yaratildi', 'sudga_ariza_berildi', 'sud_qarori_chiqorildi', 'rad_etildi']}
-            />
-          )
-        }
-      ]
+      width: 150
     },
-    { field: 'bildirish_xati', headerName: 'Bildirgi', width: 150, filterable: false },
+    { field: 'bildirish_xati', headerName: 'Bildirgi', width: 150 },
     { field: 'actions', headerName: 'Actions', width: 100, renderCell: () => <div>Action 1</div>, filterable: false }
   ];
 
   // ================================|STATES|==================================================
 
-  const { setSelectedRows, rowsForPrint, setRowsForPrint } = useStore();
+  const { setSelectedRows, rowsForPrint, setRowsForPrint, filter } = useStore();
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [rows, setRows] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
-  const [filterModel, setFilterModel] = useState({});
 
   // ================================|HANDLE FUNCTIONS|==================================================
-  const fetchData = async ({ filterModel = {} }) => {
+  const fetchData = async () => {
     try {
       const { data } = await api.get('/sudAkts/', {
-        params: { ...paginationModel, status: filterModel.value === 'Hammasi' ? '' : filterModel.value }
+        params: { ...paginationModel, ...filter }
       });
       const rows = data.rows.map((row, i) => ({
         id: i + 1,
         _id: row._id,
         licshet: row.licshet,
-        warningDate: row.warningDate,
+        warningDate: new Date(row.warningDate) || null,
         status: row.status,
         davo_summa: row.davo_summa
       }));
@@ -100,17 +76,13 @@ function DataTable() {
   });
   //   =================|EFFECTS| =================
   useEffect(() => {
-    fetchData({ filterModel });
-  }, [paginationModel]);
-  const handleFilterChange = (model) => {
-    setFilterModel(model.items[0]);
-    fetchData({ filterModel: model.items[0] });
-  };
+    fetchData();
+  }, [paginationModel, filter]);
 
   useEffect(() => {
     if (rowsForPrint.length > 0) {
       printFunc();
-      fetchData({ filterModel });
+      fetchData();
     }
   }, [rowsForPrint]);
   return (
@@ -124,12 +96,13 @@ function DataTable() {
         onPaginationModelChange={(newPaginationModel) => {
           setPaginationModel(newPaginationModel);
         }}
-        onFilterModelChange={handleFilterChange}
         onRowSelectionModelChange={(rowSelectionModel) => setSelectedRows(rows.filter((row) => rowSelectionModel.includes(row.id)))}
         initialState={{ pagination: { paginationModel: { pageSize: paginationModel.pageSize } } }}
         sortingMode="server"
         paginationMode="server"
         filterMode="server"
+        disableColumnMenu
+        disableColumnSorting
         sx={{
           height: '70vh'
         }}

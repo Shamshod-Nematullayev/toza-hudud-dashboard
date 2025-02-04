@@ -4,6 +4,8 @@ import DialogForCreateAriza from './DialogForCreateAriza';
 import useStore from './useStore';
 import ToolsContainer from './ToolsContainer';
 import DataTable from './DataTable';
+import { Grid } from '@mui/material';
+import SideBar from './SideBar';
 
 function CourtProcesses() {
   // =================================|STATES|===============================================
@@ -17,8 +19,17 @@ function CourtProcesses() {
   return (
     <MainCard contentSX={{ display: 'flex' }}>
       <DialogForCreateAriza showCreateArizaModal={showCreateArizaModal} handleCloseModal={handleCloseModal} />
-      <ToolsContainer setShowCreateArizaModal={setShowCreateArizaModal} selectedRows={selectedRows} />
-      <DataTable />
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <ToolsContainer setShowCreateArizaModal={setShowCreateArizaModal} selectedRows={selectedRows} />
+        </Grid>
+        <Grid item xs={12} sm={9}>
+          <DataTable />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <SideBar />
+        </Grid>
+      </Grid>
     </MainCard>
   );
 }

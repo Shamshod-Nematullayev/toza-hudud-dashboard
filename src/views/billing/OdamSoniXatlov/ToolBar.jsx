@@ -24,9 +24,9 @@ function ToolBar() {
     setDalolatnomaData({
       data,
       mahalla,
-      rows: rows.map((row) => {
+      rows: rows.filter((row) => {
         if (request_ids.includes(row._id)) {
-          return row;
+          return true;
         }
       })
     });

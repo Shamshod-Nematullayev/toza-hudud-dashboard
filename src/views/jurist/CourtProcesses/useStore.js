@@ -4,7 +4,9 @@ const useStore = create((set) => ({
   selectedRows: [],
   setSelectedRows: (rows) => set({ selectedRows: rows }),
   rowsForPrint: [],
-  setRowsForPrint: (rows) => set({ rowsForPrint: rows })
+  setRowsForPrint: (rows) => set({ rowsForPrint: rows }),
+  filter: {},
+  setFilter: (filter) => set({ filter })
 }));
 
 export default useStore;

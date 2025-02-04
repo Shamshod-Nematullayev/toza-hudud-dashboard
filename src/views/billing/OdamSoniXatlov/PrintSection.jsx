@@ -36,7 +36,7 @@ function stringToName(str) {
 }
 
 function PrintSection() {
-  const { rows, dalolatnomaData, openPrintSection, setOpenPrintSection } = odamSoniXatlovStore();
+  const { dalolatnomaData, openPrintSection, setOpenPrintSection } = odamSoniXatlovStore();
   const { mahalla, data } = dalolatnomaData;
   const printComponentRef = useRef(null);
   const printFunction = useReactToPrint({
