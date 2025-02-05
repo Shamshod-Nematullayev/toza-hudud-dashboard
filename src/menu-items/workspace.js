@@ -117,7 +117,7 @@ const billing = {
         },
         {
           id: 'courtNote',
-          title: 'Bildirish xatlari',
+          title: 'Nishonga olingan abonentlar',
           type: 'item',
           url: '/jurist/courtNote',
           icon: icons.EditNoteIcon,

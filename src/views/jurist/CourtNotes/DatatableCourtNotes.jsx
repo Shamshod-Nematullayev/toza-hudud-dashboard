@@ -1,7 +1,12 @@
-import { DataGrid } from '@mui/x-data-grid';
-import React from 'react';
+import { IconButton } from '@mui/material';
+import { DataGrid, GridDeleteIcon } from '@mui/x-data-grid';
+import React, { useState } from 'react';
 
 function DatatableCourtNotes() {
+  const [rows, setRows] = useState();
+  const handleClickDeleteButton = () => {
+    // Your delete logic here
+  };
   const columns = [
     {
       field: 'id',
@@ -26,14 +31,20 @@ function DatatableCourtNotes() {
       field: 'actions',
       headerName: 'Harakatlar',
       width: 100,
-      renderCell: () => <div style={{ display: 'flex' }}></div>,
+      renderCell: () => (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <IconButton onClick={handleClickDeleteButton} sx={{ color: 'error.main' }}>
+            <GridDeleteIcon />
+          </IconButton>
+        </div>
+      ),
       filterable: false,
       editable: false
     }
   ];
   return (
     <>
-      <DataGrid columns={columns} rows={[]} disableColumnSorting disableColumnMenu />
+      <DataGrid columns={columns} rows={[{ id: '1' }]} disableColumnSorting disableColumnMenu />
     </>
   );
 }

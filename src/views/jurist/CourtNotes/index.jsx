@@ -13,11 +13,11 @@ function CourtNote() {
         <Grid item xs={12}>
           <ToolbarCourtNotes />
         </Grid>
-        <Grid item xs={12} sm={9}>
+        <Grid item xs={12} sm={5}>
           <DatatableCourtNotes />
         </Grid>
         <Grid item xs={12} sm={3}>
-          <SidebarCourtNotes />
+          {/* <SidebarCourtNotes /> */}
         </Grid>
       </Grid>
     </MainCard>
