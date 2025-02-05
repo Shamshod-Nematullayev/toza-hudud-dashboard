@@ -141,6 +141,10 @@ const MainRoutes = {
     {
       path: 'sample-page',
       element: <SamplePage />
+    },
+    {
+      path: '*',
+      element: () => <div>Page not found</div>
     }
   ]
 };

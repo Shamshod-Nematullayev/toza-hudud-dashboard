@@ -1,9 +1,28 @@
 import { IconButton } from '@mui/material';
 import { DataGrid, GridDeleteIcon } from '@mui/x-data-grid';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import api from 'utils/api';
+import useStore from './useStore';
 
 function DatatableCourtNotes() {
+  const { filters } = useStore();
   const [rows, setRows] = useState();
+  const [page, setPage] = useState(1);
+  const [totalRows, setTotalRows] = useState(0);
+  const [pageSize, setPageSize] = useState(30);
+  // ===========EFFECTS=============
+  useEffect(() => {
+    api
+      .get('/targets', {
+        page,
+        limit: pageSize,
+        ...filters
+      })
+      .then(({ data }) => {
+        setRows(data.data.map((row, i) => ({ id: i + 1, ...row })));
+        setTotalRows(data.meta.total);
+      });
+  }, [page, pageSize, filters]);
   const handleClickDeleteButton = () => {
     // Your delete logic here
   };
@@ -16,12 +35,12 @@ function DatatableCourtNotes() {
     {
       field: 'fullName',
       headerName: 'F. I. O.',
-      width: 150
+      width: 200
     },
     {
       field: 'inspector_name',
       headerName: 'Nazoratchi',
-      width: 150
+      width: 200
     },
     {
       field: 'status',
@@ -44,7 +63,20 @@ function DatatableCourtNotes() {
   ];
   return (
     <>
-      <DataGrid columns={columns} rows={[{ id: '1' }]} disableColumnSorting disableColumnMenu />
+      <DataGrid
+        columns={columns}
+        rows={rows}
+        checkboxSelection
+        disableColumnSorting
+        disableColumnMenu
+        paginationMode="server"
+        initialState={{ pagination: { paginationModel: { pageSize } } }}
+        rowCount={totalRows}
+        onPaginationModelChange={(newPaginationModel) => {
+          setPage(newPaginationModel.page);
+          setPageSize(newPaginationModel.pageSize);
+        }}
+      />
     </>
   );
 }
