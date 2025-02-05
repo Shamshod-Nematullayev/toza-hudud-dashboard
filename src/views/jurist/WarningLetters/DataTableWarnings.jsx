@@ -135,7 +135,7 @@ function DataTableWarnings() {
     setOpenEditDialog(false);
   };
   return (
-    <>
+    <div>
       <EditModal handleCloseDialog={handleCloseDialog} open={openEditDialog} row={activRow} amount={amount} setAmount={setAmount} />
       <DataGrid
         className="data-table card"
@@ -161,16 +161,13 @@ function DataTableWarnings() {
         rowCount={totalRows} // Set total row count (ideally from the server)
         onRowSelectionModelChange={handleSelect}
         sx={{
-          height: 'calc(-260px + 100vh)',
-          '& .MuiDataGrid-footerContainer': {
-            flexShrink: 0 // Prevent shrinking of pagination area
-          }
+          height: 'calc(-260px + 100vh)'
         }}
         sortingMode="server"
         disableColumnFilter
         onRowClick={(e) => console.log(e)}
       />
-    </>
+    </div>
   );
 }
 

@@ -197,7 +197,8 @@ export default function componentStyleOverrides(theme) {
         root: {
           '& .MuiDataGrid-footerContainer': {
             flexShrink: 0 // Prevent shrinking of pagination area
-          }
+          },
+          minHeight: 'calc(100vh - 250px)'
         }
       }
     }

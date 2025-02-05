@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import useStore from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 
-function SideBar() {
+function SideBarWarnings() {
   const { filter, setFilter } = useStore();
   const [actStatus, setActStatus] = useState(null);
   const [accountNumber, setAccountNumber] = useState('');
@@ -42,29 +42,12 @@ function SideBar() {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          <FormControl fullWidth>
-            <InputLabel id="ariza-type-label">Akt holati</InputLabel>
-            <Select label="Ariza turi" labelId="ariza-type-label" value={actStatus} onChange={(e) => setActStatus(e.target.value)}>
-              <MenuItem value="">Hammasi</MenuItem>
-              <MenuItem value="yangi">Yangi</MenuItem>
-              <MenuItem value="ariza_yaratildi">Ariza yaratilgan</MenuItem>
-              <MenuItem value="ariza_imzolandi">Ariza imzolangan</MenuItem>
-              <MenuItem value="sudga_ariza_berildi">Sudga yuborilgan</MenuItem>
-              <MenuItem value="sud_qarori_chiqorildi">Sud qarori chiqarilgan</MenuItem>
-              <MenuItem value="rad_etildi">Rad etilgan</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
           <AccountNumberInput label="Hisob raqam" type="number" setFunc={setAccountNumber} value={accountNumber} fullWidth />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField label="Sud ish raqami" value={caseNumber} onChange={(e) => setCaseNumber(e.target.value)} fullWidth />
         </Grid>
         <Grid item xs={12}>
           <Typography variant="h5">Ogohlantirilgan vaqti</Typography>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <DatePicker
             views={['year', 'month', 'day']}
             minDate={dayjs('2023-01-01')}
@@ -72,9 +55,10 @@ function SideBar() {
             label="dan"
             value={warningFromDate}
             onChange={(e) => setWarningFromDate(dayjs(e))}
+            sx={{ width: '100%' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <DatePicker
             views={['year', 'month', 'day']}
             minDate={dayjs('2023-01-01')}
@@ -82,25 +66,26 @@ function SideBar() {
             label="gacha"
             value={warningToDate}
             onChange={(e) => setWarningToDate(dayjs(e))}
+            sx={{ width: '100%' }}
           />
         </Grid>
         <Grid item xs={12}>
           <Typography variant="h5">Da'vo summasi</Typography>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <TextField label="dan" type="number" value={claimAmountFrom} onChange={(e) => setClaimAmountFrom(e.target.value)} fullWidth />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <TextField label="gacha" type="number" value={claimAmountTo} onChange={(e) => setClaimAmountTo(e.target.value)} fullWidth />
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <Button color="info" variant="outlined" onClick={handleClickClearButton} fullWidth>
-            Tozalash
-          </Button>
-        </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <Button color="primary" variant="contained" onClick={handleClickSeachButton} fullWidth>
             Qidirish
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Button color="info" variant="outlined" onClick={handleClickClearButton} fullWidth>
+            Tozalash
           </Button>
         </Grid>
       </Grid>
@@ -108,4 +93,4 @@ function SideBar() {
   );
 }
 
-export default SideBar;
+export default SideBarWarnings;

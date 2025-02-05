@@ -10,6 +10,8 @@ import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+
 //contans
 const icons = {
   ImportantDevicesOutlinedIcon,
@@ -22,7 +24,8 @@ const icons = {
   UploadFileOutlinedIcon,
   NoteAddOutlinedIcon,
   PrintOutlinedIcon,
-  PersonAddAltIcon
+  PersonAddAltIcon,
+  EditNoteIcon
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -111,6 +114,14 @@ const billing = {
           type: 'item',
           url: '/jurist/importPetition',
           icon: icons.FileDownloadOutlinedIcon
+        },
+        {
+          id: 'courtNote',
+          title: 'Bildirish xatlari',
+          type: 'item',
+          url: '/jurist/courtNote',
+          icon: icons.EditNoteIcon,
+          breadcrumbs: false
         }
       ]
     }

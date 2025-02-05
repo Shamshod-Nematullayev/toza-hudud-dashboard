@@ -89,7 +89,7 @@ function DataTable() {
   };
   const handlePrintButtonClick = async (_id) => {
     setIsLoading(true);
-    let ariza = (await api.get('/arizalar/get-ariza-by-id/' + _id)).data;
+    let ariza = (await api.get('/arizalar/' + _id)).data;
     if (!ariza.ok) {
       return toast.error(ariza.message);
     }

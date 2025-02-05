@@ -32,7 +32,8 @@ function DataTable() {
   // ================================|STATES|==================================================
 
   const { setSelectedRows, rowsForPrint, setRowsForPrint, filter } = useStore();
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [rows, setRows] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
 
@@ -40,9 +41,9 @@ function DataTable() {
   const fetchData = async () => {
     try {
       const { data } = await api.get('/sudAkts/', {
-        params: { ...paginationModel, ...filter }
+        params: { page: page + 1, limit: pageSize, ...filter }
       });
-      const rows = data.rows.map((row, i) => ({
+      const rows = data.data.map((row, i) => ({
         id: i + 1,
         _id: row._id,
         licshet: row.licshet,
@@ -51,7 +52,7 @@ function DataTable() {
         davo_summa: row.davo_summa
       }));
       setRows(rows);
-      setTotalRows(data.total);
+      setTotalRows(data.meta.total);
     } catch (error) {
       toast.error('Xatolik kuzatildi');
       console.error('Error fetching data:', error);
@@ -77,7 +78,7 @@ function DataTable() {
   //   =================|EFFECTS| =================
   useEffect(() => {
     fetchData();
-  }, [paginationModel, filter]);
+  }, [page, pageSize, filter]);
 
   useEffect(() => {
     if (rowsForPrint.length > 0) {
@@ -90,14 +91,15 @@ function DataTable() {
       <DataGrid
         checkboxSelection
         rows={rows}
-        pageSize={paginationModel.pageSize}
+        pageSize={pageSize}
         rowCount={totalRows}
         columns={columns}
         onPaginationModelChange={(newPaginationModel) => {
-          setPaginationModel(newPaginationModel);
+          setPage(newPaginationModel.page);
+          setPageSize(newPaginationModel.pageSize);
         }}
         onRowSelectionModelChange={(rowSelectionModel) => setSelectedRows(rows.filter((row) => rowSelectionModel.includes(row.id)))}
-        initialState={{ pagination: { paginationModel: { pageSize: paginationModel.pageSize } } }}
+        initialState={{ pagination: { paginationModel: { pageSize: pageSize } } }}
         sortingMode="server"
         paginationMode="server"
         filterMode="server"

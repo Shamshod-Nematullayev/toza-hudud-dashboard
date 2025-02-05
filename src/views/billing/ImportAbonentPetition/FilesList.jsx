@@ -73,7 +73,7 @@ function FilesList() {
       if (data.result.split('_')[0] !== 'ariza') {
         return toast.error("Noma'lum QR kod");
       }
-      let ariza = (await api.get('/arizalar/get-ariza-by-id/' + data.result.split('_')[1])).data;
+      let ariza = (await api.get('/arizalar/' + data.result.split('_')[1])).data;
       if (!ariza.ok) {
         return toast.error(ariza.message);
       }

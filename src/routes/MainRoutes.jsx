@@ -14,6 +14,7 @@ import CreateAbonentPetition from 'views/billing/CreateAbonentPetition.jsx';
 import PrintAbonentsList from 'views/billing/PrintAbonentsList';
 import XatlovOdamSoni from 'views/billing/OdamSoniXatlov';
 import AbonentPetition from 'views/billing/AbonentPetition';
+import CourtNote from 'views/jurist/CourtNotes';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -130,6 +131,10 @@ const MainRoutes = {
         {
           path: 'importPetition',
           element: <ImportPetition />
+        },
+        {
+          path: 'courtNote',
+          element: <CourtNote />
         }
       ]
     },
