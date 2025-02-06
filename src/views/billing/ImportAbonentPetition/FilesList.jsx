@@ -7,9 +7,6 @@ import api from 'utils/api';
 import * as pdfjsLib from 'pdfjs-dist';
 import jsQR from 'jsqr';
 
-// pdf.js worker-ni o'chirish (agar worker kerak bo'lmasa)
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
-
 function FilesList() {
   const { pdfFiles, setCurrentFile, currentFile, setAriza } = useStore();
   const theme = useTheme();

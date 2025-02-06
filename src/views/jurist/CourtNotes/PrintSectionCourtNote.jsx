@@ -15,11 +15,11 @@ function formatName(name) {
 const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 
 const PrintSectionCourtNote = forwardRef((props, ref) => {
-  const { document, selectedRows, mahallas } = useStore();
+  const { Document, selectedRows, mahallas } = useStore();
   const date = new Date();
   return (
     <div ref={ref} className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-      <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{document.doc_num}</span>
+      <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{Document.doc_num}</span>
 
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div></div>
@@ -32,7 +32,7 @@ const PrintSectionCourtNote = forwardRef((props, ref) => {
           }}
         >
           "Анваржон бизнес инвест" МЧЖ Каттақўрғон туман филиали раҳбари А.А.Садриддиновга филиал ахоли назоратчиси{' '}
-          {kirillga(formatName(document.inspector?.name))} томонидан
+          {kirillga(formatName(Document.inspector?.name))} томонидан
         </p>
       </div>
       <p style={{ textAlign: 'center' }}>БИЛДИРИШ ХАТИ</p>
@@ -41,7 +41,7 @@ const PrintSectionCourtNote = forwardRef((props, ref) => {
           textIndent: '40px'
         }}
       >
-        Ушбу орқали Сизга шуни маълум қиламанки, менга бириктирилган {mahallas.find((mfy) => mfy.id == document.mahallaId).name} МФЙда
+        Ушбу орқали Сизга шуни маълум қиламанки, менга бириктирилган {mahallas.find((mfy) => mfy.id == Document.mahallaId).name} МФЙда
         яшовчи юқори қарздорлиги бўлган қуйидаги фуқароларни қарздорлигини суд орқали ундирилишида амалий ёрдам беришингизни сўрайман.
         <table
           style={{
@@ -71,11 +71,11 @@ const PrintSectionCourtNote = forwardRef((props, ref) => {
         </table>
         <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
           "{date.getDate()}" {kirillga(oylar[date.getMonth()])} {date.getFullYear()} йил _______{' '}
-          {kirillga(formatName(document.inspector?.name))}
+          {kirillga(formatName(Document.inspector?.name))}
         </p>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <QRCodeCanvas
-            value={`bildirgi_${document._id}_${document.doc_num}`}
+            value={`bildirgi_${Document._id}_${Document.doc_num}`}
             size={150}
             bgColor={'#ffffff'}
             fgColor={'#000000'}

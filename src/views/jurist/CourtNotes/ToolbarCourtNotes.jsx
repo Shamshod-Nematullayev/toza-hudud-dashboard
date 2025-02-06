@@ -11,7 +11,7 @@ function ToolbarCourtNotes() {
   const matchUpMd = useMediaQuery(theme.breakpoints.up('sm'));
   const [inspector, setInspector] = useState('');
   const [inspectors, setInspectors] = useState([]);
-  const [selectedMahalla, setSelectedMahalla] = useState(null);
+  const [selectedMahalla, setSelectedMahalla] = useState('');
   const { setIsLoading } = useLoaderStore();
   const { filters, setFilters, selectedRows, setMahallas, setDocument, setShowDialog } = useStore();
 
@@ -24,7 +24,7 @@ function ToolbarCourtNotes() {
     });
   }, []);
   useEffect(() => {
-    setSelectedMahalla(null);
+    setSelectedMahalla('');
   }, [inspector]);
   useEffect(() => {
     setFilters({ ...filters, mahalla_id: selectedMahalla });
@@ -67,7 +67,7 @@ function ToolbarCourtNotes() {
       </FormControl>
       <FormControl sx={{ minWidth: 120 }} disabled={!inspector || !inspectors.find((ins) => ins.id === inspector)?.mahallalar.length}>
         <InputLabel id="mfy-label">Mahalla</InputLabel>
-        <Select label="Mahalla" labelId="mfy-label" onChange={(e) => setSelectedMahalla(e.target.value)}>
+        <Select label="Mahalla" labelId="mfy-label" value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)}>
           {inspectors
             .find((ins) => ins.id === inspector)
             ?.mahallalar?.map((mfy) => {

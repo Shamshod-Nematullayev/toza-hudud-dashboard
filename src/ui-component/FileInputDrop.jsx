@@ -44,11 +44,21 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
-function FileInputDrop({ setFiles }) {
+function FileInputDrop({ setFiles, clearTrigger }) {
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
   const [label, setLabel] = useState('Drop your PDF files');
-
+  useEffect(() => {
+    if (clearTrigger) {
+      handleClear();
+    }
+  }, [clearTrigger]);
+  const handleClear = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Inputni tozalash
+    }
+    setLabel('Drop your PDF files');
+  };
   const updateThumbnail = useCallback((file) => {
     if (!file) return;
     setLabel(file.name);
@@ -96,7 +106,10 @@ function FileInputDrop({ setFiles }) {
           className="drop-zone__input"
           ref={fileInputRef}
           accept=".pdf"
-          onChange={(e) => updateThumbnail(e.target.files[0])}
+          onChange={(e) => {
+            updateThumbnail(e.target.files[0]);
+            setFiles(e.target.files);
+          }}
         />
         <div className="drop-zone__prompt">{label}</div>
       </label>
