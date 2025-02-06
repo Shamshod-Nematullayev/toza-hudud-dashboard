@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { createGlobalStyle } from 'styled-components';
 
-const CustomStyle = createGlobalStyle`
+const GlobalStyles = createGlobalStyle`
   .drop-zone {
     width: 100%;
     height: 100%;
@@ -10,131 +10,95 @@ const CustomStyle = createGlobalStyle`
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-family: "Quicksand", sans-serif;
-    font-weight: 500;
     font-size: 20px;
     cursor: pointer;
-    color: #cccccc;
+    color: #ccc;
     border: 4px dashed #009578;
     border-radius: 10px;
+    transition: border 0.3s ease;
   }
-
   .drop-zone--over {
     border-style: solid;
   }
-
   .drop-zone__input {
     display: none;
   }
-
   .drop-zone__thumb {
     width: 100%;
     height: 100%;
     border-radius: 10px;
-    overflow: hidden;
-    background-color: #cccccc;
+    background-color: #ccc;
     background-size: cover;
     position: relative;
   }
-
   .drop-zone__thumb::after {
     content: attr(data-label);
     position: absolute;
     bottom: 0;
-    left: 0;
     width: 100%;
-    padding: 5px 0;
-    color: #ffffff;
+    padding: 5px;
     background: rgba(0, 0, 0, 0.75);
+    color: #fff;
     font-size: 14px;
     text-align: center;
   }
 `;
-function FileInputDrop({ setFunc }) {
+
+function FileInputDrop({ setFiles }) {
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [label, setLabel] = useState('Drop your PDF files');
 
-  useEffect(() => {
-    const dropZoneElement = dropZoneRef.current;
-    const inputElement = fileInputRef.current;
-
-    const handleDrop = async (e) => {
-      e.preventDefault();
-      dropZoneElement.classList.remove('drop-zone--over');
-
-      if (e.dataTransfer.files.length) {
-        inputElement.files = e.dataTransfer.files;
-        updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
-        setFunc(inputElement.files);
-      }
-    };
-
-    const handleDragOver = (e) => {
-      e.preventDefault();
-      dropZoneElement.classList.add('drop-zone--over');
-    };
-
-    const handleDragLeave = () => {
-      dropZoneElement.classList.remove('drop-zone--over');
-    };
-
-    const handleClick = () => {
-      inputElement.click();
-    };
-
-    const handleChange = () => {
-      if (inputElement.files.length) {
-        updateThumbnail(dropZoneElement, inputElement.files[0]);
-        setFunc(inputElement.files);
-      }
-    };
-
-    dropZoneElement.addEventListener('dragover', handleDragOver);
-    dropZoneElement.addEventListener('dragleave', handleDragLeave);
-    dropZoneElement.addEventListener('dragend', handleDragLeave);
-    dropZoneElement.addEventListener('drop', handleDrop);
-    inputElement.addEventListener('change', handleChange);
-
-    return () => {
-      dropZoneElement.removeEventListener('dragover', handleDragOver);
-      dropZoneElement.removeEventListener('dragleave', handleDragLeave);
-      dropZoneElement.removeEventListener('dragend', handleDragLeave);
-      dropZoneElement.removeEventListener('drop', handleDrop);
-      inputElement.removeEventListener('change', handleChange);
-    };
+  const updateThumbnail = useCallback((file) => {
+    if (!file) return;
+    setLabel(file.name);
   }, []);
 
-  const updateThumbnail = (dropZoneElement, file) => {
-    let thumbnailElement = dropZoneElement.querySelector('.drop-zone__thumb');
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      dropZoneRef.current.classList.remove('drop-zone--over');
 
-    if (dropZoneElement.querySelector('.drop-zone__prompt')) {
-      dropZoneElement.querySelector('.drop-zone__prompt').remove();
-    }
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        fileInputRef.current.files = files;
+        updateThumbnail(files[0]);
+        setFiles(files);
+      }
+    },
+    [setFiles, updateThumbnail]
+  );
 
-    if (!thumbnailElement) {
-      thumbnailElement = document.createElement('div');
-      thumbnailElement.classList.add('drop-zone__thumb');
-      dropZoneElement.appendChild(thumbnailElement);
-    }
+  useEffect(() => {
+    const dropZone = dropZoneRef.current;
 
-    thumbnailElement.dataset.label = file.name;
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('drop-zone--over');
+    });
 
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        thumbnailElement.style.backgroundImage = `url('${reader.result}')`;
-      };
-    } else {
-      thumbnailElement.style.backgroundImage = null;
-    }
-  };
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone--over'));
+    dropZone.addEventListener('drop', handleDrop);
+
+    return () => {
+      dropZone.removeEventListener('dragover', (e) => e.preventDefault());
+      dropZone.removeEventListener('dragleave', () => dropZone.classList.remove('drop-zone--over'));
+      dropZone.removeEventListener('drop', handleDrop);
+    };
+  }, [handleDrop]);
+
   return (
     <>
-      <CustomStyle />
-      <label className="drop-zone" ref={dropZoneRef} style={{ height: '100%', width: '100%' }}>
-        <input type="file" name="myFile" className="drop-zone__input" ref={fileInputRef} accept=".pdf" style={{ display: 'none' }} />
-        <div className="drop-zone__prompt">Drop your pdf files</div>
+      <GlobalStyles />
+      <label className="drop-zone" ref={dropZoneRef}>
+        <input
+          type="file"
+          className="drop-zone__input"
+          ref={fileInputRef}
+          accept=".pdf"
+          onChange={(e) => updateThumbnail(e.target.files[0])}
+        />
+        <div className="drop-zone__prompt">{label}</div>
       </label>
     </>
   );

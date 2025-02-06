@@ -5,7 +5,7 @@ import api from 'utils/api';
 import useStore from './useStore';
 
 function DatatableCourtNotes() {
-  const { filters } = useStore();
+  const { filters, setSelectedRows } = useStore();
   const [rows, setRows] = useState();
   const [page, setPage] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
@@ -14,9 +14,12 @@ function DatatableCourtNotes() {
   useEffect(() => {
     api
       .get('/targets', {
-        page,
-        limit: pageSize,
-        ...filters
+        params: {
+          page: page + 1,
+          limit: pageSize,
+          status: 'yangi',
+          ...filters
+        }
       })
       .then(({ data }) => {
         setRows(data.data.map((row, i) => ({ id: i + 1, ...row })));
@@ -70,8 +73,9 @@ function DatatableCourtNotes() {
         disableColumnSorting
         disableColumnMenu
         paginationMode="server"
-        initialState={{ pagination: { paginationModel: { pageSize } } }}
+        initialState={{ pagination: { page: 0, paginationModel: { pageSize } } }}
         rowCount={totalRows}
+        onRowSelectionModelChange={(rowSelectionModel) => setSelectedRows(rows.filter((row) => rowSelectionModel.includes(row.id)))}
         onPaginationModelChange={(newPaginationModel) => {
           setPage(newPaginationModel.page);
           setPageSize(newPaginationModel.pageSize);

@@ -16,12 +16,14 @@ import useCustomizationStore from 'store/customizationStore';
 import { ToastContainer } from 'react-toastify';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import Loader from 'ui-component/Loader';
+import useLoaderStore from 'store/loaderStore';
 
 // ==============================|| APP ||============================== //
 
 const App = () => {
   const { customization } = useCustomizationStore();
-
+  const { isLoading } = useLoaderStore();
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={themes(customization)}>
@@ -29,6 +31,7 @@ const App = () => {
           <ToastContainer autoClose="5000" theme={customization.mode} position="top-right" />
           <CssBaseline />
           <NavigationScroll>
+            {isLoading && <Loader />}
             <RouterProvider router={router} />
           </NavigationScroll>
         </LocalizationProvider>
