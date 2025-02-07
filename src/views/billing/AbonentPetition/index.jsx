@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { gridSpacing } from 'store/constant';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
+import { toast } from 'react-toastify';
 
 function AbonentPetition() {
   const { ariza_id } = useParams();
@@ -11,16 +12,12 @@ function AbonentPetition() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const ariza = (await api.get('/arizalar/' + ariza_id)).data.ariza;
-        const aktFile = (
-          await api.get('/billing/get-file/', {
-            params: {
-              file_id: ariza.aktInfo.fileId
-            }
-          })
-        ).data;
-        const url = URL.createObjectURL(aktFile);
-        setAktFileURL(url);
+        const ariza = (await api.get(`/arizalar/${ariza_id}`)).data.ariza;
+        const response = await api.get('/billing/get-file/', {
+          params: { file_id: ariza.aktInfo.fileId }
+        });
+
+        setAktFileURL(response.data.file); // Base64 ni iframe ga joylaymiz
       } catch (error) {
         console.log(error);
         toast.error('Xatolik kuzatildi');
@@ -31,8 +28,8 @@ function AbonentPetition() {
   return (
     <MainCard>
       <Grid container spacing={gridSpacing}>
-        <Grid item xs="12" sm="5" sx={{ height: 'calc(100vh - 160px)' }}>
-          <iframe src={aktFileURL} frameborder="0" width="100%" height="100%"></iframe>
+        <Grid item xs={12} sm={5} sx={{ height: 'calc(100vh - 160px)' }}>
+          <iframe src={aktFileURL} frameBorder="0" width="100%" height="100%"></iframe>
         </Grid>
       </Grid>
     </MainCard>
