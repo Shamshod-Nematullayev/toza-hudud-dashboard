@@ -5,26 +5,39 @@ import { gridSpacing } from 'store/constant';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
+import useLoaderStore from 'store/loaderStore';
+import useArizaStore from './useStore';
 
 function AbonentPetition() {
   const { ariza_id } = useParams();
+  const { setIsLoading } = useLoaderStore();
   const [aktFileURL, setAktFileURL] = useState(null);
+  const { setAriza } = useArizaStore();
   useEffect(() => {
     async function fetchData() {
+      setIsLoading(true);
       try {
         const ariza = (await api.get(`/arizalar/${ariza_id}`)).data.ariza;
-        const response = await api.get('/billing/get-file/', {
-          params: { file_id: ariza.aktInfo.fileId }
-        });
+        const base64File = (
+          await api.get('/billing/get-file/', {
+            params: { file_id: ariza.aktInfo.fileId }
+          })
+        ).data.file;
+        const davriyHarakatlarJadvali = await api.get('/billing/get-abonent-dxj-by-id/' + ariza.abonentId);
+        const abonentActs = await api.get('/billing/get-abonent-acts/' + ariza.abonentId);
 
-        setAktFileURL(response.data.file); // Base64 ni iframe ga joylaymiz
+        setAktFileURL(base64File); // Base64 ni iframe ga joylaymiz
+        setAriza(ariza); // Ariza data ni storega joylaymiz
       } catch (error) {
         console.log(error);
         toast.error('Xatolik kuzatildi');
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchData();
   }, []);
+
   return (
     <MainCard>
       <Grid container spacing={gridSpacing}>
