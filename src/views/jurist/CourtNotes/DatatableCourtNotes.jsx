@@ -15,7 +15,7 @@ function DatatableCourtNotes() {
     api
       .get('/targets', {
         params: {
-          page: page + 1,
+          page: page,
           limit: pageSize,
           status: 'yangi',
           ...filters
