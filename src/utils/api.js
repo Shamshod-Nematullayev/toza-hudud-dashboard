@@ -54,6 +54,7 @@ api.interceptors.response.use(
     }
     if (error.response && error.response.status >= 400) {
       toast.error(error.response.data.message);
+      console.log({error: error.response.data})
     }
     return Promise.reject(error);
   }

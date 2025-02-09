@@ -3,10 +3,11 @@ import MainCard from 'ui-component/cards/MainCard';
 import PrintSection from './PrintSection';
 import InputForm from './InputForm';
 import DHJTable from './DHJTable';
-import Recalculate from './Recalculate';
+import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import useStore from './useStore';
 import PasteImageDialog from './PasteImageDialog';
 import { useLocation } from 'react-router-dom';
+import { Grid } from '@mui/material';
 
 function CreateAbonentPetition() {
   const {
@@ -45,16 +46,22 @@ function CreateAbonentPetition() {
         muzlatiladi={muzlatiladi}
         recalculationPeriods={recalculationPeriods}
       />
-      <div style={{ display: 'flex' }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={3}>
         <InputForm />
-
+        </Grid>
+        <Grid item xs={12} sm={5}>
         <DHJTable abonentData={abonentData} title={`DHJ jadval: ${abonentData.accountNumber}`} />
+        </Grid>
+        <Grid item xs={12} sm={4}>
         {aktType === 'dvaynik' ? (
           <DHJTable abonentData={abonentData2} title={`Ikkilamchi: ${abonentData2.accountNumber}`} />
         ) : (
           <Recalculate />
         )}
-      </div>
+        </Grid>
+      </Grid>
+
       <PasteImageDialog />
     </MainCard>
   );

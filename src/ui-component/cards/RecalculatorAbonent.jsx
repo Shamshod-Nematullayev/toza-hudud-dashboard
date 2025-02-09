@@ -3,16 +3,16 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
-import { Icon, IconButton, List, ListItem, Typography } from '@mui/material';
-import hisoblandiJadval from './tarif.js';
+import { Grid, Icon, IconButton, List, ListItem, Typography } from '@mui/material';
+import hisoblandiJadval from '../../views/billing/CreateAbonentPetition.jsx/tarif.js';
 import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown';
-import useStore from './useStore.js';
+import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
 import { toast } from 'react-toastify';
 import Delete from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
 
 dayjs.locale('uz-latn');
-function Recalculate() {
+function RecalculatorAbonent() {
   const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable } = useStore();
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
@@ -113,36 +113,38 @@ function Recalculate() {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
   };
   return (
-    <div style={{ margin: '25px' }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            views={['year', 'month']}
-            minDate={dayjs('2019-01-01')}
-            maxDate={dayjs()}
-            label="dan"
-            onChange={(e) => handleDatePickerChange(e, 'from')}
-          />
-          <DatePicker
-            views={['year', 'month']}
-            minDate={dayjs('2019-01-01')}
-            maxDate={dayjs()}
-            label="gacha"
-            sx={{ margin: 'auto 10px' }}
-            defaultValue={dayjs()}
-            onChange={(e) => handleDatePickerChange(e, 'to')}
-          />
-        </LocalizationProvider>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', margin: '20px auto' }}>
+    <Grid container spacing={1} sx={{pt: 1}}>
+      <Grid item xs={6}>
+        <DatePicker
+          views={['year', 'month']}
+          minDate={dayjs('2019-01-01')}
+          maxDate={dayjs()}
+          label="dan"
+          onChange={(e) => handleDatePickerChange(e, 'from')}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <DatePicker
+          views={['year', 'month']}
+          minDate={dayjs('2019-01-01')}
+          maxDate={dayjs()}
+          label="gacha"
+          sx={{ margin: 'auto 10px' }}
+          defaultValue={dayjs()}
+          onChange={(e) => handleDatePickerChange(e, 'to')}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <Typography variant="h3" >
         <IconButton sx={{ margin: 'auto 10px' }} onClick={handleAddButtonClick}>
           <ArrowCircleDownIcon sx={{ color: 'green', fontSize: '30px' }} />
         </IconButton>
-        <Typography variant="h3" sx={{ minWidth: 300 }}>
           {currentTotal}
         </Typography>
+      </Grid>
+      <Grid item xs={6}>
         <Typography variant="h2">Jami: {totalSumm} so`m</Typography>
-      </div>
+      </Grid>
       <DataGrid
         columns={[
           { field: 'id', headerName: '№', width: 50 },
@@ -171,12 +173,13 @@ function Recalculate() {
           withoutQQSTotal: period.withoutQQSTotal,
           total: period.total
         }))}
+        hideFooter
         sx={{
-          maxHeight: 500
+          height: '300px'
         }}
       />
-    </div>
+    </Grid>
   );
 }
 
-export default Recalculate;
+export default RecalculatorAbonent;

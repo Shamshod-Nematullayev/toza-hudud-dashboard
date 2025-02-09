@@ -1,4 +1,4 @@
-import { Button, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Button, Grid, MenuItem, Select, TextField, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -196,9 +196,9 @@ function InputForm() {
   };
 
   return (
-    <div style={{ margin: '25px', width: '25%', borderRight: '1px solid #ccc' }}>
-      <div style={{ height: 200, display: 'flex' }}>
-        <div style={{ margin: 'auto 20px', width: 190, display: 'flex', flexDirection: 'column' }}>
+    <Grid container spacing={1} sx={{ borderRight: '1px solid #ccc' }}>
+      <Grid item xs={6}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           <Select value={aktType} onChange={(e) => setAktType(e.target.value)}>
             <MenuItem value="odam_soni">Odam soni</MenuItem>
             <MenuItem value="viza">Pasport viza</MenuItem>
@@ -238,7 +238,9 @@ function InputForm() {
             }}
           />
         </div>
-        <div style={{ margin: 'auto 20px', width: 190, display: 'flex', flexDirection: 'column' }}>
+      </Grid>
+      <Grid item xs={6}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           <AccountNumberInput label="Hisob raqam" value={licshet} setFunc={setLicshet} />
 
           <AccountNumberInput
@@ -248,28 +250,31 @@ function InputForm() {
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
           />
         </div>
-      </div>
-      <div style={{ margin: 'auto 20px' }}>
-        <div style={{ display: 'flex', flexDirection: 'row' }}>
-          <Button
-            variant="contained"
-            color={'primary'}
-            sx={{ margin: '10px 20px' }}
-            disabled={
-              !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
-            }
-            onClick={handleCreateAktButtonClick}
-          >
-            Yaratish
-          </Button>
-          <Button color="success" sx={{ margin: '10px 20px' }} variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
-            Rasm qo'shish
-          </Button>
-          <Button variant="outlined" color={'error'} sx={{ margin: '10px 0' }} onClick={handleClearButtonClick}>
-            Tozalash
-          </Button>
-        </div>
-      </div>
+      </Grid>
+      <Grid item xs={4}>
+        <Button
+          variant="contained"
+          color={'primary'}
+          disabled={
+            !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
+          }
+          onClick={handleCreateAktButtonClick}
+        >
+          Yaratish
+        </Button>
+      </Grid>
+      <Grid item xs={4}>
+        <Button variant="outlined" color={'error'}  onClick={handleClearButtonClick}>
+          Tozalash
+        </Button>
+      </Grid>
+      {aktType==="gps" && <Grid item xs={4}>
+        <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
+          Rasm +
+        </Button>{' '}
+      </Grid>}
+      
+
       {abonentData.accountNumber && (
         <div>
           <KeyValue kalit="Licshet" value={abonentData.accountNumber} />
@@ -286,7 +291,7 @@ function InputForm() {
           <KeyValue kalit="Yashovchi soni" value={abonentData2.house.inhabitantCnt} />
         </div>
       )}
-    </div>
+    </Grid>
   );
 }
 

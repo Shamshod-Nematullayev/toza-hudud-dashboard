@@ -43,9 +43,9 @@ function DHJTable({ abonentData, title }) {
     }
   }, [abonentData]);
   return (
-    <Stack sx={{ display: 'flex', flexDirection: 'column', margin: 'auto 10px', minHeight: 700, maxHeight: '70vh' }}>
+    <Stack sx={{ display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h3">{title}</Typography>
-      <div style={{ width: '100%', height: '60vh' }}>
+        <div style={{height: "calc(100vh - 300px) "}}>
         <DataGrid
           columns={[
             { field: 'id', headerName: 't/r', width: 20 },
@@ -61,10 +61,11 @@ function DHJTable({ abonentData, title }) {
           hideFooter
           rows={rowsDhjTable}
           sx={{
-            margin: '25px auto'
+            width: "100%",
+            height: "100%"
           }}
         />
-      </div>
+        </div>
     </Stack>
   );
 }
