@@ -8,7 +8,7 @@ import useStore from '../CreateAbonentPetition.jsx/useStore';
 import useLoaderStore from 'store/loaderStore';
 
 function AktChangerModal({ onClose }) {
-  const { ariza } = useArizaStore();
+  const { ariza, setAriza } = useArizaStore();
   const { setIsLoading } = useLoaderStore();
   const { recalculationPeriods } = useStore();
   const [allAmount, setAllAmount] = useState(0);
@@ -63,9 +63,10 @@ function AktChangerModal({ onClose }) {
       if (file) {
         formData.append('file', file);
       }
-      await api.put('/arizalar/change-akt/' + ariza._id, formData, {
+      const arizaData = (await api.put('/arizalar/change-akt/' + ariza._id, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      })).data;
+      setAriza(arizaData.ariza)
       onClose();
     } catch (error) {
       console.error(error);

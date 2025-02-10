@@ -37,7 +37,7 @@ const Customization = () => {
   const theme = useTheme();
   const { customization, setCustomization } = useCustomizationStore();
 
-  const [mode, setMode] = useState('light');
+  const [mode, setMode] = useState(customization.mode);
   useEffect(() => {
     setCustomization({ mode });
   }, [mode]);

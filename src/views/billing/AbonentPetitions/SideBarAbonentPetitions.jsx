@@ -153,6 +153,7 @@ function SideBar() {
               <MenuItem value="tasdiqlangan">Tasdiqlandi</MenuItem>
               <MenuItem value="bekor qilindi">Bekor qilindi</MenuItem>
               <MenuItem value="akt_kiritilgan">Akt kiritildi</MenuItem>
+              <MenuItem value="qayta_akt_kiritilgan">Qayta akt kiritildi</MenuItem>
             </Select>
           </FormControl>
         </Grid>
