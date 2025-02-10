@@ -12,13 +12,12 @@ import AktInfoCard from './AktInfoCard';
 import AktChangerModal from './AktChangerModal';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 
-
 function AbonentPetition() {
   const { ariza_id } = useParams();
   const { setIsLoading } = useLoaderStore();
   const { setAriza, aktFileURL, setAktFileURL, showModal, setShowModal } = useArizaStore();
   const [davriyHarakatlarJadvali, setDavriyHarakatlarJadvali] = useState([]);
-  const [currentTab, setCurrentTab] = useState("AktInfoCard");
+  const [currentTab, setCurrentTab] = useState('AktInfoCard');
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
@@ -55,12 +54,12 @@ function AbonentPetition() {
   }, []);
 
   const onCloseModal = async () => {
-    setShowModal(false)
-  }
+    setShowModal(false);
+  };
   return (
     <MainCard>
       <Grid container spacing={gridSpacing}>
-        {showModal && <AktChangerModal onClose={onCloseModal}/>}
+        {showModal && <AktChangerModal onClose={onCloseModal} />}
         <Grid item xs={12} sm={4}>
           <DHJTable rows={davriyHarakatlarJadvali} />
         </Grid>
@@ -69,12 +68,12 @@ function AbonentPetition() {
             <Tab value="AktInfoCard" label="Akt Ma'lumotlari" />
             <Tab value="CalculatorCard" label="Kalkulyator" />
           </Tabs>
-          {currentTab === "AktInfoCard" && <AktInfoCard />}
-          {currentTab === "CalculatorCard" && <Recalculate />} {/* Calculator */}
+          {currentTab === 'AktInfoCard' && <AktInfoCard />}
+          {currentTab === 'CalculatorCard' && <Recalculate />} {/* Calculator */}
         </Grid>
 
         <Grid item xs={12} sm={4} sx={{ height: 'calc(100vh - 160px)' }}>
-          <iframe src={aktFileURL} frameBorder="0" width="100%" height="100%" ></iframe>
+          <iframe src={aktFileURL} frameBorder="0" width="100%" height="100%"></iframe>
         </Grid>
       </Grid>
     </MainCard>

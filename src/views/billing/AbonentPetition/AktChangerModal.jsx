@@ -5,16 +5,18 @@ import FileInputDrop from 'ui-component/FileInputDrop';
 import api from 'utils/api';
 import { Calculate } from '@mui/icons-material';
 import useStore from '../CreateAbonentPetition.jsx/useStore';
+import useLoaderStore from 'store/loaderStore';
 
-function AktChangerModal({onClose}) {
+function AktChangerModal({ onClose }) {
   const { ariza } = useArizaStore();
+  const { setIsLoading } = useLoaderStore();
   const { recalculationPeriods } = useStore();
   const [allAmount, setAllAmount] = useState(0);
   const [inHabitant, setInhabitant] = useState('0');
   const [amountWithNDS, setAmountWithNDS] = useState(0);
   const [amountWithoutNDS, setAmountWithoutNDS] = useState(0);
   const [file, setFile] = useState(null);
-  const [description, setDescripton] = useState('')
+  const [description, setDescripton] = useState('');
   useEffect(() => {
     if (ariza.aktInfo) {
       setInhabitant(ariza.aktInfo.currentInhabitantCount);
@@ -29,46 +31,58 @@ function AktChangerModal({onClose}) {
     }
   }, [ariza]);
   useEffect(() => {
-    setAllAmount(Number(amountWithNDS) + Number(amountWithoutNDS))
+    setAllAmount(Number(amountWithNDS) + Number(amountWithoutNDS));
   }, [amountWithNDS, amountWithoutNDS]);
   const getDataFromCalc = () => {
     let amountWithNDS = 0;
     let amountWithoutNDS = 0;
-    recalculationPeriods.forEach(item => {
+    recalculationPeriods.forEach((item) => {
       amountWithNDS += item.withQQSTotal;
       amountWithoutNDS += item.withoutQQSTotal;
     });
-    setAmountWithNDS(amountWithNDS)
-    setAmountWithoutNDS(amountWithoutNDS)
-    console.log(recalculationPeriods)
-  }
+    setAmountWithNDS(amountWithNDS);
+    setAmountWithoutNDS(amountWithoutNDS);
+    console.log(recalculationPeriods);
+  };
+
+  const setFileFunction = (files) => {
+    console.log(files);
+    setFile(files[0]);
+  };
 
   const handleSubmit = async (e) => {
+    setIsLoading(true);
     e.preventDefault();
     try {
       const formData = new FormData();
       formData.append('inhabitantCount', inHabitant);
       formData.append('amountWithQQS', amountWithNDS);
       formData.append('amountWithoutQQS', amountWithoutNDS);
+      formData.append('allAmount', Number(amountWithNDS) + Number(amountWithoutNDS));
       formData.append('description', description);
       if (file) {
         formData.append('file', file);
       }
       await api.put('/arizalar/change-akt/' + ariza._id, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       onClose();
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
   return (
-    <Dialog open onKeyDown={e => {
+    <Dialog
+      open
+      onKeyDown={(e) => {
         if (e.key === 'Escape') {
           onClose();
         }
-    }}>
-      <DialogContent sx={{ p: 3, maxWidth: "300px" }}>
+      }}
+    >
+      <DialogContent sx={{ p: 3, maxWidth: '300px' }}>
         {/* Akt summasi, yashovchi soni, aktFayl, izoh */}
         <Grid container spacing={1}>
           <Grid item xs={6}>
@@ -78,37 +92,36 @@ function AktChangerModal({onClose}) {
             <TextField type="number" label="akt summa" disabled value={allAmount} />
           </Grid>
           <Grid item xs={6}>
-          <TextField type="number" label="qqs siz" value={amountWithoutNDS} onChange={(e) => setAmountWithoutNDS(e.target.value)} />
+            <TextField type="number" label="qqs siz" value={amountWithoutNDS} onChange={(e) => setAmountWithoutNDS(e.target.value)} />
           </Grid>
           <Grid item xs={6}>
-          <TextField type="number" label="qqs bilan" value={amountWithNDS} onChange={(e) => setAmountWithNDS(e.target.value)} />
+            <TextField type="number" label="qqs bilan" value={amountWithNDS} onChange={(e) => setAmountWithNDS(e.target.value)} />
           </Grid>
           <Grid item xs={12}>
             <Tooltip title="Agar hech qanday fayl yuklamasangiz joriy faylning o'zi yuklanadi">
-            <Card>
-            <FileInputDrop setFiles={setFile}/>
-            </Card>
+              <Card>
+                <FileInputDrop setFiles={setFileFunction} />
+              </Card>
             </Tooltip>
           </Grid>
           <Grid item xs={12}>
-          <TextField
-            label="Izoh yozing..."
-            variant="outlined"
-            fullWidth
-            multiline
-            minRows={2} // Boshlang‘ich balandlik
-            value={description}
-            onChange={(e) => setDescripton(e.target.value)
-            }
+            <TextField
+              label="Izoh yozing..."
+              variant="outlined"
+              fullWidth
+              multiline
+              minRows={2} // Boshlang‘ich balandlik
+              value={description}
+              onChange={(e) => setDescripton(e.target.value)}
             />
           </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Tooltip title="kalkulyatordagi qiymatlarni olish" >
-            <Button variant="contained" color="secondary" onClick={getDataFromCalc}>
-              <Calculate />
-            </Button>
+        <Tooltip title="kalkulyatordagi qiymatlarni olish">
+          <Button variant="contained" color="secondary" onClick={getDataFromCalc}>
+            <Calculate />
+          </Button>
         </Tooltip>
         <Button variant="contained" color="primary" onClick={onClose}>
           Bekor qilish

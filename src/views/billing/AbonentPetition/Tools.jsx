@@ -8,11 +8,11 @@ import useArizaStore from './useStore';
 import { toast } from 'react-toastify';
 
 function Tools() {
-  const {setIsLoading} = useLoaderStore()
-  const {ariza_id} = useParams()
-  const {setAriza, setAktFileURL, setShowModal} = useArizaStore()
+  const { setIsLoading } = useLoaderStore(); // noto‘g‘ri: setIsLoader
+  const { ariza_id } = useParams();
+  const { setAriza, setAktFileURL, setShowModal } = useArizaStore();
   const updateActDetails = async () => {
-    setIsLoading(true); 
+    setIsLoading(true);
     try {
       const newAriza = (await api.put('/arizalar/updateFromBilling/' + ariza_id)).data.ariza;
       const base64File = (
@@ -21,30 +21,30 @@ function Tools() {
         })
       ).data.file;
       setAktFileURL(base64File); // Base64 ni iframe ga joylaymiz
-      setAriza(newAriza)
+      setAriza(newAriza);
       toast.success('Yangilandi!');
     } catch (error) {
-      console.error(error)
+      console.error(error);
       toast.error('xatolik yuz berdi!');
-    }finally{
-      setIsLoading(false); 
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
   return (
     <div
       style={{
         height: 50
       }}
     >
-      <Tooltip title="tozamakon tizimidan yangilash" arrow placement="top"  >
-      <IconButton onClick={updateActDetails}>
-        <RestartAlt />
-      </IconButton>
+      <Tooltip title="tozamakon tizimidan yangilash" arrow placement="top">
+        <IconButton onClick={updateActDetails}>
+          <RestartAlt />
+        </IconButton>
       </Tooltip>
-      <Tooltip title="Qayta akt qilish" arrow placement="top"  >
-      <IconButton onClick={() => setShowModal(true)}>
-        <PublishedWithChanges  />
-      </IconButton>
+      <Tooltip title="Qayta akt qilish" arrow placement="top">
+        <IconButton onClick={() => setShowModal(true)}>
+          <PublishedWithChanges />
+        </IconButton>
       </Tooltip>
     </div>
   );

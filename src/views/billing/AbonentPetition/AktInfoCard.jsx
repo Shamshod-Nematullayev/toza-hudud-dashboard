@@ -19,8 +19,12 @@ export default function AktInfoCard() {
           value={`${ariza.aktInfo?.currentInhabitantCount || ariza.next_prescribed_cnt} kishi | ${ariza.aktSummasi} so'm`}
         />
         <InfoRow label="Akt izohi:" value={ariza.aktInfo?.description} />
-        {ariza.aktInfo?.warningConclusion && <InfoRow label="Ogohlantirish sababi:" value={`${ariza.aktInfo.warningConclusion} @${ariza.aktInfo.warnedByFullName}`} />}
-        {ariza.aktInfo?.cancellationConclusion && <InfoRow label="Bekor qilish sababi:" value={`${ariza.aktInfo.cancellationConclusion} @${ariza.aktInfo.canceledByFullName}`} />}
+        {ariza.aktInfo?.warningConclusion && (
+          <InfoRow label="Ogohlantirish sababi:" value={`${ariza.aktInfo.warningConclusion} @${ariza.aktInfo.warnedByFullName}`} />
+        )}
+        {ariza.aktInfo?.cancellationConclusion && (
+          <InfoRow label="Bekor qilish sababi:" value={`${ariza.aktInfo.cancellationConclusion} @${ariza.aktInfo.canceledByFullName}`} />
+        )}
         {ariza.sana && <InfoRow label="Ariza sanasi:" value={format(new Date(ariza.sana), 'yyyy-MM-dd HH:mm')} />}
         {ariza.akt_date && <InfoRow label="Akt sanasi:" value={format(new Date(ariza.akt_date), 'yyyy-MM-dd HH:mm')} />}
 
@@ -28,11 +32,9 @@ export default function AktInfoCard() {
           Akt tarixi:
         </Typography>
         {ariza.actHistory?.map((details, i) => {
-          return (
-            <InfoRow key={i} label={format(new Date(details.aktInfo?.createdAt), 'yyyy-MM-dd HH:mm')} value={`${details.aktInfo.amount} so'm`} />
-          );
+          return <InfoRow key={i} label={format(new Date(details?.createdAt), 'yyyy-MM-dd HH:mm')} value={`${details.amount} so'm`} />;
         })}
-        {ariza.aktInfo && <InfoRow label={format(new Date(ariza.aktInfo?.createdAt), 'yyyy-MM-dd HH:mm')} value={`${ariza.aktInfo.amount} so'm`} /> }
+        {ariza && <InfoRow label={format(new Date(ariza.aktInfo?.createdAt), 'yyyy-MM-dd HH:mm')} value={`${ariza.aktInfo.amount} so'm`} />}
       </CardContent>
     </Card>
   );
