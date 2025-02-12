@@ -1,6 +1,6 @@
 import { PublishedWithChanges, RestartAlt, Update } from '@mui/icons-material';
-import { Button, IconButton, Tooltip } from '@mui/material';
-import React from 'react';
+import { Button, IconButton, TextField, Tooltip } from '@mui/material';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import useLoaderStore from 'store/loaderStore';
 import api from 'utils/api';
@@ -11,6 +11,7 @@ function Tools() {
   const { setIsLoading } = useLoaderStore(); // noto‘g‘ri: setIsLoader
   const { ariza_id } = useParams();
   const { setAriza, setAktFileURL, setShowModal } = useArizaStore();
+  const [documentNumber, setDocumentNumber] = useState('');
   const updateActDetails = async () => {
     setIsLoading(true);
     try {
@@ -46,6 +47,12 @@ function Tools() {
           <PublishedWithChanges />
         </IconButton>
       </Tooltip>
+      <TextField
+        placeholder="Boshqa arizaga o`tish"
+        type="number"
+        value={documentNumber}
+        onChange={(e) => setDocumentNumber(e.target.value)}
+      />
     </div>
   );
 }

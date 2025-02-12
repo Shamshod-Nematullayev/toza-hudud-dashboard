@@ -11,6 +11,7 @@ import DHJTable from './DHJTable';
 import AktInfoCard from './AktInfoCard';
 import AktChangerModal from './AktChangerModal';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
+import PDFViewer from './PDFViewer';
 
 function AbonentPetition() {
   const { ariza_id } = useParams();
@@ -73,7 +74,8 @@ function AbonentPetition() {
         </Grid>
 
         <Grid item xs={12} sm={4} sx={{ height: 'calc(100vh - 160px)' }}>
-          <iframe src={aktFileURL} frameBorder="0" width="100%" height="100%"></iframe>
+          {/* <iframe src={aktFileURL} frameBorder="0" width="100%" height="100%"></iframe> */}
+          <PDFViewer base64String={aktFileURL}  />
         </Grid>
       </Grid>
     </MainCard>
