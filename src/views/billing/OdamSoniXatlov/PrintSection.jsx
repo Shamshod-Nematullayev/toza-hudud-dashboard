@@ -42,7 +42,7 @@ function PrintSection() {
   const printFunction = useReactToPrint({
     pageStyle: `@media print {
         @page {
-        margin: 15mm 15mm 15mm 25mm;
+        margin: 15mm 15mm 15mm 25mm !important;
         size: A4;
         }
        .page {
