@@ -264,16 +264,17 @@ function InputForm() {
         </Button>
       </Grid>
       <Grid item xs={4}>
-        <Button variant="outlined" color={'error'}  onClick={handleClearButtonClick}>
+        <Button variant="outlined" color={'error'} onClick={handleClearButtonClick}>
           Tozalash
         </Button>
       </Grid>
-      {aktType==="gps" && <Grid item xs={4}>
-        <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
-          Rasm +
-        </Button>{' '}
-      </Grid>}
-      
+      {aktType === 'gps' && (
+        <Grid item xs={4}>
+          <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
+            Rasm +
+          </Button>{' '}
+        </Grid>
+      )}
 
       {abonentData.accountNumber && (
         <div>

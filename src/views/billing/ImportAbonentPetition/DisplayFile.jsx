@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useStore from './useStore';
 import { Card, Paper } from '@mui/material';
 import api from 'utils/api';
+import PdfViewer from '../AbonentPetition/PDFViewer';
 const blobToBase64 = (blob) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -35,7 +36,7 @@ function DisplayFile() {
         // outline: 'none'
       }}
     >
-      <iframe width="100%" height="100%" src={currentFile?.url}></iframe>
+      <PdfViewer base64String={currentFile?.url} />
       {ariza.photos?.length && (
         <Paper
           sx={{

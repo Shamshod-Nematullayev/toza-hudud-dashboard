@@ -32,7 +32,11 @@ export default function AktInfoCard() {
           Akt tarixi:
         </Typography>
         {ariza.actHistory?.map((details, i) => {
-          return <InfoRow key={i} label={format(new Date(details?.createdAt), 'yyyy-MM-dd HH:mm')} value={`${details.amount} so'm`} />;
+          return (
+            details?.createdAt && (
+              <InfoRow key={i} label={format(new Date(details?.createdAt), 'yyyy-MM-dd HH:mm')} value={`${details.amount} so'm`} />
+            )
+          );
         })}
         {ariza.akt_date && <InfoRow label={format(new Date(ariza?.akt_date), 'yyyy-MM-dd HH:mm')} value={`${ariza.aktInfo.amount} so'm`} />}
       </CardContent>

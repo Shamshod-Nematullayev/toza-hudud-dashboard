@@ -162,7 +162,7 @@ function SidePanel() {
     <Grid container style={{ height: '100%' }} spacing={2}>
       {pdfFiles.length === 0 ? (
         <Grid item xs={12}>
-          <FileInputDrop setFunc={setPdfFiles} />
+          <FileInputDrop setFiles={setPdfFiles} />
         </Grid>
       ) : (
         <>

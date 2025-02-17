@@ -468,7 +468,7 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
   const printFunction = useReactToPrint({
     pageStyle: `@media print {
         @page {
-        margin: 15mm 15mm 15mm 25mm;
+        margin: 15mm 15mm 15mm 25mm !important;
         size: A4;
         }
         .page {
@@ -487,6 +487,11 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
         '& .MuiDialog-paper': {
           width: '80%', // kenglikni belgilash
           maxWidth: '800px' // maksimal kenglik
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setShowPrintSection(false);
         }
       }}
     >

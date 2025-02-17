@@ -24,11 +24,9 @@ function KeyValue({ kalit, value }) {
 }
 const counterDiffMonth = function (initialDate) {
   const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const initialYear = initialDate.getFullYear();
-  const initialMonth = initialDate.getMonth();
-  return (currentYear - initialYear) * 12 - (currentMonth + initialMonth);
+  const yearDiff = currentDate.getFullYear() - initialDate.getFullYear();
+  const monthDiff = currentDate.getMonth() - initialDate.getMonth();
+  return yearDiff * 12 + monthDiff;
 };
 
 function FindedDataTable() {
@@ -87,6 +85,7 @@ function FindedDataTable() {
       (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.current_prescribed_cnt - ariza.next_prescribed_cnt) *
       4624 *
       diffMonth;
+    console.log(diffMonth);
     if (ariza.document_type == 'dvaynik') {
       api.get('/billing/get-abonent-dxj-by-licshet/' + ariza.ikkilamchi_licshet).then(({ data }) => {
         let summ = 0;
@@ -134,12 +133,16 @@ function FindedDataTable() {
   };
   const handleClickRefreshButton = async (e) => {
     try {
-      const { data } = await api.get('/arizalar/get-ariza-by-document-number/' + arizaNumberInput);
+      const { data } = await api.get('/arizalar/', {
+        params: {
+          document_number: arizaNumberInput
+        }
+      });
       if (!data.ok) {
         toast.error(data.message);
         return;
       }
-      setAriza(data.ariza);
+      setAriza(data.data[0]);
       setIsUploading(false);
     } catch (err) {
       console.log(err);
