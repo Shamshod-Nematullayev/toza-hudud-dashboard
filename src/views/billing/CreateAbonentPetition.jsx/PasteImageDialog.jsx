@@ -4,8 +4,8 @@ import useStore from './useStore';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 
-const PasteImageDialog = () => {
-  const { pasteImageDialogOpen, setPasteImageDialogOpen, setImages, images } = useStore();
+const PasteImageDialog = ({ open = true, setOpen }) => {
+  const { setImages, images } = useStore();
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
@@ -26,7 +26,7 @@ const PasteImageDialog = () => {
   };
 
   const handleCloseDialog = () => {
-    setPasteImageDialogOpen(false);
+    setOpen(false);
     setImageFile(null);
     setPreview(null);
   };
@@ -49,7 +49,7 @@ const PasteImageDialog = () => {
   };
 
   return (
-    <Dialog open={pasteImageDialogOpen}>
+    <Dialog open={open}>
       <DialogContent>
         <div
           onPaste={handlePaste}

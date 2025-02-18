@@ -22,7 +22,9 @@ function CreateAbonentPetition() {
     setInitialState,
     ariza,
     muzlatiladi,
-    recalculationPeriods
+    recalculationPeriods,
+    pasteImageDialogOpen,
+    setPasteImageDialogOpen
   } = useStore();
   const location = useLocation();
   useEffect(() => {
@@ -48,21 +50,21 @@ function CreateAbonentPetition() {
       />
       <Grid container spacing={3}>
         <Grid item xs={12} sm={3}>
-        <InputForm />
+          <InputForm />
         </Grid>
         <Grid item xs={12} sm={5}>
-        <DHJTable abonentData={abonentData} title={`DHJ jadval: ${abonentData.accountNumber}`} />
+          <DHJTable abonentData={abonentData} title={`DHJ jadval: ${abonentData.accountNumber}`} />
         </Grid>
         <Grid item xs={12} sm={4}>
-        {aktType === 'dvaynik' ? (
-          <DHJTable abonentData={abonentData2} title={`Ikkilamchi: ${abonentData2.accountNumber}`} />
-        ) : (
-          <Recalculate />
-        )}
+          {aktType === 'dvaynik' ? (
+            <DHJTable abonentData={abonentData2} title={`Ikkilamchi: ${abonentData2.accountNumber}`} />
+          ) : (
+            <Recalculate />
+          )}
         </Grid>
       </Grid>
 
-      <PasteImageDialog />
+      <PasteImageDialog open={pasteImageDialogOpen} setOpen={setPasteImageDialogOpen} />
     </MainCard>
   );
 }

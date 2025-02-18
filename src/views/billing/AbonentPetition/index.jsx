@@ -12,11 +12,12 @@ import AktInfoCard from './AktInfoCard';
 import AktChangerModal from './AktChangerModal';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import PDFViewer from './PDFViewer';
+import PasteImageDialog from '../CreateAbonentPetition.jsx/PasteImageDialog';
 
 function AbonentPetition() {
   const { ariza_id } = useParams();
   const { setIsLoading } = useLoaderStore();
-  const { setAriza, aktFileURL, setAktFileURL, showModal, setShowModal } = useArizaStore();
+  const { setAriza, aktFileURL, setAktFileURL, showModal, setShowModal, pasteImgModalOpen, setPasteImgModalOpen } = useArizaStore();
   const [davriyHarakatlarJadvali, setDavriyHarakatlarJadvali] = useState([]);
   const [currentTab, setCurrentTab] = useState('AktInfoCard');
   useEffect(() => {
@@ -61,6 +62,7 @@ function AbonentPetition() {
     <MainCard>
       <Grid container spacing={gridSpacing}>
         {showModal && <AktChangerModal onClose={onCloseModal} />}
+        <PasteImageDialog open={pasteImgModalOpen} setOpen={setPasteImgModalOpen} />
         <Grid item xs={12} sm={4}>
           <DHJTable rows={davriyHarakatlarJadvali} />
         </Grid>
@@ -75,7 +77,7 @@ function AbonentPetition() {
 
         <Grid item xs={12} sm={4} sx={{ height: 'calc(100vh - 160px)' }}>
           {/* <iframe src={aktFileURL} frameBorder="0" width="100%" height="100%"></iframe> */}
-          <PDFViewer base64String={aktFileURL}  />
+          <PDFViewer base64String={aktFileURL} />
         </Grid>
       </Grid>
     </MainCard>

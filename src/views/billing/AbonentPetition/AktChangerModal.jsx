@@ -3,14 +3,15 @@ import React, { useEffect, useState } from 'react';
 import useArizaStore from './useStore';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import api from 'utils/api';
-import { Calculate } from '@mui/icons-material';
+import { Calculate, Image } from '@mui/icons-material';
 import useStore from '../CreateAbonentPetition.jsx/useStore';
+
 import useLoaderStore from 'store/loaderStore';
 
 function AktChangerModal({ onClose }) {
-  const { ariza, setAriza } = useArizaStore();
+  const { ariza, setAriza, setPasteImgModalOpen } = useArizaStore();
   const { setIsLoading } = useLoaderStore();
-  const { recalculationPeriods } = useStore();
+  const { recalculationPeriods, images } = useStore();
   const [allAmount, setAllAmount] = useState(0);
   const [inHabitant, setInhabitant] = useState('0');
   const [amountWithNDS, setAmountWithNDS] = useState(0);
@@ -49,7 +50,6 @@ function AktChangerModal({ onClose }) {
     console.log(files);
     setFile(files[0]);
   };
-
   const handleSubmit = async (e) => {
     setIsLoading(true);
     e.preventDefault();
@@ -60,13 +60,19 @@ function AktChangerModal({ onClose }) {
       formData.append('amountWithoutQQS', amountWithoutNDS);
       formData.append('allAmount', Number(amountWithNDS) + Number(amountWithoutNDS));
       formData.append('description', description);
+      formData.append(
+        'photos',
+        images.map((img) => img.document_id)
+      );
       if (file) {
         formData.append('file', file);
       }
-      const arizaData = (await api.put('/arizalar/change-akt/' + ariza._id, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })).data;
-      setAriza(arizaData.ariza)
+      const arizaData = (
+        await api.put('/arizalar/change-akt/' + ariza._id, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+      ).data;
+      setAriza(arizaData.ariza);
       onClose();
     } catch (error) {
       console.error(error);
@@ -124,9 +130,11 @@ function AktChangerModal({ onClose }) {
             <Calculate />
           </Button>
         </Tooltip>
-        <Button variant="contained" color="primary" onClick={onClose}>
-          Bekor qilish
-        </Button>
+        <Tooltip title="rasmlar biriktirish">
+          <Button variant="contained" color="secondary" onClick={() => setPasteImgModalOpen(true)}>
+            <Image />
+          </Button>
+        </Tooltip>
         <Button variant="contained" color="primary" onClick={handleSubmit}>
           Saqlash
         </Button>
