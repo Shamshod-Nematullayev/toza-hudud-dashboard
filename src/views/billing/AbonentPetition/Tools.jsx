@@ -31,6 +31,10 @@ function Tools() {
       setIsLoading(false);
     }
   };
+  const handleKeydown = (e) => {
+    if (e.key === 'Enter') {
+    }
+  };
   return (
     <div
       style={{
@@ -52,6 +56,7 @@ function Tools() {
         type="number"
         value={documentNumber}
         onChange={(e) => setDocumentNumber(e.target.value)}
+        onKeyDown={handleKeydown}
       />
     </div>
   );

@@ -12,7 +12,7 @@ import AktInfoCard from './AktInfoCard';
 import AktChangerModal from './AktChangerModal';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import PDFViewer from './PDFViewer';
-import PasteImageDialog from '../CreateAbonentPetition.jsx/PasteImageDialog';
+import PasteImageDialog from './PasteImageDialog';
 
 function AbonentPetition() {
   const { ariza_id } = useParams();
@@ -25,15 +25,18 @@ function AbonentPetition() {
       setIsLoading(true);
       try {
         const ariza = (await api.get(`/arizalar/${ariza_id}`)).data.ariza;
-        const base64File = (
-          await api.get('/billing/get-file/', {
-            params: { file_id: ariza.aktInfo.fileId }
-          })
-        ).data.file;
+        try {
+          const base64File = (
+            await api.get('/billing/get-file/', {
+              params: { file_id: ariza.aktInfo.fileId }
+            })
+          ).data.file;
+          setAktFileURL(base64File); // Base64 ni iframe ga joylaymiz
+        } catch (error) {
+          setAktFileURL('');
+        }
         const davriyHarakatlarJadvali = await api.get('/billing/get-abonent-dxj-by-id/' + ariza.abonentId);
-        const abonentActs = await api.get('/billing/get-abonent-acts/' + ariza.abonentId);
 
-        setAktFileURL(base64File); // Base64 ni iframe ga joylaymiz
         setAriza(ariza); // Ariza data ni storega joylaymiz
         setDavriyHarakatlarJadvali(
           davriyHarakatlarJadvali.data?.rows.map((row, i) => ({

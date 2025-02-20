@@ -1,4 +1,4 @@
-import { Button, Card, Dialog, DialogActions, DialogContent, Grid, IconButton, TextField, Tooltip } from '@mui/material';
+import { Badge, Button, Card, Dialog, DialogActions, DialogContent, Grid, TextField, Tooltip } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import useArizaStore from './useStore';
 import FileInputDrop from 'ui-component/FileInputDrop';
@@ -43,7 +43,6 @@ function AktChangerModal({ onClose }) {
     });
     setAmountWithNDS(amountWithNDS);
     setAmountWithoutNDS(amountWithoutNDS);
-    console.log(recalculationPeriods);
   };
 
   const setFileFunction = (files) => {
@@ -60,10 +59,7 @@ function AktChangerModal({ onClose }) {
       formData.append('amountWithoutQQS', amountWithoutNDS);
       formData.append('allAmount', Number(amountWithNDS) + Number(amountWithoutNDS));
       formData.append('description', description);
-      formData.append(
-        'photos',
-        images.map((img) => img.document_id)
-      );
+      formData.append('photos', ariza.tempPhotos);
       if (file) {
         formData.append('file', file);
       }
@@ -93,7 +89,7 @@ function AktChangerModal({ onClose }) {
         {/* Akt summasi, yashovchi soni, aktFayl, izoh */}
         <Grid container spacing={1}>
           <Grid item xs={6}>
-            <TextField type="number" label="yashovchi soni" value={inHabitant} onChange={(e) => setInhabitant(e.target.value)} />
+            <TextField type="number" label="yashovchi soni" value={inHabitant ?? ''} onChange={(e) => setInhabitant(e.target.value)} />
           </Grid>
           <Grid item xs={6}>
             <TextField type="number" label="akt summa" disabled value={allAmount} />
@@ -131,9 +127,11 @@ function AktChangerModal({ onClose }) {
           </Button>
         </Tooltip>
         <Tooltip title="rasmlar biriktirish">
-          <Button variant="contained" color="secondary" onClick={() => setPasteImgModalOpen(true)}>
-            <Image />
-          </Button>
+          <Badge badgeContent={ariza.tempPhotos.length} color="error">
+            <Button variant="contained" color="secondary" onClick={() => setPasteImgModalOpen(true)}>
+              <Image />
+            </Button>
+          </Badge>
         </Tooltip>
         <Button variant="contained" color="primary" onClick={handleSubmit}>
           Saqlash

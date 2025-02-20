@@ -60,7 +60,6 @@ function renderSwitch({
   const [olderPeriod, setOlderPeriod] = useState(new Date());
   const [photos, setPhotos] = useState([]);
   useEffect(() => {
-    console.log({ ariza });
     setPhotos([]);
     ariza.photos?.forEach((file_id) => {
       api.get(`/fetchTelegram/${file_id}`, { responseType: 'blob' }).then(async (blob) => {
