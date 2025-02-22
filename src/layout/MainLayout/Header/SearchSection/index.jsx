@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, forwardRef, useMemo } from 'react';
+import { useState, forwardRef, useMemo, useEffect } from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
@@ -23,7 +23,7 @@ import Transitions from 'ui-component/extended/Transitions';
 import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
 import menuItems from 'menu-items';
 import { Divider, ListItemButton, ListItemIcon, ListItemText, List } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
 
 const flattenMenu = (items) => {
@@ -68,7 +68,6 @@ const MobileSearch = ({ value, setValue, popupState }) => {
   const theme = useTheme();
   const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
   const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
-
   return (
     <Box style={{ position: 'relative' }}>
       <Box>
@@ -129,6 +128,10 @@ const SearchSection = () => {
   const [value, setValue] = useState('');
   const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
   const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
+  const location = useLocation();
+  useEffect(() => {
+    setValue('');
+  }, [location.pathname]);
   return (
     <>
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
@@ -199,7 +202,7 @@ const FindedList = ({ filteredItems }) => {
   return (
     <List
       sx={{
-        position: 'fixed',
+        position: 'absolute',
         top: '100%',
         bgcolor: 'background.paper',
         width: { md: 250, lg: 434, xs: 340 },
@@ -221,7 +224,7 @@ const FindedList = ({ filteredItems }) => {
         );
         return (
           <>
-            <ListItemButton key={item.id}>
+            <ListItemButton key={index}>
               <Link to={item.url} style={{ textDecoration: 'none', display: 'flex' }}>
                 <ListItemIcon>{itemIcon}</ListItemIcon>
                 <ListItemText primary={item.title} />
