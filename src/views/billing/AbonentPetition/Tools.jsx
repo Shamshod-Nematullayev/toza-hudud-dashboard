@@ -16,12 +16,14 @@ function Tools() {
     setIsLoading(true);
     try {
       const newAriza = (await api.put('/arizalar/updateFromBilling/' + ariza_id)).data.ariza;
-      const base64File = (
-        await api.get('/billing/get-file/', {
-          params: { file_id: newAriza.aktInfo.fileId }
-        })
-      ).data.file;
-      setAktFileURL(base64File); // Base64 ni iframe ga joylaymiz
+      try {
+        const base64File = (
+          await api.get('/billing/get-file/', {
+            params: { file_id: newAriza.aktInfo.fileId }
+          })
+        ).data.file;
+        setAktFileURL(base64File); // Base64 ni iframe ga joylaymiz
+      } catch (error) {}
       setAriza(newAriza);
       toast.success('Yangilandi!');
     } catch (error) {

@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
-import { useState, forwardRef } from 'react';
+import { useState, forwardRef, useMemo } from 'react';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -19,7 +21,19 @@ import Transitions from 'ui-component/extended/Transitions';
 
 // assets
 import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
+import menuItems from 'menu-items';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, List } from '@mui/material';
+import { Link } from 'react-router-dom';
+import useCustomizationStore from 'store/customizationStore';
 
+const flattenMenu = (items) => {
+  let result = [];
+  items.forEach((item) => {
+    if (item.title) result.push(item);
+    if (item.children) result = result.concat(flattenMenu(item.children));
+  });
+  return result;
+};
 const HeaderAvatar = forwardRef(({ children, ...others }, ref) => {
   const theme = useTheme();
 
@@ -52,47 +66,54 @@ HeaderAvatar.propTypes = {
 
 const MobileSearch = ({ value, setValue, popupState }) => {
   const theme = useTheme();
+  const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
+  const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
 
   return (
-    <OutlinedInput
-      id="input-search-header"
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      placeholder="Search"
-      startAdornment={
-        <InputAdornment position="start">
-          <IconSearch stroke={1.5} size="16px" />
-        </InputAdornment>
-      }
-      endAdornment={
-        <InputAdornment position="end">
-          <HeaderAvatar>
-            <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
-          </HeaderAvatar>
-          <Box sx={{ ml: 2 }}>
-            <Avatar
-              variant="rounded"
-              sx={{
-                ...theme.typography.commonAvatar,
-                ...theme.typography.mediumAvatar,
-                bgcolor: 'orange.light',
-                color: 'orange.dark',
-                '&:hover': {
-                  bgcolor: 'orange.dark',
-                  color: 'orange.light'
-                }
-              }}
-              {...bindToggle(popupState)}
-            >
-              <IconX stroke={1.5} size="20px" />
-            </Avatar>
-          </Box>
-        </InputAdornment>
-      }
-      aria-describedby="search-helper-text"
-      inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
-      sx={{ width: '100%', ml: 0.5, px: 2, bgcolor: 'background.paper' }}
-    />
+    <Box style={{ position: 'relative' }}>
+      <Box>
+        <OutlinedInput
+          id="input-search-header"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Search"
+          startAdornment={
+            <InputAdornment position="start">
+              <IconSearch stroke={1.5} size="16px" />
+            </InputAdornment>
+          }
+          endAdornment={
+            <InputAdornment position="end">
+              <HeaderAvatar>
+                <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
+              </HeaderAvatar>
+              <Box sx={{ ml: 2 }}>
+                <Avatar
+                  variant="rounded"
+                  sx={{
+                    ...theme.typography.commonAvatar,
+                    ...theme.typography.mediumAvatar,
+                    bgcolor: 'orange.light',
+                    color: 'orange.dark',
+                    '&:hover': {
+                      bgcolor: 'orange.dark',
+                      color: 'orange.light'
+                    }
+                  }}
+                  {...bindToggle(popupState)}
+                >
+                  <IconX stroke={1.5} size="20px" />
+                </Avatar>
+              </Box>
+            </InputAdornment>
+          }
+          aria-describedby="search-helper-text"
+          inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
+          sx={{ width: '100%', ml: 0.5, px: 2, bgcolor: 'background.paper' }}
+        />
+      </Box>
+      {value.length > 2 && <FindedList filteredItems={filteredItems} />}
+    </Box>
   );
 };
 
@@ -106,7 +127,8 @@ MobileSearch.propTypes = {
 
 const SearchSection = () => {
   const [value, setValue] = useState('');
-
+  const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
+  const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
   return (
     <>
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
@@ -143,7 +165,7 @@ const SearchSection = () => {
           )}
         </PopupState>
       </Box>
-      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+      <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'relative' }}>
         <OutlinedInput
           id="input-search-header"
           value={value}
@@ -154,19 +176,62 @@ const SearchSection = () => {
               <IconSearch stroke={1.5} size="16px" />
             </InputAdornment>
           }
-          endAdornment={
-            <InputAdornment position="end">
-              <HeaderAvatar>
-                <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
-              </HeaderAvatar>
-            </InputAdornment>
-          }
+          // endAdornment={
+          //   <InputAdornment position="end">
+          //     <HeaderAvatar>
+          //       <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
+          //     </HeaderAvatar>
+          //   </InputAdornment>
+          // }
           aria-describedby="search-helper-text"
           inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
           sx={{ width: { md: 250, lg: 434 }, ml: 2, px: 2 }}
         />
+        {value.length > 2 && <FindedList filteredItems={filteredItems} />}
       </Box>
     </>
+  );
+};
+
+const FindedList = ({ filteredItems }) => {
+  const { customization } = useCustomizationStore();
+
+  return (
+    <List
+      sx={{
+        position: 'fixed',
+        top: '100%',
+        bgcolor: 'background.paper',
+        width: { md: 250, lg: 434, xs: 340 },
+        ml: 2,
+        px: 2
+      }}
+    >
+      {filteredItems.map((item, index) => {
+        const Icon = item.icon;
+        const itemIcon = item?.icon ? (
+          <Icon stroke={1.5} size="1.3rem" />
+        ) : (
+          <FiberManualRecordIcon
+            sx={{
+              width: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6,
+              height: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6
+            }}
+          />
+        );
+        return (
+          <>
+            <ListItemButton key={item.id}>
+              <Link to={item.url} style={{ textDecoration: 'none', display: 'flex' }}>
+                <ListItemIcon>{itemIcon}</ListItemIcon>
+                <ListItemText primary={item.title} />
+              </Link>
+            </ListItemButton>
+            {index < filteredItems.length - 1 && <Divider />}
+          </>
+        );
+      })}
+    </List>
   );
 };
 
