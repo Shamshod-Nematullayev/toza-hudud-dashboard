@@ -41,7 +41,18 @@ table {
 `;
 
 function PrintAbonentsList() {
-  const { minSaldo, maxSaldo, setAbonents, selectedMahalla, setSelectedMahalla, mahallas, setMahallas, loading, setLoading } = useStore();
+  const {
+    minSaldo,
+    maxSaldo,
+    setAbonents,
+    selectedMahalla,
+    setSelectedMahalla,
+    mahallas,
+    setMahallas,
+    loading,
+    setLoading,
+    onlyNotIdentited
+  } = useStore();
   const { customization } = useCustomizationStore();
   const printContentRef = useRef(null);
 
@@ -66,7 +77,8 @@ function PrintAbonentsList() {
       .get('/billing/get-abonents-by-mfy-id/' + mfy_id, {
         params: {
           minSaldo,
-          maxSaldo
+          maxSaldo,
+          onlyNotIdentited
         }
       })
       .then(({ data }) => {

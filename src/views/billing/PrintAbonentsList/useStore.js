@@ -14,7 +14,9 @@ const useStore = create((set) => ({
   mainFunctionsDisabled: true,
   setMainFunctionsDisabled: (state) => set({ mainFunctionsDisabled: state }),
   loading: false,
-  setLoading: (state) => set({ loading: state })
+  setLoading: (state) => set({ loading: state }),
+  onlyNotIdentited: false,
+  setOnlyNotIdentited: (state) => set({ onlyNotIdentited: state })
 }));
 
 export default useStore;

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import useStore from './useStore';
-import { MenuItem, Select, TextField, Typography, Button } from '@mui/material';
+import { MenuItem, Select, TextField, Typography, Button, Checkbox, FormControlLabel } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import DoneAll from '@mui/icons-material/DoneOutlined';
@@ -24,7 +24,9 @@ function Header({ printContentRef, getAbonents }) {
     minSaldo,
     maxSaldo,
     setMinSaldo,
-    setMaxSaldo
+    setMaxSaldo,
+    onlyNotIdentited,
+    setOnlyNotIdentited
   } = useStore();
   useEffect(() => {
     if (abonents.length > 0) {
@@ -106,7 +108,8 @@ function Header({ printContentRef, getAbonents }) {
           params: {
             minSaldo: minSaldo,
             maxSaldo: maxSaldo,
-            mahalla_name: abonents[0].mahallaName
+            mahalla_name: abonents[0].mahallaName,
+            onlyNotIdentited
           }
         })
         .then(({ data }) => {
@@ -161,6 +164,10 @@ function Header({ printContentRef, getAbonents }) {
           display: 'flex'
         }}
       >
+        <FormControlLabel
+          control={<Checkbox checked={onlyNotIdentited} onChange={(e) => setOnlyNotIdentited(e.target.checked)} />}
+          label="Shaxsi tasdiqlanmagan"
+        />
         <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} sx={{ minWidth: 150 }}>
           <MenuItem disabled value="0">
             Mahalla
