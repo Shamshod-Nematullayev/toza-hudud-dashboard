@@ -55,6 +55,7 @@ const AuthLogin = ({ ...others }) => {
       const response = await api.post('/auth/login', { login: values.email, password: values.password });
       const data = response.data;
       if (data.ok) {
+        console.log(response.data);
         toast.success('Login successful');
         Cookies.set('accessToken', data.accessToken);
         Cookies.set('refreshToken', data.refreshToken);
