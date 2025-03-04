@@ -35,6 +35,7 @@ import User1 from 'assets/images/users/user-round.svg';
 // assets
 import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
+import Cookies from 'js-cookie';
 
 // ==============================|| PROFILE MENU ||============================== //
 
@@ -53,7 +54,9 @@ const ProfileSection = () => {
    * */
   const anchorRef = useRef(null);
   const handleLogout = async () => {
-    console.log('Logout');
+    Cookies.remove('accessToken');
+    Cookies.set('refreshToken');
+    navigate('/startpage/pages/login/login3/');
   };
 
   const handleClose = (event) => {

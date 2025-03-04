@@ -48,10 +48,8 @@ const AuthLogin = ({ ...others }) => {
   const googleHandler = async () => {
     console.error('Login');
   };
-  const handleLogin = async (values, { setSubmitting, setErrors }) => {
+  const handleLogin = async (values) => {
     try {
-      console.log(values);
-      // const response = await fakeLoginApi(values.email, values.password)
       const response = await api.post('/auth/login', { login: values.email, password: values.password });
       const data = response.data;
       if (data.ok) {
@@ -67,17 +65,6 @@ const AuthLogin = ({ ...others }) => {
       console.error(error);
       toast.error('An error occured');
     }
-  };
-  const fakeLoginApi = (email, password) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (email === 'test@example.com' && password === 'password') {
-          resolve({ success: true, token: 'fakeToken123' });
-        } else {
-          resolve({ success: false, message: "login yoki parol noto'g'ri" });
-        }
-      }, 3000);
-    });
   };
 
   const [showPassword, setShowPassword] = useState(false);
