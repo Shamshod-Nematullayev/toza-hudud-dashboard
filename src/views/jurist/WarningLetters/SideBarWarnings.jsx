@@ -3,18 +3,29 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import useStore from './useStore';
+import useWarningLettersStore from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 
 function SideBarWarnings() {
-  const { filter, setFilter } = useStore();
+  const { setFilters, setFromDate, setToDate } = useWarningLettersStore();
   const [actStatus, setActStatus] = useState(null);
   const [accountNumber, setAccountNumber] = useState('');
   const [caseNumber, setCaseNumber] = useState('');
   const [warningFromDate, setWarningFromDate] = useState(null);
   const [warningToDate, setWarningToDate] = useState(null);
-  const [claimAmountFrom, setClaimAmountFrom] = useState(null);
-  const [claimAmountTo, setClaimAmountTo] = useState(null);
+  const [claimAmountFrom, setClaimAmountFrom] = useState('');
+  const [claimAmountTo, setClaimAmountTo] = useState('');
+
+  const handleDatePickerChange = (e, name) => {
+    switch (name) {
+      case 'from':
+        setFromDate(new Date(dayjs(e)));
+        break;
+      case 'to':
+        setToDate(new Date(dayjs(e)));
+        break;
+    }
+  };
 
   const handleClickClearButton = () => {
     setActStatus(null);
@@ -24,10 +35,10 @@ function SideBarWarnings() {
     setClaimAmountTo(null);
     setAccountNumber('');
     setCaseNumber('');
-    setFilter({});
+    setFilters({});
   };
   const handleClickSeachButton = () => {
-    setFilter({
+    setFilters({
       status: actStatus,
       account_number: accountNumber,
       warning_date_from: warningFromDate ? warningFromDate.$d : null,
@@ -47,7 +58,30 @@ function SideBarWarnings() {
         <Grid item xs={12}>
           <Typography variant="h5">Ogohlantirilgan vaqti</Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
+          <DatePicker
+            views={['year', 'month']}
+            minDate={dayjs('2019-01-01')}
+            maxDate={dayjs()}
+            label="dan"
+            name="from"
+            defaultValue={dayjs()}
+            onChange={(e) => handleDatePickerChange(e, 'from')}
+          />{' '}
+        </Grid>
+        <Grid item xs={6}>
+          <DatePicker
+            views={['year', 'month']}
+            minDate={dayjs('2019-01-01')}
+            maxDate={dayjs()}
+            label="gacha"
+            name="to"
+            sx={{ margin: 'auto 10px' }}
+            defaultValue={dayjs()}
+            onChange={(e) => handleDatePickerChange(e, 'to')}
+          />{' '}
+        </Grid>
+        {/* <Grid item xs={12}>
           <DatePicker
             views={['year', 'month', 'day']}
             minDate={dayjs('2023-01-01')}
@@ -68,7 +102,7 @@ function SideBarWarnings() {
             onChange={(e) => setWarningToDate(dayjs(e))}
             sx={{ width: '100%' }}
           />
-        </Grid>
+        </Grid> */}
         <Grid item xs={12}>
           <Typography variant="h5">Da'vo summasi</Typography>
         </Grid>

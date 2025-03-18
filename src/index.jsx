@@ -27,12 +27,14 @@ import '@fontsource/poppins/700.css';
 // style + assets
 import 'assets/scss/style.scss';
 import reportWebVitals from 'reportWebVitals';
+import { socket } from 'utils/socket';
 
 const container = document.getElementById('root');
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 
 // ==============================|| REACT DOM RENDER  ||============================== //
 
+socket.on('connection', (data) => console.log(data));
 root.render(<App />);
 
 // If you want your app to work offline and load faster, you can change

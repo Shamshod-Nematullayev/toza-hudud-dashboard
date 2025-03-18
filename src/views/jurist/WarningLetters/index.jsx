@@ -9,13 +9,13 @@ function WarningLetters() {
   return (
     <MainCard>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <ToolBar />
-        </Grid>
-        <Grid item xs={12} sm="10">
+        </Grid> */}
+        <Grid item xs={12} sm={9}>
           <DataTableWarnings />
         </Grid>
-        <Grid xs={12} sm="2">
+        <Grid item xs={12} sm={3}>
           <SideBarWarnings />
         </Grid>
       </Grid>

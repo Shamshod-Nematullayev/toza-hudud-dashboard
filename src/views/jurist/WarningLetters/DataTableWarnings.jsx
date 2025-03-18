@@ -12,7 +12,7 @@ import useWarningLettersStore from './useStore';
 
 function DataTableWarnings() {
   const { customization } = useCustomizationStore();
-  const { fromDate, toDate } = useWarningLettersStore();
+  const { fromDate, toDate, filters, setFilters } = useWarningLettersStore();
   const [rows, setRows] = useState((prevState = [], props) => {
     return prevState;
   });
@@ -24,7 +24,6 @@ function DataTableWarnings() {
   const [activRow, setActivRow] = useState({});
   const [showBackdrop, setShowBackrop] = useState(true);
   const [amount, setAmount] = useState();
-  const [filters, setFilters] = useState({});
 
   const handleEdit = async (row) => {
     setActivRow(row);
@@ -70,7 +69,7 @@ function DataTableWarnings() {
       )
     }
   ];
-  const fetchData = async (page, pageSize, sortModel) => {
+  const fetchData = async (page, pageSize, sortModel, filters) => {
     setShowBackrop(true);
     try {
       const respond = await api.get(`/sudAkts/hybrid-mails`, {
@@ -80,7 +79,8 @@ function DataTableWarnings() {
           sortField: sortModel.field,
           sortDirection: sortModel.sort,
           fromDate,
-          toDate
+          toDate,
+          ...filters
         }
       });
       let data = respond.data.rows.map((data, i) => {
@@ -109,7 +109,7 @@ function DataTableWarnings() {
   };
   useEffect(() => {
     fetchData(page, pageSize, sortModel, filters);
-  }, [page, pageSize, fromDate, toDate]);
+  }, [page, pageSize, filters]);
 
   const handleSelect = (selectionModel) => {
     const selectedIds = selectionModel

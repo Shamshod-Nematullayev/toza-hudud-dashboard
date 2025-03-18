@@ -16,7 +16,9 @@ const useWarningLettersStore = create((set) => ({
   toDate: new Date(),
   setToDate: (toDate) => set({ toDate }),
   status: null,
-  setStatus: (status) => set({ status })
+  setStatus: (status) => set({ status }),
+  filters: {},
+  setFilters: (filters) => set({ filters })
 }));
 
 export default useWarningLettersStore;

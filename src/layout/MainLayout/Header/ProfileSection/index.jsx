@@ -30,10 +30,9 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
-import User1 from 'assets/images/users/user-round.svg';
 
 // assets
-import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
+import { IconLogout, IconSettings } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
 import Cookies from 'js-cookie';
 
@@ -44,9 +43,6 @@ const ProfileSection = () => {
   const { customization } = useCustomizationStore();
   const navigate = useNavigate();
 
-  const [sdm, setSdm] = useState(true);
-  const [value, setValue] = useState('');
-  const [notification, setNotification] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   /**
@@ -56,7 +52,7 @@ const ProfileSection = () => {
   const handleLogout = async () => {
     Cookies.remove('accessToken');
     Cookies.set('refreshToken');
-    navigate('/startpage/pages/login/login3/');
+    navigate('/pages/login/login3/');
   };
 
   const handleClose = (event) => {
@@ -111,7 +107,7 @@ const ProfileSection = () => {
         }}
         icon={
           <Avatar
-            src={User1}
+            src={localStorage.getItem('avatar')}
             sx={{
               ...theme.typography.mediumAvatar,
               margin: '8px 0 8px 8px !important',
@@ -157,7 +153,7 @@ const ProfileSection = () => {
                   <Box sx={{ p: 2, pb: 0 }}>
                     <Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography variant="h4">Assalomu alaykum</Typography>
+                        <Typography variant="h4">Assalomu alaykum, {localStorage.getItem('fullName')}</Typography>
                         <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
                           {}
                         </Typography>

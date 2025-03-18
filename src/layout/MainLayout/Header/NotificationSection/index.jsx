@@ -29,24 +29,22 @@ import NotificationList from './NotificationList';
 
 // assets
 import { IconBell } from '@tabler/icons-react';
+import { Badge } from '@mui/material';
+import useNotificationStore from './useStore';
 
 // notification status options
 const status = [
   {
     value: 'all',
-    label: 'All Notification'
+    label: 'Hamma bildirishnomalar'
   },
   {
     value: 'new',
-    label: 'New'
+    label: 'Yangi'
   },
   {
-    value: 'unread',
-    label: 'Unread'
-  },
-  {
-    value: 'other',
-    label: 'Other'
+    value: 'read',
+    label: "O'qilganlar"
   }
 ];
 
@@ -54,10 +52,10 @@ const status = [
 
 const NotificationSection = () => {
   const theme = useTheme();
+  const { notifications, getNotifications, filterStatus, setFilterStatus } = useNotificationStore();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
 
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
   /**
    * anchorRef is used on different componets and specifying one type leads to other components throwing an error
    * */
@@ -83,8 +81,12 @@ const NotificationSection = () => {
   }, [open]);
 
   const handleChange = (event) => {
-    if (event?.target.value) setValue(event?.target.value);
+    if (event?.target.value) setFilterStatus(event?.target.value);
   };
+
+  useEffect(() => {
+    getNotifications();
+  }, []);
 
   return (
     <>
@@ -98,27 +100,29 @@ const NotificationSection = () => {
         }}
       >
         <ButtonBase sx={{ borderRadius: '12px' }}>
-          <Avatar
-            variant="rounded"
-            sx={{
-              ...theme.typography.commonAvatar,
-              ...theme.typography.mediumAvatar,
-              transition: 'all .2s ease-in-out',
-              background: theme.palette.secondary.light,
-              color: theme.palette.secondary.dark,
-              '&[aria-controls="menu-list-grow"],&:hover': {
-                background: theme.palette.secondary.dark,
-                color: theme.palette.secondary.light
-              }
-            }}
-            ref={anchorRef}
-            aria-controls={open ? 'menu-list-grow' : undefined}
-            aria-haspopup="true"
-            onClick={handleToggle}
-            color="inherit"
-          >
-            <IconBell stroke={1.5} size="1.3rem" />
-          </Avatar>
+          <Badge badgeContent={notifications.filter((n) => n.status === 'new').length} variant="dot" color="primary" max={10}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                ...theme.typography.commonAvatar,
+                ...theme.typography.mediumAvatar,
+                transition: 'all .2s ease-in-out',
+                background: theme.palette.secondary.light,
+                color: theme.palette.secondary.dark,
+                '&[aria-controls="menu-list-grow"],&:hover': {
+                  background: theme.palette.secondary.dark,
+                  color: theme.palette.secondary.light
+                }
+              }}
+              ref={anchorRef}
+              aria-controls={open ? 'menu-list-grow' : undefined}
+              aria-haspopup="true"
+              onClick={handleToggle}
+              color="inherit"
+            >
+              <IconBell stroke={1.5} size="1.3rem" />
+            </Avatar>
+          </Badge>
         </ButtonBase>
       </Box>
       <Popper
@@ -149,21 +153,16 @@ const NotificationSection = () => {
                       <Grid container alignItems="center" justifyContent="space-between" sx={{ pt: 2, px: 2 }}>
                         <Grid item>
                           <Stack direction="row" spacing={2}>
-                            <Typography variant="subtitle1">All Notification</Typography>
+                            <Typography variant="subtitle1">O'qilmagan</Typography>
                             <Chip
                               size="small"
-                              label="01"
+                              label={'0' + notifications.filter((n) => n.status === 'new').length}
                               sx={{
                                 color: theme.palette.background.default,
                                 bgcolor: theme.palette.warning.dark
                               }}
                             />
                           </Stack>
-                        </Grid>
-                        <Grid item>
-                          <Typography component={Link} to="#" variant="subtitle2" color="primary">
-                            Mark as all read
-                          </Typography>
                         </Grid>
                       </Grid>
                     </Grid>
@@ -176,7 +175,7 @@ const NotificationSection = () => {
                                 id="outlined-select-currency-native"
                                 select
                                 fullWidth
-                                value={value}
+                                value={filterStatus}
                                 onChange={handleChange}
                                 SelectProps={{
                                   native: true
