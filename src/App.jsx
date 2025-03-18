@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 
 import { ThemeProvider } from '@mui/material/styles';
@@ -21,12 +21,18 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Loader from 'ui-component/Loader';
 import useLoaderStore from 'store/loaderStore';
+import { socket } from 'utils/socket';
 
 // ==============================|| APP ||============================== //
 
 const App = () => {
   const { customization } = useCustomizationStore();
   const { isLoading } = useLoaderStore();
+  useEffect(() => {
+    // socket.on('connect', () => {
+    console.log('Serverga ulandi:', socket.id);
+    // });
+  }, []);
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={themes(customization)}>

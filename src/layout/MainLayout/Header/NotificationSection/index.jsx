@@ -31,6 +31,7 @@ import NotificationList from './NotificationList';
 import { IconBell } from '@tabler/icons-react';
 import { Badge } from '@mui/material';
 import useNotificationStore from './useStore';
+import { socket } from 'utils/socket';
 
 // notification status options
 const status = [
@@ -52,7 +53,7 @@ const status = [
 
 const NotificationSection = () => {
   const theme = useTheme();
-  const { notifications, getNotifications, filterStatus, setFilterStatus } = useNotificationStore();
+  const { notifications, getNotifications, filterStatus, setFilterStatus, addNotification } = useNotificationStore();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
 
   const [open, setOpen] = useState(false);
@@ -86,6 +87,10 @@ const NotificationSection = () => {
 
   useEffect(() => {
     getNotifications();
+    // connect to notifications
+    socket.on('notification', (notification) => {
+      addNotification(notification);
+    });
   }, []);
 
   return (

@@ -1,10 +1,10 @@
+import Cookies from 'js-cookie';
 import { io } from 'socket.io-client';
-import { SERVER_URL } from 'store/constant';
+import { SERVER_DOMAIN } from 'store/constant';
 
-export const socket = io({
-  url: SERVER_URL,
+export const socket = io(SERVER_DOMAIN, {
   withCredentials: true,
-  upgrade: false,
-  reconnectionAttempts: Infinity,
-  reconnectionDelay: 1000
+  query: {
+    accessToken: Cookies.get('accessToken')
+  }
 });

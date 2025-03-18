@@ -1,6 +1,7 @@
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { create } from 'zustand';
+import audio from '../../../../assets/audios/notification.wav';
 
 const useNotificationStore = create((set) => ({
   notifications: [],
@@ -15,6 +16,10 @@ const useNotificationStore = create((set) => ({
     } catch (error) {
       toast.error(error.message);
     }
+  },
+  addNotification: (notification) => {
+    set((state) => ({ notifications: [...state.notifications, notification] }));
+    new Audio(audio).play();
   },
   markNotificationAsRead: async (id) => {
     try {
