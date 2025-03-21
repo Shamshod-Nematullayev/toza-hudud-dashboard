@@ -3,9 +3,10 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
-import { Grid, Icon, IconButton, List, ListItem, Typography } from '@mui/material';
+import { Grid, IconButton, Tooltip, Typography } from '@mui/material';
 import hisoblandiJadval from '../../views/billing/CreateAbonentPetition.jsx/tarif.js';
-import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
 import { toast } from 'react-toastify';
 import Delete from '@mui/icons-material/Delete';
@@ -84,7 +85,7 @@ function RecalculatorAbonent() {
     }
   };
 
-  const handleAddButtonClick = () => {
+  const handleRemoveButtonClick = () => {
     if (currentTotal === 0) {
       return toast.info('Qiymat kiriting');
     }
@@ -109,11 +110,36 @@ function RecalculatorAbonent() {
       }
     ]);
   };
+  const handleAddButtonClick = () => {
+    if (currentTotal === 0) {
+      return toast.info('Qiymat kiriting');
+    }
+    if (aktType == 'gps')
+      return setRecalculationPeriods([
+        {
+          withQQSTotal: withQQS * -1,
+          withoutQQSTotal: (currentTotal - withQQS) * -1,
+          total: currentTotal * -1,
+          startDate,
+          endDate
+        }
+      ]);
+    setRecalculationPeriods([
+      ...recalculationPeriods,
+      {
+        withQQSTotal: withQQS * -1,
+        withoutQQSTotal: (currentTotal - withQQS) * -1,
+        total: currentTotal * -1,
+        startDate,
+        endDate
+      }
+    ]);
+  };
   const deleteItem = function (index) {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
   };
   return (
-    <Grid container spacing={1} sx={{pt: 1}}>
+    <Grid container spacing={1} sx={{ pt: 1 }}>
       <Grid item xs={6}>
         <DatePicker
           views={['year', 'month']}
@@ -135,10 +161,17 @@ function RecalculatorAbonent() {
         />
       </Grid>
       <Grid item xs={6}>
-        <Typography variant="h3" >
-        <IconButton sx={{ margin: 'auto 10px' }} onClick={handleAddButtonClick}>
-          <ArrowCircleDownIcon sx={{ color: 'green', fontSize: '30px' }} />
-        </IconButton>
+        <Typography variant="h3">
+          <Tooltip title="Debitor">
+            <IconButton sx={{ margin: 'auto 10px' }} onClick={handleAddButtonClick}>
+              <AddIcon sx={{ color: 'red', fontSize: '30px' }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Kreditor">
+            <IconButton sx={{ margin: 'auto 10px' }} onClick={handleRemoveButtonClick}>
+              <RemoveIcon sx={{ color: 'green', fontSize: '30px' }} />
+            </IconButton>
+          </Tooltip>
           {currentTotal}
         </Typography>
       </Grid>

@@ -35,9 +35,15 @@ function InputForm() {
     if (muzlatiladi) {
       setYashovchiSoniInput(0);
     } else {
-      setYashovchiSoniInput(abonentData.house?.inhabitantCnt);
+      setYashovchiSoniInput(abonentData.house?.inhabitantCnt - 1);
     }
   }, [muzlatiladi]);
+
+  useEffect(() => {
+    if (aktType === 'death') {
+      setYashovchiSoniInput(abonentData?.house?.inhabitantCnt - 1);
+    }
+  }, [aktType, abonentData]);
 
   useEffect(() => {
     let total = 0;
@@ -108,40 +114,6 @@ function InputForm() {
       // Yakuniy matnni yaratish
       return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
     }
-    function testApi() {
-      return new Promise((resolve) =>
-        resolve({
-          data: {
-            ok: true,
-            ariza: {
-              _id: {
-                $oid: '6764fbb0759b9bd6e4e47a21'
-              },
-              asosiy_licshet: '105120800305',
-              sana: {
-                $date: '2024-12-20T05:08:00.478Z'
-              },
-              document_type: 'gps',
-              document_number: 813,
-              licshet: '105120800305',
-              comment: "Davr: 06.2023 - 11.2024, Summa: 283636\n\nUmumiy yig'indisi: 283636",
-              aktSummasi: 283636,
-              aktSummCounts: {
-                total: 283636,
-                totalWithQQS: 147972,
-                withoutQQSTotal: 135664
-              },
-              current_prescribed_cnt: 4,
-              next_prescribed_cnt: 0,
-              status: 'yangi',
-              is_canceled: false,
-              photos: ['BQACAgIAAx0EXWkC5gACDMlnZPt5J7npWEdXp5s3hV6Jn7TCkQACEF0AAi7WKEu0RK4SeIpwuDYE'],
-              __v: 0
-            }
-          }
-        })
-      );
-    }
     api
       .post('/arizalar/create', {
         licshet,
@@ -210,6 +182,7 @@ function InputForm() {
             label="Yashovchi soni"
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' || aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
             value={yashovchiSoniInput}
+            disabled={aktType === 'death'}
             onChange={(e) => {
               if (!isNaN(e.target.value)) {
                 setYashovchiSoniInput(e.target.value);
