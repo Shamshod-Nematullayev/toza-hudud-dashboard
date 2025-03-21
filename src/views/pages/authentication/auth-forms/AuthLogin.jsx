@@ -36,8 +36,15 @@ import Cookies from 'js-cookie';
 
 const AuthLogin = ({ ...others }) => {
   const theme = useTheme();
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
+  const uint8ArrayToBase64 = (uint8Array) => {
+    let binary = '';
+    uint8Array.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    return btoa(binary); // Base64 ga o‘girish
+  };
   const handleLogin = async (values) => {
     try {
       const response = await api.post('/auth/login', { login: values.email, password: values.password });
@@ -47,9 +54,8 @@ const AuthLogin = ({ ...others }) => {
         Cookies.set('accessToken', data.accessToken);
         Cookies.set('refreshToken', data.refreshToken);
         const uint8Array = new Uint8Array(data.photo.data);
-        const blob = new Blob([uint8Array, { type: 'image/jpeg' }]);
-        const url = URL.createObjectURL(blob);
-        localStorage.setItem('avatar', url);
+        const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
+        localStorage.setItem('avatar', base64Image);
         localStorage.setItem('fullName', data.fullName);
         navigate('/');
       } else {
