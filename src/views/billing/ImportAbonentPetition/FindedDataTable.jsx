@@ -9,6 +9,7 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import Visibility from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
+import useLoaderStore from 'store/loaderStore';
 
 function KeyValue({ kalit, value }) {
   return (
@@ -38,6 +39,7 @@ function FindedDataTable() {
   const [aktSumm, setAktSumm] = useState('');
   const [rowAfterAkt, setRowAfterAkt] = useState();
   const [isUploading, setIsUploading] = useState(false);
+  const { setIsLoading } = useLoaderStore();
 
   const theme = useTheme();
 
@@ -85,7 +87,6 @@ function FindedDataTable() {
       (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.current_prescribed_cnt - ariza.next_prescribed_cnt) *
       4624 *
       diffMonth;
-    console.log(diffMonth);
     if (ariza.document_type == 'dvaynik') {
       api.get('/billing/get-abonent-dxj-by-licshet/' + ariza.ikkilamchi_licshet).then(({ data }) => {
         let summ = 0;
@@ -152,6 +153,7 @@ function FindedDataTable() {
   const handlePrimaryButtonClick = async (e) => {
     try {
       e.preventDefault();
+      setIsLoading(true);
       setIsUploading(true);
       if (!currentFile?.url) {
         toast.error('Fayl tanlanmadi');
@@ -175,17 +177,18 @@ function FindedDataTable() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (!data.ok) {
-        setIsUploading(false);
         toast.error(data.message);
         return;
       }
       removePdfFile(currentFile.file.name);
       setCurrentFile({});
       setAriza({});
-      setIsUploading(false);
       toast.success(data.message);
     } catch (err) {
-      console.error(err);
+      console.error(err.message);
+    } finally {
+      setIsLoading(false);
+      setIsUploading(false);
     }
   };
   const handleDeleteButtonClick = async () => {

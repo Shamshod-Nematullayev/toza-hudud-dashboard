@@ -3,6 +3,8 @@ import { DataGrid, GridDeleteIcon } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import api from 'utils/api';
 import useStore from './useStore';
+import { toast } from 'react-toastify';
+import useLoaderStore from 'store/loaderStore';
 
 function DatatableCourtNotes() {
   const { filters, setSelectedRows } = useStore();
@@ -10,6 +12,7 @@ function DatatableCourtNotes() {
   const [page, setPage] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
   const [pageSize, setPageSize] = useState(30);
+  const { setIsLoading } = useLoaderStore();
   // ===========EFFECTS=============
   useEffect(() => {
     api
@@ -26,8 +29,28 @@ function DatatableCourtNotes() {
         setTotalRows(data.meta.total);
       });
   }, [page, pageSize, filters]);
-  const handleClickDeleteButton = () => {
-    // Your delete logic here
+  const handleClickDeleteButton = async (row) => {
+    if (confirm(`Haqiqatdan ham ${row.fullName} (${row.accountNumber})ni bekor qilmoqchimisiz?`)) {
+      setIsLoading(true);
+      try {
+        await api.patch('/targets/cancel/' + row._id);
+        setRows(
+          rows.map((r) => {
+            if (r.id === row.id) {
+              return { ...r, status: 'bekor_qilingan' };
+            } else {
+              return r;
+            }
+          })
+        );
+        toast.success('Amaliyot bajarildi!');
+      } catch (error) {
+        console.error(error);
+        toast.error('Xatolik yuz berdi!');
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
   const columns = [
     {
@@ -53,9 +76,9 @@ function DatatableCourtNotes() {
       field: 'actions',
       headerName: 'Harakatlar',
       width: 100,
-      renderCell: () => (
+      renderCell: ({ row }) => (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <IconButton onClick={handleClickDeleteButton} sx={{ color: 'error.main' }}>
+          <IconButton onClick={() => handleClickDeleteButton(row)} sx={{ color: 'error.main' }}>
             <GridDeleteIcon />
           </IconButton>
         </div>

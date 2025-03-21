@@ -126,16 +126,12 @@ function renderSwitch({
               Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.getFullYear()} yilning “01”{' '}
               {lotinga(oylar[olderPeriod.getMonth()])} oyidan buyon birga istiqomat qilishi aniqlandi.
             </p>
+            <p>{asoslantiruvchi}</p>
             <p>
               Yuqoridagilarga va asoslantiruvchi hujjatlarga muvofiq, {date.getFullYear()} yilning {lotinga(oylar[date.getMonth()])} oyida
               hisobga olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda
               to‘lovlarni qayta hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
             </p>
-            <p>Asoslantiruvchi hujjatlar*:</p>
-            <p>{asoslantiruvchi}</p>
-
-            {asoslantiruvchi.length === 0 ? <p>_______________________________________________________________</p> : ''}
-            {asoslantiruvchi.length < 70 ? <p>_______________________________________________________________</p> : ''}
 
             <p>
               *) asoslantiruvchi hujjatlar (doimiy yoki vaqtincha propiska qilinganligini tasdig‘i, FHDYOning tug‘ilganlikni qayd etish

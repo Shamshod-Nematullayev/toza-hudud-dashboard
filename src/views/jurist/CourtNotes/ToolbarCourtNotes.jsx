@@ -1,10 +1,20 @@
-import { Refresh } from '@mui/icons-material';
 import PrintOutlined from '@mui/icons-material/PrintOutlined';
-import { Button, Select, Grid, useMediaQuery, useTheme, InputLabel, MenuItem, FormControl, IconButton } from '@mui/material';
+import { Button, Select, useMediaQuery, useTheme, InputLabel, MenuItem, FormControl } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import useLoaderStore from 'store/loaderStore';
 import api from 'utils/api';
 import useStore from './useStore';
+import AccountNumberInput from 'ui-component/AccountNumberInput';
+
+const statuses = [
+  { title: 'Hammasi', value: '' },
+  { title: 'Yangi', value: 'new' },
+  { title: 'Xujjat yaratildi', value: 'xujjat_yaratildi' },
+  { title: 'Tasdiqlandi', value: 'tasdiqlandi' },
+  { title: 'Sudga yuborildi', value: 'sudga_yuborildi' },
+  { title: 'Sud qarori chiqarildi', value: 'sud_qarori_chiqarildi' },
+  { title: 'Bekor qilindi', value: 'bekor_qilindi' }
+];
 
 function ToolbarCourtNotes() {
   const theme = useTheme();
@@ -12,7 +22,9 @@ function ToolbarCourtNotes() {
   const [inspector, setInspector] = useState('');
   const [inspectors, setInspectors] = useState([]);
   const [selectedMahalla, setSelectedMahalla] = useState('');
+  const [status, setStatus] = useState('');
   const { setIsLoading } = useLoaderStore();
+  const [accountNumber, setAccountNumber] = useState('');
   const { filters, setFilters, selectedRows, setMahallas, setDocument, setShowDialog } = useStore();
 
   useEffect(() => {
@@ -27,8 +39,14 @@ function ToolbarCourtNotes() {
     setSelectedMahalla('');
   }, [inspector]);
   useEffect(() => {
-    setFilters({ ...filters, mahalla_id: selectedMahalla });
-  }, [selectedMahalla]);
+    setFilters({ ...filters, mahalla_id: selectedMahalla, status });
+  }, [selectedMahalla, status]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setFilters({ ...filters, mahalla_id: selectedMahalla, status, accountNumber });
+    }
+  };
 
   const handleClickCreateButton = () => {
     setIsLoading(true);
@@ -79,6 +97,19 @@ function ToolbarCourtNotes() {
             })}
         </Select>
       </FormControl>
+      <FormControl sx={{ minWidth: 120 }}>
+        <InputLabel id="mfy-label">Status</InputLabel>
+        <Select label="Mahalla" labelId="mfy-label" value={status} onChange={(e) => setStatus(e.target.value)}>
+          {statuses.map((status) => {
+            return (
+              <MenuItem key={status.value} value={status.value}>
+                {status.title}
+              </MenuItem>
+            );
+          })}
+        </Select>
+      </FormControl>
+      <AccountNumberInput label={'hisob raqam'} value={accountNumber} setFunc={setAccountNumber} onKeyDown={handleKeyDown} />
     </div>
   );
 }
