@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import SelectInputComponent from './SelectInputComponent';
+import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 import useStore from './useStore';
 import { toast } from 'react-toastify';
 import { useReactToPrint } from 'react-to-print';
 import PrintSection from './PrintSection';
 import api from 'utils/api';
+import { IconButton, Tooltip } from '@mui/material';
 
 function DataTable() {
   const columns = [
@@ -26,7 +27,21 @@ function DataTable() {
       width: 150
     },
     { field: 'bildirish_xati', headerName: 'Bildirgi', width: 150 },
-    { field: 'actions', headerName: 'Actions', width: 100, renderCell: () => <div>Action 1</div>, filterable: false }
+    {
+      field: 'actions',
+      headerName: 'Harakatlar',
+      width: 100,
+      renderCell: () => (
+        <div style={{ display: 'flex' }}>
+          <Tooltip title="Ma'lumotnoma chop etish">
+            <IconButton>
+              <AssignmentTurnedInOutlinedIcon />
+            </IconButton>
+          </Tooltip>
+        </div>
+      ),
+      filterable: false
+    }
   ];
 
   // ================================|STATES|==================================================
