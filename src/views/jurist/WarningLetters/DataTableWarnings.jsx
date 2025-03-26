@@ -72,7 +72,7 @@ function DataTableWarnings() {
   const fetchData = async (page, pageSize, sortModel, filters) => {
     setShowBackrop(true);
     try {
-      const respond = await api.get(`/sudAkts/hybrid-mails`, {
+      const respond = await api.get(`/court-service/hybrid-mails`, {
         params: {
           page: page + 1, // DataGrid uses 0-indexing, but your server expects 1-indexing
           limit: pageSize,

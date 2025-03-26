@@ -15,7 +15,7 @@ function DialogForCreateAriza({ showCreateArizaModal, handleCloseModal }) {
   // =================HANDLERS=======================
   const handleSubmitButtonClick = async () => {
     const sudAktIds = selectedRows.map((row) => row._id);
-    const { data } = await api.put('/sudAkts/create-many-ariza', {
+    const { data } = await api.put('/court-service/create-many-ariza', {
       sudAktIds,
       ariza_type: arizaType,
       ariza_date: arizaDate.$d

@@ -29,7 +29,7 @@ function FindedDataTable() {
     try {
       setActiveRow({});
       setRows([]);
-      const { data } = await api.get('/sudAkts/search-by-licshet', { params: { licshet: licshetInput } });
+      const { data } = await api.get('/court-service/search-by-licshet', { params: { licshet: licshetInput } });
       if (!data.ok) {
         toast.error(data.message);
         return;
@@ -75,7 +75,7 @@ function FindedDataTable() {
       formData.append('file', currentFile.blob, currentFile.file.name);
       formData.append('sud_akt_id', activeRow._id);
 
-      const { data } = await api.post('/sudAkts/upload-ariza-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const { data } = await api.post('/court-service/upload-ariza-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (!data.ok) {
         toast.error(data.message);
         return;

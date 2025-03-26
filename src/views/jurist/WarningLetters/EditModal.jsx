@@ -5,7 +5,7 @@ import api from 'utils/api';
 function EditModal({ open, handleCloseDialog, row, amount, setAmount }) {
   const handleSubmitButtonClick = async () => {
     try {
-      const { data } = await api.put(`/sudAkts/hybrid-mails/` + row._id, { warning_amount: amount });
+      const { data } = await api.put(`/court-service/hybrid-mails/` + row._id, { warning_amount: amount });
       if (data.ok) toast.success("Ma'lumot o'zgartirildi");
       handleCloseDialog();
     } catch (error) {

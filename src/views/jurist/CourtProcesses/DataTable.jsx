@@ -55,7 +55,7 @@ function DataTable() {
   // ================================|HANDLE FUNCTIONS|==================================================
   const fetchData = async () => {
     try {
-      const { data } = await api.get('/sudAkts/', {
+      const { data } = await api.get('/court-service/', {
         params: { page: page + 1, limit: pageSize, ...filter }
       });
       const rows = data.data.map((row, i) => ({
