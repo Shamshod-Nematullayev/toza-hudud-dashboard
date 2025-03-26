@@ -12,7 +12,6 @@ function MahallaList({ type, mahallas }) {
             <ListItem key={mahalla.id}>
               <ListItemButton>
                 {mahalla.name}
-
                 <IconButton>
                   <DeleteIcon />
                 </IconButton>

@@ -16,7 +16,9 @@ const useStore = create((set) => ({
   loading: false,
   setLoading: (state) => set({ loading: state }),
   onlyNotIdentited: false,
-  setOnlyNotIdentited: (state) => set({ onlyNotIdentited: state })
+  setOnlyNotIdentited: (state) => set({ onlyNotIdentited: state }),
+  etkStatus: '',
+  setEtkStatus: (etkStatus) => set({ etkStatus })
 }));
 
 export default useStore;

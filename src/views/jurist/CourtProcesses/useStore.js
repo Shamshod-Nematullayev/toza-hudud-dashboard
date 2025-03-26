@@ -6,7 +6,9 @@ const useStore = create((set) => ({
   rowsForPrint: [],
   setRowsForPrint: (rows) => set({ rowsForPrint: rows }),
   filter: {},
-  setFilter: (filter) => set({ filter })
+  setFilter: (filter) => set({ filter }),
+  malumotnomaData: {},
+  setMalumotnomaData: (data) => set({ malumotnomaData: data })
 }));
 
 export default useStore;

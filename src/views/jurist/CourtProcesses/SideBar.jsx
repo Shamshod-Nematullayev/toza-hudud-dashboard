@@ -9,6 +9,7 @@ import AccountNumberInput from 'ui-component/AccountNumberInput';
 function SideBar() {
   const { filter, setFilter } = useStore();
   const [actStatus, setActStatus] = useState(null);
+  const [pinfl, setPinfl] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [caseNumber, setCaseNumber] = useState('');
   const [warningFromDate, setWarningFromDate] = useState(null);
@@ -23,6 +24,7 @@ function SideBar() {
     setClaimAmountFrom(null);
     setClaimAmountTo(null);
     setAccountNumber('');
+    setPinfl('');
     setCaseNumber('');
     setFilter({});
   };
@@ -34,14 +36,15 @@ function SideBar() {
       warning_date_to: warningToDate ? warningToDate.$d : null,
       claim_amount_from: claimAmountFrom,
       claim_amount_to: claimAmountTo,
-      case_number: caseNumber
+      case_number: caseNumber,
+      pinfl: pinfl
     });
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Grid container spacing={1}>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormControl fullWidth>
             <InputLabel id="ariza-type-label">Akt holati</InputLabel>
             <Select label="Ariza turi" labelId="ariza-type-label" value={actStatus} onChange={(e) => setActStatus(e.target.value)}>
@@ -54,6 +57,9 @@ function SideBar() {
               <MenuItem value="rad_etildi">Rad etilgan</MenuItem>
             </Select>
           </FormControl>
+        </Grid>
+        <Grid item xs={6}>
+          <TextField label="Pinfl" value={pinfl} onChange={(e) => setPinfl(e.target.value)} />
         </Grid>
         <Grid item xs={12} sm={6}>
           <AccountNumberInput label="Hisob raqam" type="number" setFunc={setAccountNumber} value={accountNumber} fullWidth />

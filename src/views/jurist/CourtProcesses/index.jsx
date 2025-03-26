@@ -10,8 +10,9 @@ import DialogMalumotnoma from './DialogMalumotnoma';
 
 function CourtProcesses() {
   // =================================|STATES|===============================================
-  const { selectedRows } = useStore();
+  const { selectedRows, malumotnomaData } = useStore();
   const [showCreateArizaModal, setShowCreateArizaModal] = useState(false);
+  const [showMalumotnomaModal, setShowMalumotnomaModal] = useState(false);
 
   const handleCloseModal = () => {
     setShowCreateArizaModal(false);
@@ -20,13 +21,13 @@ function CourtProcesses() {
   return (
     <MainCard contentSX={{ display: 'flex' }}>
       <DialogForCreateAriza showCreateArizaModal={showCreateArizaModal} handleCloseModal={handleCloseModal} />
-      <DialogMalumotnoma open={false} />
+      <DialogMalumotnoma open={showMalumotnomaModal} handleClose={() => setShowMalumotnomaModal(false)} data={malumotnomaData} />
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <ToolsContainer setShowCreateArizaModal={setShowCreateArizaModal} selectedRows={selectedRows} />
         </Grid>
         <Grid item xs={12} sm={9}>
-          <DataTable />
+          <DataTable setShowMalumotnomaModal={setShowMalumotnomaModal} />
         </Grid>
         <Grid item xs={12} sm={3}>
           <SideBar />

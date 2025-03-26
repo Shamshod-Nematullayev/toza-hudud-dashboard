@@ -1,8 +1,19 @@
 import React, { useRef } from 'react';
-import { Dialog, DialogContent } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent } from '@mui/material';
+import { useReactToPrint } from 'react-to-print';
 
-function DialogMalumotnoma({ open, handleClose }) {
+function DialogMalumotnoma({ open, handleClose, data }) {
   const printSectionRef = useRef();
+  const handleClickPrintButton = useReactToPrint({
+    pageStyle: `@media print {
+        @page {
+        margin: 15mm 15mm 10mm 15mm !important;
+        size: A4;
+        }
+    }`,
+    documentTitle: data.case_number + "ma'lumotnoma",
+    contentRef: printSectionRef
+  });
   return (
     <Dialog open={open}>
       <DialogContent>
@@ -23,10 +34,10 @@ function DialogMalumotnoma({ open, handleClose }) {
               textAlign: 'justify'
             }}
           >
-            Sizga shuni yozib ma’lum qilamizki, <b>23.03.2024</b> yilda Kattaqo‘rg‘on tuman fuqarolik ishlari bo‘yicha tumanlararo sudi
-            chiqargan <b>2-1402-2403/4831</b> sonli qarorda qarzdor <b>Mitanov Sattor Boboraximovich</b>dan <b>400 864.00 so‘m</b> asosiy
-            qarzdorlik undirilishi buyirilgan. Mazkur qarzdor bugungi kunda ushbu asosiy qarzdorlikni to‘liq qoplab berdi. Abonent raqami:{' '}
-            <b>105120500110</b>
+            Sizga shuni yozib ma’lum qilamizki, <b>{data.hearing_date}</b> yilda Kattaqo‘rg‘on tuman fuqarolik ishlari bo‘yicha tumanlararo
+            sudi chiqargan <b>{data.case_number}</b> sonli qarorda qarzdor <b>{}</b>dan <b>{data.claimAmount?.toLocaleString()}.00 so‘m</b>{' '}
+            asosiy qarzdorlik undirilishi buyirilgan. Mazkur qarzdor bugungi kunda ushbu asosiy qarzdorlikni to‘liq qoplab berdi. Abonent
+            raqami: <b>{data.accountNumber}</b>
           </p>
           <p style={{ fontStyle: 'italic', textIndent: '30px', fontSize: 16 }}>Ma’lumotnoma so‘ralgan joyga taqdim qilish uchun berildi</p>
           <p
@@ -35,7 +46,8 @@ function DialogMalumotnoma({ open, handleClose }) {
               fontSize: 16,
               textAlign: 'justify',
               display: 'flex',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              alignItems: 'end'
             }}
           >
             <div style={{ width: 200 }}>“Anvarjon Biznes Invest” MChJ Kattaqo‘rg‘on tuman filiali raxbari:</div>
@@ -45,6 +57,14 @@ function DialogMalumotnoma({ open, handleClose }) {
           <p style={{ fontStyle: 'italic', fontSize: 14 }}>Sh.Ne’matullayev</p>
         </section>
       </DialogContent>
+      <DialogActions>
+        <Button variant="outlined" onClick={handleClose}>
+          Bekor qilish
+        </Button>
+        <Button variant="contained" onClick={handleClickPrintButton}>
+          Chop etish
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

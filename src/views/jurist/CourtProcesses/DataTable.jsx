@@ -8,11 +8,11 @@ import PrintSection from './PrintSection';
 import api from 'utils/api';
 import { IconButton, Tooltip } from '@mui/material';
 
-function DataTable() {
+function DataTable({ setShowMalumotnomaModal }) {
   const columns = [
     { field: 'id', headerName: 'ID', width: 70, filterable: false },
     { field: 'licshet', headerName: 'licshet', width: 120, filterable: false },
-    { field: 'davo_summa', headerName: 'Davo summasi', width: 100, align: 'right', filterable: false },
+    { field: 'claimAmount', headerName: 'Davo summasi', width: 100, align: 'right', filterable: false },
     {
       field: 'warningDate',
       headerName: 'Ogohlantirilgan sanasi',
@@ -31,10 +31,10 @@ function DataTable() {
       field: 'actions',
       headerName: 'Harakatlar',
       width: 100,
-      renderCell: () => (
+      renderCell: (cell) => (
         <div style={{ display: 'flex' }}>
           <Tooltip title="Ma'lumotnoma chop etish">
-            <IconButton>
+            <IconButton onClick={() => handleClickMalumotnomaIcon(cell.row)}>
               <AssignmentTurnedInOutlinedIcon />
             </IconButton>
           </Tooltip>
@@ -46,13 +46,31 @@ function DataTable() {
 
   // ================================|STATES|==================================================
 
-  const { setSelectedRows, rowsForPrint, setRowsForPrint, filter } = useStore();
+  const { setSelectedRows, rowsForPrint, setRowsForPrint, filter, setMalumotnomaData } = useStore();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [rows, setRows] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
 
   // ================================|HANDLE FUNCTIONS|==================================================
+
+  const handleClickMalumotnomaIcon = async (row) => {
+    try {
+      // Bugungi kundagi qarzdorlikni tekshirish
+      const saldo = (await api.get('/billing/get-abonent-data-by-licshet/' + row.licshet)).data.abonentData.balance.kSaldo;
+      if (saldo > 0) {
+        return toast.error("Ushbu abonentda bugungi kunda qarzdorlik mavjud, avval qarzdorlik to'lansin!");
+      }
+      // Ma'lumotnoma chiqarish
+      const data = (await api.get('/court-service/court-case-by-id/' + row._id)).data.data;
+      setMalumotnomaData({ ...data, claimAmount: row.claimAmount, accountNumber: row.licshet });
+      setShowMalumotnomaModal(true);
+    } catch (error) {
+      console.error(error);
+      toast.error('Xatolik kuzatildi');
+    }
+  };
+
   const fetchData = async () => {
     try {
       const { data } = await api.get('/court-service/', {
@@ -64,7 +82,7 @@ function DataTable() {
         licshet: row.licshet,
         warningDate: new Date(row.warningDate) || null,
         status: row.status,
-        davo_summa: row.davo_summa
+        claimAmount: row.claimAmount
       }));
       setRows(rows);
       setTotalRows(data.meta.total);

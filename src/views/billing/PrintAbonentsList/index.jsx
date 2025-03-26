@@ -51,7 +51,8 @@ function PrintAbonentsList() {
     setMahallas,
     loading,
     setLoading,
-    onlyNotIdentited
+    onlyNotIdentited,
+    etkStatus
   } = useStore();
   const { customization } = useCustomizationStore();
   const printContentRef = useRef(null);
@@ -78,7 +79,8 @@ function PrintAbonentsList() {
         params: {
           minSaldo,
           maxSaldo,
-          onlyNotIdentited
+          onlyNotIdentited,
+          etkStatus
         }
       })
       .then(({ data }) => {

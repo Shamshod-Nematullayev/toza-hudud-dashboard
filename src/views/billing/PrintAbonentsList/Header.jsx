@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import useStore from './useStore';
-import { MenuItem, Select, TextField, Typography, Button, Checkbox, FormControlLabel } from '@mui/material';
+import { MenuItem, Select, TextField, Typography, Button, Checkbox, FormControlLabel, InputLabel, FormControl } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import DoneAll from '@mui/icons-material/DoneOutlined';
@@ -26,7 +26,9 @@ function Header({ printContentRef, getAbonents }) {
     setMinSaldo,
     setMaxSaldo,
     onlyNotIdentited,
-    setOnlyNotIdentited
+    setOnlyNotIdentited,
+    etkStatus,
+    setEtkStatus
   } = useStore();
   useEffect(() => {
     if (abonents.length > 0) {
@@ -39,7 +41,7 @@ function Header({ printContentRef, getAbonents }) {
   const printFunction = useReactToPrint({
     pageStyle: `@media print {
         @page {
-        margin: 15mm 15mm 10mm 15mm;
+        margin: 15mm 15mm 10mm 15mm !important;
         size: A4;
         }
         .page {
@@ -168,6 +170,20 @@ function Header({ printContentRef, getAbonents }) {
           control={<Checkbox checked={onlyNotIdentited} onChange={(e) => setOnlyNotIdentited(e.target.checked)} />}
           label="Shaxsi tasdiqlanmagan"
         />
+        <FormControl style={{ marginRight: '15px' }}>
+          <InputLabel id="etk-status">Elektr holati</InputLabel>
+          <Select
+            value={etkStatus}
+            labelId="etk-status"
+            label="Elektr holati"
+            onChange={(e) => setEtkStatus(e.target.value)}
+            sx={{ minWidth: 150 }}
+          >
+            <MenuItem value="">Hammasi</MenuItem>
+            <MenuItem value={'tasdiqlangan'}>Tasdiqlangan</MenuItem>
+            <MenuItem value={'tasdiqlanmagan'}>Tasdiqlanmagan</MenuItem>
+          </Select>
+        </FormControl>
         <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} sx={{ minWidth: 150 }}>
           <MenuItem disabled value="0">
             Mahalla
