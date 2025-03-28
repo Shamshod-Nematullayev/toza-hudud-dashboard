@@ -11,6 +11,8 @@ import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import EditNoteIcon from '@mui/icons-material/EditNote';
+import ChecklistIcon from '@mui/icons-material/Checklist';
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 
 //contans
 const icons = {
@@ -25,7 +27,9 @@ const icons = {
   NoteAddOutlinedIcon,
   PrintOutlinedIcon,
   PersonAddAltIcon,
-  EditNoteIcon
+  EditNoteIcon,
+  ChecklistIcon,
+  InsertDriveFileOutlinedIcon
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -78,12 +82,28 @@ const billing = {
           breadcrumbs: false
         },
         {
-          id: 'xatlovOdamSoni',
-          title: 'Xatlov odam soni',
-          type: 'item',
-          url: '/billing/xatlovOdamSoni',
-          icon: icons.PersonAddAltIcon,
-          breadcrumbs: false
+          id: 'xatlov',
+          title: 'Xatlov',
+          type: 'collapse',
+          icon: icons.ChecklistIcon,
+          children: [
+            {
+              id: 'xatlovOdamSoni',
+              title: 'Xatlov odam soni',
+              type: 'item',
+              url: '/billing/xatlovOdamSoni',
+              icon: icons.PersonAddAltIcon,
+              breadcrumbs: false
+            },
+            {
+              id: 'xatlovDalolatnomalar',
+              title: 'Xatlov dalolatnomalar',
+              type: 'item',
+              url: '/billing/xatlovDalolatnomalar',
+              icon: icons.InsertDriveFileOutlinedIcon,
+              breadcrumbs: false
+            }
+          ]
         }
       ]
     },

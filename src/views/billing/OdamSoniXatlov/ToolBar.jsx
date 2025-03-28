@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Button } from '@mui/material';
+import { Button, IconButton, Tooltip } from '@mui/material';
 import SimCardDownloadOutlinedIcon from '@mui/icons-material/SimCardDownloadOutlined';
+import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { CSVDownload } from 'react-csv';
 import api from 'utils/api';
@@ -80,18 +81,22 @@ function ToolBar() {
   };
   return (
     <div style={{ display: 'flex', margin: '10px 0' }}>
-      <Button variant="contained" color="primary" disabled={!filter.mahallaId} onClick={handleCreateButtonClick}>
-        Dalolatnoma yaratish
-      </Button>
-      <Button variant="outlined" style={{ margin: '0 5px' }} onClick={handleDownloadExcel}>
-        <SimCardDownloadOutlinedIcon />
-        Excelga
-      </Button>
-      <Button variant="outlined" onClick={handleClickRefresh}>
-        <RefreshIcon />
-        TozaMakon tizimidan yangilash
-        {readyToDownload && <CSVDownload data={data} filename="yashovchi_sonlari_sorovlari.csv" />}
-      </Button>
+      <Tooltip title="Dalolatnoma yaratish" color="primary" enterDelay={200}>
+        <IconButton variant="contained" color="primary" disabled={!filter.mahallaId} onClick={handleCreateButtonClick}>
+          <NoteAddOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Excelga yuklab olish" color="primary" enterDelay={200}>
+        <IconButton onClick={handleDownloadExcel}>
+          <SimCardDownloadOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="TozaMakon tizimidan yangilash" color="primary" enterDelay={200}>
+        <IconButton onClick={handleClickRefresh}>
+          <RefreshIcon />
+        </IconButton>
+      </Tooltip>
+      {readyToDownload && <CSVDownload data={data} filename="yashovchi_sonlari_sorovlari.csv" />}
     </div>
   );
 }

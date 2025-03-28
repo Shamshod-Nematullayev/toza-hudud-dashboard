@@ -1,10 +1,11 @@
-import { DataGrid, GridToolbarContainer, useGridApiRef, GridToolbarFilterButton } from '@mui/x-data-grid';
+import { DataGrid, GridToolbarContainer, useGridApiRef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import api from 'utils/api';
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import { FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip } from '@mui/material';
 import ToolBar from './ToolBar';
 import { lotinga } from 'helpers/lotinKiril';
+import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 
 function DataTable() {
   const {
@@ -106,7 +107,8 @@ function DataTable() {
             field: 'accountNumber',
             headerName: 'Hisob raqam',
             width: 120,
-            sortable: false
+            sortable: false,
+            filterable: false
           },
           {
             field: 'fio',
@@ -228,14 +230,26 @@ function DataTable() {
           toolbar: () => (
             <GridToolbarContainer>
               <ToolBar />
-              <GridToolbarFilterButton />
+              <Tooltip title="Filterlar">
+                <IconButton onClick={() => apiRef.current.showFilterPanel()} color="primary">
+                  <FilterListOutlinedIcon />
+                </IconButton>
+              </Tooltip>
             </GridToolbarContainer>
           )
         }}
+        localeText={{
+          toolbarFilters: ''
+        }}
         sx={{
+          '.MuiDataGrid-filterFormOperatorInput': {
+            display: 'none', // Operator tanlash maydonini yashiramiz,
+            background: '#000'
+          },
           height: '80vh',
           width: '100%'
         }}
+        apiRef={apiRef}
       />
     </div>
   );
