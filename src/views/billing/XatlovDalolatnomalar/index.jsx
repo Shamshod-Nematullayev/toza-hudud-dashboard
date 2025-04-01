@@ -34,7 +34,7 @@ function XatlovDalolatnomalar() {
           <Toolbar />
         </Grid>
         <Grid item xs={12}>
-          <DataTable rows={rows} paging={paging} setPaging={setPaging} rowsMeta={rowsMeta} />
+          <DataTable rows={rows} paging={paging} setPaging={setPaging} rowsMeta={rowsMeta} setRows={setRows} />
         </Grid>
       </Grid>
     </MainCard>

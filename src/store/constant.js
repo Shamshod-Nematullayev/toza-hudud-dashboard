@@ -2,7 +2,7 @@
 export const gridSpacing = 3;
 export const drawerWidth = 260;
 export const appDrawerWidth = 320;
-export const SERVER_DOMAIN = 'http://192.168.1.138:3000'; //192.168.1.138 | 45.92.173.48
+export const SERVER_DOMAIN = 'http://localhost:3000'; //192.168.1.138 | 45.92.173.48
 export const SERVER_URL = SERVER_DOMAIN + '/api';
 export const actStatusOptions = [
   { value: 'NEW', label: 'Yangi' },
