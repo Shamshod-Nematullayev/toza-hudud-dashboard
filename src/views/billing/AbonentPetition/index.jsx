@@ -56,7 +56,7 @@ function AbonentPetition() {
       }
     }
     fetchData();
-  }, []);
+  }, [ariza_id]);
 
   const onCloseModal = async () => {
     setShowModal(false);

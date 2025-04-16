@@ -164,10 +164,10 @@ function FindedDataTable() {
       formData.append('document_type', ariza.document_type);
       formData.append('ariza_id', ariza._id);
       formData.append('licshet', ariza.licshet);
-      formData.append('next_inhabitant_count', ariza.next_prescribed_cnt || rows[0].yashovchilar_soni);
+      formData.append('next_inhabitant_count', ariza.next_prescribed_cnt);
       formData.append('akt_sum', eval(aktSumm));
       formData.append('amountWithoutQQS', ariza.aktSummCounts?.withoutQQSTotal || 0);
-      formData.append('description', 'fuqaro arizasi ' + ariza.comment);
+      formData.append('description', ariza.comment.length < 150 ? 'fuqaro arizasi ' + ariza.comment : 'fuqaro arizasi');
       ariza.photos?.forEach((photo, index) => {
         formData.append(`photos[${index}]`, photo);
       });

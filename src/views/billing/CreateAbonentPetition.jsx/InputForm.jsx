@@ -121,7 +121,7 @@ function InputForm() {
         document_type: aktType,
         akt_summasi: aktSumma,
         current_prescribed_cnt: abonentData.house.inhabitantCnt,
-        next_prescribed_cnt: yashovchiSoniInput,
+        next_prescribed_cnt: isNaN(yashovchiSoniInput) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
         comment: generateSummary(recalculationPeriods),
         photos: images.map((img) => img.document_id),
         recalculationPeriods,

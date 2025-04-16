@@ -8,7 +8,9 @@ const useArizaStore = create((set) => ({
   showModal: false,
   setShowModal: (showModal) => set({ showModal }),
   pasteImgModalOpen: false,
-  setPasteImgModalOpen: (state) => set({ pasteImgModalOpen: state })
+  setPasteImgModalOpen: (state) => set({ pasteImgModalOpen: state }),
+  updateState: false,
+  updatePage: () => set((state) => ({ updateState: !state.updateState }))
 }));
 
 export default useArizaStore;
