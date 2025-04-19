@@ -109,12 +109,12 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani</div>
+              <div>{mahalla?.company?.locationName}</div>
             </div>
             <p>
               <b>Quyidagi manzil bo‘yicha:</b>
             </p>
-            <p>MFY nomi: {mahalla.name && lotinga(mahalla?.name)}</p>
+            <p>MFY nomi: {mahalla.data?.name && lotinga(mahalla?.data?.name)}</p>
             <p>
               Manzil: {abonentData?.mahallaName} {abonentData.streetName}
             </p>
@@ -192,7 +192,7 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani</div>
+              <div>{mahalla?.company.locationName}</div>
             </div>
             <p
               style={{
@@ -200,7 +200,7 @@ function renderSwitch({
                 textIndent: '40px'
               }}
             >
-              Biz quyidagi imzo chekuvchilar, Samarqand viloyati, Kattakurgon tumani, {lotinga(mahalla.name)} MFY raisi{' '}
+              Biz quyidagi imzo chekuvchilar, Samarqand viloyati, Kattakurgon tumani, {lotinga(mahalla?.name)} MFY raisi{' '}
               {fullNameToShortName(mahalla.mfy_rais_name)} , “ANVARJON BIZNES INVEST” MCHJ Kattaqo‘rg‘on tuman aholi nazoratchisi{' '}
               {fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi boshlig‘i
               Sh.Ne’matullayev mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida kuyidagi abonent
@@ -316,12 +316,12 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani</div>
+              <div>{mahalla?.company.locationName}</div>
             </div>
             <p>
               <b>Quyidagi manzil bo‘yicha:</b>
             </p>
-            <p>MFY nomi: {mahalla.name && lotinga(mahalla?.name)}</p>
+            <p>MFY nomi: {mahalla.data.name && lotinga(mahalla?.data.name)}</p>
             <p>
               Manzil: {abonentData?.mahallaName} {abonentData.streetName}
             </p>
@@ -341,7 +341,12 @@ function renderSwitch({
               olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda qayta
               hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
             </p>
-            <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={documentType} />
+            <ImzolashJoyi
+              abonentData={abonentData}
+              mahalla={mahalla}
+              documentType={documentType}
+              gpsOperator={mahalla?.company.gpsOperator}
+            />
           </div>
           <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
             <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
@@ -378,20 +383,29 @@ const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
     <div style={{ width: 200 }}>{fullNameToShortName(name)}</div>
   </div>
 );
-const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType }) => {
+const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator }) => {
+  const company = mahalla?.company;
+  mahalla = mahalla?.data;
   return (
     <>
-      <ImzoJoyiRow label='"Anvarjon biznes invest" MCHJ Kattaqo‘rg‘on tuman filiali raxbari:' name="Sadriddinov Aziz" />
-      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name="Ne’matullayev Shamshod" />
+      <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.manager.fullName} />
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdmin.fullName} />
       <br />
-      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla.biriktirilganNazoratchi?.inspector_name)} />
+      {gpsOperator && (
+        <>
+          <ImzoJoyiRow label="GPS kuzatuv xodimi:" name={gpsOperator.fullName} />
+          <br />
+        </>
+      )}
+
+      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
       <br />
       <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
       <br />
-      <ImzoJoyiRow label={`${lotinga(mahalla.name)} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />
+      <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
 
-      {documentType === 'dvaynik' && mahalla2.id !== mahalla.id && (
-        <ImzoJoyiRow label={`${mahalla.name} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />
+      {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
+        <ImzoJoyiRow label={`${mahalla?.name} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
       )}
     </>
   );
