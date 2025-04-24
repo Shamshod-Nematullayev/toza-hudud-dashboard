@@ -81,7 +81,6 @@ function FilesList() {
       setAriza({ ...ariza, isScanedFromQR: true });
     } catch (error) {
       console.error(error);
-      toast.error('An error occurred');
     }
   };
   return (

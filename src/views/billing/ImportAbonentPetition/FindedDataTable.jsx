@@ -1,4 +1,4 @@
-import { Button, FormControl, IconButton, TextField, Typography, useTheme } from '@mui/material';
+import { Button, FormControl, Grid, IconButton, TextField, Tooltip, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -10,6 +10,7 @@ import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import Visibility from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
 import useLoaderStore from 'store/loaderStore';
+import Cancel from '@mui/icons-material/CancelOutlined';
 
 function KeyValue({ kalit, value }) {
   return (
@@ -140,8 +141,10 @@ function FindedDataTable() {
         }
       });
       if (!data.ok) {
-        toast.error(data.message);
-        return;
+        return toast.error(data.message);
+      }
+      if (data.data.length === 0) {
+        return toast.error('Bunday tartib raqamga ega ariza topilmadi');
       }
       setAriza(data.data[0]);
       setIsUploading(false);
@@ -206,42 +209,57 @@ function FindedDataTable() {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <FormControl style={{ display: 'flex', flexDirection: 'row' }}>
-          <IconButton sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
-            <RefreshOutlinedIcon />
-          </IconButton>
-          <TextField
-            disabled={inputDisabled}
-            variant="outlined"
-            name="licshet_input"
-            placeholder="Ariza raqami"
-            value={arizaNumberInput}
-            onChange={(e) => setArizaNumberInput(e.target.value)}
-          />
-          <Button
-            sx={{ margin: 'auto 15px', padding: '15px 20px' }}
-            onClick={handlePrimaryButtonClick}
-            disabled={(ariza.status === 'yangi' || ariza.status === 'qabul qilindi') && !isUploading ? false : true}
-          >
-            <FileUploadOutlinedIcon />
-            kiritish
-          </Button>
-          <Button sx={{ padding: '15px 20px', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
-            <DeleteOutlinedIcon />
-            faylni o'chirish
-          </Button>
-          <Button
-            sx={{ padding: '15px 20px', color: 'error.main' }}
-            onClick={() => setShowDialog(true)}
-            disabled={ariza.status === 'yangi' ? false && isUploading : true}
-          >
-            <DeleteOutlinedIcon />
-            bekor qilish
-          </Button>
-          <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)}>
-            {showSpoiler ? <Visibility /> : <VisibilityOff />}
-          </IconButton>
-        </FormControl>
+        <Grid container>
+          <Grid item xs={1}>
+            <IconButton sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
+              <RefreshOutlinedIcon />
+            </IconButton>
+          </Grid>
+          <Grid item xs={1.5}>
+            <TextField
+              disabled={inputDisabled}
+              variant="outlined"
+              name="licshet_input"
+              placeholder="Ariza raqami"
+              value={arizaNumberInput}
+              onChange={(e) => setArizaNumberInput(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={2}>
+            <Button
+              sx={{ margin: 'auto 15px', padding: '12px 15px' }}
+              onClick={handlePrimaryButtonClick}
+              variant="contained"
+              disabled={(ariza.status === 'yangi' || ariza.status === 'qabul qilindi') && !isUploading ? false : true}
+            >
+              <FileUploadOutlinedIcon />
+              kiritish
+            </Button>
+          </Grid>
+          <Grid item xs={2.5}>
+            <Button sx={{ padding: '12px 15px', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
+              <DeleteOutlinedIcon />
+              tashlab ketish
+            </Button>
+          </Grid>
+          <Grid item xs={2.5}>
+            <Button
+              sx={{ padding: '12px 15px', color: 'error.main' }}
+              onClick={() => setShowDialog(true)}
+              disabled={ariza.status === 'yangi' ? false && isUploading : true}
+            >
+              <Cancel />
+              bekor qilish
+            </Button>
+          </Grid>
+          <Grid item xs={2}>
+            <Tooltip title={showSpoiler ? "Akt bo'lmasidan oldingi holat" : "Aktdan keyingi holatni ko'rish"}>
+              <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)} disabled={!ariza || !rows.length}>
+                {showSpoiler ? <Visibility /> : <VisibilityOff />}
+              </IconButton>
+            </Tooltip>
+          </Grid>
+        </Grid>
       </form>
       <div>
         <div
