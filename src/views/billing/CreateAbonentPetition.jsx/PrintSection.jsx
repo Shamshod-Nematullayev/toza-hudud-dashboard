@@ -192,7 +192,7 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>{mahalla?.company.locationName}</div>
+              <div>{mahalla?.company?.locationName}</div>
             </div>
             <p
               style={{
@@ -316,7 +316,7 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>{mahalla?.company.locationName}</div>
+              <div>{mahalla?.company?.locationName}</div>
             </div>
             <p>
               <b>Quyidagi manzil bo‘yicha:</b>

@@ -2,7 +2,7 @@ import { TextField } from '@mui/material';
 import React, { useRef } from 'react';
 
 function AccountNumberInput({ value, setFunc, label, ...others }) {
-  const defaultValue = 105120;
+  const defaultValue = localStorage.getItem('abonentsPrefix') || '105120';
   const inputRef = useRef(null);
   const handleFocus = (e) => {
     if (!e.target.value) {
@@ -10,7 +10,7 @@ function AccountNumberInput({ value, setFunc, label, ...others }) {
       // Wait until the value is set before placing the cursor at the end
       setTimeout(() => {
         if (inputRef.current) {
-          inputRef.current.setSelectionRange(defaultValue.toString().length, defaultValue.toString().length);
+          inputRef.current.setSelectionRange(defaultValue.length, defaultValue.length);
         }
       }, 0);
     }

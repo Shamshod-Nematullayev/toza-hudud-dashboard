@@ -159,7 +159,7 @@ function DataTable() {
                     <Tooltip title="chop etish" arrow enterDelay={1000}>
                       <span>
                         <IconButton
-                          disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
+                          // disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
                           onClick={() => handlePrintButtonClick(e.row._id)}
                         >
                           <PrintOutlinedIcon />

@@ -139,6 +139,8 @@ function InputForm() {
         })
       ).data;
 
+      if (!newArizaData.ok) return toast.error(newArizaData.message);
+
       setAriza(newArizaData.ariza);
 
       const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;

@@ -57,6 +57,7 @@ const AuthLogin = ({ ...others }) => {
         const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
         localStorage.setItem('avatar', base64Image);
         localStorage.setItem('fullName', data.fullName);
+        localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
         navigate('/');
       } else {
         toast.error(data.message);
