@@ -1,5 +1,5 @@
-import { List, ListItem, ListItemButton } from '@mui/material';
-import React, { useState } from 'react';
+import { Grid, List, ListItem, ListItemButton, TextField } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import useStore from './useStore';
 import { useTheme } from '@mui/material/styles';
 import { toast } from 'react-toastify';
@@ -10,8 +10,6 @@ import jsQR from 'jsqr';
 function FilesList() {
   const { pdfFiles, setCurrentFile, currentFile, setAriza } = useStore();
   const theme = useTheme();
-  const [qrData, setQrData] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const extractQRCodeFromPDF = async (pdfData) => {
     const loadingTask = pdfjsLib.getDocument({ data: pdfData });
@@ -83,27 +81,55 @@ function FilesList() {
       console.error(error);
     }
   };
+
+  const [rows, setRows] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  useEffect(() => {
+    setRows(pdfFiles);
+    setSearchQuery('');
+  }, [pdfFiles]);
+  useEffect(() => {
+    if (!searchQuery) {
+      setRows(pdfFiles);
+    } else {
+      setRows(
+        pdfFiles.filter(({ file }) => {
+          console.log(file?.name?.toLowerCase());
+          console.log(searchQuery.toLowerCase());
+          return file?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        })
+      );
+    }
+  }, [searchQuery]);
+
   return (
-    <List sx={{ width: 200, overflowY: 'auto' }}>
-      {pdfFiles.map((pdfFile, i) => (
-        <ListItem key={pdfFile.file.name}>
-          <ListItemButton
-            // sx={{ color: theme.colors.menuSelected }}
-            sx={{
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              paddingRight: '10px',
-              color: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelected : '',
-              background: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelectedBack : ''
-            }}
-            onClick={() => handleListItemClick(pdfFile.file.name)}
-          >
-            {i + 1}. {pdfFile.file.name}
-          </ListItemButton>
-        </ListItem>
-      ))}
-    </List>
+    <Grid container height={'100%'}>
+      <Grid item xs={12}>
+        <TextField placeholder="Qidirish" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} fullWidth />
+      </Grid>
+      <Grid item xs={12} height={'100%'}>
+        <List sx={{ overflowY: 'auto', height: 'calc(100% - 5vh)' }}>
+          {rows.map((pdfFile, i) => (
+            <ListItem key={pdfFile.file.name}>
+              <ListItemButton
+                // sx={{ color: theme.colors.menuSelected }}
+                sx={{
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  paddingRight: '10px',
+                  color: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelected : '',
+                  background: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelectedBack : ''
+                }}
+                onClick={() => handleListItemClick(pdfFile.file.name)}
+              >
+                {i + 1}. {pdfFile.file.name}
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Grid>
+    </Grid>
   );
 }
 

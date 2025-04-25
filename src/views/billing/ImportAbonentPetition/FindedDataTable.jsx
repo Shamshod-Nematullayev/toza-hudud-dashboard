@@ -209,7 +209,7 @@ function FindedDataTable() {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <Grid container>
+        <Grid container spacing={0.5}>
           <Grid item xs={1}>
             <IconButton sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
               <RefreshOutlinedIcon />
@@ -227,7 +227,7 @@ function FindedDataTable() {
           </Grid>
           <Grid item xs={2}>
             <Button
-              sx={{ margin: 'auto 15px', padding: '12px 15px' }}
+              sx={{ padding: '12px 15px' }}
               onClick={handlePrimaryButtonClick}
               variant="contained"
               disabled={(ariza.status === 'yangi' || ariza.status === 'qabul qilindi') && !isUploading ? false : true}
@@ -237,9 +237,9 @@ function FindedDataTable() {
             </Button>
           </Grid>
           <Grid item xs={2.5}>
-            <Button sx={{ padding: '12px 15px', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
+            <Button sx={{ padding: '12px 0', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
               <DeleteOutlinedIcon />
-              tashlab ketish
+              tashlash
             </Button>
           </Grid>
           <Grid item xs={2.5}>

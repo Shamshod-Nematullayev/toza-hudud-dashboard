@@ -111,7 +111,8 @@ function Header({ printContentRef, getAbonents }) {
             minSaldo: minSaldo,
             maxSaldo: maxSaldo,
             mahalla_name: abonents[0].mahallaName,
-            onlyNotIdentited
+            onlyNotIdentited,
+            electricCode: etkStatus
           }
         })
         .then(({ data }) => {
@@ -230,13 +231,13 @@ function Header({ printContentRef, getAbonents }) {
         <Button disabled={mainFunctionsDisabled} onClick={handleClickDone}>
           <DoneAll /> Topshirildi
         </Button>
-        <Button
+        {/* <Button
           disabled={mahallas.filter((mfy) => mfy.reja > 0 && mfy.abarotka_berildi).length > 0 ? false : true}
           sx={{ color: 'error.main' }}
           onClick={handleClickClearAll}
         >
           <ClearAll /> Tozalash
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

@@ -29,9 +29,8 @@ function DisplayFile() {
   return (
     <div
       style={{
-        width: '50%',
+        width: '100%',
         height: '100%',
-        margin: 'auto 25px',
         position: 'relative'
         // outline: 'none'
       }}
