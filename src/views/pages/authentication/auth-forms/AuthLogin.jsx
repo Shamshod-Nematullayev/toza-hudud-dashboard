@@ -57,7 +57,9 @@ const AuthLogin = ({ ...others }) => {
           const uint8Array = new Uint8Array(data.photo.data);
           const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
           localStorage.setItem('avatar', base64Image);
+          delete data.photo;
         }
+        localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('fullName', data.fullName);
         localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
         navigate('/');

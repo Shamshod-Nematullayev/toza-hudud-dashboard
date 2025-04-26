@@ -2,7 +2,6 @@ import { lotinga } from 'helpers/lotinKiril';
 
 function fullNameToShortName(name) {
   if (!name) return ''; // Bo'sh qiymatni tekshirish.
-  console.log({ name });
   name = name.trim(); // Boshi va oxiridagi bo'sh joylarni olib tashlash.
   const parts = name.split(/\s+/); // Bir yoki bir nechta bo'sh joy bo'yicha bo'lish.
 

@@ -32,12 +32,14 @@ import Transitions from 'ui-component/extended/Transitions';
 import { IconLogout, IconSettings } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
 import Cookies from 'js-cookie';
+import { useUserStore } from 'store/userStore';
 
 // ==============================|| PROFILE MENU ||============================== //
 
 const ProfileSection = () => {
   const theme = useTheme();
   const { customization } = useCustomizationStore();
+  const { openSettingsModal } = useUserStore();
   const navigate = useNavigate();
 
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -66,6 +68,10 @@ const ProfileSection = () => {
     if (route && route !== '') {
       navigate(route);
     }
+  };
+  const handleSettingsButtonClick = (event) => {
+    handleClose(event);
+    openSettingsModal();
   };
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -239,7 +245,7 @@ const ProfileSection = () => {
                       <ListItemButton
                         sx={{ borderRadius: `${customization.borderRadius}px` }}
                         selected={selectedIndex === 0}
-                        onClick={(event) => handleListItemClick(event, 0, '#')}
+                        onClick={(event) => handleSettingsButtonClick(event)}
                       >
                         <ListItemIcon>
                           <IconSettings stroke={1.5} size="1.3rem" />
