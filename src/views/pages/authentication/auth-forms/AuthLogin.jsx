@@ -60,6 +60,7 @@ const AuthLogin = ({ ...others }) => {
           delete data.photo;
         }
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('company', JSON.stringify(data.company));
         localStorage.setItem('fullName', data.fullName);
         localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
         navigate('/');

@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import useStore from './useStore';
+import { kirillga } from 'helpers/lotinKiril';
 
 function PrintSection({ printContentRef }) {
   const date = new Date();
   const { abonents } = useStore();
+  const [company, setCompany] = useState({});
+
+  useEffect(() => {
+    setCompany(JSON.parse(localStorage.getItem('company')));
+  }, []);
   return (
     <div ref={printContentRef}>
       <table>
@@ -20,7 +26,7 @@ function PrintSection({ printContentRef }) {
           </tr>
           <tr>
             <td style={{ fontSize: 16 }} colSpan={7}>
-              Каттақўрғон туман / "ANVARJON BIZNES INVEST" MCHJ
+              {kirillga(company?.locationName || '')} / {company?.name}
             </td>
           </tr>
           <tr>

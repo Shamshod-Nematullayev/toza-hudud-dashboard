@@ -7,6 +7,7 @@ import { useReactToPrint } from 'react-to-print';
 import PrintSection from './PrintSection';
 import api from 'utils/api';
 import { IconButton, Tooltip } from '@mui/material';
+import { reactToPrintDefaultOptions } from 'store/constant';
 
 function DataTable({ setShowMalumotnomaModal }) {
   const columns = [
@@ -94,16 +95,7 @@ function DataTable({ setShowMalumotnomaModal }) {
 
   const printContentRef = useRef();
   const printFunc = useReactToPrint({
-    pageStyle: `@media print {
-        @page {
-        margin: 15mm 15mm 15mm 25mm;
-        size: A4;
-        }
-        .page {
-        page-break-after: always;
-        }    
-    }
-    `,
+    ...reactToPrintDefaultOptions,
     documentTitle: 'Printing',
     contentRef: printContentRef,
     onAfterPrint: () => setRowsForPrint([])
