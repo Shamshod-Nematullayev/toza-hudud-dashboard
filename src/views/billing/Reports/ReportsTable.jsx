@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 function ReportsTable() {
-  return <div>ReportsTable</div>;
+  const [columns, setColumns] = useState([]);
+  return (  
+    <div
+      style={{
+        height: '100%',
+        border: '1px solid red'
+      }}
+    >
+      Reports table
+    </div>
+  );
 }
 
 export default ReportsTable;
