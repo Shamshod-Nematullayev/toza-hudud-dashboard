@@ -42,14 +42,14 @@ api.interceptors.response.use(
             console.error(error);
             Cookies.remove('accessToken');
             Cookies.remove('refreshToken');
-            window.location.href = '/startpage/pages/login/login3/';
+            window.location.href = '/startpage/pages/login/login';
             return Promise.reject(error);
           });
       } else {
         toast.error('Session has expired');
         console.log(error);
         Cookies.remove('accessToken');
-        window.location.href = '/startpage/pages/login/login3/';
+        window.location.href = '/startpage/pages/login/login';
       }
     }
     if (error.response && error.response.status >= 400) {

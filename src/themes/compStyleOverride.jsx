@@ -187,6 +187,7 @@ export default function componentStyleOverrides(theme) {
       defaultProps: {
         localeText: {
           noRowsLabel: "Hech narsa yo'q",
+          footerRowSelected: (count) => `${count} ta tanlangan`,
           MuiTablePagination: {
             labelRowsPerPage: 'Sahifadagi qatorlar:',
             labelDisplayedRows: ({ from, to, count }) => `${count} tadan ${from} dan ${to} gacha`

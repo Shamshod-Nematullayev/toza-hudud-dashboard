@@ -51,7 +51,7 @@ const ProfileSection = () => {
   const handleLogout = async () => {
     Cookies.remove('accessToken');
     Cookies.set('refreshToken');
-    navigate('/pages/login/login3/');
+    navigate('/pages/login/login');
   };
 
   const handleClose = (event) => {

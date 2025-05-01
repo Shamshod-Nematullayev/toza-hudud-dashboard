@@ -16,6 +16,8 @@ import XatlovOdamSoni from 'views/billing/OdamSoniXatlov';
 import AbonentPetition from 'views/billing/AbonentPetition';
 import CourtNote from 'views/jurist/CourtNotes';
 import XatlovDalolatnomalar from 'views/billing/XatlovDalolatnomalar';
+import Reports from 'views/billing/Reports';
+import PendingNewAbonents from 'views/billing/PendingNewAbonents';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -119,6 +121,14 @@ const MainRoutes = {
         {
           path: 'xatlovDalolatnomalar',
           element: <XatlovDalolatnomalar />
+        },
+        {
+          path: 'reports',
+          element: <Reports />
+        },
+        {
+          path: 'pendingNewAbonents',
+          element: <PendingNewAbonents />
         }
       ]
     },

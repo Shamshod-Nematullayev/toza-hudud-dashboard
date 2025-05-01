@@ -255,8 +255,8 @@ function renderSwitch({
               }}
             >
               Biz quyidagi imzo chekuvchilar, Samarqand viloyati, {company?.locationName}, {lotinga(mahalla?.data?.name)} MFY raisi{' '}
-              {fullNameToShortName(mahalla.mfy_rais_name)} , {company?.name} {company?.locationName} aholi nazoratchisi{' '}
-              {fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi xodimi
+              {fullNameToShortName(mahalla?.data?.mfy_rais_name)} , {company?.name} {company?.locationName} aholi nazoratchisi{' '}
+              {fullNameToShortName(mahalla?.data?.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi xodimi
               {' ' + fullNameToShortName(company?.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish
               natijasida quyidagi abonent
             </p>
@@ -481,7 +481,7 @@ function ArizaHeading({ mahalla, abonentData }) {
         }}
       >
         {company?.locationName} {company?.name} rahbari {fullNameToShortName(company?.managerName)}ga {company?.locationName}{' '}
-        {lotinga(mahalla.name)} MFY-da yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
+        {lotinga(mahalla?.data?.name)} MFY-da yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
         Telefon: {formatPhoneNumber(abonentData.citizen?.phone)}
       </p>
     </div>

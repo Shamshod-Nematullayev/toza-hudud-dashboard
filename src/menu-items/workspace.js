@@ -13,6 +13,7 @@ import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 
 //contans
 const icons = {
@@ -29,7 +30,8 @@ const icons = {
   PersonAddAltIcon,
   EditNoteIcon,
   ChecklistIcon,
-  InsertDriveFileOutlinedIcon
+  InsertDriveFileOutlinedIcon,
+  AssessmentOutlinedIcon
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -104,6 +106,22 @@ const billing = {
               breadcrumbs: false
             }
           ]
+        },
+        {
+          id: 'reports',
+          title: 'Hisobotlar',
+          type: 'item',
+          url: '/billing/reports',
+          icon: icons.AssessmentOutlinedIcon,
+          breadcrumbs: false
+        },
+        {
+          id: 'pendingNewAbonents',
+          title: "Yangi abonent ochish so'rovlari",
+          type: 'item',
+          url: '/billing/pendingNewAbonents',
+          icon: icons.PersonAddAltIcon,
+          breadcrumbs: false
         }
       ]
     },
