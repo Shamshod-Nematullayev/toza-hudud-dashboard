@@ -441,6 +441,7 @@ const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
 const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator }) => {
   const company = mahalla?.company;
   mahalla = mahalla?.data;
+  mahalla2 = mahalla2?.data;
   return (
     <>
       <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.manager.fullName} />

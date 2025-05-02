@@ -107,14 +107,14 @@ const billing = {
             }
           ]
         },
-        {
-          id: 'reports',
-          title: 'Hisobotlar',
-          type: 'item',
-          url: '/billing/reports',
-          icon: icons.AssessmentOutlinedIcon,
-          breadcrumbs: false
-        },
+        // {
+        //   id: 'reports',
+        //   title: 'Hisobotlar',
+        //   type: 'item',
+        //   url: '/billing/reports',
+        //   icon: icons.AssessmentOutlinedIcon,
+        //   breadcrumbs: false
+        // },
         {
           id: 'pendingNewAbonents',
           title: "Yangi abonent ochish so'rovlari",
