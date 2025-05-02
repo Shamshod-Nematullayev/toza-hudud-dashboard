@@ -12,3 +12,9 @@ export const actStatusOptions = [
   { value: 'CONFIRMED_CANCELLED', label: 'Tasdiqlangan bekor qilindi' },
   { value: 'WARNED_CANCELLED', label: 'Ogohlantirildi bekor qilindi' }
 ];
+
+export const languageOptions = [
+  { value: 'uz', label: 'O\'zbekcha' },
+  { value: 'ru', label: 'Русский' },
+  { value: 'уз', label: 'Ўзбекча' }
+];

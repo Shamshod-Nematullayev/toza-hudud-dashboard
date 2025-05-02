@@ -2,13 +2,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import config from 'config';
 
+
+
 const initialState = {
   isOpen: [],
   defaultId: 'default',
   fontFamily: config.fontFamily,
   borderRadius: config.borderRadius,
   opened: true,
-  mode: 'dark'
+  mode: 'dark',
+  language: 'uz',
 };
 
 const useCustomizationStore = create(
