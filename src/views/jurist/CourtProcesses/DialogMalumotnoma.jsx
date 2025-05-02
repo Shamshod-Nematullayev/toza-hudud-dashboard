@@ -1,16 +1,12 @@
 import React, { useRef } from 'react';
 import { Button, Dialog, DialogActions, DialogContent } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
+import { reactToPrintDefaultOptions } from 'store/constant';
 
 function DialogMalumotnoma({ open, handleClose, data }) {
   const printSectionRef = useRef();
   const handleClickPrintButton = useReactToPrint({
-    pageStyle: `@media print {
-        @page {
-        margin: 15mm 15mm 10mm 15mm !important;
-        size: A4;
-        }
-    }`,
+    ...reactToPrintDefaultOptions,
     documentTitle: data.case_number + "ma'lumotnoma",
     contentRef: printSectionRef
   });

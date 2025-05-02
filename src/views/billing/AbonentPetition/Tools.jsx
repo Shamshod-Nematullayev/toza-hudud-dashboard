@@ -1,7 +1,7 @@
 import { PublishedWithChanges, RestartAlt, Update } from '@mui/icons-material';
-import { Button, IconButton, TextField, Tooltip } from '@mui/material';
+import { IconButton, TextField, Tooltip } from '@mui/material';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import useLoaderStore from 'store/loaderStore';
 import api from 'utils/api';
 import useArizaStore from './useStore';
@@ -10,8 +10,9 @@ import { toast } from 'react-toastify';
 function Tools() {
   const { setIsLoading } = useLoaderStore(); // noto‘g‘ri: setIsLoader
   const { ariza_id } = useParams();
-  const { setAriza, setAktFileURL, setShowModal } = useArizaStore();
+  const { setAriza, setAktFileURL, setShowModal, updatePage } = useArizaStore();
   const [documentNumber, setDocumentNumber] = useState('');
+  const navigate = useNavigate();
   const updateActDetails = async () => {
     setIsLoading(true);
     try {
@@ -33,8 +34,23 @@ function Tools() {
       setIsLoading(false);
     }
   };
-  const handleKeydown = (e) => {
+  const handleKeydown = async (e) => {
     if (e.key === 'Enter') {
+      let ariza = (
+        await api.get('/arizalar', {
+          params: {
+            document_number: documentNumber
+          }
+        })
+      ).data.data;
+      if (ariza.length < 1) {
+        return toast.error("Ma'lumot topilmadi");
+      } else if (ariza.length > 1) {
+        return toast.error("Qidiruv natijalari ko'p");
+      }
+
+      ariza = ariza[0];
+      navigate('/billing/recalculation/' + ariza._id);
     }
   };
   return (

@@ -1,10 +1,38 @@
-import { Button, Grid, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Button, Grid, MenuItem, Select, TextField } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import useStore from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import KeyValue from 'ui-component/KeyValue';
+import useLoaderStore from 'store/loaderStore';
+
+// helpers
+function generateSummary(data) {
+  function formatDateToMMYYYY(dateString) {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}.${year}`;
+  }
+  // Har bir elementni matn shaklida formatlash
+  const details = data
+    .map((item) => `Davr: ${formatDateToMMYYYY(item.startDate)} - ${formatDateToMMYYYY(item.endDate)}, Summa: ${item.total}`)
+    .join('\n'); // Har bir elementni yangi qatorga joylash
+
+  // Umumiy yig'indini hisoblash
+
+  const totalSum = data.reduce((total, item) => total + item.total, 0);
+
+  // Yakuniy matnni yaratish
+  return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
+}
+
+function validateCreateAct({ aktType, inhabitantCnt }) {
+  if (aktType === 'odam_soni' && inhabitantCnt === '') {
+    return toast.error('Yashovchi soniga qiymat kiritilmadi');
+  }
+}
 
 function InputForm() {
   const {
@@ -27,6 +55,7 @@ function InputForm() {
     muzlatiladi,
     setMuzlatiladi
   } = useStore();
+  const { isLoading, setIsLoading } = useLoaderStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
@@ -91,70 +120,43 @@ function InputForm() {
     }
   }, [dublicateLicshet]);
 
-  const handleCreateAktButtonClick = (e) => {
-    if (aktType === 'odam_soni' && yashovchiSoniInput === '') {
-      return toast.error('Yashovchi soniga qiymat kiritilmadi');
-    }
-    function generateSummary(data) {
-      function formatDateToMMYYYY(dateString) {
-        const date = new Date(dateString);
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${month}.${year}`;
+  const handleCreateAktButtonClick = async (e) => {
+    validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput });
+    setIsLoading(true);
+    try {
+      const newArizaData = (
+        await api.post('/arizalar/create', {
+          licshet,
+          ikkilamchi_licshet: abonentData2.accountNumber,
+          document_type: aktType,
+          akt_summasi: aktSumma,
+          current_prescribed_cnt: abonentData.house.inhabitantCnt,
+          next_prescribed_cnt: isNaN(yashovchiSoniInput) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
+          comment: generateSummary(recalculationPeriods),
+          photos: images.map((img) => img.document_id),
+          recalculationPeriods,
+          muzlatiladi
+        })
+      ).data;
+
+      if (!newArizaData.ok) return toast.error(newArizaData.message);
+
+      setAriza(newArizaData.ariza);
+
+      const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+      setMahalla(mahallaData);
+
+      // agarda ikkilamchi akt bo'lsa ikkilamchi kod joylashgan mahalla ma'lumotlari ham olinadi
+      if (aktType === 'dvaynik') {
+        const dublicatAccountMahalla = (await api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId)).data;
+        setMahallaDublicat(dublicatAccountMahalla);
       }
-      // Har bir elementni matn shaklida formatlash
-      const details = data
-        .map((item) => `Davr: ${formatDateToMMYYYY(item.startDate)} - ${formatDateToMMYYYY(item.endDate)}, Summa: ${item.total}`)
-        .join('\n'); // Har bir elementni yangi qatorga joylash
-
-      // Umumiy yig'indini hisoblash
-
-      const totalSum = data.reduce((total, item) => total + item.total, 0);
-
-      // Yakuniy matnni yaratish
-      return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
+      setShowPrintSection(true);
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setIsLoading(false);
     }
-    api
-      .post('/arizalar/create', {
-        licshet,
-        ikkilamchi_licshet: abonentData2.accountNumber,
-        document_type: aktType,
-        akt_summasi: aktSumma,
-        current_prescribed_cnt: abonentData.house.inhabitantCnt,
-        next_prescribed_cnt: yashovchiSoniInput,
-        comment: generateSummary(recalculationPeriods),
-        photos: images.map((img) => img.document_id),
-        recalculationPeriods,
-        muzlatiladi
-      })
-      // testApi()
-      .then((res) => {
-        if (!res.data.ok) {
-          toast.error(res.data.message);
-          return;
-        }
-        setAriza(res.data.ariza);
-        api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId).then(({ data }) => {
-          if (!data.ok) {
-            toast.error(data.message);
-            return;
-          }
-          setMahalla(data.data);
-
-          if (aktType === 'dvaynik') {
-            api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId).then(({ data }) => {
-              if (!data.ok) {
-                toast.error(data.message);
-                return;
-              }
-              setMahallaDublicat(data.data);
-              setShowPrintSection(true);
-            });
-          } else {
-            setShowPrintSection(true);
-          }
-        });
-      });
   };
 
   const handleClearButtonClick = (e) => {

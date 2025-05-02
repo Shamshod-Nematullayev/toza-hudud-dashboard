@@ -2,19 +2,12 @@ import { Button, Dialog, DialogActions } from '@mui/material';
 import React, { useRef } from 'react';
 import PrintSectionCourtNote from './PrintSectionCourtNote';
 import { useReactToPrint } from 'react-to-print';
+import { reactToPrintDefaultOptions } from 'store/constant';
 
 function DialogCourtNote({ closeFunction }) {
   const componentRef = useRef();
   const printFunction = useReactToPrint({
-    pageStyle: `@media print {
-          @page {
-          margin: 15mm 15mm 15mm 25mm;
-          size: A4;
-          }
-          .page {
-          page-break-after: always;
-          }
-      }`,
+    ...reactToPrintDefaultOptions,
     documentTitle: 'bildirish xati',
     contentRef: componentRef
   });

@@ -69,25 +69,28 @@ function PrintAbonentsList() {
     });
   }, []);
 
-  const getAbonents = function (mfy_id = selectedMahalla) {
-    setLoading(true);
-    if (selectedMahalla == 0) {
-      return toast.error('Mahalla tanlanmadi');
-    }
-    api
-      .get('/billing/get-abonents-by-mfy-id/' + mfy_id, {
+  const getAbonents = async function (mfy_id = selectedMahalla) {
+    try {
+      if (!Number(mfy_id)) {
+        throw new Error('Mahalla tanlanmadi');
+      }
+      setLoading(true);
+      const { data } = await api.get('/billing/get-abonents-by-mfy-id/' + mfy_id, {
         params: {
           minSaldo,
           maxSaldo,
           onlyNotIdentited,
           etkStatus
         }
-      })
-      .then(({ data }) => {
-        if (!data.ok) return toast.error(data.message);
-        setAbonents(data.data);
-        setLoading(false);
       });
+      if (!data.ok) throw new Error(data.message);
+      setAbonents(data.data);
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClickPrintIconList = function (mfy_id) {

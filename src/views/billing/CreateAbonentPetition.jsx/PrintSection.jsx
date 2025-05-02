@@ -6,6 +6,7 @@ import { Button, Dialog, DialogActions, DialogContent, FormControl, TextareaAuto
 import { useReactToPrint } from 'react-to-print';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import api from 'utils/api';
+import { reactToPrintDefaultOptions } from 'store/constant';
 const StyledTable = styled.table`
   margin: auto;
   width: 100%;
@@ -44,6 +45,58 @@ const blobToBase64 = (blob) => {
   });
 };
 
+function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
+  const componentRef = useRef(null);
+  const printFunction = useReactToPrint({
+    ...reactToPrintDefaultOptions,
+    documentTitle: ariza.document_number,
+    contentRef: componentRef
+  });
+  const [comment, setComment] = useState('');
+
+  return (
+    <Dialog
+      open={show}
+      sx={{
+        '& .MuiDialog-paper': {
+          width: '80%', // kenglikni belgilash
+          maxWidth: '800px' // maksimal kenglik
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setShowPrintSection(false);
+        }
+      }}
+    >
+      <DialogContent style={{ margin: '40px 55px', fontSize: 14 }}>
+        <div id="print" ref={componentRef}>
+          {renderSwitch({ ...props, asoslantiruvchi: comment, ariza })}
+        </div>
+      </DialogContent>
+      {ariza.document_type === 'odam_soni' && (
+        <DialogContent>
+          <FormControl fullWidth>
+            <TextareaAutosize
+              minRows={3}
+              placeholder="Qoʻshimcha izohlar uchun"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+          </FormControl>
+        </DialogContent>
+      )}
+
+      <DialogActions>
+        <Button onClick={() => setShowPrintSection(false)}>Chiqish</Button>
+        <Button variant="contained" color="primary" onClick={printFunction}>
+          Chop etish
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function renderSwitch({
   date = new Date(),
   abonentData = {},
@@ -59,6 +112,7 @@ function renderSwitch({
 }) {
   const [olderPeriod, setOlderPeriod] = useState(new Date());
   const [photos, setPhotos] = useState([]);
+  const company = JSON.parse(localStorage.getItem('company'));
   useEffect(() => {
     setPhotos([]);
     ariza.photos?.forEach((file_id) => {
@@ -109,12 +163,12 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani</div>
+              <div>{mahalla?.company?.locationName}</div>
             </div>
             <p>
               <b>Quyidagi manzil bo‘yicha:</b>
             </p>
-            <p>MFY nomi: {mahalla.name && lotinga(mahalla?.name)}</p>
+            <p>MFY nomi: {mahalla.data?.name && lotinga(mahalla?.data?.name)}</p>
             <p>
               Manzil: {abonentData?.mahallaName} {abonentData.streetName}
             </p>
@@ -192,7 +246,7 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani</div>
+              <div>{mahalla?.company?.locationName}</div>
             </div>
             <p
               style={{
@@ -200,10 +254,11 @@ function renderSwitch({
                 textIndent: '40px'
               }}
             >
-              Biz quyidagi imzo chekuvchilar, Samarqand viloyati, Kattakurgon tumani, {lotinga(mahalla.name)} MFY raisi{' '}
-              {fullNameToShortName(mahalla.mfy_rais_name)} , “ANVARJON BIZNES INVEST” MCHJ Kattaqo‘rg‘on tuman aholi nazoratchisi{' '}
-              {fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi boshlig‘i
-              Sh.Ne’matullayev mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida kuyidagi abonent
+              Biz quyidagi imzo chekuvchilar, Samarqand viloyati, {company?.locationName}, {lotinga(mahalla?.data?.name)} MFY raisi{' '}
+              {fullNameToShortName(mahalla?.data?.mfy_rais_name)} , {company?.name} {company?.locationName} aholi nazoratchisi{' '}
+              {fullNameToShortName(mahalla?.data?.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi xodimi
+              {' ' + fullNameToShortName(company?.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish
+              natijasida quyidagi abonent
             </p>
             <StyledTable border={1} style={{ borderCollapse: 'collapse' }}>
               <thead>
@@ -316,12 +371,12 @@ function renderSwitch({
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani</div>
+              <div>{mahalla?.company?.locationName}</div>
             </div>
             <p>
               <b>Quyidagi manzil bo‘yicha:</b>
             </p>
-            <p>MFY nomi: {mahalla.name && lotinga(mahalla?.name)}</p>
+            <p>MFY nomi: {mahalla.data?.name && lotinga(mahalla?.data?.name)}</p>
             <p>
               Manzil: {abonentData?.mahallaName} {abonentData.streetName}
             </p>
@@ -341,7 +396,12 @@ function renderSwitch({
               olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda qayta
               hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
             </p>
-            <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={documentType} />
+            <ImzolashJoyi
+              abonentData={abonentData}
+              mahalla={mahalla}
+              documentType={documentType}
+              gpsOperator={mahalla?.company?.gpsOperator}
+            />
           </div>
           <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
             <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
@@ -378,26 +438,37 @@ const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
     <div style={{ width: 200 }}>{fullNameToShortName(name)}</div>
   </div>
 );
-const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType }) => {
+const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator }) => {
+  const company = mahalla?.company;
+  mahalla = mahalla?.data;
+  mahalla2 = mahalla2?.data;
   return (
     <>
-      <ImzoJoyiRow label='"Anvarjon biznes invest" MCHJ Kattaqo‘rg‘on tuman filiali raxbari:' name="Sadriddinov Aziz" />
-      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name="Ne’matullayev Shamshod" />
+      <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.manager.fullName} />
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdmin.fullName} />
       <br />
-      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla.biriktirilganNazoratchi?.inspector_name)} />
+      {gpsOperator && (
+        <>
+          <ImzoJoyiRow label="GPS kuzatuv xodimi:" name={gpsOperator.fullName} />
+          <br />
+        </>
+      )}
+
+      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
       <br />
       <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
       <br />
-      <ImzoJoyiRow label={`${lotinga(mahalla.name)} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />
+      <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
 
-      {documentType === 'dvaynik' && mahalla2.id !== mahalla.id && (
-        <ImzoJoyiRow label={`${mahalla.name} MFY raisi:`} name={lotinga(mahalla.mfy_rais_name)} />
+      {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
+        <ImzoJoyiRow label={`${mahalla?.name} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
       )}
     </>
   );
 };
 
 function ArizaHeading({ mahalla, abonentData }) {
+  const company = JSON.parse(localStorage.getItem('company'));
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       <div></div>
@@ -410,8 +481,8 @@ function ArizaHeading({ mahalla, abonentData }) {
           lineHeight: '30px'
         }}
       >
-        Kattaqoʻrgʻon tumani “Anvarjon biznes invest” MChJ rahbari A.A.Sadriddinovga Kattaqoʻrgʻon tuman {lotinga(mahalla.name)} MFY-da
-        yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
+        {company?.locationName} {company?.name} rahbari {fullNameToShortName(company?.managerName)}ga {company?.locationName}{' '}
+        {lotinga(mahalla?.data?.name)} MFY-da yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
         Telefon: {formatPhoneNumber(abonentData.citizen?.phone)}
       </p>
     </div>
@@ -440,7 +511,7 @@ function QRSection({ ariza, date, abonentData }) {
   return (
     <>
       <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
-        "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil _______ {abonentData.fullName}
+        "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil _______ {formatName(abonentData.fullName)}
       </p>
       {ariza._id && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -455,66 +526,6 @@ function QRSection({ ariza, date, abonentData }) {
         </div>
       )}
     </>
-  );
-}
-
-function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
-  const componentRef = useRef(null);
-  const printFunction = useReactToPrint({
-    pageStyle: `@media print {
-        @page {
-        margin: 15mm 15mm 15mm 25mm !important;
-        size: A4;
-        }
-        .page {
-        page-break-after: always;
-        }
-    }`,
-    documentTitle: 'Printing',
-    contentRef: componentRef
-  });
-  const [comment, setComment] = useState('');
-
-  return (
-    <Dialog
-      open={show}
-      sx={{
-        '& .MuiDialog-paper': {
-          width: '80%', // kenglikni belgilash
-          maxWidth: '800px' // maksimal kenglik
-        }
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          setShowPrintSection(false);
-        }
-      }}
-    >
-      <DialogContent style={{ margin: '40px 55px', fontSize: 14 }}>
-        <div id="print" ref={componentRef}>
-          {renderSwitch({ ...props, asoslantiruvchi: comment, ariza })}
-        </div>
-      </DialogContent>
-      {ariza.document_type === 'odam_soni' && (
-        <DialogContent>
-          <FormControl fullWidth>
-            <TextareaAutosize
-              minRows={3}
-              placeholder="Qoʻshimcha izohlar uchun"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-          </FormControl>
-        </DialogContent>
-      )}
-
-      <DialogActions>
-        <Button onClick={() => setShowPrintSection(false)}>Chiqish</Button>
-        <Button variant="contained" color="primary" onClick={printFunction}>
-          Chop etish
-        </Button>
-      </DialogActions>
-    </Dialog>
   );
 }
 

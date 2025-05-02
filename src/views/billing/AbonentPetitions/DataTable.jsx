@@ -89,25 +89,28 @@ function DataTable() {
   };
   const handlePrintButtonClick = async (_id) => {
     setIsLoading(true);
-    let ariza = (await api.get('/arizalar/' + _id)).data;
-    if (!ariza.ok) {
-      return toast.error(ariza.message);
-    }
-    ariza = ariza.ariza;
-    const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet)).data.abonentData;
-    setAbonentData(abonentData);
-    const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
-    console.log(mahallaData);
-    setMahalla(mahallaData.data);
-    if (ariza.document_type === 'dvaynik') {
-      const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet)).data.abonentData;
-      setAbonentData2(abonentData);
+    try {
+      let ariza = (await api.get('/arizalar/' + _id)).data;
+
+      ariza = ariza.ariza;
+      const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet)).data.abonentData;
+      setAbonentData(abonentData);
       const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
-      setMahallaDublicat(mahallaData.data);
+      setMahalla(mahallaData);
+      if (ariza.document_type === 'dvaynik') {
+        const abonentData = (await api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet)).data.abonentData;
+        setAbonentData2(abonentData);
+        const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+        setMahallaDublicat(mahallaData);
+      }
+      setCurrentAriza(ariza);
+      setShowPrintSection(true);
+    } catch (error) {
+      console.error(error);
+      toast.error('Xatolik kuzatildi');
+    } finally {
+      setIsLoading(false);
     }
-    setCurrentAriza(ariza);
-    setShowPrintSection(true);
-    setIsLoading(false);
   };
   const handleClickNextButton = async (ariza_id) => {
     // bu yerga arizaga kirish kodini yozaman.
@@ -156,7 +159,7 @@ function DataTable() {
                     <Tooltip title="chop etish" arrow enterDelay={1000}>
                       <span>
                         <IconButton
-                          disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
+                          // disabled={e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi' ? true : false}
                           onClick={() => handlePrintButtonClick(e.row._id)}
                         >
                           <PrintOutlinedIcon />

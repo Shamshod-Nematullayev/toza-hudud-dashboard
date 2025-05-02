@@ -5,6 +5,7 @@ import fullNameToShortName from 'views/tools/fullNameToShortName';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import { useReactToPrint } from 'react-to-print';
 import { QRCodeCanvas } from 'qrcode.react';
+import { reactToPrintDefaultOptions } from 'store/constant';
 
 const oylar = ['Январ', 'Февраль', 'Март', 'Апрель', 'Май', 'Июн', 'Июл', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабр'];
 const raqamlar = [
@@ -40,15 +41,7 @@ function PrintSection() {
   const { mahalla, data } = dalolatnomaData;
   const printComponentRef = useRef(null);
   const printFunction = useReactToPrint({
-    pageStyle: `@media print {
-        @page {
-        margin: 15mm 15mm 15mm 25mm !important;
-        size: A4;
-        }
-       .page {
-        page-break-after: always;
-        }
-    }`,
+    ...reactToPrintDefaultOptions,
     documentTitle: mahalla.name + 'xatlov',
     contentRef: printComponentRef
   });

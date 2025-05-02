@@ -4,6 +4,7 @@ import { DeleteDublicatContext } from '.';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
+import useLoaderStore from 'store/loaderStore';
 
 function SearchAbonentForm() {
   const {
@@ -18,9 +19,9 @@ function SearchAbonentForm() {
     rows,
     setRows,
     pdfFile,
-    setPdfFile,
-    setIsLoading
+    setPdfFile
   } = useContext(DeleteDublicatContext);
+  const { setIsLoading } = useLoaderStore();
   useEffect(() => {
     if (realAccountNumber.length === 12) {
       setIsLoading(true);
@@ -127,7 +128,12 @@ function SearchAbonentForm() {
   };
 
   return (
-    <FormControl>
+    <FormControl
+      fullWidth
+      sx={{
+        padding: '0 10px'
+      }}
+    >
       <AccountNumberInput label="Haqiqiy hisob raqam" setFunc={setRealAccountNumber} value={realAccountNumber} />
       <AccountNumberInput
         label="Ikkilamchi hisob raqam"

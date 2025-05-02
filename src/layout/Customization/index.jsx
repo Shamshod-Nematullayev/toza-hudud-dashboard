@@ -25,6 +25,7 @@ import { gridSpacing } from 'store/constant';
 // assets
 import { IconSettings } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
+import { useLocation } from 'react-router-dom';
 
 // concat 'px'
 function valueText(value) {
@@ -96,35 +97,43 @@ const Customization = () => {
     setCustomization({ fontFamily: newFont });
   }, [setCustomization, fontFamily]);
 
+  const location = useLocation();
+  console.log(location.pathname); // faqat path: "/about"
+  console.log(location.search); // query string: "?id=123"
+  console.log(location.hash); // hash: "#section"
+  console.log(location.pathname + location.search); // to‘liq path+query
+
   return (
     <>
       {/* toggle button */}
-      <Tooltip title="Live Customize">
-        <Fab
-          component="div"
-          onClick={handleToggle}
-          size="medium"
-          variant="circular"
-          color="secondary"
-          sx={{
-            borderRadius: 0,
-            borderTopLeftRadius: '50%',
-            borderBottomLeftRadius: '50%',
-            borderTopRightRadius: '50%',
-            borderBottomRightRadius: '4px',
-            top: '25%',
-            position: 'fixed',
-            right: 10,
-            zIndex: theme.zIndex.speedDial
-          }}
-        >
-          <AnimateButton type="rotate">
-            <IconButton color="inherit" size="large" disableRipple>
-              <IconSettings />
-            </IconButton>
-          </AnimateButton>
-        </Fab>
-      </Tooltip>
+      {location.pathname !== '/pages/login/login' && (
+        <Tooltip title="Mavzu">
+          <Fab
+            component="div"
+            onClick={handleToggle}
+            size="medium"
+            variant="circular"
+            color="secondary"
+            sx={{
+              borderRadius: 0,
+              borderTopLeftRadius: '50%',
+              borderBottomLeftRadius: '50%',
+              borderTopRightRadius: '50%',
+              borderBottomRightRadius: '4px',
+              top: '25%',
+              position: 'fixed',
+              right: 10,
+              zIndex: theme.zIndex.speedDial
+            }}
+          >
+            <AnimateButton type="rotate">
+              <IconButton color="inherit" size="large" disableRipple>
+                <IconSettings />
+              </IconButton>
+            </AnimateButton>
+          </Fab>
+        </Tooltip>
+      )}
 
       <Drawer
         anchor="right"

@@ -1,4 +1,4 @@
-import { Grid, IconButton, List, ListItem, ListItemButton, Typography, useTheme } from '@mui/material';
+import { Button, Grid, IconButton, List, ListItem, ListItemButton, Switch, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
@@ -11,6 +11,9 @@ import useCustomizationStore from 'store/customizationStore';
 import ModalChoose from './ModalChoose';
 import api from 'utils/api';
 import { gridSpacing } from 'store/constant';
+import { AddOutlined, Telegram } from '@mui/icons-material';
+import AddInspectorModal from './AddInspectorModal';
+import ConnectTelegramModal from './ConnectTelegramModal';
 
 function Inspectors() {
   const [mahallalar, setMahallalar] = useState([]);
@@ -19,6 +22,8 @@ function Inspectors() {
   const [activeInspector, setActiveInspector] = useState(null);
   const [activeMFY, setActiveMFY] = useState(null);
   const [openAddModal, setOpenAddModal] = useState(false);
+  const [openCreateInspectorModal, setOpenCreateInspectorModal] = useState(false);
+  const [openConnectTelegramModal, setOpenConnectTelegramModal] = useState(false);
   const [choosingMethod, setChoosingMethod] = useState(null);
   const [forChoose, setForChoose] = useState([]);
 
@@ -30,6 +35,7 @@ function Inspectors() {
           result.push({
             id: row.id,
             name: row.name,
+            activ: row.activ,
             mfy1: row.biriktirilgan[0],
             mfy2: row.biriktirilgan[1],
             mfy3: row.biriktirilgan[2]
@@ -65,6 +71,18 @@ function Inspectors() {
       headerName: 'Mahalla 3',
       width: 150,
       renderCell: (params) => renderMahallaActions(params.row.mfy3, params.row.id, 3)
+    },
+    {
+      field: 'activ',
+      headerName: 'Holat',
+      width: 70,
+      renderCell: (params) => {
+        return (
+          <div>
+            <Switch checked={params.row.activ} onChange={(e) => handleClickSwitch(params.row.id)} />
+          </div>
+        );
+      }
     }
   ];
 
@@ -73,9 +91,6 @@ function Inspectors() {
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {mfy ? (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <IconButton onClick={() => handleEdit(mfy.mfy_id)}>
-              <EditIcon sx={{ color: customization.mode === 'dark' ? 'primary.200' : 'primary.main' }} />
-            </IconButton>
             <IconButton onClick={() => handleDelete(mfy.mfy_id)}>
               <DeleteIcon sx={{ color: customization.mode === 'dark' ? 'error.light' : 'error.main' }} />
             </IconButton>
@@ -94,9 +109,6 @@ function Inspectors() {
 
   // handlers
 
-  const handleEdit = (mfy_id) => {
-    // todo
-  };
   const handleDelete = async (mfy_id) => {
     try {
       const { data } = await api.post('/inspectors/unset-inspector-to-mfy/' + mfy_id);
@@ -124,8 +136,32 @@ function Inspectors() {
     setChoosingMethod(type);
     setOpenAddModal(true);
   };
+  const handleClickSwitch = async (value) => {
+    try {
+      const currentStatus = rows.find((row) => row.id === value).activ;
+      if (currentStatus) {
+        if (!confirm('Nazoratchini faolsizlantirishni tasdiqlaysizmi?')) {
+          return;
+        }
+      }
+      await api.post('/inspectors/set-inspector-inactive/' + value, {
+        inactive: !currentStatus
+      });
+      const updatedRows = rows.map((row) => {
+        if (row.id === value) {
+          return { ...row, activ: !row.activ };
+        }
+        return row;
+      });
+      setRows(updatedRows);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
-    <MainCard title="Nazoratchilar" contentSX={{ height: '100%' }}>
+    <MainCard contentSX={{ height: '100%' }}>
+      {openCreateInspectorModal && <AddInspectorModal setOpenCreateInspectorModal={setOpenCreateInspectorModal} setInspectors={setRows} />}
+      {openConnectTelegramModal && <ConnectTelegramModal setOpenConnectTelegramModal={setOpenConnectTelegramModal} inspectors={rows} />}
       <ModalChoose
         activeInspector={activeInspector}
         activeMFY={activeMFY}
@@ -136,6 +172,24 @@ function Inspectors() {
         updateData={updateData}
       />
       <Grid container spacing={1}>
+        <Grid
+          item
+          xs={12}
+          sx={{
+            button: {
+              margin: '5px'
+            }
+          }}
+        >
+          <Button color="success" onClick={() => setOpenCreateInspectorModal(true)} variant="contained">
+            <AddOutlined />
+            Qo'shish
+          </Button>
+          <Button color="primary" onClick={() => setOpenConnectTelegramModal(true)} variant="contained">
+            <Telegram />
+            Telegramni ulash
+          </Button>
+        </Grid>
         <Grid
           item
           xs={2}
@@ -171,7 +225,6 @@ function Inspectors() {
                 paginationModel: { pageSize: 25 }
               }
             }}
-            getRowHeight={() => 120}
             sx={{
               height: 'calc(-250px + 100vh)'
             }}

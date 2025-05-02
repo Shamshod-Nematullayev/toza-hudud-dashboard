@@ -11,6 +11,7 @@ import { ClearAll } from '@mui/icons-material';
 import api from 'utils/api';
 import { lotinga } from 'helpers/lotinKiril';
 import { toast } from 'react-toastify';
+import { reactToPrintDefaultOptions } from 'store/constant';
 
 function Header({ printContentRef, getAbonents }) {
   const {
@@ -40,14 +41,17 @@ function Header({ printContentRef, getAbonents }) {
 
   const printFunction = useReactToPrint({
     pageStyle: `@media print {
-        @page {
-        margin: 15mm 15mm 10mm 15mm !important;
-        size: A4;
-        }
-        .page {
-        page-break-after: always;
-        }
-    }`,
+      @page {
+      margin: 5mm 5mm 5mm 5mm !important;
+      size: A4;
+      }
+      .page {
+      page-break-after: always;
+      }
+      * {
+        color: #000
+      }
+  }`,
     documentTitle: abonents[0]?.mahallaName + '_' + new Date().getTime(),
     contentRef: printContentRef
   });
@@ -74,12 +78,19 @@ function Header({ printContentRef, getAbonents }) {
     try {
       for (let i = 0; i < rows.length; i += maxRowsPerImage) {
         const clonedTable = printContentRef.current.querySelectorAll('table')[1].cloneNode(true);
+
         const tbody = clonedTable.querySelector('tbody');
 
         // Asosiy jadvalning kerakli qismini olish
         const rowsToRender = Array.from(rows).slice(i, i + maxRowsPerImage);
         tbody.innerHTML = ''; // Jadvalni tozalash
         rowsToRender.forEach((row) => tbody.appendChild(row.cloneNode(true)));
+
+        // << BU YERDA BARCHA ELEMENTLARGA QORA RANG BERIB KETAMIZ
+        const elements = clonedTable.querySelectorAll('*');
+        elements.forEach((el) => {
+          el.style.color = '#000';
+        });
 
         // Vaqtinchalik konteynerga jadvalni qo'shish
         tempContainer.appendChild(clonedTable);
@@ -111,7 +122,8 @@ function Header({ printContentRef, getAbonents }) {
             minSaldo: minSaldo,
             maxSaldo: maxSaldo,
             mahalla_name: abonents[0].mahallaName,
-            onlyNotIdentited
+            onlyNotIdentited,
+            electricCode: etkStatus
           }
         })
         .then(({ data }) => {
@@ -230,13 +242,13 @@ function Header({ printContentRef, getAbonents }) {
         <Button disabled={mainFunctionsDisabled} onClick={handleClickDone}>
           <DoneAll /> Topshirildi
         </Button>
-        <Button
+        {/* <Button
           disabled={mahallas.filter((mfy) => mfy.reja > 0 && mfy.abarotka_berildi).length > 0 ? false : true}
           sx={{ color: 'error.main' }}
           onClick={handleClickClearAll}
         >
           <ClearAll /> Tozalash
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
