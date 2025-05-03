@@ -26,3 +26,9 @@ export const reactToPrintDefaultOptions = {
       }
   }`
 };
+
+export const languageOptions = [
+  { value: 'uz', label: 'O\'zbekcha' },
+  { value: 'ru', label: 'Русский' },
+  { value: 'уз', label: 'Ўзбекча' }
+];
