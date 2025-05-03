@@ -53,7 +53,7 @@ function Inspectors() {
   }, []);
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: 'Ism', width: 200 },
+    { field: 'name', headerName: 'Ism', width: 200, flex: 1 },
     {
       field: 'mfy1',
       headerName: 'Mahalla 1',
