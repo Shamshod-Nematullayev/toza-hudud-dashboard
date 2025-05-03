@@ -6,6 +6,7 @@ import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import Logo from 'ui-component/Logo';
 
 const Body = styled.div`
   display: flex;
@@ -29,6 +30,10 @@ const LoginBox = styled.div`
   align-items: center;
   background-color: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(5px);
+  @media (max-width: 568px) {
+    width: 90%;
+    height: 80%;
+  }
 `;
 const LoginTitle = styled.h2`
   color: #fff;
@@ -139,6 +144,13 @@ function Login() {
     <Body>
       <LoginBox>
         <form onSubmit={handleSubmit}>
+          {/* <Logo
+            imgSize={80}
+            style={{
+              textShadow: '0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #fff, 0 0 25px #fff, 0 0 30px #fff',
+              color: '#55b543'
+            }}
+          /> */}
           <LoginTitle>Tizimga kirish</LoginTitle>
           <InputBox>
             <Icon>

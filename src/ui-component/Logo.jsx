@@ -1,6 +1,6 @@
 // material-ui
 import { useTheme } from '@mui/material/styles';
-
+import logo from 'assets/images/logo.png';
 /**
  * if you want to use image instead of <svg> uncomment following.
  *
@@ -11,17 +11,27 @@ import { useTheme } from '@mui/material/styles';
 
 // ==============================|| LOGO SVG ||============================== //
 
-const Logo = () => {
+const Logo = ({ style, imgSize }) => {
   const theme = useTheme();
 
   return (
     /**
      * if you want to use image instead of svg uncomment following, and comment out <svg> element.
      *
-     * <img src={logo} alt="Berry" width="100" />
      *
      */
-    <h2>TH Dashboard</h2>
+    <h2
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        color: '#00512f',
+        fontSize: '1.5rem',
+        ...style
+      }}
+    >
+      <img src={logo} alt="Berry" width={imgSize || '50'} />
+      GreenZone
+    </h2>
   );
 };
 

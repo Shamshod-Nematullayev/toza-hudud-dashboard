@@ -180,7 +180,7 @@ function PendingNewAbonents() {
       }
     };
     fetchPendingAbonents();
-  }, []);
+  }, [page, pageSize]);
   return (
     <MainCard sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <DataGrid
