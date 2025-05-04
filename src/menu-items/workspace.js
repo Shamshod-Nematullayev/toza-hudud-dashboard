@@ -37,132 +37,133 @@ const icons = {
 
 const billing = {
   id: 'workspace',
-  title: 'Ish maydoni',
+  title: 'workspace',
   type: 'group',
   children: [
+    // {
+    //   id: 'billing',
+    //   title: 'billing',
+    //   type: 'collapse',
+    //   icon: icons.ImportantDevicesOutlinedIcon,
+    //   children: [
     {
-      id: 'billing',
-      title: 'Billing',
+      id: 'createAbonentPetition',
+      title: 'createAbonentPetition',
+      type: 'item',
+      url: '/billing/createAbonentAriza',
+      icon: icons.NoteAddOutlinedIcon,
+      breadcrumbs: false
+    },
+    {
+      id: 'importAbonentPetition',
+      title: 'importAbonentPetition',
+      type: 'item',
+      url: '/billing/importAbonentPetition',
+      icon: icons.UploadFileOutlinedIcon
+    },
+    {
+      id: 'petitions',
+      title: 'petitions',
+      type: 'item',
+      url: '/billing/recalculation',
+      icon: icons.CalculateIcon,
+      breadcrumbs: false
+    },
+    {
+      id: 'deleteDublicates',
+      title: `deleteDublicates`,
+      type: 'item',
+      url: '/billing/deleteDublicate',
+      icon: icons.DoNotDisturbOnIcon
+    },
+    {
+      id: 'printAbonentsList',
+      title: 'printAbonentsList',
+      type: 'item',
+      url: '/billing/printAbonentsList',
+      icon: icons.PrintOutlinedIcon,
+      breadcrumbs: false
+    },
+    {
+      id: 'inventory',
+      title: 'inventory',
       type: 'collapse',
-      icon: icons.ImportantDevicesOutlinedIcon,
+      icon: icons.ChecklistIcon,
       children: [
         {
-          id: 'createAbonentAriza',
-          title: 'Abonent arizasi yaratish',
+          id: 'createInventory',
+          title: 'createInventory',
           type: 'item',
-          url: '/billing/createAbonentAriza',
-          icon: icons.NoteAddOutlinedIcon
-        },
-        {
-          id: 'importAbonentPetition',
-          title: 'Abonent arizalari kiritish',
-          type: 'item',
-          url: '/billing/importAbonentPetition',
-          icon: icons.UploadFileOutlinedIcon
-        },
-        {
-          id: 'recalculation',
-          title: 'Abonent arizalari',
-          type: 'item',
-          url: '/billing/recalculation',
-          icon: icons.CalculateIcon,
-          breadcrumbs: false
-        },
-        {
-          id: 'deleteDublicate',
-          title: `Ikkilamchi kodlarni o'chirish`,
-          type: 'item',
-          url: '/billing/deleteDublicate',
-          icon: icons.DoNotDisturbOnIcon
-        },
-        {
-          id: 'printAbonentsList',
-          title: "Abonentlar ro'yxatini chop etish",
-          type: 'item',
-          url: '/billing/printAbonentsList',
-          icon: icons.PrintOutlinedIcon,
-          breadcrumbs: false
-        },
-        {
-          id: 'xatlov',
-          title: 'Xatlov',
-          type: 'collapse',
-          icon: icons.ChecklistIcon,
-          children: [
-            {
-              id: 'xatlovOdamSoni',
-              title: 'Xatlov odam soni',
-              type: 'item',
-              url: '/billing/xatlovOdamSoni',
-              icon: icons.PersonAddAltIcon,
-              breadcrumbs: false
-            },
-            {
-              id: 'xatlovDalolatnomalar',
-              title: 'Xatlov dalolatnomalar',
-              type: 'item',
-              url: '/billing/xatlovDalolatnomalar',
-              icon: icons.InsertDriveFileOutlinedIcon,
-              breadcrumbs: false
-            }
-          ]
-        },
-        // {
-        //   id: 'reports',
-        //   title: 'Hisobotlar',
-        //   type: 'item',
-        //   url: '/billing/reports',
-        //   icon: icons.AssessmentOutlinedIcon,
-        //   breadcrumbs: false
-        // },
-        {
-          id: 'pendingNewAbonents',
-          title: "Yangi abonent ochish so'rovlari",
-          type: 'item',
-          url: '/billing/pendingNewAbonents',
+          url: '/billing/xatlovOdamSoni',
           icon: icons.PersonAddAltIcon,
+          breadcrumbs: false
+        },
+        {
+          id: 'invertoreDocuments',
+          title: 'invertoreDocuments',
+          type: 'item',
+          url: '/billing/xatlovDalolatnomalar',
+          icon: icons.InsertDriveFileOutlinedIcon,
           breadcrumbs: false
         }
       ]
     },
+    // {
+    //   id: 'reports',
+    //   title: 'Hisobotlar',
+    //   type: 'item',
+    //   url: '/billing/reports',
+    //   icon: icons.AssessmentOutlinedIcon,
+    //   breadcrumbs: false
+    // },
     {
-      id: 'jurist',
-      title: 'Yurist',
-      type: 'collapse',
-      icon: icons.BookIcon,
-      children: [
-        {
-          id: 'warningLetters',
-          title: 'Ogohlantirish',
-          type: 'item',
-          url: '/jurist/warningLetter',
-          icon: icons.MailIcon,
-          breadcrumbs: false
-        },
-        {
-          id: 'courtProccesses',
-          title: 'Sud jarayonlari',
-          type: 'item',
-          url: '/jurist/courtProccesses',
-          icon: icons.GavelIcon
-        },
-        {
-          id: 'importPetition',
-          title: 'Sudga arizalar kiritish',
-          type: 'item',
-          url: '/jurist/importPetition',
-          icon: icons.FileDownloadOutlinedIcon
-        },
-        {
-          id: 'courtNote',
-          title: 'Nishonga olingan abonentlar',
-          type: 'item',
-          url: '/jurist/courtNote',
-          icon: icons.EditNoteIcon,
-          breadcrumbs: false
-        }
-      ]
+      id: 'newAbonentRequirements',
+      title: 'newAbonentRequirements',
+      type: 'item',
+      url: '/billing/pendingNewAbonents',
+      icon: icons.PersonAddAltIcon,
+      breadcrumbs: false
     }
+    //   ]
+    // }
+    // {
+    //   id: 'jurist',
+    //   title: 'Yurist',
+    //   type: 'collapse',
+    //   icon: icons.BookIcon,
+    //   children: [
+    //     {
+    //       id: 'warningLetters',
+    //       title: 'Ogohlantirish',
+    //       type: 'item',
+    //       url: '/jurist/warningLetter',
+    //       icon: icons.MailIcon,
+    //       breadcrumbs: false
+    //     },
+    //     {
+    //       id: 'courtProccesses',
+    //       title: 'Sud jarayonlari',
+    //       type: 'item',
+    //       url: '/jurist/courtProccesses',
+    //       icon: icons.GavelIcon
+    //     },
+    //     {
+    //       id: 'importPetition',
+    //       title: 'Sudga arizalar kiritish',
+    //       type: 'item',
+    //       url: '/jurist/importPetition',
+    //       icon: icons.FileDownloadOutlinedIcon
+    //     },
+    //     {
+    //       id: 'courtNote',
+    //       title: 'Nishonga olingan abonentlar',
+    //       type: 'item',
+    //       url: '/jurist/courtNote',
+    //       icon: icons.EditNoteIcon,
+    //       breadcrumbs: false
+    //     }
+    //   ]
+    // }
   ]
 };
 

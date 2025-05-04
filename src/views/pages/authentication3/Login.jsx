@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Logo from 'ui-component/Logo';
+import { useTranslation } from 'react-i18next';
 
 const Body = styled.div`
   display: flex;
@@ -39,6 +40,7 @@ const LoginTitle = styled.h2`
   color: #fff;
   font-size: 2rem;
   text-align: center;
+  margin-bottom: 60px;
 `;
 const InputBox = styled.div`
   position: relative;
@@ -111,6 +113,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [values, setValues] = useState({ username: '', password: '' });
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -151,13 +154,13 @@ function Login() {
               color: '#55b543'
             }}
           /> */}
-          <LoginTitle>Tizimga kirish</LoginTitle>
+          <LoginTitle>{t('tizimga kirish')}</LoginTitle>
           <InputBox>
             <Icon>
               <PersonOutlineIcon />
             </Icon>
             <Input type="text" name="username" required value={values.username} onChange={handleChangeInputValue} />
-            <InputBoxLabel>Username</InputBoxLabel>
+            <InputBoxLabel>{t('username')}</InputBoxLabel>
           </InputBox>
           <InputBox>
             <Icon style={{ cursor: 'pointer' }} onClick={() => setShowPassword(!showPassword)}>
@@ -171,9 +174,9 @@ function Login() {
               value={values.password}
               onChange={handleChangeInputValue}
             />
-            <InputBoxLabel>Parol</InputBoxLabel>
+            <InputBoxLabel>{t('password')}</InputBoxLabel>
           </InputBox>
-          <Button type="submit">Kirish</Button>
+          <Button type="submit">{t('login')}</Button>
         </form>
       </LoginBox>
     </Body>

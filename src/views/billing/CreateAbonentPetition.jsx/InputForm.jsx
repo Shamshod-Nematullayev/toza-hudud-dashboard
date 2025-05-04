@@ -6,6 +6,9 @@ import useStore from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import KeyValue from 'ui-component/KeyValue';
 import useLoaderStore from 'store/loaderStore';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
+import { documentTypes } from 'store/constant';
 
 // helpers
 function generateSummary(data) {
@@ -29,8 +32,8 @@ function generateSummary(data) {
 }
 
 function validateCreateAct({ aktType, inhabitantCnt }) {
-  if (aktType === 'odam_soni' && inhabitantCnt === '') {
-    return toast.error('Yashovchi soniga qiymat kiritilmadi');
+  if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(inhabitantCnt))) {
+    return toast.error(i18next.t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
   }
 }
 
@@ -59,6 +62,7 @@ function InputForm() {
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (muzlatiladi) {
@@ -174,14 +178,14 @@ function InputForm() {
       <Grid item xs={6}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <Select value={aktType} onChange={(e) => setAktType(e.target.value)}>
-            <MenuItem value="odam_soni">Odam soni</MenuItem>
-            <MenuItem value="viza">Pasport viza</MenuItem>
-            <MenuItem value="death">O'lim guvohnoma</MenuItem>
-            <MenuItem value="dvaynik">Ikkilamchi kod</MenuItem>
-            <MenuItem value="gps">Texnika bormagan</MenuItem>
+            {documentTypes.map((item) => (
+              <MenuItem key={item} value={item}>
+                {t(`documentTypes.${item}`)}
+              </MenuItem>
+            ))}
           </Select>
           <TextField
-            label="Yashovchi soni"
+            label={t('createAbonentPetitionPage.inhabitantCnt')}
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' || aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
             value={yashovchiSoniInput}
             disabled={aktType === 'death'}
@@ -198,11 +202,11 @@ function InputForm() {
               display: aktType === 'gps' ? 'auto' : 'none'
             }}
           >
-            <MenuItem value={false}>Endi xizmat ko'rsatadi</MenuItem>
-            <MenuItem value={true}>Muzlatish</MenuItem>
+            <MenuItem value={false}>{t('createAbonentPetitionPage.notFreeze')}</MenuItem>
+            <MenuItem value={true}>{t('createAbonentPetitionPage.freeze')}</MenuItem>
           </Select>
           <TextField
-            label="Aktlar summasi"
+            label={t('createAbonentPetitionPage.actAmount')}
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
             value={aktSumma.total}
             disabled
@@ -216,10 +220,10 @@ function InputForm() {
       </Grid>
       <Grid item xs={6}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <AccountNumberInput label="Hisob raqam" value={licshet} setFunc={setLicshet} />
+          <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={licshet} setFunc={setLicshet} />
 
           <AccountNumberInput
-            label="Ikkilamchi kod"
+            label={t('createAbonentPetitionPage.dublicateAccountNumber')}
             value={dublicateLicshet}
             setFunc={setDublicateLicshet}
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
@@ -235,36 +239,34 @@ function InputForm() {
           }
           onClick={handleCreateAktButtonClick}
         >
-          Yaratish
+          {t('buttons.create')}
         </Button>
       </Grid>
       <Grid item xs={4}>
         <Button variant="outlined" color={'error'} onClick={handleClearButtonClick}>
-          Tozalash
+          {t('buttons.clear')}
         </Button>
       </Grid>
       {aktType === 'gps' && (
         <Grid item xs={4}>
           <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
-            Rasm +
+            {t('buttons.addImage')}
           </Button>{' '}
         </Grid>
       )}
 
       {abonentData.accountNumber && (
         <div>
-          <KeyValue kalit="Licshet" value={abonentData.accountNumber} />
-          <KeyValue kalit="F. I. Sh" value={abonentData.fullName} />
-          <KeyValue kalit="Mahalla" value={abonentData.mahallaName} />
-          <KeyValue kalit="Yashovchi soni" value={abonentData.house.inhabitantCnt} />
+          <KeyValue kalit={t('createAbonentPetitionPage.accountNumber')} value={abonentData.accountNumber} />
+          <KeyValue kalit={t('tableHeaders.fullName')} value={abonentData.fullName} />
+          <KeyValue kalit={t('tableHeaders.mfy')} value={abonentData.mahallaName} />
         </div>
       )}
       {abonentData2.accountNumber && (
         <div>
-          <KeyValue kalit="Ikkilamchi" value={abonentData2.accountNumber} />
-          <KeyValue kalit="F. I. Sh" value={abonentData2.fullName} />
-          <KeyValue kalit="Mahalla" value={abonentData2.mahallaName} />
-          <KeyValue kalit="Yashovchi soni" value={abonentData2.house.inhabitantCnt} />
+          <KeyValue kalit={t('createAbonentPetitionPage.dublicateAccountNumber')} value={abonentData2.accountNumber} />
+          <KeyValue kalit={t('tableHeaders.fullName')} value={abonentData2.fullName} />
+          <KeyValue kalit={t('tableHeaders.mfy')} value={abonentData2.mahallaName} />
         </div>
       )}
     </Grid>

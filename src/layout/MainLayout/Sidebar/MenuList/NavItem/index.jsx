@@ -17,6 +17,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 // assets
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import useCustomizationStore from 'store/customizationStore';
+import { useTranslation } from 'react-i18next';
 
 // ==============================|| SIDEBAR MENU LIST ITEMS ||============================== //
 
@@ -67,6 +68,8 @@ const NavItem = ({ item, level }) => {
     // eslint-disable-next-line
   }, [pathname]);
 
+  const { t } = useTranslation();
+
   return (
     <ListItemButton
       {...listItemProps}
@@ -86,7 +89,7 @@ const NavItem = ({ item, level }) => {
       <ListItemText
         primary={
           <Typography variant={customization.isOpen.findIndex((id) => id === item.id) > -1 ? 'h5' : 'body1'} color="inherit">
-            {item.title}
+            {t(`menuItems.${item.title}`)}
           </Typography>
         }
         secondary={

@@ -1,10 +1,12 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Select, TextField } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 
 function AddInspectorModal({ setOpenCreateInspectorModal, setInspectors }) {
   const [rows, setRows] = useState([]);
   const [selectedInspector, setSelectedInspector] = useState(0);
+  const { t } = useTranslation();
   useEffect(() => {
     async function fetchData() {
       try {
@@ -51,12 +53,12 @@ function AddInspectorModal({ setOpenCreateInspectorModal, setInspectors }) {
   };
   return (
     <Dialog open={1} onKeyDown={handleKeyDown}>
-      <DialogTitle>Nazoratchi qo'shish</DialogTitle>
+      <DialogTitle>{t('inspectorsPage.addInspector')}</DialogTitle>
       <DialogContent>
         <DialogContentText>
           <Select fullWidth value={selectedInspector} onChange={(e) => setSelectedInspector(e.target.value)}>
             <MenuItem value={0} disabled>
-              Nazoratchini tanlang
+              {t('inspectorsPage.chooseInspector')}
             </MenuItem>
             {rows.map((row) => (
               <MenuItem key={row.id} value={row.id}>
@@ -70,7 +72,7 @@ function AddInspectorModal({ setOpenCreateInspectorModal, setInspectors }) {
             }}
             margin="dense"
             id="name"
-            label="inspektor id"
+            label={t('inspectorsPage.inspectorId')}
             type="text"
             fullWidth
             variant="standard"
@@ -87,7 +89,7 @@ function AddInspectorModal({ setOpenCreateInspectorModal, setInspectors }) {
             }}
             margin="dense"
             id="name"
-            label="To'liq ismi"
+            label={t('tableHeaders.fullName')}
             type="text"
             fullWidth
             variant="standard"
@@ -96,10 +98,10 @@ function AddInspectorModal({ setOpenCreateInspectorModal, setInspectors }) {
         </DialogContentText>
         <DialogActions>
           <Button onClick={handleClose} variant="outlined" color="secondary">
-            Yopish
+            {t('tableActions.close')}
           </Button>
           <Button onClick={handleAddInspector} variant="contained" color="primary" disabled={selectedInspector === 0}>
-            Qo'shish
+            {t('tableActions.confirm')}
           </Button>
         </DialogActions>
       </DialogContent>

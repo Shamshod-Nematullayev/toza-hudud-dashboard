@@ -5,6 +5,7 @@ import RadialChart from './RadialChart';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { Card } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
   const [isLoading, setLoading] = useState(true);
@@ -12,6 +13,7 @@ const Dashboard = () => {
   const [etkIdentity, setEtkIdentity] = useState(null);
   const [identityProcent, setIdentityProcent] = useState(0);
   const [etkIdentityProcent, setEtkIdentityProcent] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,10 +51,10 @@ const Dashboard = () => {
         <Card sx={{ boxShadow: 2 }}>
           <Grid container>
             <Grid item xs={6}>
-              <RadialChart isLoading={isLoading} progress={identityProcent} label={'Shaxsi tasdiqlandi'} />
+              <RadialChart isLoading={isLoading} progress={identityProcent} label={t('dashboard.identified')} />
             </Grid>
             <Grid item xs={6}>
-              <RadialChart isLoading={isLoading} progress={etkIdentityProcent} label={'Elektr kodi'} />
+              <RadialChart isLoading={isLoading} progress={etkIdentityProcent} label={t('dashboard.electacityContirmed')} />
             </Grid>
           </Grid>
         </Card>

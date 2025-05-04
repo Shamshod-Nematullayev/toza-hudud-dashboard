@@ -2,16 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import config from 'config';
 
-
-
 const initialState = {
   isOpen: [],
   defaultId: 'default',
   fontFamily: config.fontFamily,
   borderRadius: config.borderRadius,
   opened: true,
-  mode: 'dark',
-  language: 'uz',
+  mode: 'dark'
 };
 
 const useCustomizationStore = create(
@@ -22,6 +19,8 @@ const useCustomizationStore = create(
         set((state) => ({
           customization: { ...state.customization, ...customization }
         })),
+      language: 'ru',
+      setLanguage: (language) => set({ language }),
       resetCustomization: () => set({ customization: initialState })
     }),
     {

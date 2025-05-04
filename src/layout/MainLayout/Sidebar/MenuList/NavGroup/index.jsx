@@ -9,11 +9,13 @@ import Typography from '@mui/material/Typography';
 // project imports
 import NavItem from '../NavItem';
 import NavCollapse from '../NavCollapse';
+import { useTranslation } from 'react-i18next';
 
 // ==============================|| SIDEBAR MENU LIST GROUP ||============================== //
 
 const NavGroup = ({ item }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // menu list collapse & items
   const items = item.children?.map((menu) => {
@@ -37,7 +39,7 @@ const NavGroup = ({ item }) => {
         subheader={
           item.title && (
             <Typography variant="caption" sx={{ ...theme.typography.menuCaption }} display="block" gutterBottom>
-              {item.title}
+              {t(`menuItems.${item.title}`)}
               {item.caption && (
                 <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption }} display="block" gutterBottom>
                   {item.caption}

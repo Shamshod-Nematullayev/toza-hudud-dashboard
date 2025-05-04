@@ -21,21 +21,18 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Loader from 'ui-component/Loader';
 import useLoaderStore from 'store/loaderStore';
-import { socket } from 'utils/socket';
 import SettingsModal from 'layout/MainLayout/SettingsModal';
 import { useUserStore } from 'store/userStore';
-
+import i18n from './languageConfig';
 // ==============================|| APP ||============================== //
 
 const App = () => {
-  const { customization } = useCustomizationStore();
+  const { customization, language } = useCustomizationStore();
   const { isLoading } = useLoaderStore();
   const { settingsModalOpenState } = useUserStore();
   useEffect(() => {
-    // socket.on('connect', () => {
-    console.log('Serverga ulandi:', socket.id);
-    // });
-  }, []);
+    i18n.changeLanguage(language);
+  }, [language]);
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={themes(customization)}>

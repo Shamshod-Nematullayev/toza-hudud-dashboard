@@ -14,6 +14,7 @@ import ProfileSection from './ProfileSection';
 
 // assets
 import { IconMenu2 } from '@tabler/icons-react';
+import LanguageSection from './LanguageSection';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -63,7 +64,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
       <SearchSection />
       <Box sx={{ flexGrow: 1 }} />
       <Box sx={{ flexGrow: 1 }} />
-
+      <LanguageSection />
       {/* notification & profile */}
       <NotificationSection />
       <ProfileSection />

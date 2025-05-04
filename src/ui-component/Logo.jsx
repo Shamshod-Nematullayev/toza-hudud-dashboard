@@ -1,6 +1,7 @@
 // material-ui
 import { useTheme } from '@mui/material/styles';
 import logo from 'assets/images/logo.png';
+import useCustomizationStore from 'store/customizationStore';
 /**
  * if you want to use image instead of <svg> uncomment following.
  *
@@ -13,6 +14,8 @@ import logo from 'assets/images/logo.png';
 
 const Logo = ({ style, imgSize }) => {
   const theme = useTheme();
+  const {mode} = useCustomizationStore().customization;
+  console.log('mode', mode);
 
   return (
     /**
@@ -24,7 +27,7 @@ const Logo = ({ style, imgSize }) => {
       style={{
         display: 'flex',
         alignItems: 'center',
-        color: '#00512f',
+        color: mode === "dark" ? "#50cd89" : '#00512f',
         fontSize: '1.5rem',
         ...style
       }}

@@ -2,7 +2,7 @@
 export const gridSpacing = 3;
 export const drawerWidth = 260;
 export const appDrawerWidth = 320;
-export const SERVER_DOMAIN = 'http://192.168.10.104:3000'; //192.168.1.138 | 45.92.173.48
+export const SERVER_DOMAIN = 'http://45.92.173.48:8000'; //192.168.1.138 | 45.92.173.48
 export const SERVER_URL = SERVER_DOMAIN + '/api';
 export const actStatusOptions = [
   { value: 'NEW', label: 'Yangi' },
@@ -28,7 +28,9 @@ export const reactToPrintDefaultOptions = {
 };
 
 export const languageOptions = [
-  { value: 'uz', label: 'O\'zbekcha' },
-  { value: 'ru', label: 'Русский' },
-  { value: 'уз', label: 'Ўзбекча' }
+  { value: 'uz', label: "O'zbekcha", img: '/src/assets/images/uz.jpg' },
+  { value: 'uz-kirill', label: 'Ўзбекча', img: '/src/assets/images/uz.jpg' },
+  { value: 'ru', label: 'Русский', img: '/src/assets/images/ru.jpg' }
 ];
+
+export const documentTypes = ['odam_soni', 'viza', 'death', 'dvaynik', 'gps'];

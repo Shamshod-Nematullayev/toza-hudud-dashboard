@@ -14,6 +14,7 @@ import { gridSpacing } from 'store/constant';
 import { AddOutlined, Telegram } from '@mui/icons-material';
 import AddInspectorModal from './AddInspectorModal';
 import ConnectTelegramModal from './ConnectTelegramModal';
+import { useTranslation } from 'react-i18next';
 
 function Inspectors() {
   const [mahallalar, setMahallalar] = useState([]);
@@ -26,6 +27,8 @@ function Inspectors() {
   const [openConnectTelegramModal, setOpenConnectTelegramModal] = useState(false);
   const [choosingMethod, setChoosingMethod] = useState(null);
   const [forChoose, setForChoose] = useState([]);
+
+  const { t } = useTranslation();
 
   async function updateData() {
     try {
@@ -53,28 +56,28 @@ function Inspectors() {
   }, []);
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: 'Ism', width: 200, flex: 1 },
+    { field: 'name', headerName: t('tableHeaders.fullName'), width: 200, flex: 1 },
     {
       field: 'mfy1',
-      headerName: 'Mahalla 1',
+      headerName: t('tableHeaders.mfy') + ' 1',
       width: 150,
       renderCell: (params) => renderMahallaActions(params.row.mfy1, params.row.id, 1)
     },
     {
       field: 'mfy2',
-      headerName: 'Mahalla 2',
+      headerName: t('tableHeaders.mfy') + ' 2',
       width: 150,
       renderCell: (params) => renderMahallaActions(params.row.mfy2, params.row.id, 2)
     },
     {
       field: 'mfy3',
-      headerName: 'Mahalla 3',
+      headerName: t('tableHeaders.mfy') + ' 3',
       width: 150,
       renderCell: (params) => renderMahallaActions(params.row.mfy3, params.row.id, 3)
     },
     {
       field: 'activ',
-      headerName: 'Holat',
+      headerName: t('tableHeaders.status'),
       width: 70,
       renderCell: (params) => {
         return (
@@ -183,11 +186,11 @@ function Inspectors() {
         >
           <Button color="success" onClick={() => setOpenCreateInspectorModal(true)} variant="contained">
             <AddOutlined />
-            Qo'shish
+            {t('tableActions.add')}
           </Button>
           <Button color="primary" onClick={() => setOpenConnectTelegramModal(true)} variant="contained">
             <Telegram />
-            Telegramni ulash
+            {t('tableActions.connectTelegramAccount')}
           </Button>
         </Grid>
         <Grid
@@ -198,7 +201,7 @@ function Inspectors() {
           }}
         >
           <List sx={{ height: 'calc(-250px + 100vh)', overflow: 'auto' }}>
-            <Typography sx={{ fontWeight: '700' }}>Bo'sh mahallalar</Typography>
+            <Typography sx={{ fontWeight: '700' }}>{t('inspectorsPage.freeMahallas')}</Typography>
             {mahallalar
               .filter((mfy) => mfy.reja > 0 && !mfy.biriktirilganNazoratchi?.inspactor_id)
               .map((item) => (
@@ -238,7 +241,7 @@ function Inspectors() {
           }}
         >
           <List sx={{ height: 'calc(-250px + 100vh)', overflow: 'auto' }}>
-            <Typography sx={{ fontWeight: '700' }}>Biriktirilgan mahallalar</Typography>
+            <Typography sx={{ fontWeight: '700' }}>{t('inspectorsPage.notFreeMahallas')}</Typography>
             {mahallalar
               .filter((mfy) => mfy.reja > 0 && mfy.biriktirilganNazoratchi.inspactor_id != null)
               .map((item) => (

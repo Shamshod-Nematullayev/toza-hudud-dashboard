@@ -6,12 +6,12 @@ const icons = { BadgeIcon };
 
 const employeers = {
   id: 'employeers',
-  title: 'Xodimlar',
+  title: 'employeers',
   type: 'group',
   children: [
     {
       id: 'inspectors',
-      title: 'Nazoratchilar',
+      title: 'inspectors',
       type: 'item',
       url: '/employeers/inspectors',
       icon: icons.BadgeIcon,
