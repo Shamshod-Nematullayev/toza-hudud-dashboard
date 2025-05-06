@@ -38,7 +38,14 @@ const uz = {
       save: 'Saqlash',
       cancel: 'Bekor qilish',
       confirm: 'Tasdiqlash',
-      close: 'Yopish'
+      close: 'Yopish',
+      period: 'Davr',
+      nSaldo: 'Saldo boshi',
+      nachis: 'Hisoblandi',
+      kSaldo: 'Saldo oxiri',
+      act: 'Akt',
+      allPaymentsSum: "To'lovlar summasi",
+      inhabitantCount: 'Yashovchilar soni'
     },
     inspectorsPage: {
       freeMahallas: "Bo'sh mahallalar",

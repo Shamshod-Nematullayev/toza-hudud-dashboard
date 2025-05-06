@@ -8,13 +8,13 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Logo from 'ui-component/Logo';
 import { useTranslation } from 'react-i18next';
+import useCustomizationStore from 'store/customizationStore';
 
 const Body = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-image: url(https://images.pexels.com/photos/11724620/pexels-photo-11724620.jpeg);
   background-size: cover;
   background-repeat: no-repeat;
   font-family: sans-serif;
@@ -143,8 +143,16 @@ function Login() {
   const handleChangeInputValue = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
+  const { customization } = useCustomizationStore();
   return (
-    <Body>
+    <Body
+      style={{
+        backgroundImage:
+          customization.mode === 'dark'
+            ? 'url(https://i.pinimg.com/1200x/2c/90/a3/2c90a3402573bea4f3ba5b85c1008cc5.jpg)'
+            : 'url(https://images.pexels.com/photos/11724620/pexels-photo-11724620.jpeg)'
+      }}
+    >
       <LoginBox>
         <form onSubmit={handleSubmit}>
           {/* <Logo
