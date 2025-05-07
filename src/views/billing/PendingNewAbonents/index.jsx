@@ -29,7 +29,7 @@ function PendingNewAbonents() {
     },
     {
       field: 'abonent_name',
-      headerName: `To'liq ismi`,
+      headerName: t('tableHeaders.fullName'),
       description: 'Fuqaroning ism sharifi',
       sortable: false,
       minWidth: 200,
@@ -37,7 +37,7 @@ function PendingNewAbonents() {
     },
     {
       field: 'mahallaName',
-      headerName: 'Mahalla',
+      headerName: t('tableHeaders.mfy'),
       description: 'Fuqaroning manzili',
       sortable: false,
       minWidth: 100,
@@ -45,14 +45,14 @@ function PendingNewAbonents() {
     },
     {
       field: 'inhabitant_cnt',
-      headerName: 'y/s',
+      headerName: t('tableActions.inhabitantCount'),
       description: 'Yashovchilar soni',
       sortable: false,
       minWidth: 50
     },
     {
       field: 'cadastr',
-      headerName: 'Kadastr',
+      headerName: t('tableHeaders.cadastr'),
       description: 'Xonadon kadastr raqami',
       sortable: false,
       minWidth: 100,
@@ -60,7 +60,7 @@ function PendingNewAbonents() {
     },
     {
       field: 'nazoratchi_id',
-      headerName: 'Inspektor',
+      headerName: t('tableHeaders.inspector'),
       description: 'Tizimga kiritgan xodim',
       sortable: false,
       minWidth: 100,
@@ -72,7 +72,7 @@ function PendingNewAbonents() {
     },
     {
       field: 'actions',
-      headerName: 'Amallar',
+      headerName: t('tableHeaders.actions'),
       sortable: false,
       flex: 1,
       minWidth: 150,
@@ -95,12 +95,12 @@ function PendingNewAbonents() {
             {isUpXs && (
               <div>
                 <Button onClick={() => handleAccept(params.row)} size="small" color="success" variant="contained">
-                  Bajarish
+                  {t('buttons.accept')}
                 </Button>
                 <Button onClick={() => handleCancel(params.row)} size="small" color="error" variant="contained">
-                  Bekor qilish
+                  {t('buttons.reject')}
                 </Button>
-                <Tooltip title={t('Rokirovka qilish')}>
+                <Tooltip title={t('pendingAbonentsPage.Rokirovka qilish')}>
                   <IconButton size="small" color="info" onClick={() => handleCancel(params.row)}>
                     <SyncAltOutlined />
                   </IconButton>

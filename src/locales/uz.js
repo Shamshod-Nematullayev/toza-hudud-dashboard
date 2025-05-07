@@ -27,7 +27,10 @@ const uz = {
       fullName: 'F.I.Sh',
       phone: 'Telefon raqami',
       status: 'Holat',
-      mfy: 'Mahalla'
+      mfy: 'Mahalla',
+      cadastr: 'Kadastr raqami',
+      inspector: 'Inspektor',
+      actions: 'Amallar'
     },
     tableActions: {
       edit: 'Tahrirlash',
@@ -82,7 +85,9 @@ const uz = {
       addImage: "Rasm qo'shish",
       deleteImage: "Rasmni o'chirish",
       saveChanges: "O'zgartirishlarni saqlash",
-      cancelChanges: "O'zgartirishlarni bekor qilish"
+      cancelChanges: "O'zgartirishlarni bekor qilish",
+      accept: 'Qabul qilish',
+      reject: 'Rad etish'
     },
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)'
