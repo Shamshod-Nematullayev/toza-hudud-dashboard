@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import useStore from './useStore';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
+import { useTranslation } from 'react-i18next';
 
 const PasteImageDialog = ({ open = true, setOpen }) => {
   const { setImages, images } = useStore();
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const { t } = useTranslation();
 
   const handlePaste = (e) => {
     const items = e.clipboardData.items;
@@ -33,7 +35,7 @@ const PasteImageDialog = ({ open = true, setOpen }) => {
 
   const handleAddButtonClick = async () => {
     if (!imageFile) {
-      toast.error('Rasm tanlanmagan');
+      toast.error(t('createAbonentPetitionPage.pictureNotPicked'));
       return;
     }
     const formData = new FormData();
@@ -68,10 +70,10 @@ const PasteImageDialog = ({ open = true, setOpen }) => {
       </DialogContent>
       <DialogActions>
         <Button color="error" variant="outlined" onClick={handleCloseDialog}>
-          Chiqish
+          {t('buttons.close')}
         </Button>
         <Button color="primary" variant="contained" onClick={handleAddButtonClick} disabled={!imageFile}>
-          Qo'shish
+          {t('buttons.add')}
         </Button>
       </DialogActions>
     </Dialog>

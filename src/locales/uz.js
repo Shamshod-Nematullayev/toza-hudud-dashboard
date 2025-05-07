@@ -70,7 +70,10 @@ const uz = {
       freeze: 'Muzlatiladi',
       notFreeze: "Hozirda xizmat ko'rsatilmoqda",
       actAmount: 'Akt summa',
-      'DHJ jadval': 'DHJ jadval'
+      'DHJ jadval': 'DHJ jadval',
+      Ikkilamchi: 'Ikkilamchi',
+      pictureNotPicked: 'Rasm tanlanmagan',
+      'Qoʻshimcha izohlar uchun': 'Qoʻshimcha izohlar uchun'
     },
     documentTypes: {
       odam_soni: "Yashovchi soni o'zgartirish",
@@ -87,7 +90,10 @@ const uz = {
       saveChanges: "O'zgartirishlarni saqlash",
       cancelChanges: "O'zgartirishlarni bekor qilish",
       accept: 'Qabul qilish',
-      reject: 'Rad etish'
+      reject: 'Rad etish',
+      close: 'Yopish',
+      add: "Qo'shish",
+      print: 'Chop etish',
     },
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)'

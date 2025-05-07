@@ -53,11 +53,11 @@ function CreateAbonentPetition() {
           <InputForm />
         </Grid>
         <Grid item xs={12} sm={5}>
-          <DHJTable abonentData={abonentData} title={`DHJ jadval: ${abonentData.accountNumber}`} />
+          <DHJTable abonentData={abonentData} title={`${t('createAbonentPetitionPage.DHJ jadval')}: ${abonentData.accountNumber}`} />
         </Grid>
         <Grid item xs={12} sm={4}>
           {aktType === 'dvaynik' ? (
-            <DHJTable abonentData={abonentData2} title={`Ikkilamchi: ${abonentData2.accountNumber}`} />
+            <DHJTable abonentData={abonentData2} title={`${'createAbonentPetitionPage.Ikkilamchi'}: ${abonentData2.accountNumber}`} />
           ) : (
             <Recalculate />
           )}

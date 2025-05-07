@@ -7,6 +7,7 @@ import { useReactToPrint } from 'react-to-print';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import api from 'utils/api';
 import { reactToPrintDefaultOptions } from 'store/constant';
+import { useTranslation } from 'react-i18next';
 const StyledTable = styled.table`
   margin: auto;
   width: 100%;
@@ -53,6 +54,7 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
     contentRef: componentRef
   });
   const [comment, setComment] = useState('');
+  const { t } = useTranslation();
 
   return (
     <Dialog
@@ -79,7 +81,7 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
           <FormControl fullWidth>
             <TextareaAutosize
               minRows={3}
-              placeholder="Qoʻshimcha izohlar uchun"
+              placeholder={t('createAbonentPetitionPage.Qoʻshimcha izohlar uchun')}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
@@ -88,9 +90,9 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
       )}
 
       <DialogActions>
-        <Button onClick={() => setShowPrintSection(false)}>Chiqish</Button>
+        <Button onClick={() => setShowPrintSection(false)}>{t('buttons.close')}</Button>
         <Button variant="contained" color="primary" onClick={printFunction}>
-          Chop etish
+          {t('buttons.print')}
         </Button>
       </DialogActions>
     </Dialog>
