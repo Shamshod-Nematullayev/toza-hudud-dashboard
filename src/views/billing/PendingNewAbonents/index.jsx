@@ -1,8 +1,9 @@
-import { CheckOutlined, CloseOutlined } from '@mui/icons-material';
-import { Button, IconButton, useTheme } from '@mui/material';
+import { CheckOutlined, CloseOutlined, SyncAltOutlined } from '@mui/icons-material';
+import { Button, IconButton, Tooltip, useTheme } from '@mui/material';
 import { minWidth, useMediaQuery, width } from '@mui/system';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
 import MainCard from 'ui-component/cards/MainCard';
@@ -12,6 +13,8 @@ function PendingNewAbonents() {
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.only('xs'));
   const isUpXs = useMediaQuery(theme.breakpoints.up('sm'));
+
+  const { t } = useTranslation();
 
   const [rows, setRows] = useState([]);
   const [inspectors, setInspectors] = useState([]);
@@ -84,6 +87,9 @@ function PendingNewAbonents() {
                 <IconButton size="small" color="error" onClick={() => handleCancel(params.row)}>
                   <CloseOutlined />
                 </IconButton>
+                <IconButton size="small" color="info" onClick={() => handleCancel(params.row)}>
+                  <CloseOutlined />
+                </IconButton>
               </>
             )}
             {isUpXs && (
@@ -94,6 +100,11 @@ function PendingNewAbonents() {
                 <Button onClick={() => handleCancel(params.row)} size="small" color="error" variant="contained">
                   Bekor qilish
                 </Button>
+                <Tooltip title={t('Rokirovka qilish')}>
+                  <IconButton size="small" color="info" onClick={() => handleCancel(params.row)}>
+                    <SyncAltOutlined />
+                  </IconButton>
+                </Tooltip>
               </div>
             )}
           </div>

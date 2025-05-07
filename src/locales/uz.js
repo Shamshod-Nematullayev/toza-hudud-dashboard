@@ -76,6 +76,9 @@ const uz = {
       deleteImage: "Rasmni o'chirish",
       saveChanges: "O'zgartirishlarni saqlash",
       cancelChanges: "O'zgartirishlarni bekor qilish"
+    },
+    pendingAbonentsPage: {
+      'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)'
     }
   }
 };
