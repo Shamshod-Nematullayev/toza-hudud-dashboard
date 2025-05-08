@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
+import RokirovkaModal from './RokirovkaModal';
 
 function PendingNewAbonents() {
   const theme = useTheme();
@@ -20,6 +21,11 @@ function PendingNewAbonents() {
   const [inspectors, setInspectors] = useState([]);
   const [allDataCount, setAllDataCount] = useState(0);
   const { isLoading, setIsLoading } = useLoaderStore();
+  const [refreshState, setRefreshState] = useState(false);
+
+  const refresh = () => {
+    setRefreshState((prev) => !prev);
+  };
   const columns = [
     {
       field: 'id',
@@ -87,7 +93,14 @@ function PendingNewAbonents() {
                 <IconButton size="small" color="error" onClick={() => handleCancel(params.row)}>
                   <CloseOutlined />
                 </IconButton>
-                <IconButton size="small" color="info" onClick={() => handleCancel(params.row)}>
+                <IconButton
+                  size="small"
+                  color="info"
+                  onClick={() => {
+                    setSelectedAbonent(rows.find((a) => a._id === params.row._id));
+                    setOpenRokirovkaModal(true);
+                  }}
+                >
                   <CloseOutlined />
                 </IconButton>
               </>
@@ -101,7 +114,14 @@ function PendingNewAbonents() {
                   {t('buttons.reject')}
                 </Button>
                 <Tooltip title={t('pendingAbonentsPage.Rokirovka qilish')}>
-                  <IconButton size="small" color="info" onClick={() => handleCancel(params.row)}>
+                  <IconButton
+                    size="small"
+                    color="info"
+                    onClick={() => {
+                      setSelectedAbonent(rows.find((a) => a._id === params.row._id));
+                      setOpenRokirovkaModal(true);
+                    }}
+                  >
                     <SyncAltOutlined />
                   </IconButton>
                 </Tooltip>
@@ -191,9 +211,16 @@ function PendingNewAbonents() {
       }
     };
     fetchPendingAbonents();
-  }, [page, pageSize]);
+  }, [page, pageSize, refreshState]);
+
+  const [openRokirovkaModal, setOpenRokirovkaModal] = useState(false);
+  const [selectedAbonent, setSelectedAbonent] = useState(null);
+  const handleCloseRokirovkaModal = () => {
+    setOpenRokirovkaModal(false);
+  };
   return (
     <MainCard sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      {openRokirovkaModal && <RokirovkaModal handleClose={handleCloseRokirovkaModal} abonent={selectedAbonent} refresh={refresh} />}
       <DataGrid
         columns={columns}
         rows={rows}

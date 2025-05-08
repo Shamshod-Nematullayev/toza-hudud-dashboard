@@ -89,6 +89,10 @@ const uz = {
     buttons: {
       create: 'Yaratish',
       clear: 'Tozalash',
+      edit: 'Tahrirlash',
+      delete: "O'chirish",
+      cancel: 'Bekor qilish',
+      confirm: 'Tasdiqlash',
       addImage: "Rasm qo'shish",
       deleteImage: "Rasmni o'chirish",
       saveChanges: "O'zgartirishlarni saqlash",
@@ -102,7 +106,8 @@ const uz = {
       acceptAll: 'Barchasini qabul qilish'
     },
     pendingAbonentsPage: {
-      'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)'
+      'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
+      Rokirovka: 'Rokirovka'
     }
   }
 };
