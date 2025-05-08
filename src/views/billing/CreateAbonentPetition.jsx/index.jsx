@@ -8,6 +8,7 @@ import useStore from './useStore';
 import PasteImageDialog from './PasteImageDialog';
 import { useLocation } from 'react-router-dom';
 import { Grid } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 function CreateAbonentPetition() {
   const {
@@ -26,6 +27,7 @@ function CreateAbonentPetition() {
     pasteImageDialogOpen,
     setPasteImageDialogOpen
   } = useStore();
+  const { t } = useTranslation();
   const location = useLocation();
   useEffect(() => {
     setInitialState();

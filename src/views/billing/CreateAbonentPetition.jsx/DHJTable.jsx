@@ -50,7 +50,7 @@ function DHJTable({ abonentData, title }) {
       <div style={{ height: 'calc(100vh - 300px) ' }}>
         <DataGrid
           columns={[
-            { field: 'id', headerName: t('tableActions.period'), valueGetter: (params) => params.row.davr },
+            { field: 'id', headerName: t('tableActions.period'), renderCell: (params) => params.row?.davr },
             { field: 'saldo_n', headerName: t('tableActions.nSaldo'), type: 'number' },
             { field: 'nachis', headerName: t('tableActions.nachis'), type: 'number' },
             { field: 'saldo_k', headerName: t('tableActions.kSaldo'), type: 'number' },

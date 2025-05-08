@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyles = createGlobalStyle`
@@ -47,7 +48,8 @@ const GlobalStyles = createGlobalStyle`
 function FileInputDrop({ setFiles, clearTrigger }) {
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [label, setLabel] = useState('Drop your PDF files');
+  const { t } = useTranslation();
+  const [label, setLabel] = useState('PDF ' + t('Drop your files'));
   useEffect(() => {
     if (clearTrigger) {
       handleClear();
@@ -57,7 +59,7 @@ function FileInputDrop({ setFiles, clearTrigger }) {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; // Inputni tozalash
     }
-    setLabel('Drop your PDF files');
+    setLabel('PDF ' + t('Drop your files'));
   };
   const updateThumbnail = useCallback((file) => {
     if (!file) return;

@@ -4,6 +4,8 @@ const uz = {
     username: 'Foydalanuvchi nomi',
     password: 'Parol',
     login: 'Kirish',
+    'Drop your files': 'fayllaringizni tashlang',
+    documentNumber: 'Xujjat raqami',
     menuItems: {
       employeers: 'Xodimlar',
       inspectors: 'Nazoratchilar',
@@ -30,7 +32,9 @@ const uz = {
       mfy: 'Mahalla',
       cadastr: 'Kadastr raqami',
       inspector: 'Inspektor',
-      actions: 'Amallar'
+      actions: 'Amallar',
+      accountNumber: 'Hisob raqami',
+      inhabitantCount: 'Yashovchilar soni'
     },
     tableActions: {
       edit: 'Tahrirlash',
@@ -94,6 +98,8 @@ const uz = {
       close: 'Yopish',
       add: "Qo'shish",
       print: 'Chop etish',
+      rejectAll: 'Barchasini rad etish',
+      acceptAll: 'Barchasini qabul qilish'
     },
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)'

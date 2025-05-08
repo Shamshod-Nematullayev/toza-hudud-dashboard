@@ -11,8 +11,8 @@ import { toast } from 'react-toastify';
 import DoneOutline from '@mui/icons-material/DoneOutline';
 import Delete from '@mui/icons-material/Delete';
 import { DeleteOutline, DoneAllOutlined } from '@mui/icons-material';
-import Loadable from 'ui-component/Loadable';
 import Loader from 'ui-component/Loader';
+import { useTranslation } from 'react-i18next';
 const extractQRCodeFromPDF = async (pdfData) => {
   const loadingTask = pdfjsLib.getDocument({ data: pdfData });
   const pdfDoc = await loadingTask.promise;
@@ -65,6 +65,8 @@ function SidePanel() {
     isLoading,
     setIsLoading
   } = odamSoniXatlovStore();
+  const { t } = useTranslation();
+
   const [dalolatnomaNumber, setDalolatnomaNumber] = useState('');
   const getDalolatnomaData = async (params) => {
     const dalolatnoma = (
@@ -110,6 +112,7 @@ function SidePanel() {
   };
   const handleClickAllDoneButton = async function () {
     setIsLoading(true);
+    toast.info('Iltimos kuting...');
     const formData = new FormData();
     formData.append('file', pdfFiles[0]);
     for (const row of uploadingDalolatnomaRows) {
@@ -117,6 +120,7 @@ function SidePanel() {
         await handleClickDoneButton(row._id, false);
       }
     }
+    handleClickRefresh();
 
     setIsLoading(false);
   };
@@ -171,7 +175,7 @@ function SidePanel() {
             <div style={{ position: 'relative' }}>
               <TextField
                 sx={{ margin: 1 }}
-                label="dalolatnoma raqami"
+                label={t('documentNumber')}
                 value={dalolatnomaNumber}
                 fullWidth
                 onChange={(e) => setDalolatnomaNumber(e.target.value)}
@@ -182,14 +186,14 @@ function SidePanel() {
             </div>
             <Button variant="outlined" sx={{ margin: 1 }} fullWidth onClick={handleClickAllDoneButton}>
               <DoneAllOutlined />
-              Hammasini kiritish
+              {t('buttons.acceptAll')}
             </Button>
             <Button variant="outlined" sx={{ margin: 1 }} color="error" onClick={handleClickCancelAll} fullWidth>
               <DeleteOutline />
-              Hammasini bekor qilish
+              {t('buttons.rejectAll')}{' '}
             </Button>
             <Button variant="outlined" color="secondary" sx={{ margin: 1 }} onClick={() => clearPdfFiles()} fullWidth>
-              Tugatish
+              {t('buttons.clear')}
             </Button>
           </Grid>
           <Grid item md={9}>
@@ -198,13 +202,13 @@ function SidePanel() {
               disableColumnMenu
               columns={[
                 { field: 'id', headerName: '№', width: 50 },
-                { field: 'accountNumber', headerName: 'Hisob raqam', width: 120 },
-                { field: 'fullName', headerName: 'F.I.O.', width: 200 },
-                { field: 'YASHOVCHILAR', headerName: 'YASHOVCHILAR', width: 50 },
-                { field: 'status', headerName: 'status' },
+                { field: 'accountNumber', headerName: t('tableHeaders.accountNumber'), width: 120 },
+                { field: 'fullName', headerName: t('tableHeaders.fullName'), width: 200 },
+                { field: 'YASHOVCHILAR', headerName: t('tableHeaders.inhabitantCount'), width: 50 },
+                { field: 'status', headerName: t('tableHeaders.status') },
                 {
                   field: 'actions',
-                  headerName: 'harakatlar',
+                  headerName: t('tableHeaders.actions'),
                   renderCell: (params) => {
                     return (
                       <>
