@@ -98,10 +98,6 @@ const Customization = () => {
   }, [setCustomization, fontFamily]);
 
   const location = useLocation();
-  console.log(location.pathname); // faqat path: "/about"
-  console.log(location.search); // query string: "?id=123"
-  console.log(location.hash); // hash: "#section"
-  console.log(location.pathname + location.search); // to‘liq path+query
 
   return (
     <>

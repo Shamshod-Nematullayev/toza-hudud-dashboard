@@ -14,6 +14,7 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
 //contans
 const icons = {
@@ -31,7 +32,8 @@ const icons = {
   EditNoteIcon,
   ChecklistIcon,
   InsertDriveFileOutlinedIcon,
-  AssessmentOutlinedIcon
+  AssessmentOutlinedIcon,
+  TrendingDownIcon
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -123,47 +125,55 @@ const billing = {
       url: '/billing/pendingNewAbonents',
       icon: icons.PersonAddAltIcon,
       breadcrumbs: false
+    },
+    //   ]
+    // }
+    {
+      id: 'jurist',
+      title: 'Yurist',
+      type: 'collapse',
+      icon: icons.BookIcon,
+      children: [
+        {
+          id: 'qarzdorAbonentlar',
+          title: 'Qarzdor abonentlar',
+          type: 'item',
+          url: '/jurist/qarzdorAbonentlar',
+          icon: icons.TrendingDownIcon,
+          breadcrumbs: false
+        },
+        {
+          id: 'warningLetters',
+          title: 'Ogohlantirish',
+          type: 'item',
+          url: '/jurist/warningLetter',
+          icon: icons.MailIcon,
+          breadcrumbs: false
+        },
+        {
+          id: 'courtProccesses',
+          title: 'Sud jarayonlari',
+          type: 'item',
+          url: '/jurist/courtProccesses',
+          icon: icons.GavelIcon
+        },
+        {
+          id: 'importPetition',
+          title: 'Sudga arizalar kiritish',
+          type: 'item',
+          url: '/jurist/importPetition',
+          icon: icons.FileDownloadOutlinedIcon
+        },
+        {
+          id: 'courtNote',
+          title: 'Nishonga olingan abonentlar',
+          type: 'item',
+          url: '/jurist/courtNote',
+          icon: icons.EditNoteIcon,
+          breadcrumbs: false
+        }
+      ]
     }
-    //   ]
-    // }
-    // {
-    //   id: 'jurist',
-    //   title: 'Yurist',
-    //   type: 'collapse',
-    //   icon: icons.BookIcon,
-    //   children: [
-    //     {
-    //       id: 'warningLetters',
-    //       title: 'Ogohlantirish',
-    //       type: 'item',
-    //       url: '/jurist/warningLetter',
-    //       icon: icons.MailIcon,
-    //       breadcrumbs: false
-    //     },
-    //     {
-    //       id: 'courtProccesses',
-    //       title: 'Sud jarayonlari',
-    //       type: 'item',
-    //       url: '/jurist/courtProccesses',
-    //       icon: icons.GavelIcon
-    //     },
-    //     {
-    //       id: 'importPetition',
-    //       title: 'Sudga arizalar kiritish',
-    //       type: 'item',
-    //       url: '/jurist/importPetition',
-    //       icon: icons.FileDownloadOutlinedIcon
-    //     },
-    //     {
-    //       id: 'courtNote',
-    //       title: 'Nishonga olingan abonentlar',
-    //       type: 'item',
-    //       url: '/jurist/courtNote',
-    //       icon: icons.EditNoteIcon,
-    //       breadcrumbs: false
-    //     }
-    //   ]
-    // }
   ]
 };
 

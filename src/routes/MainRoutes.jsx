@@ -18,6 +18,7 @@ import CourtNote from 'views/jurist/CourtNotes';
 import XatlovDalolatnomalar from 'views/billing/XatlovDalolatnomalar';
 import Reports from 'views/billing/Reports';
 import PendingNewAbonents from 'views/billing/PendingNewAbonents';
+import QarzdorAbonentlar from 'views/jurist/QarzdorAbonentlar';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -135,6 +136,10 @@ const MainRoutes = {
     {
       path: 'jurist',
       children: [
+        {
+          path: 'qarzdorAbonentlar',
+          element: <QarzdorAbonentlar />
+        },
         {
           path: 'warningLetter',
           element: <WarningLetters />

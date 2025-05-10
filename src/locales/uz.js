@@ -4,6 +4,7 @@ const uz = {
     username: 'Foydalanuvchi nomi',
     password: 'Parol',
     login: 'Kirish',
+    all: 'Hammasi',
     'Drop your files': 'fayllaringizni tashlang',
     documentNumber: 'Xujjat raqami',
     menuItems: {
@@ -19,7 +20,13 @@ const uz = {
       inventory: 'Xatlov',
       createInventory: 'Xatlov yaratish/kiritish',
       invertoreDocuments: 'Xatlov hujjatlari',
-      newAbonentRequirements: 'Yangi abonent ochish talablari'
+      newAbonentRequirements: 'Yangi abonent ochish talablari',
+      Yurist: 'Yurist',
+      Ogohlantirish: 'Ogohlantirish xatlari',
+      'Sud jarayonlari': 'Sud jarayonlari',
+      'Sudga arizalar kiritish': 'Sudga arizalar kiritish',
+      'Nishonga olingan abonentlar': 'Nishonga olingan abonentlar',
+      'Qarzdor abonentlar': 'Qarzdor abonentlar'
     },
     dashboard: {
       identified: 'Shaxsi tasdiqlangan',
@@ -34,7 +41,12 @@ const uz = {
       inspector: 'Inspektor',
       actions: 'Amallar',
       accountNumber: 'Hisob raqami',
-      inhabitantCount: 'Yashovchilar soni'
+      inhabitantCount: 'Yashovchilar soni',
+      debit: 'Qarzdorlik',
+      sudAkt: 'Sud akti',
+      warning: 'Ogohlantirish',
+      debitorFrom: 'Qarzdorlik (x)dan',
+      debitorTo: 'Qarzdorlik (x)gacha'
     },
     tableActions: {
       edit: 'Tahrirlash',
@@ -108,6 +120,10 @@ const uz = {
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
       Rokirovka: 'Rokirovka'
+    },
+    qarzdorAbonentlarPage: {
+      "Sudga o'tgan": "Sudga o'tgan",
+      "Sudga o'tmagan": "Sudga o'tmagan"
     }
   }
 };

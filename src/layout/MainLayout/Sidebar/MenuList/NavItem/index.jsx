@@ -53,7 +53,7 @@ const NavItem = ({ item, level }) => {
   }
 
   const itemHandler = (id) => {
-    if (matchesSM) setCustomization({ opened: false, id });
+    if (matchesSM) setCustomization({ opened: true, id });
   };
 
   // active menu item on page load
