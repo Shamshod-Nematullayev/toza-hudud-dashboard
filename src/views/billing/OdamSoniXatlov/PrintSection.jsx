@@ -1,6 +1,6 @@
-import { Button, Dialog, DialogActions, DialogContent } from '@mui/material';
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, InputLabel } from '@mui/material';
 import { lotinga } from 'helpers/lotinKiril';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import { useReactToPrint } from 'react-to-print';
@@ -37,6 +37,7 @@ function stringToName(str) {
 }
 
 function PrintSection() {
+  const [mfyRaisi, setMfyRaisi] = useState(true);
   const { dalolatnomaData, openPrintSection, setOpenPrintSection } = odamSoniXatlovStore();
   const { mahalla, data } = dalolatnomaData;
   const printComponentRef = useRef(null);
@@ -140,7 +141,7 @@ function PrintSection() {
               </tbody>
             </table>
             <p>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
-            <ImzoJoyiRow label={lotinga(mahalla.name) + ' mahalla raisi:'} name={fullNameToShortName(mahalla.mfy_rais_name)} />
+            {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla.mfy_rais_name)} />}
             <br />
             <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name="Ne’matullayev Shamshod" />
             <br />
@@ -168,6 +169,10 @@ function PrintSection() {
         }}
       >
         <DialogActions>
+          <InputLabel id="raisi">
+            {' '}
+            <Checkbox checked={mfyRaisi} onChange={(e) => setMfyRaisi(e.target.checked)} /> MFY raisi
+          </InputLabel>
           <Button variant="outlined" color="primary" onClick={() => setOpenPrintSection(false)}>
             Chiqish
           </Button>

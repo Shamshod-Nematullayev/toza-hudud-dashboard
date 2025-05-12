@@ -127,7 +127,18 @@ const LanguageSection = () => {
                           handleClose(e);
                         }}
                       >
-                        <img src={item.img} width={30} style={{ margin: '0 5px', borderRadius: '50%' }} />
+                        <div
+                          style={{
+                            width: 30,
+                            height: 30,
+                            margin: '0 5px',
+                            borderRadius: '50%',
+                            background: `url(${item.img})`,
+                            backgroundPosition: 'left top',
+                            backgroundSize: 'cover',
+                            backgroundRepeat: 'no-repeat'
+                          }}
+                        ></div>
                         <Typography variant="body2">{item.label}</Typography>
                       </Button>
                     </div>
