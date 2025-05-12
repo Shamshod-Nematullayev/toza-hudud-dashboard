@@ -46,6 +46,7 @@ function PrintSection() {
     documentTitle: mahalla.name + 'xatlov',
     contentRef: printComponentRef
   });
+  const company = JSON.parse(localStorage.getItem('company'));
   const date = new Date();
   return (
     <Dialog
@@ -143,11 +144,11 @@ function PrintSection() {
             <p>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
             {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla.mfy_rais_name)} />}
             <br />
-            <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name="Ne’matullayev Shamshod" />
+            <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company.billingAdminName} />
             <br />
             <ImzoJoyiRow label="Axoli nazoratchisi:" name={fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)} />
             <br />
-            <ImzoJoyiRow label='"Anvarjon biznes invest" MCHJ Kattaqo‘rg‘on tuman filiali raxbari:' name="Sadriddinov Aziz" />
+            <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali raxbari:`} name={company.managerName} />
             <br />
             <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas
