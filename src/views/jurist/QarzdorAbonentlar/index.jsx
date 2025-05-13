@@ -11,14 +11,15 @@ function QarzdorAbonentlar() {
     sudAkt: '',
     warning: ''
   });
+  const [refreshState, setRefreshState] = useState(false);
   return (
     <MainCard>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={9}>
-          <DataTable filters={filters} />
+          <DataTable filters={filters} refreshState={refreshState} />
         </Grid>
         <Grid item xs={12} sm={3}>
-          <SideBar filters={filters} setFilters={setFilters} />
+          <SideBar filters={filters} setFilters={setFilters} setRefreshState={setRefreshState} />
         </Grid>
       </Grid>
     </MainCard>

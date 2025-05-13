@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import useLoaderStore from 'store/loaderStore';
 import api from 'utils/api';
+import Toolbar from './Toolbar';
 
-function DataTable({ filters }) {
+function DataTable({ filters, refreshState }) {
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(15);
@@ -15,9 +16,9 @@ function DataTable({ filters }) {
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 50, renderCell: (row) => row.row.i + 1 + page * pageSize },
-    { field: 'fullName', headerName: t('tableHeaders.fullName'), width: 200, flex: 1 },
-    { field: 'accountNumber', headerName: t('tableHeaders.accountNumber'), width: 130 },
-    { field: 'mahallaName', headerName: t('tableHeaders.mfy'), width: 200 },
+    { field: 'fio', headerName: t('tableHeaders.fullName'), width: 200, flex: 1 },
+    { field: 'licshet', headerName: t('tableHeaders.accountNumber'), width: 130 },
+    { field: 'mahalla_name', headerName: t('tableHeaders.mfy'), width: 200 },
     { field: 'ksaldo', headerName: t('tableHeaders.debit'), width: 100, type: 'number' },
     {
       field: 'sudAktDate',
@@ -25,7 +26,7 @@ function DataTable({ filters }) {
       width: 100,
       type: 'date',
       renderCell: (params) => {
-        const dateStr = params.row.sudAkt?.created_at;
+        const dateStr = params.row.sudAkt?.createdDate;
         if (!dateStr) return '';
         const date = new Date(dateStr);
         const day = date.getDate().toString().padStart(2, '0');
@@ -40,7 +41,7 @@ function DataTable({ filters }) {
       width: 100,
       type: 'date',
       renderCell: (params) => {
-        const dateStr = params.row.hybridMail?.createdOn;
+        const dateStr = params.row.warningLetter?.createdDate;
         if (!dateStr) return '';
         const date = new Date(dateStr);
         const day = date.getDate().toString().padStart(2, '0');
@@ -66,7 +67,7 @@ function DataTable({ filters }) {
         setTotalRows(data.total);
       })
       .finally(() => setIsLoading(false));
-  }, [page, pageSize]);
+  }, [page, pageSize, refreshState]);
   const handlePageChange = (newPage) => {
     setPage(newPage);
   };
@@ -79,17 +80,23 @@ function DataTable({ filters }) {
     if (model.pageSize !== pageSize) handlePageSizeChange(model.pageSize);
   };
   return (
-    <Grid container>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        paginationMode="server"
-        rowCount={totalRows}
-        loading={isLoading}
-        paginationModel={{ page, pageSize }}
-        pageSizeOptions={[15, 30, 50, 100]}
-        onPaginationModelChange={handlePaginationChange}
-      />
+    <Grid container spacing={1}>
+      <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}></Grid>
+      <Grid item xs={12}>
+        <DataGrid
+          slots={{
+            toolbar: Toolbar
+          }}
+          rows={rows}
+          columns={columns}
+          paginationMode="server"
+          rowCount={totalRows}
+          loading={isLoading}
+          paginationModel={{ page, pageSize }}
+          pageSizeOptions={[15, 30, 50, 100]}
+          onPaginationModelChange={handlePaginationChange}
+        />
+      </Grid>
     </Grid>
   );
 }

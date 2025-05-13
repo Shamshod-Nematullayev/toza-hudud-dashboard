@@ -115,7 +115,9 @@ const uz = {
       add: "Qo'shish",
       print: 'Chop etish',
       rejectAll: 'Barchasini rad etish',
-      acceptAll: 'Barchasini qabul qilish'
+      acceptAll: 'Barchasini qabul qilish',
+      refresh: 'Yangilash',
+      export: 'Eksport'
     },
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
@@ -123,7 +125,9 @@ const uz = {
     },
     qarzdorAbonentlarPage: {
       "Sudga o'tgan": "Sudga o'tgan",
-      "Sudga o'tmagan": "Sudga o'tmagan"
+      "Sudga o'tmagan": "Sudga o'tmagan",
+      Ogohlantirilgan: 'Ogohlantirilgan',
+      Ogohlantirilmagan: 'Ogohlantirilmagan'
     }
   }
 };
