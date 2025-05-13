@@ -85,7 +85,7 @@ function DataTable({ filters, refreshState }) {
       <Grid item xs={12}>
         <DataGrid
           slots={{
-            toolbar: Toolbar
+            toolbar: () => <Toolbar filters={filters} />
           }}
           rows={rows}
           columns={columns}
