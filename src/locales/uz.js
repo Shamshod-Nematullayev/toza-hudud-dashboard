@@ -127,7 +127,8 @@ const uz = {
       "Sudga o'tgan": "Sudga o'tgan",
       "Sudga o'tmagan": "Sudga o'tmagan",
       Ogohlantirilgan: 'Ogohlantirilgan',
-      Ogohlantirilmagan: 'Ogohlantirilmagan'
+      Ogohlantirilmagan: 'Ogohlantirilmagan',
+      'Oxirgi yangilanish vaqti': 'Oxirgi yangilanish vaqti'
     }
   }
 };

@@ -6,7 +6,7 @@ import useLoaderStore from 'store/loaderStore';
 import api from 'utils/api';
 import Toolbar from './Toolbar';
 
-function DataTable({ filters, refreshState }) {
+function DataTable({ filters, refreshState, lastUpdateDate }) {
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(15);
@@ -85,7 +85,7 @@ function DataTable({ filters, refreshState }) {
       <Grid item xs={12}>
         <DataGrid
           slots={{
-            toolbar: () => <Toolbar filters={filters} />
+            toolbar: () => <Toolbar filters={filters} lastUpdateDate={lastUpdateDate} />
           }}
           rows={rows}
           columns={columns}

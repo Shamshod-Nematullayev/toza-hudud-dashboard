@@ -6,27 +6,20 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
 import DownloadIcon from '@mui/icons-material/Download';
-import GridOnIcon from '@mui/icons-material/GridOn';
 
-function Toolbar({ filters }) {
-  const [lastUpdateDate, setLastUpdateDate] = useState(null);
+function Toolbar({ filters, lastUpdateDate }) {
   const { t } = useTranslation();
   const { setIsLoading } = useLoaderStore();
-  useEffect(() => {
-    api.get('/statistics/lastUpdateDateAbonentsSaldo').then((res) => {
-      setLastUpdateDate(new Date(res.data.lastUpdateDate));
-    });
-  }, []);
-  const handleExport = () => {
+
+  const handleExport = async () => {
     setIsLoading(true);
     try {
-      api.get('/court-service/debitor-abonents/excel', { params: filters, responseType: 'blob' }).then(({ data }) => {
-        const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        // link.download = 'qarzdor_abonentlar.xlsx';
-        link.click();
-      });
+      const { data } = await api.get('/court-service/debitor-abonents/excel', { params: filters, responseType: 'blob' });
+      const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'qarzdor_abonentlar.xlsx';
+      link.click();
     } catch (err) {
       console.log(err);
       toast.error('Xatolik kuzatildi');
@@ -38,17 +31,9 @@ function Toolbar({ filters }) {
   return (
     <MuiToolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
       <div>
-        <IconButton>
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <GridOnIcon fontSize="small" />
-            <DownloadIcon fontSize="small" />
-          </Stack>
-        </IconButton>
         <Button variant="contained" color="success" sx={{ marginRight: '10px' }} onClick={handleExport}>
+          <DownloadIcon fontSize="small" />
           {t('buttons.export')}
-        </Button>
-        <Button variant="contained" color="success" sx={{ marginRight: '10px' }}>
-          {t('buttons.refresh')}
         </Button>
       </div>
       <Alert
@@ -62,7 +47,7 @@ function Toolbar({ filters }) {
         }
       >
         {console.log(lastUpdateDate, new Date(now.getFullYear(), now.getMonth(), now.getDate()))}
-        Oxirgi yangilanish vaqti: {lastUpdateDate?.toLocaleString()}
+        {t('qarzdorAbonentlarPage.Oxirgi yangilanish vaqti')}: {lastUpdateDate?.toLocaleString()}
       </Alert>
     </MuiToolbar>
   );
