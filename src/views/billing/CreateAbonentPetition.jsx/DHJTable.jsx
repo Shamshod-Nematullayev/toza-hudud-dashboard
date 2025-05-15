@@ -50,12 +50,13 @@ function DHJTable({ abonentData, title }) {
       <div style={{ height: 'calc(100vh - 300px) ' }}>
         <DataGrid
           columns={[
-            { field: 'id', headerName: t('tableActions.period'), renderCell: (params) => params.row?.davr },
-            { field: 'saldo_n', headerName: t('tableActions.nSaldo'), type: 'number' },
-            { field: 'nachis', headerName: t('tableActions.nachis'), type: 'number' },
-            { field: 'saldo_k', headerName: t('tableActions.kSaldo'), type: 'number' },
-            { field: 'akt', headerName: t('tableActions.act'), type: 'number', width: 50 },
-            { field: 'yashovchilar_soni', headerName: t('tableActions.inhabitantCount'), type: 'number', width: 70, align: 'center' }
+            { field: 'id', headerName: t('tableHeaders.period'), renderCell: (params) => params.row?.davr },
+            { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number' },
+            { field: 'nachis', headerName: t('tableHeaders.nachis'), type: 'number' },
+            { field: 'saldo_k', headerName: t('tableHeaders.kSaldo'), type: 'number' },
+            { field: 'akt', headerName: t('tableHeaders.act'), type: 'number', width: 50 },
+            { field: 'allPaymentsSum', headerName: t('tableHeaders.income'), type: 'number' },
+            { field: 'yashovchilar_soni', headerName: t('tableHeaders.inhabitantCount'), type: 'number', width: 70, align: 'center' }
           ]}
           disableColumnFilter
           disableColumnSorting

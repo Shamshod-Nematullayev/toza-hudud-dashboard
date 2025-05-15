@@ -174,7 +174,7 @@ function InputForm() {
   };
 
   return (
-    <Grid container spacing={1} sx={{ borderRight: '1px solid #ccc' }}>
+    <Grid container spacing={1}>
       <Grid item xs={6}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <Select value={aktType} onChange={(e) => setAktType(e.target.value)}>

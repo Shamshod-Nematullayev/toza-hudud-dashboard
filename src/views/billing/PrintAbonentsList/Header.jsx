@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import useStore from './useStore';
-import { MenuItem, Select, TextField, Typography, Button, Checkbox, FormControlLabel, InputLabel, FormControl } from '@mui/material';
+import { MenuItem, Select, TextField, Typography, Button, Checkbox, FormControlLabel, InputLabel, FormControl, Box } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import DoneAll from '@mui/icons-material/DoneOutlined';
@@ -13,7 +13,7 @@ import { lotinga } from 'helpers/lotinKiril';
 import { toast } from 'react-toastify';
 import { reactToPrintDefaultOptions } from 'store/constant';
 
-function Header({ printContentRef, getAbonents }) {
+function Header({ printContentRef, getAbonents, sx }) {
   const {
     selectedMahalla,
     setSelectedMahalla,
@@ -171,8 +171,10 @@ function Header({ printContentRef, getAbonents }) {
     }
   };
   return (
-    <div style={{ marginBottom: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Typography variant="h4">Abonentlar ro'yxatini chop etish</Typography>
+    <Box
+      sx={{ backgroundColor: 'background.paper', height: 80, top: 100, zIndex: 100 }}
+      style={{ marginBottom: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+    >
       <div
         style={{
           display: 'flex'
@@ -250,7 +252,7 @@ function Header({ printContentRef, getAbonents }) {
           <ClearAll /> Tozalash
         </Button> */}
       </div>
-    </div>
+    </Box>
   );
 }
 

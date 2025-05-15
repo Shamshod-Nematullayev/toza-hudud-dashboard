@@ -33,7 +33,6 @@ const LoginBox = styled.div`
   backdrop-filter: blur(5px);
   @media (max-width: 568px) {
     width: 90%;
-    height: 80%;
   }
 `;
 const LoginTitle = styled.h2`
@@ -99,6 +98,11 @@ const Button = styled.button`
     background-color: transparent;
     color: #fff;
   }
+  &:disabled {
+    background-color: #ccc;
+    color: #999;
+    cursor: not-allowed;
+  }
 `;
 
 const Icon = styled.div`
@@ -113,9 +117,11 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [values, setValues] = useState({ username: '', password: '' });
   const navigate = useNavigate();
+  const [disabled, setDisabled] = useState(false);
   const { t } = useTranslation();
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setDisabled(true);
     try {
       const response = await api.post('/auth/login', { login: values.username, password: values.password });
       const data = response.data;
@@ -138,6 +144,8 @@ function Login() {
     } catch (error) {
       console.error(error);
       toast.error('An error occured');
+    } finally {
+      setDisabled(false);
     }
   };
   const handleChangeInputValue = (e) => {
@@ -177,14 +185,15 @@ function Login() {
             <Input
               type={showPassword ? 'text' : 'password'}
               name="password"
-              onClick={() => setShowPassword(!showPassword)}
               required
               value={values.password}
               onChange={handleChangeInputValue}
             />
             <InputBoxLabel>{t('password')}</InputBoxLabel>
           </InputBox>
-          <Button type="submit">{t('login')}</Button>
+          <Button type="submit" disabled={disabled}>
+            {t('login')}
+          </Button>
         </form>
       </LoginBox>
     </Body>

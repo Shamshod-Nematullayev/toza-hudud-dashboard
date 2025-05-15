@@ -50,10 +50,10 @@ const Dashboard = () => {
       <Grid item xs={12} lg={6}>
         <Card sx={{ boxShadow: 2 }}>
           <Grid container>
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
               <RadialChart isLoading={isLoading} progress={identityProcent} label={t('dashboard.identified')} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
               <RadialChart isLoading={isLoading} progress={etkIdentityProcent} label={t('dashboard.electacityContirmed')} />
             </Grid>
           </Grid>

@@ -43,6 +43,7 @@ const uz = {
       inspector: 'Inspektor',
       actions: 'Amallar',
       accountNumber: 'Hisob raqami',
+      income: 'Tushum',
       inhabitantCount: 'Yashovchilar soni',
       debit: 'Qarzdorlik',
       sudAkt: 'Sud akti',
@@ -53,7 +54,14 @@ const uz = {
       allEtkCount: 'Jami ETK kod soni',
       allAbonentsCount: 'Jami abonentlar soni',
       onPeriodEtkCount: 'Tanlangan vaqtdagi ETK kod soni',
-      onPeriodPnflCount: 'Tanlangan vaqtdagi pnfl soni'
+      onPeriodPnflCount: 'Tanlangan vaqtdagi pnfl soni',
+      period: 'Davr',
+      nSaldo: 'Saldo boshi',
+      nachis: 'Hisoblandi',
+      kSaldo: 'Saldo oxiri',
+      act: 'Akt',
+      allPaymentsSum: "To'lovlar summasi",
+      inhabitantCount: 'Yashovchilar soni'
     },
     tableActions: {
       edit: 'Tahrirlash',
@@ -64,14 +72,7 @@ const uz = {
       save: 'Saqlash',
       cancel: 'Bekor qilish',
       confirm: 'Tasdiqlash',
-      close: 'Yopish',
-      period: 'Davr',
-      nSaldo: 'Saldo boshi',
-      nachis: 'Hisoblandi',
-      kSaldo: 'Saldo oxiri',
-      act: 'Akt',
-      allPaymentsSum: "To'lovlar summasi",
-      inhabitantCount: 'Yashovchilar soni'
+      close: 'Yopish'
     },
     inspectorsPage: {
       freeMahallas: "Bo'sh mahallalar",

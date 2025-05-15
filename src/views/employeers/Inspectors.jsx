@@ -1,4 +1,4 @@
-import { Button, Grid, IconButton, List, ListItem, ListItemButton, Switch, Typography, useTheme } from '@mui/material';
+import { Button, Grid, IconButton, List, ListItem, ListItemButton, Switch, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
@@ -56,23 +56,26 @@ function Inspectors() {
   }, []);
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: t('tableHeaders.fullName'), width: 200, flex: 1 },
+    { field: 'name', headerName: t('tableHeaders.fullName'), flex: 2, minWidth: 200 },
     {
       field: 'mfy1',
       headerName: t('tableHeaders.mfy') + ' 1',
-      width: 150,
+      flex: 1,
+      minWidth: 120,
       renderCell: (params) => renderMahallaActions(params.row.mfy1, params.row.id, 1)
     },
     {
       field: 'mfy2',
       headerName: t('tableHeaders.mfy') + ' 2',
-      width: 150,
+      flex: 1,
+      minWidth: 120,
       renderCell: (params) => renderMahallaActions(params.row.mfy2, params.row.id, 2)
     },
     {
       field: 'mfy3',
       headerName: t('tableHeaders.mfy') + ' 3',
-      width: 150,
+      flex: 1,
+      minWidth: 120,
       renderCell: (params) => renderMahallaActions(params.row.mfy3, params.row.id, 3)
     },
     {
@@ -161,6 +164,7 @@ function Inspectors() {
       console.error(error);
     }
   };
+  const isXsUp = useMediaQuery((theme) => theme.breakpoints.up('sm'));
   return (
     <MainCard contentSX={{ height: '100%' }}>
       {openCreateInspectorModal && <AddInspectorModal setOpenCreateInspectorModal={setOpenCreateInspectorModal} setInspectors={setRows} />}
@@ -190,7 +194,7 @@ function Inspectors() {
           </Button>
           <Button color="primary" onClick={() => setOpenConnectTelegramModal(true)} variant="contained">
             <Telegram />
-            {t('tableActions.connectTelegramAccount')}
+            {isXsUp && t('tableActions.connectTelegramAccount')}
           </Button>
         </Grid>
         <Grid

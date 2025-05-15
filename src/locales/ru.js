@@ -48,7 +48,14 @@ const ru = {
       sudAkt: 'Судебный акт',
       warning: 'Предупреждение',
       debitorFrom: 'Задолженность от',
-      debitorTo: 'Задолженность до'
+      debitorTo: 'Задолженность до',
+      period: 'Период',
+      nSaldo: 'Начальный баланс',
+      nachis: 'Начислено',
+      kSaldo: 'Конечный баланс',
+      act: 'Акт',
+      allPaymentsSum: 'Сумма всех платежей',
+      inhabitantCount: 'Количество проживающих'
     },
     tableActions: {
       edit: 'Редактировать',
@@ -59,14 +66,7 @@ const ru = {
       save: 'Сохранить',
       cancel: 'Отмена',
       confirm: 'Подтвердить',
-      close: 'Закрыть',
-      period: 'Период',
-      nSaldo: 'Начальный баланс',
-      nachis: 'Начислено',
-      kSaldo: 'Конечный баланс',
-      act: 'Акт',
-      allPaymentsSum: 'Сумма всех платежей',
-      inhabitantCount: 'Количество проживающих'
+      close: 'Закрыть'
     },
     inspectorsPage: {
       freeMahallas: 'Свободные махалли',

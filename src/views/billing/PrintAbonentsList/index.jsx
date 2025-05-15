@@ -3,7 +3,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import PrintIcon from '@mui/icons-material/PrintOutlined';
 
-import { Backdrop, Card, CardContent, CircularProgress, Divider, IconButton, List, ListItem, Typography } from '@mui/material';
+import { Backdrop, Card, CardContent, CircularProgress, Divider, Grid, IconButton, List, ListItem, Typography } from '@mui/material';
 import api from 'utils/api';
 import useCustomizationStore from 'store/customizationStore';
 import { createGlobalStyle } from 'styled-components';
@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import useStore from './useStore';
 import Header from './Header';
 import PrintSection from './PrintSection';
+import useLoaderStore from 'store/loaderStore';
 
 const CustomStyle = createGlobalStyle`
 table {
@@ -34,26 +35,12 @@ table {
   text-overflow: ellipsis;
   max-width: 70px;
 }
-@page {
-  size: portrait;
-  margin: 20px 25px 20px 20px;
-}
 `;
 
 function PrintAbonentsList() {
-  const {
-    minSaldo,
-    maxSaldo,
-    setAbonents,
-    selectedMahalla,
-    setSelectedMahalla,
-    mahallas,
-    setMahallas,
-    loading,
-    setLoading,
-    onlyNotIdentited,
-    etkStatus
-  } = useStore();
+  const { minSaldo, maxSaldo, setAbonents, selectedMahalla, setSelectedMahalla, mahallas, setMahallas, onlyNotIdentited, etkStatus } =
+    useStore();
+  const { isLoading, setIsLoading } = useLoaderStore();
   const { customization } = useCustomizationStore();
   const printContentRef = useRef(null);
 
@@ -74,7 +61,7 @@ function PrintAbonentsList() {
       if (!Number(mfy_id)) {
         throw new Error('Mahalla tanlanmadi');
       }
-      setLoading(true);
+      setIsLoading(true);
       const { data } = await api.get('/billing/get-abonents-by-mfy-id/' + mfy_id, {
         params: {
           minSaldo,
@@ -89,7 +76,7 @@ function PrintAbonentsList() {
       console.log(error);
       toast.error(error.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -113,10 +100,10 @@ function PrintAbonentsList() {
       <Divider />
 
       <CustomStyle />
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', height: '100%' }}>
-        <div style={{ height: '100%' }}>
+      <Grid container spacing={2} sx={{ border: '1px solid red', height: '100%', overflow: 'auto' }}>
+        <Grid item sx={{ display: { xs: 'none' } }} sm={2}>
           <Typography sx={{ fontWeight: '700' }}>Topshirilishi kerak</Typography>
-          <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto', maxWidth: 200 }}>
+          <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto' }}>
             {mahallas
               .filter((mfy) => mfy.reja > 0 && !mfy.abarotka_berildi)
               .map((item) => (
@@ -132,28 +119,17 @@ function PrintAbonentsList() {
                 </ListItem>
               ))}
           </List>
-        </div>
-
-        <Card sx={{ boxShadow: '5', minWidth: 800, overflowY: 'auto' }}>
-          <CardContent sx={{ position: 'relative', width: '100%', height: '100%' }}>
-            <Backdrop
-              sx={{
-                color: '#fff',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                zIndex: (theme) => theme.zIndex.drawer + 1
-              }}
-              open={loading}
-            >
-              <CircularProgress color="inherit" />
-            </Backdrop>
-            <PrintSection printContentRef={printContentRef} />
-          </CardContent>
-        </Card>
-        <div style={{ height: '100%' }}>
+        </Grid>
+        <Grid item xs={12} sm={8}>
+          <Card sx={{ boxShadow: '5', overflowY: 'auto' }}>
+            <CardContent sx={{ position: 'relative' }}>
+              <PrintSection printContentRef={printContentRef} />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item sx={{ display: { xs: 'none' }, height: '100%' }} sm={2}>
           <Typography sx={{ fontWeight: '700' }}>Ro'yxati topshirilgan</Typography>
-          <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto', maxWidth: 200 }}>
+          <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto' }}>
             {mahallas
               .filter((mfy) => mfy.reja > 0 && mfy.abarotka_berildi)
               .map((item) => (
@@ -169,8 +145,8 @@ function PrintAbonentsList() {
                 </ListItem>
               ))}
           </List>
-        </div>
-      </div>
+        </Grid>
+      </Grid>
     </MainCard>
   );
 }
