@@ -19,6 +19,7 @@ import XatlovDalolatnomalar from 'views/billing/XatlovDalolatnomalar';
 import Reports from 'views/billing/Reports';
 import PendingNewAbonents from 'views/billing/PendingNewAbonents';
 import QarzdorAbonentlar from 'views/jurist/QarzdorAbonentlar';
+import NazoratchilarXatlov from 'views/billing/Reports/NazoratchilarXatlov';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -126,6 +127,10 @@ const MainRoutes = {
         {
           path: 'reports',
           element: <Reports />
+        },
+        {
+          path: 'xatlov-inspectors',
+          element: <NazoratchilarXatlov />
         },
         {
           path: 'pendingNewAbonents',

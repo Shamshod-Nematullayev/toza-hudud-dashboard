@@ -25,6 +25,7 @@ import menuItems from 'menu-items';
 import { Divider, ListItemButton, ListItemIcon, ListItemText, List } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
+import { useTranslation } from 'react-i18next';
 
 const flattenMenu = (items) => {
   let result = [];
@@ -68,6 +69,7 @@ const MobileSearch = ({ value, setValue, popupState }) => {
   const theme = useTheme();
   const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
   const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
+  const { t } = useTranslation();
   return (
     <Box style={{ position: 'relative' }}>
       <Box>
@@ -75,7 +77,7 @@ const MobileSearch = ({ value, setValue, popupState }) => {
           id="input-search-header"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Qidirish..."
+          placeholder={t('search') + '...'}
           startAdornment={
             <InputAdornment position="start">
               <IconSearch stroke={1.5} size="16px" />
@@ -129,6 +131,7 @@ const SearchSection = () => {
   const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
   const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
   const location = useLocation();
+  const { t } = useTranslation();
   useEffect(() => {
     setValue('');
   }, [location.pathname]);
@@ -173,7 +176,7 @@ const SearchSection = () => {
           id="input-search-header"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Qidirish..."
+          placeholder={t('search') + '...'}
           startAdornment={
             <InputAdornment position="start">
               <IconSearch stroke={1.5} size="16px" />

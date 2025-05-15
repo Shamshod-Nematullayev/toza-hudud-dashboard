@@ -5,6 +5,7 @@ const uz = {
     password: 'Parol',
     login: 'Kirish',
     all: 'Hammasi',
+    search: 'Qidirish',
     'Drop your files': 'fayllaringizni tashlang',
     documentNumber: 'Xujjat raqami',
     menuItems: {
@@ -26,7 +27,8 @@ const uz = {
       'Sud jarayonlari': 'Sud jarayonlari',
       'Sudga arizalar kiritish': 'Sudga arizalar kiritish',
       'Nishonga olingan abonentlar': 'Nishonga olingan abonentlar',
-      'Qarzdor abonentlar': 'Qarzdor abonentlar'
+      'Qarzdor abonentlar': 'Qarzdor abonentlar',
+      Hisobotlar: 'Hisobotlar'
     },
     dashboard: {
       identified: 'Shaxsi tasdiqlangan',
@@ -46,7 +48,12 @@ const uz = {
       sudAkt: 'Sud akti',
       warning: 'Ogohlantirish',
       debitorFrom: 'Qarzdorlik (x)dan',
-      debitorTo: 'Qarzdorlik (x)gacha'
+      debitorTo: 'Qarzdorlik (x)gacha',
+      allPnflCount: 'Jami pnfl soni',
+      allEtkCount: 'Jami ETK kod soni',
+      allAbonentsCount: 'Jami abonentlar soni',
+      onPeriodEtkCount: 'Tanlangan vaqtdagi ETK kod soni',
+      onPeriodPnflCount: 'Tanlangan vaqtdagi pnfl soni'
     },
     tableActions: {
       edit: 'Tahrirlash',

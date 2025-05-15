@@ -110,14 +110,14 @@ const billing = {
         }
       ]
     },
-    // {
-    //   id: 'reports',
-    //   title: 'Hisobotlar',
-    //   type: 'item',
-    //   url: '/billing/reports',
-    //   icon: icons.AssessmentOutlinedIcon,
-    //   breadcrumbs: false
-    // },
+    {
+      id: 'reports',
+      title: 'Hisobotlar',
+      type: 'item',
+      url: '/billing/reports',
+      icon: icons.AssessmentOutlinedIcon,
+      breadcrumbs: false
+    },
     {
       id: 'newAbonentRequirements',
       title: 'newAbonentRequirements',

@@ -5,9 +5,6 @@ import React from 'react';
 function ToolBar() {
   return (
     <Stack direction={'row'}>
-      <Select value={1}>
-        <MenuItem value={1}>Nazoratchilar kesimida elektr kiritish hisoboti</MenuItem>
-      </Select>
       <Button>
         <Telegram />
         Telegramga yuborish
