@@ -61,7 +61,8 @@ const billing = {
       title: 'importAbonentPetition',
       type: 'item',
       url: '/billing/importAbonentPetition',
-      icon: icons.UploadFileOutlinedIcon
+      icon: icons.UploadFileOutlinedIcon,
+      breadcrumbs: false
     },
     {
       id: 'petitions',

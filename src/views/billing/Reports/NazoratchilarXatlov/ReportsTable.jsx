@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import useLoaderStore from 'store/loaderStore';
+import { CSVDownload } from 'react-csv';
 
 function ReportsTable() {
   const { t } = useTranslation();
   const { isLoading, setIsLoading } = useLoaderStore();
+  const [readyToDownload, setReadyToDownload] = useState(true);
   const [columns, setColumns] = useState([
     { field: 'id', headerName: 'ID', width: 50, renderCell: (row) => row.row.i + 1 },
     { field: 'name', headerName: t('tableHeaders.fullName'), width: 150, flex: 1 },
@@ -31,6 +33,7 @@ function ReportsTable() {
         height: '100%'
       }}
     >
+      {rows.length > 0 && <CSVDownload data={rows} filename="hisobot-d2.csv" />}
       <DataGrid columns={columns} rows={rows} sx={{ height: '97%' }} loading={isLoading} hideFooter />
     </div>
   );

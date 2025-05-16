@@ -4,7 +4,6 @@ import useStore from './useStore';
 import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
 import CancelDialog from './CancelDialog';
-import { useState } from 'react';
 import DisplayFile from './DisplayFile';
 import { Grid } from '@mui/material';
 
@@ -12,7 +11,7 @@ function ImportAbonentPetition() {
   const { pdfFiles, showDialog, setShowDialog } = useStore();
 
   return (
-    <MainCard contentSX={{ height: '75vh' }}>
+    <MainCard contentSX={{ height: 'calc(100vh - 130px)' }}>
       {pdfFiles.length == 0 ? (
         <FileInputDrop />
       ) : (
