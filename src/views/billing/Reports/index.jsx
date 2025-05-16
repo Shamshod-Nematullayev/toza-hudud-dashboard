@@ -1,18 +1,12 @@
 import { Grid, Typography } from '@mui/material';
 import React from 'react';
 import MainCard from 'ui-component/cards/MainCard';
-import ReportsTable from './NazoratchilarXatlov/ReportsTable';
-import ToolBar from './NazoratchilarXatlov/ToolBar';
-import SideBar from './NazoratchilarXatlov/SideBar';
 import { AssessmentOutlined } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 const reportTypes = [
   { id: 1, name: "Nazoratchilar: Abonent ma'lumotlari", path: 'xatlov-inspectors' },
-  { id: 2, name: 'Odam Soni Xatlov', path: 'odam-soni-xatlov' },
-  { id: 2, name: 'Odam Soni Xatlov', path: 'odam-soni-xatlov' },
-  { id: 2, name: 'Odam Soni Xatlov', path: 'odam-soni-xatlov' },
-  { id: 2, name: 'Odam Soni Xatlov', path: 'odam-soni-xatlov' }
+  { id: 2, name: 'Arizalar hisoboti', path: 'report-petitions' }
 ];
 
 function Reports() {

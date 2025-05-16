@@ -199,6 +199,10 @@ export default function componentStyleOverrides(theme) {
           '& .MuiDataGrid-footerContainer': {
             flexShrink: 0 // Prevent shrinking of pagination area
           },
+
+          '& .MuiToolbar-root': {
+            padding: 0
+          },
           height: 'calc(100vh - 180px)'
         }
       }

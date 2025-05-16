@@ -85,48 +85,28 @@ function PendingNewAbonents() {
       renderCell: (params) => {
         return (
           <div>
-            {isXs && (
-              <>
-                <IconButton size="small" color="success" onClick={() => handleAccept(params.row)}>
-                  <CheckOutlined />
-                </IconButton>
-                <IconButton size="small" color="error" onClick={() => handleCancel(params.row)}>
-                  <CloseOutlined />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  color="info"
-                  onClick={() => {
-                    setSelectedAbonent(rows.find((a) => a._id === params.row._id));
-                    setOpenRokirovkaModal(true);
-                  }}
-                >
-                  <CloseOutlined />
-                </IconButton>
-              </>
-            )}
-            {isUpXs && (
-              <div>
-                <Button onClick={() => handleAccept(params.row)} size="small" color="success" variant="contained">
-                  {t('buttons.accept')}
-                </Button>
-                <Button onClick={() => handleCancel(params.row)} size="small" color="error" variant="contained">
-                  {t('buttons.reject')}
-                </Button>
-                <Tooltip title={t('pendingAbonentsPage.Rokirovka qilish')}>
-                  <IconButton
-                    size="small"
-                    color="info"
-                    onClick={() => {
-                      setSelectedAbonent(rows.find((a) => a._id === params.row._id));
-                      setOpenRokirovkaModal(true);
-                    }}
-                  >
-                    <SyncAltOutlined />
-                  </IconButton>
-                </Tooltip>
-              </div>
-            )}
+            <Tooltip title={t('buttons.accept')}>
+              <IconButton size="small" color="success" onClick={() => handleAccept(params.row)}>
+                <CheckOutlined />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('buttons.reject')}>
+              <IconButton size="small" color="error" onClick={() => handleCancel(params.row)}>
+                <CloseOutlined />
+              </IconButton>
+            </Tooltip>{' '}
+            <Tooltip title={t('pendingAbonentsPage.Rokirovka qilish')}>
+              <IconButton
+                size="small"
+                color="info"
+                onClick={() => {
+                  setSelectedAbonent(rows.find((a) => a._id === params.row._id));
+                  setOpenRokirovkaModal(true);
+                }}
+              >
+                <SyncAltOutlined />
+              </IconButton>
+            </Tooltip>
           </div>
         );
       }
