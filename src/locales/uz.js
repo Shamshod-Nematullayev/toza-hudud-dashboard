@@ -61,7 +61,8 @@ const uz = {
       kSaldo: 'Saldo oxiri',
       act: 'Akt',
       allPaymentsSum: "To'lovlar summasi",
-      inhabitantCount: 'Yashovchilar soni'
+      inhabitantCount: 'Yashovchilar soni',
+      documentType: 'Xujjat turi'
     },
     tableActions: {
       edit: 'Tahrirlash',

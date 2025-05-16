@@ -11,6 +11,7 @@ import Visibility from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
 import useLoaderStore from 'store/loaderStore';
 import Cancel from '@mui/icons-material/CancelOutlined';
+import ChooseArizaModal from './ChooseArizaModal';
 
 function KeyValue({ kalit, value }) {
   return (
@@ -35,6 +36,7 @@ function FindedDataTable() {
   const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog } = useStore();
   const [rows, setRows] = useState([]);
   const [arizaNumberInput, setArizaNumberInput] = useState('');
+  const [arizalarRows, setArizalarRows] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(true);
   const [showSpoiler, setShowSpoiler] = useState(false);
   const [aktSumm, setAktSumm] = useState('');
@@ -146,11 +148,17 @@ function FindedDataTable() {
       if (data.data.length === 0) {
         return toast.error('Bunday tartib raqamga ega ariza topilmadi');
       }
-      setAriza(data.data[0]);
-      setIsUploading(false);
+      if (ariza.length === 1) {
+        setAriza(data.data[0]);
+      } else {
+        setArizalarRows(data.data);
+        setShowArizaChooseDialog(true);
+      }
     } catch (err) {
       console.log(err);
       toast.error("Serverga so'rov yuborilmadi");
+    } finally {
+      setIsUploading(false);
     }
   };
   const handlePrimaryButtonClick = async (e) => {
@@ -206,8 +214,16 @@ function FindedDataTable() {
     setRows([]);
     setAktSumm('');
   };
+  const [showArizaChooseDialog, setShowArizaChooseDialog] = useState(false);
+  const handleCloseChooseArizaModal = () => setShowArizaChooseDialog(false);
   return (
     <div>
+      <ChooseArizaModal
+        showDialog={showArizaChooseDialog}
+        handleClose={handleCloseChooseArizaModal}
+        rows={arizalarRows}
+        setAriza={setAriza}
+      />
       <form onSubmit={handleSubmit}>
         <Grid container spacing={0.5}>
           <Grid item xs={1}>
