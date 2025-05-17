@@ -43,6 +43,10 @@ function PrintAbonentsList() {
   const { isLoading, setIsLoading } = useLoaderStore();
   const { customization } = useCustomizationStore();
   const printContentRef = useRef(null);
+  const [filters, setFilters] = useState({
+    identified: '',
+    elektrAccountNumberConfirmed: ''
+  });
 
   useEffect(() => {
     api.get('/inspectors').then(({ data }) => {
@@ -96,12 +100,12 @@ function PrintAbonentsList() {
 
   return (
     <MainCard sx={{ height: '85vh' }} contentSX={{ height: '92%' }}>
-      <Header printContentRef={printContentRef} getAbonents={getAbonents} />
-      <Divider />
-
       <CustomStyle />
-      <Grid container spacing={2} sx={{ border: '1px solid red', height: '100%', overflow: 'auto' }}>
-        <Grid item sx={{ display: { xs: 'none' } }} sm={2}>
+      <Grid container spacing={2} sx={{ overflow: 'auto' }}>
+        <Grid item xs={12}>
+          <Header printContentRef={printContentRef} getAbonents={getAbonents} filters={filters} setFilters={setFilters} />
+        </Grid>
+        <Grid item sx={{ display: { xs: 'none', md: 'block' } }} sm={2}>
           <Typography sx={{ fontWeight: '700' }}>Topshirilishi kerak</Typography>
           <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto' }}>
             {mahallas
@@ -120,14 +124,14 @@ function PrintAbonentsList() {
               ))}
           </List>
         </Grid>
-        <Grid item xs={12} sm={8}>
+        <Grid item xs={12} md={8}>
           <Card sx={{ boxShadow: '5', overflowY: 'auto' }}>
             <CardContent sx={{ position: 'relative' }}>
               <PrintSection printContentRef={printContentRef} />
             </CardContent>
           </Card>
         </Grid>
-        <Grid item sx={{ display: { xs: 'none' }, height: '100%' }} sm={2}>
+        <Grid item sx={{ display: { xs: 'none', md: 'block' }, height: '100%' }} sm={2}>
           <Typography sx={{ fontWeight: '700' }}>Ro'yxati topshirilgan</Typography>
           <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto' }}>
             {mahallas

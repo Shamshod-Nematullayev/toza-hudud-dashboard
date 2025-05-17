@@ -14,7 +14,7 @@ function Reports() {
     <div>
       <Grid container height={'100%'} spacing={2}>
         {reportTypes.map((reportType) => (
-          <Grid item xs={2} key={reportType.id}>
+          <Grid item xs={12} sm={3} md={2} key={reportType.id}>
             <Link to={`/billing/${reportType.path}`} style={{ textDecoration: 'none' }}>
               <MainCard
                 sx={{

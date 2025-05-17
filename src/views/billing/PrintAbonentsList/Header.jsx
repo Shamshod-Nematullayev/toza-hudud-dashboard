@@ -1,19 +1,30 @@
 import React, { useEffect } from 'react';
 import useStore from './useStore';
-import { MenuItem, Select, TextField, Typography, Button, Checkbox, FormControlLabel, InputLabel, FormControl, Box } from '@mui/material';
+import {
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  InputLabel,
+  FormControl,
+  Box,
+  Grid
+} from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import DoneAll from '@mui/icons-material/DoneOutlined';
 import PrintIcon from '@mui/icons-material/PrintOutlined';
 import { toPng } from 'html-to-image';
 import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
-import { ClearAll } from '@mui/icons-material';
 import api from 'utils/api';
 import { lotinga } from 'helpers/lotinKiril';
 import { toast } from 'react-toastify';
-import { reactToPrintDefaultOptions } from 'store/constant';
+import { ClearAll } from '@mui/icons-material';
 
-function Header({ printContentRef, getAbonents, sx }) {
+function Header({ printContentRef, getAbonents, filters, setFilters }) {
   const {
     selectedMahalla,
     setSelectedMahalla,
@@ -171,88 +182,116 @@ function Header({ printContentRef, getAbonents, sx }) {
     }
   };
   return (
-    <Box
-      sx={{ backgroundColor: 'background.paper', height: 80, top: 100, zIndex: 100 }}
-      style={{ marginBottom: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-    >
-      <div
-        style={{
-          display: 'flex'
-        }}
-      >
-        <FormControlLabel
-          control={<Checkbox checked={onlyNotIdentited} onChange={(e) => setOnlyNotIdentited(e.target.checked)} />}
-          label="Shaxsi tasdiqlanmagan"
-        />
-        <FormControl style={{ marginRight: '15px' }}>
-          <InputLabel id="etk-status">Elektr holati</InputLabel>
-          <Select
-            value={etkStatus}
-            labelId="etk-status"
-            label="Elektr holati"
-            onChange={(e) => setEtkStatus(e.target.value)}
-            sx={{ minWidth: 150 }}
-          >
-            <MenuItem value="">Hammasi</MenuItem>
-            <MenuItem value={'tasdiqlangan'}>Tasdiqlangan</MenuItem>
-            <MenuItem value={'tasdiqlanmagan'}>Tasdiqlanmagan</MenuItem>
-          </Select>
-        </FormControl>
-        <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} sx={{ minWidth: 150 }}>
-          <MenuItem disabled value="0">
-            Mahalla
-          </MenuItem>
-          {mahallas.map((mfy) => (
-            <MenuItem key={mfy.id} value={mfy.id}>
-              {mfy.name}
-            </MenuItem>
-          ))}
-        </Select>
-        <TextField
-          label="dan"
-          type="number"
-          placeholder="qarzdorlik summasi"
-          sx={{ width: 100, margin: 'auto 10px' }}
-          InputProps={{ inputProps: { step: 100000 } }}
-          value={minSaldo}
-          onChange={(e) => setMinSaldo(e.target.value)}
-        />
-        <TextField
-          label="gacha"
-          type="number"
-          placeholder="qarzdorlik summasi"
-          sx={{ width: 100 }}
-          InputProps={{ inputProps: { step: 1000 } }}
-          value={maxSaldo}
-          onChange={(e) => setMaxSaldo(e.target.value)}
-        />
-        <Button onClick={handleClickUpdate}>
-          <SyncOutlinedIcon /> Yangilash
-        </Button>
-      </div>
+    <Grid container spacing={1} sx={{ backgroundColor: 'background.paper', zIndex: 100 }}>
+      <Grid container item xs={12} sm={9} spacing={1}>
+        <Grid item xs={12} sm={4} md={2} order={{ xs: 1 }}>
+          <FormControl fullWidth>
+            <InputLabel id="identity">Identifikatsiya</InputLabel>
+            <Select
+              value={filters.identified}
+              labelId="identity"
+              label="Identifikatsiya"
+              onChange={(e) => setFilters({ ...filters, identified: e.target.value })}
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value="">Hammasi</MenuItem>
+              <MenuItem value={'true'}>Identifikatsiyalangan</MenuItem>
+              <MenuItem value={'false'}>Identifikatsiyalanmagan</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={4} md={1} order={{ xs: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel id="etk-status">Elektr holati</InputLabel>
+            <Select
+              value={filters.elektrAccountNumberConfirmed}
+              labelId="etk-status"
+              label="Elektr holati"
+              onChange={(e) => setFilters({ ...filters, elektrAccountNumberConfirmed: e.target.value })}
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value="">Hammasi</MenuItem>
+              <MenuItem value={'tasdiqlangan'}>Tasdiqlangan</MenuItem>
+              <MenuItem value={'tasdiqlanmagan'}>Tasdiqlanmagan</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
 
-      <div></div>
-      <div>
-        <Button disabled={mainFunctionsDisabled} onClick={printFunction}>
-          <PrintIcon /> Chop etish
-        </Button>
-        <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg}>
-          <TelegramIcon /> Telegramga yuborish
-        </Button>
-      </div>
-      <div>
+        <Grid
+          item
+          xs={6}
+          sm={4}
+          md={2}
+          order={{
+            xs: 3,
+            sm: 4
+          }}
+        >
+          <TextField
+            label="dan"
+            type="number"
+            placeholder="qarzdorlik summasi"
+            InputProps={{ inputProps: { step: 100000 } }}
+            value={minSaldo}
+            onChange={(e) => setMinSaldo(e.target.value)}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2} order={{ xs: 4, sm: 5 }}>
+          <TextField
+            label="gacha"
+            type="number"
+            placeholder="qarzdorlik summasi"
+            InputProps={{ inputProps: { step: 100000 } }}
+            value={maxSaldo}
+            onChange={(e) => setMaxSaldo(e.target.value)}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2} order={{ xs: 5, sm: 3 }}>
+          <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} fullWidth>
+            <MenuItem disabled value="0">
+              Mahalla
+            </MenuItem>
+            {mahallas.map((mfy) => (
+              <MenuItem key={mfy.id} value={mfy.id}>
+                {mfy.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </Grid>
+        <Grid item xs={6} sm={4} md={2} order={{ xs: 6 }}>
+          <Button onClick={handleClickUpdate} variant="outlined" fullWidth sx={{ height: '100%' }}>
+            <SyncOutlinedIcon /> Yangilash
+          </Button>
+        </Grid>
+      </Grid>
+      <Grid container item xs={12} sm={3} spacing={1}>
+        <Grid item xs={12}>
+          <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg} variant="contained" fullWidth>
+            <TelegramIcon /> Telegramga yuborish
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Button disabled={mainFunctionsDisabled} onClick={printFunction} variant="contained" fullWidth>
+            <PrintIcon /> Chop etish
+          </Button>
+        </Grid>
+      </Grid>
+
+      <Grid item sx={{ display: { xs: 'none' } }}>
         <Button disabled={mainFunctionsDisabled} onClick={handleClickDone}>
           <DoneAll /> Topshirildi
         </Button>
-        {/* <Button
+        <Button
           disabled={mahallas.filter((mfy) => mfy.reja > 0 && mfy.abarotka_berildi).length > 0 ? false : true}
           sx={{ color: 'error.main' }}
           onClick={handleClickClearAll}
         >
           <ClearAll /> Tozalash
-        </Button> */}
-      </div>
-    </Box>
+        </Button>
+      </Grid>
+    </Grid>
   );
 }
 
