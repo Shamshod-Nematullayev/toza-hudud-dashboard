@@ -14,7 +14,12 @@ function ToolBar({ filters, setFilters, refreshTable }) {
   const handleExport = async () => {
     setIsLoading(true);
     try {
-      await api.get('/reports/confirmed-abonentdata-by-inspectors/excel', { params: filters });
+      const { data } = await api.get('/reports/confirmed-abonentdata-by-inspectors/excel', { params: filters, responseType: 'blob' });
+      const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'nazoratchilar_xatlov.xlsx';
+      link.click();
     } catch (error) {
       console.error(error);
     } finally {

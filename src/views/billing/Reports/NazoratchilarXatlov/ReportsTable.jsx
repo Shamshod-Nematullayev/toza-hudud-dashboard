@@ -30,13 +30,14 @@ function ReportsTable() {
     api
       .get('/reports/confirmed-abonentdata-by-inspectors', {
         params: {
-          page,
-          size: pageSize,
+          page: page + 1,
+          limit: pageSize,
           ...filters
         }
       })
       .then(({ data }) => {
-        setRows(data.map((row, i) => ({ ...row, i })));
+        setRows(data.rows.map((row, i) => ({ ...row, i })));
+        setAllRowsCount(data.count);
       })
       .finally(() => setIsLoading(false));
   }, [page, pageSize, refreshState]);
@@ -60,7 +61,8 @@ function ReportsTable() {
         pageSizeOptions={[15, 30, 50]}
         slots={{ toolbar: () => <ToolBar filters={filters} setFilters={setFilters} refreshTable={refreshTable} /> }}
         onPaginationModelChange={(model) => {
-          setPage(model.page + 1);
+          console.log(model);
+          if (model.page != page) setPage(model.page);
           setPageSize(model.pageSize);
         }}
       />

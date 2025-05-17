@@ -99,9 +99,36 @@ function PendingNewAbonents() {
               <IconButton
                 size="small"
                 color="info"
-                onClick={() => {
-                  setSelectedAbonent(rows.find((a) => a._id === params.row._id));
-                  setOpenRokirovkaModal(true);
+                onClick={async () => {
+                  try {
+                    const abonent = rows.find((a) => a._id === params.row._id);
+                    const freeAbonent = (await api.get('/pendingNewAbonents/get-free-abonentid')).data.data;
+                    const { data } = await api.get('/pendingNewAbonents/generateAccountNumber', {
+                      params: {
+                        mahallaId: abonent.mahallaId,
+                        companyId: abonent.companyId
+                      }
+                    });
+                    let accountNumber = data.accountNumber;
+                    api
+                      .post('/pendingNewAbonents/castling', {
+                        id: freeAbonent.id,
+                        newAbonentId: abonent._id,
+                        accountNumber: accountNumber
+                      })
+                      .then(({ data }) => {
+                        if (data.ok) {
+                          toast.success(data.message);
+                          refresh();
+                        }
+                      });
+                    // setSelectedAbonent(rows.find((a) => a._id === params.row._id));
+                    // setOpenRokirovkaModal(true);
+                  } catch (error) {
+                    console.error(error);
+                  } finally {
+                    setIsLoading(false);
+                  }
                 }}
               >
                 <SyncAltOutlined />
