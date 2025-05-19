@@ -3,7 +3,20 @@ import MainCard from 'ui-component/cards/MainCard';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import PrintIcon from '@mui/icons-material/PrintOutlined';
 
-import { Backdrop, Card, CardContent, CircularProgress, Divider, Grid, IconButton, List, ListItem, Typography } from '@mui/material';
+import {
+  Backdrop,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  Popper,
+  Typography,
+  useMediaQuery
+} from '@mui/material';
 import api from 'utils/api';
 import useCustomizationStore from 'store/customizationStore';
 import { createGlobalStyle } from 'styled-components';
@@ -97,12 +110,13 @@ function PrintAbonentsList() {
       });
     });
   };
+  const isXs = useMediaQuery('(max-width:600px)');
 
   return (
     <MainCard sx={{ height: '85vh' }} contentSX={{ height: '92%' }}>
       <CustomStyle />
       <Grid container spacing={2} sx={{ overflow: 'auto' }}>
-        <Grid item xs={12}>
+        <Grid item xs={12} sx={{ display: { xs: 'none', md: 'block' } }}>
           <Header printContentRef={printContentRef} getAbonents={getAbonents} filters={filters} setFilters={setFilters} />
         </Grid>
         <Grid item sx={{ display: { xs: 'none', md: 'block' } }} sm={2}>

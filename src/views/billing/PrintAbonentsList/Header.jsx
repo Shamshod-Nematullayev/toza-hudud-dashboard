@@ -11,7 +11,8 @@ import {
   InputLabel,
   FormControl,
   Box,
-  Grid
+  Grid,
+  Paper
 } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import TelegramIcon from '@mui/icons-material/Telegram';
@@ -182,9 +183,11 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
     }
   };
   return (
-    <Grid container spacing={1} sx={{ backgroundColor: 'background.paper', zIndex: 100 }}>
-      <Grid container item xs={12} sm={9} spacing={1}>
-        <Grid item xs={12} sm={4} md={2} order={{ xs: 1 }}>
+    <Grid container spacing={2} sx={{ backgroundColor: 'background.paper', zIndex: 100, alignItems: 'center', justifyContent: 'center' }}>
+      {/* Filterlar va Uskunalar */}
+      <Grid container item xs={10} md={9} spacing={2}>
+        {/* Identifikatsiya */}
+        <Grid item xs={12} sm={6} md={4} lg={2}>
           <FormControl fullWidth>
             <InputLabel id="identity">Identifikatsiya</InputLabel>
             <Select
@@ -192,7 +195,6 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
               labelId="identity"
               label="Identifikatsiya"
               onChange={(e) => setFilters({ ...filters, identified: e.target.value })}
-              sx={{ minWidth: 150 }}
             >
               <MenuItem value="">Hammasi</MenuItem>
               <MenuItem value={'true'}>Identifikatsiyalangan</MenuItem>
@@ -200,7 +202,9 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4} md={1} order={{ xs: 2 }}>
+
+        {/* Elektr holati */}
+        <Grid item xs={12} sm={6} md={4} lg={2}>
           <FormControl fullWidth>
             <InputLabel id="etk-status">Elektr holati</InputLabel>
             <Select
@@ -208,7 +212,6 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
               labelId="etk-status"
               label="Elektr holati"
               onChange={(e) => setFilters({ ...filters, elektrAccountNumberConfirmed: e.target.value })}
-              sx={{ minWidth: 150 }}
             >
               <MenuItem value="">Hammasi</MenuItem>
               <MenuItem value={'tasdiqlangan'}>Tasdiqlangan</MenuItem>
@@ -217,16 +220,8 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
           </FormControl>
         </Grid>
 
-        <Grid
-          item
-          xs={6}
-          sm={4}
-          md={2}
-          order={{
-            xs: 3,
-            sm: 4
-          }}
-        >
+        {/* Qarzdorlik dan */}
+        <Grid item xs={6} sm={6} md={4} lg={2}>
           <TextField
             label="dan"
             type="number"
@@ -237,7 +232,9 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
             fullWidth
           />
         </Grid>
-        <Grid item xs={6} sm={4} md={2} order={{ xs: 4, sm: 5 }}>
+
+        {/* Qarzdorlik gacha */}
+        <Grid item xs={6} sm={6} md={4} lg={2}>
           <TextField
             label="gacha"
             type="number"
@@ -248,8 +245,10 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
             fullWidth
           />
         </Grid>
-        <Grid item xs={6} sm={4} md={2} order={{ xs: 5, sm: 3 }}>
-          <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} fullWidth>
+
+        {/* Mahalla tanlov */}
+        <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} fullWidth displayEmpty>
             <MenuItem disabled value="0">
               Mahalla
             </MenuItem>
@@ -260,36 +259,27 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
             ))}
           </Select>
         </Grid>
-        <Grid item xs={6} sm={4} md={2} order={{ xs: 6 }}>
+
+        {/* Yangilash tugmasi */}
+        <Grid item xs={12} sm={6} md={4} lg={2}>
           <Button onClick={handleClickUpdate} variant="outlined" fullWidth sx={{ height: '100%' }}>
-            <SyncOutlinedIcon /> Yangilash
-          </Button>
-        </Grid>
-      </Grid>
-      <Grid container item xs={12} sm={3} spacing={1}>
-        <Grid item xs={12}>
-          <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg} variant="contained" fullWidth>
-            <TelegramIcon /> Telegramga yuborish
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <Button disabled={mainFunctionsDisabled} onClick={printFunction} variant="contained" fullWidth>
-            <PrintIcon /> Chop etish
+            <SyncOutlinedIcon sx={{ mr: 1 }} /> Yangilash
           </Button>
         </Grid>
       </Grid>
 
-      <Grid item sx={{ display: { xs: 'none' } }}>
-        <Button disabled={mainFunctionsDisabled} onClick={handleClickDone}>
-          <DoneAll /> Topshirildi
-        </Button>
-        <Button
-          disabled={mahallas.filter((mfy) => mfy.reja > 0 && mfy.abarotka_berildi).length > 0 ? false : true}
-          sx={{ color: 'error.main' }}
-          onClick={handleClickClearAll}
-        >
-          <ClearAll /> Tozalash
-        </Button>
+      {/* Telegram va Chop etish */}
+      <Grid container item xs={10} md={3} spacing={1}>
+        <Grid item xs={12} md={4}>
+          <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg} variant="contained" fullWidth>
+            <TelegramIcon sx={{ mr: 1 }} /> yuborish
+          </Button>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Button disabled={mainFunctionsDisabled} onClick={printFunction} variant="contained" fullWidth sx={{ textWrap: 'nowrap' }}>
+            <PrintIcon sx={{ mr: 1 }} /> Chop etish
+          </Button>
+        </Grid>
       </Grid>
     </Grid>
   );
