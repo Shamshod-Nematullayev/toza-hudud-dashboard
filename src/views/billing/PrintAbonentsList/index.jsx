@@ -99,10 +99,20 @@ function PrintAbonentsList() {
   };
 
   return (
-    <MainCard sx={{ height: '85vh' }} contentSX={{ height: '92%' }}>
+    // sx={{ height: '85vh' }} contentSX={{ height: '92%' }}
+    <MainCard>
       <CustomStyle />
-      <Grid container spacing={2} sx={{ overflow: 'auto' }}>
-        <Grid item xs={12}>
+      <Grid container spacing={2} sx={{ height: 'calc(100vh - 150px)', overflow: 'auto' }}>
+        <Grid
+          item
+          xs={12}
+          sx={{
+            position: 'sticky',
+            top: 0,
+            backgroundColor: 'background.paper',
+            zIndex: 1
+          }}
+        >
           <Header printContentRef={printContentRef} getAbonents={getAbonents} filters={filters} setFilters={setFilters} />
         </Grid>
         <Grid item sx={{ display: { xs: 'none', md: 'block' } }} sm={2}>
@@ -125,8 +135,8 @@ function PrintAbonentsList() {
           </List>
         </Grid>
         <Grid item xs={12} md={8}>
-          <Card sx={{ boxShadow: '5', overflowY: 'auto' }}>
-            <CardContent sx={{ position: 'relative' }}>
+          <Card sx={{ boxShadow: '5' }}>
+            <CardContent>
               <PrintSection printContentRef={printContentRef} />
             </CardContent>
           </Card>
