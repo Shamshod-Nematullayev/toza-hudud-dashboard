@@ -54,7 +54,6 @@ const NotificationSection = () => {
   const theme = useTheme();
   const { notifications, getNotifications, filterStatus, setFilterStatus, addNotification } = useNotificationStore();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
-  console.log({ notifications });
   const [open, setOpen] = useState(false);
   /**
    * anchorRef is used on different componets and specifying one type leads to other components throwing an error

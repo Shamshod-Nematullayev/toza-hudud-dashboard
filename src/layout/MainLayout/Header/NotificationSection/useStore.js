@@ -11,7 +11,7 @@ const useNotificationStore = create((set) => ({
         await api.get('/notification', {
           params: filters
         })
-      ).data.notifications;
+      ).data.notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       set({ notifications });
     } catch (error) {
       toast.error(error.message);
@@ -25,7 +25,9 @@ const useNotificationStore = create((set) => ({
     try {
       await api.put(`/notification/${id}/read`);
       set((state) => ({
-        notifications: state.notifications.map((n) => (n._id == id ? { ...n, status: 'read' } : n))
+        notifications: state.notifications
+          .map((n) => (n._id == id ? { ...n, status: 'read' } : n))
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       }));
     } catch (error) {
       toast.error(error.message);
@@ -33,7 +35,7 @@ const useNotificationStore = create((set) => ({
   },
   removeNotification: (id) => set((state) => ({ notifications: state.notifications.filter((n) => n.id !== id) })),
   clearAllNotifications: () => set({ notifications: [] }),
-  filterStatus: 'all',
+  filterStatus: 'new',
   setFilterStatus: (status) => set({ filterStatus: status })
 }));
 
