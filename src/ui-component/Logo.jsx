@@ -14,8 +14,7 @@ import useCustomizationStore from 'store/customizationStore';
 
 const Logo = ({ style, imgSize }) => {
   const theme = useTheme();
-  const {mode} = useCustomizationStore().customization;
-  console.log('mode', mode);
+  const { mode } = useCustomizationStore().customization;
 
   return (
     /**
@@ -27,7 +26,7 @@ const Logo = ({ style, imgSize }) => {
       style={{
         display: 'flex',
         alignItems: 'center',
-        color: mode === "dark" ? "#50cd89" : '#00512f',
+        color: mode === 'dark' ? '#50cd89' : '#00512f',
         fontSize: '1.5rem',
         ...style
       }}

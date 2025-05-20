@@ -21,8 +21,10 @@ import Divider from '@mui/material/Divider';
 import Chip from 'ui-component/extended/Chip';
 
 import useNotificationStore from './useStore';
+import useCustomizationStore from 'store/customizationStore';
 
 const ListItemWrapper = ({ children }) => {
+  const { customization } = useCustomizationStore();
   return (
     <Box
       sx={{
@@ -31,7 +33,7 @@ const ListItemWrapper = ({ children }) => {
         borderColor: 'divider',
         cursor: 'pointer',
         '&:hover': {
-          bgcolor: 'primary.light'
+          bgcolor: customization.mode === 'light' ? 'primary.light' : 'primary.dark'
         }
       }}
     >
