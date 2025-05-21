@@ -113,10 +113,10 @@ function PrintAbonentsList() {
   const isXs = useMediaQuery('(max-width:600px)');
 
   return (
-    <MainCard sx={{ height: '85vh' }} contentSX={{ height: '92%' }}>
+    <MainCard sx={{ height: 'calc(100vh - 120px)' }}>
       <CustomStyle />
-      <Grid container spacing={2} sx={{ overflow: 'auto' }}>
-        <Grid item xs={12} sx={{ display: { xs: 'none', md: 'block' } }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
           <Header printContentRef={printContentRef} getAbonents={getAbonents} filters={filters} setFilters={setFilters} />
         </Grid>
         <Grid item sx={{ display: { xs: 'none', md: 'block' } }} sm={2}>
@@ -139,7 +139,7 @@ function PrintAbonentsList() {
           </List>
         </Grid>
         <Grid item xs={12} md={8}>
-          <Card sx={{ boxShadow: '5', overflowY: 'auto' }}>
+          <Card sx={{ boxShadow: '5', height: 'calc(100vh - 180px)', overflow: 'auto' }}>
             <CardContent sx={{ position: 'relative' }}>
               <PrintSection printContentRef={printContentRef} />
             </CardContent>

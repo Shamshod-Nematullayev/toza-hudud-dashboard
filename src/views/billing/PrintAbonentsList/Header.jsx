@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useStore from './useStore';
 import {
   MenuItem,
@@ -12,7 +12,14 @@ import {
   FormControl,
   Box,
   Grid,
-  Paper
+  Paper,
+  ButtonBase,
+  Avatar,
+  useTheme,
+  Popper,
+  ClickAwayListener,
+  Grow,
+  MenuList
 } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import TelegramIcon from '@mui/icons-material/Telegram';
@@ -24,6 +31,7 @@ import api from 'utils/api';
 import { lotinga } from 'helpers/lotinKiril';
 import { toast } from 'react-toastify';
 import { ClearAll } from '@mui/icons-material';
+import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
 
 function Header({ printContentRef, getAbonents, filters, setFilters }) {
   const {
@@ -43,6 +51,10 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
     etkStatus,
     setEtkStatus
   } = useStore();
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef(null);
+  const popperRef = useRef(null);
+  const theme = useTheme();
   useEffect(() => {
     if (abonents.length > 0) {
       setMainFunctionsDisabled(false);
@@ -182,10 +194,183 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
       });
     }
   };
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
   return (
     <Grid container spacing={2} sx={{ backgroundColor: 'background.paper', zIndex: 100, alignItems: 'center', justifyContent: 'center' }}>
+      {/* MobileSection */}
+      <Grid item xs={12} sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 2 }}>
+        <Box
+          sx={{
+            ml: 2,
+            mr: 3,
+            [theme.breakpoints.down('md')]: {
+              mr: 2
+            }
+          }}
+        >
+          <ButtonBase sx={{ borderRadius: '12px' }}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                ...theme.typography.commonAvatar,
+                ...theme.typography.mediumAvatar,
+                transition: 'all .2s ease-in-out',
+                background: theme.palette.secondary.light,
+                color: theme.palette.secondary.dark,
+                '&[aria-controls="menu-list-grow"],&:hover': {
+                  background: theme.palette.secondary.dark,
+                  color: theme.palette.secondary.light
+                }
+              }}
+              ref={anchorRef}
+              aria-controls={open ? 'menu-list-grow' : undefined}
+              aria-haspopup="true"
+              onClick={handleToggle}
+              color="inherit"
+            >
+              <IconAdjustmentsHorizontal stroke={1.5} size="1.3rem" />
+            </Avatar>
+          </ButtonBase>
+          <Popper
+            placement="bottom-end"
+            open={open}
+            anchorEl={anchorRef.current}
+            ref={popperRef}
+            role={undefined}
+            transition
+            disablePortal
+            popperOptions={{
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: {
+                    offset: [0, 9]
+                  }
+                }
+              ]
+            }}
+            sx={{
+              zIndex: 11
+            }}
+          >
+            {({ TransitionProps }) => (
+              <Box sx={{ borderRadius: '12px' }}>
+                <Grow
+                  {...TransitionProps}
+                  style={{
+                    transformOrigin: 'right top',
+                    willChange: 'transform'
+                  }}
+                >
+                  <Paper sx={{ boxShadow: 9, padding: '10px' }}>
+                    <Grid container spacing={1} width={'70vw'}>
+                      {/* Identifikatsiya */}
+                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl fullWidth>
+                          <InputLabel id="identity">Identifikatsiya</InputLabel>
+                          <Select
+                            value={filters.identified}
+                            labelId="identity"
+                            label="Identifikatsiya"
+                            onChange={(e) => setFilters({ ...filters, identified: e.target.value })}
+                          >
+                            <MenuItem value="">Hammasi</MenuItem>
+                            <MenuItem value={'true'}>Identifikatsiyalangan</MenuItem>
+                            <MenuItem value={'false'}>Identifikatsiyalanmagan</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+
+                      {/* Elektr holati */}
+                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl fullWidth>
+                          <InputLabel id="etk-status">Elektr holati</InputLabel>
+                          <Select
+                            value={filters.elektrAccountNumberConfirmed}
+                            labelId="etk-status"
+                            label="Elektr holati"
+                            onChange={(e) => setFilters({ ...filters, elektrAccountNumberConfirmed: e.target.value })}
+                          >
+                            <MenuItem value="">Hammasi</MenuItem>
+                            <MenuItem value={'tasdiqlangan'}>Tasdiqlangan</MenuItem>
+                            <MenuItem value={'tasdiqlanmagan'}>Tasdiqlanmagan</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+
+                      {/* Qarzdorlik dan */}
+                      <Grid item xs={6} sm={6} md={4} lg={2}>
+                        <TextField
+                          label="dan"
+                          type="number"
+                          placeholder="qarzdorlik summasi"
+                          InputProps={{ inputProps: { step: 100000 } }}
+                          value={minSaldo}
+                          onChange={(e) => setMinSaldo(e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+
+                      {/* Qarzdorlik gacha */}
+                      <Grid item xs={6} sm={6} md={4} lg={2}>
+                        <TextField
+                          label="gacha"
+                          type="number"
+                          placeholder="qarzdorlik summasi"
+                          InputProps={{ inputProps: { step: 100000 } }}
+                          value={maxSaldo}
+                          onChange={(e) => setMaxSaldo(e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+
+                      {/* Mahalla tanlov */}
+                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} fullWidth displayEmpty>
+                          <MenuItem disabled value="0">
+                            Mahalla
+                          </MenuItem>
+                          {mahallas.map((mfy) => (
+                            <MenuItem key={mfy.id} value={mfy.id}>
+                              {mfy.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </Grid>
+
+                      {/* Yangilash tugmasi */}
+                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <Button
+                          onClick={(e) => {
+                            handleClickUpdate(e);
+                            setOpen(false);
+                          }}
+                          variant="outlined"
+                          fullWidth
+                          sx={{ height: '100%' }}
+                        >
+                          <SyncOutlinedIcon sx={{ mr: 1 }} /> Yangilash
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grow>
+              </Box>
+            )}
+          </Popper>
+        </Box>
+        <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg} variant="contained">
+          <TelegramIcon />
+        </Button>
+        <Button disabled={mainFunctionsDisabled} onClick={printFunction} variant="contained" color="secondary" sx={{ textWrap: 'nowrap' }}>
+          <PrintIcon />
+        </Button>
+      </Grid>
       {/* Filterlar va Uskunalar */}
-      <Grid container item xs={10} md={9} spacing={2}>
+      <Grid container item xs={10} md={9} spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
         {/* Identifikatsiya */}
         <Grid item xs={12} sm={6} md={4} lg={2}>
           <FormControl fullWidth>
@@ -269,13 +454,13 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
       </Grid>
 
       {/* Telegram va Chop etish */}
-      <Grid container item xs={10} md={3} spacing={1}>
-        <Grid item xs={12} md={4}>
+      <Grid container item xs={10} md={3} spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+        <Grid item sm={6} md={12} lg={6}>
           <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg} variant="contained" fullWidth>
             <TelegramIcon sx={{ mr: 1 }} /> yuborish
           </Button>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item sm={6} md={12} lg={6}>
           <Button disabled={mainFunctionsDisabled} onClick={printFunction} variant="contained" fullWidth sx={{ textWrap: 'nowrap' }}>
             <PrintIcon sx={{ mr: 1 }} /> Chop etish
           </Button>

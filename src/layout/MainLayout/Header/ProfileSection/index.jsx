@@ -33,6 +33,7 @@ import { IconLogout, IconSettings } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
 import Cookies from 'js-cookie';
 import { useUserStore } from 'store/userStore';
+import api from 'utils/api';
 
 // ==============================|| PROFILE MENU ||============================== //
 
@@ -86,6 +87,20 @@ const ProfileSection = () => {
     prevOpen.current = open;
   }, [open]);
 
+  const [avatar, setAvatar] = useState(null);
+
+  useEffect(() => {
+    const avatar = localStorage.getItem('avatar');
+    if (avatar) setAvatar(avatar);
+    else
+      api.get('/auth/get-photo').then(({ data }) => {
+        const uint8Array = new Uint8Array(data.photo.data);
+        const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
+        localStorage.setItem('avatar', base64Image);
+        setAvatar(base64Image);
+      });
+  }, []);
+
   return (
     <>
       <Chip
@@ -110,7 +125,7 @@ const ProfileSection = () => {
         }}
         icon={
           <Avatar
-            src={localStorage.getItem('avatar')}
+            src={avatar}
             sx={{
               ...theme.typography.mediumAvatar,
               margin: '8px 0 8px 8px !important',
@@ -300,6 +315,13 @@ const ProfileSection = () => {
       </Popper>
     </>
   );
+};
+const uint8ArrayToBase64 = (uint8Array) => {
+  let binary = '';
+  uint8Array.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary); // Base64 ga o‘girish
 };
 
 export default ProfileSection;
