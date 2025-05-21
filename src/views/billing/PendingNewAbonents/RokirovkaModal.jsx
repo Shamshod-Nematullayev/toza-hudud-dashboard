@@ -42,7 +42,7 @@ function RokirovkaModal({ handleClose, abonent, refresh }) {
       });
   };
   return (
-    <Dialog open={1}>
+    <Dialog open={true}>
       <DialogTitle>{t('pendingAbonentsPage.Rokirovka')}</DialogTitle>
       <DialogContent>
         <DialogContentText>Rostdan ham ushbu abonentni {freeAbonent?.accountNumber} ga almashtirmoqchisiz?</DialogContentText>

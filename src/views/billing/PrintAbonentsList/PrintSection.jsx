@@ -11,7 +11,7 @@ function PrintSection({ printContentRef }) {
     setCompany(JSON.parse(localStorage.getItem('company')));
   }, []);
   return (
-    <div ref={printContentRef}>
+    <div ref={printContentRef} style={{ overflow: 'auto' }}>
       <table>
         <tbody>
           <tr>

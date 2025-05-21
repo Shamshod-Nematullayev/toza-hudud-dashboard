@@ -83,8 +83,8 @@ function PrintAbonentsList() {
         params: {
           minSaldo,
           maxSaldo,
-          onlyNotIdentited,
-          etkStatus
+          identified: onlyNotIdentited,
+          etkStatus: etkStatus === 'tasdiqlangan' ? 'true' : 'false'
         }
       });
       if (!data.ok) throw new Error(data.message);
