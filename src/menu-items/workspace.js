@@ -41,6 +41,7 @@ const billing = {
   id: 'workspace',
   title: 'workspace',
   type: 'group',
+  allowedRoles: ['admin', 'billing'],
   children: [
     // {
     //   id: 'billing',
@@ -54,7 +55,8 @@ const billing = {
       type: 'item',
       url: '/billing/createAbonentAriza',
       icon: icons.NoteAddOutlinedIcon,
-      breadcrumbs: false
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     },
     {
       id: 'importAbonentPetition',
@@ -62,7 +64,8 @@ const billing = {
       type: 'item',
       url: '/billing/importAbonentPetition',
       icon: icons.UploadFileOutlinedIcon,
-      breadcrumbs: false
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     },
     {
       id: 'petitions',
@@ -70,14 +73,17 @@ const billing = {
       type: 'item',
       url: '/billing/recalculation',
       icon: icons.CalculateIcon,
-      breadcrumbs: false
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     },
     {
       id: 'deleteDublicates',
       title: `deleteDublicates`,
       type: 'item',
       url: '/billing/deleteDublicate',
-      icon: icons.DoNotDisturbOnIcon
+      icon: icons.DoNotDisturbOnIcon,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     },
     {
       id: 'printAbonentsList',
@@ -85,13 +91,15 @@ const billing = {
       type: 'item',
       url: '/billing/printAbonentsList',
       icon: icons.PrintOutlinedIcon,
-      breadcrumbs: false
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     },
     {
       id: 'inventory',
       title: 'inventory',
       type: 'collapse',
       icon: icons.ChecklistIcon,
+      allowedRoles: ['admin', 'billing'],
       children: [
         {
           id: 'createInventory',
@@ -99,7 +107,8 @@ const billing = {
           type: 'item',
           url: '/billing/xatlovOdamSoni',
           icon: icons.PersonAddAltIcon,
-          breadcrumbs: false
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing']
         },
         {
           id: 'invertoreDocuments',
@@ -107,7 +116,8 @@ const billing = {
           type: 'item',
           url: '/billing/xatlovDalolatnomalar',
           icon: icons.InsertDriveFileOutlinedIcon,
-          breadcrumbs: false
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing']
         }
       ]
     },
@@ -117,7 +127,8 @@ const billing = {
       type: 'item',
       url: '/billing/reports',
       icon: icons.AssessmentOutlinedIcon,
-      breadcrumbs: false
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     },
     {
       id: 'newAbonentRequirements',
@@ -125,7 +136,8 @@ const billing = {
       type: 'item',
       url: '/billing/pendingNewAbonents',
       icon: icons.PersonAddAltIcon,
-      breadcrumbs: false
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     },
     //   ]
     // }
@@ -134,6 +146,7 @@ const billing = {
       title: 'Yurist',
       type: 'collapse',
       icon: icons.BookIcon,
+      allowedRoles: ['admin', 'jurist'],
       children: [
         {
           id: 'qarzdorAbonentlar',
@@ -141,7 +154,8 @@ const billing = {
           type: 'item',
           url: '/jurist/qarzdorAbonentlar',
           icon: icons.TrendingDownIcon,
-          breadcrumbs: false
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'jurist']
         },
         {
           id: 'warningLetters',
@@ -149,21 +163,26 @@ const billing = {
           type: 'item',
           url: '/jurist/warningLetter',
           icon: icons.MailIcon,
-          breadcrumbs: false
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'jurist']
         },
         {
           id: 'courtProccesses',
           title: 'Sud jarayonlari',
           type: 'item',
           url: '/jurist/courtProccesses',
-          icon: icons.GavelIcon
+          icon: icons.GavelIcon,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'jurist']
         },
         {
           id: 'importPetition',
           title: 'Sudga arizalar kiritish',
           type: 'item',
           url: '/jurist/importPetition',
-          icon: icons.FileDownloadOutlinedIcon
+          icon: icons.FileDownloadOutlinedIcon,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'jurist']
         },
         {
           id: 'courtNote',
@@ -171,7 +190,26 @@ const billing = {
           type: 'item',
           url: '/jurist/courtNote',
           icon: icons.EditNoteIcon,
-          breadcrumbs: false
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'jurist']
+        }
+      ]
+    },
+    {
+      id: 'stm',
+      title: 'Sanitar Tozalash Markazi',
+      type: 'collapse',
+      icon: icons.ChecklistIcon,
+      allowedRoles: ['admin', 'stm'],
+      children: [
+        {
+          id: 'actPacks',
+          title: 'Acts',
+          type: 'item',
+          url: '/stm/actPacks',
+          icon: icons.ChecklistIcon,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'stm']
         }
       ]
     }

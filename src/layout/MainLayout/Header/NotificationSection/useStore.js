@@ -33,6 +33,14 @@ const useNotificationStore = create((set) => ({
       toast.error(error.message);
     }
   },
+  markAllAsRead: async () => {
+    try {
+      await api.put('/notification/read-all');
+      set({ notifications: [] });
+    } catch (error) {
+      toast.error(error.message);
+    }
+  },
   removeNotification: (id) => set((state) => ({ notifications: state.notifications.filter((n) => n.id !== id) })),
   clearAllNotifications: () => set({ notifications: [] }),
   filterStatus: 'new',

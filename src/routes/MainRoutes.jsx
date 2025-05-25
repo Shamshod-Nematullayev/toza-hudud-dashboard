@@ -20,6 +20,8 @@ import Reports from 'views/billing/Reports';
 import PendingNewAbonents from 'views/billing/PendingNewAbonents';
 import QarzdorAbonentlar from 'views/jurist/QarzdorAbonentlar';
 import NazoratchilarXatlov from 'views/billing/Reports/NazoratchilarXatlov';
+import ActPacks from 'views/stm/ActPacks';
+import Acts from 'views/stm/Acts';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -160,6 +162,23 @@ const MainRoutes = {
         {
           path: 'courtNote',
           element: <CourtNote />
+        }
+      ]
+    },
+    {
+      path: 'stm',
+      children: [
+        {
+          path: 'actPacks',
+          element: <ActPacks />
+        },
+        {
+          path: 'acts',
+          element: <Acts />
+        },
+        {
+          path: 'acts/:packId',
+          element: <Acts />
         }
       ]
     },

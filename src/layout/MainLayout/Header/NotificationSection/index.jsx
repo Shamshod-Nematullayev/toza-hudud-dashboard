@@ -52,7 +52,7 @@ const status = [
 
 const NotificationSection = () => {
   const theme = useTheme();
-  const { notifications, getNotifications, filterStatus, setFilterStatus, addNotification } = useNotificationStore();
+  const { notifications, getNotifications, filterStatus, setFilterStatus, addNotification, markAllAsRead } = useNotificationStore();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
   const [open, setOpen] = useState(false);
   /**
@@ -202,8 +202,8 @@ const NotificationSection = () => {
                   </Grid>
                   <Divider />
                   <CardActions sx={{ p: 1.25, justifyContent: 'center' }}>
-                    <Button size="small" disableElevation>
-                      View All
+                    <Button size="small" disableElevation onClick={markAllAsRead}>
+                      Hammasini o'qildi
                     </Button>
                   </CardActions>
                 </MainCard>

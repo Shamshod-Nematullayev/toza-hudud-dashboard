@@ -8,6 +8,7 @@ const employeers = {
   id: 'employeers',
   title: 'employeers',
   type: 'group',
+  allowedRoles: ['admin', 'billing'],
   children: [
     {
       id: 'inspectors',
@@ -15,7 +16,8 @@ const employeers = {
       type: 'item',
       url: '/employeers/inspectors',
       icon: icons.BadgeIcon,
-      breadcrumbs: false
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
     }
   ]
 };
