@@ -83,8 +83,8 @@ function PrintAbonentsList() {
         params: {
           minSaldo,
           maxSaldo,
-          identified: onlyNotIdentited,
-          etkStatus: etkStatus === 'tasdiqlangan' ? 'true' : 'false'
+          identified: filters.identified,
+          etkStatus: filters.elektrAccountNumberConfirmed
         }
       });
       if (!data.ok) throw new Error(data.message);
