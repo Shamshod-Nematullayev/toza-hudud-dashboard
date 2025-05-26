@@ -3,7 +3,7 @@ import { IconButton } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { actStatusOptions } from 'store/constant';
 import useLoaderStore from 'store/loaderStore';
 import MainCard from 'ui-component/cards/MainCard';
@@ -37,9 +37,11 @@ function Acts() {
       flex: 1,
       renderCell: (row) => (
         <>
-          <IconButton>
-            <NavigateNext color="primary" />
-          </IconButton>
+          <Link to={`/stm/actCheck/${row.row.id}`}>
+            <IconButton>
+              <NavigateNext color="primary" />
+            </IconButton>
+          </Link>
         </>
       )
     }

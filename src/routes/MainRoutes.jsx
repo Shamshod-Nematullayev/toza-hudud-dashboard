@@ -22,6 +22,7 @@ import QarzdorAbonentlar from 'views/jurist/QarzdorAbonentlar';
 import NazoratchilarXatlov from 'views/billing/Reports/NazoratchilarXatlov';
 import ActPacks from 'views/stm/ActPacks';
 import Acts from 'views/stm/Acts';
+import ActCheck from 'views/stm/ActCheck';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -179,6 +180,10 @@ const MainRoutes = {
         {
           path: 'acts/:packId',
           element: <Acts />
+        },
+        {
+          path: 'actCheck/:actId',
+          element: <ActCheck />
         }
       ]
     },
