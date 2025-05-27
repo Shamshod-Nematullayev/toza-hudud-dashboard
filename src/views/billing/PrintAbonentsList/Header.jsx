@@ -4,10 +4,7 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography,
   Button,
-  Checkbox,
-  FormControlLabel,
   InputLabel,
   FormControl,
   Box,
@@ -17,21 +14,20 @@ import {
   Avatar,
   useTheme,
   Popper,
-  ClickAwayListener,
-  Grow,
-  MenuList
+  Grow
 } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import DoneAll from '@mui/icons-material/DoneOutlined';
 import PrintIcon from '@mui/icons-material/PrintOutlined';
-import { toPng } from 'html-to-image';
 import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
 import api from 'utils/api';
 import { lotinga } from 'helpers/lotinKiril';
 import { toast } from 'react-toastify';
-import { ClearAll } from '@mui/icons-material';
+import { ClearAll, PictureAsPdfOutlined } from '@mui/icons-material';
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
+import { toPng } from 'html-to-image';
+import { isMobile } from 'react-device-detect';
 
 function Header({ printContentRef, getAbonents, filters, setFilters }) {
   const {
@@ -63,22 +59,30 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
     }
   }, [abonents]);
 
-  const printFunction = useReactToPrint({
-    pageStyle: `@media print {
-      @page {
-      margin: 5mm 5mm 5mm 5mm !important;
-      size: A4;
-      }
-      .page {
-      page-break-after: always;
-      }
-      * {
-        color: #000
-      }
-  }`,
-    documentTitle: abonents[0]?.mahallaName + '_' + new Date().getTime(),
-    contentRef: printContentRef
-  });
+  const printFunction = () => {
+    if (isMobile) {
+      document.body.innerHTML = printContentRef.current.innerHTML;
+      window.print();
+      // window.location.reload();
+    } else {
+      useReactToPrint({
+        pageStyle: `@media print {
+          @page {
+          margin: 5mm 5mm 5mm 5mm !important;
+          size: A4;
+          }
+          .page {
+          page-break-after: always;
+          }
+          * {
+            color: #000
+          }
+      }`,
+        documentTitle: abonents[0]?.mahallaName + '_' + new Date().getTime(),
+        contentRef: printContentRef
+      });
+    }
+  };
 
   const handleClickUpdate = function () {
     getAbonents();
