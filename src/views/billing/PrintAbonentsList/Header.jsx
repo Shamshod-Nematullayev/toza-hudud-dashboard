@@ -59,28 +59,29 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
     }
   }, [abonents]);
 
+  const printFunc = useReactToPrint({
+    pageStyle: `@media print {
+      @page {
+      margin: 5mm 5mm 5mm 5mm !important;
+      size: A4;
+      }
+      .page {
+      page-break-after: always;
+      }
+      * {
+        color: #000
+      }
+  }`,
+    documentTitle: abonents[0]?.mahallaName + '_' + new Date().getTime(),
+    contentRef: printContentRef
+  });
   const printFunction = () => {
     if (isMobile) {
       document.body.innerHTML = printContentRef.current.innerHTML;
       window.print();
       // window.location.reload();
     } else {
-      useReactToPrint({
-        pageStyle: `@media print {
-          @page {
-          margin: 5mm 5mm 5mm 5mm !important;
-          size: A4;
-          }
-          .page {
-          page-break-after: always;
-          }
-          * {
-            color: #000
-          }
-      }`,
-        documentTitle: abonents[0]?.mahallaName + '_' + new Date().getTime(),
-        contentRef: printContentRef
-      });
+      printFunc();
     }
   };
 

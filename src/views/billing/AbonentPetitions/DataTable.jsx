@@ -49,17 +49,17 @@ function DataTable() {
           }
         })
         .then(({ data }) => {
-          setRows(
-            data.data.map((row, i) => ({
-              _id: row._id,
-              id: row.document_number,
-              documentType: row.document_type,
-              accountNumber: row.licshet,
-              aktSummasi: row.aktSummasi,
-              status: row.status,
-              actStatus: row.actStatus
-            }))
-          );
+          const rows = data.data.map((row, i) => ({
+            _id: row._id,
+            id: i + 1,
+            documentType: row.document_type,
+            accountNumber: row.licshet,
+            aktSummasi: row.aktSummasi,
+            status: row.status,
+            actStatus: row.actStatus
+          }));
+          console.log(rows);
+          setRows(rows);
           setTotal(data.meta.total);
           setIsLoading(false);
         });
