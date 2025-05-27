@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import DavriyHarakatlarJadvali from './DavriyHarakatlarJadvali';
 import CalculatorInput from 'ui-component/CalculatorInput';
 import { DatePicker } from '@mui/x-date-pickers';
+import Calculators from './Calculators';
 
 function ActCkeck() {
   const [fileUrl, setFileUrl] = useState('');
@@ -57,21 +58,7 @@ function ActCkeck() {
       <Grid item xs={7}>
         <Card bgcolor={'background.paper'} sx={{ height: 'calc(100vh - 210px)', display: 'flex', padding: '5px 0' }}>
           <DavriyHarakatlarJadvali rows={davriyHarakatlarJadvali} />
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              margin: '0 10px'
-            }}
-          >
-            <CalculatorInput sx={{ width: 150 }} label={'Kalkulyator 1'} />
-            <CalculatorInput sx={{ width: 150, mt: 1 }} label={'Kalkulyator 2'} />
-            <Typography variant="h6" sx={{ mt: 1 }}>
-              Kalkulyator 3 (davriy)
-            </Typography>
-            <DatePicker sx={{ width: 150 }} view={['year', 'month']} format="MM.YYYY" label="Boshlanish davr" />
-            <DatePicker sx={{ width: 150, mt: 1 }} view={['year', 'month']} format="MM.YYYY" label="Tugash davr" />
-          </div>
+          <Calculators />
         </Card>
       </Grid>
     </Grid>
