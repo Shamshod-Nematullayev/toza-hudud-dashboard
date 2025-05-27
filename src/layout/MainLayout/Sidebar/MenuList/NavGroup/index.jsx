@@ -17,13 +17,15 @@ const NavGroup = ({ item }) => {
   const theme = useTheme();
   const { t } = useTranslation();
 
+  const user = JSON.parse(localStorage.getItem('user'));
+
   // menu list collapse & items
   const items = item.children?.map((menu) => {
     switch (menu.type) {
       case 'collapse':
-        return <NavCollapse key={menu.id} menu={menu} level={1} />;
+        return menu.allowedRoles.some(role => user.roles.includes(role)) && item.allowedRoles.some(role => user.roles.includes(role)) && <NavCollapse key={menu.id} menu={menu} level={1} />;
       case 'item':
-        return <NavItem key={menu.id} item={menu} level={1} />;
+        return menu.allowedRoles.some(role => user.roles.includes(role)) && item.allowedRoles.some(role => user.roles.includes(role)) && <NavItem key={menu.id} item={menu} level={1} />;
       default:
         return (
           <Typography key={menu.id} variant="h6" color="error" align="center">

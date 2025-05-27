@@ -150,8 +150,7 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
             minSaldo: minSaldo,
             maxSaldo: maxSaldo,
             mahalla_name: abonents[0].mahallaName,
-            onlyNotIdentited,
-            electricCode: etkStatus
+            ...filters
           }
         })
         .then(({ data }) => {
@@ -299,8 +298,8 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
                             onChange={(e) => setFilters({ ...filters, elektrAccountNumberConfirmed: e.target.value })}
                           >
                             <MenuItem value="">Hammasi</MenuItem>
-                            <MenuItem value={'tasdiqlangan'}>Tasdiqlangan</MenuItem>
-                            <MenuItem value={'tasdiqlanmagan'}>Tasdiqlanmagan</MenuItem>
+                            <MenuItem value={'true'}>Tasdiqlangan</MenuItem>
+                            <MenuItem value={'false'}>Tasdiqlanmagan</MenuItem>
                           </Select>
                         </FormControl>
                       </Grid>
@@ -403,8 +402,8 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
               onChange={(e) => setFilters({ ...filters, elektrAccountNumberConfirmed: e.target.value })}
             >
               <MenuItem value="">Hammasi</MenuItem>
-              <MenuItem value={'tasdiqlangan'}>Tasdiqlangan</MenuItem>
-              <MenuItem value={'tasdiqlanmagan'}>Tasdiqlanmagan</MenuItem>
+              <MenuItem value={'true'}>Tasdiqlangan</MenuItem>
+              <MenuItem value={'false'}>Tasdiqlanmagan</MenuItem>
             </Select>
           </FormControl>
         </Grid>

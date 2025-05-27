@@ -28,7 +28,9 @@ const uz = {
       'Sudga arizalar kiritish': 'Sudga arizalar kiritish',
       'Nishonga olingan abonentlar': 'Nishonga olingan abonentlar',
       'Qarzdor abonentlar': 'Qarzdor abonentlar',
-      Hisobotlar: 'Hisobotlar'
+      Hisobotlar: 'Hisobotlar',
+      'Sanitar Tozalash Markazi': 'Sanitar Tozalash Markazi',
+      Acts: 'Aktlar'
     },
     dashboard: {
       identified: 'Shaxsi tasdiqlangan',
@@ -36,6 +38,7 @@ const uz = {
     },
     tableHeaders: {
       fullName: 'F.I.Sh',
+      name: 'Nomi',
       phone: 'Telefon raqami',
       status: 'Holat',
       mfy: 'Mahalla',
@@ -62,7 +65,14 @@ const uz = {
       act: 'Akt',
       allPaymentsSum: "To'lovlar summasi",
       inhabitantCount: 'Yashovchilar soni',
-      documentType: 'Xujjat turi'
+      documentType: 'Xujjat turi',
+      actsCount: 'Aktlar soni',
+      checkedCount: 'Tekshirilganlar soni',
+      notCheckedCount: 'Tekshirilmaganlar soni',
+      actAmount: 'Aktlar summasi',
+      amountWithQQS: 'QQS bilan',
+      amountWithoutQQS: 'QQS bilan emas',
+      checkStatus: 'Tekshirish holati'
     },
     tableActions: {
       edit: 'Tahrirlash',
@@ -126,7 +136,8 @@ const uz = {
       rejectAll: 'Barchasini rad etish',
       acceptAll: 'Barchasini qabul qilish',
       refresh: 'Yangilash',
-      export: 'Eksport'
+      export: 'Eksport',
+      continue: 'Davom etish'
     },
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
