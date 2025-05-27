@@ -58,7 +58,7 @@ function ActCkeck() {
       <Grid item xs={7}>
         <Card bgcolor={'background.paper'} sx={{ height: 'calc(100vh - 210px)', display: 'flex', padding: '5px 0' }}>
           <DavriyHarakatlarJadvali rows={davriyHarakatlarJadvali} />
-          <Calculators />
+          <Calculators act={act} />
         </Card>
       </Grid>
     </Grid>
