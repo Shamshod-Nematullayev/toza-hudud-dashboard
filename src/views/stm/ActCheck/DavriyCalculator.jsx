@@ -40,7 +40,7 @@ function DavriyCalculator({ act, title }) {
       </Typography>
       <DatePicker
         sx={{ width: 150, mt: 1 }}
-        view={['year, month']}
+        views={['month', 'year']}
         format="MM.YYYY"
         label="Boshlanish davr"
         minDate={dayjs('2019-01-01')}
@@ -50,7 +50,7 @@ function DavriyCalculator({ act, title }) {
       />
       <DatePicker
         sx={{ width: 150, mt: 1 }}
-        view={['year, month']}
+        views={['month', 'year']}
         format="MM.YYYY"
         label="Tugash davr"
         minDate={dayjs('2019-01-01')}
@@ -62,8 +62,6 @@ function DavriyCalculator({ act, title }) {
         type="number"
         label={t('tableHeaders.inhabitantCount')}
         sx={{ mt: 1, width: 150 }}
-        minDate={dayjs('2019-01-01')}
-        maxDate={dayjs()}
         value={inhabitantCount}
         onChange={(e) => setInhabitantCount(e.target.value)}
       />

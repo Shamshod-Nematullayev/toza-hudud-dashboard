@@ -152,6 +152,12 @@ const uz = {
       Ogohlantirilgan: 'Ogohlantirilgan',
       Ogohlantirilmagan: 'Ogohlantirilmagan',
       'Oxirgi yangilanish vaqti': 'Oxirgi yangilanish vaqti'
+    },
+    checkActPage: {
+      'Qayta hisob kitob xato': 'Qayta hisob kitob xato',
+      "Noto'g'ri fayl biriktirilgan": "Noto'g'ri fayl biriktirilgan",
+      Boshqa: 'Boshqa',
+      Xatolik: 'Xatolik'
     }
   }
 };

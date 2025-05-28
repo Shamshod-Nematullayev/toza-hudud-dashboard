@@ -9,6 +9,7 @@ import useLoaderStore from 'store/loaderStore';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import Toolbar from './Toolbar';
+import './main.css';
 
 function Acts() {
   const { t } = useTranslation();
@@ -29,7 +30,7 @@ function Acts() {
       field: 'checkStatus',
       headerName: t('tableHeaders.checkStatus'),
       flex: 1,
-      renderCell: (row) => row.row.onDb.checkStatus || 'Tekshirilmagan'
+      renderCell: (row) => row.row.onDb.status || 'Tekshirilmagan'
     },
     {
       field: 'actions',
@@ -90,6 +91,18 @@ function Acts() {
         onRowSelectionModelChange={(ids) => setSelectedRows(ids)}
         disableColumnSorting
         disableColumnFilter
+        getRowClassName={({ row }) => {
+          switch (row.onDb?.status) {
+            case 'tekshirildi':
+              return 'row-success';
+            case 'ogohlantirilgan':
+              return 'row-warning';
+            case 'bekor qilindi':
+              return 'row-success';
+            default:
+              return 'row-error';
+          }
+        }}
       />
     </MainCard>
   );

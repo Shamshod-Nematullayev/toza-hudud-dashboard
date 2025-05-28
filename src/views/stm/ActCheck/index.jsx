@@ -8,6 +8,8 @@ import CalculatorInput from 'ui-component/CalculatorInput';
 import { DatePicker } from '@mui/x-date-pickers';
 import Calculators from './Calculators';
 import KeyValue from 'ui-component/KeyValue';
+import MainCard from 'ui-component/cards/MainCard';
+import { padding } from '@mui/system';
 
 function ActCkeck() {
   const [fileUrl, setFileUrl] = useState('');
@@ -54,10 +56,10 @@ function ActCkeck() {
         <div style={{ height: 'calc(100vh - 210px)' }}>
           <PdfViewer base64String={fileUrl} />
         </div>
-        <div>
+        <Card bgcolor={'background.paper'} sx={{ margin: '5px 0', padding: '0 10px' }}>
           <KeyValue kalit={'F. I. Sh'} value={act.residentFullName} />
           <KeyValue kalit={'Akt izohi'} value={act.description} />
-        </div>
+        </Card>
       </Grid>
       <Grid item xs={7}>
         <Card bgcolor={'background.paper'} sx={{ minHeight: 'calc(100vh - 210px)', display: 'flex', padding: '5px 0' }}>
