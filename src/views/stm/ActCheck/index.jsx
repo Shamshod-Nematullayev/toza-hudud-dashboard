@@ -7,6 +7,7 @@ import DavriyHarakatlarJadvali from './DavriyHarakatlarJadvali';
 import CalculatorInput from 'ui-component/CalculatorInput';
 import { DatePicker } from '@mui/x-date-pickers';
 import Calculators from './Calculators';
+import KeyValue from 'ui-component/KeyValue';
 
 function ActCkeck() {
   const [fileUrl, setFileUrl] = useState('');
@@ -53,11 +54,14 @@ function ActCkeck() {
         <div style={{ height: 'calc(100vh - 210px)' }}>
           <PdfViewer base64String={fileUrl} />
         </div>
-        <div>Details</div>
+        <div>
+          <KeyValue kalit={'F. I. Sh'} value={act.residentFullName} />
+          <KeyValue kalit={'Akt izohi'} value={act.description} />
+        </div>
       </Grid>
       <Grid item xs={7}>
-        <Card bgcolor={'background.paper'} sx={{ height: 'calc(100vh - 210px)', display: 'flex', padding: '5px 0' }}>
-          <DavriyHarakatlarJadvali rows={davriyHarakatlarJadvali} />
+        <Card bgcolor={'background.paper'} sx={{ minHeight: 'calc(100vh - 210px)', display: 'flex', padding: '5px 0' }}>
+          <DavriyHarakatlarJadvali rows={davriyHarakatlarJadvali} act={act} setAct={setAct} />
           <Calculators act={act} />
         </Card>
       </Grid>

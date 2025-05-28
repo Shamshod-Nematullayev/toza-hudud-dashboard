@@ -83,7 +83,10 @@ const uz = {
       save: 'Saqlash',
       cancel: 'Bekor qilish',
       confirm: 'Tasdiqlash',
-      close: 'Yopish'
+      close: 'Yopish',
+      checked: 'Tekshirildi',
+      warning: 'Ogohlantirish',
+      next: 'Keyingi'
     },
     inspectorsPage: {
       freeMahallas: "Bo'sh mahallalar",
