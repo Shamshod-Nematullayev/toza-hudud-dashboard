@@ -157,7 +157,11 @@ const uz = {
       'Qayta hisob kitob xato': 'Qayta hisob kitob xato',
       "Noto'g'ri fayl biriktirilgan": "Noto'g'ri fayl biriktirilgan",
       Boshqa: 'Boshqa',
-      Xatolik: 'Xatolik'
+      Xatolik: 'Xatolik',
+      "Qo'shimcha izohlar": "Qo'shimcha izohlar",
+      "Aslida to'g'ri summa": "Aslida to'g'ri summa (billingda ko'rinmaydi)",
+      Ogohlantirish: 'Ogohlantirish',
+      'Bekor qilish': 'Bekor qilish'
     }
   }
 };

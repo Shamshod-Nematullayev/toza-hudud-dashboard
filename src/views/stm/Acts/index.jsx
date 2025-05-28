@@ -95,9 +95,9 @@ function Acts() {
           switch (row.onDb?.status) {
             case 'tekshirildi':
               return 'row-success';
-            case 'ogohlantirilgan':
+            case 'ogohlantirildi':
               return 'row-warning';
-            case 'bekor qilindi':
+            case 'bekor_qilindi':
               return 'row-success';
             default:
               return 'row-error';

@@ -1,6 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MuiToolbar from '@mui/material/Toolbar';
-import { Button, ClickAwayListener, FormControl, InputLabel, MenuItem, Popper, Select, TextareaAutosize } from '@mui/material';
+import {
+  Button,
+  ClickAwayListener,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Popper,
+  Select,
+  TextareaAutosize,
+  TextField,
+  Typography
+} from '@mui/material';
 import { CancelOutlined, Done, NavigateNext, WarningOutlined } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import useLoaderStore from 'store/loaderStore';
@@ -13,9 +24,12 @@ function Toolbar({ act = {}, setAct }) {
   const { t } = useTranslation();
   const { setIsLoading } = useLoaderStore();
   const anchorElWarning = useRef(null);
+  const anchorElCancel = useRef(null);
   const [openWarningPopper, setOpenWarningPopper] = useState(false);
+  const [openCancelPopper, setOpenCancelPopper] = useState(false);
   const [xatoTuri, setXatoTuri] = useState('Qayta hisob kitob xato');
   const [xatoMazmuni, setXatoMazmuni] = useState('Qayta hisob kitob xato');
+  const [fixedSum, setFixedSum] = useState('');
   const handleClickDoneButton = async () => {
     setIsLoading(true);
     try {
@@ -34,6 +48,48 @@ function Toolbar({ act = {}, setAct }) {
       setIsLoading(false);
     }
   };
+  const handleSubmitWarning = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const date = new Date(act.createdAt);
+      const period = `${date.toLocaleString('ru', { year: 'numeric', month: '2-digit' })}`;
+      const { data } = await api.patch(`/acts/${act.id}/check`, {
+        status: 'ogohlantirildi',
+        actPackId: act.actPackId,
+        companyId: act.companyId,
+        period,
+        fixedSum,
+        warningMessage: xatoMazmuni
+      });
+      setAct({ ...act, onDb: data.act });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleSubmitCancel = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const date = new Date(act.createdAt);
+      const period = `${date.toLocaleString('ru', { year: 'numeric', month: '2-digit' })}`;
+      const { data } = await api.patch(`/acts/${act.id}/check`, {
+        status: 'bekor_qilindi',
+        actPackId: act.actPackId,
+        companyId: act.companyId,
+        period,
+        fixedSum,
+        warningMessage: xatoMazmuni
+      });
+      setAct({ ...act, onDb: data.act });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
     setXatoMazmuni(xatoTuri);
   }, [xatoTuri]);
@@ -43,7 +99,7 @@ function Toolbar({ act = {}, setAct }) {
         variant="contained"
         color="primary"
         onClick={handleClickDoneButton}
-        disabled={!act.id || act.onDb?.checkedAt}
+        disabled={!act.id || (act.onDb?.checkedAt && act.onDb?.status !== 'ogohlantirildi')}
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -82,28 +138,45 @@ function Toolbar({ act = {}, setAct }) {
         {({ TransitionProps }) => (
           <Transitions in={openWarningPopper} {...TransitionProps}>
             <MainCard>
-              <FormControl variant="standard">
-                <InputLabel id="checkStatus">{t('checkActPage.Xatolik')}</InputLabel>
-                <Select
-                  label={t('tableHeaders.checkStatus')}
-                  labelId="checkStatus"
-                  sx={{ minWidth: 250 }}
-                  value={xatoTuri}
-                  onChange={(e) => setXatoTuri(e.target.value)}
-                >
-                  <MenuItem value="Qayta hisob kitob xato">{t('checkActPage.Qayta hisob kitob xato')}</MenuItem>
-                  <MenuItem value="Noto'g'ri fayl biriktirilgan">{t("checkActPage.Noto'g'ri fayl biriktirilgan")}</MenuItem>
-                  <MenuItem value="boshqa">{t('checkActPage.Boshqa')}</MenuItem>
-                </Select>
-                {xatoTuri === 'boshqa' && (
+              <Typography variant="h6">{t('checkActPage.Ogohlantirish')}</Typography>
+              <form onSubmit={handleSubmitWarning}>
+                <FormControl variant="standard" sx={{ gap: '10px' }}>
+                  <InputLabel id="checkStatus">{t('checkActPage.Xatolik')}</InputLabel>
+                  <Select
+                    label={t('tableHeaders.checkStatus')}
+                    labelId="checkStatus"
+                    sx={{ minWidth: 250 }}
+                    value={xatoTuri}
+                    onChange={(e) => setXatoTuri(e.target.value)}
+                  >
+                    <MenuItem value="Qayta hisob kitob xato">{t('checkActPage.Qayta hisob kitob xato')}</MenuItem>
+                    <MenuItem value="Noto'g'ri fayl biriktirilgan">{t("checkActPage.Noto'g'ri fayl biriktirilgan")}</MenuItem>
+                    <MenuItem value="boshqa">{t('checkActPage.Boshqa')}</MenuItem>
+                  </Select>
+
+                  {xatoTuri === 'Qayta hisob kitob xato' && (
+                    <TextField
+                      variant="standard"
+                      label={t("checkActPage.Aslida to'g'ri summa")}
+                      type="number"
+                      required
+                      value={fixedSum}
+                      onChange={(e) => setFixedSum(e.target.value)}
+                    />
+                  )}
                   <TextareaAutosize
                     minRows={5}
-                    placeholder={t('checkActPage.Xatolik')}
+                    placeholder={t("checkActPage.Qo'shimcha izohlar")}
                     style={{ width: '100%', marginTop: '10px' }}
                     onChange={(e) => setXatoMazmuni(e.target.value)}
+                    required={xatoTuri === 'boshqa'}
                   />
-                )}
-              </FormControl>
+                  <Button variant="contained" color="primary" type="submit">
+                    <Done />
+                    {t('buttons.continue')}
+                  </Button>
+                </FormControl>
+              </form>
             </MainCard>
           </Transitions>
         )}
@@ -111,7 +184,7 @@ function Toolbar({ act = {}, setAct }) {
       <Button
         variant="contained"
         color="error"
-        disabled={!act.id}
+        disabled={!act.id || act.onDb?.status === 'bekor_qilindi'}
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -122,10 +195,58 @@ function Toolbar({ act = {}, setAct }) {
           textOverflow: 'ellipsis',
           width: '140px'
         }}
+        onClick={() => setOpenCancelPopper(!openCancelPopper)}
       >
         <CancelOutlined sx={{ flexShrink: 0 }} />
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('tableActions.cancel')}</span>
       </Button>
+      <Popper open={openCancelPopper} anchorEl={anchorElWarning.current}>
+        {({ TransitionProps }) => (
+          <Transitions in={openCancelPopper} {...TransitionProps}>
+            <MainCard>
+              <form onSubmit={handleSubmitCancel}>
+                <Typography variant="h6">{t('checkActPage.Bekor qilish')}</Typography>
+                <FormControl variant="standard" sx={{ gap: '10px' }}>
+                  <InputLabel id="checkStatus">{t('checkActPage.Xatolik')}</InputLabel>
+                  <Select
+                    label={t('tableHeaders.checkStatus')}
+                    labelId="checkStatus"
+                    sx={{ minWidth: 250 }}
+                    value={xatoTuri}
+                    onChange={(e) => setXatoTuri(e.target.value)}
+                  >
+                    <MenuItem value="Qayta hisob kitob xato">{t('checkActPage.Qayta hisob kitob xato')}</MenuItem>
+                    <MenuItem value="Noto'g'ri fayl biriktirilgan">{t("checkActPage.Noto'g'ri fayl biriktirilgan")}</MenuItem>
+                    <MenuItem value="boshqa">{t('checkActPage.Boshqa')}</MenuItem>
+                  </Select>
+
+                  {xatoTuri === 'Qayta hisob kitob xato' && (
+                    <TextField
+                      variant="standard"
+                      label={t("checkActPage.Aslida to'g'ri summa")}
+                      type="number"
+                      required
+                      value={fixedSum}
+                      onChange={(e) => setFixedSum(e.target.value)}
+                    />
+                  )}
+                  <TextareaAutosize
+                    minRows={5}
+                    placeholder={t("checkActPage.Qo'shimcha izohlar")}
+                    style={{ width: '100%', marginTop: '10px' }}
+                    onChange={(e) => setXatoMazmuni(e.target.value)}
+                    required={xatoTuri === 'boshqa'}
+                  />
+                  <Button variant="contained" color="primary" type="submit">
+                    <Done />
+                    {t('buttons.continue')}
+                  </Button>
+                </FormControl>
+              </form>
+            </MainCard>
+          </Transitions>
+        )}
+      </Popper>
 
       <Button variant="contained" color="secondary">
         <NavigateNext />
