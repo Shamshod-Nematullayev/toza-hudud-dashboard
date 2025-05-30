@@ -10,6 +10,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import Toolbar from './Toolbar';
 import './main.css';
+import { toast } from 'react-toastify';
 
 function Acts() {
   const { t } = useTranslation();
@@ -57,6 +58,7 @@ function Acts() {
     status: '',
     checkStatus: ''
   });
+  const [refreshState, setRefreshState] = useState(false);
 
   const params = useParams();
 
@@ -69,18 +71,31 @@ function Acts() {
         setTotalRows(data.totalElements);
       })
       .finally(() => setIsLoading(false));
-  }, [page, pageSize, filters]);
+  }, [page, pageSize, filters, refreshState]);
 
+  const refreshRows = () => setRefreshState(!refreshState);
   const handlePaginationChange = (model) => {
     if (model.page !== page) setPage(model.page);
     if (model.pageSize !== pageSize) setPageSize(model.pageSize);
   };
+
   return (
     <MainCard>
       <DataGrid
         rows={rows}
         columns={columns}
-        slots={{ toolbar: () => <Toolbar selectedRows={selectedRows} filters={filters} setFilters={setFilters} /> }}
+        slots={{
+          toolbar: () => (
+            <Toolbar
+              selectedRows={selectedRows}
+              setSelectedRows={setSelectedRows}
+              filters={filters}
+              setFilters={setFilters}
+              rows={rows}
+              refreshRows={refreshRows}
+            />
+          )
+        }}
         paginationMode="server"
         checkboxSelection
         rowCount={totalRows}
@@ -88,6 +103,7 @@ function Acts() {
         paginationModel={{ page, pageSize }}
         pageSizeOptions={[15, 30, 50, 100]}
         onPaginationModelChange={handlePaginationChange}
+        rowSelectionModel={selectedRows}
         onRowSelectionModelChange={(ids) => setSelectedRows(ids)}
         disableColumnSorting
         disableColumnFilter

@@ -34,7 +34,7 @@ function Toolbar({ act = {}, setAct }) {
     setIsLoading(true);
     try {
       const date = new Date(act.createdAt);
-      const period = `${date.toLocaleString('ru', { year: 'numeric', month: '2-digit' })}`;
+      const period = `${date.getMonth() + 1}.${date.getFullYear()}`;
       const { data } = await api.patch(`/acts/${act.id}/check`, {
         status: 'tekshirildi',
         actPackId: act.actPackId,
@@ -53,7 +53,7 @@ function Toolbar({ act = {}, setAct }) {
     setIsLoading(true);
     try {
       const date = new Date(act.createdAt);
-      const period = `${date.toLocaleString('ru', { year: 'numeric', month: '2-digit' })}`;
+      const period = `${date.getMonth() + 1}.${date.getFullYear()}`;
       const { data } = await api.patch(`/acts/${act.id}/check`, {
         status: 'ogohlantirildi',
         actPackId: act.actPackId,
@@ -74,7 +74,7 @@ function Toolbar({ act = {}, setAct }) {
     setIsLoading(true);
     try {
       const date = new Date(act.createdAt);
-      const period = `${date.toLocaleString('ru', { year: 'numeric', month: '2-digit' })}`;
+      const period = `${date.getMonth() + 1}.${date.getFullYear()}`;
       const { data } = await api.patch(`/acts/${act.id}/check`, {
         status: 'bekor_qilindi',
         actPackId: act.actPackId,
