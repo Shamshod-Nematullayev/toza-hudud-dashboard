@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MuiToolbar from '@mui/material/Toolbar';
 import { Button, FormControl, InputLabel, MenuItem, Popper, Select, TextareaAutosize, TextField, Typography } from '@mui/material';
-import { Cancel, Done, Warning } from '@mui/icons-material';
+import { Cancel, Done, OpenInBrowserOutlined, Warning } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { actStatusOptions } from 'store/constant';
 import Transitions from 'ui-component/extended/Transitions';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import useLoaderStore from 'store/loaderStore';
+import useActsStore from 'store/actsStore';
+import { useNavigate } from 'react-router-dom';
 
 function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, refreshRows }) {
   const { t } = useTranslation();
@@ -19,6 +21,9 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
   const anchorElCancel = useRef(null);
   const [openCancelPopper, setOpenCancelPopper] = useState(false);
   const { setIsLoading } = useLoaderStore();
+  const { setPlaylist } = useActsStore();
+
+  const navigate = useNavigate();
   const handleClickDoneButton = async () => {
     setIsLoading(true);
     try {
@@ -107,6 +112,11 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
     } finally {
       setIsLoading(false);
     }
+  };
+  const handleClickOpenButton = async () => {
+    const playlist = selectedRows.map((row) => rows.find((r) => r.id === row));
+    setPlaylist(playlist);
+    navigate('/stm/actCheck/' + playlist[0].id);
   };
   return (
     <MuiToolbar sx={{ gap: '5px', alignItems: 'center' }}>
@@ -260,6 +270,9 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
           ))}
         </Select>
       </FormControl>
+      <Button variant="contained" color="primary" disabled={!selectedRows.length} onClick={handleClickOpenButton}>
+        <OpenInBrowserOutlined /> Ochish
+      </Button>
     </MuiToolbar>
   );
 }
