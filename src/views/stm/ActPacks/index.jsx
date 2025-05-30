@@ -65,20 +65,32 @@ function ActPacks() {
     setIsLoading(true);
     async function fetchData() {
       let counter = 0;
-      api.get('/acts/stats').then(({ data }) => {
-        setStats(data);
-        counter++;
-        if (counter == 2) {
-          setIsLoading(false);
-        }
-      });
-      api.get('/acts/packs').then(({ data }) => {
-        setRows(data.map((row, i) => ({ ...row, i: i + 1 })));
-        counter++;
-        if (counter == 2) {
-          setIsLoading(false);
-        }
-      });
+      api
+        .get('/acts/stats', {
+          params: {
+            companyId: 1144
+          }
+        })
+        .then(({ data }) => {
+          setStats(data);
+          counter++;
+          if (counter == 2) {
+            setIsLoading(false);
+          }
+        });
+      api
+        .get('/acts/packs', {
+          params: {
+            companyId: 1144
+          }
+        })
+        .then(({ data }) => {
+          setRows(data.map((row, i) => ({ ...row, i: i + 1 })));
+          counter++;
+          if (counter == 2) {
+            setIsLoading(false);
+          }
+        });
     }
     fetchData();
   }, []);

@@ -18,7 +18,7 @@ function ActCkeck() {
   const { actId } = useParams();
 
   useEffect(() => {
-    api.get('/acts/' + actId).then((res) => {
+    api.get('/acts/' + actId, { params: { companyId: 1144 } }).then((res) => {
       setAct(res.data);
     });
   }, []);
@@ -28,7 +28,8 @@ function ActCkeck() {
         .get(`/acts/pdf`, {
           responseType: 'blob',
           params: {
-            fileId: act.fileId.split('*').pop()
+            fileId: act.fileId.split('*').pop(),
+            companyId: 1144
           }
         })
         .then((res) => {
