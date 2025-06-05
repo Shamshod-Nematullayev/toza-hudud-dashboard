@@ -86,7 +86,16 @@ const uz = {
       close: 'Yopish',
       checked: 'Tekshirildi',
       warning: 'Ogohlantirish',
-      next: 'Keyingi'
+      next: 'Keyingi',
+      prev: 'Oldingi',
+      print: 'Chop etish',
+      accept: 'Qabul qilish',
+      reject: 'Rad etish',
+      rejectAll: 'Barchasini rad etish',
+      acceptAll: 'Barchasini qabul qilish',
+      refresh: 'Yangilash',
+      export: 'Eksport',
+      continue: 'Davom etish'
     },
     inspectorsPage: {
       freeMahallas: "Bo'sh mahallalar",

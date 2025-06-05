@@ -65,7 +65,7 @@ function Acts() {
   useEffect(() => {
     setIsLoading(true);
     api
-      .get('/acts', { params: { packId: params.packId, page, size: pageSize, ...filters } })
+      .get('/acts', { params: { packId: params.packId, page, size: pageSize, companyId: 1144, ...filters } })
       .then(({ data }) => {
         setRows(data.content.map((row, i) => ({ ...row, i: i + 1 })));
         setTotalRows(data.totalElements);

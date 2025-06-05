@@ -1,35 +1,27 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MuiToolbar from '@mui/material/Toolbar';
-import {
-  Button,
-  ClickAwayListener,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Popper,
-  Select,
-  TextareaAutosize,
-  TextField,
-  Typography
-} from '@mui/material';
-import { CancelOutlined, Done, NavigateNext, WarningOutlined } from '@mui/icons-material';
+import { Button, FormControl, InputLabel, MenuItem, Popper, Select, TextareaAutosize, TextField, Typography } from '@mui/material';
+import { CancelOutlined, Done, NavigateNext, SkipNextOutlined, SkipPreviousOutlined, WarningOutlined } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import useLoaderStore from 'store/loaderStore';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
+import useActsStore from 'store/actsStore';
+import { useNavigate } from 'react-router-dom';
 
 function Toolbar({ act = {}, setAct }) {
   const { t } = useTranslation();
   const { setIsLoading } = useLoaderStore();
   const anchorElWarning = useRef(null);
-  const anchorElCancel = useRef(null);
   const [openWarningPopper, setOpenWarningPopper] = useState(false);
   const [openCancelPopper, setOpenCancelPopper] = useState(false);
   const [xatoTuri, setXatoTuri] = useState('Qayta hisob kitob xato');
   const [xatoMazmuni, setXatoMazmuni] = useState('Qayta hisob kitob xato');
   const [fixedSum, setFixedSum] = useState('');
+  const { playlist } = useActsStore();
+  const navigate = useNavigate();
   const handleClickDoneButton = async () => {
     setIsLoading(true);
     try {
@@ -248,8 +240,22 @@ function Toolbar({ act = {}, setAct }) {
         )}
       </Popper>
 
-      <Button variant="contained" color="secondary">
-        <NavigateNext />
+      <Button
+        variant="contained"
+        color="secondary"
+        disabled={!playlist.length || playlist.findIndex((row) => row.id === act.id) === 0}
+        onClick={() => navigate('/stm/actCheck/' + playlist[playlist.findIndex((row) => row.id === act.id) - 1].id)}
+      >
+        <SkipPreviousOutlined />
+        {t('tableActions.prev')}
+      </Button>
+      <Button
+        variant="contained"
+        color="secondary"
+        disabled={!playlist.length || playlist.findIndex((row) => row.id === act.id) === playlist.length - 1}
+        onClick={() => navigate('/stm/actCheck/' + playlist[playlist.findIndex((row) => row.id === act.id) + 1].id)}
+      >
+        <SkipNextOutlined />
         {t('tableActions.next')}
       </Button>
     </MuiToolbar>

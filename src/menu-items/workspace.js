@@ -41,7 +41,7 @@ const billing = {
   id: 'workspace',
   title: 'workspace',
   type: 'group',
-  allowedRoles: ['admin', 'billing'],
+  allowedRoles: ['admin', 'billing', 'stm'],
   children: [
     // {
     //   id: 'billing',

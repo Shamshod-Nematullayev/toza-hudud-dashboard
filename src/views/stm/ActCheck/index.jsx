@@ -10,25 +10,34 @@ import Calculators from './Calculators';
 import KeyValue from 'ui-component/KeyValue';
 import MainCard from 'ui-component/cards/MainCard';
 import { padding } from '@mui/system';
+import useLoaderStore from 'store/loaderStore';
 
 function ActCkeck() {
   const [fileUrl, setFileUrl] = useState('');
   const [act, setAct] = useState({});
   const [davriyHarakatlarJadvali, setDavriyHarakatlarJadvali] = useState([]);
   const { actId } = useParams();
+  const { setIsLoading } = useLoaderStore();
 
   useEffect(() => {
-    api.get('/acts/' + actId).then((res) => {
-      setAct(res.data);
-    });
-  }, []);
+    setIsLoading(true);
+    api
+      .get('/acts/' + actId, { params: { companyId: 1144 } })
+      .then((res) => {
+        setAct(res.data);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [actId]);
   useEffect(() => {
     if (act.fileId) {
       api
         .get(`/acts/pdf`, {
           responseType: 'blob',
           params: {
-            fileId: act.fileId.split('*').pop()
+            fileId: act.fileId.split('*').pop(),
+            companyId: 1144
           }
         })
         .then((res) => {

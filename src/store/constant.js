@@ -35,3 +35,17 @@ export const languageOptions = [
 ];
 
 export const documentTypes = ['odam_soni', 'viza', 'death', 'dvaynik', 'gps'];
+export const colors = [
+  'ff0000',
+  '00ff00',
+  '0000ff',
+  'ff8000',
+  'ffff00',
+  '80ff00',
+  '00ff80',
+  '00ffff',
+  '0080ff',
+  '8000ff',
+  'ff00ff',
+  'ff0080'
+];

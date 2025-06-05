@@ -54,15 +54,15 @@ function CreateAbonentPetition() {
         <Grid item xs={12} sm={3}>
           <InputForm />
         </Grid>
-        <Grid item xs={12} sm={5}>
-          <DHJTable abonentData={abonentData} title={`${t('createAbonentPetitionPage.DHJ jadval')}: ${abonentData.accountNumber}`} />
-        </Grid>
         <Grid item xs={12} sm={4}>
           {aktType === 'dvaynik' ? (
             <DHJTable abonentData={abonentData2} title={`${'createAbonentPetitionPage.Ikkilamchi'}: ${abonentData2.accountNumber}`} />
           ) : (
             <Recalculate />
           )}
+        </Grid>
+        <Grid item xs={12} sm={5}>
+          <DHJTable abonentData={abonentData} title={`${t('createAbonentPetitionPage.DHJ jadval')}: ${abonentData.accountNumber}`} />
         </Grid>
       </Grid>
 
