@@ -3,7 +3,7 @@ export const gridSpacing = 3;
 export const drawerWidth = 260;
 export const appDrawerWidth = 320;
 
-export const SERVER_DOMAIN = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://api.greenzone.uz';
+export const SERVER_DOMAIN = process.env.NODE_ENV === 'development' ? 'http://192.168.10.104:3000' : 'https://api.greenzone.uz';
 export const SERVER_URL = SERVER_DOMAIN + '/api';
 export const actStatusOptions = [
   { value: 'NEW', label: 'Yangi' },
@@ -35,3 +35,17 @@ export const languageOptions = [
 ];
 
 export const documentTypes = ['odam_soni', 'viza', 'death', 'dvaynik', 'gps'];
+export const colors = [
+  'ff0000',
+  '00ff00',
+  '0000ff',
+  'ff8000',
+  'ffff00',
+  '80ff00',
+  '00ff80',
+  '00ffff',
+  '0080ff',
+  '8000ff',
+  'ff00ff',
+  'ff0080'
+];

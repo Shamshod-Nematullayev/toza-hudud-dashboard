@@ -11,8 +11,13 @@ import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.js'
 import { toast } from 'react-toastify';
 import Delete from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
+import { createGlobalStyle } from 'styled-components';
+import { colors } from 'store/constant.js';
 
 dayjs.locale('uz-latn');
+const CustomStyle = createGlobalStyle`
+  
+`;
 function RecalculatorAbonent() {
   const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable } = useStore();
   const [currentTotal, setCurrentTotal] = useState(0);
@@ -206,9 +211,47 @@ function RecalculatorAbonent() {
           withoutQQSTotal: period.withoutQQSTotal,
           total: period.total
         }))}
+        getRowClassName={({ row }) => 'bg-' + colors[row.id - 1]}
         hideFooter
         sx={{
-          height: '300px'
+          height: '300px',
+          '.bg-ff0000': {
+            backgroundColor: '#ff000050'
+          },
+          '.bg-00ff00': {
+            backgroundColor: '#00ff0050'
+          },
+          '.bg-0000ff': {
+            backgroundColor: '#0000ff50'
+          },
+          '.bg-ff8000': {
+            backgroundColor: '#ff800050'
+          },
+          '.bg-ffff00': {
+            backgroundColor: '#ffff0050'
+          },
+          '.bg-80ff00': {
+            backgroundColor: '#80ff0050'
+          },
+
+          '.bg-00ff80': {
+            backgroundColor: '#00ff8050'
+          },
+          '.bg-00ffff': {
+            backgroundColor: '#00ffff50'
+          },
+          '.bg-0080ff': {
+            backgroundColor: '#0080ff50'
+          },
+          '.bg-8000ff': {
+            backgroundColor: '#8000ff50'
+          },
+          '.bg-ff00ff': {
+            backgroundColor: '#ff00ff50'
+          },
+          '.bg-ff0080': {
+            backgroundColor: '#ff008050'
+          }
         }}
       />
     </Grid>
