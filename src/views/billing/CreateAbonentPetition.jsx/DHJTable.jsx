@@ -67,38 +67,86 @@ function DHJTable({ abonentData, title }) {
           columns={[
             {
               field: 'id',
-              headerName: t('tableHeaders.period'),
-              renderCell: (params) => params.row?.davr,
-              cellClassName: (params) => getClassName(params, 0)
+              headerName: t('tableHeaders.period')
             },
-            { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number', cellClassName: (params) => getClassName(params, 1) },
+            { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number' },
             {
               field: 'nachis',
               headerName: t('tableHeaders.nachis'),
               type: 'number',
-              cellClassName: (params) => getClassName(params, 2)
+              renderCell: (params) => {
+                // Har bir davrga mos rangli indikatorlar
+                const matchedColors = store.recalculationPeriods
+                  .map((item, index) => {
+                    const fromMoon = item.startDate.$M;
+                    const fromYear = item.startDate.$y;
+                    const toMoon = item.endDate.$M;
+                    const toYear = item.endDate.$y;
+
+                    const [oy, yil] = params.row.davr.split('.');
+                    if (
+                      ((oy - 1 >= fromMoon && yil == fromYear) || yil > fromYear) &&
+                      ((oy - 1 <= toMoon && yil == toYear) || yil < toYear)
+                    ) {
+                      return '#' + colors[index] + '50';
+                    }
+
+                    const inRange =
+                      (yil > fromYear || (yil === fromYear && oy >= fromMoon)) && (yil < toYear || (yil === toYear && oy <= toMoon));
+
+                    return inRange ? colors[index] : null;
+                  })
+                  .filter(Boolean);
+
+                return (
+                  <div style={{ display: 'flex', position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}>
+                    <div style={{ zIndex: 1 }}>{params.row.davr}</div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row-reverse',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 0,
+                        height: '100%',
+                        width: '100%'
+                      }}
+                    >
+                      {matchedColors.map((item, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            backgroundColor: item,
+                            // width: '100%',
+                            height: '100%',
+                            flex: 1
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
             },
-            { field: 'saldo_k', headerName: t('tableHeaders.kSaldo'), type: 'number', cellClassName: (params) => getClassName(params, 3) },
+            { field: 'saldo_k', headerName: t('tableHeaders.kSaldo'), type: 'number' },
             {
               field: 'akt',
               headerName: t('tableHeaders.act'),
               type: 'number',
-              width: 50,
-              cellClassName: (params) => getClassName(params, 4)
+              width: 50
             },
             {
               field: 'allPaymentsSum',
               headerName: t('tableHeaders.income'),
-              type: 'number',
-              cellClassName: (params) => getClassName(params, 5)
+              type: 'number'
             },
             {
               field: 'yashovchilar_soni',
               headerName: t('tableHeaders.inhabitantCount'),
               type: 'number',
               width: 70,
-              align: 'center',
-              cellClassName: (params) => getClassName(params, 6)
+              align: 'center'
             }
           ]}
           disableColumnFilter

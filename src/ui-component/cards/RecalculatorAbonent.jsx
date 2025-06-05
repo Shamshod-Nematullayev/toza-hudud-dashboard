@@ -147,21 +147,21 @@ function RecalculatorAbonent() {
     <Grid container spacing={1} sx={{ pt: 1 }}>
       <Grid item xs={6}>
         <DatePicker
-          views={['year', 'month', 'day']}
+          views={['year', 'month']}
           minDate={dayjs('2019-01-01')}
           maxDate={dayjs()}
           label="dan"
-          format="DD.MM.YY"
+          format={aktType === 'viza' ? 'DD.MM.YY' : 'MM.YY'}
           onChange={(e) => handleDatePickerChange(e, 'from')}
         />
       </Grid>
       <Grid item xs={6}>
         <DatePicker
-          views={['year', 'month', 'day']}
+          views={['year', 'month']}
           minDate={dayjs('2019-01-01')}
           maxDate={dayjs()}
           label="gacha"
-          format="DD.MM.YY"
+          format={aktType === 'viza' ? 'DD.MM.YY' : 'MM.YY'}
           view="year"
           sx={{ margin: 'auto 10px' }}
           defaultValue={dayjs()}
