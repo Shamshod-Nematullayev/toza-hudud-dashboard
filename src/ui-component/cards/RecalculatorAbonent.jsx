@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
 import { Grid, IconButton, Tooltip, Typography } from '@mui/material';
-import hisoblandiJadval from '../../views/billing/CreateAbonentPetition.jsx/tarif.js';
+// import hisoblandiJadval from '../../views/billing/CreateAbonentPetition.jsx/tarif.js';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
@@ -13,13 +13,14 @@ import Delete from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
 import { createGlobalStyle } from 'styled-components';
 import { colors } from 'store/constant.js';
+import api from 'utils/api.js';
 
 dayjs.locale('uz-latn');
-const CustomStyle = createGlobalStyle`
-  
-`;
+
 function RecalculatorAbonent() {
   const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable } = useStore();
+  const [tarif, setTarif] = useState([]);
+  const [hisoblandiJadval, setHisoblandiJadval] = useState([]);
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
   const [totalSumm, setTotalSumm] = useState(0);
@@ -63,10 +64,23 @@ function RecalculatorAbonent() {
   };
 
   useEffect(() => {
+    api.get('/billing/get-tariffs').then((res) => {
+      setTarif(res.data.tariffs);
+      const tariffs = res.data.tariffs;
+
+      let result = [];
+      for (let tariff of tariffs) {
+        result.push(...getTarifElement(tariff));
+      }
+      setHisoblandiJadval(result);
+    });
+  }, []);
+
+  useEffect(() => {
     qaytaHisob({
-      fromMoon: startDate.$M,
+      fromMoon: startDate.$D > 15 ? startDate.$M + 1 : startDate.$M,
       fromYear: startDate.$y,
-      toMoon: endDate.$M,
+      toMoon: +(endDate.$D > 15 ? endDate.$M : endDate.$M - 1),
       toYear: endDate.$y
     });
   }, [startDate, endDate]);
@@ -151,7 +165,7 @@ function RecalculatorAbonent() {
           minDate={dayjs('2019-01-01')}
           maxDate={dayjs()}
           label="dan"
-          format={aktType === 'viza' ? 'DD.MM.YY' : 'MM.YY'}
+          format="DD.MM.YY"
           onChange={(e) => handleDatePickerChange(e, 'from')}
         />
       </Grid>
@@ -161,10 +175,10 @@ function RecalculatorAbonent() {
           minDate={dayjs('2019-01-01')}
           maxDate={dayjs()}
           label="gacha"
-          format={aktType === 'viza' ? 'DD.MM.YY' : 'MM.YY'}
+          format="DD.MM.YY"
           view="year"
           sx={{ margin: 'auto 10px' }}
-          defaultValue={dayjs()}
+          defaultValue={dayjs().startOf('month')}
           onChange={(e) => handleDatePickerChange(e, 'to')}
         />
       </Grid>
@@ -262,3 +276,30 @@ function RecalculatorAbonent() {
 }
 
 export default RecalculatorAbonent;
+
+function getTarifElement({ startAt, endAt, rate, rateWithoutQqs }) {
+  const withQQS = rate - rateWithoutQqs;
+  startAt = new Date(startAt);
+  endAt = endAt ? new Date(endAt) : new Date();
+  console.log(arguments, startAt, endAt);
+  let month = startAt.getMonth();
+  let year = startAt.getFullYear();
+  let result = [];
+  for (let i = 0; !(month === endAt.getMonth() && year === endAt.getFullYear()); i++) {
+    console.log(month, year);
+
+    result.push({
+      month: month + 1,
+      year: year,
+      hisoblandi: rate,
+      withQQS: withQQS
+    });
+    if (month === 11) {
+      month = 0;
+      year++;
+    } else {
+      month++;
+    }
+  }
+  return result;
+}

@@ -75,5 +75,6 @@ export default [
   { month: 2, year: 2025, hisoblandi: 4624, nds: 555, withQQS: true },
   { month: 3, year: 2025, hisoblandi: 4624, nds: 555, withQQS: true },
   { month: 4, year: 2025, hisoblandi: 4624, nds: 555, withQQS: true },
-  { month: 5, year: 2025, hisoblandi: 4624, nds: 555, withQQS: true }
+  { month: 5, year: 2025, hisoblandi: 4624, nds: 555, withQQS: true },
+  { month: 6, year: 2025, hisoblandi: 4624, nds: 555, withQQS: true }
 ];
