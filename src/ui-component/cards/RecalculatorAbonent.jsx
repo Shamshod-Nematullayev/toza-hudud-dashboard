@@ -1,17 +1,14 @@
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
 import { Grid, IconButton, Tooltip, Typography } from '@mui/material';
-// import hisoblandiJadval from '../../views/billing/CreateAbonentPetition.jsx/tarif.js';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
 import { toast } from 'react-toastify';
 import Delete from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
-import { createGlobalStyle } from 'styled-components';
 import { colors } from 'store/constant.js';
 import api from 'utils/api.js';
 
@@ -19,7 +16,6 @@ dayjs.locale('uz-latn');
 
 function RecalculatorAbonent() {
   const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable } = useStore();
-  const [tarif, setTarif] = useState([]);
   const [hisoblandiJadval, setHisoblandiJadval] = useState([]);
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
@@ -65,7 +61,6 @@ function RecalculatorAbonent() {
 
   useEffect(() => {
     api.get('/billing/get-tariffs').then((res) => {
-      setTarif(res.data.tariffs);
       const tariffs = res.data.tariffs;
 
       let result = [];
