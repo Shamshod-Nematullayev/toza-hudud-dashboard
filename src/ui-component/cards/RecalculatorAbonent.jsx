@@ -3,7 +3,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
-import { Grid, IconButton, Tooltip, Typography } from '@mui/material';
+import { Button, Grid, IconButton, Tooltip, Typography } from '@mui/material';
 import hisoblandiJadval from '../../views/billing/CreateAbonentPetition.jsx/tarif.js';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -168,14 +168,14 @@ function RecalculatorAbonent() {
       <Grid item xs={6}>
         <Typography variant="h3">
           <Tooltip title="Debitor">
-            <IconButton sx={{ margin: 'auto 10px' }} onClick={handleAddButtonClick}>
+            <Button variant="outlined" color="error" onClick={handleAddButtonClick}>
               <AddIcon sx={{ color: 'red', fontSize: '30px' }} />
-            </IconButton>
+            </Button>
           </Tooltip>
           <Tooltip title="Kreditor">
-            <IconButton sx={{ margin: 'auto 10px' }} onClick={handleRemoveButtonClick}>
+            <Button variant="outlined" color="success" onClick={handleRemoveButtonClick}>
               <RemoveIcon sx={{ color: 'green', fontSize: '30px' }} />
-            </IconButton>
+            </Button>
           </Tooltip>
           {currentTotal}
         </Typography>
