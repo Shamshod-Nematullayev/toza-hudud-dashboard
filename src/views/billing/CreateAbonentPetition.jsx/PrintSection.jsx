@@ -8,6 +8,8 @@ import fullNameToShortName from 'views/tools/fullNameToShortName';
 import api from 'utils/api';
 import { reactToPrintDefaultOptions } from 'store/constant';
 import { useTranslation } from 'react-i18next';
+import { DatePicker } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
 const StyledTable = styled.table`
   margin: auto;
   width: 100%;
@@ -47,6 +49,8 @@ const blobToBase64 = (blob) => {
 };
 
 function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
+  const [olderPeriod, setOlderPeriod] = useState(dayjs());
+
   const componentRef = useRef(null);
   const printFunction = useReactToPrint({
     ...reactToPrintDefaultOptions,
@@ -55,7 +59,7 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
   });
   const [comment, setComment] = useState('');
   const { t } = useTranslation();
-
+  console.log(olderPeriod);
   return (
     <Dialog
       open={show}
@@ -73,11 +77,12 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
     >
       <DialogContent style={{ margin: '40px 55px', fontSize: 14 }}>
         <div id="print" ref={componentRef}>
-          {renderSwitch({ ...props, asoslantiruvchi: comment, ariza })}
+          {renderSwitch({ ...props, asoslantiruvchi: comment, ariza, olderPeriod, setOlderPeriod })}
         </div>
       </DialogContent>
       {ariza.document_type === 'odam_soni' && (
-        <DialogContent>
+        <DialogContent sx={{ height: 200, display: 'flex' }}>
+          <DatePicker value={olderPeriod} onChange={(newValue) => setOlderPeriod(newValue)} label="dan boshlab" format="DD.MM.YY" />
           <FormControl fullWidth>
             <TextareaAutosize
               minRows={3}
@@ -110,9 +115,10 @@ function renderSwitch({
   documentType = 'odam_soni',
   recalculationPeriods,
   ariza,
-  muzlatiladi
+  muzlatiladi,
+  olderPeriod,
+  setOlderPeriod
 }) {
-  const [olderPeriod, setOlderPeriod] = useState(new Date());
   const [photos, setPhotos] = useState([]);
   const company = JSON.parse(localStorage.getItem('company'));
   useEffect(() => {
@@ -134,10 +140,10 @@ function renderSwitch({
       });
 
       if (latestPeriod?.startDate) {
-        setOlderPeriod(new Date(latestPeriod.startDate));
+        setOlderPeriod(dayjs(latestPeriod.startDate));
       }
     } else {
-      setOlderPeriod(new Date());
+      setOlderPeriod(dayjs());
     }
   }, [recalculationPeriods]);
 
@@ -179,8 +185,8 @@ function renderSwitch({
               <b>Abonent: {abonentData?.fullName}</b>
             </p>
             <p>
-              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.getFullYear()} yilning “01”{' '}
-              {lotinga(oylar[olderPeriod.getMonth()])} oyidan buyon birga istiqomat qilishi aniqlandi.
+              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.year()} yilning “
+              {olderPeriod.date()}” {lotinga(oylar[olderPeriod.month()])} oyidan buyon birga istiqomat qilishi aniqlandi.
             </p>
             <p>{asoslantiruvchi}</p>
             <p>
