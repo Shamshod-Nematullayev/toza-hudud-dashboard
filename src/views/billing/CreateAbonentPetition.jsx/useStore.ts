@@ -1,6 +1,25 @@
 import { create } from 'zustand';
 
-const useStore = create((set) => ({
+interface StoreState {
+  aktType: string;
+  showPrintSection: boolean;
+  rowsDhjTable: any;
+  rows: any;
+  rowsDublicat: any;
+  abonentData: any;
+  abonentData2: any;
+  ariza: any;
+  mahalla: any;
+  mahallaDublicat: any;
+  recalculationPeriods: any;
+  yashovchiSoniInput: string;
+  pasteImageDialogOpen: boolean;
+  images: any;
+  setImages: (images) => void;
+  muzlatiladi: boolean;
+}
+
+const useStore = create<StoreState>((set) => ({
   aktType: 'odam_soni',
   setAktType: (aktType) => set({ aktType }),
   showPrintSection: false,

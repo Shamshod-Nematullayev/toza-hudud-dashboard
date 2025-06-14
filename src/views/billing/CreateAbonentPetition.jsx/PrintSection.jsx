@@ -57,9 +57,14 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
     documentTitle: ariza.document_number,
     contentRef: componentRef
   });
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState(ariza.comment || '');
   const { t } = useTranslation();
-  console.log(olderPeriod);
+  const handleClose = () => {
+    setShowPrintSection(false);
+    if (ariza.document_type === 'odam_soni' && comment.length > 0) {
+      api.patch('/arizalar/' + ariza._id, { comment });
+    }
+  };
   return (
     <Dialog
       open={show}
@@ -95,7 +100,7 @@ function PrintSection({ show, ariza, setShowPrintSection, ...props }) {
       )}
 
       <DialogActions>
-        <Button onClick={() => setShowPrintSection(false)}>{t('buttons.close')}</Button>
+        <Button onClick={handleClose}>{t('buttons.close')}</Button>
         <Button variant="contained" color="primary" onClick={printFunction}>
           {t('buttons.print')}
         </Button>

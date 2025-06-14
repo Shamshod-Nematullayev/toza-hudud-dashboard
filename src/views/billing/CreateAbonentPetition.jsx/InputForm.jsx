@@ -56,7 +56,8 @@ function InputForm() {
     setPasteImageDialogOpen,
     images,
     muzlatiladi,
-    setMuzlatiladi
+    setMuzlatiladi,
+    setImages
   } = useStore();
   const { isLoading, setIsLoading } = useLoaderStore();
   const [licshet, setLicshet] = useState('');
@@ -171,6 +172,7 @@ function InputForm() {
     setYashovchiSoniInput('');
     setAktSummaInput('');
     setRecalculationPeriods([]);
+    setImages([]);
   };
 
   return (
