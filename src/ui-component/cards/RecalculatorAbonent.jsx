@@ -5,7 +5,7 @@ import 'dayjs/locale/uz-latn';
 import { Grid, IconButton, Button, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore';
+import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.ts';
 import { toast } from 'react-toastify';
 import Delete from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';

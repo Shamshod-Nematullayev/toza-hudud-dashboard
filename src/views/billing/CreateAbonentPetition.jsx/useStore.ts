@@ -1,9 +1,22 @@
 import { create } from 'zustand';
 
+interface dhjRow {
+  id: number;
+  davr: string;
+  saldo_n: number;
+  nachis: number;
+  saldo_k: number;
+  akt: number;
+  yashovchilar_soni: number;
+  allPaymentsSum: number;
+}
+
+type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
+
 interface StoreState {
-  aktType: string;
+  aktType: aktType;
   showPrintSection: boolean;
-  rowsDhjTable: any;
+  rowsDhjTable: dhjRow[];
   rows: any;
   rowsDublicat: any;
   abonentData: any;
@@ -15,17 +28,20 @@ interface StoreState {
   yashovchiSoniInput: string;
   pasteImageDialogOpen: boolean;
   images: any;
-  setImages: (images) => void;
   muzlatiladi: boolean;
+  setAktType: (aktType: aktType) => void;
+  setShowPrintSection: (showPrintSection: boolean) => void;
+  setRowsDhjTable: (rowsDhjTable: dhjRow[]) => void;
+  setImages: (images) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
   aktType: 'odam_soni',
-  setAktType: (aktType) => set({ aktType }),
+  setAktType: (aktType: aktType) => set({ aktType }),
   showPrintSection: false,
-  setShowPrintSection: (state) => set({ showPrintSection: state }),
+  setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
   rowsDhjTable: [],
-  setRowsDhjTable: (rowsDhjTable) => set({ rowsDhjTable }),
+  setRowsDhjTable: (rowsDhjTable: dhjRow[]) => set({ rowsDhjTable }),
   rows: [],
   setRows: (files) => set({ rows: files }),
   rowsDublicat: [],

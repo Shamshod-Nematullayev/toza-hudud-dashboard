@@ -4,7 +4,7 @@ import PrintSection from './PrintSection';
 import InputForm from './InputForm';
 import DHJTable from './DHJTable';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
-import useStore from './useStore';
+import useStore from './useStore.ts';
 import PasteImageDialog from './PasteImageDialog';
 import { useLocation } from 'react-router-dom';
 import { Grid } from '@mui/material';

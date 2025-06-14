@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "distTS",
     "target": "ESNext",
     "module": "ESNext",
     "jsx": "react-jsx",
