@@ -11,7 +11,7 @@ import Visibility from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
 import useLoaderStore from 'store/loaderStore';
 import Cancel from '@mui/icons-material/CancelOutlined';
-import ChooseArizaModal from './ChooseArizaModal';
+import ChooseArizaPopper from './ChooseArizaPopper';
 
 function KeyValue({ kalit, value }) {
   return (
@@ -43,6 +43,7 @@ function FindedDataTable() {
   const [rowAfterAkt, setRowAfterAkt] = useState();
   const [isUploading, setIsUploading] = useState(false);
   const { setIsLoading } = useLoaderStore();
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const theme = useTheme();
 
@@ -153,6 +154,7 @@ function FindedDataTable() {
       } else {
         setArizalarRows(data.data);
         setShowArizaChooseDialog(true);
+        setAnchorEl(e.target);
       }
     } catch (err) {
       console.log(err);
@@ -218,18 +220,19 @@ function FindedDataTable() {
   const handleCloseChooseArizaModal = () => setShowArizaChooseDialog(false);
   return (
     <div>
-      <ChooseArizaModal
-        showDialog={showArizaChooseDialog}
-        handleClose={handleCloseChooseArizaModal}
-        rows={arizalarRows}
-        setAriza={setAriza}
-      />
       <form onSubmit={handleSubmit}>
         <Grid container spacing={0.5}>
-          <Grid item xs={1}>
+          <Grid item xs={1} sx={{ position: 'relative' }}>
             <IconButton sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
               <RefreshOutlinedIcon />
             </IconButton>
+            <ChooseArizaPopper
+              anchorEl={anchorEl}
+              open={showArizaChooseDialog}
+              handleClose={handleCloseChooseArizaModal}
+              rows={arizalarRows}
+              setAriza={setAriza}
+            />
           </Grid>
           <Grid item xs={1.5}>
             <TextField
