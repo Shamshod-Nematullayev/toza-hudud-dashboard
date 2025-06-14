@@ -24,7 +24,7 @@ import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
 import api from 'utils/api';
 import { lotinga } from 'helpers/lotinKiril';
 import { toast } from 'react-toastify';
-import { ClearAll, PictureAsPdfOutlined } from '@mui/icons-material';
+import { ClearAll, GridOn, PictureAsPdfOutlined } from '@mui/icons-material';
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
 import { toPng } from 'html-to-image';
 import { isMobile } from 'react-device-detect';
@@ -200,6 +200,21 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
   };
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleClickExcel = async () => {
+    try {
+      await api.get('/billing/get-abonents-by-mfy-id/' + abonents[0].mahallaId + '/excel', { responseType: 'blob' }).then((response) => {
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'abonentlar.xlsx';
+        link.click();
+      });
+    } catch (err) {
+      toast.error('Xatolik');
+      console.error(err);
+    }
   };
 
   return (
@@ -459,14 +474,19 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
 
       {/* Telegram va Chop etish */}
       <Grid container item xs={10} md={3} spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
-        <Grid item sm={6} md={12} lg={6}>
+        <Grid item sm={4} md={12} lg={4}>
           <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg} variant="contained" fullWidth>
             <TelegramIcon sx={{ mr: 1 }} /> yuborish
           </Button>
         </Grid>
-        <Grid item sm={6} md={12} lg={6}>
+        <Grid item sm={4} md={12} lg={4}>
           <Button disabled={mainFunctionsDisabled} onClick={printFunction} variant="contained" fullWidth sx={{ textWrap: 'nowrap' }}>
             <PrintIcon sx={{ mr: 1 }} /> Chop etish
+          </Button>
+        </Grid>
+        <Grid item sm={4}>
+          <Button disabled={mainFunctionsDisabled} onClick={handleClickExcel} variant="contained" fullWidth>
+            <GridOn sx={{ mr: 1 }} /> Excel
           </Button>
         </Grid>
       </Grid>
