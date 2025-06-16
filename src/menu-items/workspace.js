@@ -15,6 +15,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import { MoveDown } from '@mui/icons-material';
 
 //contans
 const icons = {
@@ -77,13 +78,31 @@ const billing = {
       allowedRoles: ['admin', 'billing']
     },
     {
-      id: 'deleteDublicates',
-      title: `deleteDublicates`,
-      type: 'item',
-      url: '/billing/deleteDublicate',
-      icon: icons.DoNotDisturbOnIcon,
-      breadcrumbs: false,
-      allowedRoles: ['admin', 'billing']
+      id: 'specialActs',
+      title: 'specialActs',
+      type: 'collapse',
+      icon: EditNoteIcon,
+      allowedRoles: ['admin', 'billing'],
+      children: [
+        {
+          id: 'deleteDublicates',
+          title: `deleteDublicates`,
+          type: 'item',
+          url: '/billing/deleteDublicate',
+          icon: icons.DoNotDisturbOnIcon,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing']
+        },
+        {
+          id: 'moneyTransfer',
+          title: 'moneyTransfer',
+          type: 'item',
+          url: '/billing/specialMoneyTransfer',
+          icon: MoveDown,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing']
+        }
+      ]
     },
     {
       id: 'printAbonentsList',

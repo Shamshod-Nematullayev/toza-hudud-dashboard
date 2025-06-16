@@ -23,6 +23,7 @@ import NazoratchilarXatlov from 'views/billing/Reports/NazoratchilarXatlov';
 import ActPacks from 'views/stm/ActPacks';
 import Acts from 'views/stm/Acts';
 import ActCheck from 'views/stm/ActCheck';
+import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -110,6 +111,10 @@ const MainRoutes = {
         {
           path: 'deleteDublicate',
           element: <DeleteDublicate />
+        },
+        {
+          path: 'specialMoneyTransfer',
+          element: <MonayTransfer />
         },
         {
           path: 'importAbonentPetition',

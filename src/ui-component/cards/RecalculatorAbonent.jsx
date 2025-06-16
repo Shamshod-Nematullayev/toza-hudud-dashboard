@@ -171,7 +171,6 @@ function RecalculatorAbonent() {
           maxDate={dayjs()}
           label="gacha"
           format="DD.MM.YY"
-          view="year"
           sx={{ margin: 'auto 10px' }}
           defaultValue={dayjs().startOf('month')}
           onChange={(e) => handleDatePickerChange(e, 'to')}
@@ -198,10 +197,9 @@ function RecalculatorAbonent() {
       <DataGrid
         columns={[
           { field: 'id', headerName: '№', width: 50 },
-          { field: 'startDate', headerName: 'qachondan', width: 100 },
-          { field: 'endDate', headerName: 'qachongacha', width: 100 },
-          { field: 'withQQSTotal', headerName: 'QQS bilan', width: 100 },
-          { field: 'withoutQQSTotal', headerName: 'QQS siz', width: 100 },
+          { field: 'startDate', headerName: 'qachondan', flex: 1 },
+          { field: 'endDate', headerName: 'qachongacha' },
+          { field: 'withQQSTotal', headerName: 'QQS bilan' },
           { field: 'total', headerName: 'Jami', width: 100 },
           {
             field: 'actions',
@@ -217,8 +215,14 @@ function RecalculatorAbonent() {
         ]}
         rows={recalculationPeriods.map((period, i) => ({
           id: i + 1,
-          startDate: dayjs(period.startDate).format('MM.YYYY'),
-          endDate: dayjs(period.endDate).format('MM.YYYY'),
+          startDate: dayjs()
+            .set('year', period.startDate.$y)
+            .set('month', startDate.$D > 15 ? startDate.$M + 1 : startDate.$M)
+            .format('MM.YYYY'),
+          endDate: dayjs()
+            .set('year', period.endDate.$y)
+            .set('month', endDate.$D > 15 ? endDate.$M : endDate.$M - 1)
+            .format('MM.YYYY'),
           withQQSTotal: period.withQQSTotal,
           withoutQQSTotal: period.withoutQQSTotal,
           total: period.total

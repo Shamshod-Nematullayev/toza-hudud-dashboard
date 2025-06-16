@@ -7,53 +7,72 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { colors } from 'store/constant';
 
-function DHJTable({ abonentData, title }) {
+export interface IRowDhj {
+  accountNumber: string;
+  accrual: number;
+  actAmount: number;
+  allPaymentsSum: number;
+  cashAmount: number;
+  eMoneyAmount: number;
+  frozenActAmount: number;
+  frozenDebtSettlement: any;
+  frozenKSaldo: number;
+  frozenNSaldo: number;
+  frozenRevenue: number;
+  god: number;
+  id: number;
+  inhabitantCount: number;
+  kSaldo: number;
+  kSaldoDt: number;
+  kSaldoKt: number;
+  mes: number;
+  munisAmount: number;
+  nSaldo: number;
+  nSaldoDt: number;
+  nSaldoKt: number;
+  organizationId: any;
+  penaltyFee: number;
+  period: string;
+  q1031Amount: number;
+  residentId: number;
+  tariffId: any;
+}
+
+function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
   const [rowsDhjTable, setRowsDhjTable] = useState([]);
   const store = useStore();
   const { t } = useTranslation();
-  const getClassName = ({ row }, i) => {
-    let result = '';
-    const item = store.recalculationPeriods[i];
-    if (!item) return result;
-    let fromMoon = item.startDate.$M,
-      fromYear = item.startDate.$y,
-      toMoon = item.endDate.$M,
-      toYear = item.endDate.$y;
-    const [oy, yil] = row.davr.split('.');
-    if (((oy - 1 >= fromMoon && yil == fromYear) || yil > fromYear) && ((oy - 1 <= toMoon && yil == toYear) || yil < toYear)) {
-      result = 'bg-' + colors[i];
-    }
-    return result;
-  };
   useEffect(() => {
     if (abonentData.accountNumber) {
-      api.get('/billing/get-abonent-dxj-by-id/' + abonentData.id).then(({ data }) => {
-        if (!data.ok) return toast.error(data.message);
-        setRowsDhjTable(
-          data.rows.map((row, i) => ({
-            id: i + 1,
-            davr: row.period,
-            saldo_n: row.nSaldo,
-            nachis: row.accrual,
-            saldo_k: row.kSaldo,
-            akt: row.actAmount,
-            yashovchilar_soni: row.inhabitantCount,
-            allPaymentsSum: row.allPaymentsSum
-          }))
-        );
-        store.setRowsDhjTable(
-          data.rows.map((row, i) => ({
-            id: i + 1,
-            davr: row.period,
-            saldo_n: row.nSaldo,
-            nachis: row.accrual,
-            saldo_k: row.kSaldo,
-            akt: row.actAmount,
-            yashovchilar_soni: row.inhabitantCount,
-            allPaymentsSum: row.allPaymentsSum
-          }))
-        );
-      });
+      api
+        .get('/billing/get-abonent-dxj-by-id/' + abonentData.id)
+        .then(({ data }: { data: { ok: boolean; message: string; rows: IRowDhj[] } }) => {
+          if (!data.ok) return toast.error(data.message);
+          setRowsDhjTable(
+            data.rows.map((row, i) => ({
+              id: i + 1,
+              davr: row.period,
+              saldo_n: row.nSaldo,
+              nachis: row.accrual,
+              saldo_k: row.kSaldo,
+              akt: row.actAmount,
+              yashovchilar_soni: row.inhabitantCount,
+              allPaymentsSum: row.allPaymentsSum
+            }))
+          );
+          store.setRowsDhjTable(
+            data.rows.map((row, i) => ({
+              id: i + 1,
+              davr: row.period,
+              saldo_n: row.nSaldo,
+              nachis: row.accrual,
+              saldo_k: row.kSaldo,
+              akt: row.actAmount,
+              yashovchilar_soni: row.inhabitantCount,
+              allPaymentsSum: row.allPaymentsSum
+            }))
+          );
+        });
     } else {
       setRowsDhjTable([]);
       store.setRowsDhjTable([]);
@@ -77,11 +96,11 @@ function DHJTable({ abonentData, title }) {
               renderCell: (params) => {
                 // Har bir davrga mos rangli indikatorlar
                 const matchedColors = store.recalculationPeriods
-                  .map((item, index) => {
-                    const fromMoon = item.startDate.$M;
-                    const fromYear = item.startDate.$y;
-                    const toMoon = item.endDate.$M;
-                    const toYear = item.endDate.$y;
+                  .map(({ startDate, endDate }, index) => {
+                    const fromMoon = startDate.$D > 15 ? startDate.$M + 1 : startDate.$M;
+                    const fromYear = startDate.$y;
+                    const toMoon = endDate.$D > 15 ? endDate.$M : endDate.$M - 1;
+                    const toYear = endDate.$y;
 
                     const [oy, yil] = params.row.davr.split('.');
                     if (

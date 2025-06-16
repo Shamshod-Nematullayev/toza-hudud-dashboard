@@ -32,8 +32,20 @@ const MainCard = React.forwardRef(
       sx = {},
       title,
       ...others
+    }: {
+      border?: boolean;
+      boxShadow?: boolean;
+      children?: React.ReactNode;
+      content?: boolean;
+      contentClass?: string;
+      contentSX?: React.CSSProperties;
+      darkTitle?: boolean;
+      secondary?: React.ReactNode;
+      shadow?: string | number;
+      sx?: React.CSSProperties;
+      title?: React.ReactNode;
     },
-    ref
+    ref: React.Ref<HTMLDivElement>
   ) => {
     return (
       <Card
@@ -75,10 +87,10 @@ MainCard.propTypes = {
   contentClass: PropTypes.string,
   contentSX: PropTypes.object,
   darkTitle: PropTypes.bool,
-  secondary: PropTypes.oneOfType([PropTypes.node, PropTypes.string, PropTypes.object]),
+  secondary: PropTypes.oneOfType([PropTypes.node, PropTypes.string]),
   shadow: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   sx: PropTypes.object,
-  title: PropTypes.oneOfType([PropTypes.node, PropTypes.string, PropTypes.object])
+  title: PropTypes.oneOfType([PropTypes.node, PropTypes.string])
 };
 
 export default MainCard;

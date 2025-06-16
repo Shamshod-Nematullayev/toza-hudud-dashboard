@@ -30,7 +30,9 @@ const uz = {
       'Qarzdor abonentlar': 'Qarzdor abonentlar',
       Hisobotlar: 'Hisobotlar',
       'Sanitar Tozalash Markazi': 'Sanitar Tozalash Markazi',
-      Acts: 'Aktlar'
+      Acts: 'Aktlar',
+      specialActs: 'Maxsus aktlar',
+      moneyTransfer: "Pul ko'chirish"
     },
     dashboard: {
       identified: 'Shaxsi tasdiqlangan',
