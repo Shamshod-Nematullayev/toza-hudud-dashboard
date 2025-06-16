@@ -1,3 +1,4 @@
+import { Dayjs } from 'dayjs';
 import { create } from 'zustand';
 
 interface dhjRow {
@@ -9,6 +10,15 @@ interface dhjRow {
   akt: number;
   yashovchilar_soni: number;
   allPaymentsSum: number;
+}
+
+interface IRecalculationPeriod {
+  period: string;
+  withQQSTotal: number;
+  withoutQQSTotal: number;
+  total: number;
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
 }
 
 type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
@@ -24,13 +34,14 @@ interface StoreState {
   ariza: any;
   mahalla: any;
   mahallaDublicat: any;
-  recalculationPeriods: any;
+  recalculationPeriods: IRecalculationPeriod[];
   yashovchiSoniInput: string;
   pasteImageDialogOpen: boolean;
   images: any;
   muzlatiladi: boolean;
   setAktType: (aktType: aktType) => void;
   setShowPrintSection: (showPrintSection: boolean) => void;
+  setRecalculationPeriods: (recalculationPeriods: any[]) => void;
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => void;
   setImages: (images) => void;
 }
@@ -57,7 +68,7 @@ const useStore = create<StoreState>((set) => ({
   mahallaDublicat: {},
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
   recalculationPeriods: [],
-  setRecalculationPeriods: (data) => set({ recalculationPeriods: data }),
+  setRecalculationPeriods: (data: IRecalculationPeriod[]) => set({ recalculationPeriods: data }),
   yashovchiSoniInput: '',
   setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: data }),
   pasteImageDialogOpen: false,

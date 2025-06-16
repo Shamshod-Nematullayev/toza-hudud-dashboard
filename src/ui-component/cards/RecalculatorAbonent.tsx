@@ -1,11 +1,11 @@
 import { DatePicker } from '@mui/x-date-pickers';
 import React, { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/uz-latn';
 import { Grid, IconButton, Button, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.ts';
+import useStore from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
 import { toast } from 'react-toastify';
 import Delete from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
@@ -20,14 +20,14 @@ function RecalculatorAbonent() {
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
   const [totalSumm, setTotalSumm] = useState(0);
-  const [startDate, setStartDate] = useState({});
-  const [endDate, setEndDate] = useState(dayjs());
+  const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(dayjs().startOf('month'));
   const qaytaHisob = ({ fromMoon, fromYear, toMoon, toYear, yashovchilar = 1 }) => {
     if (aktType === 'gps') {
       let summ = 0;
       let withNdsSumm = 0;
       rowsDhjTable.forEach((row) => {
-        const [oy, yil] = row.davr.split('.');
+        const [oy, yil] = row.davr.split('.').map(Number);
         if (((oy - 1 >= fromMoon && yil == fromYear) || yil > fromYear) && ((oy - 1 <= toMoon && yil == toYear) || yil < toYear)) {
           const withQQS = hisoblandiJadval.find((row) => row.year == yil && row.month == oy)?.withQQS;
           if (withQQS) {
@@ -73,10 +73,10 @@ function RecalculatorAbonent() {
 
   useEffect(() => {
     qaytaHisob({
-      fromMoon: startDate.$D > 15 ? startDate.$M + 1 : startDate.$M,
-      fromYear: startDate.$y,
-      toMoon: +(endDate.$D > 15 ? endDate.$M : endDate.$M - 1),
-      toYear: endDate.$y
+      fromMoon: startDate?.date() > 15 ? startDate?.month() + 1 : startDate?.month(),
+      fromYear: startDate?.year(),
+      toMoon: +(endDate?.date() > 15 ? endDate?.month() : endDate?.month() - 1),
+      toYear: endDate?.year()
     });
   }, [startDate, endDate]);
 
@@ -161,7 +161,8 @@ function RecalculatorAbonent() {
           maxDate={dayjs()}
           label="dan"
           format="DD.MM.YY"
-          onChange={(e) => handleDatePickerChange(e, 'from')}
+          value={startDate}
+          onChange={setStartDate}
         />
       </Grid>
       <Grid item xs={6}>
@@ -172,8 +173,8 @@ function RecalculatorAbonent() {
           label="gacha"
           format="DD.MM.YY"
           sx={{ margin: 'auto 10px' }}
-          defaultValue={dayjs().startOf('month')}
-          onChange={(e) => handleDatePickerChange(e, 'to')}
+          value={endDate}
+          onChange={setEndDate}
         />
       </Grid>
       <Grid item xs={6}>
@@ -213,20 +214,25 @@ function RecalculatorAbonent() {
             }
           }
         ]}
-        rows={recalculationPeriods.map((period, i) => ({
-          id: i + 1,
-          startDate: dayjs()
-            .set('year', period.startDate.$y)
-            .set('month', startDate.$D > 15 ? startDate.$M + 1 : startDate.$M)
-            .format('MM.YYYY'),
-          endDate: dayjs()
-            .set('year', period.endDate.$y)
-            .set('month', endDate.$D > 15 ? endDate.$M : endDate.$M - 1)
-            .format('MM.YYYY'),
-          withQQSTotal: period.withQQSTotal,
-          withoutQQSTotal: period.withoutQQSTotal,
-          total: period.total
-        }))}
+        rows={recalculationPeriods.map(
+          (
+            period: { startDate: dayjs.Dayjs; endDate: dayjs.Dayjs; withQQSTotal: number; withoutQQSTotal: number; total: number },
+            i: number
+          ) => ({
+            id: i + 1,
+            startDate: dayjs()
+              .set('year', period.startDate?.year())
+              .set('month', period.startDate?.date() > 20 ? period.startDate?.month() + 1 : period.startDate?.month())
+              .format('MM.YYYY'),
+            endDate: dayjs()
+              .set('year', period.endDate?.year())
+              .set('month', period.endDate?.date() > 15 ? period.endDate?.month() : period.endDate?.month() - 1)
+              .format('MM.YYYY'),
+            withQQSTotal: period.withQQSTotal,
+            withoutQQSTotal: period.withoutQQSTotal,
+            total: period.total
+          })
+        )}
         getRowClassName={({ row }) => 'bg-' + colors[row.id - 1]}
         hideFooter
         sx={{
