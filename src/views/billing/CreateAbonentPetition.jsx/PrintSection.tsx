@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import styled from 'styled-components';
 import { lotinga } from '../../../helpers/lotinKiril';
-import { Button, Dialog, DialogActions, DialogContent, FormControl, TextareaAutosize } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, FormControl, InputLabel, MenuItem, Select, TextareaAutosize } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import api from 'utils/api';
@@ -13,19 +13,10 @@ import dayjs from 'dayjs';
 import OdamSoni from './Documents/OdamSoni';
 import Dvaynik from './Documents/Dvaynik';
 import Gps from './Documents/Gps';
-import { IMahalla } from './useStore';
+import { IAbonentData, IMahalla } from './useStore';
+import useCustomizationStore from 'store/customizationStore';
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
-
-export interface IAbonentData {
-  id: number;
-  accountNumber: string;
-  fullName: string;
-  residentId: number;
-  kSaldo: number;
-  mahallaName: string;
-  streetName: string;
-}
 
 function formatName(name) {
   if (!name) return '';
@@ -76,6 +67,9 @@ function PrintSection({
   recalculationPeriods: any[];
 }) {
   const [olderPeriod, setOlderPeriod] = useState(dayjs());
+  const { documentVariantOdamSoni, setCustomization } = useCustomizationStore();
+
+  const setDocumentVariantOdamSone = (e: '1' | '2') => setCustomization({ documentVariantOdamSoni: e });
 
   const componentRef = useRef(null);
   const printFunction = useReactToPrint({
@@ -127,6 +121,19 @@ function PrintSection({
       </DialogContent>
       {ariza.document_type === 'odam_soni' && (
         <DialogContent sx={{ height: 200, display: 'flex' }}>
+          <FormControl fullWidth sx={{ width: '200px' }}>
+            <InputLabel id="dument-variant-select-label">Variant</InputLabel>
+            <Select
+              labelId="dument-variant-select-label"
+              id="document-variant-select"
+              label="Variant"
+              value={documentVariantOdamSoni}
+              onChange={(e) => setDocumentVariantOdamSone(e.target.value)}
+            >
+              <MenuItem value="1">Variant 1</MenuItem>
+              <MenuItem value="2">Variant 2</MenuItem>
+            </Select>
+          </FormControl>
           <DatePicker value={olderPeriod} onChange={(newValue) => setOlderPeriod(newValue)} label="dan boshlab" format="DD.MM.YY" />
           <FormControl fullWidth>
             <TextareaAutosize

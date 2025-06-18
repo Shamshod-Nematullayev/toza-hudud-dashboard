@@ -26,6 +26,7 @@ export interface IMahalla {
     id?: number;
     name?: string;
     mfy_rais_name?: string;
+    biriktirilganNazoratchi?: any;
   };
   company: {
     id: number;
@@ -33,6 +34,20 @@ export interface IMahalla {
     locationName: string;
     managerName: string;
     billingAdminName: string;
+  };
+}
+export interface IAbonentData {
+  id: number;
+  accountNumber: string;
+  fullName: string;
+  residentId: number;
+  kSaldo: number;
+  mahallaName: string;
+  streetName: string;
+  house: {
+    cadastralNumber: string;
+    homeIndex: string;
+    homeNumber: string;
   };
 }
 
@@ -44,8 +59,8 @@ interface StoreState {
   rowsDhjTable: dhjRow[];
   rows: any;
   rowsDublicat: any;
-  abonentData: any;
-  abonentData2: any;
+  abonentData: IAbonentData;
+  abonentData2: IAbonentData;
   ariza: any;
   mahalla: IMahalla;
   mahallaDublicat: any;
@@ -72,9 +87,27 @@ export const useStore = create<StoreState>((set) => ({
   setRows: (files) => set({ rows: files }),
   rowsDublicat: [],
   setRowsDublicat: (files) => set({ rows: files }),
-  abonentData: {},
+  abonentData: {
+    id: 0,
+    accountNumber: '',
+    fullName: '',
+    residentId: 0,
+    kSaldo: 0,
+    mahallaName: '',
+    streetName: '',
+    house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+  },
   setAbonentData: (data) => set({ abonentData: data }),
-  abonentData2: {},
+  abonentData2: {
+    id: 0,
+    accountNumber: '',
+    fullName: '',
+    residentId: 0,
+    kSaldo: 0,
+    mahallaName: '',
+    streetName: '',
+    house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+  },
   setAbonentData2: (data) => set({ abonentData2: data }),
   ariza: {},
   setAriza: (data) => set({ ariza: data }),
@@ -108,8 +141,26 @@ export const useStore = create<StoreState>((set) => ({
       rowsDhjTable: [],
       rows: [],
       rowsDublicat: [],
-      abonentData: {},
-      abonentData2: {},
+      abonentData: {
+        id: 0,
+        accountNumber: '',
+        fullName: '',
+        residentId: 0,
+        kSaldo: 0,
+        mahallaName: '',
+        streetName: '',
+        house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+      },
+      abonentData2: {
+        id: 0,
+        accountNumber: '',
+        fullName: '',
+        residentId: 0,
+        kSaldo: 0,
+        mahallaName: '',
+        streetName: '',
+        house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+      },
       ariza: {},
       mahalla: {
         data: {},

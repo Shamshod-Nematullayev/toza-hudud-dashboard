@@ -8,7 +8,8 @@ const initialState = {
   fontFamily: config.fontFamily,
   borderRadius: config.borderRadius,
   opened: true,
-  mode: 'dark'
+  mode: 'dark',
+  documentVariantOdamSoni: '1'
 };
 
 const useCustomizationStore = create(
