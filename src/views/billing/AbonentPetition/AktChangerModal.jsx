@@ -4,7 +4,7 @@ import useArizaStore from './useStore';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import api from 'utils/api';
 import { Calculate, Image } from '@mui/icons-material';
-import useStore from '../CreateAbonentPetition.jsx/useStore';
+import { useStore } from '../CreateAbonentPetition.jsx/useStore';
 
 import useLoaderStore from 'store/loaderStore';
 

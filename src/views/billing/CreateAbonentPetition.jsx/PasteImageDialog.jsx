@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent } from '@mui/material';
 import React, { useState } from 'react';
-import useStore from './useStore';
+import { useStore } from './useStore';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { useTranslation } from 'react-i18next';

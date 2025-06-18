@@ -1,6 +1,6 @@
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
-import useStore from './useStore';
+import { useStore } from './useStore';
 import api from 'utils/api';
 import { Stack, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
@@ -97,10 +97,10 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
                 // Har bir davrga mos rangli indikatorlar
                 const matchedColors = store.recalculationPeriods
                   .map(({ startDate, endDate }, index) => {
-                    const fromMoon = startDate.$D > 15 ? startDate.$M + 1 : startDate.$M;
-                    const fromYear = startDate.$y;
-                    const toMoon = endDate.$D > 15 ? endDate.$M : endDate.$M - 1;
-                    const toYear = endDate.$y;
+                    const fromMoon = startDate.date() > 15 ? startDate.month() + 1 : startDate.month();
+                    const fromYear = startDate.year();
+                    const toMoon = endDate.date() > 15 ? endDate.month() : endDate.month() - 1;
+                    const toYear = endDate.year();
 
                     const [oy, yil] = params.row.davr.split('.');
                     if (

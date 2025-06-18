@@ -21,6 +21,21 @@ interface IRecalculationPeriod {
   endDate: Dayjs | null;
 }
 
+export interface IMahalla {
+  data: {
+    id?: number;
+    name?: string;
+    mfy_rais_name?: string;
+  };
+  company: {
+    id: number;
+    name: string;
+    locationName: string;
+    managerName: string;
+    billingAdminName: string;
+  };
+}
+
 type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
 
 interface StoreState {
@@ -32,7 +47,7 @@ interface StoreState {
   abonentData: any;
   abonentData2: any;
   ariza: any;
-  mahalla: any;
+  mahalla: IMahalla;
   mahallaDublicat: any;
   recalculationPeriods: IRecalculationPeriod[];
   yashovchiSoniInput: string;
@@ -46,7 +61,7 @@ interface StoreState {
   setImages: (images) => void;
 }
 
-const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>((set) => ({
   aktType: 'odam_soni',
   setAktType: (aktType: aktType) => set({ aktType }),
   showPrintSection: false,
@@ -63,7 +78,16 @@ const useStore = create<StoreState>((set) => ({
   setAbonentData2: (data) => set({ abonentData2: data }),
   ariza: {},
   setAriza: (data) => set({ ariza: data }),
-  mahalla: {},
+  mahalla: {
+    data: {},
+    company: {
+      id: 0,
+      name: '',
+      locationName: '',
+      managerName: '',
+      billingAdminName: ''
+    }
+  },
   setMahalla: (mfy) => set({ mahalla: mfy }),
   mahallaDublicat: {},
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
@@ -87,7 +111,16 @@ const useStore = create<StoreState>((set) => ({
       abonentData: {},
       abonentData2: {},
       ariza: {},
-      mahalla: {},
+      mahalla: {
+        data: {},
+        company: {
+          id: 0,
+          name: '',
+          locationName: '',
+          managerName: '',
+          billingAdminName: ''
+        }
+      },
       mahallaDublicat: {},
       recalculationPeriods: [],
       yashovchiSoniInput: '',
@@ -96,5 +129,3 @@ const useStore = create<StoreState>((set) => ({
       muzlatiladi: false
     })
 }));
-
-export default useStore;

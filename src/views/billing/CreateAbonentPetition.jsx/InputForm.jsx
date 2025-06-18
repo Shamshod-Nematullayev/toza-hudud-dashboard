@@ -2,7 +2,7 @@ import { Button, Grid, MenuItem, Select, TextField } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
-import useStore from './useStore';
+import { useStore } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import KeyValue from 'ui-component/KeyValue';
 import useLoaderStore from 'store/loaderStore';
