@@ -1,7 +1,19 @@
-import { TextField } from '@mui/material';
-import React, { useRef } from 'react';
+import { SxProps, TextField } from '@mui/material';
+import { useRef } from 'react';
 
-function AccountNumberInput({ value, setFunc, label, ...others }) {
+function AccountNumberInput({
+  value,
+  setFunc,
+  label,
+  sx,
+  disabled
+}: {
+  value: string;
+  setFunc: (e: string) => void;
+  label: string;
+  sx: SxProps;
+  disabled: boolean;
+}) {
   const defaultValue = localStorage.getItem('abonentsPrefix') || '105120';
   const inputRef = useRef(null);
   const handleFocus = (e) => {
@@ -21,11 +33,12 @@ function AccountNumberInput({ value, setFunc, label, ...others }) {
       value={value}
       label={label}
       onChange={(e) => {
-        if (!isNaN(e.target.value)) {
+        if (Number(e.target.value)) {
           setFunc(e.target.value);
         }
       }}
-      {...others}
+      sx={sx}
+      disabled={disabled}
       type="text"
       inputProps={{ maxLength: 12 }}
       onFocus={handleFocus}
