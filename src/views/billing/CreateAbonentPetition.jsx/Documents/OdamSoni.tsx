@@ -1,7 +1,7 @@
 import { lotinga } from 'helpers/lotinKiril';
 import { QRCodeCanvas } from 'qrcode.react';
 import React from 'react';
-import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar, raqamlar } from '../PrintSection';
+import { ArizaHeading, ArizaTitle, formatName, ImzoJoyiRow, ImzolashJoyi, oylar, raqamlar } from '../PrintSection';
 import { Dayjs } from 'dayjs';
 import { IAbonentData, IMahalla } from '../useStore';
 import useCustomizationStore from 'store/customizationStore';
@@ -144,12 +144,34 @@ function OdamSoni({
             }}
           >
             Biz quyidagi imzo chekuvchilar, Samarqand viloyat {mahalla.company?.locationName}, {lotinga(mahalla?.data?.name)} MFY dagi,{' '}
-            {abonentData.streetName} ko'chasi, uy {abonentData.house.homeNumber} raisi {fullNameToShortName(mahalla?.data?.mfy_rais_name)},{' '}
-            {mahalla?.company?.name} {mahalla.company?.locationName} aholi nazoratchisi{' '}
-            {fullNameToShortName(mahalla?.data?.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi xodimi
-            {' ' + fullNameToShortName(mahalla.company?.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish
-            natijasida quyidagi abonent
+            {lotinga(abonentData.streetName)} ko'chasi, uy {abonentData.house.homeNumber} kv {abonentData.house.homeIndex} xonadonida
+            istiqomat qiluvchi fuqaroning pasport ma'lumotlari seriya {abonentData.citizen.passport} PNFL {abonentData.citizen.pnfl},
+            xonadonning kadastr raqami {abonentData.house.cadastralNumber}, tel raqami {abonentData.citizen.phone}
           </p>
+          <p style={{ textAlign: 'justify', textIndent: '40px' }}>
+            F.I.Sh. {formatName(abonentData.fullName)}, {lotinga(mahalla.data.name)} MFY raisi{' '}
+            {fullNameToShortName(mahalla?.data?.mfy_rais_name)}, {mahalla.company.name} {mahalla.company.locationName} aholi bo'lim
+            boshlig'i {lotinga(fullNameToShortName(mahalla.company.manager.fullName))}lar mazkur dalolatnomani shu haqida tuzdik
+          </p>
+          <p style={{ textAlign: 'justify', textIndent: '40px' }}>
+            Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
+            {abonentData.house.inhabitantCnt} nafar ko'rsatilgan. O'rganish natijasida esa quyidagilar aniqlandi. {olderPeriod.year()} yil «
+            {olderPeriod.date()}» dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
+          </p>
+          {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px' }}>{asoslantiruvchi}</p>}
+          <p style={{ textAlign: 'justify', textIndent: '40px' }}>
+            {' '}
+            Sababli yagona elektron tizimda qayta hisob kitob qilish maqsadga muvofiq deb hisoblaymiz. Abonentnig shaxsiy hisob raqami:{' '}
+            {abonentData.accountNumber}
+          </p>
+          <ImzoJoyiRow label={'Abonent'} name={abonentData.fullName} />
+          <br />
+          <ImzoJoyiRow label={mahalla.company.name + ' nazoratchisi'} name={mahalla.data.biriktirilganNazoratchi.inspector_name} />
+          <br />
+          <ImzoJoyiRow label={"Aholi bo'limi boshlig'i"} name={mahalla.company.manager.fullName} />
+          <br />
+          <ImzoJoyiRow label={lotinga(mahalla.data.name) + ' MFY raisi'} name={mahalla.data.mfy_rais_name} />
+          <br />
         </div>
       )}
     </>

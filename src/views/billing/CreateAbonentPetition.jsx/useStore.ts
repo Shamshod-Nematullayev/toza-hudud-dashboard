@@ -32,7 +32,9 @@ export interface IMahalla {
     id: number;
     name: string;
     locationName: string;
-    managerName: string;
+    manager: {
+      fullName: string;
+    };
     billingAdminName: string;
   };
 }
@@ -48,6 +50,12 @@ export interface IAbonentData {
     cadastralNumber: string;
     homeIndex: string;
     homeNumber: string;
+    inhabitantCnt: number;
+  };
+  citizen: {
+    passport: string;
+    pnfl: string;
+    phone: string;
   };
 }
 
@@ -95,7 +103,8 @@ export const useStore = create<StoreState>((set) => ({
     kSaldo: 0,
     mahallaName: '',
     streetName: '',
-    house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+    house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
+    citizen: { passport: '', pnfl: '', phone: '' }
   },
   setAbonentData: (data) => set({ abonentData: data }),
   abonentData2: {
@@ -106,7 +115,8 @@ export const useStore = create<StoreState>((set) => ({
     kSaldo: 0,
     mahallaName: '',
     streetName: '',
-    house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+    house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
+    citizen: { passport: '', pnfl: '', phone: '' }
   },
   setAbonentData2: (data) => set({ abonentData2: data }),
   ariza: {},
@@ -117,7 +127,7 @@ export const useStore = create<StoreState>((set) => ({
       id: 0,
       name: '',
       locationName: '',
-      managerName: '',
+      manager: { fullName: '' },
       billingAdminName: ''
     }
   },
@@ -149,7 +159,8 @@ export const useStore = create<StoreState>((set) => ({
         kSaldo: 0,
         mahallaName: '',
         streetName: '',
-        house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+        house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
+        citizen: { passport: '', pnfl: '', phone: '' }
       },
       abonentData2: {
         id: 0,
@@ -159,7 +170,8 @@ export const useStore = create<StoreState>((set) => ({
         kSaldo: 0,
         mahallaName: '',
         streetName: '',
-        house: { cadastralNumber: '', homeIndex: '', homeNumber: '' }
+        house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
+        citizen: { passport: '', pnfl: '', phone: '' }
       },
       ariza: {},
       mahalla: {
@@ -168,7 +180,9 @@ export const useStore = create<StoreState>((set) => ({
           id: 0,
           name: '',
           locationName: '',
-          managerName: '',
+          manager: {
+            fullName: ''
+          },
           billingAdminName: ''
         }
       },

@@ -24,6 +24,7 @@ import ActPacks from 'views/stm/ActPacks';
 import Acts from 'views/stm/Acts';
 import ActCheck from 'views/stm/ActCheck';
 import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
+import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetitions';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -139,6 +140,10 @@ const MainRoutes = {
         {
           path: 'xatlov-inspectors',
           element: <NazoratchilarXatlov />
+        },
+        {
+          path: 'report-petitions',
+          element: <ReportPetitions />
         },
         {
           path: 'pendingNewAbonents',

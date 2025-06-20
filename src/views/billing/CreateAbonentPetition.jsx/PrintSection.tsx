@@ -18,7 +18,7 @@ import useCustomizationStore from 'store/customizationStore';
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
-function formatName(name) {
+export function formatName(name) {
   if (!name) return '';
   return name
     .toLowerCase() // Hamma harflarni kichik qilib o'zgartiradi
@@ -300,7 +300,7 @@ function renderSwitch({
   }
 }
 
-const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
+export const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
     <div style={{ width: 300 }}>{label}</div>
     <div>{placeholder}</div>

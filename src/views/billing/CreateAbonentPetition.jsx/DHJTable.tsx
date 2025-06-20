@@ -119,7 +119,7 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
 
                 return (
                   <div style={{ display: 'flex', position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}>
-                    <div style={{ zIndex: 1 }}>{params.row.davr}</div>
+                    <div style={{ zIndex: 1 }}>{params.row.nachis}</div>
                     <div
                       style={{
                         display: 'flex',

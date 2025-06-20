@@ -12,21 +12,17 @@ function ImportAbonentPetition() {
 
   return (
     <MainCard contentSX={{ height: 'calc(100vh - 130px)' }}>
-      {pdfFiles.length == 0 ? (
-        <FileInputDrop />
-      ) : (
-        <Grid container spacing={2} height={'100%'}>
-          <Grid item xs={1.5} height={'100%'}>
-            <FilesList />
-          </Grid>
-          <Grid item xs={5.5} height={'100%'}>
-            <DisplayFile />
-          </Grid>
-          <Grid item xs={5}>
-            <FindedDataTable />
-          </Grid>
+      <Grid container spacing={2} height={'100%'}>
+        <Grid item xs={1.5} height={'100%'}>
+          <FilesList />
         </Grid>
-      )}
+        <Grid item xs={5.5} height={'100%'}>
+          {pdfFiles.length == 0 ? <FileInputDrop /> : <DisplayFile />}
+        </Grid>
+        <Grid item xs={5}>
+          <FindedDataTable />
+        </Grid>
+      </Grid>
       <CancelDialog showDialog={showDialog} setShowDialog={setShowDialog} />
     </MainCard>
   );
