@@ -156,7 +156,8 @@ function OdamSoni({
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
             {abonentData.house.inhabitantCnt} nafar ko'rsatilgan. O'rganish natijasida esa quyidagilar aniqlandi. {olderPeriod.year()} yil «
-            {olderPeriod.date()}» dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
+            {olderPeriod.date()}» {oylar[olderPeriod.month()]}dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi
+            aniqlandi.
           </p>
           {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px' }}>{asoslantiruvchi}</p>}
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
@@ -166,7 +167,7 @@ function OdamSoni({
           </p>
           <ImzoJoyiRow label={'Abonent'} name={abonentData.fullName} />
           <br />
-          <ImzoJoyiRow label={mahalla.company.name + ' nazoratchisi'} name={mahalla.data.biriktirilganNazoratchi.inspector_name} />
+          <ImzoJoyiRow label={mahalla.company.name + ' nazoratchisi'} name={mahalla.data.biriktirilganNazoratchi?.inspector_name} />
           <br />
           <ImzoJoyiRow label={"Aholi bo'limi boshlig'i"} name={mahalla.company.manager.fullName} />
           <br />

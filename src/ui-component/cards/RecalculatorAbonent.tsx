@@ -63,15 +63,25 @@ function RecalculatorAbonent() {
     api.get('/billing/get-tariffs').then((res) => {
       const tariffs = res.data.tariffs;
 
-      let result = [];
+      let result = [
+        {
+          month: 1,
+          year: 2019,
+          hisoblandi: 2000,
+          withQQS: 2000
+        }
+      ];
       for (let tariff of tariffs) {
-        result.push(...getTarifElement(tariff));
+        result.push(
+          ...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined)
+        );
       }
-      setHisoblandiJadval(result);
+      setHisoblandiJadval(result.sort((r1, r2) => r1.year - r2.year || r1.month - r2.month));
     });
   }, []);
 
   useEffect(() => {
+    console.log(hisoblandiJadval);
     qaytaHisob({
       fromMoon: startDate?.date() > 15 ? startDate?.month() + 1 : startDate?.month(),
       fromYear: startDate?.year(),
@@ -189,11 +199,11 @@ function RecalculatorAbonent() {
               <RemoveIcon sx={{ color: 'green', fontSize: '30px' }} />
             </Button>
           </Tooltip>
-          {currentTotal}
+          {currentTotal.toFixed(2)}
         </Typography>
       </Grid>
       <Grid item xs={6}>
-        <Typography variant="h2">Jami: {totalSumm} so`m</Typography>
+        <Typography variant="h2">Jami: {totalSumm.toFixed(2)} so`m</Typography>
       </Grid>
       <DataGrid
         columns={[
@@ -286,13 +296,10 @@ function getTarifElement({ startAt, endAt, rate, rateWithoutQqs }) {
   const withQQS = rate - rateWithoutQqs;
   startAt = new Date(startAt);
   endAt = endAt ? new Date(endAt) : new Date();
-  console.log(arguments, startAt, endAt);
   let month = startAt.getMonth();
   let year = startAt.getFullYear();
   let result = [];
-  for (let i = 0; !(month === endAt.getMonth() && year === endAt.getFullYear()); i++) {
-    console.log(month, year);
-
+  for (let i = 0; !((month > endAt.getMonth() && year === endAt.getFullYear()) || year > endAt.getFullYear()); i++) {
     result.push({
       month: month + 1,
       year: year,

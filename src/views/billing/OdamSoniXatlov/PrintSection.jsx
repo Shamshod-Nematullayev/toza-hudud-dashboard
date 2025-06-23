@@ -87,7 +87,7 @@ function PrintSection() {
               {fullNameToShortName(mahalla.mfy_rais_name)}, “Anvarjon biznes invest” MCHJ rahbari {fullNameToShortName('Sadriddinov Aziz')}{' '}
               va abonentlar bilan ishlash bo‘limi xodimi {fullNameToShortName("Ne'matullayev Shamshod")}
               {mahalla.biriktirilganNazoratchi?.inspector_name && (
-                <span>, aholi nazoratchisi {fullNameToShortName(mahalla.biriktirilganNazoratchi.inspector_name)}</span>
+                <span>, aholi nazoratchisi {fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)}</span>
               )}{' '}
               mazkur dalolatnomani shu haqida tuzdik.
             </p>

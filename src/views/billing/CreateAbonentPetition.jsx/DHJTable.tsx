@@ -86,7 +86,8 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
           columns={[
             {
               field: 'id',
-              headerName: t('tableHeaders.period')
+              headerName: t('tableHeaders.period'),
+              renderCell: (params) => params.row.davr
             },
             { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number' },
             {
