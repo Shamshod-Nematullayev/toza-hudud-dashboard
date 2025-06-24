@@ -204,13 +204,23 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
 
   const handleClickExcel = async () => {
     try {
-      await api.get('/billing/get-abonents-by-mfy-id/' + abonents[0].mahallaId + '/excel', { responseType: 'blob' }).then((response) => {
-        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'abonentlar.xlsx';
-        link.click();
-      });
+      await api
+        .get('/billing/get-abonents-by-mfy-id/' + abonents[0].mahallaId + '/excel', {
+          responseType: 'blob',
+          params: {
+            minSaldo,
+            maxSaldo,
+            identified: filters.identified,
+            etkStatus: filters.elektrAccountNumberConfirmed
+          }
+        })
+        .then((response) => {
+          const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'abonentlar.xlsx';
+          link.click();
+        });
     } catch (err) {
       toast.error('Xatolik');
       console.error(err);

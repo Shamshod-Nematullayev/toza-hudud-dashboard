@@ -314,9 +314,9 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
   return (
     <>
       <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.manager.fullName} />
-      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdmin.fullName} />
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdmin?.fullName} />
       <br />
-      {gpsOperator && (
+      {gpsOperator?.fullName && (
         <>
           <ImzoJoyiRow label="GPS kuzatuv xodimi:" name={gpsOperator.fullName} />
           <br />

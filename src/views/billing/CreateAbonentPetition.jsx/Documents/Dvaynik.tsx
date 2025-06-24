@@ -38,6 +38,23 @@ function Dvaynik({
 }) {
   return (
     <>
+      <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+        <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
+        <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+        <ArizaTitle type="ikkilamchi kod" />
+        <p
+          style={{
+            fontWeight: 'bold',
+            lineHeight: '40px',
+            textIndent: '40px'
+          }}
+        >
+          Shuni yozib ma’lum qilamanki mening {abonentData2.accountNumber} ikkilamchi hisob raqamimni haqiqiy {abonentData.accountNumber}{' '}
+          hisob raqamimga dalolatnoma asosida ikkilamchi hisob-raqamimda to‘lovlar mavjud bo‘lsa, asosiy hisob-raqamga ko‘chirib, ikkilamchi
+          hisob-raqamimni o‘chirib berishingizni so‘rayman.
+        </p>
+        <QRSection abonentData={abonentData} ariza={ariza} date={date} />
+      </div>
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify' }}>
         <p style={{ textAlign: 'center' }}>
           <b>DALOLATNOMA</b>
@@ -94,23 +111,6 @@ function Dvaynik({
           mablag‘larini haqiqiy hisob raqamga o‘tkazib, ikkilamchi abonentlarni o‘chirishni maqsadga muvofiq deb hisoblaymiz.
         </p>
         <ImzolashJoyi documentType={documentType} abonentData={abonentData} mahalla={mahalla} mahalla2={mahalla2} gpsOperator={{}} />
-      </div>
-      <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-        <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-        <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
-        <ArizaTitle type="ikkilamchi kod" />
-        <p
-          style={{
-            fontWeight: 'bold',
-            lineHeight: '40px',
-            textIndent: '40px'
-          }}
-        >
-          Shuni yozib ma’lum qilamanki mening {abonentData2.accountNumber} ikkilamchi hisob raqamimni haqiqiy {abonentData.accountNumber}{' '}
-          hisob raqamimga dalolatnoma asosida ikkilamchi hisob-raqamimda to‘lovlar mavjud bo‘lsa, asosiy hisob-raqamga ko‘chirib, ikkilamchi
-          hisob-raqamimni o‘chirib berishingizni so‘rayman.
-        </p>
-        <QRSection abonentData={abonentData} ariza={ariza} date={date} />
       </div>
     </>
   );

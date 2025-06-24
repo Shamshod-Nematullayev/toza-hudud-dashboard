@@ -51,7 +51,7 @@ function PendingNewAbonents() {
     },
     {
       field: 'inhabitant_cnt',
-      headerName: t('tableActions.inhabitantCount'),
+      headerName: t('tableHeaders.inhabitantCount'),
       description: 'Yashovchilar soni',
       sortable: false,
       minWidth: 50
