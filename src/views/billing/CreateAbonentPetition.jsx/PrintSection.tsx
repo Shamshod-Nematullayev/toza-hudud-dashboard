@@ -330,7 +330,7 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
       <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
 
       {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
-        <ImzoJoyiRow label={`${mahalla?.name} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
+        <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
       )}
     </>
   );
