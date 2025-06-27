@@ -6,6 +6,7 @@ import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { Card } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import NotariusCheck from 'views/billing/NotariusCheck/NotariusCheck';
 
 const Dashboard = () => {
   const [isLoading, setLoading] = useState(true);
@@ -59,6 +60,7 @@ const Dashboard = () => {
           </Grid>
         </Card>
       </Grid>
+      <NotariusCheck />
     </Grid>
   );
 };
