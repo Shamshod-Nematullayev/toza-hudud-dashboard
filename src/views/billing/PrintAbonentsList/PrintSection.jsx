@@ -42,12 +42,12 @@ function PrintSection({ printContentRef }) {
           <tr className="abonent_rows_head" style={{ border: '1px solid black' }}>
             <th>№</th>
             <th>Лицавой</th>
-            <th>ФИО</th>
-            <th>Кўча</th>
+            <th style={{ width: '180px' }}>ФИО</th>
+            {/* <th>Кўча</th> */}
             <th>Я/с</th>
             <th>Қарздор</th>
             <th colSpan={2}>Охирги тўлов</th>
-            {/* <th>ЭТК</th> */}
+            <th>ЭТК</th>
             <th>Телефон</th>
           </tr>
         </thead>
@@ -58,18 +58,18 @@ function PrintSection({ printContentRef }) {
               <td style={{ textAlign: 'center' }}>{i + 1}</td>
               <td>{abonent.accountNumber}</td>
               <td>{formatName(abonent.fullName.length < 30 ? abonent.fullName : abonent.fullName.slice(0, 30) + '..')}</td>
-              <td>{abonent.streetName}</td>
+              {/* <td>{abonent.streetName}</td> */}
               <td style={{ textAlign: 'center' }}>{abonent.inhabitantCnt}</td>
               <td style={{ textAlign: 'right' }}>{Math.floor(Number(abonent.ksaldo)).toLocaleString()}</td>
               <td style={{ textAlign: 'right' }}>{abonent.lastPaymentAmount}</td>
               <td>{String(abonent.lastPayDate).split('T')[0]}</td>
-              {/* <td
+              <td
                 style={{
                   textDecoration: abonent.isElektrKodConfirm ? 'line-through' : 'none'
                 }}
               >
                 {abonent.electricityAccountNumber}
-              </td> */}
+              </td>
               <td>{abonent.phone}</td>
             </tr>
           ))}

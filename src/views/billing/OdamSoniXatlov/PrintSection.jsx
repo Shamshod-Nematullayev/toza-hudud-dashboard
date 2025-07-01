@@ -24,7 +24,12 @@ const raqamlar = [
   'O‘n ikki',
   'O‘n uch',
   'O‘n to‘rt',
-  'O‘n besh'
+  'O‘n besh',
+  'O‘n olti',
+  'O‘n yetti',
+  'O‘n sakkiz',
+  'O‘n to‘qqiz',
+  'Yigirma'
 ];
 function stringToName(str) {
   const parts = str.split(' ');
