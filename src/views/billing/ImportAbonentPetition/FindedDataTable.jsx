@@ -50,7 +50,7 @@ function FindedDataTable() {
   useEffect(() => {
     if (!ariza.licshet) return setInputDisabled(false);
     api
-      .get('/billing/get-abonent-dxj-by-licshet/' + ariza.licshet)
+      .get('/billing/get-abonent-dxj-by-id', { params: { residentId: ariza.abonentId } })
 
       .catch((err) => {
         toast.error(err.message);
@@ -92,10 +92,12 @@ function FindedDataTable() {
       4624 *
       diffMonth;
     if (ariza.document_type == 'dvaynik') {
-      api.get('/billing/get-abonent-dxj-by-licshet/' + ariza.ikkilamchi_licshet).then(({ data }) => {
-        let summ = 0;
-        data.rows.forEach((item) => (summ += item.allPaymentsSum));
-        setAktSumm(summ);
+      api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet).then(({ data }) => {
+        api.get('/billing/get-abonent-dxj-by-id', { params: { residentId: data.abonentData.id } }).then(({ data }) => {
+          let summ = 0;
+          data.rows.forEach((item) => (summ += item.allPaymentsSum));
+          setAktSumm(summ);
+        });
       });
     } else if (lateAktSumm !== 0 && ariza.document_type != 'viza') {
       setAktSumm(ariza.aktSummasi + '+' + lateAktSumm);
