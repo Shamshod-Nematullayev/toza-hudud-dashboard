@@ -10,13 +10,13 @@ function ChooseArizaPopper({ anchorEl, open, handleClose, rows = [], setAriza })
   const columns = [
     {
       field: 'id',
-      headerName: t('tableHeaders.actions'),
+      headerName: '№',
       width: 30,
       renderCell: (row) => row.row.id + 1
     },
     { field: 'licshet', headerName: t('tableHeaders.accountNumber'), flex: 1, minWidth: 120 },
     { field: 'document_type', headerName: t('tableHeaders.documentType') },
-    { field: 'fullName', headerName: t('tableHeaders.fullName'), flex: 1 }
+    { field: 'fio', headerName: t('tableHeaders.fullName'), flex: 1 }
   ];
 
   const handlePickAriza = ({ row }) => {
@@ -28,10 +28,10 @@ function ChooseArizaPopper({ anchorEl, open, handleClose, rows = [], setAriza })
     <Popper
       open={open}
       anchorEl={anchorEl}
-      placement="bottom-start"
+      placement="top-start"
       style={{ zIndex: 1300 }}
-      transition
-      disablePortal
+      // transition
+      // disablePortal
       popperOptions={{
         modifiers: [
           {
@@ -40,13 +40,16 @@ function ChooseArizaPopper({ anchorEl, open, handleClose, rows = [], setAriza })
               offset: [0, 20]
             }
           }
-        ]
+        ],
+        preventOverflow: {
+          escapeWithReference: true
+        }
       }}
     >
       {({ TransitionProps }) => (
         <Transitions position={'top'} in={open} {...TransitionProps}>
           <ClickAwayListener onClickAway={handleClose}>
-            <Paper sx={{ width: 600, maxHeight: 400, overflow: 'auto', mt: 5 }}>
+            <Paper sx={{ width: 400, height: 400, overflow: 'auto' }}>
               <DataGrid
                 rows={rows.map((row, index) => ({ ...row, id: index }))}
                 columns={columns}

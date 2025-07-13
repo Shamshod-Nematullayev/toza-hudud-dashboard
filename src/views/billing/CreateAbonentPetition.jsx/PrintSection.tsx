@@ -245,7 +245,7 @@ function renderSwitch({
       return (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+          <ArizaHeading abonentData={abonentData} />
           <br />
           <ArizaTitle type="pasport viza" />
           <br />
@@ -267,7 +267,7 @@ function renderSwitch({
       return (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+          <ArizaHeading abonentData={abonentData} />
           <br />
           <ArizaTitle type="oʻlim guvohnomasi" />
           <p
@@ -336,7 +336,7 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
   );
 };
 
-export function ArizaHeading({ mahalla, abonentData }) {
+export function ArizaHeading({ abonentData }: { abonentData: IAbonentData }) {
   const company = JSON.parse(localStorage.getItem('company'));
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -351,7 +351,7 @@ export function ArizaHeading({ mahalla, abonentData }) {
         }}
       >
         {company?.locationName} {company?.name} rahbari {fullNameToShortName(company?.managerName)}ga {company?.locationName}{' '}
-        {lotinga(mahalla?.data?.name)} MFY-da yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
+        {lotinga(abonentData.mahallaName)}da yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
         Telefon: {formatPhoneNumber(abonentData.citizen?.phone)}
       </p>
     </div>

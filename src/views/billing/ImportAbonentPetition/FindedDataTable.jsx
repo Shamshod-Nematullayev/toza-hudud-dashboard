@@ -1,6 +1,6 @@
-import { Button, FormControl, Grid, IconButton, TextField, Tooltip, Typography, useTheme } from '@mui/material';
+import { Box, Button, FormControl, Grid, IconButton, Popper, TextField, Tooltip, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import useStore from './useStore';
 import api from 'utils/api';
@@ -133,12 +133,13 @@ function FindedDataTable() {
       setRowAfterAkt(rows[0]);
     }
   }, [showSpoiler]);
+  const btnRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetchData();
+    handleClickRefreshButton();
   };
-  const handleClickRefreshButton = async (e) => {
+  const handleClickRefreshButton = async () => {
     try {
       const { data } = await api.get('/arizalar/', {
         params: {
@@ -156,7 +157,6 @@ function FindedDataTable() {
       } else {
         setArizalarRows(data.data);
         setShowArizaChooseDialog(true);
-        setAnchorEl(e.target);
       }
     } catch (err) {
       console.log(err);
@@ -181,7 +181,7 @@ function FindedDataTable() {
       formData.append('licshet', ariza.licshet);
       formData.append('next_inhabitant_count', ariza.next_prescribed_cnt === null ? rows[0].yashovchilar_soni : ariza.next_prescribed_cnt);
       formData.append('akt_sum', eval(aktSumm));
-      formData.append('amountWithoutQQS', Math.round(ariza.aktSummCounts?.withoutQQSTotal) || 0);
+      formData.append('amountWithoutQQS', (Math.round(ariza.aktSummCounts?.withoutQQSTotal) || 0).toString());
       formData.append('description', ariza.comment.length < 150 ? 'fuqaro arizasi ' + ariza.comment : 'fuqaro arizasi');
       ariza.photos?.forEach((photo, index) => {
         formData.append(`photos[${index}]`, photo);
@@ -220,68 +220,89 @@ function FindedDataTable() {
   };
   const [showArizaChooseDialog, setShowArizaChooseDialog] = useState(false);
   const handleCloseChooseArizaModal = () => setShowArizaChooseDialog(false);
+  const canBeOpen = showArizaChooseDialog && Boolean(anchorEl);
+  const id = canBeOpen ? 'transition-popper' : undefined;
   return (
     <div>
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={0.5}>
-          <Grid item xs={1} sx={{ position: 'relative' }}>
-            <IconButton sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
-              <RefreshOutlinedIcon />
-            </IconButton>
-            <ChooseArizaPopper
-              anchorEl={anchorEl}
-              open={showArizaChooseDialog}
-              handleClose={handleCloseChooseArizaModal}
-              rows={arizalarRows}
-              setAriza={setAriza}
-            />
-          </Grid>
-          <Grid item xs={1.5}>
-            <TextField
-              disabled={inputDisabled}
-              variant="outlined"
-              name="licshet_input"
-              placeholder="Ariza raqami"
-              value={arizaNumberInput}
-              onChange={(e) => setArizaNumberInput(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <Button
-              sx={{ padding: '12px 15px' }}
-              onClick={handlePrimaryButtonClick}
-              variant="contained"
-              disabled={(ariza.status === 'yangi' || ariza.status === 'qabul qilindi') && !isUploading ? false : true}
-            >
-              <FileUploadOutlinedIcon />
-              kiritish
-            </Button>
-          </Grid>
-          <Grid item xs={2.5}>
-            <Button sx={{ padding: '12px 0', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
-              <DeleteOutlinedIcon />
-              tashlash
-            </Button>
-          </Grid>
-          <Grid item xs={2.5}>
-            <Button
-              sx={{ padding: '12px 15px', color: 'error.main' }}
-              onClick={() => setShowDialog(true)}
-              disabled={ariza.status === 'yangi' ? false && isUploading : true}
-            >
-              <Cancel />
-              bekor qilish
-            </Button>
-          </Grid>
-          <Grid item xs={2}>
-            <Tooltip title={showSpoiler ? "Akt bo'lmasidan oldingi holat" : "Aktdan keyingi holatni ko'rish"}>
-              <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)} disabled={!ariza || !rows.length}>
-                {showSpoiler ? <Visibility /> : <VisibilityOff />}
+      <Grid container spacing={0.5}>
+        <Grid item xs={1}>
+          <div>
+            <form onSubmit={handleSubmit}>
+              <IconButton aria-describedby={'transition-popper'} ref={btnRef} sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
+                <RefreshOutlinedIcon />
               </IconButton>
-            </Tooltip>
-          </Grid>
+              <ChooseArizaPopper
+                anchorEl={btnRef.current}
+                open={showArizaChooseDialog}
+                handleClose={handleCloseChooseArizaModal}
+                rows={arizalarRows}
+                setAriza={setAriza}
+              />
+            </form>
+          </div>
+
+          {/* <Popper
+            id={id}
+            open={showArizaChooseDialog}
+            anchorEl={btnRef.current}
+            placement="top-start"
+            style={{ zIndex: 1300 }}
+            transition
+            modifiers={{
+              preventOverflow: {
+                enabled: true,
+                escapeWithReference: true,
+                boundariesElement: 'viewport'
+              }
+            }}
+            // disablePortal
+          >
+            <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>The content of the Popper.</Box>
+          </Popper> */}
         </Grid>
-      </form>
+        <Grid item xs={1.5}>
+          <TextField
+            disabled={inputDisabled}
+            variant="outlined"
+            name="licshet_input"
+            placeholder="Ariza raqami"
+            value={arizaNumberInput}
+            onChange={(e) => setArizaNumberInput(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <Button
+            sx={{ padding: '12px 15px' }}
+            onClick={handlePrimaryButtonClick}
+            variant="contained"
+            disabled={(ariza.status === 'yangi' || ariza.status === 'qabul qilindi') && !isUploading ? false : true}
+          >
+            <FileUploadOutlinedIcon />
+            kiritish
+          </Button>
+        </Grid>
+        <Grid item xs={2.5}>
+          <Button sx={{ padding: '12px 0', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
+            <DeleteOutlinedIcon />
+            tashlash
+          </Button>
+        </Grid>
+        <Grid item xs={2.5}>
+          <Button
+            sx={{ padding: '12px 15px', color: 'error.main' }}
+            onClick={() => setShowDialog(true)}
+            disabled={ariza.status === 'yangi' ? false && isUploading : true}
+          >
+            <Cancel />
+            bekor qilish
+          </Button>
+        </Grid>
+        <Grid item xs={2}>
+          <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)} disabled={!ariza || !rows.length}>
+            {showSpoiler ? <Visibility /> : <VisibilityOff />}
+          </IconButton>
+        </Grid>
+      </Grid>
       <div>
         <div
           style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}

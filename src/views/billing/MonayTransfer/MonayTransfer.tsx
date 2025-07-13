@@ -1,28 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import FileInputDrop from '../DeleteDublicate/InputFileDrop';
-import { Grid, IconButton } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton } from '@mui/material';
 import PdfViewer from '../AbonentPetition/PDFViewer';
 import { DataGrid } from '@mui/x-data-grid';
 import ToolsMonayTransfer from './ToolsMonayTransfer';
 import FooterMonayTransfer from './FooterMonayTransfer';
 import api from 'utils/api';
 import { Delete } from '@mui/icons-material';
+import { IAriza } from 'types/models';
+import PrintSectionMonayTransferAriza from './PrintSectionMonayTransferAriza';
+import { useTranslation } from 'react-i18next';
+import { useReactToPrint } from 'react-to-print';
+import { reactToPrintDefaultOptions } from 'store/constant';
+import { IAbonentData } from '../CreateAbonentPetition.jsx/useStore';
 
-interface IRow {
-  id: number;
-  accountNumber: string;
-  fullName: string;
+export interface IRow extends IAbonentData {
   amount: number;
-  residentId: number;
-  kSaldo: number;
-}
-interface IAbonentData {
-  id: number;
-  accountNumber: string;
-  fullName: string;
-  residentId: number;
-  kSaldo: number;
 }
 
 function MonayTransfer() {
@@ -30,12 +24,22 @@ function MonayTransfer() {
   const [rows, setRows] = useState<IRow[]>([]);
   const [accountNumber, setAccountNumber] = useState('');
   const [amount, setAmount] = useState('');
-  const [abonentData, setAbonentData] = useState<IAbonentData>({
-    id: 0,
-    accountNumber: '',
-    fullName: '',
-    residentId: 0,
-    kSaldo: 0
+  const [abonentData, setAbonentData] = useState<IAbonentData>(null);
+  const [ariza, setAriza] = useState<IAriza | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const printComponentRef = useRef(null);
+
+  const { t } = useTranslation();
+
+  const openPrintSection = (data: IAriza) => {
+    setAriza(data);
+    setOpenDialog(true);
+  };
+
+  const printFunc = useReactToPrint({
+    ...reactToPrintDefaultOptions,
+    contentRef: printComponentRef
   });
 
   const handleClickDeleteButton = (id) => {
@@ -50,13 +54,7 @@ function MonayTransfer() {
         setAbonentData({ ...data.abonentData, kSaldo: data.abonentData.balance.kSaldo, residentId: data.abonentData.id });
       });
     } else {
-      setAbonentData({
-        id: 0,
-        accountNumber: '',
-        fullName: '',
-        residentId: 0,
-        kSaldo: 0
-      });
+      setAbonentData(null);
     }
   }, [accountNumber]);
   return (
@@ -73,6 +71,7 @@ function MonayTransfer() {
             amount={amount}
             clearPdfFile={clearPdfFile}
             pdfFile={pdfFile.file}
+            openPrintSection={openPrintSection}
           />
           <DataGrid
             columns={[
@@ -112,6 +111,23 @@ function MonayTransfer() {
           {!pdfFile.url ? <FileInputDrop setFunc={setPdfFile} /> : <PdfViewer base64String={pdfFile.url} />}
         </Grid>
       </Grid>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogContent>
+          {ariza?._id ? (
+            <PrintSectionMonayTransferAriza ariza={ariza} printComponentRef={printComponentRef} abonentDetails={rows[0]} />
+          ) : (
+            ''
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setOpenDialog(false)}>
+            {t('buttons.close')}
+          </Button>
+          <Button variant="contained" onClick={() => printFunc()}>
+            {t('buttons.print')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MainCard>
   );
 }

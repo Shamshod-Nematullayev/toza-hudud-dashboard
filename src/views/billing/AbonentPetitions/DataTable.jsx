@@ -56,7 +56,8 @@ function DataTable() {
             accountNumber: row.licshet,
             aktSummasi: row.aktSummasi,
             status: row.status,
-            actStatus: row.actStatus
+            actStatus: row.actStatus,
+            fio: row.fio
           }));
           console.log(rows);
           setRows(rows);

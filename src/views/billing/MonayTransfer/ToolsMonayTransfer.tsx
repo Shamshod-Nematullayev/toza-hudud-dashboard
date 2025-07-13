@@ -1,17 +1,14 @@
-import { Add, Delete, DocumentScanner } from '@mui/icons-material';
-import { Button, TextField, Toolbar } from '@mui/material';
+import { Add, Clear, Delete, DocumentScanner } from '@mui/icons-material';
+import { Button, TextField, Toolbar, Tooltip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import api from 'utils/api';
-interface IRow {
-  id: number;
-  accountNumber: string;
-  fullName: string;
-  amount: number;
-  residentId: number;
-  kSaldo: number;
-}
+import { IRow } from './MonayTransfer';
+import { IAriza } from 'types/models';
+import { IAbonentData } from '../CreateAbonentPetition.jsx/useStore';
+
 function ToolsMonayTransfer({
   rows,
   setRows,
@@ -21,19 +18,22 @@ function ToolsMonayTransfer({
   amount,
   setAccountNumber,
   pdfFile,
-  clearPdfFile
+  clearPdfFile,
+  openPrintSection
 }: {
   rows: IRow[];
   accountNumber: string;
-  abonentData: any;
+  abonentData: IAbonentData;
   amount: string;
   pdfFile: File;
   setRows: (rows: IRow[]) => void;
   setAmount: (e: string) => void;
   setAccountNumber: (e: string) => void;
   clearPdfFile: () => void;
+  openPrintSection: (data: IAriza) => void;
 }) {
   const { isLoading, setIsLoading } = useLoaderStore();
+  const { t } = useTranslation();
   const handleAddButtonClick = (e) => {
     e.preventDefault();
     if (!accountNumber || !amount) return toast.error('Majburiy qiymatlar kiritilmadi');
@@ -41,12 +41,9 @@ function ToolsMonayTransfer({
     setRows([
       ...rows,
       {
+        ...abonentData,
         id: rows.length + 1,
-        accountNumber,
-        fullName: abonentData.fullName,
-        amount: Number(amount),
-        kSaldo: abonentData.kSaldo,
-        residentId: abonentData.residentId
+        amount: Number(amount)
       }
     ]);
     setAccountNumber('');
@@ -69,6 +66,22 @@ function ToolsMonayTransfer({
       setIsLoading(false);
     }
   };
+  const handleClickCreateArizaButton = async () => {
+    setIsLoading(true);
+    try {
+      const result = (
+        await api.post('/arizalar/money-transfer', {
+          debitorAct: rows[0],
+          creditorActs: rows.slice(1)
+        })
+      ).data.ariza;
+      openPrintSection(result);
+    } catch (error) {
+      console.error(error.message || 'Xatolik kuzatildi');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const handleClickDeleteButton = () => {
     setRows([]);
     setAccountNumber('');
@@ -77,7 +90,7 @@ function ToolsMonayTransfer({
   };
   return (
     <form onSubmit={(e) => handleAddButtonClick(e)}>
-      <Toolbar sx={{ gap: '5px' }}>
+      <Toolbar sx={{ gap: '5px', padding: '5px 0' }}>
         <AccountNumberInput
           label={rows.length === 0 ? 'Pul olinadigan hisob raqami' : 'Pul tushadigan hisob raqami'}
           value={accountNumber}
@@ -88,15 +101,14 @@ function ToolsMonayTransfer({
         <TextField label="Summa" value={amount} onChange={(e) => setAmount(e.target.value)} sx={{ width: 100 }} />
         <TextField
           label="FIO"
-          value={abonentData.fullName}
-          defaultValue={abonentData.fullName}
+          value={abonentData?.fullName}
+          defaultValue={abonentData?.fullName}
           inputProps={{ readOnly: true }}
           sx={{ width: 250 }}
           disabled={isLoading}
         />
-        <Button type="submit" color="success" variant="contained" disabled={!abonentData.residentId || !amount || isLoading}>
+        <Button type="submit" color="success" variant="contained" disabled={!abonentData?.residentId || !amount || isLoading}>
           <Add />
-          Qo'shish
         </Button>
         <Button
           type="button"
@@ -107,9 +119,21 @@ function ToolsMonayTransfer({
         >
           <DocumentScanner /> Ijro
         </Button>
-        <Button type="button" disabled={isLoading} variant="outlined" color="error" onClick={handleClickDeleteButton}>
-          <Delete />
+        <Button
+          type="button"
+          disabled={rows.length === 0 || rows[0].amount !== rows.slice(1).reduce((a, b) => a + b.amount, 0) || isLoading}
+          color="primary"
+          variant="contained"
+          onClick={handleClickCreateArizaButton}
+        >
+          <Add />
+          Ariza
         </Button>
+        <Tooltip title={t('buttons.clear')}>
+          <Button type="button" disabled={isLoading} variant="outlined" color="error" onClick={handleClickDeleteButton}>
+            <Clear />
+          </Button>
+        </Tooltip>
       </Toolbar>
     </form>
   );
