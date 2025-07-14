@@ -45,7 +45,11 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
   useEffect(() => {
     if (abonentData.accountNumber) {
       api
-        .get('/billing/get-abonent-dxj-by-id/' + abonentData.id)
+        .get('/billing/get-abonent-dxj-by-id', {
+          params: {
+            residentId: abonentData.id
+          }
+        })
         .then(({ data }: { data: { ok: boolean; message: string; rows: IRowDhj[] } }) => {
           if (!data.ok) return toast.error(data.message);
           setRowsDhjTable(

@@ -16,7 +16,7 @@ function ChooseArizaPopper({ anchorEl, open, handleClose, rows = [], setAriza })
     },
     { field: 'licshet', headerName: t('tableHeaders.accountNumber'), flex: 1, minWidth: 120 },
     { field: 'document_type', headerName: t('tableHeaders.documentType') },
-    { field: 'fio', headerName: t('tableHeaders.fullName'), flex: 1 }
+    { field: 'fullName', headerName: t('tableHeaders.fullName'), flex: 1 }
   ];
 
   const handlePickAriza = ({ row }) => {

@@ -20,8 +20,8 @@ function PrintSectionMonayTransferAriza({
       <p style={{ textIndent: '40px' }}>
         Men {abonentDetails.mahallaName}da yashovchi {formatName(abonentDetails.fullName)} qattiq maishiy chiqindilar to'lovi uchun
         yaratilgan {abonentDetails.accountNumber} hisob raqamimga elektron to'lovlar orqali o'tkazilgan
-        {ariza?.aktSummasi?.toLocaleString()} so'm pulni quyidagi abonent${ariza.needMonayTransferActs.length > 1 ? 'lar' : ''}ning hisob
-        raqamiga o'tkazib berishingizni so'rayman.
+        {' ' + ariza?.aktSummasi?.toLocaleString()} so'm pulni quyidagi abonent{ariza.needMonayTransferActs.length > 1 ? 'lar' : ''}ning
+        hisob raqamiga o'tkazib berishingizni so'rayman.
       </p>
       <table>
         <tbody>

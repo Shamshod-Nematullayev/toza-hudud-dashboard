@@ -35,7 +35,11 @@ function AbonentPetition() {
         } catch (error) {
           setAktFileURL('');
         }
-        const davriyHarakatlarJadvali = await api.get('/billing/get-abonent-dxj-by-id/' + ariza.abonentId);
+        const davriyHarakatlarJadvali = await api.get('/billing/get-abonent-dxj-by-id', {
+          params: {
+            residentId: ariza.abonentId
+          }
+        });
 
         setAriza(ariza); // Ariza data ni storega joylaymiz
         setDavriyHarakatlarJadvali(

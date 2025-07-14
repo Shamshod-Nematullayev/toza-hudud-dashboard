@@ -131,10 +131,14 @@ function InputForm() {
     try {
       const newArizaData = (
         await api.post('/arizalar/create', {
-          licshet,
+          account_number: licshet,
           ikkilamchi_licshet: abonentData2.accountNumber,
           document_type: aktType,
-          akt_summasi: aktSumma,
+          akt_summasi: {
+            total: aktSumma.total,
+            withQQSTotal: aktSumma.totalWithQQS,
+            withoutQQSTotal: aktSumma.withoutQQSTotal
+          },
           current_prescribed_cnt: abonentData.house.inhabitantCnt,
           next_prescribed_cnt: isNaN(yashovchiSoniInput) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
           comment: generateSummary(recalculationPeriods),
