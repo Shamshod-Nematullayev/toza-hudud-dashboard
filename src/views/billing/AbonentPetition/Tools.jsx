@@ -16,7 +16,7 @@ function Tools() {
   const updateActDetails = async () => {
     setIsLoading(true);
     try {
-      const newAriza = (await api.put('/arizalar/updateFromBilling/' + ariza_id)).data.ariza;
+      const newAriza = (await api.put('/arizalar/update-from-billing/' + ariza_id)).data.ariza;
       try {
         const base64File = (
           await api.get('/billing/get-file/', {

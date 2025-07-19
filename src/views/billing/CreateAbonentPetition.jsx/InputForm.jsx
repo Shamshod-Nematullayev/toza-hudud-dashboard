@@ -132,7 +132,7 @@ function InputForm() {
       const newArizaData = (
         await api.post('/arizalar/create', {
           account_number: licshet,
-          ikkilamchi_licshet: abonentData2.accountNumber,
+          dublicat_account_number: aktType === 'dvaynik' ? abonentData2.accountNumber : undefined,
           document_type: aktType,
           akt_summasi: {
             total: aktSumma.total,

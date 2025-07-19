@@ -40,7 +40,7 @@ function Dvaynik({
     <>
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
         <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-        <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+        <ArizaHeading abonentData={abonentData} />
         <ArizaTitle type="ikkilamchi kod" />
         <p
           style={{

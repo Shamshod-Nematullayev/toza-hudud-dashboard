@@ -59,12 +59,13 @@ function AktChangerModal({ onClose }) {
       formData.append('amountWithoutQQS', amountWithoutNDS);
       formData.append('allAmount', Number(amountWithNDS) + Number(amountWithoutNDS));
       formData.append('description', description);
-      formData.append('photos', ariza.tempPhotos);
+      formData.append('photos', JSON.stringify(ariza.tempPhotos));
+      formData.append('actNumber', ariza.document_number);
       if (file) {
         formData.append('file', file);
       }
       const arizaData = (
-        await api.put('/arizalar/change-akt/' + ariza._id, formData, {
+        await api.put('/arizalar/change-act/' + ariza._id, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
       ).data;
