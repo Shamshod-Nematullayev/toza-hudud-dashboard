@@ -132,6 +132,8 @@ function InputForm() {
       const newArizaData = (
         await api.post('/arizalar/create', {
           account_number: licshet,
+          abonentId: abonentData.id,
+          fullName: abonentData.fullName,
           dublicat_account_number: aktType === 'dvaynik' ? abonentData2.accountNumber : undefined,
           document_type: aktType,
           akt_summasi: {

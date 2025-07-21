@@ -42,7 +42,6 @@ export interface IAbonentData {
   id: number;
   accountNumber: string;
   fullName: string;
-  residentId: number;
   kSaldo: number;
   mahallaName: string;
   streetName: string;

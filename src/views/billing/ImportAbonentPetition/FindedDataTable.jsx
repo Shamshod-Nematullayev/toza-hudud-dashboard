@@ -48,6 +48,7 @@ function FindedDataTable() {
   const theme = useTheme();
 
   useEffect(() => {
+    setAktSumm(0);
     if (!ariza.licshet) return setInputDisabled(false);
     api
       .get('/billing/get-abonent-dxj-by-id', { params: { residentId: ariza.abonentId } })

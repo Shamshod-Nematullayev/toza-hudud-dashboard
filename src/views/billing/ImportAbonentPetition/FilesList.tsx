@@ -1,80 +1,45 @@
 import { Grid, List, ListItem, ListItemButton, TextField } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import useStore from './useStore';
 import { useTheme } from '@mui/material/styles';
 import { toast } from 'react-toastify';
-import api from 'utils/api';
-import * as pdfjsLib from 'pdfjs-dist';
-import jsQR from 'jsqr';
+import { getArizaById } from 'services/getArizaById';
+import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
 
 function FilesList() {
   const { pdfFiles, setCurrentFile, currentFile, setAriza } = useStore();
   const theme = useTheme();
 
-  const extractQRCodeFromPDF = async (pdfData) => {
-    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-    const pdfDoc = await loadingTask.promise;
-    const page = await pdfDoc.getPage(1); // 1-sahifani olish
-
-    const viewport = page.getViewport({ scale: 1 }); // Sahifani ko'rsatish uchun viewportni olish
-    const canvas = document.createElement('canvas'); // Yangi canvas yaratish
-    const context = canvas.getContext('2d');
-
-    // Canvasni sahifa hajmiga moslashtirish
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-
-    // Sahifani canvasga render qilish
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise;
-
-    // Canvasdan tasvirni olish
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-    // QR kodni o'qish
-    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-
-    if (qrCode) {
-      return { ok: true, result: qrCode.data };
-    } else {
-      return { ok: false, message: 'QR Code topilmadi.' };
-    }
-  };
   // handlers
-  const handleListItemClick = async (file_name) => {
+  const handleListItemClick = async (file_name: string) => {
+    setAriza({});
     try {
       const currentFile = pdfFiles.find(({ file }) => file.name === file_name);
       const file = currentFile.file;
       if (!file) {
-        console.log('Fayl topilmadi.');
+        toast.error('Fayl topilmadi.');
         return;
       }
 
-      // Faylni ArrayBuffer formatida o'qing
-      const arrayBuffer = await file.arrayBuffer();
-
-      // PDF faylni o'qish
-      const pdfData = new Uint8Array(arrayBuffer);
-
-      // pdfjsLib yordamida PDFni yuklash
-      const data = await extractQRCodeFromPDF(pdfData);
+      // Fayldan QR kod ma'lumotlarini olish
+      const data = await extractQRCodeFromPDF(new Uint8Array(await file.arrayBuffer()), 1);
 
       setCurrentFile(file_name);
       if (!data.ok) {
         return toast.error(data.message);
       }
-      if (data.result.split('_')[0] !== 'ariza') {
+      const [key, id, document_number] = data.result.split('_');
+      if (key !== 'ariza') {
         return toast.error("Noma'lum QR kod");
       }
-      let ariza = (await api.get('/arizalar/' + data.result.split('_')[1])).data;
-      if (!ariza.ok) {
-        return toast.error(ariza.message);
-      }
-      ariza = ariza.ariza;
-      if (ariza.document_number != data.result.split('_')[2]) {
+      const ariza = await getArizaById(id);
+      if (ariza.document_number !== Number(document_number)) {
         return toast.error("QR koddagi va bazadagi ariza raqamlari o'zaro mos emas");
+      }
+      if (ariza.document_type === 'pul_kuchirish') {
+        return toast.info("Pul ko'chirish arizalari: Maxsus aktlar / Pul ko'chirish bo'limi orqali amalga oshiriladi", {
+          autoClose: false
+        });
       }
       setAriza({ ...ariza, isScanedFromQR: true });
     } catch (error) {

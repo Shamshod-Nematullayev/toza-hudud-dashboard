@@ -14,9 +14,13 @@ import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
 import { IAbonentData } from '../CreateAbonentPetition.jsx/useStore';
+import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
+import { toast } from 'react-toastify';
+import { getArizaById } from 'services/getArizaById';
 
 export interface IRow extends IAbonentData {
   amount: number;
+  residentId: number;
 }
 
 function MonayTransfer() {
@@ -57,6 +61,28 @@ function MonayTransfer() {
       setAbonentData(null);
     }
   }, [accountNumber]);
+
+  useEffect(() => {
+    (async () => {
+      if (pdfFile.file) {
+        const qrData = await extractQRCodeFromPDF(new Uint8Array(await pdfFile.file.arrayBuffer()), 1);
+        if (!qrData.ok) return;
+
+        const [key, id, document_number] = qrData.result.split('_');
+        if (key !== 'ariza') {
+          return toast.error("Noma'lum QR kod");
+        }
+        const ariza = await getArizaById(id);
+        if (ariza.document_number !== Number(document_number)) {
+          return toast.error("QR koddagi va bazadagi ariza raqamlari o'zaro mos emas");
+        }
+        if (ariza.document_type !== 'pul_kuchirish')
+          return toast.info("Bu turdagi arizalar: Import arizalar bo'limidan kiritiladi.", { autoClose: 10000 });
+        setAriza(ariza);
+        setAbonentData(); // shu joyiga keldim abonent ma'lumotini olishi kerak
+      }
+    })();
+  }, [pdfFile]);
   return (
     <MainCard contentSX={{ height: 'calc( 100vh  - 130px )' }}>
       <Grid container spacing={1} height={'100%'}>

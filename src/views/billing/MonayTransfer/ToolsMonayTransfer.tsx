@@ -37,13 +37,14 @@ function ToolsMonayTransfer({
   const handleAddButtonClick = (e) => {
     e.preventDefault();
     if (!accountNumber || !amount) return toast.error('Majburiy qiymatlar kiritilmadi');
-    if (rows.find((r) => r.residentId === abonentData.residentId)) return toast.error('Ushbu abonent allaqachon kiritildi');
+    if (rows.find((r) => r.residentId === abonentData?.id)) return toast.error('Ushbu abonent allaqachon kiritildi');
     setRows([
       ...rows,
       {
         ...abonentData,
         id: rows.length + 1,
-        amount: Number(amount)
+        amount: Number(amount),
+        residentId: abonentData.id
       }
     ]);
     setAccountNumber('');
@@ -107,7 +108,7 @@ function ToolsMonayTransfer({
           sx={{ width: 250 }}
           disabled={isLoading}
         />
-        <Button type="submit" color="success" variant="contained" disabled={!abonentData?.residentId || !amount || isLoading}>
+        <Button type="submit" color="success" variant="contained" disabled={!abonentData?.id || !amount || isLoading}>
           <Add />
         </Button>
         <Button
