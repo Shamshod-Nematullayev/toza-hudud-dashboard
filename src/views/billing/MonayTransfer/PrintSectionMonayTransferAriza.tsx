@@ -26,7 +26,7 @@ function PrintSectionMonayTransferAriza({
       <table>
         <tbody>
           {ariza.needMonayTransferActs.map((act, i) => (
-            <tr key={act._id}>
+            <tr key={act.residentId}>
               <td style={{ width: 50 }}>{i + 1}.</td>
               <td style={{ width: 150 }}>{act.accountNumber}</td>
               <td style={{ width: 300 }}>{formatName(act.fullName)}</td>

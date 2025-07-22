@@ -19,18 +19,22 @@ function ToolsMonayTransfer({
   setAccountNumber,
   pdfFile,
   clearPdfFile,
-  openPrintSection
+  openPrintSection,
+  setAbonentData,
+  ariza
 }: {
   rows: IRow[];
   accountNumber: string;
   abonentData: IAbonentData;
   amount: string;
   pdfFile: File;
+  ariza: IAriza | null;
   setRows: (rows: IRow[]) => void;
   setAmount: (e: string) => void;
   setAccountNumber: (e: string) => void;
   clearPdfFile: () => void;
   openPrintSection: (data: IAriza) => void;
+  setAbonentData: (data: IAbonentData) => void;
 }) {
   const { isLoading, setIsLoading } = useLoaderStore();
   const { t } = useTranslation();
@@ -38,6 +42,9 @@ function ToolsMonayTransfer({
     e.preventDefault();
     if (!accountNumber || !amount) return toast.error('Majburiy qiymatlar kiritilmadi');
     if (rows.find((r) => r.residentId === abonentData?.id)) return toast.error('Ushbu abonent allaqachon kiritildi');
+    if (rows.length === 0) {
+      setAbonentData(abonentData);
+    }
     setRows([
       ...rows,
       {
@@ -47,6 +54,7 @@ function ToolsMonayTransfer({
         residentId: abonentData.id
       }
     ]);
+
     setAccountNumber('');
     setAmount('');
   };
@@ -55,6 +63,15 @@ function ToolsMonayTransfer({
     try {
       const formData = new FormData();
       formData.append('file', pdfFile);
+
+      if (ariza._id) {
+        const result = await api.post(`/arizalar/money-transfer-act/${ariza._id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        toast.success(result.data.message || 'Muvaffaqqiyatli yakunlandi');
+        return;
+      }
+
       formData.append('debitorAct', JSON.stringify(rows[0]));
       formData.append('creditorActs', JSON.stringify(rows.slice(1)));
       const result = await api.post('/billing/monay-transfer-act', formData, {
@@ -113,7 +130,12 @@ function ToolsMonayTransfer({
         </Button>
         <Button
           type="button"
-          disabled={rows.length === 0 || rows[0].amount !== rows.slice(1).reduce((a, b) => a + b.amount, 0) || isLoading}
+          disabled={
+            rows.length === 0 ||
+            rows[0].amount !== rows.slice(1).reduce((a, b) => a + b.amount, 0) ||
+            isLoading ||
+            (ariza?._id && ariza?.status !== 'yangi')
+          }
           variant="contained"
           color="primary"
           onClick={handleClickPrintButton}
@@ -122,7 +144,7 @@ function ToolsMonayTransfer({
         </Button>
         <Button
           type="button"
-          disabled={rows.length === 0 || rows[0].amount !== rows.slice(1).reduce((a, b) => a + b.amount, 0) || isLoading}
+          disabled={rows.length === 0 || rows[0].amount !== rows.slice(1).reduce((a, b) => a + b.amount, 0) || isLoading || ariza?._id}
           color="primary"
           variant="contained"
           onClick={handleClickCreateArizaButton}

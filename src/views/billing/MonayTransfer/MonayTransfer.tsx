@@ -17,10 +17,15 @@ import { IAbonentData } from '../CreateAbonentPetition.jsx/useStore';
 import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
 import { toast } from 'react-toastify';
 import { getArizaById } from 'services/getArizaById';
+import { getAbonentData } from 'services/getAbonentData';
 
-export interface IRow extends IAbonentData {
+export interface IRow {
   amount: number;
   residentId: number;
+  fullName: string;
+  id: number;
+  accountNumber: string;
+  kSaldo: number;
 }
 
 function MonayTransfer() {
@@ -29,6 +34,7 @@ function MonayTransfer() {
   const [accountNumber, setAccountNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [abonentData, setAbonentData] = useState<IAbonentData>(null);
+  const [currentAbonentData, setCurrentAbonentData] = useState<IAbonentData>(null);
   const [ariza, setAriza] = useState<IAriza | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -55,10 +61,10 @@ function MonayTransfer() {
   useEffect(() => {
     if (accountNumber.length === 12) {
       api.get('/billing/get-abonent-data-by-licshet/' + accountNumber).then(({ data }) => {
-        setAbonentData({ ...data.abonentData, kSaldo: data.abonentData.balance.kSaldo, residentId: data.abonentData.id });
+        setCurrentAbonentData({ ...data.abonentData, kSaldo: data.abonentData.balance.kSaldo, residentId: data.abonentData.id });
       });
     } else {
-      setAbonentData(null);
+      setCurrentAbonentData(null);
     }
   }, [accountNumber]);
 
@@ -78,8 +84,32 @@ function MonayTransfer() {
         }
         if (ariza.document_type !== 'pul_kuchirish')
           return toast.info("Bu turdagi arizalar: Import arizalar bo'limidan kiritiladi.", { autoClose: 10000 });
-        setAriza(ariza);
-        setAbonentData(); // shu joyiga keldim abonent ma'lumotini olishi kerak
+        setAriza(ariza); // ariza ma'lumotini saqlash
+        const abonentData = await getAbonentData(ariza.licshet);
+        let creditors = await Promise.all(
+          ariza.needMonayTransferActs.map(async (a, i) => {
+            const abonentData = await getAbonentData(a.accountNumber);
+            return {
+              accountNumber: a.accountNumber,
+              amount: a.amount,
+              residentId: abonentData.id,
+              id: i + 2,
+              kSaldo: abonentData.balance.kSaldo,
+              fullName: a.fullName
+            };
+          })
+        );
+        setRows([
+          {
+            accountNumber: ariza.licshet,
+            amount: ariza.aktSummasi,
+            residentId: abonentData.id,
+            id: 1,
+            kSaldo: abonentData.balance.kSaldo,
+            fullName: `${abonentData.citizen.firstName} ${abonentData.citizen.lastName} ${abonentData.citizen.patronymic}`
+          },
+          ...creditors
+        ]);
       }
     })();
   }, [pdfFile]);
@@ -92,12 +122,14 @@ function MonayTransfer() {
             setAccountNumber={setAccountNumber}
             rows={rows}
             setRows={setRows}
-            abonentData={abonentData}
+            abonentData={currentAbonentData}
             setAmount={setAmount}
             amount={amount}
             clearPdfFile={clearPdfFile}
             pdfFile={pdfFile.file}
             openPrintSection={openPrintSection}
+            setAbonentData={setAbonentData}
+            ariza={ariza}
           />
           <DataGrid
             columns={[
@@ -112,7 +144,7 @@ function MonayTransfer() {
                 flex: 1,
                 renderCell: (row) => (
                   <>
-                    <IconButton color="error" onClick={() => handleClickDeleteButton(row.row.id)}>
+                    <IconButton color="error" onClick={() => handleClickDeleteButton(row.row.id)} disabled={Boolean(ariza._id)}>
                       <Delete />
                     </IconButton>
                   </>
@@ -140,7 +172,7 @@ function MonayTransfer() {
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogContent>
           {ariza?._id ? (
-            <PrintSectionMonayTransferAriza ariza={ariza} printComponentRef={printComponentRef} abonentDetails={rows[0]} />
+            <PrintSectionMonayTransferAriza ariza={ariza} printComponentRef={printComponentRef} abonentDetails={abonentData} />
           ) : (
             ''
           )}

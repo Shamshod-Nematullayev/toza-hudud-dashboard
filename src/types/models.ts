@@ -2,13 +2,20 @@ import { IAct } from './billing';
 
 export const arizaDocumentTypes = ['dvaynik', 'odam_soni', 'viza', 'death', 'gps', 'pul_kuchirish'] as const;
 
+export interface INeedMoneyTransfer {
+  accountNumber: string;
+  amount: number;
+  residentId: number;
+  fullName: string;
+}
+
 export interface IAriza {
   _id: string;
   fio: string;
   abonentId: number;
   asosiy_licshet: string;
   ikkilamchi_licshet: string;
-  needMonayTransferActs: any[];
+  needMonayTransferActs: INeedMoneyTransfer[];
   sana: Date;
   document_type: (typeof arizaDocumentTypes)[number];
   document_number: number;
@@ -20,7 +27,7 @@ export interface IAriza {
   };
   current_prescribed_cnt: number;
   next_prescribed_cnt: number;
-  status: string;
+  status: 'yangi' | 'qabul qilindi' | 'tasdiqlangan' | 'bekor qilindi' | 'akt_kiritilgan' | 'qayta_akt_kiritilgan';
   photos: string[];
   recalculationPeriods: any[];
   muzlatiladi: boolean;
