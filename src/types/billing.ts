@@ -259,3 +259,66 @@ export const packTypes = {
   death: 'INVENTORY',
   gps: 'INVENTORY'
 };
+
+export interface IXatlovDocument {
+  _id: string;
+  companyId: number;
+  date: Date;
+  documentNumber: number;
+  mahallaId: number;
+  request_ids: string[];
+}
+
+export interface IMultiplyRequest {
+  _id: string;
+  KOD: number;
+  YASHOVCHILAR: number;
+  currentInhabitantCount: number;
+  date: Date;
+  from: {
+    id: number;
+    first_name: string;
+    user_name: string;
+  };
+  confirm: boolean;
+  mahallaId: string;
+  abonentId: string;
+  mahallaName: string;
+  fio: string;
+  actId: string;
+  document_id: string;
+  isCancel: boolean;
+  companyId: number;
+}
+
+export interface IMahalla {
+  id: number;
+  name: string;
+  companyId: number;
+  reja: number;
+  biriktirilganNazoratchi?: {
+    inspector_name: string;
+    inspactor_id: number;
+  };
+  groups: any[];
+  ommaviy_shartnoma?: any;
+  sektor?: string;
+  mfy_rais_name: string;
+  mfy_rais_phone?: string;
+  hokim_yordamchi_name?: string;
+  hokim_yordamchi_phone?: string;
+  yoshlar_yetakchi_name?: string;
+  yoshlar_yetakchi_phone?: string;
+  xotinqizlar_name?: string;
+  xotinqizlar_phone?: string;
+  uchastkavoy_name?: string;
+  uchastkavoy_phone?: string;
+  shaxsi_tasdiqlandi_reja?: number;
+  abarotka_berildi?: boolean;
+  publicOfferFileId?: string;
+  publicOfferFileName?: string;
+  publicOfferFileUrl?: string;
+  publicOfferFileUpdatedAt?: Date;
+  geoZoneBiriktirilganKochalar?: any[];
+  created_at: Date;
+}

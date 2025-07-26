@@ -130,6 +130,7 @@ function MonayTransfer() {
             openPrintSection={openPrintSection}
             setAbonentData={setAbonentData}
             ariza={ariza}
+            setAriza={setAriza}
           />
           <DataGrid
             columns={[

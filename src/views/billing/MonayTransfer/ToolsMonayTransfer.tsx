@@ -21,7 +21,8 @@ function ToolsMonayTransfer({
   clearPdfFile,
   openPrintSection,
   setAbonentData,
-  ariza
+  ariza,
+  setAriza
 }: {
   rows: IRow[];
   accountNumber: string;
@@ -35,6 +36,7 @@ function ToolsMonayTransfer({
   clearPdfFile: () => void;
   openPrintSection: (data: IAriza) => void;
   setAbonentData: (data: IAbonentData) => void;
+  setAriza: (data: IAriza) => void;
 }) {
   const { isLoading, setIsLoading } = useLoaderStore();
   const { t } = useTranslation();
@@ -68,6 +70,7 @@ function ToolsMonayTransfer({
         const result = await api.post(`/arizalar/money-transfer-act/${ariza._id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
+        setAriza(result.data.ariza);
         toast.success(result.data.message || 'Muvaffaqqiyatli yakunlandi');
         return;
       }

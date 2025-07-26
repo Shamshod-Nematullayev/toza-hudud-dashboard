@@ -13,6 +13,7 @@ import Delete from '@mui/icons-material/Delete';
 import { DeleteOutline, DoneAllOutlined } from '@mui/icons-material';
 import Loader from 'ui-component/Loader';
 import { useTranslation } from 'react-i18next';
+import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
 const extractQRCodeFromPDF = async (pdfData) => {
   const loadingTask = pdfjsLib.getDocument({ data: pdfData });
   const pdfDoc = await loadingTask.promise;
@@ -75,17 +76,11 @@ function SidePanel() {
       })
     ).data;
 
-    const rows = (
-      await api.get('/yashovchi-soni-xatlov/get-rows-by-ids', {
-        params: {
-          request_ids: dalolatnoma.data.request_ids
-        }
-      })
-    ).data;
+    const rows = await getRequestdocumentByIds(dalolatnoma.data.request_ids);
 
     setUploadingDalolatnoma(dalolatnoma.data);
     setUploadingDalolatnomaRows(
-      rows.data.map((item, i) => ({
+      rows.map((item, i) => ({
         id: i + 1,
         _id: item._id,
         accountNumber: item.KOD,
@@ -166,7 +161,7 @@ function SidePanel() {
     <Grid container style={{ height: '100%' }} spacing={2}>
       {pdfFiles.length === 0 ? (
         <Grid item xs={12}>
-          <FileInputDrop setFiles={setPdfFiles} />
+          <FileInputDrop setFiles={setPdfFiles} clearTrigger={clearPdfFiles} />
         </Grid>
       ) : (
         <>

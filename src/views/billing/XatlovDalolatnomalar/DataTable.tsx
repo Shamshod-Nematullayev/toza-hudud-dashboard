@@ -4,8 +4,29 @@ import api from 'utils/api';
 import DoDisturbAltOutlinedIcon from '@mui/icons-material/DoDisturbAltOutlined';
 import { IconButton, Tooltip } from '@mui/material';
 import { toast } from 'react-toastify';
+import { Visibility } from '@mui/icons-material';
+import { IMultiplyRequest, IXatlovDocument } from 'types/billing';
+import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
 
-function DataTable({ rows, paging, setPaging, rowsMeta = {}, setRows }) {
+function DataTable({
+  rows,
+  paging,
+  setPaging,
+  rowsMeta = {},
+  setRows,
+  setCurrentDocument,
+  setRequestDocuments,
+  setOpenPreviewDialog
+}: {
+  rows: any[];
+  paging: any;
+  setPaging: any;
+  rowsMeta?: any;
+  setRows: any;
+  setCurrentDocument: any;
+  setRequestDocuments: (any) => void;
+  setOpenPreviewDialog: (any) => void;
+}) {
   const [mahallalar, setMahallalar] = useState([]);
 
   useEffect(() => {
@@ -14,29 +35,39 @@ function DataTable({ rows, paging, setPaging, rowsMeta = {}, setRows }) {
     });
   }, []);
 
-  const handleClickCancelButton =async (document) => {
+  const handleClickCancelButton = async (document) => {
     try {
-      const asos = prompt(`Siz haqiqatan ham ushbu (${document.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing`)
-      if(asos) {
-        await api.put("/yashovchi-soni-xatlov/cancel-document/" + document._id, {
+      const asos = prompt(
+        `Siz haqiqatan ham ushbu (${document.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing`
+      );
+      if (asos) {
+        await api.put('/yashovchi-soni-xatlov/cancel-document/' + document._id, {
           body: {
-            cancelDescription: asos,
-          },
+            cancelDescription: asos
+          }
         });
-       const newRows = rows.map(row => {
-        if(row._id === document._id) {
-          row.isCancel = true
-        }
-        return row
-       }) 
-       setRows(newRows)
-       toast.info("Bekor qilindi")
+        const newRows = rows.map((row) => {
+          if (row._id === document._id) {
+            row.isCancel = true;
+          }
+          return row;
+        });
+        setRows(newRows);
+        toast.info('Bekor qilindi');
       }
     } catch (error) {
       console.log(error);
-      
     }
   };
+
+  const handleClickViewButton = async (document: IXatlovDocument) => {
+    setCurrentDocument(document);
+    console.log(document);
+    const requestDocuments = await getRequestdocumentByIds(document.request_ids);
+    setRequestDocuments(requestDocuments);
+    setOpenPreviewDialog(true);
+  };
+
   return (
     <DataGrid
       columns={[
@@ -64,7 +95,7 @@ function DataTable({ rows, paging, setPaging, rowsMeta = {}, setRows }) {
         {
           field: 'status',
           headerName: 'Holat',
-          renderCell: ({ row }) => row.isCancel ? 'Bekor qilingan' : "Aktiv"
+          renderCell: ({ row }) => (row.isCancel ? 'Bekor qilingan' : 'Aktiv')
         },
         {
           field: '_',
@@ -76,6 +107,9 @@ function DataTable({ rows, paging, setPaging, rowsMeta = {}, setRows }) {
                   <DoDisturbAltOutlinedIcon />
                 </IconButton>
               </Tooltip>
+              <IconButton color="info" onClick={() => handleClickViewButton(row)}>
+                <Visibility />
+              </IconButton>
             </>
           )
         }

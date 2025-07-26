@@ -5,6 +5,8 @@ import MainCard from 'ui-component/cards/MainCard';
 import Toolbar from './Toolbar';
 import DataTable from './DataTable';
 import api from 'utils/api';
+import { IMultiplyRequest, IXatlovDocument } from 'types/billing';
+import PreviewDialog from './PreviewDialog';
 
 function XatlovDalolatnomalar() {
   const [rows, setRows] = useState([]);
@@ -14,6 +16,9 @@ function XatlovDalolatnomalar() {
   });
   const [rowsMeta, setRowsMeta] = useState({ rowCount: 0 });
   const [filters, setFilters] = useState({});
+  const [requestDocuments, setRequestDocuments] = useState<IMultiplyRequest[]>([]);
+  const [currentDocument, setCurrentDocument] = useState<IXatlovDocument>();
+  const [openPreviewDialog, setOpenPreviewDialog] = useState(false);
   useEffect(() => {
     api
       .get('/yashovchi-soni-xatlov/get-dalolatnomalar', {
@@ -34,9 +39,19 @@ function XatlovDalolatnomalar() {
           <Toolbar />
         </Grid>
         <Grid item xs={12}>
-          <DataTable rows={rows} paging={paging} setPaging={setPaging} rowsMeta={rowsMeta} setRows={setRows} />
+          <DataTable
+            rows={rows}
+            paging={paging}
+            setPaging={setPaging}
+            rowsMeta={rowsMeta}
+            setRows={setRows}
+            setCurrentDocument={setCurrentDocument}
+            setRequestDocuments={setRequestDocuments}
+            setOpenPreviewDialog={setOpenPreviewDialog}
+          />
         </Grid>
       </Grid>
+      {openPreviewDialog && <PreviewDialog document={currentDocument} requestDocuments={requestDocuments} setOpen={setOpenPreviewDialog} />}
     </MainCard>
   );
 }
