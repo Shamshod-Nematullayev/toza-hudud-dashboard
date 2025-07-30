@@ -80,7 +80,7 @@ function DataTable() {
     const canceling_description = prompt('Nima sababdan bekor qilinyapti?');
     if (canceling_description === null) return;
     api
-      .patch('/arizalar/' + _id, {
+      .put('/arizalar/' + _id, {
         status: 'bekor qilindi',
         canceling_description
       })
