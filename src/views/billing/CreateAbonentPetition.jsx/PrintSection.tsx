@@ -257,8 +257,8 @@ function renderSwitch({
             }}
           >
             Shuni yozib ma’lum qilamanki mening <span style={{ textDecoration: 'underline' }}>{abonentData.accountNumber}</span> hisob
-            raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani sababli pasport vizalari taqdim qilyapman. Ushbu pasport vizalarim asosida
-            O‘zbekistonda yashamagan davrimni qayta hisob-kitob qilib berishingizni so‘rayman.
+            raqamim onlayn bazada ma‘lumotlar o‘z vaqtida taqdim e‘tilmaganligi sababli pasport vizalari taqdim qilyapman. Ushbu pasport
+            vizalari asosida O‘zbekistonda yashamagan davrimni qayta hisob-kitob qilib berishingizni so‘rayman.
           </p>
           <QRSection abonentData={abonentData} ariza={ariza} date={date} />
         </div>
@@ -277,8 +277,9 @@ function renderSwitch({
               textIndent: '40px'
             }}
           >
-            Shuni yozib ma’lum qilamanki mening {abonentData.accountNumber} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani
-            sababli o‘lim guvohnoma taqdim qilyapman. Ushbu guvohnoma asosida qayta hisob-kitob qilib berishingizni so‘rayman.
+            Shuni yozib ma’lum qilamanki mening {abonentData.accountNumber} hisob raqamim onlayn bazada ma‘lumotlar o‘z vaqtida taqdim
+            e‘tilmaganligi sababli, noto‘g‘ri hisob-kitob qilinganligi uchun o‘lim guvohnoma taqdim qilyapman. Ushbu guvohnoma asosida qayta
+            hisob-kitob qilib, yashovchi soniga o‘zgartirish kiritib berishingizni so‘rayman.
           </p>
 
           <QRSection ariza={ariza} date={date} abonentData={abonentData} />

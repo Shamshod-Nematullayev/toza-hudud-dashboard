@@ -26,10 +26,9 @@ function PrintSection({ printContentRef }) {
                       </p>
                       <p style={{ borderBottomStyle: 'double' }}>Каттақўрғон тумани, Пайшанба шаҳарчаси</p>
                       <p>
-                        {new Date(row.ariza_date).getFullYear()} йил «{new Date(row.ariza_date).getDate()}»{' '}
-                        {oylar[new Date(row.ariza_date).getMonth()]}
+                        {new Date().getFullYear()} йил «{new Date().getDate()}» {oylar[new Date().getMonth()]}
                       </p>
-                      <p>№ 10.2/______-24</p>
+                      <p>№ ______-25</p>
                     </td>
                     <td style={{ paddingLeft: 35 }}>
                       <p>
@@ -43,7 +42,7 @@ function PrintSection({ printContentRef }) {
                       <p style={{ textAlign: 'justify' }}>
                         Қарздор: {row.fio} (ЖШШИР: {row.pinfl}) Манзили: Каттақўрғон тумани {row.mfy_name} МФЙ, <br /> ШХР: {row.licshet}{' '}
                         <br />
-                        Қарздорлик суммаси:{row.davo_summa.toLocaleString()} сўм
+                        Қарздорлик суммаси:{row.claimAmount.toLocaleString()} сўм
                         <br />
                         <b>{row.ariza_order_num}</b>
                       </p>
@@ -76,7 +75,7 @@ function PrintSection({ printContentRef }) {
                 </p>
                 <p>
                   Лекин, {row.warningDateString} йил ҳолатига кўра {row.fio} шартномада кўрсатилган ҳизматлар учун Ундирувчидан{' '}
-                  {row.davo_summa.toLocaleString()} сўм қарздор бўлиб қолган.
+                  {row.claimAmount.toLocaleString()} сўм қарздор бўлиб қолган.
                 </p>
                 <p>
                   Ундирувчи томонидан Қарздорга мавжуд қарздорликни тўлаш ҳақида бир неча маротаба оғзаки ва ёзма огоҳлантириш хати
@@ -89,7 +88,7 @@ function PrintSection({ printContentRef }) {
                 </p>
                 <p>
                   Шу боис, Қарздор {row.fio} “ANVARJON BIZNES INVEST” МЧЖ Каттақўрғон туман филиали фойдасига{' '}
-                  {row.davo_summa.toLocaleString()} сўм қарздорликни ундириш лозим бўлади.
+                  {row.claimAmount.toLocaleString()} сўм қарздорликни ундириш лозим бўлади.
                 </p>
                 <p>
                   Юқоридагиларга кўра, Ўзбекистон Республикаси “Прокуратура тўғрисида”ги Қонунининг 41-моддаси ва Ўзбекистон Республикаси
@@ -99,7 +98,7 @@ function PrintSection({ printContentRef }) {
               <h3 style={{ textAlign: 'center' }}>С Ў Р А Й М А Н:</h3>
               <ol style={{ textAlign: 'justify' }}>
                 <li>
-                  Қарздор {row.fio} “ANVARJON BIZNES INVEST” МЧЖ Каттақўрғон туман филиали фойдасига {row.davo_summa.toLocaleString()} сўм
+                  Қарздор {row.fio} “ANVARJON BIZNES INVEST” МЧЖ Каттақўрғон туман филиали фойдасига {row.claimAmount.toLocaleString()} сўм
                   қарздорликни Каттақўрғон тумани учун очилган МФО 01037, ИНН: 303421898, х/р 22604000105565269040,“ОРИЕНТ ФИНАНСБАНК” ХАТБ
                   Тошкент шаҳар филиали транзит хисоб рақамга ундиришингизни.
                 </li>
@@ -113,13 +112,13 @@ function PrintSection({ printContentRef }) {
                 </li>
               </ol>
               <p>Илова: Ҳужжатлар _______ варақда.</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                 <div style={{ width: 200 }}>
                   <b>Туман прокурори адлия маслаҳатчиси</b>
                 </div>
-                <div style={{ width: 200 }}>
+                <div>
                   {' '}
-                  <b>Ш.С.Холмурзаев</b>
+                  <b>М.Х.Нозимов</b>
                 </div>
               </div>
             </div>
