@@ -2,7 +2,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import React, { useEffect, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/uz-latn';
-import { Grid, IconButton, Button, Tooltip, Typography } from '@mui/material';
+import { Grid, IconButton, Button, Tooltip, Typography, Stack } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useStore } from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
@@ -15,8 +15,7 @@ import api from 'utils/api.js';
 dayjs.locale('uz-latn');
 
 function RecalculatorAbonent() {
-  const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable } = useStore();
-  const [hisoblandiJadval, setHisoblandiJadval] = useState([]);
+  const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable, hisoblandiJadval, setHisoblandiJadval } = useStore();
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
   const [totalSumm, setTotalSumm] = useState(0);
@@ -81,7 +80,7 @@ function RecalculatorAbonent() {
   }, []);
 
   useEffect(() => {
-    console.log(hisoblandiJadval);
+    console.log(hisoblandiJadval[0]);
     qaytaHisob({
       fromMoon: startDate?.date() > 15 ? startDate?.month() + 1 : startDate?.month(),
       fromYear: startDate?.year(),
@@ -163,47 +162,49 @@ function RecalculatorAbonent() {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
   };
   return (
-    <Grid container spacing={1} sx={{ pt: 1 }}>
-      <Grid item xs={6}>
-        <DatePicker
-          views={['year', 'month']}
-          minDate={dayjs('2019-01-01')}
-          maxDate={dayjs()}
-          label="dan"
-          format="DD.MM.YY"
-          value={startDate}
-          onChange={setStartDate}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <DatePicker
-          views={['year', 'month']}
-          minDate={dayjs('2019-01-01')}
-          maxDate={dayjs()}
-          label="gacha"
-          format="DD.MM.YY"
-          sx={{ margin: 'auto 10px' }}
-          value={endDate}
-          onChange={setEndDate}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="h3">
-          <Tooltip title="Debitor">
-            <Button variant="outlined" color="error" onClick={handleAddButtonClick}>
-              <AddIcon sx={{ color: 'red', fontSize: '30px' }} />
-            </Button>
-          </Tooltip>
-          <Tooltip title="Kreditor">
-            <Button variant="outlined" color="success" onClick={handleRemoveButtonClick}>
-              <RemoveIcon sx={{ color: 'green', fontSize: '30px' }} />
-            </Button>
-          </Tooltip>
-          {currentTotal.toFixed(2)}
-        </Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="h2">Jami: {totalSumm.toFixed(2)} so`m</Typography>
+    <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Grid container spacing={1} sx={{ pt: 1 }}>
+        <Grid item xs={6}>
+          <DatePicker
+            views={['year', 'month']}
+            minDate={dayjs('2019-01-01')}
+            maxDate={dayjs()}
+            label="dan"
+            format="DD.MM.YY"
+            value={startDate}
+            onChange={setStartDate}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <DatePicker
+            views={['year', 'month']}
+            minDate={dayjs('2019-01-01')}
+            maxDate={dayjs()}
+            label="gacha"
+            format="DD.MM.YY"
+            sx={{ margin: 'auto 10px' }}
+            value={endDate}
+            onChange={setEndDate}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="h3">
+            <Tooltip title="Debitor">
+              <Button variant="outlined" color="error" onClick={handleAddButtonClick}>
+                <AddIcon sx={{ color: 'red', fontSize: '30px' }} />
+              </Button>
+            </Tooltip>
+            <Tooltip title="Kreditor">
+              <Button variant="outlined" color="success" onClick={handleRemoveButtonClick}>
+                <RemoveIcon sx={{ color: 'green', fontSize: '30px' }} />
+              </Button>
+            </Tooltip>
+            {currentTotal.toFixed(2)}
+          </Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="h2">Jami: {totalSumm.toFixed(2)} so`m</Typography>
+        </Grid>
       </Grid>
       <DataGrid
         columns={[
@@ -246,7 +247,9 @@ function RecalculatorAbonent() {
         getRowClassName={({ row }) => 'bg-' + colors[row.id - 1]}
         hideFooter
         sx={{
-          height: '300px',
+          flex: 1,
+          width: '100%',
+          height: '100%',
           '.bg-ff0000': {
             backgroundColor: '#ff000050'
           },
@@ -286,7 +289,7 @@ function RecalculatorAbonent() {
           }
         }}
       />
-    </Grid>
+    </Stack>
   );
 }
 

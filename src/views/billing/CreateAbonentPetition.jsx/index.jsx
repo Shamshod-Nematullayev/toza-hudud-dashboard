@@ -50,7 +50,7 @@ function CreateAbonentPetition() {
         muzlatiladi={muzlatiladi}
         recalculationPeriods={recalculationPeriods}
       />
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ height: 'calc(100vh - 170px)' }}>
         <Grid item xs={12} sm={3}>
           <InputForm />
         </Grid>

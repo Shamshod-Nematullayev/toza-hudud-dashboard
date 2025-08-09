@@ -57,12 +57,13 @@ function InputForm() {
     images,
     muzlatiladi,
     setMuzlatiladi,
-    setImages
+    setImages,
+    aktSumma,
+    setAktSumma
   } = useStore();
   const { isLoading, setIsLoading } = useLoaderStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
-  const [aktSumma, setAktSummaInput] = useState({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -76,6 +77,8 @@ function InputForm() {
   useEffect(() => {
     if (aktType === 'death') {
       setYashovchiSoniInput(abonentData?.house?.inhabitantCnt - 1);
+    } else {
+      setYashovchiSoniInput(abonentData?.house?.inhabitantCnt);
     }
   }, [aktType, abonentData]);
 
@@ -88,7 +91,7 @@ function InputForm() {
       totalWithQQS += period.withQQSTotal;
       withoutQQSTotal += period.withoutQQSTotal;
     });
-    setAktSummaInput({
+    setAktSumma({
       total,
       totalWithQQS,
       withoutQQSTotal
@@ -176,7 +179,7 @@ function InputForm() {
     setAbonentData({});
     setAbonentData2({});
     setYashovchiSoniInput('');
-    setAktSummaInput('');
+    setAktSumma({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
     setRecalculationPeriods([]);
     setImages([]);
   };
@@ -218,11 +221,6 @@ function InputForm() {
             sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
             value={aktSumma.total}
             disabled
-            onChange={(e) => {
-              if (!isNaN(e.target.value)) {
-                setAktSummaInput(e.target.value);
-              }
-            }}
           />
         </div>
       </Grid>

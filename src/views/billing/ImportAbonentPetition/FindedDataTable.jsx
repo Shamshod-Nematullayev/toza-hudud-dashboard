@@ -116,7 +116,7 @@ function FindedDataTable() {
   }, [ariza]);
 
   useEffect(() => {
-    const joriyTarif = 4624;
+    const joriyTarif = 8000;
     if (showSpoiler) {
       const yashovchilar_soni = isNaN(ariza.next_prescribed_cnt) ? rowAfterAkt.yashovchilar_soni : ariza.next_prescribed_cnt;
       const nachis = isNaN(yashovchilar_soni) ? rowAfterAkt.nachis : joriyTarif * yashovchilar_soni;

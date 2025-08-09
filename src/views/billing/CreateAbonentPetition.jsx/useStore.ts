@@ -58,6 +58,19 @@ export interface IAbonentData {
   };
 }
 
+export interface IHisoblandiItem {
+  month: number;
+  year: number;
+  hisoblandi: number;
+  withQQS: number;
+}
+
+interface IAktSumma {
+  total: number;
+  totalWithQQS: number;
+  withoutQQSTotal: number;
+}
+
 type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
 
 interface StoreState {
@@ -76,6 +89,10 @@ interface StoreState {
   pasteImageDialogOpen: boolean;
   images: any;
   muzlatiladi: boolean;
+  hisoblandiJadval: IHisoblandiItem[];
+  aktSumma: IAktSumma;
+  setAktSumma: (aktSumma: IAktSumma) => void;
+  setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => void;
   setAktType: (aktType: aktType) => void;
   setShowPrintSection: (showPrintSection: boolean) => void;
   setRecalculationPeriods: (recalculationPeriods: any[]) => void;
@@ -189,5 +206,9 @@ export const useStore = create<StoreState>((set) => ({
       pasteImageDialogOpen: false,
       images: [],
       muzlatiladi: false
-    })
+    }),
+  hisoblandiJadval: [],
+  setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
+  aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 },
+  setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma })
 }));

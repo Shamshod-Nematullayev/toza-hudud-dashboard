@@ -322,3 +322,34 @@ export interface IMahalla {
   geoZoneBiriktirilganKochalar?: any[];
   created_at: Date;
 }
+
+export interface IRowDhj {
+  accountNumber: string;
+  accrual: number;
+  actAmount: number;
+  allPaymentsSum: number;
+  cashAmount: number;
+  eMoneyAmount: number;
+  frozenActAmount: number;
+  frozenDebtSettlement: any;
+  frozenKSaldo: number;
+  frozenNSaldo: number;
+  frozenRevenue: number;
+  god: number;
+  id: number;
+  inhabitantCount: number;
+  kSaldo: number;
+  kSaldoDt: number;
+  kSaldoKt: number;
+  mes: number;
+  munisAmount: number;
+  nSaldo: number;
+  nSaldoDt: number;
+  nSaldoKt: number;
+  organizationId: any;
+  penaltyFee: number;
+  period: string;
+  q1031Amount: number;
+  residentId: number;
+  tariffId: any;
+}

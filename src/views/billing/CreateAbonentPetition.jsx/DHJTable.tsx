@@ -2,46 +2,37 @@ import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { useStore } from './useStore';
 import api from 'utils/api';
-import { Stack, Typography } from '@mui/material';
+import { Box, IconButton, Stack, Table, Toolbar, Tooltip, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { colors } from 'store/constant';
+import { IconEye, IconEyeClosed } from '@tabler/icons-react';
+import { AbonentDetails, IRowDhj } from 'types/billing';
 
-export interface IRowDhj {
-  accountNumber: string;
-  accrual: number;
-  actAmount: number;
-  allPaymentsSum: number;
-  cashAmount: number;
-  eMoneyAmount: number;
-  frozenActAmount: number;
-  frozenDebtSettlement: any;
-  frozenKSaldo: number;
-  frozenNSaldo: number;
-  frozenRevenue: number;
-  god: number;
+interface IRow {
   id: number;
-  inhabitantCount: number;
-  kSaldo: number;
-  kSaldoDt: number;
-  kSaldoKt: number;
-  mes: number;
-  munisAmount: number;
-  nSaldo: number;
-  nSaldoDt: number;
-  nSaldoKt: number;
-  organizationId: any;
-  penaltyFee: number;
-  period: string;
-  q1031Amount: number;
-  residentId: number;
-  tariffId: any;
+  davr: string;
+  saldo_n: number;
+  nachis: number;
+  saldo_k: number;
+  akt: number;
+  yashovchilar_soni: number;
+  allPaymentsSum: number;
 }
 
-function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
-  const [rowsDhjTable, setRowsDhjTable] = useState([]);
+function DHJTable({ abonentData, title }: { abonentData: AbonentDetails; title: string }) {
+  console.log(abonentData);
+  const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
+  const [rowsPreviewTable, setRowsPreviewTable] = useState<IRow[]>([]);
   const store = useStore();
   const { t } = useTranslation();
+
+  const [show, setShow] = useState(false);
+
+  const handleClickShow = () => {
+    setShow(!show);
+  };
+
   useEffect(() => {
     if (abonentData.accountNumber) {
       api
@@ -82,10 +73,48 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
       store.setRowsDhjTable([]);
     }
   }, [abonentData]);
+
+  useEffect(() => {
+    if (show) {
+      const now = new Date();
+      const currentTariff = store.hisoblandiJadval.find((t) => t.year === now.getFullYear() && t.month === now.getMonth() + 1);
+      const kSaldo =
+        Number(store.yashovchiSoniInput) * currentTariff.hisoblandi +
+        rowsDhjTable[0].saldo_n -
+        rowsDhjTable[0].allPaymentsSum -
+        rowsDhjTable[0].akt -
+        store.aktSumma.total;
+      setRowsPreviewTable([
+        {
+          id: 1,
+          davr: rowsDhjTable[0].davr,
+          saldo_n: rowsDhjTable[0].saldo_n,
+          nachis: !isNaN(Number(store.yashovchiSoniInput))
+            ? Number(store.yashovchiSoniInput) * currentTariff.hisoblandi
+            : rowsDhjTable[0].nachis,
+          saldo_k: kSaldo,
+          akt: rowsDhjTable[0].akt + store.aktSumma.total,
+          yashovchilar_soni: !isNaN(Number(store.yashovchiSoniInput))
+            ? Number(store.yashovchiSoniInput)
+            : rowsDhjTable[0].yashovchilar_soni,
+          allPaymentsSum: rowsDhjTable[0].allPaymentsSum
+        },
+        ...rowsDhjTable.slice(1)
+      ]);
+    } else {
+      setRowsPreviewTable(rowsDhjTable);
+    }
+  }, [show, rowsDhjTable, store.yashovchiSoniInput, store.aktSumma.total]);
+
   return (
-    <Stack sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Typography variant="h3">{title}</Typography>
-      <div style={{ height: 'calc(100vh - 300px) ' }}>
+    <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography variant="h3">{title}</Typography>
+        <Tooltip title="Oldindan ko'rsatish">
+          <IconButton onClick={handleClickShow}>{show ? <IconEye /> : <IconEyeClosed />}</IconButton>
+        </Tooltip>
+      </Toolbar>
+      <Box sx={{ flex: 1 }}>
         <DataGrid
           columns={[
             {
@@ -107,7 +136,7 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
                     const toMoon = endDate.date() > 15 ? endDate.month() : endDate.month() - 1;
                     const toYear = endDate.year();
 
-                    const [oy, yil] = params.row.davr.split('.');
+                    const [oy, yil] = params.row.davr.split('.').map(Number);
                     if (
                       ((oy - 1 >= fromMoon && yil == fromYear) || yil > fromYear) &&
                       ((oy - 1 <= toMoon && yil == toYear) || yil < toYear)
@@ -176,7 +205,7 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
           disableColumnFilter
           disableColumnSorting
           hideFooter
-          rows={rowsDhjTable}
+          rows={rowsPreviewTable}
           sx={{
             width: '100%',
             height: '100%',
@@ -219,7 +248,7 @@ function DHJTable({ abonentData, title }: { abonentData: any; title: string }) {
             }
           }}
         />
-      </div>
+      </Box>
     </Stack>
   );
 }
