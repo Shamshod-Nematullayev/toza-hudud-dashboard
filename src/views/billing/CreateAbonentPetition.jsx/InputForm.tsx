@@ -1,14 +1,16 @@
-import { Button, Grid, MenuItem, Select, TextField } from '@mui/material';
+import { Button, Grid, IconButton, MenuItem, Select, Stack, TextField, Tooltip } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
-import { useStore } from './useStore';
+import { aktType, defaultAbonentData, useStore } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import KeyValue from 'ui-component/KeyValue';
 import useLoaderStore from 'store/loaderStore';
 import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { documentTypes } from 'store/constant';
+import { IconReload } from '@tabler/icons-react';
+import { ScreenRotation, ScreenRotationAlt } from '@mui/icons-material';
 
 // helpers
 function generateSummary(data) {
@@ -67,20 +69,13 @@ function InputForm() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (muzlatiladi) {
-      setYashovchiSoniInput(0);
-    } else {
-      setYashovchiSoniInput(abonentData.house?.inhabitantCnt - 1);
-    }
-  }, [muzlatiladi]);
-
-  useEffect(() => {
+    if (muzlatiladi && aktType === 'gps') return setYashovchiSoniInput(0);
     if (aktType === 'death') {
       setYashovchiSoniInput(abonentData?.house?.inhabitantCnt - 1);
     } else {
       setYashovchiSoniInput(abonentData?.house?.inhabitantCnt);
     }
-  }, [aktType, abonentData]);
+  }, [aktType, abonentData, muzlatiladi]);
 
   useEffect(() => {
     let total = 0;
@@ -106,10 +101,11 @@ function InputForm() {
           return;
         }
         setAbonentData(data.abonentData);
+        // console.log(data.abonentData);
       }
       fetchData();
     } else {
-      if (abonentData.licshet) setAbonentData({});
+      if (abonentData.accountNumber) setAbonentData(defaultAbonentData);
     }
   }, [licshet]);
   useEffect(() => {
@@ -124,7 +120,7 @@ function InputForm() {
       }
       fetchData();
     } else {
-      if (abonentData2.licshet) setAbonentData2({});
+      if (abonentData2.accountNumber) setAbonentData2(defaultAbonentData);
     }
   }, [dublicateLicshet]);
 
@@ -145,7 +141,7 @@ function InputForm() {
             withoutQQSTotal: aktSumma.withoutQQSTotal
           },
           current_prescribed_cnt: abonentData.house.inhabitantCnt,
-          next_prescribed_cnt: isNaN(yashovchiSoniInput) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
+          next_prescribed_cnt: isNaN(Number(yashovchiSoniInput)) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
           comment: generateSummary(recalculationPeriods),
           photos: images.map((img) => img.document_id),
           recalculationPeriods,
@@ -176,19 +172,25 @@ function InputForm() {
   const handleClearButtonClick = (e) => {
     setLicshet('');
     setDublicateLicshet('');
-    setAbonentData({});
-    setAbonentData2({});
+    setAbonentData(defaultAbonentData);
+    setAbonentData2(defaultAbonentData);
     setYashovchiSoniInput('');
     setAktSumma({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
     setRecalculationPeriods([]);
     setImages([]);
   };
 
+  const handleSwapIconButtonClick = () => {
+    let tempLicshet = licshet;
+    setLicshet(dublicateLicshet);
+    setDublicateLicshet(tempLicshet);
+  };
+
   return (
     <Grid container spacing={1}>
       <Grid item xs={6}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <Select value={aktType} onChange={(e) => setAktType(e.target.value)}>
+          <Select value={aktType} onChange={(e) => setAktType(e.target.value as aktType)}>
             {documentTypes.map((item) => (
               <MenuItem key={item} value={item}>
                 {t(`documentTypes.${item}`)}
@@ -201,20 +203,20 @@ function InputForm() {
             value={yashovchiSoniInput}
             disabled={aktType === 'death'}
             onChange={(e) => {
-              if (!isNaN(e.target.value)) {
+              if (!isNaN(Number(e.target.value))) {
                 setYashovchiSoniInput(e.target.value);
               }
             }}
           />
           <Select
             value={muzlatiladi}
-            onChange={(e) => setMuzlatiladi(e.target.value)}
+            onChange={(e) => setMuzlatiladi(e.target.value === 'true')}
             sx={{
               display: aktType === 'gps' ? 'auto' : 'none'
             }}
           >
-            <MenuItem value={false}>{t('createAbonentPetitionPage.notFreeze')}</MenuItem>
-            <MenuItem value={true}>{t('createAbonentPetitionPage.freeze')}</MenuItem>
+            <MenuItem value={'false'}>{t('createAbonentPetitionPage.notFreeze')}</MenuItem>
+            <MenuItem value={'true'}>{t('createAbonentPetitionPage.freeze')}</MenuItem>
           </Select>
           <TextField
             label={t('createAbonentPetitionPage.actAmount')}
@@ -225,15 +227,24 @@ function InputForm() {
         </div>
       </Grid>
       <Grid item xs={6}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={licshet} setFunc={setLicshet} />
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Stack sx={{ display: 'flex', flexDirection: 'column' }}>
+            <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={licshet} setFunc={setLicshet} />
 
-          <AccountNumberInput
-            label={t('createAbonentPetitionPage.dublicateAccountNumber')}
-            value={dublicateLicshet}
-            setFunc={setDublicateLicshet}
-            sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
-          />
+            <AccountNumberInput
+              label={t('createAbonentPetitionPage.dublicateAccountNumber')}
+              value={dublicateLicshet}
+              setFunc={setDublicateLicshet}
+              sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
+            />
+          </Stack>
+          {aktType === 'dvaynik' && (
+            <Tooltip title={t('buttons.swap')}>
+              <IconButton onClick={handleSwapIconButtonClick}>
+                <ScreenRotationAlt />
+              </IconButton>
+            </Tooltip>
+          )}
         </div>
       </Grid>
       <Grid item xs={4}>

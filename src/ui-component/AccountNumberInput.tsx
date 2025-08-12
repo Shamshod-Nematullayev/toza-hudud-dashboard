@@ -10,9 +10,9 @@ function AccountNumberInput({
 }: {
   value: string;
   setFunc: (e: string) => void;
-  label: string;
-  sx: SxProps;
-  disabled: boolean;
+  label?: string;
+  sx?: SxProps;
+  disabled?: boolean;
 }) {
   const defaultValue = localStorage.getItem('abonentsPrefix') || '105120';
   const inputRef = useRef(null);

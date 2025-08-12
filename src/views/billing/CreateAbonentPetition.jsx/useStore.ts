@@ -44,6 +44,7 @@ export interface IAbonentData {
   fullName: string;
   kSaldo: number;
   mahallaName: string;
+  mahallaId: number;
   streetName: string;
   house: {
     cadastralNumber: string;
@@ -58,6 +59,27 @@ export interface IAbonentData {
   };
 }
 
+export const defaultAbonentData = {
+  id: 0,
+  accountNumber: '',
+  fullName: '',
+  kSaldo: 0,
+  mahallaName: '',
+  mahallaId: 0,
+  streetName: '',
+  house: {
+    cadastralNumber: '',
+    homeIndex: '',
+    homeNumber: '',
+    inhabitantCnt: 0
+  },
+  citizen: {
+    passport: '',
+    pnfl: '',
+    phone: ''
+  }
+};
+
 export interface IHisoblandiItem {
   month: number;
   year: number;
@@ -71,7 +93,7 @@ interface IAktSumma {
   withoutQQSTotal: number;
 }
 
-type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
+export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
 
 interface StoreState {
   aktType: aktType;
@@ -98,6 +120,14 @@ interface StoreState {
   setRecalculationPeriods: (recalculationPeriods: any[]) => void;
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => void;
   setImages: (images) => void;
+  setAbonentData: (abonentData: IAbonentData) => void;
+  setAbonentData2: (abonentData: IAbonentData) => void;
+  setMahalla: (mahalla: IMahalla) => void;
+  setMahallaDublicat: (mahalla: IMahalla) => void;
+  setAriza: (ariza: any) => void;
+  setYashovchiSoniInput: (yashovchiSoniInput: string | number) => void;
+  setPasteImageDialogOpen: (pasteImageDialogOpen: boolean) => void;
+  setMuzlatiladi: (muzlatiladi: boolean) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -111,29 +141,9 @@ export const useStore = create<StoreState>((set) => ({
   setRows: (files) => set({ rows: files }),
   rowsDublicat: [],
   setRowsDublicat: (files) => set({ rows: files }),
-  abonentData: {
-    id: 0,
-    accountNumber: '',
-    fullName: '',
-    residentId: 0,
-    kSaldo: 0,
-    mahallaName: '',
-    streetName: '',
-    house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
-    citizen: { passport: '', pnfl: '', phone: '' }
-  },
+  abonentData: defaultAbonentData,
   setAbonentData: (data) => set({ abonentData: data }),
-  abonentData2: {
-    id: 0,
-    accountNumber: '',
-    fullName: '',
-    residentId: 0,
-    kSaldo: 0,
-    mahallaName: '',
-    streetName: '',
-    house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
-    citizen: { passport: '', pnfl: '', phone: '' }
-  },
+  abonentData2: defaultAbonentData,
   setAbonentData2: (data) => set({ abonentData2: data }),
   ariza: {},
   setAriza: (data) => set({ ariza: data }),
@@ -153,7 +163,7 @@ export const useStore = create<StoreState>((set) => ({
   recalculationPeriods: [],
   setRecalculationPeriods: (data: IRecalculationPeriod[]) => set({ recalculationPeriods: data }),
   yashovchiSoniInput: '',
-  setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: data }),
+  setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: String(data) }),
   pasteImageDialogOpen: false,
   setPasteImageDialogOpen: (pasteImageDialogOpen) => set({ pasteImageDialogOpen }),
   images: [],
@@ -167,26 +177,8 @@ export const useStore = create<StoreState>((set) => ({
       rowsDhjTable: [],
       rows: [],
       rowsDublicat: [],
-      abonentData: {
-        id: 0,
-        accountNumber: '',
-        fullName: '',
-        kSaldo: 0,
-        mahallaName: '',
-        streetName: '',
-        house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
-        citizen: { passport: '', pnfl: '', phone: '' }
-      },
-      abonentData2: {
-        id: 0,
-        accountNumber: '',
-        fullName: '',
-        kSaldo: 0,
-        mahallaName: '',
-        streetName: '',
-        house: { cadastralNumber: '', homeIndex: '', homeNumber: '', inhabitantCnt: 0 },
-        citizen: { passport: '', pnfl: '', phone: '' }
-      },
+      abonentData: defaultAbonentData,
+      abonentData2: defaultAbonentData,
       ariza: {},
       mahalla: {
         data: {},

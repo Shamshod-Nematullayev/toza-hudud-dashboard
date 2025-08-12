@@ -21,7 +21,6 @@ interface IRow {
 }
 
 function DHJTable({ abonentData, title }: { abonentData: AbonentDetails; title: string }) {
-  console.log(abonentData);
   const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
   const [rowsPreviewTable, setRowsPreviewTable] = useState<IRow[]>([]);
   const store = useStore();
@@ -75,7 +74,7 @@ function DHJTable({ abonentData, title }: { abonentData: AbonentDetails; title: 
   }, [abonentData]);
 
   useEffect(() => {
-    if (show) {
+    if (show && rowsDhjTable.length) {
       const now = new Date();
       const currentTariff = store.hisoblandiJadval.find((t) => t.year === now.getFullYear() && t.month === now.getMonth() + 1);
       const kSaldo =
@@ -93,7 +92,7 @@ function DHJTable({ abonentData, title }: { abonentData: AbonentDetails; title: 
             ? Number(store.yashovchiSoniInput) * currentTariff.hisoblandi
             : rowsDhjTable[0].nachis,
           saldo_k: kSaldo,
-          akt: rowsDhjTable[0].akt + store.aktSumma.total,
+          akt: -(rowsDhjTable[0].akt + store.aktSumma.total),
           yashovchilar_soni: !isNaN(Number(store.yashovchiSoniInput))
             ? Number(store.yashovchiSoniInput)
             : rowsDhjTable[0].yashovchilar_soni,

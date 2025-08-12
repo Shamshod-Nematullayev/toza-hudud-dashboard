@@ -56,7 +56,10 @@ function CreateAbonentPetition() {
         </Grid>
         <Grid item xs={12} sm={4}>
           {aktType === 'dvaynik' ? (
-            <DHJTable abonentData={abonentData2} title={`${'createAbonentPetitionPage.Ikkilamchi'}: ${abonentData2.accountNumber}`} />
+            <DHJTable
+              abonentData={abonentData2}
+              title={`${t('createAbonentPetitionPage.dublicateAccountNumber')}: ${abonentData2.accountNumber}`}
+            />
           ) : (
             <Recalculate />
           )}

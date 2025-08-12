@@ -151,7 +151,8 @@ const uz = {
       acceptAll: 'Barchasini qabul qilish',
       refresh: 'Yangilash',
       export: 'Eksport',
-      continue: 'Davom etish'
+      continue: 'Davom etish',
+      swap: "O'rin almashtirish"
     },
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
