@@ -113,7 +113,7 @@ function DHJTable({ abonentData, title }: { abonentData: AbonentDetails; title: 
           <IconButton onClick={handleClickShow}>{show ? <IconEye /> : <IconEyeClosed />}</IconButton>
         </Tooltip>
       </Toolbar>
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1, minHeight: 0 }}>
         <DataGrid
           columns={[
             {

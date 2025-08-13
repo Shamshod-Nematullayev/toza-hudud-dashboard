@@ -64,7 +64,7 @@ function CreateAbonentPetition() {
             <Recalculate />
           )}
         </Grid>
-        <Grid item xs={12} sm={5}>
+        <Grid item xs={12} sm={5} sx={{ height: '100%' }}>
           <DHJTable abonentData={abonentData} title={`${t('createAbonentPetitionPage.DHJ jadval')}: ${abonentData.accountNumber}`} />
         </Grid>
       </Grid>
