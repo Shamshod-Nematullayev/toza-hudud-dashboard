@@ -4,7 +4,7 @@ import React from 'react';
 import { toast } from 'react-toastify';
 import useStore from './useStore';
 
-function ToolsContainer({ setShowCreateArizaModal, selectedRows }) {
+function ToolsContainer({ setShowCreateArizaModal, selectedRows, setShowMIBXatModal }) {
   const isXs = useMediaQuery('(max-width:600px)');
   const handleCreateArizaButtonClick = () => {
     if (selectedRows.length === 0) return toast.error('Ariza yaratish uchun qatorni tanlang tanlang!');
@@ -15,6 +15,11 @@ function ToolsContainer({ setShowCreateArizaModal, selectedRows }) {
       <Grid item>
         <Button variant="outlined" onClick={handleCreateArizaButtonClick} disabled={!selectedRows.length}>
           <Print /> {isXs ? '' : 'Ariza chiqorish'}
+        </Button>
+      </Grid>
+      <Grid item>
+        <Button variant="outlined" sx={{ ml: 2 }} onClick={() => setShowMIBXatModal(true)}>
+          MIB
         </Button>
       </Grid>
     </Grid>

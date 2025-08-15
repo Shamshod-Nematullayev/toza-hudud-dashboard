@@ -211,8 +211,7 @@ function RecalculatorAbonent() {
           { field: 'id', headerName: '№', width: 50 },
           { field: 'startDate', headerName: 'qachondan', flex: 1 },
           { field: 'endDate', headerName: 'qachongacha' },
-          { field: 'withQQSTotal', headerName: 'QQS bilan' },
-          { field: 'total', headerName: 'Jami', width: 100 },
+          { field: 'total', headerName: 'Jami', width: 100, flex: 1 },
           {
             field: 'actions',
             headerName: 'Harakatlar',
