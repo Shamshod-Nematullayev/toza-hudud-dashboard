@@ -7,6 +7,7 @@ function PrintSection({ printContentRef }) {
   const date = new Date();
   const { abonents } = useStore();
   const [company, setCompany] = useState({});
+  const withHomeNumberCompanyIds = [1824, 621, 337];
 
   useEffect(() => {
     setCompany(JSON.parse(localStorage.getItem('company')));
@@ -44,6 +45,13 @@ function PrintSection({ printContentRef }) {
             <th>Лицавой</th>
             <th style={{ width: '180px' }}>ФИО</th>
             <th>Кўча</th>
+            {withHomeNumberCompanyIds.includes(company.id) && (
+              <>
+                <th>Дом</th>
+                <th>Квартира</th>
+              </>
+            )}
+
             <th>Я/с</th>
             <th>Қарздор</th>
             <th colSpan={2}>Охирги тўлов</th>
@@ -59,6 +67,12 @@ function PrintSection({ printContentRef }) {
               <td>{abonent.accountNumber}</td>
               <td>{formatName(abonent.fullName.length < 30 ? abonent.fullName : abonent.fullName.slice(0, 30) + '..')}</td>
               <td>{abonent.streetName}</td>
+              {withHomeNumberCompanyIds.includes(company.id) && (
+                <>
+                  <td>{abonent.homeNumber}</td>
+                  <td>{abonent.homeIndex}</td>
+                </>
+              )}
               <td style={{ textAlign: 'center' }}>{abonent.inhabitantCnt}</td>
               <td style={{ textAlign: 'right' }}>{Math.floor(Number(abonent.ksaldo)).toLocaleString()}</td>
               <td style={{ textAlign: 'right' }}>{abonent.lastPaymentAmount}</td>
