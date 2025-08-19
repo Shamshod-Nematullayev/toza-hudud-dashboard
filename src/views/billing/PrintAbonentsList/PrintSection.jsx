@@ -48,6 +48,7 @@ function PrintSection({ printContentRef }) {
             {withHomeNumberCompanyIds.includes(company.id) && (
               <>
                 <th>Дом</th>
+                <th>Индекс</th>
                 <th>Квартира</th>
               </>
             )}
@@ -71,6 +72,7 @@ function PrintSection({ printContentRef }) {
                 <>
                   <td>{abonent.homeNumber}</td>
                   <td>{abonent.homeIndex}</td>
+                  <td>{abonent.flatNumber}</td>
                 </>
               )}
               <td style={{ textAlign: 'center' }}>{abonent.inhabitantCnt}</td>

@@ -145,7 +145,7 @@ function MonayTransfer() {
                 flex: 1,
                 renderCell: (row) => (
                   <>
-                    <IconButton color="error" onClick={() => handleClickDeleteButton(row.row.id)} disabled={Boolean(ariza._id)}>
+                    <IconButton color="error" onClick={() => handleClickDeleteButton(row.row.id)} disabled={Boolean(ariza?._id)}>
                       <Delete />
                     </IconButton>
                   </>

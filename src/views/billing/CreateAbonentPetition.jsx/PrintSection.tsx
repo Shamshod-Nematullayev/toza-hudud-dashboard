@@ -15,6 +15,8 @@ import Dvaynik from './Documents/Dvaynik';
 import Gps from './Documents/Gps';
 import { IAbonentData, IMahalla } from './useStore';
 import useCustomizationStore from 'store/customizationStore';
+import Death from './Documents/Death';
+import Viza from './Documents/Viza';
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
@@ -242,49 +244,9 @@ function renderSwitch({
         />
       );
     case 'viza':
-      return (
-        <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-          <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading abonentData={abonentData} />
-          <br />
-          <ArizaTitle type="pasport viza" />
-          <br />
-          <p
-            style={{
-              fontWeight: 'bold',
-              lineHeight: '40px',
-              textIndent: '40px'
-            }}
-          >
-            Shuni yozib ma’lum qilamanki mening <span style={{ textDecoration: 'underline' }}>{abonentData.accountNumber}</span> hisob
-            raqamim onlayn bazada ma‘lumotlar o‘z vaqtida taqdim e‘tilmaganligi sababli pasport vizalari taqdim qilyapman. Ushbu pasport
-            vizalari asosida O‘zbekistonda yashamagan davrimni qayta hisob-kitob qilib berishingizni so‘rayman.
-          </p>
-          <QRSection abonentData={abonentData} ariza={ariza} date={date} />
-        </div>
-      );
+      return <Viza ariza={ariza} abonentData={abonentData} date={date} mahalla={mahalla} />;
     case 'death':
-      return (
-        <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-          <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading abonentData={abonentData} />
-          <br />
-          <ArizaTitle type="oʻlim guvohnomasi" />
-          <p
-            style={{
-              fontWeight: 'bold',
-              lineHeight: '40px',
-              textIndent: '40px'
-            }}
-          >
-            Shuni yozib ma’lum qilamanki mening {abonentData.accountNumber} hisob raqamim onlayn bazada ma‘lumotlar o‘z vaqtida taqdim
-            e‘tilmaganligi sababli, noto‘g‘ri hisob-kitob qilinganligi uchun o‘lim guvohnoma taqdim qilyapman. Ushbu guvohnoma asosida qayta
-            hisob-kitob qilib, yashovchi soniga o‘zgartirish kiritib berishingizni so‘rayman.
-          </p>
-
-          <QRSection ariza={ariza} date={date} abonentData={abonentData} />
-        </div>
-      );
+      return <Death ariza={ariza} abonentData={abonentData} date={date} />;
     case 'gps':
       return (
         <Gps
@@ -308,7 +270,19 @@ export const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
     <div style={{ width: 200 }}>{fullNameToShortName(name)}</div>
   </div>
 );
-export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator }) => {
+export const ImzolashJoyi = ({
+  mahalla,
+  abonentData,
+  mahalla2,
+  documentType,
+  gpsOperator
+}: {
+  mahalla: any;
+  abonentData: IAbonentData;
+  mahalla2?: any;
+  documentType: string;
+  gpsOperator?: any;
+}) => {
   const company = mahalla?.company;
   mahalla = mahalla?.data;
   mahalla2 = mahalla2?.data;
