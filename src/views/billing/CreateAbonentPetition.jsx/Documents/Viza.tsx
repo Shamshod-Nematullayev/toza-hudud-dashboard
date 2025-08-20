@@ -28,7 +28,7 @@ function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDat
       </div>
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
         <p style={{ textAlign: 'center' }}>
-          <b>Abonentlar bilan birga istiqomat qiluvchi shaxslar sonini kamayganligi yoki ko'payganligi aniqlash</b>
+          <b>Abonentlar bilan birga istiqomat qiluvchi shaxslar xorijga chiqib kelganligini aniqlash</b>
         </p>
         <p style={{ textAlign: 'center' }}>
           <b>DALOLATNOMASI</b>
@@ -58,7 +58,7 @@ function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDat
         </p>
         <p>
           Abonent xonadonida jami {abonentData.house.inhabitantCnt} kishi ro'yxatga qo'yilgan. Shundan, mazkur dalolatnomaga xorijga chiqish
-          pasport nusxalari ilova qilingan, shu xonadonda yashovchi bo'lgan fuqarolarni O'zbekistonda yashamagan davrlarini kirish-chiqish
+          pasport nusxalari ilova qilingan, shu xonadonda yashovchi bo'lgan shaxsni O'zbekistonda yashamagan davrlarini kirish-chiqish
           muhrlariga asosan qayta hisob-kitob qilish maqsadga muvofiq deb hisoblaymiz.
         </p>
         <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} />

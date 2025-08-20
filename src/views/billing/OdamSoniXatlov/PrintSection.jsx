@@ -48,7 +48,7 @@ function PrintSection() {
   const printComponentRef = useRef(null);
   const printFunction = useReactToPrint({
     ...reactToPrintDefaultOptions,
-    documentTitle: mahalla.name + 'xatlov',
+    documentTitle: mahalla?.name + 'xatlov',
     contentRef: printComponentRef
   });
   const company = JSON.parse(localStorage.getItem('company'));
@@ -85,10 +85,10 @@ function PrintSection() {
               <div>
                 "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani {lotinga(mahalla.name)}</div>
+              <div>Kattaqo‘rg‘on tumani {lotinga(mahalla?.name)}</div>
             </div>
             <p style={{ textIndent: '25px' }}>
-              Bizlar kim imzo chekuvchilar Kattaqo‘rg‘on tuman {lotinga(mahalla.name)} MFY raisi{' '}
+              Bizlar kim imzo chekuvchilar Kattaqo‘rg‘on tuman {lotinga(mahalla?.name)} MFY raisi{' '}
               {fullNameToShortName(mahalla.mfy_rais_name)}, “Anvarjon biznes invest” MCHJ rahbari {fullNameToShortName('Sadriddinov Aziz')}{' '}
               va abonentlar bilan ishlash bo‘limi xodimi {fullNameToShortName("Ne'matullayev Shamshod")}
               {mahalla.biriktirilganNazoratchi?.inspector_name && (
@@ -97,7 +97,7 @@ function PrintSection() {
               mazkur dalolatnomani shu haqida tuzdik.
             </p>
             <p style={{ textIndent: '25px' }}>
-              {lotinga(mahalla.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma'lum
+              {lotinga(mahalla?.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma'lum
               bo‘ldi.
             </p>
             <table
@@ -147,7 +147,7 @@ function PrintSection() {
               </tbody>
             </table>
             <p>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
-            {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla.mfy_rais_name)} />}
+            {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla?.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla.mfy_rais_name)} />}
             <br />
             <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company.billingAdminName} />
             <br />

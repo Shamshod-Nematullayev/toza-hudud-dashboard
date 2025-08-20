@@ -7,6 +7,7 @@ import DataTable from './DataTable';
 import api from 'utils/api';
 import { IMultiplyRequest, IXatlovDocument } from 'types/billing';
 import PreviewDialog from './PreviewDialog';
+import PrintSection from '../OdamSoniXatlov/PrintSection';
 
 function XatlovDalolatnomalar() {
   const [rows, setRows] = useState([]);
@@ -52,6 +53,7 @@ function XatlovDalolatnomalar() {
         </Grid>
       </Grid>
       {openPreviewDialog && <PreviewDialog document={currentDocument} requestDocuments={requestDocuments} setOpen={setOpenPreviewDialog} />}
+      <PrintSection />
     </MainCard>
   );
 }

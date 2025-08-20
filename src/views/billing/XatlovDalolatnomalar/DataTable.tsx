@@ -4,9 +4,11 @@ import api from 'utils/api';
 import DoDisturbAltOutlinedIcon from '@mui/icons-material/DoDisturbAltOutlined';
 import { IconButton, Tooltip } from '@mui/material';
 import { toast } from 'react-toastify';
-import { Visibility } from '@mui/icons-material';
+import { Print, Visibility } from '@mui/icons-material';
 import { IMultiplyRequest, IXatlovDocument } from 'types/billing';
 import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
+import { getXatlovDocumentById } from 'services/getXatlovDocumentById';
+import odamSoniXatlovStore from '../OdamSoniXatlov/odamSoniXatlovStore';
 
 function DataTable({
   rows,
@@ -28,6 +30,7 @@ function DataTable({
   setOpenPreviewDialog: (any) => void;
 }) {
   const [mahallalar, setMahallalar] = useState([]);
+  const { setOpenPrintSection, setDalolatnomaData } = odamSoniXatlovStore();
 
   useEffect(() => {
     api.get('/billing/get-all-active-mfy').then(({ data }) => {
@@ -68,6 +71,12 @@ function DataTable({
     setOpenPreviewDialog(true);
   };
 
+  const handleClickPrintButton = async (document: IXatlovDocument) => {
+    const dalolatnoma = await getXatlovDocumentById(document._id);
+    setDalolatnomaData(dalolatnoma);
+    setOpenPrintSection(true);
+  };
+
   return (
     <DataGrid
       columns={[
@@ -100,6 +109,7 @@ function DataTable({
         {
           field: '_',
           headerName: 'Harakatlar',
+          width: 150,
           renderCell: ({ row }) => (
             <>
               <Tooltip title={'Bekor qilish'}>
@@ -109,6 +119,9 @@ function DataTable({
               </Tooltip>
               <IconButton color="info" onClick={() => handleClickViewButton(row)}>
                 <Visibility />
+              </IconButton>
+              <IconButton color="primary" onClick={() => handleClickPrintButton(row)}>
+                <Print />
               </IconButton>
             </>
           )
