@@ -246,7 +246,7 @@ function renderSwitch({
     case 'viza':
       return <Viza ariza={ariza} abonentData={abonentData} date={date} mahalla={mahalla} />;
     case 'death':
-      return <Death ariza={ariza} abonentData={abonentData} date={date} />;
+      return <Death ariza={ariza} abonentData={abonentData} date={date} mahalla={mahalla} />;
     case 'gps':
       return (
         <Gps

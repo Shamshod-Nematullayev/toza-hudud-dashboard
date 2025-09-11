@@ -16,7 +16,7 @@ function PreviewDialog({
   useEffect(() => {
     async function fetchData() {
       const mahalla = await getMahallaById(document.mahallaId.toString());
-      setMahalla(mahalla);
+      setMahalla(mahalla.data);
     }
     fetchData();
   }, []);

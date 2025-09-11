@@ -51,6 +51,7 @@ function PrintSection() {
     documentTitle: mahalla?.name + 'xatlov',
     contentRef: printComponentRef
   });
+  console.log(dalolatnomaData);
   const company = JSON.parse(localStorage.getItem('company'));
   const date = new Date();
   return (
@@ -89,10 +90,10 @@ function PrintSection() {
             </div>
             <p style={{ textIndent: '25px' }}>
               Bizlar kim imzo chekuvchilar Kattaqo‘rg‘on tuman {lotinga(mahalla?.name)} MFY raisi{' '}
-              {fullNameToShortName(mahalla.mfy_rais_name)}, “Anvarjon biznes invest” MCHJ rahbari {fullNameToShortName('Sadriddinov Aziz')}{' '}
+              {fullNameToShortName(mahalla?.mfy_rais_name)}, “Anvarjon biznes invest” MCHJ rahbari {fullNameToShortName('Sadriddinov Aziz')}{' '}
               va abonentlar bilan ishlash bo‘limi xodimi {fullNameToShortName("Ne'matullayev Shamshod")}
-              {mahalla.biriktirilganNazoratchi?.inspector_name && (
-                <span>, aholi nazoratchisi {fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)}</span>
+              {mahalla?.biriktirilganNazoratchi?.inspector_name && (
+                <span>, aholi nazoratchisi {fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)}</span>
               )}{' '}
               mazkur dalolatnomani shu haqida tuzdik.
             </p>
@@ -125,7 +126,7 @@ function PrintSection() {
                 </tr>
               </thead>
               <tbody>
-                {dalolatnomaData.rows.map((row, index) => (
+                {dalolatnomaData.rows?.map((row, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{row.accountNumber}</td>
@@ -147,24 +148,24 @@ function PrintSection() {
               </tbody>
             </table>
             <p>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
-            {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla?.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla.mfy_rais_name)} />}
+            {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla?.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla?.mfy_rais_name)} />}
             <br />
             <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company.billingAdminName} />
             <br />
-            <ImzoJoyiRow label="Axoli nazoratchisi:" name={fullNameToShortName(mahalla.biriktirilganNazoratchi?.inspector_name)} />
+            <ImzoJoyiRow label="Axoli nazoratchisi:" name={fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
             <br />
             <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali raxbari:`} name={company.managerName} />
             <br />
             <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas
-                value={`XatlovOdamSoni_${data._id}_${data.documentNumber}`}
+                value={`XatlovOdamSoni_${data?._id}_${data?.documentNumber}`}
                 size={150}
                 bgColor={'#ffffff'}
                 fgColor={'#000000'}
                 level={'Q'}
                 includeMargin={true}
               />
-              <p>{data.documentNumber}</p>
+              <p>{data?.documentNumber}</p>
             </div>
           </div>
         </div>

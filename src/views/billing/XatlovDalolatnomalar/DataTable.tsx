@@ -9,6 +9,7 @@ import { IMultiplyRequest, IXatlovDocument } from 'types/billing';
 import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
 import { getXatlovDocumentById } from 'services/getXatlovDocumentById';
 import odamSoniXatlovStore from '../OdamSoniXatlov/odamSoniXatlovStore';
+import { getMahallaById } from 'services/getMahallaById';
 
 function DataTable({
   rows,
@@ -73,7 +74,9 @@ function DataTable({
 
   const handleClickPrintButton = async (document: IXatlovDocument) => {
     const dalolatnoma = await getXatlovDocumentById(document._id);
-    setDalolatnomaData(dalolatnoma);
+    const requestDocuments = await getRequestdocumentByIds(document.request_ids);
+    const mahalla = await getMahallaById(document.mahallaId.toString());
+    setDalolatnomaData({ dalolatnoma, mahalla: mahalla.data, rows: requestDocuments.map((r) => ({ ...r, accountNumber: r.KOD })) });
     setOpenPrintSection(true);
   };
 
