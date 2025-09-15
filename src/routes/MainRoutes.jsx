@@ -25,6 +25,7 @@ import Acts from 'views/stm/Acts';
 import ActCheck from 'views/stm/ActCheck';
 import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
 import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetitions';
+import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -144,6 +145,10 @@ const MainRoutes = {
         {
           path: 'report-petitions',
           element: <ReportPetitions />
+        },
+        {
+          path: 'report-identifikatsiya',
+          element: <IdentifikatsiyaMahallaKesim />
         },
         {
           path: 'pendingNewAbonents',
