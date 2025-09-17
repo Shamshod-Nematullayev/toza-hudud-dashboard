@@ -76,7 +76,7 @@ function DataTable({
     const dalolatnoma = await getXatlovDocumentById(document._id);
     const requestDocuments = await getRequestdocumentByIds(document.request_ids);
     const mahalla = await getMahallaById(document.mahallaId.toString());
-    setDalolatnomaData({ dalolatnoma, mahalla: mahalla.data, rows: requestDocuments.map((r) => ({ ...r, accountNumber: r.KOD })) });
+    setDalolatnomaData({ data: dalolatnoma, mahalla: mahalla.data, rows: requestDocuments.map((r) => ({ ...r, accountNumber: r.KOD })) });
     setOpenPrintSection(true);
   };
 

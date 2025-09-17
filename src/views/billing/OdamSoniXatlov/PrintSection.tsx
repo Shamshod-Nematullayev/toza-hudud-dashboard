@@ -84,7 +84,7 @@ function PrintSection() {
               }}
             >
               <div>
-                "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
+                &quot;{date.getDate()}&quot; {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
               <div>Kattaqo‘rg‘on tumani {lotinga(mahalla?.name)}</div>
             </div>
@@ -98,7 +98,7 @@ function PrintSection() {
               mazkur dalolatnomani shu haqida tuzdik.
             </p>
             <p style={{ textIndent: '25px' }}>
-              {lotinga(mahalla?.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma'lum
+              {lotinga(mahalla?.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma&#39;lum
               bo‘ldi.
             </p>
             <table
@@ -158,7 +158,7 @@ function PrintSection() {
             <br />
             <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas
-                value={`XatlovOdamSoni_${data?._id}_${data?.documentNumber}`}
+                value={`XatlovOdamSoni_${data._id}_${data.documentNumber}`}
                 size={150}
                 bgColor={'#ffffff'}
                 fgColor={'#000000'}
@@ -183,7 +183,7 @@ function PrintSection() {
           <Button variant="outlined" color="primary" onClick={() => setOpenPrintSection(false)}>
             Chiqish
           </Button>
-          <Button variant="contained" color="primary" onClick={printFunction}>
+          <Button variant="contained" color="primary" onClick={() => printFunction()}>
             Chop etish
           </Button>
         </DialogActions>
@@ -191,7 +191,7 @@ function PrintSection() {
     </Dialog>
   );
 }
-const ImzoJoyiRow = ({ label, placeholder = '___________', name }) => (
+const ImzoJoyiRow = ({ label, placeholder = '___________', name }: { label: string; placeholder?: string; name: string }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
     <div style={{ width: 300 }}>{label}</div>
     <div>{placeholder}</div>
