@@ -26,7 +26,6 @@ function DataTable() {
     setAbonentData2,
     setMahalla,
     setMahallaDublicat,
-    setAktFileURL,
     setIsLoading,
     filter
   } = useStore();
@@ -45,7 +44,8 @@ function DataTable() {
           params: {
             page: pageNum,
             limit,
-            ...filter
+            ...filter,
+            ariza_status: filter.ariza_status === '' ? null : filter.ariza_status
           }
         })
         .then(({ data }) => {
@@ -69,7 +69,7 @@ function DataTable() {
       console.error(error);
       toast.error('xatolik kuzatildi');
     }
-  }, [pageNum, limit, reloadEffect, filter]);
+  }, [pageNum, limit, reloadEffect, filter, setRows, setTotal, setIsLoading]);
 
   const handleMoveToInboxIconClick = (_id) => {
     api.patch('/arizalar/move-to-inbox/' + _id).then(() => {

@@ -12,6 +12,12 @@ declare module '@mui/material/styles' {
       darkBackground: string;
       menuSelected: string;
       menuSelectedBack: string;
+      textDark: string;
+      darkTextPrimary: string;
+      darkTextSecondary: string;
+      paper: string;
+      background: string;
+      divider: string;
     };
     customization: {
       borderRadius: number;

@@ -353,3 +353,10 @@ export interface IRowDhj {
   residentId: number;
   tariffId: any;
 }
+
+export interface ITariff {
+  month: number;
+  year: number;
+  hisoblandi: number;
+  withQQS: number;
+}

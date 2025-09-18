@@ -3,7 +3,6 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import { gridSpacing } from 'store/constant';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import useStore from './useStore';
 
@@ -37,7 +36,6 @@ function SideBar() {
     setDocumentNumber('');
   };
   const handleClickSeachButton = () => {
-    console.log(arizaStatus);
     setFilter({
       document_type: arizaType,
       account_number: accountNumber,
@@ -67,7 +65,7 @@ function SideBar() {
             <Select label="Ariza turi" labelId="ariza-type-label" value={arizaType} onChange={(e) => setArizaType(e.target.value)}>
               <MenuItem value="">Hammasi</MenuItem>
               <MenuItem value="odam_soni">Odam soni</MenuItem>
-              <MenuItem value="death">O'lim guvohnomasi</MenuItem>
+              <MenuItem value="death">O&#39;lim guvohnomasi</MenuItem>
               <MenuItem value="viza">Pasport vizasi</MenuItem>
               <MenuItem value="gps">GPS xulosasi</MenuItem>
               <MenuItem value="dvaynik">Ikkilamchi kod</MenuItem>

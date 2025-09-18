@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
-import ToolBar from './ToolBar';
 import DataTable from './DataTable';
 import SideBar from './SideBarAbonentPetitions';
 import useStore from './useStore';
@@ -8,8 +6,6 @@ import PrintSection from '../CreateAbonentPetition.jsx/PrintSection';
 import Loader from 'ui-component/Loader';
 import { Grid } from '@mui/material';
 import { gridSpacing } from 'store/constant';
-
-const AbonentPetitionsContext = createContext();
 
 function Recalculate() {
   const { showPrintSection, setShowPrintSection, currentAriza, abonentData, abonentData2, mahalla, mahallaDublicat, isLoading } =

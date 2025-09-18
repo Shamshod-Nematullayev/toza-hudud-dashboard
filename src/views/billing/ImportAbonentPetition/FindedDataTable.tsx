@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, Grid, IconButton, Popper, TextField, Tooltip, Typography, useTheme } from '@mui/material';
+import { Button, Grid, IconButton, TextField, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -12,8 +12,11 @@ import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
 import useLoaderStore from 'store/loaderStore';
 import Cancel from '@mui/icons-material/CancelOutlined';
 import ChooseArizaPopper from './ChooseArizaPopper';
+import { AxiosResponse } from 'axios';
+import { ITariff } from 'types/billing';
+import { getTariffs } from 'services/getTariffs';
 
-function KeyValue({ kalit, value }) {
+function KeyValue({ kalit, value }: { kalit: string; value: string }) {
   return (
     <div
       style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0 0 0', borderBottom: '1px solid #ccc' }}
@@ -32,23 +35,44 @@ const counterDiffMonth = function (initialDate) {
   return yearDiff * 12 + monthDiff;
 };
 
+interface IRow {
+  id: number;
+  davr: string;
+  saldo_n: number;
+  nachis: number;
+  saldo_k: number;
+  akt: number;
+  yashovchilar_soni: number;
+  allPaymentsSum: number;
+}
+
 function FindedDataTable() {
   const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog } = useStore();
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState<IRow[]>([]);
   const [arizaNumberInput, setArizaNumberInput] = useState('');
   const [arizalarRows, setArizalarRows] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(true);
   const [showSpoiler, setShowSpoiler] = useState(false);
   const [aktSumm, setAktSumm] = useState('');
-  const [rowAfterAkt, setRowAfterAkt] = useState();
+  const [rowAfterAkt, setRowAfterAkt] = useState<IRow | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { setIsLoading } = useLoaderStore();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl] = useState(null);
+  const [currentTarif, setCurrentTarif] = useState<ITariff>(null);
 
   const theme = useTheme();
 
   useEffect(() => {
-    setAktSumm(0);
+    const now = new Date();
+    async function asyncFunc() {
+      const tariffs = await getTariffs();
+      setCurrentTarif(tariffs.find((t) => t.month == now.getMonth() + 1 && t.year == now.getFullYear()));
+    }
+    asyncFunc();
+  }, []);
+
+  useEffect(() => {
+    setAktSumm('0');
     if (!ariza.licshet) return setInputDisabled(false);
     api
       .get('/billing/get-abonent-dxj-by-id', { params: { residentId: ariza.abonentId } })
@@ -56,7 +80,8 @@ function FindedDataTable() {
       .catch((err) => {
         toast.error(err.message);
       })
-      .then(({ data }) => {
+      .then((response: AxiosResponse<any, any>) => {
+        const data = response.data;
         if (!data.ok) {
           toast.error(data.message || 'Xatolik kuzatildi');
           return;
@@ -90,14 +115,14 @@ function FindedDataTable() {
     const diffMonth = counterDiffMonth(new Date(ariza.sana));
     const lateAktSumm =
       (isNaN(ariza.next_prescribed_cnt - ariza.current_prescribed_cnt) ? 0 : ariza.current_prescribed_cnt - ariza.next_prescribed_cnt) *
-      4624 *
+      currentTarif.hisoblandi *
       diffMonth;
     if (ariza.document_type == 'dvaynik') {
       api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet).then(({ data }) => {
         api.get('/billing/get-abonent-dxj-by-id', { params: { residentId: data.abonentData.id } }).then(({ data }) => {
           let summ = 0;
           data.rows.forEach((item) => (summ += item.allPaymentsSum));
-          setAktSumm(summ);
+          setAktSumm(summ.toString());
         });
       });
     } else if (lateAktSumm !== 0 && ariza.document_type != 'viza') {
@@ -315,7 +340,6 @@ function FindedDataTable() {
             <input
               type="text"
               style={{ background: 'none', outline: 'none', border: 'none', color: theme.colors.darkTextPrimary, textAlign: 'right' }}
-              x={console.log(useTheme().colors.darkTextPrimary)}
               value={aktSumm}
               onChange={(e) => setAktSumm(e.target.value)}
             />
