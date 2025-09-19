@@ -49,7 +49,6 @@ const uz = {
       actions: 'Amallar',
       accountNumber: 'Hisob raqami',
       income: 'Tushum',
-      inhabitantCount: 'Yashovchilar soni',
       debit: 'Qarzdorlik',
       sudAkt: 'Sud akti',
       warning: 'Ogohlantirish',
@@ -174,6 +173,18 @@ const uz = {
       "Aslida to'g'ri summa": "Aslida to'g'ri summa (billingda ko'rinmaydi)",
       Ogohlantirish: 'Ogohlantirish',
       'Bekor qilish': 'Bekor qilish'
+    },
+    recalculator: {
+      from: 'dan',
+      to: 'gacha',
+      debitor: 'Debitor',
+      kreditor: 'Kreditor',
+      total: 'Jami',
+      actions: 'Harakatlar',
+      noValue: 'Qiymat kiriting',
+      periodFrom: 'qachondan',
+      periodTo: 'qachongacha',
+      sum: 'Jami'
     }
   }
 };

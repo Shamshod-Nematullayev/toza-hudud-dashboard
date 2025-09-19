@@ -1,6 +1,6 @@
 import { DatePicker } from '@mui/x-date-pickers';
 import React, { useEffect, useState } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
 import { Grid, IconButton, Button, Tooltip, Typography, Stack } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -11,16 +11,19 @@ import Delete from '@mui/icons-material/Delete';
 import { DataGrid } from '@mui/x-data-grid';
 import { colors } from 'store/constant.js';
 import api from 'utils/api.js';
+import { useTranslation } from 'react-i18next';
 
 dayjs.locale('uz-latn');
 
 function RecalculatorAbonent() {
+  const { t } = useTranslation();
   const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable, hisoblandiJadval, setHisoblandiJadval } = useStore();
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
   const [totalSumm, setTotalSumm] = useState(0);
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(dayjs().startOf('month'));
+
   const qaytaHisob = ({ fromMoon, fromYear, toMoon, toYear, yashovchilar = 1 }) => {
     if (aktType === 'gps') {
       let summ = 0;
@@ -44,7 +47,6 @@ function RecalculatorAbonent() {
     let withQQS = 0;
     for (let i = 0; i < hisoblandiJadval.length; i++) {
       const davr = hisoblandiJadval[i];
-
       if ((davr.year == fromYear && davr.month - 1 >= fromMoon) || davr.year > fromYear) {
         if (davr.year < toYear || (davr.year == toYear && davr.month - 1 <= toMoon)) {
           if (davr.withQQS) {
@@ -80,7 +82,6 @@ function RecalculatorAbonent() {
   }, []);
 
   useEffect(() => {
-    console.log(hisoblandiJadval[0]);
     qaytaHisob({
       fromMoon: startDate?.date() > 15 ? startDate?.month() + 1 : startDate?.month(),
       fromYear: startDate?.year(),
@@ -97,20 +98,9 @@ function RecalculatorAbonent() {
     setTotalSumm(total);
   }, [recalculationPeriods]);
 
-  const handleDatePickerChange = (e, name) => {
-    switch (name) {
-      case 'from':
-        setStartDate(dayjs(e));
-        break;
-      case 'to':
-        setEndDate(dayjs(e));
-        break;
-    }
-  };
-
   const handleRemoveButtonClick = () => {
     if (currentTotal === 0) {
-      return toast.info('Qiymat kiriting');
+      return toast.info(t('recalculator.noValue'));
     }
     if (aktType == 'gps')
       return setRecalculationPeriods([
@@ -133,9 +123,10 @@ function RecalculatorAbonent() {
       }
     ]);
   };
+
   const handleAddButtonClick = () => {
     if (currentTotal === 0) {
-      return toast.info('Qiymat kiriting');
+      return toast.info(t('recalculator.noValue'));
     }
     if (aktType == 'gps')
       return setRecalculationPeriods([
@@ -158,9 +149,11 @@ function RecalculatorAbonent() {
       }
     ]);
   };
-  const deleteItem = function (index) {
+
+  const deleteItem = (index) => {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
   };
+
   return (
     <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Grid container spacing={1} sx={{ pt: 1 }}>
@@ -169,7 +162,7 @@ function RecalculatorAbonent() {
             views={['year', 'month']}
             minDate={dayjs('2019-01-01')}
             maxDate={dayjs()}
-            label="dan"
+            label={t('recalculator.from')}
             format="DD.MM.YY"
             value={startDate}
             onChange={setStartDate}
@@ -180,7 +173,7 @@ function RecalculatorAbonent() {
             views={['year', 'month']}
             minDate={dayjs('2019-01-01')}
             maxDate={dayjs()}
-            label="gacha"
+            label={t('recalculator.to')}
             format="DD.MM.YY"
             sx={{ margin: 'auto 10px' }}
             value={endDate}
@@ -189,12 +182,12 @@ function RecalculatorAbonent() {
         </Grid>
         <Grid item xs={6}>
           <Typography variant="h3">
-            <Tooltip title="Debitor">
+            <Tooltip title={t('recalculator.debitor')}>
               <Button variant="outlined" color="error" onClick={handleAddButtonClick}>
                 <AddIcon sx={{ color: 'red', fontSize: '30px' }} />
               </Button>
             </Tooltip>
-            <Tooltip title="Kreditor">
+            <Tooltip title={t('recalculator.kreditor')}>
               <Button variant="outlined" color="success" onClick={handleRemoveButtonClick}>
                 <RemoveIcon sx={{ color: 'green', fontSize: '30px' }} />
               </Button>
@@ -203,18 +196,20 @@ function RecalculatorAbonent() {
           </Typography>
         </Grid>
         <Grid item xs={6}>
-          <Typography variant="h2">Jami: {totalSumm.toFixed(2)} so`m</Typography>
+          <Typography variant="h2">
+            {t('recalculator.total')}: {totalSumm.toFixed(2)} so`m
+          </Typography>
         </Grid>
       </Grid>
       <DataGrid
         columns={[
           { field: 'id', headerName: '№', width: 50 },
-          { field: 'startDate', headerName: 'qachondan', flex: 1 },
-          { field: 'endDate', headerName: 'qachongacha' },
-          { field: 'total', headerName: 'Jami', width: 100, flex: 1 },
+          { field: 'startDate', headerName: t('recalculator.periodFrom'), flex: 1 },
+          { field: 'endDate', headerName: t('recalculator.periodTo') },
+          { field: 'total', headerName: t('recalculator.sum'), width: 100, flex: 1 },
           {
             field: 'actions',
-            headerName: 'Harakatlar',
+            headerName: t('recalculator.actions'),
             renderCell: (cell) => {
               return (
                 <IconButton onClick={() => deleteItem(cell.row.id - 1)}>
@@ -224,68 +219,38 @@ function RecalculatorAbonent() {
             }
           }
         ]}
-        rows={recalculationPeriods.map(
-          (
-            period: { startDate: dayjs.Dayjs; endDate: dayjs.Dayjs; withQQSTotal: number; withoutQQSTotal: number; total: number },
-            i: number
-          ) => ({
-            id: i + 1,
-            startDate: dayjs()
-              .set('year', period.startDate?.year())
-              .set('month', period.startDate?.date() > 20 ? period.startDate?.month() + 1 : period.startDate?.month())
-              .format('MM.YYYY'),
-            endDate: dayjs()
-              .set('year', period.endDate?.year())
-              .set('month', period.endDate?.date() > 15 ? period.endDate?.month() : period.endDate?.month() - 1)
-              .format('MM.YYYY'),
-            withQQSTotal: period.withQQSTotal,
-            withoutQQSTotal: period.withoutQQSTotal,
-            total: period.total
-          })
-        )}
+        rows={recalculationPeriods.map((period, i) => ({
+          id: i + 1,
+          startDate: dayjs()
+            .set('year', period.startDate?.year())
+            .set('month', period.startDate?.date() > 20 ? period.startDate?.month() + 1 : period.startDate?.month())
+            .format('MM.YYYY'),
+          endDate: dayjs()
+            .set('year', period.endDate?.year())
+            .set('month', period.endDate?.date() > 15 ? period.endDate?.month() : period.endDate?.month() - 1)
+            .format('MM.YYYY'),
+          withQQSTotal: period.withQQSTotal,
+          withoutQQSTotal: period.withoutQQSTotal,
+          total: period.total
+        }))}
         getRowClassName={({ row }) => 'bg-' + colors[row.id - 1]}
         hideFooter
         sx={{
           flex: 1,
           width: '100%',
           height: '100%',
-          '.bg-ff0000': {
-            backgroundColor: '#ff000050'
-          },
-          '.bg-00ff00': {
-            backgroundColor: '#00ff0050'
-          },
-          '.bg-0000ff': {
-            backgroundColor: '#0000ff50'
-          },
-          '.bg-ff8000': {
-            backgroundColor: '#ff800050'
-          },
-          '.bg-ffff00': {
-            backgroundColor: '#ffff0050'
-          },
-          '.bg-80ff00': {
-            backgroundColor: '#80ff0050'
-          },
-
-          '.bg-00ff80': {
-            backgroundColor: '#00ff8050'
-          },
-          '.bg-00ffff': {
-            backgroundColor: '#00ffff50'
-          },
-          '.bg-0080ff': {
-            backgroundColor: '#0080ff50'
-          },
-          '.bg-8000ff': {
-            backgroundColor: '#8000ff50'
-          },
-          '.bg-ff00ff': {
-            backgroundColor: '#ff00ff50'
-          },
-          '.bg-ff0080': {
-            backgroundColor: '#ff008050'
-          }
+          '.bg-ff0000': { backgroundColor: '#ff000050' },
+          '.bg-00ff00': { backgroundColor: '#00ff0050' },
+          '.bg-0000ff': { backgroundColor: '#0000ff50' },
+          '.bg-ff8000': { backgroundColor: '#ff800050' },
+          '.bg-ffff00': { backgroundColor: '#ffff0050' },
+          '.bg-80ff00': { backgroundColor: '#80ff0050' },
+          '.bg-00ff80': { backgroundColor: '#00ff8050' },
+          '.bg-00ffff': { backgroundColor: '#00ffff50' },
+          '.bg-0080ff': { backgroundColor: '#0080ff50' },
+          '.bg-8000ff': { backgroundColor: '#8000ff50' },
+          '.bg-ff00ff': { backgroundColor: '#ff00ff50' },
+          '.bg-ff0080': { backgroundColor: '#ff008050' }
         }}
       />
     </Stack>

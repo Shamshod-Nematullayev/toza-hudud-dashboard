@@ -19,7 +19,7 @@ const ru = {
       deleteDublicates: 'Удалить дубликаты',
       printAbonentsList: 'Печать списка абонентов',
       inventory: 'Инвентаризация',
-      createInventory: 'Создание/ввод инвентаризации',
+      createInventory: 'Создать/ввести инвентаризацию',
       invertoreDocuments: 'Инвентарные документы',
       newAbonentRequirements: 'Требования для новых абонентов',
       Yurist: 'Юрист',
@@ -28,7 +28,11 @@ const ru = {
       'Sudga arizalar kiritish': 'Подать иски в суд',
       'Nishonga olingan abonentlar': 'Абоненты под наблюдением',
       'Qarzdor abonentlar': 'Должники',
-      Hisobotlar: 'Отчеты'
+      Hisobotlar: 'Отчёты',
+      'Sanitar Tozalash Markazi': 'Центр санитарной очистки',
+      Acts: 'Акты',
+      specialActs: 'Специальные акты',
+      moneyTransfer: 'Денежный перевод'
     },
     dashboard: {
       identified: 'Идентифицирован',
@@ -36,6 +40,7 @@ const ru = {
     },
     tableHeaders: {
       fullName: 'Ф.И.О.',
+      name: 'Название',
       phone: 'Номер телефона',
       status: 'Статус',
       mfy: 'Махалля',
@@ -43,19 +48,32 @@ const ru = {
       inspector: 'Инспектор',
       actions: 'Действия',
       accountNumber: 'Лицевой счёт',
+      income: 'Доход',
       inhabitantCount: 'Количество проживающих',
       debit: 'Задолженность',
       sudAkt: 'Судебный акт',
       warning: 'Предупреждение',
       debitorFrom: 'Задолженность от',
       debitorTo: 'Задолженность до',
+      allPnflCount: 'Всего ПНФЛ',
+      allEtkCount: 'Всего ETK кодов',
+      allAbonentsCount: 'Всего абонентов',
+      onPeriodEtkCount: 'ETK коды за период',
+      onPeriodPnflCount: 'ПНФЛ за период',
       period: 'Период',
       nSaldo: 'Начальный баланс',
       nachis: 'Начислено',
       kSaldo: 'Конечный баланс',
       act: 'Акт',
       allPaymentsSum: 'Сумма всех платежей',
-      inhabitantCount: 'Количество проживающих'
+      documentType: 'Тип документа',
+      actsCount: 'Количество актов',
+      checkedCount: 'Проверенные',
+      notCheckedCount: 'Непроверенные',
+      actAmount: 'Сумма актов',
+      amountWithQQS: 'С НДС',
+      amountWithoutQQS: 'Без НДС',
+      checkStatus: 'Статус проверки'
     },
     tableActions: {
       edit: 'Редактировать',
@@ -66,7 +84,19 @@ const ru = {
       save: 'Сохранить',
       cancel: 'Отмена',
       confirm: 'Подтвердить',
-      close: 'Закрыть'
+      close: 'Закрыть',
+      checked: 'Проверено',
+      warning: 'Предупреждение',
+      next: 'Следующий',
+      prev: 'Предыдущий',
+      print: 'Печать',
+      accept: 'Принять',
+      reject: 'Отклонить',
+      rejectAll: 'Отклонить все',
+      acceptAll: 'Принять все',
+      refresh: 'Обновить',
+      export: 'Экспорт',
+      continue: 'Продолжить'
     },
     inspectorsPage: {
       freeMahallas: 'Свободные махалли',
@@ -119,7 +149,9 @@ const ru = {
       rejectAll: 'Отклонить все',
       acceptAll: 'Принять все',
       refresh: 'Обновить',
-      export: 'Экспорт'
+      export: 'Экспорт',
+      continue: 'Продолжить',
+      swap: 'Поменять местами'
     },
     pendingAbonentsPage: {
       'Rokirovka qilish': 'Рокировка (не рекомендуется 🙅‍♂️)',
@@ -131,6 +163,16 @@ const ru = {
       Ogohlantirilgan: 'Предупреждён',
       Ogohlantirilmagan: 'Не предупреждён',
       'Oxirgi yangilanish vaqti': 'Время последнего обновления'
+    },
+    checkActPage: {
+      'Qayta hisob kitob xato': 'Ошибка пересчёта',
+      "Noto'g'ri fayl biriktirilgan": 'Неправильный файл прикреплён',
+      Boshqa: 'Другое',
+      Xatolik: 'Ошибка',
+      "Qo'shimcha izohlar": 'Дополнительные комментарии',
+      "Aslida to'g'ri summa": 'Фактически правильная сумма (в биллинге не отображается)',
+      Ogohlantirish: 'Предупреждение',
+      'Bekor qilish': 'Отмена'
     }
   }
 };
