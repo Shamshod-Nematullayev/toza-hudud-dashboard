@@ -173,6 +173,19 @@ const ru = {
       "Aslida to'g'ri summa": 'Фактически правильная сумма (в биллинге не отображается)',
       Ogohlantirish: 'Предупреждение',
       'Bekor qilish': 'Отмена'
+    },
+    recalculator: {
+      from: 'от',
+      to: 'до',
+      debitor: 'Дебитор',
+      kreditor: 'Кредитор',
+      total: 'Итого',
+      actions: 'Действия',
+      noValue: 'Введите значение',
+      periodFrom: 'с даты',
+      periodTo: 'по дату',
+      sum: 'Сумма',
+      'so`m': 'сум'
     }
   }
 };

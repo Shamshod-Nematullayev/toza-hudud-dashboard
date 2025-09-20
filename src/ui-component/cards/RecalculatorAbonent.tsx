@@ -197,7 +197,7 @@ function RecalculatorAbonent() {
         </Grid>
         <Grid item xs={6}>
           <Typography variant="h2">
-            {t('recalculator.total')}: {totalSumm.toFixed(2)} so`m
+            {t('recalculator.total')}: {totalSumm.toFixed(2)} {t('recalculator.so`m')}
           </Typography>
         </Grid>
       </Grid>

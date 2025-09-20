@@ -1,3 +1,5 @@
+import i18n from 'languageConfig';
+
 export default function componentStyleOverrides(theme) {
   const bgColor = theme?.customization?.mode === 'dark' ? theme.colors.darkBackground : theme.colors?.grey50;
   return {
@@ -186,8 +188,8 @@ export default function componentStyleOverrides(theme) {
     MuiDataGrid: {
       defaultProps: {
         localeText: {
-          noRowsLabel: "Hech narsa yo'q",
-          footerRowSelected: (count) => `${count} ta tanlangan`,
+          noRowsLabel: i18n.t('dataGrid.noRowsLabel'),
+          footerRowSelected: (count) => i18n.t('dataGrid.footerRowSelected', { count }), //`${count} ta tanlangan`,
           MuiTablePagination: {
             labelRowsPerPage: 'Sahifadagi qatorlar:',
             labelDisplayedRows: ({ from, to, count }) => `${count} tadan ${from} dan ${to} gacha`

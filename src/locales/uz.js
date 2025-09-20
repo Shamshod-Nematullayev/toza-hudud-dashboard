@@ -184,7 +184,12 @@ const uz = {
       noValue: 'Qiymat kiriting',
       periodFrom: 'qachondan',
       periodTo: 'qachongacha',
-      sum: 'Jami'
+      sum: 'Jami',
+      'so`m': 'so`m'
+    },
+    dataGrid: {
+      noRowsLabel: 'Hech narsa yuq',
+      footerRowSelected: '{{count}} ta tanlandi'
     }
   }
 };
