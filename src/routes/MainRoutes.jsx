@@ -26,6 +26,7 @@ import ActCheck from 'views/stm/ActCheck';
 import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
 import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetitions';
 import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
+import Blanks from 'views/billing/Blanks';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -153,6 +154,10 @@ const MainRoutes = {
         {
           path: 'pendingNewAbonents',
           element: <PendingNewAbonents />
+        },
+        {
+          path: 'blanks',
+          element: <Blanks />
         }
       ]
     },

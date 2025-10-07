@@ -15,7 +15,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { MoveDown } from '@mui/icons-material';
+import { DocumentScannerOutlined, MoveDown } from '@mui/icons-material';
 
 //contans
 const icons = {
@@ -34,7 +34,8 @@ const icons = {
   ChecklistIcon,
   InsertDriveFileOutlinedIcon,
   AssessmentOutlinedIcon,
-  TrendingDownIcon
+  TrendingDownIcon,
+  DocumentScannerOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -157,6 +158,15 @@ const billing = {
       icon: icons.PersonAddAltIcon,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
+    },
+    {
+      id: 'blanks',
+      title: 'Blankalar',
+      type: 'item',
+      url: '/billing/blanks',
+      icon: icons.DocumentScannerOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing', 'jurist']
     },
     //   ]
     // }

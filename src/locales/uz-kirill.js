@@ -22,6 +22,7 @@ const uzKirill = {
       createInventory: 'Хатлов яратиш/киритиш',
       invertoreDocuments: 'Хатлов ҳужжатлари',
       newAbonentRequirements: 'Янги абонент очиш талаблари',
+      Blankalar: 'Бланкалар',
       Yurist: 'Юрист',
       Ogohlantirish: 'Огоҳлантириш хатлари',
       'Sud jarayonlari': 'Суд жараёнлари',

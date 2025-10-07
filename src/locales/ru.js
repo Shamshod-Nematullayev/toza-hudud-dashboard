@@ -22,6 +22,7 @@ const ru = {
       createInventory: 'Создать/ввести инвентаризацию',
       invertoreDocuments: 'Инвентарные документы',
       newAbonentRequirements: 'Требования для новых абонентов',
+      Blankalar: 'Бланки',
       Yurist: 'Юрист',
       Ogohlantirish: 'Предупреждения',
       'Sud jarayonlari': 'Судебные процессы',

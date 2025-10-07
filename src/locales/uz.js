@@ -22,6 +22,7 @@ const uz = {
       createInventory: 'Xatlov yaratish/kiritish',
       invertoreDocuments: 'Xatlov hujjatlari',
       newAbonentRequirements: 'Yangi abonent ochish talablari',
+      Blankalar: 'Blankalar',
       Yurist: 'Yurist',
       Ogohlantirish: 'Ogohlantirish xatlari',
       'Sud jarayonlari': 'Sud jarayonlari',
