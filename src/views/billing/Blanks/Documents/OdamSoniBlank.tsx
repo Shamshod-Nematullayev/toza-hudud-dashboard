@@ -1,7 +1,8 @@
 import React from 'react';
 import ImzolashJoyiBlank from '../ImzolashJoyiBlank';
+import { Company } from '..';
 
-function OdamSoniBlank() {
+function OdamSoniBlank({ company }: { company: Company }) {
   return (
     <>
       {/* Variant 1 — yangi abonentlar yoki birga istiqomat qiluvchi shaxslar */}
@@ -24,7 +25,7 @@ function OdamSoniBlank() {
           }}
         >
           <div>Sana: “____” __________________ 20___ yil</div>
-          <div>Hudud: _________________________________</div>
+          <div>Hudud: {company.locationName}</div>
         </div>
 
         <p>
@@ -48,7 +49,7 @@ function OdamSoniBlank() {
           ma’lumotlar) mavjud bo‘lsa, ularning nusxalari ilova qilinadi.
         </p>
 
-        <ImzolashJoyiBlank />
+        <ImzolashJoyiBlank company={company} />
       </div>
 
       {/* Variant 2 — istiqomat qiluvchi shaxslar soni kamaygan yoki ko‘paygan */}

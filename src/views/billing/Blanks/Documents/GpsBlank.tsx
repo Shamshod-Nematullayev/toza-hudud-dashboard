@@ -1,7 +1,9 @@
 import React from 'react';
 import ImzolashJoyiBlank from '../ImzolashJoyiBlank';
+import { Company } from '..';
+import DateLocationHeader from './TimePlaceHeading';
 
-function GpsBlank() {
+function GpsBlank({ company }: { company: Company }) {
   return (
     <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
       <p style={{ textAlign: 'center' }}>
@@ -11,16 +13,7 @@ function GpsBlank() {
         <b>DALOLATNOMA</b>
       </p>
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          lineHeight: '50px'
-        }}
-      >
-        <div>Sana: “____” __________________ 20___ yil</div>
-        <div>Hudud: _________________________________</div>
-      </div>
+      <DateLocationHeader company={company} />
 
       <p>
         <b>Quyidagi manzil bo‘yicha:</b>
@@ -42,7 +35,7 @@ function GpsBlank() {
         to‘g‘risidagi ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda qayta hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
       </p>
 
-      <ImzolashJoyiBlank />
+      <ImzolashJoyiBlank company={company} />
     </div>
   );
 }

@@ -1,29 +1,23 @@
 import React from 'react';
 import ImzolashJoyiBlank from '../ImzolashJoyiBlank';
+import { Company } from '..';
+import DateLocationHeader from './TimePlaceHeading';
+import fullNameToShortName from 'views/tools/fullNameToShortName';
 
-function DvaynikBlank() {
+function DvaynikBlank({ company }: { company: Company }) {
   return (
     <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
       <p style={{ textAlign: 'center' }}>
         <b>DALOLATNOMA</b>
       </p>
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          lineHeight: '50px'
-        }}
-      >
-        <div>Sana: “____” __________________ 20___ yil</div>
-        <div>Hudud: _________________________________</div>
-      </div>
+      <DateLocationHeader company={company} />
 
       <p style={{ textIndent: '40px' }}>
-        Biz quyidagi imzo chekuvchilar, _________________________________ viloyati, _________________________________ tumani,
-        __________________________ MFY raisi ____________________________, __________________________ aholi nazoratchisi
-        ____________________________, Abonentlar bilan ishlash bo‘limi xodimi ____________________________ mazkur dalolatnomani shu haqida
-        tuzdik. MFY ro‘yxatini o‘rganish natijasida quyidagi abonent:
+        Biz quyidagi imzo chekuvchilar, Samarqand viloyati, {company.locationName}, __________________________ MFY raisi
+        ____________________________, aholi nazoratchisi ____________________________, Abonentlar bilan ishlash bo‘limi xodimi
+        {' ' + fullNameToShortName(company.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida
+        quyidagi abonent:
       </p>
 
       <table style={{ borderCollapse: 'collapse', width: '100%', margin: '20px auto' }} border={1}>
@@ -50,7 +44,7 @@ function DvaynikBlank() {
         mablag‘larini haqiqiy hisob raqamga o‘tkazib, ikkilamchi abonentlarni o‘chirishni maqsadga muvofiq deb hisoblaymiz.
       </p>
 
-      <ImzolashJoyiBlank />
+      <ImzolashJoyiBlank company={company} />
     </div>
   );
 }

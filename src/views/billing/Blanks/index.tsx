@@ -13,8 +13,18 @@ import GpsBlank from './Documents/GpsBlank';
 import { Print } from '@mui/icons-material';
 import { useReactToPrint } from 'react-to-print';
 
+export interface Company {
+  id: number;
+  name: string;
+  locationName: string;
+  managerName: string;
+  billingAdminName: string;
+  gpsOperatorName: string;
+}
+
 function Blanks() {
   const [tabsValue, setTabsValue] = useState(documentTypes[0]);
+  const company: Company = JSON.parse(localStorage.getItem('company'));
 
   const { t } = useTranslation();
 
@@ -44,19 +54,19 @@ function Blanks() {
         </Box>
         <div ref={componentRef}>
           <TabPanel value={documentTypes[0]}>
-            <OdamSoniBlank />
+            <OdamSoniBlank company={company} />
           </TabPanel>
           <TabPanel value={documentTypes[1]}>
-            <VizaBlank />
+            <VizaBlank company={company} />
           </TabPanel>
           <TabPanel value={documentTypes[2]}>
-            <DeathBlank />
+            <DeathBlank company={company} />
           </TabPanel>
           <TabPanel value={documentTypes[3]}>
-            <DvaynikBlank />
+            <DvaynikBlank company={company} />
           </TabPanel>
           <TabPanel value={documentTypes[4]}>
-            <GpsBlank />
+            <GpsBlank company={company} />
           </TabPanel>
         </div>
       </TabContext>

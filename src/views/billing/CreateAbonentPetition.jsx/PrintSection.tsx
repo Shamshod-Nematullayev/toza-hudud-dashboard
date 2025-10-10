@@ -20,6 +20,12 @@ import Viza from './Documents/Viza';
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
+/**
+ * Format a given name by converting the first letter of each word to uppercase and the rest to lowercase.
+ * If the name is undefined or null, return an empty string.
+ * @param {string} name The name to be formatted.
+ * @returns {string} The formatted name.
+ */
 export function formatName(name) {
   if (!name) return '';
   return name
