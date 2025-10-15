@@ -1,4 +1,4 @@
-import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Button, Grid, TextField, Typography } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -9,12 +9,12 @@ import AccountNumberInput from 'ui-component/AccountNumberInput';
 function SideBarWarnings() {
   const { setFilters, setFromDate, setToDate } = useWarningLettersStore();
   const [actStatus, setActStatus] = useState(null);
-  const [accountNumber, setAccountNumber] = useState('');
-  const [caseNumber, setCaseNumber] = useState('');
+  const [accountNumber, setAccountNumber] = useState(null);
+  const [caseNumber, setCaseNumber] = useState(null);
   const [warningFromDate, setWarningFromDate] = useState(null);
   const [warningToDate, setWarningToDate] = useState(null);
-  const [claimAmountFrom, setClaimAmountFrom] = useState('');
-  const [claimAmountTo, setClaimAmountTo] = useState('');
+  const [claimAmountFrom, setClaimAmountFrom] = useState(null);
+  const [claimAmountTo, setClaimAmountTo] = useState(null);
 
   const handleDatePickerChange = (e, name) => {
     switch (name) {
@@ -33,7 +33,7 @@ function SideBarWarnings() {
     setWarningToDate(null);
     setClaimAmountFrom(null);
     setClaimAmountTo(null);
-    setAccountNumber('');
+    setAccountNumber(null);
     setCaseNumber('');
     setFilters({});
   };
@@ -53,7 +53,7 @@ function SideBarWarnings() {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          <AccountNumberInput label="Hisob raqam" type="number" setFunc={setAccountNumber} value={accountNumber} fullWidth />
+          <AccountNumberInput label="Hisob raqam" type="number" setFunc={setAccountNumber} value={accountNumber ?? ''} fullWidth />
         </Grid>
         <Grid item xs={12}>
           <Typography variant="h5">Ogohlantirilgan vaqti</Typography>
@@ -104,13 +104,19 @@ function SideBarWarnings() {
           />
         </Grid> */}
         <Grid item xs={12}>
-          <Typography variant="h5">Da'vo summasi</Typography>
+          <Typography variant="h5">Da&apos;vo summasi</Typography>
         </Grid>
         <Grid item xs={12}>
-          <TextField label="dan" type="number" value={claimAmountFrom} onChange={(e) => setClaimAmountFrom(e.target.value)} fullWidth />
+          <TextField
+            label="dan"
+            type="number"
+            value={claimAmountFrom || ''}
+            onChange={(e) => setClaimAmountFrom(e.target.value)}
+            fullWidth
+          />
         </Grid>
         <Grid item xs={12}>
-          <TextField label="gacha" type="number" value={claimAmountTo} onChange={(e) => setClaimAmountTo(e.target.value)} fullWidth />
+          <TextField label="gacha" type="number" value={claimAmountTo ?? ''} onChange={(e) => setClaimAmountTo(e.target.value)} fullWidth />
         </Grid>
         <Grid item xs={12}>
           <Button color="primary" variant="contained" onClick={handleClickSeachButton} fullWidth>

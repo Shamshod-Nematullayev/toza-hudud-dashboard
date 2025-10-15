@@ -12,11 +12,10 @@ import useWarningLettersStore from './useStore';
 
 function DataTableWarnings() {
   const { customization } = useCustomizationStore();
-  const { fromDate, toDate, filters, setFilters } = useWarningLettersStore();
-  const [rows, setRows] = useState((prevState = [], props) => {
+  const { fromDate, toDate, filters, setChecked } = useWarningLettersStore();
+  const [rows, setRows] = useState((prevState = []) => {
     return prevState;
   });
-  const [checked, setChecked] = useState([]);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
   const [totalRows, setTotalRows] = useState(0);
@@ -122,13 +121,6 @@ function DataTableWarnings() {
     setChecked(selectedIds);
   };
 
-  const handleChecked = () => {
-    try {
-      // todo
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const handleCloseDialog = () => {
     fetchData(page, pageSize, sortModel);
@@ -144,6 +136,7 @@ function DataTableWarnings() {
         pageSize={pageSize} // Add more options if needed
         checkboxSelection
         pagination
+        loading={showBackdrop}
         paginationMode="server" // Server-side pagination
         initialState={{
           pagination: {

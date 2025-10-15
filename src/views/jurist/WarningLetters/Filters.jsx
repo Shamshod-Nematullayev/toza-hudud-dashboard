@@ -1,4 +1,4 @@
-import { Card, FormControl, Select } from '@mui/material';
+import { Card, FormControl, MenuItem, Select } from '@mui/material';
 import React from 'react';
 
 function Filters() {
