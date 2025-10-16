@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 interface StoreState {
-  rows: any[];
+  rows: IRow[];
   setRows: (rows: any[]) => void;
   limit: number;
   setLimit: (limit: number) => void;
@@ -21,6 +21,19 @@ interface StoreState {
   setFilters: (filters: any) => void;
   checked: any[];
   setChecked: (checked: any[]) => void;
+}
+
+interface IRow {
+  id: number;
+  _id: string;
+  licshet: string;
+  isSent: boolean;
+  receiver: string;
+  isSavedBilling: boolean;
+  hybridMailId: string | number;
+  sentOn: Date;
+  warning_amount: number;
+  sud_process_id_billing: string | number;
 }
 
 const useWarningLettersStore = create<StoreState>((set) => ({

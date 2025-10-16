@@ -4,18 +4,17 @@ import { DataGrid } from '@mui/x-data-grid';
 import { toast } from 'react-toastify';
 
 import useCustomizationStore from 'store/customizationStore';
-import { IconButton } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import EditModal from './EditModal';
 import api from 'utils/api';
 import useWarningLettersStore from './useStore';
+import { Preview } from '@mui/icons-material';
 
 function DataTableWarnings() {
   const { customization } = useCustomizationStore();
-  const { fromDate, toDate, filters, setChecked } = useWarningLettersStore();
-  const [rows, setRows] = useState((prevState = []) => {
-    return prevState;
-  });
+  const { fromDate, toDate, filters, setChecked, rows, setRows } = useWarningLettersStore();
+
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
   const [totalRows, setTotalRows] = useState(0);
@@ -27,6 +26,11 @@ function DataTableWarnings() {
   const handleEdit = async (row) => {
     setActivRow(row);
     setOpenEditDialog(true);
+  };
+
+  const handlePreviewPostCash = async (row) => {
+    // setActivRow(row);
+    // setOpenPreviewDialog(true);
   };
 
   const columns = [
@@ -64,6 +68,15 @@ function DataTableWarnings() {
           <IconButton onClick={() => handleEdit(params.row)}>
             <EditIcon sx={{ color: customization.mode === 'dark' ? 'primary.200' : 'primary.main' }} />
           </IconButton>
+          <Tooltip title="Pochta kvitansiyasini ko'rish">
+            <IconButton
+              onClick={() => 'todo'}
+              disabled={!params.row.isSent}
+              sx={{ color: customization.mode === 'dark' ? 'primary.200' : 'primary.main' }}
+            >
+              <Preview />
+            </IconButton>
+          </Tooltip>
         </div>
       )
     }
