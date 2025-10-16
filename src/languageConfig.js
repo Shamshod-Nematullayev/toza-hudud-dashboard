@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import uz from './locales/uz.js';
 import uzKirill from './locales/uz-kirill.js';
 import ru from './locales/ru.js';
-import useCustomizationStore from 'store/customizationStore.js';
+import useCustomizationStore from 'store/customizationStore.ts';
 
 const resources = {
   uz,

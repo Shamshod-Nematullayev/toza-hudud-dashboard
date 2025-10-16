@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 // material-ui
 import Card from '@mui/material/Card';
@@ -9,10 +9,21 @@ import CardHeader from '@mui/material/CardHeader';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
+interface MySubCardProps {
+  children: ReactNode; // Define children prop
+  title: any; // Define title prop
+  content?: any;
+  contentClass?: string;
+  darkTitle?: boolean;
+  secondary?: any;
+  sx?: any;
+  contentSX?: any;
+}
+
 // ==============================|| CUSTOM SUB CARD ||============================== //
 
-const SubCard = React.forwardRef(
-  ({ children, content, contentClass, darkTitle, secondary, sx = {}, contentSX = {}, title, ...others }, ref) => {
+const SubCard = React.forwardRef<HTMLDivElement, MySubCardProps>(
+  ({ children, content, contentClass, darkTitle, secondary, sx = {}, contentSX = {}, title, ...others }: MySubCardProps, ref) => {
     const defaultShadow = '0 2px 14px 0 rgb(32 40 45 / 8%)';
 
     return (

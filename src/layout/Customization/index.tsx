@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -24,7 +24,7 @@ import { gridSpacing } from 'store/constant';
 
 // assets
 import { IconSettings } from '@tabler/icons-react';
-import useCustomizationStore from 'store/customizationStore';
+import useCustomizationStore, { FontFamily } from 'store/customizationStore';
 import { useLocation } from 'react-router-dom';
 
 // concat 'px'
@@ -60,18 +60,18 @@ const Customization = () => {
 
   let initialFont;
   switch (customization.fontFamily) {
-    case `'Inter', sans-serif`:
-      initialFont = 'Inter';
+    case FontFamily.Inter:
+      initialFont = FontFamily.Inter;
       break;
-    case `'Poppins', sans-serif`:
-      initialFont = 'Poppins';
+    case FontFamily.Poppins:
+      initialFont = FontFamily.Poppins;
       break;
-    case `'TimesNewRoman', sans-serif`:
-      initialFont = 'TimesNewRoman';
+    case FontFamily.TimesNewRoman:
+      initialFont = FontFamily.TimesNewRoman;
       break;
-    case `'Roboto', sans-serif`:
+    case FontFamily.Roboto:
     default:
-      initialFont = 'Roboto';
+      initialFont = FontFamily.Roboto;
       break;
   }
 
@@ -80,18 +80,18 @@ const Customization = () => {
   useEffect(() => {
     let newFont;
     switch (fontFamily) {
-      case 'Inter':
-        newFont = `'Inter', sans-serif`;
+      case FontFamily.Inter:
+        newFont = FontFamily.Inter;
         break;
-      case 'Poppins':
-        newFont = `'Poppins', sans-serif`;
+      case FontFamily.Poppins:
+        newFont = FontFamily.Poppins;
         break;
-      case `'TimesNewRoman', sans-serif`:
-        initialFont = 'TimesNewRoman';
+      case FontFamily.TimesNewRoman:
+        newFont = FontFamily.TimesNewRoman;
         break;
-      case 'Roboto':
+      case FontFamily.Roboto:
       default:
-        newFont = `'Roboto', sans-serif`;
+        newFont = FontFamily.Roboto;
         break;
     }
     setCustomization({ fontFamily: newFont });
@@ -221,7 +221,9 @@ const Customization = () => {
             </Grid>
             <Grid item xs={12}>
               {/* border radius */}
-              <SubCard title="Border Radius">
+              {React.createElement(
+                SubCard as any,
+                { title: 'Border Radius' },
                 <Grid item xs={12} container spacing={2} alignItems="center" sx={{ mt: 2.5 }}>
                   <Grid item>
                     <Typography variant="h6" color="secondary">
@@ -254,7 +256,7 @@ const Customization = () => {
                     </Typography>
                   </Grid>
                 </Grid>
-              </SubCard>
+              )}
             </Grid>
           </Grid>
         </PerfectScrollbar>
