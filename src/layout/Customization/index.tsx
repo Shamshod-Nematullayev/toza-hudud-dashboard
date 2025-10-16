@@ -180,7 +180,7 @@ const Customization = () => {
                     name="row-radio-buttons-group"
                   >
                     <FormControlLabel
-                      value="Roboto"
+                      value={FontFamily.Roboto}
                       control={<Radio />}
                       label="Roboto"
                       sx={{
@@ -189,7 +189,7 @@ const Customization = () => {
                       }}
                     />
                     <FormControlLabel
-                      value="Poppins"
+                      value={FontFamily.Poppins}
                       control={<Radio />}
                       label="Poppins"
                       sx={{
@@ -198,7 +198,7 @@ const Customization = () => {
                       }}
                     />
                     <FormControlLabel
-                      value="TimesNewRoman"
+                      value={FontFamily.TimesNewRoman}
                       control={<Radio />}
                       label="Times New Roman"
                       sx={{
@@ -207,7 +207,7 @@ const Customization = () => {
                       }}
                     />
                     <FormControlLabel
-                      value="Inter"
+                      value={FontFamily.Inter}
                       control={<Radio />}
                       label="Inter"
                       sx={{
