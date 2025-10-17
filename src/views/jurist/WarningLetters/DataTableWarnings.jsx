@@ -10,6 +10,7 @@ import EditModal from './EditModal';
 import api from 'utils/api';
 import useWarningLettersStore from './useStore';
 import { Preview } from '@mui/icons-material';
+import PDFViewerModal from 'ui-component/PDFViewerModal';
 
 function DataTableWarnings() {
   const { customization } = useCustomizationStore();
@@ -22,6 +23,8 @@ function DataTableWarnings() {
   const [activRow, setActivRow] = useState({});
   const [showBackdrop, setShowBackrop] = useState(true);
   const [amount, setAmount] = useState();
+  const [openPDFDialogModal, setOpenPDFDialogModal] = useState(false);
+  const [pdfFileData, setPdfFileData] = useState(null);
 
   const handleEdit = async (row) => {
     setActivRow(row);
@@ -29,8 +32,10 @@ function DataTableWarnings() {
   };
 
   const handlePreviewPostCash = async (row) => {
-    // setActivRow(row);
-    // setOpenPreviewDialog(true);
+    const checkPdfFile = (await api.get(`/court-service/hybrid-mail-chek/${row.hybridMailId}`, { responseType: 'arraybuffer' })).data;
+
+    setPdfFileData(checkPdfFile);
+    setOpenPDFDialogModal(true);
   };
 
   const columns = [
@@ -70,7 +75,7 @@ function DataTableWarnings() {
           </IconButton>
           <Tooltip title="Pochta kvitansiyasini ko'rish">
             <IconButton
-              onClick={() => 'todo'}
+              onClick={() => handlePreviewPostCash(params.row)}
               disabled={!params.row.isSent}
               sx={{ color: customization.mode === 'dark' ? 'primary.200' : 'primary.main' }}
             >
@@ -142,6 +147,7 @@ function DataTableWarnings() {
   return (
     <div>
       <EditModal handleCloseDialog={handleCloseDialog} open={openEditDialog} row={activRow} amount={amount} setAmount={setAmount} />
+      {openPDFDialogModal && <PDFViewerModal handleCloseDialog={() => setOpenPDFDialogModal(false)} base64={pdfFileData} />}
       <DataGrid
         className="data-table card"
         columns={columns}
