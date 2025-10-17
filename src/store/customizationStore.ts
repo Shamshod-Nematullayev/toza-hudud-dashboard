@@ -2,18 +2,40 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import config from 'config';
 
+export enum FontFamily {
+  Roboto = 'Roboto, sans-serif',
+  Poppins = 'Poppins, sans-serif',
+  Inter = 'Inter, sans-serif',
+  TimesNewRoman = 'Times New Roman, serif'
+}
+interface CustomizationState {
+  customization: {
+    isOpen: string[];
+    defaultId: string;
+    fontFamily: FontFamily;
+    borderRadius: number;
+    opened: boolean;
+    mode: string;
+    documentVariantOdamSoni: string;
+  };
+  setCustomization: (customization: Partial<CustomizationState['customization']>) => void;
+  language: string;
+  setLanguage: (lang: string) => void;
+  resetCustomization: () => void;
+}
+
 const initialState = {
   isOpen: [],
   defaultId: 'default',
-  fontFamily: config.fontFamily,
+  fontFamily: FontFamily.Roboto,
   borderRadius: config.borderRadius,
   opened: true,
   mode: 'dark',
   documentVariantOdamSoni: '1'
 };
 
-const useCustomizationStore = create(
-  persist(
+const useCustomizationStore = create<CustomizationState>()(
+  persist<CustomizationState>(
     (set) => ({
       customization: initialState,
       setCustomization: (customization) =>

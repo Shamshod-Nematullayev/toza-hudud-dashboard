@@ -4,9 +4,17 @@ import React from 'react';
 // third-party
 import { motion, useCycle } from 'framer-motion';
 
+interface AnimateButtonProps {
+  children: React.ReactNode;
+  offset?: number;
+  type?: 'scale' | 'slide' | 'rotate';
+  direction?: 'up' | 'down' | 'left' | 'right';
+  scale?: number | ({ hover: number; tap: number } & any);
+}
+
 // ==============================|| ANIMATION BUTTON ||============================== //
 
-const AnimateButton = React.forwardRef(({ children, type, direction, offset, scale }, ref) => {
+const AnimateButton = React.forwardRef<HTMLDivElement, AnimateButtonProps>(({ children, type, direction, offset, scale }, ref) => {
   let offset1;
   let offset2;
   switch (direction) {
