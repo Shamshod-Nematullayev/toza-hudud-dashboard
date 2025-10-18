@@ -11,9 +11,11 @@ import api from 'utils/api';
 import useWarningLettersStore from './useStore';
 import { Preview } from '@mui/icons-material';
 import PDFViewerModal from 'ui-component/PDFViewerModal';
+import useLoaderStore from 'store/loaderStore';
 
 function DataTableWarnings() {
   const { customization } = useCustomizationStore();
+  const { setIsLoading } = useLoaderStore();
   const { fromDate, toDate, filters, setChecked, rows, setRows } = useWarningLettersStore();
 
   const [page, setPage] = useState(0);
@@ -32,10 +34,17 @@ function DataTableWarnings() {
   };
 
   const handlePreviewPostCash = async (row) => {
-    const checkPdfFile = (await api.get(`/court-service/hybrid-mail-chek/${row.hybridMailId}`, { responseType: 'arraybuffer' })).data;
+    setIsLoading(true);
+    try {
+      const checkPdfFile = (await api.get(`/court-service/hybrid-mail-chek/${row.hybridMailId}`)).data;
 
-    setPdfFileData(checkPdfFile);
-    setOpenPDFDialogModal(true);
+      setPdfFileData(checkPdfFile.file);
+      setOpenPDFDialogModal(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const columns = [
@@ -147,7 +156,7 @@ function DataTableWarnings() {
   return (
     <div>
       <EditModal handleCloseDialog={handleCloseDialog} open={openEditDialog} row={activRow} amount={amount} setAmount={setAmount} />
-      {openPDFDialogModal && <PDFViewerModal handleCloseDialog={() => setOpenPDFDialogModal(false)} base64={pdfFileData} />}
+      {openPDFDialogModal && <PDFViewerModal handleClose={() => setOpenPDFDialogModal(false)} base64={pdfFileData} />}
       <DataGrid
         className="data-table card"
         columns={columns}
