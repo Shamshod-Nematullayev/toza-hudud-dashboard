@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { createGlobalStyle } from 'styled-components';
 import useStore from './useStore';
+import { useTranslation } from 'react-i18next';
 
 const CustomStyle = createGlobalStyle`
   .drop-zone {
@@ -151,6 +152,7 @@ function FileInputDrop() {
       thumbnailElement.style.backgroundImage = null;
     }
   };
+  const { t } = useTranslation();
   return (
     <>
       <CustomStyle />
@@ -164,7 +166,7 @@ function FileInputDrop() {
           accept=".pdf"
           style={{ display: 'none' }}
         />
-        <div className="drop-zone__prompt">Drop your pdf files</div>
+        <div className="drop-zone__prompt">{t('Drop your files')}</div>
       </label>
     </>
   );

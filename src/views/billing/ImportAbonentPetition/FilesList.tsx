@@ -5,16 +5,18 @@ import { useTheme } from '@mui/material/styles';
 import { toast } from 'react-toastify';
 import { getArizaById } from 'services/getArizaById';
 import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
+import { useTranslation } from 'react-i18next';
 
 function FilesList() {
   const { pdfFiles, setCurrentFile, currentFile, setAriza } = useStore();
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // handlers
   const handleListItemClick = async (file_name: string) => {
     setAriza({});
     try {
-      const currentFile = pdfFiles.find(({ file }) => file.name === file_name);
+      const currentFile = pdfFiles.find(({ file }: { file: any }) => file.name === file_name);
       const file = currentFile.file;
       if (!file) {
         toast.error('Fayl topilmadi.');
@@ -28,7 +30,7 @@ function FilesList() {
       if (!data.ok) {
         return toast.error(data.message);
       }
-      const [key, id, document_number] = data.result.split('_');
+      const [key, id, document_number] = data.result?.split('_') as string[];
       if (key !== 'ariza') {
         return toast.error("Noma'lum QR kod");
       }
@@ -70,7 +72,7 @@ function FilesList() {
   return (
     <Grid container height={'100%'}>
       <Grid item xs={12}>
-        <TextField placeholder="Qidirish" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} fullWidth />
+        <TextField placeholder={t('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} fullWidth />
       </Grid>
       <Grid item xs={12} height={'100%'}>
         <List sx={{ overflowY: 'auto', height: 'calc(100% - 5vh)' }}>

@@ -1,10 +1,12 @@
 import { Add } from '@mui/icons-material';
 import { Button, Card, TextField, useMediaQuery } from '@mui/material';
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import useStore from './useStore';
+import { useTranslation } from 'react-i18next';
 
 function ToolBar() {
+  const { t } = useTranslation();
   const { setFilter, filter, documentNumber, setDocumentNumber } = useStore();
   const isXs = useMediaQuery('(max-width:600px)');
   const handleDocumentNumberChange = (e) => {
@@ -31,19 +33,19 @@ function ToolBar() {
       <div>
         <Link to="/billing/createAbonentAriza">
           <Button color="primary" variant="contained">
-            <Add /> {!isXs && " qo'shish"}
+            <Add /> {!isXs && ` ${t('buttons.add')}`}
           </Button>
         </Link>
 
         <Link to="/billing/importAbonentPetition">
           <Button color="secondary" variant="outlined">
-            arizalar import
+            {t('menuItems.importAbonentPetition')}
           </Button>
         </Link>
       </div>
       <form onSubmit={handleDocumentNumberSubmit}>
         <TextField
-          placeholder="izlash"
+          placeholder={t('search')}
           value={documentNumber}
           onChange={handleDocumentNumberChange}
           inputProps={{ style: { padding: '10px 10px' } }}

@@ -1,4 +1,4 @@
-import { Button, Grid, IconButton, TextField, Typography, useTheme } from '@mui/material';
+import { Button, Grid, IconButton, TextField, Tooltip, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -15,6 +15,7 @@ import ChooseArizaPopper from './ChooseArizaPopper';
 import { AxiosResponse } from 'axios';
 import { ITariff } from 'types/billing';
 import { getTariffs } from 'services/getTariffs';
+import { useTranslation } from 'react-i18next';
 
 function KeyValue({ kalit, value }: { kalit: string; value: string }) {
   return (
@@ -28,7 +29,7 @@ function KeyValue({ kalit, value }: { kalit: string; value: string }) {
     </div>
   );
 }
-const counterDiffMonth = function (initialDate) {
+const counterDiffMonth = function (initialDate: Date): number {
   const currentDate = new Date();
   const yearDiff = currentDate.getFullYear() - initialDate.getFullYear();
   const monthDiff = currentDate.getMonth() - initialDate.getMonth();
@@ -47,6 +48,7 @@ interface IRow {
 }
 
 function FindedDataTable() {
+  const { t } = useTranslation();
   const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog } = useStore();
   const [rows, setRows] = useState<IRow[]>([]);
   const [arizaNumberInput, setArizaNumberInput] = useState('');
@@ -226,7 +228,8 @@ function FindedDataTable() {
       setAriza({});
       toast.success(data.message);
     } catch (err) {
-      console.error(err.message);
+      const message = err instanceof Error ? err.message : String(err ?? "Noma'lum xatolik");
+      console.error(message);
     } finally {
       setIsLoading(false);
       setIsUploading(false);
@@ -287,14 +290,16 @@ function FindedDataTable() {
           </Popper> */}
         </Grid>
         <Grid item xs={1.5}>
-          <TextField
-            disabled={inputDisabled}
-            variant="outlined"
-            name="licshet_input"
-            placeholder="Ariza raqami"
-            value={arizaNumberInput}
-            onChange={(e) => setArizaNumberInput(e.target.value)}
-          />
+          <Tooltip title={t('documentNumber')}>
+            <TextField
+              disabled={inputDisabled}
+              variant="outlined"
+              name="licshet_input"
+              placeholder={t('documentNumber')}
+              value={arizaNumberInput}
+              onChange={(e) => setArizaNumberInput(e.target.value)}
+            />
+          </Tooltip>
         </Grid>
         <Grid item xs={2}>
           <Button
@@ -304,13 +309,13 @@ function FindedDataTable() {
             disabled={(ariza.status === 'yangi' || ariza.status === 'qabul qilindi') && !isUploading ? false : true}
           >
             <FileUploadOutlinedIcon />
-            kiritish
+            {t('buttons.submitEntry')}
           </Button>
         </Grid>
         <Grid item xs={2.5}>
           <Button sx={{ padding: '12px 0', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
             <DeleteOutlinedIcon />
-            tashlash
+            {t('buttons.remove')}
           </Button>
         </Grid>
         <Grid item xs={2.5}>
@@ -320,7 +325,7 @@ function FindedDataTable() {
             disabled={ariza.status === 'yangi' ? false && isUploading : true}
           >
             <Cancel />
-            bekor qilish
+            {t('buttons.cancel')}
           </Button>
         </Grid>
         <Grid item xs={2}>
@@ -334,7 +339,7 @@ function FindedDataTable() {
           style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}
         >
           <Typography variant="subtitle1" className="key">
-            <div>Akt summasi:</div>
+            <div>{t('createAbonentPetitionPage.actAmount')}:</div>
           </Typography>
           <Typography className="value">
             <input
@@ -345,22 +350,22 @@ function FindedDataTable() {
             />
           </Typography>
         </div>
-        <KeyValue kalit={'Licshet'} value={ariza.licshet} />
-        <KeyValue kalit={'F. I. Sh'} value={ariza.fio} />
-        <KeyValue kalit={'Yashovchi soni'} value={ariza.next_prescribed_cnt} />
-        <KeyValue kalit={'Yaratilgan sanasi'} value={new Date(ariza.sana)?.toLocaleDateString()} />
-        <KeyValue kalit={'Ariza holati'} value={ariza.status} />
+        <KeyValue kalit={t('tableHeaders.accountNumber')} value={ariza.licshet} />
+        <KeyValue kalit={t('tableHeaders.fullName')} value={ariza.fio} />
+        <KeyValue kalit={t('tableHeaders.inhabitantCount')} value={ariza.next_prescribed_cnt} />
+        <KeyValue kalit={t('tableHeaders.createdDate')} value={new Date(ariza.sana)?.toLocaleDateString()} />
+        <KeyValue kalit={t('tableHeaders.status')} value={ariza.status} />
       </div>
       <DataGrid
         columns={[
-          { field: 'id', headerName: 't/r', width: 10 },
-          { field: 'davr', headerName: 'davr' },
-          { field: 'saldo_n', headerName: 'saldo boshi', type: 'number' },
-          { field: 'nachis', headerName: 'Hisoblandi', type: 'number' },
-          { field: 'allPaymentsSum', headerName: 'Tushum', type: 'number' },
-          { field: 'saldo_k', headerName: 'Saldo oxiri', type: 'number' },
-          { field: 'akt', headerName: 'Akt', type: 'number' },
-          { field: 'yashovchilar_soni', headerName: 'Yashovchi soni', type: 'number', width: 10 }
+          { field: 'id', headerName: '№', width: 10 },
+          { field: 'davr', headerName: t('tableHeaders.period') },
+          { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number' },
+          { field: 'nachis', headerName: t('tableHeaders.nachis'), type: 'number' },
+          { field: 'allPaymentsSum', headerName: t('tableHeaders.allPaymentsSum'), type: 'number' },
+          { field: 'saldo_k', headerName: t('tableHeaders.kSaldo'), type: 'number' },
+          { field: 'akt', headerName: t('tableHeaders.act'), type: 'number' },
+          { field: 'yashovchilar_soni', headerName: t('tableHeaders.inhabitantCount'), type: 'number', width: 10 }
         ]}
         disableColumnFilter
         disableColumnSorting

@@ -10,6 +10,7 @@ import ToolBar from './ToolBar';
 import useStore from './useStore';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { t } from 'i18next';
 function DataTable() {
   const {
     rows,
@@ -52,14 +53,13 @@ function DataTable() {
           const rows = data.data.map((row, i) => ({
             _id: row._id,
             id: i + 1,
-            documentType: row.document_type,
+            documentType: t('documentTypes.' + row.document_type),
             accountNumber: row.licshet,
             aktSummasi: row.aktSummasi,
             status: row.status,
             actStatus: row.actStatus,
             fio: row.fio
           }));
-          console.log(rows);
           setRows(rows);
           setTotal(data.meta.total);
           setIsLoading(false);
@@ -126,14 +126,14 @@ function DataTable() {
         <DataGrid
           columns={[
             { field: 'id', headerName: '№', width: 50 },
-            { field: 'documentType', headerName: 'Xujjat turi' },
-            { field: 'accountNumber', headerName: 'Hisob raqami', width: 120 },
-            { field: 'aktSummasi', headerName: 'akt summa', type: 'number' },
-            { field: 'status', headerName: 'status' },
-            { field: 'actStatus', headerName: 'Akt holati' },
+            { field: 'documentType', headerName: t('tableHeaders.documentType') },
+            { field: 'accountNumber', headerName: t('tableHeaders.accountNumber'), width: 120 },
+            { field: 'aktSummasi', headerName: t('tableHeaders.actAmount'), type: 'number' },
+            { field: 'status', headerName: t('tableHeaders.status') },
+            { field: 'actStatus', headerName: t('tableHeaders.actStatus') },
             {
               field: 'actions',
-              headerName: 'Harakatlar',
+              headerName: t('tableHeaders.actions'),
               renderCell: (e) => {
                 return (
                   <>

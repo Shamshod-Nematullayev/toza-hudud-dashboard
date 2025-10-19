@@ -5,21 +5,12 @@ import { useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import CardActions from '@mui/material/CardActions';
-import Chip from '@mui/material/Chip';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
-import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import ButtonBase from '@mui/material/ButtonBase';
-
-// third-party
-import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -30,7 +21,7 @@ import useCustomizationStore from 'store/customizationStore';
 import { languageOptions } from 'store/constant';
 import { Language } from '@mui/icons-material';
 
-// ==============================|| NOTIFICATION ||============================== //
+// ==============================|| LANGUAGE - POPPER ||============================== //
 
 const LanguageSection = () => {
   const theme = useTheme();
@@ -38,7 +29,7 @@ const LanguageSection = () => {
 
   const [open, setOpen] = useState(false);
 
-  const { language, setLanguage } = useCustomizationStore();
+  const { setLanguage } = useCustomizationStore();
   const anchorRef = useRef(null);
 
   const handleToggle = () => {
@@ -118,13 +109,14 @@ const LanguageSection = () => {
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard border={false} content={false} boxShadow shadow={theme.shadows[16]}>
-                  {languageOptions.map((item) => (
-                    <div>
+                  {languageOptions.map((item, i) => (
+                    <div key={i}>
                       <Button
                         key={item.value}
                         onClick={(e) => {
                           setLanguage(item.value);
                           handleClose(e);
+                          window.location.reload();
                         }}
                       >
                         <div

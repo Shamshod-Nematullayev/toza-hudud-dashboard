@@ -5,8 +5,10 @@ import dayjs from 'dayjs';
 import React, { useState } from 'react';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import useStore from './useStore';
+import { useTranslation } from 'react-i18next';
 
 function SideBar() {
+  const { t } = useTranslation();
   const { setFilter, setDocumentNumber } = useStore();
   const [arizaType, setArizaType] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -56,30 +58,35 @@ function SideBar() {
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <Typography variant="h3" sx={{ textAlign: 'center' }}>
-            Filterlar
+            {t('filters')}
           </Typography>
         </Grid>
         <Grid item xs={12}>
           <FormControl fullWidth>
-            <InputLabel id="ariza-type-label">Ariza turi</InputLabel>
+            <InputLabel id="ariza-type-label">{t('tableHeaders.documentType')}</InputLabel>
             <Select label="Ariza turi" labelId="ariza-type-label" value={arizaType} onChange={(e) => setArizaType(e.target.value)}>
-              <MenuItem value="">Hammasi</MenuItem>
-              <MenuItem value="odam_soni">Odam soni</MenuItem>
-              <MenuItem value="death">O&#39;lim guvohnomasi</MenuItem>
-              <MenuItem value="viza">Pasport vizasi</MenuItem>
-              <MenuItem value="gps">GPS xulosasi</MenuItem>
-              <MenuItem value="dvaynik">Ikkilamchi kod</MenuItem>
+              <MenuItem value="">{t('all')}</MenuItem>
+              <MenuItem value="odam_soni">{t('tableHeaders.documentType')}</MenuItem>
+              <MenuItem value="death">{t('documentTypes.death')}</MenuItem>
+              <MenuItem value="viza">{t('documentTypes.viza')}</MenuItem>
+              <MenuItem value="gps">{t('documentTypes.gps')}</MenuItem>
+              <MenuItem value="dvaynik">{t('documentTypes.dvaynik')}</MenuItem>
             </Select>
           </FormControl>
         </Grid>
         <Grid item xs={12}>
-          <AccountNumberInput label="Hisob raqam" value={accountNumber} setFunc={setAccountNumber} fullWidth />
+          <AccountNumberInput label={t('tableHeaders.accountNumber')} value={accountNumber} setFunc={setAccountNumber} fullWidth />
         </Grid>
         <Grid item xs={12} sx={{ display: arizaType === 'dvaynik' ? 'inline-block' : 'none' }}>
-          <AccountNumberInput label="Ikkilamchi hisob raqam" value={dublicatAccountNumber} setFunc={setDublicatAccountNumber} fullWidth />
+          <AccountNumberInput
+            label={t('createAbonentPetitionPage.dublicateAccountNumber')}
+            value={dublicatAccountNumber}
+            setFunc={setDublicatAccountNumber}
+            fullWidth
+          />
         </Grid>
         <Grid item xs={12}>
-          <Typography variant="h5">Yaratilgan qilingan vaqti</Typography>
+          <Typography variant="h5">{t('tableHeaders.createdDate')}</Typography>
         </Grid>
         <Grid item xs={12} sm={6}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -87,7 +94,7 @@ function SideBar() {
               views={['year', 'month', 'day']}
               minDate={dayjs('2024-07-01')}
               maxDate={dayjs()}
-              label="dan"
+              label={t('from')}
               value={createdFromDate}
               onChange={(e) => setCreatedFromDate(dayjs(e))}
             />
@@ -99,14 +106,14 @@ function SideBar() {
               views={['year', 'month', 'day']}
               minDate={dayjs('2024-07-01')}
               maxDate={dayjs()}
-              label="gacha"
+              label={t('to')}
               value={createdToDate}
               onChange={(e) => setCreatedToDate(dayjs(e))}
             />
           </LocalizationProvider>
         </Grid>
         <Grid item xs={12}>
-          <Typography variant="h5">Akt qilingan vaqti</Typography>
+          <Typography variant="h5">{t('tableHeaders.actCreatedDate')}</Typography>
         </Grid>
         <Grid item xs={12} sm={6}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -114,7 +121,7 @@ function SideBar() {
               views={['year', 'month', 'day']}
               minDate={dayjs('2024-07-01')}
               maxDate={dayjs()}
-              label="dan"
+              label={t('from')}
               value={actFromDate}
               onChange={(e) => setActFromDate(dayjs(e))}
             />
@@ -126,57 +133,57 @@ function SideBar() {
               views={['year', 'month', 'day']}
               minDate={dayjs('2024-07-01')}
               maxDate={dayjs()}
-              label="gacha"
+              label={t('to')}
               value={actToDate}
               onChange={(e) => setActToDate(dayjs(e))}
             />
           </LocalizationProvider>
         </Grid>
         <Grid item xs={12}>
-          <Typography variant="h5">Akt summasi</Typography>
+          <Typography variant="h5">{t('tableHeaders.actAmount')}</Typography>
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField label="dan" value={actAmountFrom} onChange={(e) => setActAmountFrom(e.target.value)} fullWidth />
+          <TextField label={t('from')} value={actAmountFrom} onChange={(e) => setActAmountFrom(e.target.value)} fullWidth />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField label="gacha" value={actAmountTo} onChange={(e) => setActAmountTo(e.target.value)} fullWidth />
+          <TextField label={t('to')} value={actAmountTo} onChange={(e) => setActAmountTo(e.target.value)} fullWidth />
         </Grid>
         <Grid item xs={12}>
           <FormControl fullWidth>
-            <InputLabel id="ariza-status-label">Ariza holati</InputLabel>
+            <InputLabel id="ariza-status-label">{t('tableHeaders.status')}</InputLabel>
             <Select label="Ariza turi" labelId="ariza-status-label" value={arizaStatus} onChange={(e) => setArizaStatus(e.target.value)}>
-              <MenuItem value="">Hammasi</MenuItem>
-              <MenuItem value="yangi">Yangi</MenuItem>
-              <MenuItem value="qabul qilindi">Qabul qilindi</MenuItem>
-              <MenuItem value="tasdiqlangan">Tasdiqlandi</MenuItem>
-              <MenuItem value="bekor qilindi">Bekor qilindi</MenuItem>
-              <MenuItem value="akt_kiritilgan">Akt kiritildi</MenuItem>
-              <MenuItem value="qayta_akt_kiritilgan">Qayta akt kiritildi</MenuItem>
+              <MenuItem value="">{t('all')}</MenuItem>
+              <MenuItem value="yangi">{t('petitionStatus.new')}</MenuItem>
+              <MenuItem value="qabul qilindi">{t('petitionStatus.accepted')}</MenuItem>
+              <MenuItem value="tasdiqlangan">{t('petitionStatus.confirmed')}</MenuItem>
+              <MenuItem value="bekor qilindi">{t('petitionStatus.cancelled')}</MenuItem>
+              <MenuItem value="akt_kiritilgan">{t('petitionStatus.actEntered')}</MenuItem>
+              <MenuItem value="qayta_akt_kiritilgan">{t('petitionStatus.actReentered')}</MenuItem>
             </Select>
           </FormControl>
         </Grid>
         <Grid item xs={12}>
           <FormControl fullWidth>
-            <InputLabel id="act-status-label">Akt holati</InputLabel>
+            <InputLabel id="act-status-label">{t('tableHeaders.actStatus')}</InputLabel>
             <Select label="Ariza turi" labelId="act-status-label" value={actStatus} onChange={(e) => setActStatus(e.target.value)}>
-              <MenuItem value="">Hammasi</MenuItem>
-              <MenuItem value="NEW">Yangi</MenuItem>
-              <MenuItem value="WARNED">Ogohlantirildi</MenuItem>
-              <MenuItem value="CONFIRMED">Tasdiqlandi</MenuItem>
-              <MenuItem value="CANCELLED">Bekor qilindi</MenuItem>
-              <MenuItem value="CONFIRMED_CANCELLED">Tasdiqlangan bekor qilindi</MenuItem>
-              <MenuItem value="WARNED_CANCELLED">Ogohlantirildi bekor qilindi</MenuItem>
+              <MenuItem value="">{t('all')}</MenuItem>
+              <MenuItem value="NEW">{t('actStatus.NEW')}</MenuItem>
+              <MenuItem value="WARNED">{t('actStatus.WARNED')}</MenuItem>
+              <MenuItem value="CONFIRMED">{t('actStatus.CONFIRMED')}</MenuItem>
+              <MenuItem value="CANCELLED">{t('actStatus.CANCELLED')}</MenuItem>
+              <MenuItem value="CONFIRMED_CANCELLED">{t('actStatus.CONFIRMED_CANCELLED')}</MenuItem>
+              <MenuItem value="WARNED_CANCELLED">{t('actStatus.WARNED_CANCELLED')}</MenuItem>
             </Select>
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6}>
           <Button color="info" variant="outlined" onClick={handleClickClearButton} fullWidth>
-            Tozalash
+            {t('buttons.clear')}
           </Button>
         </Grid>
         <Grid item xs={12} sm={6}>
           <Button color="primary" variant="contained" onClick={handleClickSeachButton} fullWidth>
-            Qidirish
+            {t('search')}
           </Button>
         </Grid>
       </Grid>

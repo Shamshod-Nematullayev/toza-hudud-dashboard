@@ -191,8 +191,8 @@ export default function componentStyleOverrides(theme) {
           noRowsLabel: i18n.t('dataGrid.noRowsLabel'),
           footerRowSelected: (count) => i18n.t('dataGrid.footerRowSelected', { count }), //`${count} ta tanlangan`,
           MuiTablePagination: {
-            labelRowsPerPage: 'Sahifadagi qatorlar:',
-            labelDisplayedRows: ({ from, to, count }) => `${count} tadan ${from} dan ${to} gacha`
+            labelRowsPerPage: i18n.t('dataGrid.labelRowsPerPage'), //'Sahifadagi qatorlar:',
+            labelDisplayedRows: i18n.t('dataGrid.labelDisplayedRows', { from: '{from}', to: '{to}', count: '{count}' }) // ({ from, to, count }) => `${count} ta jami ${from} dan ${to gacha}`
           }
         }
       },

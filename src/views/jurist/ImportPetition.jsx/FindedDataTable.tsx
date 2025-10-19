@@ -7,7 +7,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import api from 'utils/api';
 
-function KeyValue({ kalit, value }) {
+function KeyValue({ kalit, value }: { kalit: string; value: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}>
       <Typography variant="subtitle1" className="key">
@@ -56,11 +56,11 @@ function FindedDataTable() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     fetchData();
   };
-  const handlePrimaryButtonClick = async (e) => {
+  const handlePrimaryButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     try {
       e.preventDefault();
       if (!activeRow._id) {
