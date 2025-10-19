@@ -128,6 +128,7 @@ interface StoreState {
   setYashovchiSoniInput: (yashovchiSoniInput: string | number) => void;
   setPasteImageDialogOpen: (pasteImageDialogOpen: boolean) => void;
   setMuzlatiladi: (muzlatiladi: boolean) => void;
+  setInitialState: () => void;
 }
 
 export const useStore = create<StoreState>((set) => ({

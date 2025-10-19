@@ -1,13 +1,13 @@
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
-import { useStore } from './useStore';
+import { IAbonentData, useStore } from './useStore';
 import api from 'utils/api';
 import { Box, IconButton, Stack, Table, Toolbar, Tooltip, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { colors } from 'store/constant';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
-import { AbonentDetails, IRowDhj } from 'types/billing';
+import { IRowDhj } from 'types/billing';
 
 interface IRow {
   id: number;
@@ -20,7 +20,7 @@ interface IRow {
   allPaymentsSum: number;
 }
 
-function DHJTable({ abonentData, title }: { abonentData: AbonentDetails; title: string }) {
+function DHJTable({ abonentData, title }: { abonentData: IAbonentData; title: string }) {
   const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
   const [rowsPreviewTable, setRowsPreviewTable] = useState<IRow[]>([]);
   const store = useStore();
