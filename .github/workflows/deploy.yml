@@ -13,11 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      #   - name: Install dependencies
+      # run: yarn install --frozen-lockfile
 
-      - name: Build React app
-        run: yarn build
+      #   - name: Build React app
+      # run: yarn build
 
       - name: Copy build folder to server
         uses: appleboy/scp-action@v0.1.7
