@@ -15,7 +15,7 @@ jobs:
 
       - name: Build React app
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Copy files to server via SSH
