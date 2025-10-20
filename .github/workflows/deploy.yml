@@ -25,7 +25,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: 'dist/*'
+          source: 'dist/'
           target: '/var/www/react-app'
 
       - name: Restart Nginx
