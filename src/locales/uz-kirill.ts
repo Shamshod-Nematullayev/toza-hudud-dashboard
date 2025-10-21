@@ -1,5 +1,13 @@
 import uz from './uz.js';
 const uzKirill: typeof uz = {
+  actStatus: {
+    NEW: 'Янги',
+    CONFIRMED: 'Тасдиқланган',
+    CANCELLED: 'Бекор қилинган',
+    CONFIRMED_CANCELLED: 'Тасдиқланган бекор қилинган',
+    WARNED: 'Огоҳлантирилган',
+    WARNED_CANCELLED: 'Огоҳлантирилган бекор қилинган'
+  },
   'tizimga kirish': 'Тизимга кириш',
   username: 'Фойдаланувчи номи',
   password: 'Парол',
@@ -9,7 +17,7 @@ const uzKirill: typeof uz = {
   filters: 'Филтрлар',
   from: 'дан',
   to: 'гача',
-  'Drop your files': 'файлларингизни ташланг',
+  'Drop your files': 'Файлларингизни ташланг',
   documentNumber: 'Ҳужжат рақами',
   menuItems: {
     employeers: 'Ходимлар',
@@ -165,6 +173,14 @@ const uzKirill: typeof uz = {
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Рокировка қилиш (тавсия қилинмайди 🙅‍♂️)',
     Rokirovka: 'Рокировка'
+  },
+  petitionStatus: {
+    accepted: 'Қабул қилинган',
+    actEntered: 'Акт кирилтиган',
+    actReentered: 'Қайта акт кирилтилган',
+    cancelled: 'Бекор қилинган',
+    confirmed: 'Тасдиқланган',
+    new: 'Янги'
   },
   qarzdorAbonentlarPage: {
     "Sudga o'tgan": 'Судга ўтган',

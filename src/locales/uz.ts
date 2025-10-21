@@ -8,7 +8,7 @@ const uz = {
   filters: 'Filterlar',
   from: 'dan',
   to: 'gacha',
-  'Drop your files': 'fayllaringizni tashlang',
+  'Drop your files': 'Fayllaringizni tashlang',
   documentNumber: 'Xujjat raqami',
   menuItems: {
     employeers: 'Xodimlar',

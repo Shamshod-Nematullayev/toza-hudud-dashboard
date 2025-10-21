@@ -1,10 +1,12 @@
-import { Button, FormControl, TextField } from '@mui/material';
+import { Button, FormControl } from '@mui/material';
 import React, { useContext, useEffect } from 'react';
 import { DeleteDublicatContext } from '.';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
+import { getAbonentDataByAccountnumber } from 'services/getAbonentDataByAccountnumber';
+import { getAbonentDxjByResidentId } from 'services/getAbonentDHJ';
 
 function SearchAbonentForm() {
   const {
@@ -24,46 +26,46 @@ function SearchAbonentForm() {
   const { setIsLoading } = useLoaderStore();
   useEffect(() => {
     if (realAccountNumber.length === 12) {
-      setIsLoading(true);
-      api.get('/billing/get-abonent-data-by-licshet/' + realAccountNumber).then(async ({ data }) => {
-        if (!data.ok) {
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          const realAbonent = await getAbonentDataByAccountnumber(realAccountNumber);
+          if (!realAbonent.id) throw new Error('Abonent topilmadi');
+
+          const dhj = await getAbonentDxjByResidentId(realAbonent.id);
+          const allPaymentAmounts = dhj.reduce((acc, row) => acc + row.allPaymentsSum, 0);
+          realAbonent.allPaymentAmount = allPaymentAmounts;
+          setRealAbonent(realAbonent);
+        } catch (error) {
           setRealAbonent({});
-          return;
-        }
-        if (data.abonentData) {
-          const dhj = (await api.get('/billing/get-abonent-dxj-by-id/' + data.abonentData.id)).data.rows;
-          let allPaymentAmounts = 0;
-          dhj.forEach((row) => {
-            allPaymentAmounts += row.allPaymentsSum;
-          });
-          data.abonentData.allPaymentAmount = allPaymentAmounts;
-          setRealAbonent(data.abonentData);
+        } finally {
           setIsLoading(false);
         }
-      });
+      };
+      fetchData();
     } else {
       realAbonent.accountNumber && setRealAbonent({});
     }
   }, [realAccountNumber]);
   useEffect(() => {
     if (fakeAccountNumber.length === 12) {
-      setIsLoading(true);
-      api.get('/billing/get-abonent-data-by-licshet/' + fakeAccountNumber).then(async ({ data }) => {
-        if (!data.ok) {
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          const fakeAbonent = await getAbonentDataByAccountnumber(fakeAccountNumber);
+          if (!fakeAbonent.id) throw new Error('Abonent topilmadi');
+
+          const dhj = await getAbonentDxjByResidentId(fakeAbonent.id);
+          const allPaymentAmounts = dhj.reduce((acc, row) => acc + row.allPaymentsSum, 0);
+          fakeAbonent.allPaymentAmount = allPaymentAmounts;
+          setFakeAbonent(fakeAbonent);
+        } catch (error) {
           setFakeAbonent({});
-          return;
+        } finally {
+          setIsLoading(false);
         }
-        if (data.abonentData) {
-          const dhj = (await api.get('/billing/get-abonent-dxj-by-id/' + data.abonentData.id)).data.rows;
-          let allPaymentAmounts = 0;
-          dhj.forEach((row) => {
-            allPaymentAmounts += row.allPaymentsSum;
-          });
-          data.abonentData.allPaymentAmount = allPaymentAmounts;
-          setFakeAbonent(data.abonentData);
-        }
-        setIsLoading(false);
-      });
+      };
+      fetchData();
     } else {
       fakeAbonent.accountNumber && setFakeAbonent({});
     }
@@ -148,7 +150,7 @@ function SearchAbonentForm() {
         onClick={handleAddClickButton}
         sx={{ margin: '5px 0' }}
       >
-        Qo'shish
+        Qo&rsquo;shish
       </Button>
       <Button variant="contained" color="primary" sx={{ margin: '5px 0' }} onClick={handleClickPrimaryButton} disabled={!rows.length}>
         AKT qilish

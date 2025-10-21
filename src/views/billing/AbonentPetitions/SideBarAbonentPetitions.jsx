@@ -66,7 +66,7 @@ function SideBar() {
             <InputLabel id="ariza-type-label">{t('tableHeaders.documentType')}</InputLabel>
             <Select label="Ariza turi" labelId="ariza-type-label" value={arizaType} onChange={(e) => setArizaType(e.target.value)}>
               <MenuItem value="">{t('all')}</MenuItem>
-              <MenuItem value="odam_soni">{t('tableHeaders.documentType')}</MenuItem>
+              <MenuItem value="odam_soni">{t('documentTypes.odam_soni')}</MenuItem>
               <MenuItem value="death">{t('documentTypes.death')}</MenuItem>
               <MenuItem value="viza">{t('documentTypes.viza')}</MenuItem>
               <MenuItem value="gps">{t('documentTypes.gps')}</MenuItem>

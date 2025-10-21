@@ -1,20 +1,24 @@
 import { Button, Grid, IconButton, MenuItem, Select, Stack, TextField, Tooltip } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
-import { aktType, defaultAbonentData, useStore } from './useStore';
+import { aktType, defaultAbonentData, IRecalculationPeriod, useStore } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import KeyValue from 'ui-component/KeyValue';
 import useLoaderStore from 'store/loaderStore';
 import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { documentTypes } from 'store/constant';
-import { IconReload } from '@tabler/icons-react';
-import { ScreenRotation, ScreenRotationAlt } from '@mui/icons-material';
+import { ScreenRotationAlt } from '@mui/icons-material';
+import { Dayjs } from 'dayjs';
 
 // helpers
-function generateSummary(data) {
-  function formatDateToMMYYYY(dateString) {
+interface IPeriod extends IRecalculationPeriod {
+  startDate: Dayjs;
+  endDate: Dayjs;
+}
+function generateSummary(data: IPeriod[]) {
+  function formatDateToMMYYYY(dateString: string) {
     const date = new Date(dateString);
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
@@ -22,7 +26,10 @@ function generateSummary(data) {
   }
   // Har bir elementni matn shaklida formatlash
   const details = data
-    .map((item) => `Davr: ${formatDateToMMYYYY(item.startDate)} - ${formatDateToMMYYYY(item.endDate)}, Summa: ${item.total}`)
+    .map(
+      (item) =>
+        `Davr: ${formatDateToMMYYYY(item.startDate.toString())} - ${formatDateToMMYYYY(item.endDate.toString())}, Summa: ${item.total}`
+    )
     .join('\n'); // Har bir elementni yangi qatorga joylash
 
   // Umumiy yig'indini hisoblash
@@ -142,7 +149,7 @@ function InputForm() {
           },
           current_prescribed_cnt: abonentData.house.inhabitantCnt,
           next_prescribed_cnt: isNaN(Number(yashovchiSoniInput)) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
-          comment: generateSummary(recalculationPeriods),
+          comment: generateSummary(recalculationPeriods as IPeriod[]),
           photos: images.map((img) => img.document_id),
           recalculationPeriods,
           muzlatiladi

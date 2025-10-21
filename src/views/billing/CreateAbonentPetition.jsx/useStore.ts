@@ -12,7 +12,7 @@ interface dhjRow {
   allPaymentsSum: number;
 }
 
-interface IRecalculationPeriod {
+export interface IRecalculationPeriod {
   period: string;
   withQQSTotal: number;
   withoutQQSTotal: number;

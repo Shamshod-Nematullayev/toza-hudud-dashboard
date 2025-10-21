@@ -1,4 +1,5 @@
-import React, { useRef, useEffect } from 'react';
+import { t } from 'i18next';
+import React, { useRef, useEffect, FormEvent } from 'react';
 import { createGlobalStyle } from 'styled-components';
 
 const CustomStyle = createGlobalStyle`
@@ -50,7 +51,7 @@ const CustomStyle = createGlobalStyle`
     text-align: center;
   }
 `;
-function FileInputDrop({ setFunc }) {
+function FileInputDrop({ setFunc }: { setFunc: (e: any) => void }) {
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -60,22 +61,24 @@ function FileInputDrop({ setFunc }) {
     const dropZoneElement = dropZoneRef.current;
     const inputElement = fileInputRef.current;
 
-    const handleDrop = async (e) => {
+    if (!dropZoneElement || !inputElement) return;
+
+    const handleDrop = async (e: any) => {
       e.preventDefault();
-      dropZoneElement.classList.remove('drop-zone--over');
+      (dropZoneElement as HTMLElement)?.classList.remove('drop-zone--over');
 
       updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
 
       setFunc({ file: e.dataTransfer.files[0], url: URL.createObjectURL(e.dataTransfer.files[0]) });
     };
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e: any) => {
       e.preventDefault();
-      dropZoneElement.classList.add('drop-zone--over');
+      (dropZoneElement as HTMLElement)?.classList.add('drop-zone--over');
     };
 
     const handleDragLeave = () => {
-      dropZoneElement.classList.remove('drop-zone--over');
+      (dropZoneElement as HTMLElement)?.classList.remove('drop-zone--over');
     };
 
     const handleChange = (e) => {
@@ -85,18 +88,18 @@ function FileInputDrop({ setFunc }) {
       }
     };
 
-    dropZoneElement.addEventListener('dragover', handleDragOver);
-    dropZoneElement.addEventListener('dragleave', handleDragLeave);
-    dropZoneElement.addEventListener('dragend', handleDragLeave);
-    dropZoneElement.addEventListener('drop', handleDrop);
-    inputElement.addEventListener('change', handleChange);
+    (dropZoneElement as HTMLElement)?.addEventListener('dragover', handleDragOver);
+    (dropZoneElement as HTMLElement)?.addEventListener('dragleave', handleDragLeave);
+    (dropZoneElement as HTMLElement)?.addEventListener('dragend', handleDragLeave);
+    (dropZoneElement as HTMLElement)?.addEventListener('drop', handleDrop);
+    (inputElement as HTMLInputElement)?.addEventListener('change', handleChange);
 
     return () => {
-      dropZoneElement.removeEventListener('dragover', handleDragOver);
-      dropZoneElement.removeEventListener('dragleave', handleDragLeave);
-      dropZoneElement.removeEventListener('dragend', handleDragLeave);
-      dropZoneElement.removeEventListener('drop', handleDrop);
-      inputElement.removeEventListener('change', handleChange);
+      (dropZoneElement as HTMLElement)?.removeEventListener('dragover', handleDragOver);
+      (dropZoneElement as HTMLElement)?.removeEventListener('dragleave', handleDragLeave);
+      (dropZoneElement as HTMLElement)?.removeEventListener('dragend', handleDragLeave);
+      (dropZoneElement as HTMLElement)?.removeEventListener('drop', handleDrop);
+      (inputElement as HTMLInputElement).removeEventListener('change', handleChange);
     };
   }, []);
 
@@ -130,7 +133,7 @@ function FileInputDrop({ setFunc }) {
       <CustomStyle />
       <label className="drop-zone" ref={dropZoneRef}>
         <input type="file" name="myFile" className="drop-zone__input" ref={fileInputRef} accept=".pdf" style={{ display: 'none' }} />
-        <div className="drop-zone__prompt">PDF faylni tashlang</div>
+        <div className="drop-zone__prompt">{t('Drop your files')}</div>
       </label>
     </>
   );

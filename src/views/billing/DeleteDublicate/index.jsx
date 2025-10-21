@@ -6,7 +6,6 @@ import FileInputDrop from './InputFileDrop';
 import { DataGrid } from '@mui/x-data-grid';
 import { Grid, IconButton } from '@mui/material';
 import { Delete } from '@mui/icons-material';
-import Loader from 'ui-component/Loader';
 import PdfViewer from '../AbonentPetition/PDFViewer';
 
 export const DeleteDublicatContext = createContext();
