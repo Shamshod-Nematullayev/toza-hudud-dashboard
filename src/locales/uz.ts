@@ -35,7 +35,8 @@ const uz = {
     'Sanitar Tozalash Markazi': 'Sanitar Tozalash Markazi',
     Acts: 'Aktlar',
     specialActs: 'Maxsus aktlar',
-    moneyTransfer: "Pul ko'chirish"
+    moneyTransfer: "Pul ko'chirish",
+    'Sud harajatlari': 'Sud harajatlari'
   },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',
@@ -78,8 +79,11 @@ const uz = {
     amountWithoutQQS: 'QQS bilan emas',
     checkStatus: 'Tekshirish holati',
     createdDate: 'Yaratilgan sanasi',
+    expiresDate: 'Amal qilish muddati',
     actCreatedDate: 'Akt qilingan sanasi',
-    actStatus: 'Akt holati'
+    actStatus: 'Akt holati',
+    cashAmount: 'Kvitansiya summasi',
+    cashCount: 'Kvitansiya soni'
   },
   tableActions: {
     edit: 'Tahrirlash',

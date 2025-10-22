@@ -15,7 +15,8 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { DocumentScannerOutlined, MoveDown } from '@mui/icons-material';
+import { DocumentScannerOutlined, MoveDown, ReceiptOutlined } from '@mui/icons-material';
+import uz from '../locales/uz';
 
 //contans
 const icons = {
@@ -35,11 +36,23 @@ const icons = {
   InsertDriveFileOutlinedIcon,
   AssessmentOutlinedIcon,
   TrendingDownIcon,
-  DocumentScannerOutlined
+  DocumentScannerOutlined,
+  ReceiptOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
-const billing = {
+interface MenuItem {
+  id: string;
+  title: keyof typeof uz.menuItems;
+  type: 'group' | 'collapse' | 'item';
+  url?: string;
+  icon?: any;
+  breadcrumbs?: boolean;
+  children?: MenuItem[];
+  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist')[];
+}
+
+const billing: MenuItem = {
   id: 'workspace',
   title: 'workspace',
   type: 'group',
@@ -168,8 +181,6 @@ const billing = {
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing', 'jurist']
     },
-    //   ]
-    // }
     {
       id: 'jurist',
       title: 'Yurist',
@@ -221,6 +232,15 @@ const billing = {
           icon: icons.EditNoteIcon,
           breadcrumbs: false,
           allowedRoles: ['admin', 'jurist']
+        },
+        {
+          id: 'courtInvoices',
+          title: 'Sud harajatlari',
+          type: 'item',
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'jurist'],
+          url: '/jurist/courtInvoices',
+          icon: icons.ReceiptOutlined
         }
       ]
     },

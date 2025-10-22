@@ -1,7 +1,17 @@
 import { ITariff } from 'types/billing';
 import api from 'utils/api';
 
-function getTarifElement({ startAt, endAt, rate, rateWithoutQqs }) {
+function getTarifElement({
+  startAt,
+  endAt,
+  rate,
+  rateWithoutQqs
+}: {
+  startAt: string | Date;
+  endAt: string | Date;
+  rate: number;
+  rateWithoutQqs: number;
+}) {
   const withQQS = rate - rateWithoutQqs;
   startAt = new Date(startAt);
   endAt = endAt ? new Date(endAt) : new Date();

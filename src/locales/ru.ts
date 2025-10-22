@@ -36,7 +36,8 @@ const ru: typeof uz = {
     'Sanitar Tozalash Markazi': 'Центр санитарной очистки',
     Acts: 'Акты',
     specialActs: 'Специальные акты',
-    moneyTransfer: 'Денежный перевод'
+    moneyTransfer: 'Денежный перевод',
+    'Sud harajatlari': 'Судебные расходы'
   },
   dashboard: {
     identified: 'Идентифицирован',
@@ -79,6 +80,7 @@ const ru: typeof uz = {
     amountWithoutQQS: 'Без НДС',
     checkStatus: 'Статус проверки',
     createdDate: 'Дата создания',
+    expiresDate: 'Срок действия',
     actCreatedDate: 'Дата составления акта',
     actStatus: 'Статус акта'
   },

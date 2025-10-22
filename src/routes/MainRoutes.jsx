@@ -27,6 +27,7 @@ import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
 import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetitions';
 import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
 import Blanks from 'views/billing/Blanks';
+import CourtInvoices from 'views/jurist/CourtInvoices';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -183,6 +184,10 @@ const MainRoutes = {
         {
           path: 'courtNote',
           element: <CourtNote />
+        },
+        {
+          path: 'courtInvoices',
+          element: <CourtInvoices />
         }
       ]
     },

@@ -44,7 +44,8 @@ const uzKirill: typeof uz = {
     'Sanitar Tozalash Markazi': 'Санитар Тозалаш Маркази',
     Acts: 'Актлар',
     specialActs: 'Махсус актлар',
-    moneyTransfer: 'Пул кўчириш'
+    moneyTransfer: 'Пул кўчириш',
+    'Sud harajatlari': 'Суд харајатлари'
   },
   dashboard: {
     identified: 'Шахси тасдиқланган',
@@ -87,6 +88,7 @@ const uzKirill: typeof uz = {
     amountWithoutQQS: 'ҚҚС билан эмас',
     checkStatus: 'Текшириш ҳолати',
     createdDate: 'Яратилган санаси',
+    expiresDate: 'Амал қилиш санаси',
     actCreatedDate: 'Акт қилинган санаси',
     actStatus: 'Акт ҳолати'
   },
