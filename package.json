@@ -10,7 +10,7 @@
   "homepage": "https://toza-hudud-dashboard.netlify.app/startpage",
   "scripts": {
     "start": "env-cmd -f .env vite",
-    "build": "vite build",
+    "build": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
@@ -112,6 +112,7 @@
     "immutable": "^4.3.5",
     "prettier": "^3.2.5",
     "react-error-overlay": "6.0.11",
+    "rollup-plugin-visualizer": "^6.0.5",
     "sass": "^1.71.1"
   }
 }
