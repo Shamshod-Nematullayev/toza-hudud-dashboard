@@ -3,7 +3,6 @@ import { t } from 'i18next';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { IRow } from '.';
 import { getCourtInvoices } from 'services/getCourtInvoices';
-import { SortableFilterableServerDataGrid } from 'ui-component/SortableFilterableServerDataGrid';
 
 interface ISortModel {
   field:
@@ -126,8 +125,6 @@ function DataTableCourtInvoices({
           setPaginationModel(paginationModel);
         }}
       />
-
-      {/* <SortableFilterableServerDataGrid columns={columns} fetchData={fetchData} /> */}
     </div>
   );
 }
