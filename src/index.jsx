@@ -3,11 +3,6 @@ import { createRoot } from 'react-dom/client';
 // project imports
 import App from './App';
 
-import * as pdfjsLib from 'pdfjs-dist';
-
-// pdf.js worker-ni o'chirish (agar worker kerak bo'lmasa)
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
-
 // google-fonts
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';

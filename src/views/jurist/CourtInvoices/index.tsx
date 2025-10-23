@@ -1,16 +1,13 @@
 import MainCard from 'ui-component/cards/MainCard';
 import TableToolbar from './TableToolbar';
 import { useState } from 'react';
-import DataTableCourtInvoicesData from './DataTableCourtInvoicesData';
+import DataTableCourtInvoices from './DataTableCourtInvoices';
 import CreateInvoiceModal from './CreateInvoiceModal';
+import { ICourtInvoice } from 'services/getCourtInvoices';
+import { GridSortDirection } from '@mui/x-data-grid';
 
-export interface IRow {
+export interface IRow extends ICourtInvoice {
   id: number;
-  amount: number;
-  invoiceStatus: string;
-  number: string;
-  issued: Date;
-  overdue: Date;
 }
 
 function CourtInvoices() {
@@ -18,14 +15,31 @@ function CourtInvoices() {
   const [checked, setChecked] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [loaderState, setLoaderState] = useState(false);
+  const [status, setStatus] = useState<'All' | 'CREATED' | 'PAID'>('All');
+
   function reload() {
     setLoaderState(!loaderState);
   }
   return (
     <MainCard contentSX={{ minHeight: 'calc(100vh - 150px)' }}>
       {showCreateModal && <CreateInvoiceModal handleClose={() => setShowCreateModal(false)} reload={reload} />}
-      <TableToolbar setRows={setRows} rows={rows} checked={checked} openCreateModal={() => setShowCreateModal(true)} reload={reload} />
-      <DataTableCourtInvoicesData rows={rows} setRows={setRows} checked={checked} setChecked={setChecked} loaderState={loaderState} />
+      <TableToolbar
+        setRows={setRows}
+        rows={rows}
+        checked={checked}
+        openCreateModal={() => setShowCreateModal(true)}
+        reload={reload}
+        status={status}
+        setStatus={setStatus}
+      />
+      <DataTableCourtInvoices
+        rows={rows}
+        setRows={setRows}
+        checked={checked}
+        setChecked={setChecked}
+        loaderState={loaderState}
+        status={status}
+      />
     </MainCard>
   );
 }

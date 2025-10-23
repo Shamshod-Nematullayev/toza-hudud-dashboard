@@ -3,10 +3,9 @@ import React, { useState } from 'react';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import useStore from './useStore';
 import api from '../../../utils/api';
-import * as pdfjsLib from 'pdfjs-dist';
-import jsQR from 'jsqr';
 import useLoaderStore from 'store/loaderStore';
 import { toast } from 'react-toastify';
+import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
 
 function SidebarCourtNotes() {
   const [file, setFile] = useState(null);
@@ -14,42 +13,42 @@ function SidebarCourtNotes() {
   const { Document, setDocument, mahallas } = useStore();
   const { setIsLoading } = useLoaderStore();
   const [qrDataOK, setQrDataOK] = useState(true);
-  const extractQRCodeFromPDF = async (pdfData) => {
-    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-    const pdfDoc = await loadingTask.promise;
-    const page = await pdfDoc.getPage(1); // 1-sahifani olish
 
-    const viewport = page.getViewport({ scale: 1 }); // Sahifani ko'rsatish uchun viewportni olish
-    const canvas = document.createElement('canvas'); // Yangi canvas yaratish
-    const context = canvas.getContext('2d');
+  //   const loadingTask = getDocument({ data: pdfData });
+  //   const pdfDoc = await loadingTask.promise;
+  //   const page = await pdfDoc.getPage(1); // 1-sahifani olish
 
-    // Canvasni sahifa hajmiga moslashtirish
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
+  //   const viewport = page.getViewport({ scale: 1 }); // Sahifani ko'rsatish uchun viewportni olish
+  //   const canvas = document.createElement('canvas'); // Yangi canvas yaratish
+  //   const context = canvas.getContext('2d');
 
-    // Sahifani canvasga render qilish
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise;
+  //   // Canvasni sahifa hajmiga moslashtirish
+  //   canvas.height = viewport.height;
+  //   canvas.width = viewport.width;
 
-    // Canvasdan tasvirni olish
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  //   // Sahifani canvasga render qilish
+  //   await page.render({
+  //     canvasContext: context,
+  //     viewport: viewport
+  //   }).promise;
 
-    // QR kodni o'qish
-    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+  //   // Canvasdan tasvirni olish
+  //   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-    if (qrCode) {
-      return { ok: true, result: qrCode.data };
-    } else {
-      return { ok: false, message: 'QR Code topilmadi.' };
-    }
-  };
+  //   // QR kodni o'qish
+  //   const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+
+  //   if (qrCode) {
+  //     return { ok: true, result: qrCode.data };
+  //   } else {
+  //     return { ok: false, message: 'QR Code topilmadi.' };
+  //   }
+  // };
   const setFunc = async (files) => {
     setIsLoading(true);
     setFile(files[0]);
     const pdfData = new Uint8Array(await files[0].arrayBuffer());
-    const data = await extractQRCodeFromPDF(pdfData);
+    const data = await extractQRCodeFromPDF(pdfData, 1);
     setQrDataOK(data.ok);
     if (!data.ok) return setIsLoading(false);
     api
@@ -118,8 +117,8 @@ function SidebarCourtNotes() {
       {!qrDataOK && !Document._id ? (
         <Grid item xs="12">
           <Card sx={{ boxShadow: 3, padding: '5px' }}>
-            ❗️❗️❗️PDF fayldan QR kod topilmadi yoki yaroqsiz QR aniqlandi. Bildirishnomani aniqlash uchun uning ro'yxatdan o'tgan raqamini
-            kiriting. <br />
+            ❗️❗️❗️PDF fayldan QR kod topilmadi yoki yaroqsiz QR aniqlandi. Bildirishnomani aniqlash uchun uning ro&apos;yxatdan o&apos;tgan
+            raqamini kiriting. <br />
             <form onSubmit={handleSubmitDocumentNumber}>
               <TextField
                 type="number"

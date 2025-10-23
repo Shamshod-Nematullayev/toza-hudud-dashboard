@@ -1,14 +1,15 @@
-import jsQR from 'jsqr';
-import * as pdfjsLib from 'pdfjs-dist';
-
 export const extractQRCodeFromPDF = async (pdfData: Uint8Array, pageNumber: number | 'lastPage') => {
-  const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+  const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
+  const { default: jsQR } = await import('jsqr');
+  GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+  const loadingTask = getDocument({ data: pdfData });
   const pdfDoc = await loadingTask.promise;
   const page = await pdfDoc.getPage(pageNumber === 'lastPage' ? pdfDoc.numPages : pageNumber); // 1-sahifani olish
 
   const viewport = page.getViewport({ scale: 1 }); // Sahifani ko'rsatish uchun viewportni olish
   const canvas = document.createElement('canvas'); // Yangi canvas yaratish
-  const context = canvas.getContext('2d');
+  const context = canvas.getContext('2d')!;
 
   // Canvasni sahifa hajmiga moslashtirish
   canvas.height = viewport.height;
