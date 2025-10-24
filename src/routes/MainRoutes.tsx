@@ -28,6 +28,7 @@ import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetiti
 import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
+import GpsDalolatnomas from 'views/gpsMonitoring/GpsDalolatnomas';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -43,8 +44,12 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
 // ==============================|| MAIN ROUTING ||============================== //
-
-const MainRoutes = {
+interface MainRoutesProps {
+  path: string;
+  element?: JSX.Element;
+  children?: MainRoutesProps[];
+}
+const MainRoutes: MainRoutesProps = {
   path: '/',
   element: <MainLayout />,
   children: [
@@ -213,12 +218,21 @@ const MainRoutes = {
       ]
     },
     {
+      path: 'gpsMonitoring',
+      children: [
+        {
+          path: 'gpsDalolatnomalar',
+          element: <GpsDalolatnomas />
+        }
+      ]
+    },
+    {
       path: 'sample-page',
       element: <SamplePage />
     },
     {
       path: '*',
-      element: () => <div>Page not found</div>
+      element: <SamplePage />
     }
   ]
 };

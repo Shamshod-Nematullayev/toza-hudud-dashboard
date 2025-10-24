@@ -1,10 +1,11 @@
 //assets
 import BadgeIcon from '@mui/icons-material/BadgeOutlined';
+import { MenuItem } from 'menu-items';
 //contans
 const icons = { BadgeIcon };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
-const employeers = {
+const employeers: MenuItem = {
   id: 'employeers',
   title: 'employeers',
   type: 'group',

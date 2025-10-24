@@ -17,6 +17,7 @@ import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { DocumentScannerOutlined, MoveDown, ReceiptOutlined } from '@mui/icons-material';
 import uz from '../locales/uz';
+import { MenuItem } from 'menu-items';
 
 //contans
 const icons = {
@@ -40,17 +41,6 @@ const icons = {
   ReceiptOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
-
-interface MenuItem {
-  id: string;
-  title: keyof typeof uz.menuItems;
-  type: 'group' | 'collapse' | 'item';
-  url?: string;
-  icon?: any;
-  breadcrumbs?: boolean;
-  children?: MenuItem[];
-  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist')[];
-}
 
 const billing: MenuItem = {
   id: 'workspace',

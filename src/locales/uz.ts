@@ -36,7 +36,9 @@ const uz = {
     Acts: 'Aktlar',
     specialActs: 'Maxsus aktlar',
     moneyTransfer: "Pul ko'chirish",
-    'Sud harajatlari': 'Sud harajatlari'
+    'Sud harajatlari': 'Sud harajatlari',
+    gpsMonitoring: 'GPS monitoring',
+    gpsDalolatnomalar: 'GPS dalolatnomalar'
   },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',

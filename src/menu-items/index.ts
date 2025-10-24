@@ -1,10 +1,23 @@
+import uz from 'locales/uz';
 import employeers from './employeers';
 import workspace from './workspace';
+import gpsMonitoring from './gps.monitoring';
 
 // ==============================|| MENU ITEMS ||============================== //
 
+export interface MenuItem {
+  id: string;
+  title: keyof typeof uz.menuItems;
+  type: 'group' | 'collapse' | 'item';
+  url?: string;
+  icon?: any;
+  breadcrumbs?: boolean;
+  children?: MenuItem[];
+  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps')[];
+}
+
 const menuItems = {
-  items: [employeers, workspace]
+  items: [employeers, workspace, gpsMonitoring]
 };
 
 export default menuItems;
