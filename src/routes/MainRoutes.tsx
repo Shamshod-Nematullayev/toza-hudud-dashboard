@@ -28,7 +28,7 @@ import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetiti
 import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
-import GpsDalolatnomas from 'views/gpsMonitoring/GpsDalolatnomas';
+import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -222,7 +222,7 @@ const MainRoutes: MainRoutesProps = {
       children: [
         {
           path: 'gpsDalolatnomalar',
-          element: <GpsDalolatnomas />
+          element: <CreateGpsDalolatnoma />
         }
       ]
     },

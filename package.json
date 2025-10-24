@@ -10,6 +10,7 @@
   "homepage": "https://toza-hudud-dashboard.netlify.app/startpage",
   "scripts": {
     "start": "env-cmd -f .env vite",
+    "dev": "env-cmd -f .env vite",
     "build": "vite build",
     "devBuild": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "preview": "vite preview",

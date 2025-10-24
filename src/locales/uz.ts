@@ -9,6 +9,9 @@ const uz = {
   from: 'dan',
   to: 'gacha',
   'Drop your files': 'Fayllaringizni tashlang',
+  errors: {
+    missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan'
+  },
   documentNumber: 'Xujjat raqami',
   menuItems: {
     employeers: 'Xodimlar',
