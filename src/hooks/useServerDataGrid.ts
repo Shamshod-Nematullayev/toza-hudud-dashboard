@@ -1,25 +1,27 @@
 // useServerDataGrid.ts
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { GridPaginationModel, GridSortModel, DataGridProps } from '@mui/x-data-grid';
+import { useState, useEffect, useMemo } from 'react';
+import { GridPaginationModel, GridSortModel, DataGridProps, GridSortDirection } from '@mui/x-data-grid';
 
 // ... FetchParams va FetchResult tiplari (avvalgi kodingizdagi kabi) ...
 interface FetchParams {
   page: number;
   limit: number;
   sortField?: string;
-  sortDirection?: 'asc' | 'desc';
+  sortDirection?: GridSortDirection;
   filters?: Record<string, any>;
 }
 
 interface FetchResult<T> {
   data: T[];
-  total: number;
+  meta: { total: number; page: number; limit: number };
 }
+
+export type FetchData = (params: FetchParams) => Promise<FetchResult<any>>;
 
 // Hook yaratish
 export function useServerDataGrid<T>(
   fetchData: (params: FetchParams) => Promise<FetchResult<T>>,
-  initialSort: GridSortModel = [{ field: 'issued', sort: 'desc' }],
+  initialSort: GridSortModel = [],
   initialPageSize: number = 15,
   filters: Record<string, any> = {}
 ) {
@@ -67,8 +69,10 @@ export function useServerDataGrid<T>(
           filters
         });
 
-        setRows(res.data.map((r, idx) => ({ ...r, id: (r as any).id ?? `${paginationModel.page}-${idx}` }) as T));
-        setRowCount(res.total);
+        setRows(
+          res.data.map((r, idx) => ({ ...r, id: (r as any).id ?? `${paginationModel.page * paginationModel.pageSize + idx + 1}` }) as T)
+        );
+        setRowCount(res.meta.total);
       } catch (err) {
         console.error('DataGrid fetch error:', err);
       } finally {
@@ -79,7 +83,7 @@ export function useServerDataGrid<T>(
 
     // Cleanup ishlari...
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paginationModel.page, paginationModel.pageSize, stableSortKey, stableFiltersKey, fetchData]);
+  }, [paginationModel.page, paginationModel.pageSize, stableSortKey, stableFiltersKey]);
 
   return {
     rows,

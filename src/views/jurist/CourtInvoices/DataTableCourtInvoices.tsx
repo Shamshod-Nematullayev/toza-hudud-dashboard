@@ -1,32 +1,14 @@
-import { DataGrid, GridColDef, GridSortDirection } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { t } from 'i18next';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { IRow } from '.';
 import { getCourtInvoices } from 'services/getCourtInvoices';
-
-interface ISortModel {
-  field:
-    | string
-    | 'amount'
-    | 'court'
-    | 'courtId'
-    | 'forAccount'
-    | 'mustPayAmount'
-    | 'issued'
-    | 'number'
-    | 'payer'
-    | 'invoiceStatus'
-    | 'overdue';
-  sort: GridSortDirection;
-}
+import { FetchData, useServerDataGrid } from 'hooks/useServerDataGrid';
 
 function DataTableCourtInvoices({
-  rows,
-  setRows,
+  status,
   checked,
-  setChecked,
-  loaderState,
-  status
+  setChecked
 }: {
   rows: IRow[];
   setRows: Dispatch<SetStateAction<IRow[]>>;
@@ -53,42 +35,12 @@ function DataTableCourtInvoices({
     { field: 'forAccount', headerName: t('tableHeaders.forAccount'), flex: 1 }
   ];
 
-  const [total, setTotal] = useState(0);
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 15 });
-  const [sortModel, setSortModel] = useState<ISortModel[]>([{ field: 'issued', sort: 'desc' }]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await getCourtInvoices({
-        page: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        invoiceStatus: status !== 'All' ? status : undefined,
-        sortDirection: sortModel[0].sort,
-        sortField: sortModel[0].field as any
-      });
-
-      setRows(
-        response.invoices.map((invoice, index) => ({
-          ...invoice,
-          // issued: new Date(invoice.issued),
-          // overdue: invoice.overdue ? new Date(invoice.overdue) : null,
-          amount: invoice.amount / 100,
-          mustPayAmount: invoice.mustPayAmount / 100,
-          id: index + 1
-        }))
-      );
-      // setTotal(response.meta.total);
-    };
-
-    fetchData();
-  }, [loaderState, status, paginationModel.page, paginationModel.pageSize, JSON.stringify(sortModel)]);
-
-  const fetchData = async ({ page, limit, sortField, sortDirection, f }: any) => {
+  const fetchFunc: FetchData = async ({ page, limit, sortField, sortDirection }) => {
     const res = await getCourtInvoices({
       page,
       limit,
       invoiceStatus: status !== 'All' ? status : undefined,
-      sortField,
+      sortField: sortField as any,
       sortDirection
     });
 
@@ -96,34 +48,24 @@ function DataTableCourtInvoices({
       data: res.invoices.map((i: any) => ({
         ...i,
         issued: new Date(i.issued),
-        amount: i.amount / 100
+        amount: i.amount / 100,
+        mustPayAmount: i.mustPayAmount / 100
       })),
-      total: res.meta.total
+      meta: res.meta
     };
   };
+
+  const { dataGridProps, rows } = useServerDataGrid(fetchFunc, [], 15);
 
   return (
     <div style={{ height: 'calc(100vh - 200px)', width: '100%' }}>
       <DataGrid
+        {...dataGridProps}
         columns={columns}
         rows={rows}
-        rowCount={total}
         checkboxSelection
-        initialState={{
-          pagination: {
-            paginationModel
-          }
-        }}
-        sortModel={sortModel}
-        onSortModelChange={(model) => setSortModel(model)}
         pageSizeOptions={[15, 30, 50, 100]}
-        paginationMode="server"
-        sortingMode="server"
-        disableColumnFilter
         onRowSelectionModelChange={(rowSelectionModel) => setChecked(rowSelectionModel.map((id) => id.toString()))}
-        onPaginationModelChange={(paginationModel) => {
-          setPaginationModel(paginationModel);
-        }}
       />
     </div>
   );
