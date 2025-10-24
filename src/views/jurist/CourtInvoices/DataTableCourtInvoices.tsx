@@ -35,11 +35,11 @@ function DataTableCourtInvoices({
     { field: 'forAccount', headerName: t('tableHeaders.forAccount'), flex: 1 }
   ];
 
-  const fetchFunc: FetchData = async ({ page, limit, sortField, sortDirection }) => {
+  const fetchFunc: FetchData = async ({ page, limit, sortField, sortDirection, filters }) => {
     const res = await getCourtInvoices({
       page,
       limit,
-      invoiceStatus: status !== 'All' ? status : undefined,
+      invoiceStatus: (filters?.status === 'All' ? undefined : filters?.status) as 'CREATED' | 'PAID' | undefined,
       sortField: sortField as any,
       sortDirection
     });
@@ -55,7 +55,7 @@ function DataTableCourtInvoices({
     };
   };
 
-  const { dataGridProps, rows } = useServerDataGrid(fetchFunc, [], 15);
+  const { dataGridProps, rows } = useServerDataGrid(fetchFunc, [], 15, { status });
 
   return (
     <div style={{ height: 'calc(100vh - 200px)', width: '100%' }}>

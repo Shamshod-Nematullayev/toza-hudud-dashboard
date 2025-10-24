@@ -18,7 +18,18 @@ interface FetchResult<T> {
 
 export type FetchData = (params: FetchParams) => Promise<FetchResult<any>>;
 
-// Hook yaratish
+/**
+ * useServerDataGrid hook -i bilan server tomonidan ma'lumotlarini
+ * yetkazib beruvchi DataGrid komponentiga prop'lari
+ * va server tomonidan ma'lumotlarni uchun
+ *
+ * @param {FetchData} fetchData - server tomonidan ma'lumotlarni
+ * @param {GridSortModel} [initialSort] - dastlabki tartibni
+ * @param {number} [initialPageSize] - dastlabki sahifani
+ * @param {Record<string, any>} [filters] - dastlabki filterlar
+ * @returns {Partial<DataGridProps>} - DataGrid prop'lari va server tomonidan
+ * ma'lumotlarni uchun
+ */
 export function useServerDataGrid<T>(
   fetchData: (params: FetchParams) => Promise<FetchResult<T>>,
   initialSort: GridSortModel = [],
