@@ -4,10 +4,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import jsconfigPaths from 'vite-jsconfig-paths';
 import { copyFileSync } from 'fs';
+// import { visualizer } from 'rollup-plugin-visualizer';
 
 // ----------------------------------------------------------------------
 
 export default defineConfig({
+  // build: {
+  //   sourcemap: true
+  // },
   plugins: [
     react(),
     jsconfigPaths(),
@@ -17,6 +21,7 @@ export default defineConfig({
         copyFileSync('_headers', 'dist/_headers');
       }
     }
+    // visualizer()
   ],
   // https://github.com/jpuri/react-draft-wysiwyg/issues/1317
   base: '/',

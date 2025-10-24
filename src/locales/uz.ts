@@ -83,7 +83,11 @@ const uz = {
     actCreatedDate: 'Akt qilingan sanasi',
     actStatus: 'Akt holati',
     cashAmount: 'Kvitansiya summasi',
-    cashCount: 'Kvitansiya soni'
+    cashCount: 'Kvitansiya soni',
+    mustPayAmount: "To'lanishi kerak bo'lgan summa",
+    court: 'Sud',
+    payer: "To'lovchi",
+    forAccount: 'Hisobga'
   },
   tableActions: {
     edit: 'Tahrirlash',
@@ -123,6 +127,10 @@ const uz = {
     CANCELLED: 'Bekor qilindi',
     CONFIRMED_CANCELLED: 'Tasdiqlangan bekor qilindi',
     WARNED_CANCELLED: 'Ogohlantirilgan bekor qilindi'
+  },
+  invoiceStatus: {
+    CREATED: 'Yaratilgan',
+    PAID: "To'landi"
   },
   inspectorsPage: {
     freeMahallas: "Bo'sh mahallalar",

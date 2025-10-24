@@ -3,8 +3,6 @@ import FileInputDrop from 'ui-component/FileInputDrop';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import { DataGrid } from '@mui/x-data-grid';
 import { Button, Grid, IconButton, TextField } from '@mui/material';
-import * as pdfjsLib from 'pdfjs-dist';
-import jsQR from 'jsqr';
 import Refresh from '@mui/icons-material/Refresh';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -14,40 +12,10 @@ import { DeleteOutline, DoneAllOutlined } from '@mui/icons-material';
 import Loader from 'ui-component/Loader';
 import { useTranslation } from 'react-i18next';
 import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
-const extractQRCodeFromPDF = async (pdfData) => {
-  const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-  const pdfDoc = await loadingTask.promise;
-  const totalPages = pdfDoc.numPages;
-  const page = await pdfDoc.getPage(totalPages); // oxirgi sahifa
+import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
+import { IMultiplyRequest } from 'types/billing';
 
-  const viewport = page.getViewport({ scale: 1 });
-  const canvas = document.createElement('canvas'); // Yangi canvas yaratish
-  const context = canvas.getContext('2d');
-
-  // Canvasni sahifa hajmiga moslashtirish
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
-
-  // Sahifani canvasga render qilish
-  await page.render({
-    canvasContext: context,
-    viewport: viewport
-  }).promise;
-
-  // Canvasdan tasvirni olish
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-  // QR kodni o'qish
-  const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-
-  if (qrCode) {
-    return { ok: true, result: qrCode.data };
-  } else {
-    return { ok: false, message: 'QR Code topilmadi.' };
-  }
-};
-
-const getStatusRequest = function (data) {
+const getStatusRequest = function (data: IMultiplyRequest) {
   if (data.isCancel) return 'bekor qilindi';
   if (!data.document_id) return 'yangi';
   if (!data.actId) return 'xujjat yaratilgan';
@@ -69,7 +37,7 @@ function SidePanel() {
   const { t } = useTranslation();
 
   const [dalolatnomaNumber, setDalolatnomaNumber] = useState('');
-  const getDalolatnomaData = async (params) => {
+  const getDalolatnomaData = async (params: any) => {
     const dalolatnoma = (
       await api.get('/yashovchi-soni-xatlov/get-one-dalolatnoma', {
         params
@@ -93,7 +61,7 @@ function SidePanel() {
     );
   };
 
-  const handleClickDoneButton = async function (_id, isUpdate = true) {
+  const handleClickDoneButton = async function (_id: string, isUpdate = true) {
     setIsLoading(true);
     const formData = new FormData();
     formData.append('file', pdfFiles[0]);
@@ -124,10 +92,10 @@ function SidePanel() {
       async function getDataFromQR() {
         const arrayBuffer = await pdfFiles[0].arrayBuffer();
         const pdfData = new Uint8Array(arrayBuffer);
-        const data = await extractQRCodeFromPDF(pdfData);
+        const data = await extractQRCodeFromPDF(pdfData, 1);
         if (!data.ok) return toast.error(data.message);
         await getDalolatnomaData({
-          _id: data.result.split('_')[1]
+          _id: data.result?.split('_')[1]
         });
       }
       getDataFromQR();
@@ -143,7 +111,7 @@ function SidePanel() {
       documentNumber: dalolatnomaNumber
     });
   };
-  const handleCancelById = async (_id) => {
+  const handleCancelById = async (_id: string) => {
     await api.put(`/yashovchi-soni-xatlov/${_id}`, {
       isCancel: true
     });
