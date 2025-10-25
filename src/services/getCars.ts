@@ -7,5 +7,5 @@ interface Response {
 }
 
 export async function getCars(): Promise<Response> {
-  return (await api.get('/gps/cars')).data.data;
+  return (await api.get('/gps/cars')).data;
 }

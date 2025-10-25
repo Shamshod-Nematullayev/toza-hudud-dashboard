@@ -208,8 +208,8 @@ function FindedDataTable() {
       formData.append('ariza_id', ariza._id);
       formData.append('licshet', ariza.licshet);
       formData.append('next_inhabitant_count', ariza.next_prescribed_cnt === null ? rows[0].yashovchilar_soni : ariza.next_prescribed_cnt);
-      formData.append('akt_sum', eval(aktSumm));
-      formData.append('amountWithoutQQS', (Math.round(ariza.aktSummCounts?.withoutQQSTotal) || 0).toString());
+      formData.append('akt_sum', Math.floor(eval(aktSumm)).toString());
+      formData.append('amountWithoutQQS', (Math.floor(ariza.aktSummCounts?.withoutQQSTotal) || 0).toString());
       formData.append('description', ariza.comment.length < 150 ? 'fuqaro arizasi ' + ariza.comment : 'fuqaro arizasi');
       ariza.photos?.forEach((photo, index) => {
         formData.append(`photos[${index}]`, photo);

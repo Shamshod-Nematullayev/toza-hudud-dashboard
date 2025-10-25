@@ -92,7 +92,8 @@ const uz = {
     mustPayAmount: "To'lanishi kerak bo'lgan summa",
     court: 'Sud',
     payer: "To'lovchi",
-    forAccount: 'Hisobga'
+    forAccount: 'Hisobga',
+    content: 'Mazmuni'
   },
   tableActions: {
     edit: 'Tahrirlash',

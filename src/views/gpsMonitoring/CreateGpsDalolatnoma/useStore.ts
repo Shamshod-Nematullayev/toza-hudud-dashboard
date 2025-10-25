@@ -1,4 +1,4 @@
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { t } from 'i18next';
 import { toast } from 'react-toastify';
 import { createGpsDalolatnoma } from 'services/createGpsDalolatnoma';
@@ -21,34 +21,51 @@ interface GpsDalolatnomaStore {
   date: Dayjs | null;
   setDate: (date: Dayjs | null) => void;
   cars: IAutomobile[];
-  setCars: (cars: IAutomobile[]) => void;
   responsibleCarId: number | null;
   setResponsibleCarId: (id: number | null) => void;
+  responsibleCarDriver: { fullName: string; id: number } | null;
+  setResponsibleCarDriver: ({ id, fullName }: { id: number; fullName: string }) => void;
   currentCarId: number | null;
   setCurrentCarId: (id: number | null) => void;
+  currentCarDriver: { fullName: string; id: number } | null;
+  setCurrentCarDriver: ({ id, fullName }: { id: number; fullName: string }) => void;
   description: string;
   setDescription: (description: string) => void;
   clearStore: () => void;
   saveDalolatnomaToDB: () => Promise<void>;
   getCarsFromDB: () => Promise<void>;
+  handlePrint: () => void;
 }
 
 const initialState = {
-  date: new Dayjs(),
-  cars: [],
+  date: dayjs(),
   responsibleCarId: null,
   currentCarId: null,
   description: '',
-  document: null
+  document: null,
+  responsibleCarDriver: null,
+  currentCarDriver: null
 };
 
 export const useGpsDalolatnomaStore = create<GpsDalolatnomaStore>((set) => ({
   ...initialState,
+  cars: [],
   setDate: (date) => set({ date }),
-  setCars: (cars) => set({ cars }),
   setResponsibleCarId: (id) => set({ responsibleCarId: id }),
   setCurrentCarId: (id) => set({ currentCarId: id }),
   setDescription: (description) => set({ description }),
+  setCurrentCarDriver: (driver: { fullName: string; id: number }) => {
+    set({ currentCarDriver: driver });
+    // const state = useGpsDalolatnomaStore.getState();
+    // const driver = state.cars.find((c) => c.id === state.currentCarId)?.driverIds.find((d) => d.id === id);
+    // set({ currentCarDriver: driver });
+  },
+  setResponsibleCarDriver: (driver: { fullName: string; id: number }) => {
+    // const state = useGpsDalolatnomaStore.getState();
+    // const driver = state.cars.find((c) => c.id === state.responsibleCarId)?.driverIds.find((d) => d.id === id);
+    // set({ responsibleCarDriver: driver });
+    set({ responsibleCarDriver: driver });
+  },
   clearStore: () => set(initialState),
   saveDalolatnomaToDB: async () => {
     const state = useGpsDalolatnomaStore.getState();
@@ -98,5 +115,6 @@ export const useGpsDalolatnomaStore = create<GpsDalolatnomaStore>((set) => ({
     const { data } = await getCars();
 
     set({ cars: data });
-  }
+  },
+  handlePrint: () => window.print()
 }));
