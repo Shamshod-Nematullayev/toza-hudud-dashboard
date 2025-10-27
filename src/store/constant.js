@@ -23,7 +23,7 @@ export const reactToPrintDefaultOptions = {
       page-break-after: always;
       }
       * {
-        color: #000
+        color: #000 !important;,
       }
   }`
 };

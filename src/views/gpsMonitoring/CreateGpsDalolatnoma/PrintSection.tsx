@@ -1,4 +1,4 @@
-import { TextareaAutosize } from '@mui/material';
+import { TextareaAutosize, Typography } from '@mui/material';
 import { Dayjs } from 'dayjs';
 import React from 'react';
 import useCustomizationStore from 'store/customizationStore';
@@ -15,7 +15,8 @@ function PrintSection({
   responsibleCarDriverName,
   currentCar,
   currentCarDriverName,
-  mfyName
+  mfyName,
+  contentRef
 }: {
   company: Company;
   date: Dayjs | null;
@@ -24,10 +25,13 @@ function PrintSection({
   currentCar?: IAutomobile;
   currentCarDriverName?: string;
   mfyName?: string;
+  contentRef: React.MutableRefObject<null>;
 }) {
   return (
-    <div>
-      <h1 style={{ textAlign: 'center' }}>DALOLATNOMA</h1>
+    <div ref={contentRef} style={{ fontSize: 20, lineHeight: '40px', textAlign: 'justify', position: 'relative' }}>
+      <Typography variant="h1" style={{ textAlign: 'center' }}>
+        DALOLATNOMA
+      </Typography>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div style={{ width: 300 }}>
           {date ? (
@@ -40,13 +44,11 @@ function PrintSection({
         </div>
         <span>{company.locationName}</span>
       </div>
-      <p style={{ textAlign: 'justify' }}>
-        <EditableTypography>
-          {'        '}Bizlar kim ushbu dalolatnomani tuzib imzo chekuvchilar {company.name} {company.locationName} filiali rahbari{' '}
-          {fullNameToShortName(company.managerName)} filial GPS operatori {fullNameToShortName(company.gpsOperatorName)} davlat raqami{' '}
-          {responsibleCar?.automobileNumber} bo'lgan maxsus texnika "___" _________ 20__ yil grafik bo'yicha {mfyName}ga kirmaganligi
-          sababli davlat raqami {currentCar?.automobileNumber} bo'lgan maxsus texnika {mfyName}ni grafik bo'yicha tozalab oldi.
-        </EditableTypography>
+      <p style={{ textAlign: 'justify', textIndent: '25px' }}>
+        {'        '}Bizlar kim ushbu dalolatnomani tuzib imzo chekuvchilar {company.name} {company.locationName} filiali rahbari{' '}
+        {fullNameToShortName(company.managerName)} filial GPS operatori {fullNameToShortName(company.gpsOperatorName)} davlat raqami{' '}
+        {responsibleCar?.automobileNumber} bo'lgan maxsus texnika "___" _________ 20__ yil grafik bo'yicha {mfyName}ga kirmaganligi sababli
+        davlat raqami {currentCar?.automobileNumber} bo'lgan maxsus texnika {mfyName}ni grafik bo'yicha tozalab oldi.
       </p>
       <p>Dalolatnoma to'g'ri deb imzo chekuvchilar:</p>
       <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali rahbari:`} name={company.managerName} />
