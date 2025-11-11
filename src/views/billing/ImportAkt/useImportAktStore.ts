@@ -9,9 +9,9 @@ interface IActPack {
   packType: string;
 }
 interface StoreState {
-  file: File | null;
-  setFile: (file: File) => void;
-  clearFile: () => void;
+  pdfFile: File | null;
+  setPdfFile: (file: File[]) => void;
+  clearPdfFile: () => void;
   fileIdOnBilling: string | null;
   uploadFileToBilling: () => Promise<void>;
   downloadTemplate: () => void;
@@ -24,13 +24,13 @@ interface StoreState {
   setSelectedActPackId: (id: number | null) => void;
 }
 
-export const useNotificationStore = create<StoreState>((set, get) => ({
-  file: null,
-  setFile: (file: File) => set({ file }),
-  clearFile: () => set({ file: null }),
+export const useImportAktStore = create<StoreState>((set, get) => ({
+  pdfFile: null,
+  setPdfFile: (file: File[]) => set({ pdfFile: file[0] }),
+  clearPdfFile: () => set({ pdfFile: null }),
   fileIdOnBilling: null,
   uploadFileToBilling: async () => {
-    const { file } = get();
+    const { pdfFile: file } = get();
     if (!file) return;
 
     const formData = new FormData();

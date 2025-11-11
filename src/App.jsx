@@ -24,9 +24,12 @@ import useLoaderStore from 'store/loaderStore';
 import SettingsModal from 'layout/MainLayout/SettingsModal';
 import { useUserStore } from 'store/userStore';
 import i18n from './languageConfig';
+import { GlobalWorkerOptions } from 'pdfjs-dist';
 // ==============================|| APP ||============================== //
 
 const App = () => {
+  GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
   const { customization, language } = useCustomizationStore();
   const { isLoading } = useLoaderStore();
   const { settingsModalOpenState } = useUserStore();
