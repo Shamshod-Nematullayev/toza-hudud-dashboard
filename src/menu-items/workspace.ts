@@ -105,6 +105,15 @@ const billing: MenuItem = {
           icon: MoveDown,
           breadcrumbs: false,
           allowedRoles: ['admin', 'billing']
+        },
+        {
+          id: 'importAkt',
+          title: 'importActs',
+          type: 'item',
+          url: '/billing/importAkt',
+          icon: UploadFileOutlinedIcon,
+          breadcrumbs: true,
+          allowedRoles: ['admin', 'billing']
         }
       ]
     },

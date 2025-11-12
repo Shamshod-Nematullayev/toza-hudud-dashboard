@@ -34,7 +34,6 @@ interface GpsDalolatnomaStore {
   clearStore: () => void;
   saveDalolatnomaToDB: () => Promise<void>;
   getCarsFromDB: () => Promise<void>;
-  handlePrint: () => void;
 }
 
 const initialState = {
@@ -115,6 +114,5 @@ export const useGpsDalolatnomaStore = create<GpsDalolatnomaStore>((set) => ({
     const { data } = await getCars();
 
     set({ cars: data });
-  },
-  handlePrint: () => window.print()
+  }
 }));

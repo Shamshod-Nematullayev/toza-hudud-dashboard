@@ -41,7 +41,8 @@ const uz = {
     moneyTransfer: "Pul ko'chirish",
     'Sud harajatlari': 'Sud harajatlari',
     gpsMonitoring: 'GPS monitoring',
-    gpsDalolatnomalar: 'GPS dalolatnomalar'
+    gpsDalolatnomalar: 'GPS dalolatnomalar',
+    importActs: 'Aktlarni import qilish'
   },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',

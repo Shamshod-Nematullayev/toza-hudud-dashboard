@@ -20,7 +20,7 @@ import Divider from '@mui/material/Divider';
 // project-import
 import Chip from 'ui-component/extended/Chip';
 
-import useNotificationStore from './useStore';
+import useNotificationStore from './useNotificationStore';
 import useCustomizationStore from 'store/customizationStore';
 
 const ListItemWrapper = ({ children }) => {
@@ -101,8 +101,8 @@ const NotificationList = () => {
       <div>
         {notifications
           .filter((n) => n.status === filterStatus || filterStatus === 'all')
-          .map((notification) => (
-            <div key={notification._id}>
+          .map((notification, i) => (
+            <div key={i}>
               <ListItemWrapper>
                 <ListItem alignItems="center">
                   <ListItemAvatar>

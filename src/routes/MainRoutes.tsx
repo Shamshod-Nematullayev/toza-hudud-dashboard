@@ -29,6 +29,7 @@ import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMa
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
+import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -164,6 +165,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'blanks',
           element: <Blanks />
+        },
+        {
+          path: 'importAkt',
+          element: <ImportAkt />
         }
       ]
     },
