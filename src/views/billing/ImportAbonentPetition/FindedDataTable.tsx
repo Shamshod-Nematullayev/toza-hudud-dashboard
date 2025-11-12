@@ -207,6 +207,7 @@ function FindedDataTable() {
       formData.append('document_type', ariza.document_type);
       formData.append('ariza_id', ariza._id);
       formData.append('licshet', ariza.licshet);
+      formData.append('residentId', ariza.abonentId);
       formData.append('next_inhabitant_count', ariza.next_prescribed_cnt === null ? rows[0].yashovchilar_soni : ariza.next_prescribed_cnt);
       formData.append('akt_sum', Math.floor(eval(aktSumm)).toString());
       formData.append('amountWithoutQQS', (Math.floor(ariza.aktSummCounts?.withoutQQSTotal) || 0).toString());
