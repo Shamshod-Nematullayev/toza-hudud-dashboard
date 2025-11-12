@@ -164,6 +164,9 @@ const uz = {
     pictureNotPicked: 'Rasm tanlanmagan',
     'Qoʻshimcha izohlar uchun': 'Qoʻshimcha izohlar uchun'
   },
+  importAktsPage: {
+    actPack: 'Aktlar pachkasi'
+  },
   documentTypes: {
     odam_soni: "Yashovchi soni o'zgartirish",
     viza: 'Pasport viza kirdi-chiqdi',

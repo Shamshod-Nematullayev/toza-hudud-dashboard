@@ -112,7 +112,7 @@ const billing: MenuItem = {
           type: 'item',
           url: '/billing/importAkt',
           icon: UploadFileOutlinedIcon,
-          breadcrumbs: true,
+          breadcrumbs: false,
           allowedRoles: ['admin', 'billing']
         }
       ]
