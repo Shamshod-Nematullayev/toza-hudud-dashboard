@@ -29,7 +29,8 @@ import NotificationList from './NotificationList';
 // assets
 import { IconBell } from '@tabler/icons-react';
 import { Badge } from '@mui/material';
-import useNotificationStore from './useStore';
+import useNotificationStore from './useNotificationStore';
+import { INotification } from './useNotificationStore';
 import { socket } from 'utils/socket';
 
 // notification status options
@@ -86,8 +87,9 @@ const NotificationSection = () => {
   useEffect(() => {
     getNotifications();
     // connect to notifications
-    socket.on('notification', (notification) => {
+    socket.on('notification', (notification: INotification) => {
       addNotification(notification);
+      console.log('New notification received:', notification);
     });
   }, []);
 

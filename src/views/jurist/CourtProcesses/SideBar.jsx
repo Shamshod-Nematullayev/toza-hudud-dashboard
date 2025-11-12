@@ -7,7 +7,7 @@ import useStore from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 
 function SideBar() {
-  const { filter, setFilter } = useStore();
+  const { setFilter } = useStore();
   const [actStatus, setActStatus] = useState(null);
   const [pinfl, setPinfl] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -91,7 +91,7 @@ function SideBar() {
           />
         </Grid>
         <Grid item xs={12}>
-          <Typography variant="h5">Da'vo summasi</Typography>
+          <Typography variant="h5">Da&apos;vo summasi</Typography>
         </Grid>
         <Grid item xs={12} sm={6}>
           <TextField label="dan" type="number" value={claimAmountFrom} onChange={(e) => setClaimAmountFrom(e.target.value)} fullWidth />

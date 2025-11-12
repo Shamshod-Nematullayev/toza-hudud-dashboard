@@ -4,7 +4,7 @@ import { Button, ButtonGroup, Card, CircularProgress, FormControl, InputLabel, M
 import { DatePicker } from '@mui/x-date-pickers';
 import { t } from 'i18next';
 
-function SideBarGpsCreateGpsDalolatnoma() {
+function SideBarGpsCreateGpsDalolatnoma({ printFunc }: { printFunc: () => void }) {
   const {
     cars,
     getCarsFromDB,
@@ -21,8 +21,7 @@ function SideBarGpsCreateGpsDalolatnoma() {
     setCurrentCarDriver,
     currentCarDriver,
     responsibleCarDriver,
-    setResponsibleCarDriver,
-    handlePrint
+    setResponsibleCarDriver
   } = useGpsDalolatnomaStore();
 
   useEffect(() => {
@@ -135,7 +134,7 @@ function SideBarGpsCreateGpsDalolatnoma() {
         <Button endIcon={<CircularProgress size={15} />} onClick={saveDalolatnomaToDB}>
           {t('buttons.create')}
         </Button>
-        <Button onClick={handlePrint}>{t('buttons.print')}</Button>
+        <Button onClick={printFunc}>{t('buttons.print')}</Button>
       </ButtonGroup>
     </Card>
   );
