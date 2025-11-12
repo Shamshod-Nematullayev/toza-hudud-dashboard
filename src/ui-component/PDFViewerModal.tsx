@@ -1,5 +1,6 @@
 import { Close } from '@mui/icons-material';
 import { Button, Dialog, DialogActions, DialogContent, IconButton } from '@mui/material';
+import { GlobalWorkerOptions } from 'pdfjs-dist';
 import PdfViewer from 'views/billing/AbonentPetition/PDFViewer';
 
 function PDFViewerModal({ base64, handleClose }: { base64: string; handleClose: () => void }) {
