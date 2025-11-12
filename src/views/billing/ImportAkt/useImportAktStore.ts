@@ -11,7 +11,7 @@ interface IActPack {
 interface StoreState {
   pdfFile: File | null;
   setPdfFile: (file: File[]) => void;
-  clearPdfFile: () => void;
+  clearStore: () => void;
   fileIdOnBilling: string | null;
   uploadFileToBilling: () => Promise<void>;
   downloadTemplate: () => void;
@@ -20,14 +20,16 @@ interface StoreState {
   sendImportAktRequest: () => Promise<void>;
   getActPacks: () => Promise<void>;
   actPacks: IActPack[];
-  selectedActPackId: number | null;
-  setSelectedActPackId: (id: number | null) => void;
+  selectedActPackId: number | '';
+  setSelectedActPackId: (id: number | '') => void;
+  packType: string;
+  setPackType: (packType: string) => void;
 }
 
 export const useImportAktStore = create<StoreState>((set, get) => ({
   pdfFile: null,
   setPdfFile: (file: File[]) => set({ pdfFile: file[0] }),
-  clearPdfFile: () => set({ pdfFile: null }),
+  clearStore: () => set({ pdfFile: null, excelFile: null, selectedActPackId: '', packType: '' }),
   fileIdOnBilling: null,
   uploadFileToBilling: async () => {
     const { pdfFile: file } = get();
@@ -70,9 +72,11 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
   },
   actPacks: [],
   getActPacks: async () => {
-    const response = await api.get('/billing/akt/packs');
-    set({ actPacks: response.data.actPacks });
+    const response = await api.get('/billing/act-packs');
+    set({ actPacks: response.data });
   },
-  selectedActPackId: null,
-  setSelectedActPackId: (id: number | null) => set({ selectedActPackId: id })
+  selectedActPackId: '',
+  setSelectedActPackId: (id: number | '') => set({ selectedActPackId: id }),
+  packType: '',
+  setPackType: (packType: string) => set({ packType })
 }));

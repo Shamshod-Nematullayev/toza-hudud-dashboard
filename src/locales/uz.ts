@@ -48,6 +48,16 @@ const uz = {
     identified: 'Shaxsi tasdiqlangan',
     electacityContirmed: 'Elektr kodi tasdiqlangan'
   },
+  ACT_PACK_TYPES: {
+    SIMPLE: 'To\u02bblov kelib tushmagan',
+    SERVICE_NOT_PROVIDED: 'Xizmat ko\u02bbrsatilmagan',
+    SPECIAL: 'Maxsus',
+    CANCEL_CONTRACT: 'Shartnoma bekor qilish',
+    INVENTORY: 'Odam sonini o\u02bbzgartirish',
+    MIB: 'Mib tomonidan',
+    ECO_PAY_INVENTORY: 'EcoPay Inventarizatsiya uchun',
+    FROZEN: 'Muzlatilgan qarzdorlik'
+  },
   tableHeaders: {
     fullName: 'F.I.Sh',
     name: 'Nomi',
@@ -165,7 +175,10 @@ const uz = {
     'Qoʻshimcha izohlar uchun': 'Qoʻshimcha izohlar uchun'
   },
   importAktsPage: {
-    actPack: 'Aktlar pachkasi'
+    actPack: 'Aktlar pachkasi',
+    actPackType: 'Aktlar pachkasi turi',
+    info: "Batafsil ma'lumot(DEMO)",
+    downloadTemplate: 'Shablonni yuklash(DEMO)'
   },
   documentTypes: {
     odam_soni: "Yashovchi soni o'zgartirish",
