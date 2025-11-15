@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { create } from 'zustand';
 
@@ -17,7 +18,7 @@ interface StoreState {
   downloadTemplate: () => void;
   excelFile: File | null;
   setExcelFile: (file: File) => void;
-  sendImportAktRequest: () => Promise<void>;
+  sendImportAktRequest: () => Promise<any>;
   getActPacks: () => Promise<void>;
   actPacks: IActPack[];
   selectedActPackId: number | '';
@@ -58,13 +59,15 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
   setExcelFile: (file: File) => set({ excelFile: file }),
   sendImportAktRequest: async () => {
     const { fileIdOnBilling, excelFile } = get();
-    if (!fileIdOnBilling || !excelFile) return;
+    if (!fileIdOnBilling || !excelFile) return toast.error('PDF yoki Excel fayl tanlanmagan');
 
     const formData = new FormData();
     formData.append('fileId', fileIdOnBilling);
     formData.append('excelFile', excelFile);
+    formData.append('packType', get().packType);
+    formData.append('actPackId', get().selectedActPackId.toString());
 
-    await api.post('/billing/akt/import', formData, {
+    await api.post('/billing/import-acts', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
