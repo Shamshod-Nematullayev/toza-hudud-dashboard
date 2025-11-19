@@ -177,8 +177,9 @@ const uz = {
   importAktsPage: {
     actPack: 'Aktlar pachkasi',
     actPackType: 'Aktlar pachkasi turi',
-    info: "Batafsil ma'lumot(DEMO)",
-    downloadTemplate: 'Shablonni yuklash(DEMO)'
+    info: "Batafsil ma'lumot",
+    downloadTemplate: 'Shablonni yuklash',
+    infoTitle: 'Aktlarni Import Qilish Bo‘yicha Qo‘llanma'
   },
   documentTypes: {
     odam_soni: "Yashovchi soni o'zgartirish",

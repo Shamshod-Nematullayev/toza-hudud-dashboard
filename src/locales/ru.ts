@@ -11,6 +11,30 @@ const ru: typeof uz = {
   to: 'до',
   'Drop your files': 'Перетащите ваши файлы',
   documentNumber: 'Номер документа',
+  invoiceStatus: {
+    CREATED: 'Создан',
+    PAID: 'Оплачен'
+  },
+  ACT_PACK_TYPES: {
+    CANCEL_CONTRACT: 'Отмена договора',
+    ECO_PAY_INVENTORY: 'ЭкоПей Инвентаризация',
+    FROZEN: 'Морозить',
+    INVENTORY: 'Инвентаризация',
+    MIB: 'МИБ',
+    SERVICE_NOT_PROVIDED: 'Нет услуги',
+    SIMPLE: 'Просто',
+    SPECIAL: 'Специальное'
+  },
+  errors: {
+    missingRequiredFields: 'Не заполнены обязательные поля'
+  },
+  importAktsPage: {
+    actPack: 'Акт пакет',
+    actPackType: 'Тип акт пакета',
+    downloadTemplate: 'Скачать шаблон',
+    info: 'Информация',
+    infoTitle: 'Информация о импорте актов'
+  },
   menuItems: {
     employeers: 'Сотрудники',
     inspectors: 'Инспекторы',
@@ -37,7 +61,10 @@ const ru: typeof uz = {
     Acts: 'Акты',
     specialActs: 'Специальные акты',
     moneyTransfer: 'Денежный перевод',
-    'Sud harajatlari': 'Судебные расходы'
+    'Sud harajatlari': 'Судебные расходы',
+    gpsDalolatnomalar: 'GPS далолатномалар',
+    gpsMonitoring: 'GPS мониторинг',
+    importActs: 'Импортировать акты'
   },
   dashboard: {
     identified: 'Идентифицирован',
@@ -82,7 +109,14 @@ const ru: typeof uz = {
     createdDate: 'Дата создания',
     expiresDate: 'Срок действия',
     actCreatedDate: 'Дата составления акта',
-    actStatus: 'Статус акта'
+    actStatus: 'Статус акта',
+    cashAmount: 'Наличные',
+    cashCount: 'Количество наличных',
+    content: 'Содержание',
+    court: 'Суд',
+    forAccount: 'Для счёта',
+    mustPayAmount: 'Сумма к оплате',
+    payer: 'Плательщик'
   },
   tableActions: {
     edit: 'Редактировать',

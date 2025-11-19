@@ -47,12 +47,19 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
     set({ fileIdOnBilling: response.data.fileId });
   },
   downloadTemplate: () => {
-    const link = document.createElement('a');
-    link.href = '/templates/akt_import_template.xlsx';
-    link.download = 'akt_import_template.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // const link = document.createElement('a');
+    // link.href = '/templates/akt_import_template.xlsx';
+    // link.download = 'akt_import_template.xlsx';
+    // document.body.appendChild(link);
+    // link.click();
+    // document.body.removeChild(link);
+    api.get('/billing/import-acts-template', { responseType: 'blob' }).then((response) => {
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'akt_import_template.xlsx';
+      link.click();
+    });
   },
   excelFile: null,
   setExcelFile: (file: File) => set({ excelFile: file }),

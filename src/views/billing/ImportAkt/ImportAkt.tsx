@@ -7,6 +7,7 @@ import FileInputDrop from 'ui-component/FileInputDrop';
 import { t } from 'i18next';
 import { Clear, Download, QuestionMark, UploadFile } from '@mui/icons-material';
 import useLoaderStore from 'store/loaderStore';
+import ImportAktInfo from './ImportAktInfo';
 
 const packTypes = ['SIMPLE', 'SERVICE_NOT_PROVIDED', 'CANCEL_CONTRACT', 'INVENTORY', 'SPECIAL', 'ECO_PAY_INVENTORY', 'FROZEN'];
 
@@ -29,6 +30,7 @@ function ImportAkt() {
   } = useImportAktStore();
   const { setIsLoading } = useLoaderStore();
   const fileInputRef = useRef(null);
+  const [infoModal, setInfoModal] = useState(false);
 
   const [pdfFileUrl, setPdfFileUrl] = useState<Uint8Array | ''>('');
   useEffect(() => {
@@ -117,12 +119,12 @@ function ImportAkt() {
             </Button>
 
             <Tooltip title={t('importAktsPage.downloadTemplate')} arrow>
-              <IconButton>
+              <IconButton onClick={downloadTemplate}>
                 <Download />
               </IconButton>
             </Tooltip>
             <Tooltip title={t('importAktsPage.info')} arrow>
-              <IconButton>
+              <IconButton onClick={() => setInfoModal(true)}>
                 <QuestionMark />
               </IconButton>
             </Tooltip>
@@ -133,6 +135,7 @@ function ImportAkt() {
           {pdfFile === null ? <FileInputDrop setFiles={setPdfFile} clearTrigger={false} /> : <PdfViewer base64String={pdfFileUrl} />}
         </Grid>
       </Grid>
+      <ImportAktInfo handleClose={() => setInfoModal(false)} open={infoModal} />
     </MainCard>
   );
 }
