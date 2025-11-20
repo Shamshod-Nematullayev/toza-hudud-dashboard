@@ -103,7 +103,7 @@ function ImportAkt() {
             sx={{ my: 3 }}
           />
           <ButtonGroup fullWidth>
-            <Button variant="contained" color="primary" startIcon={<UploadFile />} sx={{ mx: 1 }}>
+            <Button variant="contained" color="primary" startIcon={<UploadFile />} sx={{ mx: 1 }} onClick={sendImportAktRequest}>
               {t('buttons.submitEntry')}
             </Button>
             <Button

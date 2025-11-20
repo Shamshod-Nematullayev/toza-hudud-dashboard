@@ -67,10 +67,9 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
   sendImportAktRequest: async () => {
     const { fileIdOnBilling, excelFile } = get();
     if (!fileIdOnBilling || !excelFile) return toast.error('PDF yoki Excel fayl tanlanmagan');
-
     const formData = new FormData();
     formData.append('fileId', fileIdOnBilling);
-    formData.append('excelFile', excelFile);
+    formData.append('file', excelFile);
     formData.append('packType', get().packType);
     formData.append('actPackId', get().selectedActPackId.toString());
 
