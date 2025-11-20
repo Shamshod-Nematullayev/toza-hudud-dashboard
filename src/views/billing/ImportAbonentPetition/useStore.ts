@@ -1,8 +1,45 @@
+import { toast } from 'react-toastify';
+import api from 'utils/api';
 import { create } from 'zustand';
 
-const useStore = create((set) => ({
-  showDialog: false,
-  setShowDialog: (state) => set({ showDialog: state }),
+interface StoreState {
+  openCancelPetitionDialogState: boolean;
+  openCancelPetitionDialog: () => void;
+  closeCancelPetitionDialog: () => void;
+  rejectAbonentPetition: (purpose: string) => Promise<any>;
+  ariza: any;
+  currentFile: {
+    file: File;
+  } | null;
+  pdfFiles: {
+    file: File;
+  }[];
+  removePdfFile: (file_name: string) => void;
+}
+
+const useStore = create<StoreState>((set, get) => ({
+  openCancelPetitionDialogState: false,
+  openCancelPetitionDialog: () => set({ openCancelPetitionDialogState: true }),
+  closeCancelPetitionDialog: () => set({ openCancelPetitionDialogState: false }),
+
+  rejectAbonentPetition: async (purpose) => {
+    if (!get().ariza) return toast.error('Ariza topilmadi');
+    const { data } = await api.post('/arizalar/cancel', {
+      _id: get().ariza._id,
+      canceling_description: purpose
+    });
+
+    if (!data.ok) {
+      toast.error(data.message);
+      return;
+    }
+    toast.success('Ariza bekor qilindi!');
+
+    set({ ariza: {}, currentFile: null });
+    get().removePdfFile(get().currentFile?.file.name || '');
+    get().closeCancelPetitionDialog();
+  },
+
   pdfFiles: [],
   setPdfFiles: (files) =>
     set({

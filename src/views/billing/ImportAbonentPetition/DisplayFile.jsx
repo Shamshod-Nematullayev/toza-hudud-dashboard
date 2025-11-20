@@ -64,7 +64,7 @@ function DisplayFile() {
           >
             <b>Rasmlar</b>
             {photos?.map((photo) => {
-              return <img src={photo} alt="" width="100%" />;
+              return <img key={Math.random()} src={photo} alt="" width="100%" />;
             })}
           </Card>
         </Paper>

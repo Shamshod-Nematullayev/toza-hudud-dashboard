@@ -49,7 +49,7 @@ interface IRow {
 
 function FindedDataTable() {
   const { t } = useTranslation();
-  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog } = useStore();
+  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, openCancelPetitionDialog } = useStore();
   const [rows, setRows] = useState<IRow[]>([]);
   const [arizaNumberInput, setArizaNumberInput] = useState('');
   const [arizalarRows, setArizalarRows] = useState([]);
@@ -60,7 +60,7 @@ function FindedDataTable() {
   const [isUploading, setIsUploading] = useState(false);
   const { setIsLoading } = useLoaderStore();
   const [anchorEl] = useState(null);
-  const [currentTarif, setCurrentTarif] = useState<ITariff>(null);
+  const [currentTarif, setCurrentTarif] = useState<ITariff>();
 
   const theme = useTheme();
 
@@ -227,7 +227,7 @@ function FindedDataTable() {
       removePdfFile(currentFile.file.name);
       setCurrentFile({});
       setAriza({});
-      toast.success(data.message);
+      toast.success(data.message + ` Papka: ${data.folderId}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err ?? "Noma'lum xatolik");
       console.error(message);
@@ -322,7 +322,7 @@ function FindedDataTable() {
         <Grid item xs={2.5}>
           <Button
             sx={{ padding: '12px 15px', color: 'error.main' }}
-            onClick={() => setShowDialog(true)}
+            onClick={openCancelPetitionDialog}
             disabled={ariza.status === 'yangi' ? false && isUploading : true}
           >
             <Cancel />

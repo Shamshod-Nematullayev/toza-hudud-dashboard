@@ -8,7 +8,7 @@ import DisplayFile from './DisplayFile';
 import { Grid } from '@mui/material';
 
 function ImportAbonentPetition() {
-  const { pdfFiles, showDialog, setShowDialog } = useStore();
+  const { pdfFiles } = useStore();
 
   return (
     <MainCard contentSX={{ height: 'calc(100vh - 130px)' }}>
@@ -23,7 +23,7 @@ function ImportAbonentPetition() {
           <FindedDataTable />
         </Grid>
       </Grid>
-      <CancelDialog showDialog={showDialog} setShowDialog={setShowDialog} />
+      <CancelDialog />
     </MainCard>
   );
 }
