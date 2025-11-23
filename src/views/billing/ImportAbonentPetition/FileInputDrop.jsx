@@ -74,8 +74,8 @@ function FileInputDrop() {
         const files = Array.from(e.dataTransfer.files).filter((file) => file.type === 'application/pdf');
         const filesWithUrl = [];
         const promises = files.map((file) => {
-          return new Promise(async (resolve, reject) => {
-            const arrayBuffer = await file.arrayBuffer();
+          return new Promise((resolve) => {
+            const arrayBuffer = file.arrayBuffer();
             const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
             const url = URL.createObjectURL(pdfBlob);
             filesWithUrl.push({
