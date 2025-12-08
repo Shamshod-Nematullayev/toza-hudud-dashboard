@@ -42,7 +42,8 @@ const uz = {
     'Sud harajatlari': 'Sud harajatlari',
     gpsMonitoring: 'GPS monitoring',
     gpsDalolatnomalar: 'GPS dalolatnomalar',
-    importActs: 'Aktlarni import qilish'
+    importActs: 'Aktlarni import qilish',
+    folders: 'Papkalar'
   },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',
@@ -95,6 +96,8 @@ const uz = {
     amountWithoutQQS: 'QQS bilan emas',
     checkStatus: 'Tekshirish holati',
     createdDate: 'Yaratilgan sanasi',
+    startingAt: 'Boshlangan qilingan sanasi',
+    endingAt: 'Tugatilgan sanasi',
     expiresDate: 'Amal qilish muddati',
     actCreatedDate: 'Akt qilingan sanasi',
     actStatus: 'Akt holati',
@@ -104,7 +107,8 @@ const uz = {
     court: 'Sud',
     payer: "To'lovchi",
     forAccount: 'Hisobga',
-    content: 'Mazmuni'
+    content: 'Mazmuni',
+    elementsCount: 'Elementlar soni'
   },
   tableActions: {
     edit: 'Tahrirlash',

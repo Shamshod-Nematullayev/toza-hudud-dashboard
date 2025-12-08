@@ -15,7 +15,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { DocumentScannerOutlined, MoveDown, ReceiptOutlined } from '@mui/icons-material';
+import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, FolderOutlined } from '@mui/icons-material';
 import uz from '../locales/uz';
 import { MenuItem } from 'menu-items';
 
@@ -38,7 +38,8 @@ const icons = {
   AssessmentOutlinedIcon,
   TrendingDownIcon,
   DocumentScannerOutlined,
-  ReceiptOutlined
+  ReceiptOutlined,
+  FolderOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -69,6 +70,15 @@ const billing: MenuItem = {
       type: 'item',
       url: '/billing/importAbonentPetition',
       icon: icons.UploadFileOutlinedIcon,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
+    },
+    {
+      id: 'folders',
+      title: 'folders',
+      type: 'item',
+      url: '/billing/folders',
+      icon: icons.FolderOutlined,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
     },

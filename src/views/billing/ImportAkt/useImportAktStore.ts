@@ -39,7 +39,7 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/billing/akt/upload', formData, {
+    const response = await api.post('/billing/upload-file-tozamakon', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -48,12 +48,6 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
     set({ fileIdOnBilling: response.data.fileId });
   },
   downloadTemplate: () => {
-    // const link = document.createElement('a');
-    // link.href = '/templates/akt_import_template.xlsx';
-    // link.download = 'akt_import_template.xlsx';
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
     api.get('/billing/import-acts-template', { responseType: 'blob' }).then((response) => {
       const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
@@ -70,14 +64,17 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
     const formData = new FormData();
     formData.append('fileId', fileIdOnBilling);
     formData.append('file', excelFile);
-    formData.append('packType', get().packType);
+    if (get().packType) formData.append('packType', get().packType);
     formData.append('actPackId', get().selectedActPackId.toString());
 
-    await api.post('/billing/import-acts', formData, {
+    const res = await api.post('/billing/import-acts', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     });
+
+    toast.success(res.data.message);
+    get().clearStore();
   },
   actPacks: [],
   getActPacks: async () => {

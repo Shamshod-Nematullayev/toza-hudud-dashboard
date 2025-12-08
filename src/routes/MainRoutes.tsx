@@ -30,6 +30,7 @@ import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
+import Folders from 'views/billing/Folders';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -129,6 +130,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'importAbonentPetition',
           element: <ImportAbonentPetition />
+        },
+        {
+          path: 'folders',
+          element: <Folders />
         },
         {
           path: 'printAbonentsList',
