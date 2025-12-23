@@ -31,6 +31,7 @@ import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
 import Folders from 'views/billing/Folders';
+import EtkKodRequests from 'views/billing/EtkKodRequests';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -166,6 +167,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'pendingNewAbonents',
           element: <PendingNewAbonents />
+        },
+        {
+          path: 'etkKodRequests',
+          element: <EtkKodRequests />
         },
         {
           path: 'blanks',

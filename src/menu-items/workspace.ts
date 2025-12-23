@@ -15,7 +15,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, FolderOutlined } from '@mui/icons-material';
+import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, FolderOutlined, ElectricBolt } from '@mui/icons-material';
 import uz from '../locales/uz';
 import { MenuItem } from 'menu-items';
 
@@ -39,7 +39,8 @@ const icons = {
   TrendingDownIcon,
   DocumentScannerOutlined,
   ReceiptOutlined,
-  FolderOutlined
+  FolderOutlined,
+  ElectricBolt
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -178,6 +179,15 @@ const billing: MenuItem = {
       type: 'item',
       url: '/billing/pendingNewAbonents',
       icon: icons.PersonAddAltIcon,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
+    },
+    {
+      id: 'etkKodRequests',
+      title: 'etkKodRequests',
+      type: 'item',
+      url: '/billing/etkKodRequests',
+      icon: icons.ElectricBolt,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
     },
