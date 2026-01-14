@@ -92,7 +92,7 @@ function SidePanel() {
       async function getDataFromQR() {
         const arrayBuffer = await pdfFiles[0].arrayBuffer();
         const pdfData = new Uint8Array(arrayBuffer);
-        const data = await extractQRCodeFromPDF(pdfData, 1);
+        const data = await extractQRCodeFromPDF(pdfData, 'lastPage');
         if (!data.ok) return toast.error(data.message);
         await getDalolatnomaData({
           _id: data.result?.split('_')[1]
