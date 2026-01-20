@@ -1,8 +1,8 @@
 //assets
-import { NoteAddOutlined } from '@mui/icons-material';
+import { NoteAddOutlined, MapOutlined } from '@mui/icons-material';
 import { MenuItem } from 'menu-items';
 //contans
-const icons = { NoteAddOutlined };
+const icons = { NoteAddOutlined, MapOutlined };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
 const gpsMonitoring: MenuItem = {
@@ -19,6 +19,15 @@ const gpsMonitoring: MenuItem = {
       type: 'item',
       url: '/gpsMonitoring/gpsDalolatnomalar',
       icon: icons.NoteAddOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'gps']
+    },
+    {
+      id: 'visitsGraph',
+      title: 'visitsGraph',
+      type: 'item',
+      url: '/gpsMonitoring/visitsGraph',
+      icon: icons.MapOutlined,
       breadcrumbs: false,
       allowedRoles: ['admin', 'gps']
     }

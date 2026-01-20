@@ -32,6 +32,7 @@ import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
 import Folders from 'views/billing/Folders';
 import EtkKodRequests from 'views/billing/EtkKodRequests';
+import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -238,6 +239,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'gpsDalolatnomalar',
           element: <CreateGpsDalolatnoma />
+        },
+        {
+          path: 'visitsGraph',
+          element: <VisitGrafikPage />
         }
       ]
     },

@@ -44,7 +44,8 @@ const uz = {
     gpsDalolatnomalar: 'GPS dalolatnomalar',
     importActs: 'Aktlarni import qilish',
     folders: 'Papkalar',
-    etkKodRequests: 'ETK kiritish talablar'
+    etkKodRequests: 'ETK kiritish talablar',
+    visitsGraph: 'Tashriflar grafiki'
   },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',
