@@ -52,8 +52,9 @@ const NavItem = ({ item, level }) => {
     listItemProps = { component: 'a', href: item.url, target: itemTarget };
   }
 
-  const itemHandler = (id) => {
+  const itemHandler = (id, title) => {
     if (matchesSM) setCustomization({ opened: true, id });
+    document.title = t(`menuItems.${title}`);
   };
 
   // active menu item on page load
@@ -83,7 +84,7 @@ const NavItem = ({ item, level }) => {
         pl: `${level * 24}px`
       }}
       selected={customization.isOpen.findIndex((id) => id === item.id) > -1}
-      onClick={() => itemHandler(item.id)}
+      onClick={() => itemHandler(item.id, item.title)}
     >
       <ListItemIcon sx={{ my: 'auto', minWidth: !item?.icon ? 18 : 36 }}>{itemIcon}</ListItemIcon>
       <ListItemText

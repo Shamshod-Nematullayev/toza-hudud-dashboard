@@ -17,6 +17,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
+    document.title = 'GreenZone - Dashboard';
     const fetchData = async () => {
       try {
         const identityData = (await api.get('/statistics/identity')).data;
