@@ -1,25 +1,22 @@
 import { Label } from '@mui/icons-material';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Select, TextField } from '@mui/material';
+import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Select, TextField } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
+import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import api from 'utils/api';
 
-function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }) {
+function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }: any) {
   const [userId, setUserId] = useState('');
-  const [user, setUser] = useState({});
-  const [selectedInspector, setSelectedInspector] = useState(0);
+  const [user, setUser] = useState<any>({});
+  const [selectedInspector, setSelectedInspector] = useState('0');
 
   const { t } = useTranslation();
 
   const handleClose = () => {
     setOpenConnectTelegramModal(false);
   };
-  const handleKeyDown = (event) => {
-    if (event.key === 'Escape') {
-      handleClose();
-    }
-  };
+
   const handleCheck = async () => {
     try {
       if (!userId) {
@@ -39,7 +36,7 @@ function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }) {
         setUser({});
         return toast.info(t('inspectorsPage.enterTelegramId'));
       }
-      if (selectedInspector === 0) {
+      if (selectedInspector === '0') {
         return toast.info(t('inspectorsPage.chooseInspector'));
       }
       await api.post('/inspectors/set-inspector-telegram-id', {
@@ -57,8 +54,7 @@ function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }) {
     setUser({});
   }, [userId]);
   return (
-    <Dialog open={1} onKeyDown={handleKeyDown}>
-      <DialogTitle>{t('inspectorsPage.toConnectTelegram')}</DialogTitle>
+    <DraggableDialog open={true} onClose={handleClose} title={t('inspectorsPage.toConnectTelegram')}>
       <DialogContent>
         <DialogContentText>
           <TextField
@@ -84,7 +80,7 @@ function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }) {
           />
           {user.first_name && (
             <>
-              <Label id={'labelId'} sx={{ mt: 2 }} variant="standard" color="text.secondary">
+              <Label id={'labelId'} sx={{ mt: 2 }} variant="standard" color="secondary" component={Select}>
                 {t('inspectorsPage.chooseInspector')}
               </Label>
               <Select
@@ -97,7 +93,7 @@ function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }) {
                 <MenuItem value={0} disabled>
                   {t('inspectorsPage.chooseInspector')}
                 </MenuItem>
-                {inspectors.map((inspector) => (
+                {inspectors.map((inspector: any) => (
                   <MenuItem key={inspector.id} value={inspector.id}>
                     {inspector.name}
                   </MenuItem>
@@ -108,9 +104,6 @@ function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }) {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} variant="outlined" color="secondary">
-          {t('tableActions.close')}
-        </Button>
         <Button onClick={handleCheck} variant="outlined" color="primary" disabled={!userId}>
           {t('tableActions.check')}
         </Button>
@@ -118,7 +111,7 @@ function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }) {
           {t('tableActions.confirm')}
         </Button>
       </DialogActions>
-    </Dialog>
+    </DraggableDialog>
   );
 }
 

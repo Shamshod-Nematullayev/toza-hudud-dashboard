@@ -59,6 +59,7 @@
     "react-csv": "^2.2.2",
     "react-device-detect": "^2.2.3",
     "react-dom": "^18.2.0",
+    "react-draggable": "^4.5.0",
     "react-i18next": "^15.5.1",
     "react-pdf": "^9.2.1",
     "react-perfect-scrollbar": "^1.5.8",

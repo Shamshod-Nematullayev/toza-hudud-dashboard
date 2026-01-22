@@ -17,6 +17,7 @@ import { IAbonentData, IMahalla } from './useStore';
 import useCustomizationStore from 'store/customizationStore';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
+import DraggableDialog from 'ui-component/extended/DraggableDialog';
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
@@ -26,7 +27,7 @@ export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti',
  * @param {string} name The name to be formatted.
  * @returns {string} The formatted name.
  */
-export function formatName(name) {
+export function formatName(name: string) {
   if (!name) return '';
   return name
     .toLowerCase() // Hamma harflarni kichik qilib o'zgartiradi
@@ -34,13 +35,13 @@ export function formatName(name) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Har bir so'zning birinchi harfini bosh harf qiladi
     .join(' '); // Ajratilgan so'zlarni bo'sh joy bilan birlashtiradi
 }
-function formatPhoneNumber(phone) {
+function formatPhoneNumber(phone: string) {
   if (!phone) return '';
   const compCode = phone.slice(0, 2);
   const number = phone.slice(2, 9);
   return `+998(${compCode})${number}`;
 }
-const blobToBase64 = (blob) => {
+const blobToBase64 = (blob: Blob) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result); // Base64 natija
@@ -94,22 +95,19 @@ function PrintSection({
     }
   };
   return (
-    <Dialog
+    <DraggableDialog
       open={show}
+      onClose={handleClose}
+      title={t('menuItems.createAbonentPetition')}
       sx={{
         '& .MuiDialog-paper': {
           width: '80%', // kenglikni belgilash
           maxWidth: '800px' // maksimal kenglik
         }
       }}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          setShowPrintSection(false);
-        }
-      }}
     >
-      <DialogContent style={{ margin: '40px 55px', fontSize: 14 }}>
-        <div id="print" ref={componentRef}>
+      <DialogContent style={{ fontSize: 14 }}>
+        <div id="print" ref={componentRef} style={{ height: '600px' }}>
           {renderSwitch({
             abonentData,
             abonentData2,
@@ -128,7 +126,7 @@ function PrintSection({
         </div>
       </DialogContent>
       {ariza.document_type === 'odam_soni' && (
-        <DialogContent sx={{ height: 200, display: 'flex' }}>
+        <DialogContent sx={{ display: 'flex' }}>
           <FormControl fullWidth sx={{ width: '200px' }}>
             <InputLabel id="dument-variant-select-label">Variant</InputLabel>
             <Select
@@ -155,12 +153,11 @@ function PrintSection({
       )}
 
       <DialogActions>
-        <Button onClick={handleClose}>{t('buttons.close')}</Button>
         <Button variant="contained" color="primary" onClick={() => printFunction()}>
           {t('buttons.print')}
         </Button>
       </DialogActions>
-    </Dialog>
+    </DraggableDialog>
   );
 }
 
