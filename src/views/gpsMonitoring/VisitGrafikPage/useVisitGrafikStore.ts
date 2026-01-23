@@ -26,7 +26,7 @@ interface AutoMobile {
   mahallalar: BiriktirilganMahalla[];
 }
 
-interface IRow {
+export interface IRow {
   _id: string;
   name: string;
   model: string;

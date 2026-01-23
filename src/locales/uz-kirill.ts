@@ -19,6 +19,39 @@ const uzKirill: typeof uz = {
   to: 'гача',
   'Drop your files': 'Файлларингизни ташланг',
   documentNumber: 'Ҳужжат рақами',
+  weekDays: {
+    'day-1': 'Душанба',
+    'day-2': 'Сешанба',
+    'day-3': 'Чоршанба',
+    'day-4': 'Пайшанба',
+    'day-5': 'Жума',
+    'day-6': 'Шанба',
+    'day-7': 'Якшанба'
+  },
+  invoiceStatus: {
+    CREATED: 'Янги',
+    PAID: 'Тасдиқланган'
+  },
+  ACT_PACK_TYPES: {
+    SIMPLE: 'Тўлов келиб тушмаган',
+    SERVICE_NOT_PROVIDED: 'Хизмат кўбрсатилмаган',
+    SPECIAL: 'Макссус',
+    CANCEL_CONTRACT: 'Шартнома бекор қилиш',
+    INVENTORY: 'Одам сонини ўзгартириш',
+    MIB: 'Миб томонидан',
+    ECO_PAY_INVENTORY: 'EcoPay инвентаризация учун',
+    FROZEN: 'Музлатилган қарздорлик'
+  },
+  errors: {
+    missingRequiredFields: 'Керакли мақлумотлар тўлдирилмаган'
+  },
+  importAktsPage: {
+    actPack: 'Актлар пачкаси',
+    actPackType: 'Актлар пачкаси тури',
+    info: 'Батафсил маълумот',
+    downloadTemplate: 'Шаблонни юклаш',
+    infoTitle: 'Актлар пачкаси'
+  },
   menuItems: {
     employeers: 'Ходимлар',
     inspectors: 'Назоратчилар',
@@ -45,7 +78,13 @@ const uzKirill: typeof uz = {
     Acts: 'Актлар',
     specialActs: 'Махсус актлар',
     moneyTransfer: 'Пул кўчириш',
-    'Sud harajatlari': 'Суд харајатлари'
+    'Sud harajatlari': 'Суд харајатлари',
+    etkKodRequests: 'Этк код талаблари',
+    folders: 'Папкалар',
+    gpsDalolatnomalar: 'GPS далолатномалар',
+    gpsMonitoring: 'GPS мониторинг',
+    importActs: 'Актларни импорт қилиш',
+    visitsGraph: 'Кўчиш графиклари'
   },
   dashboard: {
     identified: 'Шахси тасдиқланган',
@@ -90,7 +129,17 @@ const uzKirill: typeof uz = {
     createdDate: 'Яратилган санаси',
     expiresDate: 'Амал қилиш санаси',
     actCreatedDate: 'Акт қилинган санаси',
-    actStatus: 'Акт ҳолати'
+    actStatus: 'Акт ҳолати',
+    cashAmount: 'Наличные',
+    cashCount: 'Количество наличных',
+    content: 'Содержание',
+    court: 'Суд',
+    elementsCount: 'Элементлар сони',
+    endingAt: 'Амал қилиш санаси',
+    forAccount: 'Ҳисобга',
+    mustPayAmount: 'Қарздорлик суммаси',
+    payer: 'Тўловчи',
+    startingAt: 'Яратилган санаси'
   },
   tableActions: {
     edit: 'Таҳрирлаш',

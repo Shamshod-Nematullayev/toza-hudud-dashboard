@@ -9,6 +9,15 @@ const uz = {
   from: 'dan',
   to: 'gacha',
   'Drop your files': 'Fayllaringizni tashlang',
+  weekDays: {
+    'day-1': 'Dushanba',
+    'day-2': 'Seshanba',
+    'day-3': 'Chorshanba',
+    'day-4': 'Payshanba',
+    'day-5': 'Juma',
+    'day-6': 'Shanba',
+    'day-7': 'Yakshanba'
+  },
   errors: {
     missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan'
   },
