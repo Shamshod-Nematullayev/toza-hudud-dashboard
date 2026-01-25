@@ -110,7 +110,6 @@ function PrintAbonentsList() {
       });
     });
   };
-  const isXs = useMediaQuery('(max-width:600px)');
 
   return (
     <MainCard sx={{ height: 'calc(100vh - 120px)' }}>

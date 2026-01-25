@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 const useStore = create((set) => ({
-  selectedMahalla: '0',
+  selectedMahalla: '',
   setSelectedMahalla: (state) => set({ selectedMahalla: state }),
   mahallas: [],
   setMahallas: (state) => set({ mahallas: state }),
