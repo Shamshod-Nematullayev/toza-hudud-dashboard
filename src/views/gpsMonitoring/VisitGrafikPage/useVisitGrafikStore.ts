@@ -52,7 +52,17 @@ interface VisitGrafikState {
   setFilterField: (field: FilterFieldOptions) => void;
   setFilterValue: (value: string) => void;
   clearFilter: () => void;
-  addAutoMobile: (props: Omit<AutoMobile, '_id' | 'companyId'> & Partial<Pick<AutoMobile, '_id' | 'companyId'>>) => void;
+  addAutoMobile: (props: Omit<AutoMobile, '_id' | 'companyId'> & Partial<Pick<AutoMobile, '_id' | 'companyId'>>) => Promise<void>;
+  deleteAutoMobile: (id: string) => void;
+  addMahallaToAuto: (autoId: string, mahallaId: number, mahallaName: string, service: { day: number; time: 0.5 | 1 }[]) => Promise<void>;
+  updateMahallaOfAuto: (
+    autoId: string,
+    mahallaId: number,
+    newMahallaId: number,
+    newMahallaName: string,
+    service: { day: number; time: 0.5 | 1 }[]
+  ) => Promise<void>;
+  deleteMahallaOfAuto: (autoId: string, mahallaId: number) => Promise<void>;
 }
 
 export const useVisitGrafikStore = create<VisitGrafikState>((set, get) => ({
@@ -109,6 +119,47 @@ export const useVisitGrafikStore = create<VisitGrafikState>((set, get) => ({
       get().fetchVisitGrafik();
     } catch (error) {
       console.error('Error adding automobile:', error);
+    }
+  },
+  deleteAutoMobile: async (id) => {
+    try {
+      await api.delete('/automobiles/' + id);
+      get().fetchVisitGrafik();
+    } catch (error) {
+      console.error('Error deleting automobile:', error);
+    }
+  },
+  addMahallaToAuto: async (autoId, mahallaId, mahallaName, service) => {
+    try {
+      await api.post('/automobiles/add-mahalla/' + autoId, {
+        mahallaId,
+        name: mahallaName,
+        service
+      });
+      get().fetchVisitGrafik();
+    } catch (error) {
+      console.error('Error adding mahalla to automobile:', error);
+    }
+  },
+  updateMahallaOfAuto: async (autoId, mahallaId, newMahallaId, newMahallaName, service) => {
+    try {
+      await api.patch('/automobiles/update-mahalla/' + autoId, {
+        mahallaId,
+        newMahallaId,
+        newMahallaName,
+        service
+      });
+      get().fetchVisitGrafik();
+    } catch (error) {
+      console.error('Error updating mahalla of automobile:', error);
+    }
+  },
+  deleteMahallaOfAuto: async (autoId, mahallaId) => {
+    try {
+      await api.delete(`/automobiles/remove-mahalla/${autoId}/${mahallaId}`);
+      get().fetchVisitGrafik();
+    } catch (error) {
+      console.error('Error deleting mahalla from automobile:', error);
     }
   }
 }));

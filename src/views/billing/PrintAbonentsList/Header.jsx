@@ -28,6 +28,7 @@ import { ClearAll, GridOn, PictureAsPdfOutlined } from '@mui/icons-material';
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
 import { toPng } from 'html-to-image';
 import { isMobile } from 'react-device-detect';
+import MahallaSelection from 'ui-component/MahallaSelection';
 
 function Header({ printContentRef, getAbonents, filters, setFilters }) {
   const {
@@ -358,16 +359,7 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
 
                       {/* Mahalla tanlov */}
                       <Grid item xs={12} sm={6} md={4} lg={2}>
-                        <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} fullWidth displayEmpty>
-                          <MenuItem disabled value="0">
-                            Mahalla
-                          </MenuItem>
-                          {mahallas.map((mfy) => (
-                            <MenuItem key={mfy.id} value={mfy.id}>
-                              {mfy.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                        <MahallaSelection selectedMahallaId={selectedMahalla} setSelectedMahallaId={setSelectedMahalla} />
                       </Grid>
 
                       {/* Yangilash tugmasi */}
@@ -462,16 +454,7 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
 
         {/* Mahalla tanlov */}
         <Grid item xs={12} sm={6} md={4} lg={2}>
-          <Select value={selectedMahalla} onChange={(e) => setSelectedMahalla(e.target.value)} fullWidth displayEmpty>
-            <MenuItem disabled value="0">
-              Mahalla
-            </MenuItem>
-            {mahallas.map((mfy) => (
-              <MenuItem key={mfy.id} value={mfy.id}>
-                {mfy.name}
-              </MenuItem>
-            ))}
-          </Select>
+          <MahallaSelection selectedMahallaId={selectedMahalla} setSelectedMahallaId={setSelectedMahalla} />
         </Grid>
 
         {/* Yangilash tugmasi */}
