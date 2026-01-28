@@ -33,6 +33,7 @@ import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
 import Folders from 'views/billing/Folders';
 import EtkKodRequests from 'views/billing/EtkKodRequests';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
+import Tasks from 'views/employeers/Tasks';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -103,6 +104,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'inspectors',
           element: <Inspectors />
+        },
+        {
+          path: 'tasks',
+          element: <Tasks />
         }
       ]
     },

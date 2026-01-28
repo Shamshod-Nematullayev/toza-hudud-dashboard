@@ -25,6 +25,7 @@ const uz = {
   menuItems: {
     employeers: 'Xodimlar',
     inspectors: 'Nazoratchilar',
+    tasks: 'Topshiriqlar',
     workspace: 'Ish maydoni',
     billing: 'Billing',
     createAbonentPetition: 'Ariza yaratish',
@@ -226,7 +227,8 @@ const uz = {
     export: 'Eksport',
     continue: 'Davom etish',
     swap: "O'rin almashtirish",
-    submitEntry: 'Kiritish'
+    submitEntry: 'Kiritish',
+    sendExcelToTelegramGroup: 'Excel faylni Telegram guruhiga yuborish'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
