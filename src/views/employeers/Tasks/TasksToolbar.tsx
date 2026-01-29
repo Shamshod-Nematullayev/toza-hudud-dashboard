@@ -4,10 +4,9 @@ import { t } from 'i18next';
 import { useTasksStore } from './useTasksStore';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import InfoDialog from './InfoDialog';
-import FileInputDrop from 'ui-component/FileInputDrop';
 
 function TasksToolbar() {
-  const { openSETTDialogDate, setOpenSETTDialogDate, openInfoDialog, setOpenInfoDialog, setFile, clearFile } = useTasksStore();
+  const { openSETTDialogDate, setOpenSETTDialogDate, openInfoDialog, setOpenInfoDialog, setFile, clearFile, handleSETT } = useTasksStore();
   return (
     <div>
       <Button variant="contained" color="primary" endIcon={<Send />} onClick={() => setOpenSETTDialogDate(true)}>
@@ -33,7 +32,7 @@ function TasksToolbar() {
               <QuestionMark />
             </IconButton>
           </Tooltip>
-          <Button variant="contained" onClick={() => {}}>
+          <Button variant="contained" onClick={() => handleSETT()}>
             {t('buttons.continue')}
           </Button>
         </DialogActions>

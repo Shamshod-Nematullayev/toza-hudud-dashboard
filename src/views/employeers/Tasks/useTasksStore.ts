@@ -23,8 +23,14 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
   setFile: (file: File) => set({ file: file }),
   clearFile: () => set({ file: null }),
   handleSETT: async () => {
-    await api.post('/fetchTelegram/send-excel-to-telegram', {
-      file: get().file
-    });
+    await api.post(
+      '/fetchTelegram/send-excel-to-telegram',
+      {
+        file: get().file
+      },
+      {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
+    );
   }
 }));
