@@ -1,6 +1,6 @@
-import { MenuItem, Select } from '@mui/material';
+import { InputLabel, MenuItem, Select } from '@mui/material';
 import { lotinga } from 'helpers/lotinKiril';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import api from 'utils/api';
 
 /**
@@ -13,11 +13,13 @@ import api from 'utils/api';
 function MahallaSelection({
   selectedMahallaId,
   setSelectedMahallaId,
-  setMahallalar = () => {}
+  setMahallalar = () => {},
+  label
 }: {
   selectedMahallaId: number | string;
   setSelectedMahallaId: (e: number | string) => void;
   setMahallalar?: React.Dispatch<React.SetStateAction<{ id: number; name: string }[]>>;
+  label?: string;
 }) {
   const [mahallas, setMahallas] = useState<{ id: number; name: string }[]>([]);
 
@@ -29,17 +31,29 @@ function MahallaSelection({
     });
   }, []);
 
+  const labelId = useId();
+
   return (
-    <Select value={selectedMahallaId} onChange={(e) => setSelectedMahallaId(e.target.value)} fullWidth displayEmpty>
-      <MenuItem disabled value="">
-        Mahalla
-      </MenuItem>
-      {mahallas.map((mfy) => (
-        <MenuItem key={mfy.id} value={mfy.id}>
-          {mfy.name}
+    <>
+      {label && <InputLabel id={labelId}>{label}</InputLabel>}
+      <Select
+        labelId={labelId}
+        label={label}
+        value={selectedMahallaId}
+        onChange={(e) => setSelectedMahallaId(e.target.value)}
+        fullWidth
+        displayEmpty
+      >
+        <MenuItem disabled value="">
+          Mahalla
         </MenuItem>
-      ))}
-    </Select>
+        {mahallas.map((mfy) => (
+          <MenuItem key={mfy.id} value={mfy.id}>
+            {mfy.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </>
   );
 }
 

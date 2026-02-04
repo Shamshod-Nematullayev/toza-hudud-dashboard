@@ -269,6 +269,11 @@ const uz = {
     footerRowSelected: '{{count}} ta tanlandi',
     labelRowsPerPage: 'Sahifadagi qatorlar:',
     labelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) => `${count} tadan ${from} dan ${to} gacha`
+  },
+  tasksStatus: {
+    completed: 'Tugallangan',
+    'in-progress': 'Jarayonda',
+    rejected: 'Muvaffaqqiyatsiz bajarildi'
   }
 };
 

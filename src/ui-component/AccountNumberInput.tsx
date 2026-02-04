@@ -16,12 +16,13 @@ function AccountNumberInput({
 }) {
   const defaultValue = localStorage.getItem('abonentsPrefix') || '105120';
   const inputRef = useRef(null);
-  const handleFocus = (e) => {
+  const handleFocus = (e: any) => {
     if (!e.target.value) {
       setFunc(defaultValue);
       // Wait until the value is set before placing the cursor at the end
       setTimeout(() => {
         if (inputRef.current) {
+          // @ts-ignore
           inputRef.current.setSelectionRange(defaultValue.length, defaultValue.length);
         }
       }, 0);

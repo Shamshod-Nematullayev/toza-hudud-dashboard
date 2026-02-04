@@ -1,7 +1,8 @@
 import { Grid } from '@mui/material';
-import React from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import TasksToolbar from './TasksToolbar';
+import TasksTable from './TasksTable';
+import FiltersBar from './FiltersBar';
 
 function Tasks() {
   return (
@@ -10,7 +11,12 @@ function Tasks() {
         <Grid item xs={12}>
           <TasksToolbar />
         </Grid>
-        TASKS
+        <Grid item xs={12} sm={10}>
+          <TasksTable />
+        </Grid>
+        <Grid item xs={12} sm={2}>
+          <FiltersBar />
+        </Grid>
       </Grid>
     </MainCard>
   );

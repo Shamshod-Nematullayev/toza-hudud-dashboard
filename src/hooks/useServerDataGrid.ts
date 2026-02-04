@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { GridPaginationModel, GridSortModel, DataGridProps, GridSortDirection } from '@mui/x-data-grid';
 
 // ... FetchParams va FetchResult tiplari (avvalgi kodingizdagi kabi) ...
-interface FetchParams {
+export interface FetchParams {
   page: number;
   limit: number;
   sortField?: string;
@@ -11,7 +11,7 @@ interface FetchParams {
   filters?: Record<string, any>;
 }
 
-interface FetchResult<T> {
+export interface FetchResult<T> {
   data: T[];
   meta: { total: number; page: number; limit: number };
 }

@@ -6,7 +6,8 @@ import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import InfoDialog from './InfoDialog';
 
 function TasksToolbar() {
-  const { openSETTDialogDate, setOpenSETTDialogDate, openInfoDialog, setOpenInfoDialog, setFile, clearFile, handleSETT } = useTasksStore();
+  const { openSETTDialogDate, setOpenSETTDialogDate, openInfoDialog, setOpenInfoDialog, setFile, clearFile, handleSETT, downloadTemplate } =
+    useTasksStore();
   return (
     <div>
       <Button variant="contained" color="primary" endIcon={<Send />} onClick={() => setOpenSETTDialogDate(true)}>
@@ -28,7 +29,7 @@ function TasksToolbar() {
             </IconButton>
           </Tooltip>
           <Tooltip title={t('importAktsPage.info')} arrow>
-            <IconButton onClick={() => setOpenInfoDialog(true)}>
+            <IconButton onClick={downloadTemplate}>
               <QuestionMark />
             </IconButton>
           </Tooltip>
