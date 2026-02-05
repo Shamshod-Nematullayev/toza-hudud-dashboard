@@ -1,16 +1,14 @@
-import { Button, Grid, IconButton, List, ListItem, ListItemButton, Switch, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Button, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import { toast } from 'react-toastify';
 import useCustomizationStore from 'store/customizationStore';
 import ModalChoose from './ModalChoose';
 import api from 'utils/api';
-import { gridSpacing } from 'store/constant';
 import { AddOutlined, Telegram } from '@mui/icons-material';
 import AddInspectorModal from './AddInspectorModal';
 import ConnectTelegramModal from './ConnectTelegramModal';
@@ -85,14 +83,14 @@ function Inspectors() {
       renderCell: (params) => {
         return (
           <div>
-            <Switch checked={params.row.activ} onChange={(e) => handleClickSwitch(params.row.id)} />
+            <Switch checked={params.row.activ} onChange={() => handleClickSwitch(params.row.id)} />
           </div>
         );
       }
     }
   ];
 
-  const renderMahallaActions = (mfy, id, mfyNumber) => {
+  const renderMahallaActions = (mfy, id) => {
     return (
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {mfy ? (

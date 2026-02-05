@@ -37,10 +37,16 @@ function TasksTable() {
       field: 'status',
       headerName: t('tableHeaders.status'),
       flex: 1
+    },
+    {
+      field: 'type',
+      headerName: t('taskTypes.type'),
+      flex: 1,
+      renderCell: (row) => t(('taskTypes.' + row.row.type) as 'taskTypes.type')
     }
   ];
-  const { fetchMahallas, fetchTasks } = useTasksStore();
-  const { dataGridProps, rows, setPaginationModel } = useServerDataGrid(fetchTasks, [], 100, {});
+  const { fetchMahallas, fetchTasks, filters } = useTasksStore();
+  const { dataGridProps, rows, setPaginationModel } = useServerDataGrid(fetchTasks, [], 100, filters);
 
   useEffect(() => {
     fetchMahallas();

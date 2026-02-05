@@ -274,6 +274,11 @@ const uz = {
     completed: 'Tugallangan',
     'in-progress': 'Jarayonda',
     rejected: 'Muvaffaqqiyatsiz bajarildi'
+  },
+  taskTypes: {
+    type: 'Turi',
+    electricity: 'Elektr',
+    phone: 'Telefon'
   }
 };
 

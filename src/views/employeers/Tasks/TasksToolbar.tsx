@@ -24,12 +24,12 @@ function TasksToolbar() {
         />
         <DialogActions>
           <Tooltip title={t('importAktsPage.downloadTemplate')} arrow>
-            <IconButton onClick={() => {}}>
+            <IconButton onClick={downloadTemplate}>
               <Download />
             </IconButton>
           </Tooltip>
           <Tooltip title={t('importAktsPage.info')} arrow>
-            <IconButton onClick={downloadTemplate}>
+            <IconButton onClick={() => setOpenInfoDialog(true)}>
               <QuestionMark />
             </IconButton>
           </Tooltip>

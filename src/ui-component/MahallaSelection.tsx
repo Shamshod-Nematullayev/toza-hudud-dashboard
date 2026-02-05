@@ -1,4 +1,4 @@
-import { InputLabel, MenuItem, Select } from '@mui/material';
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import { lotinga } from 'helpers/lotinKiril';
 import React, { useEffect, useId, useState } from 'react';
 import api from 'utils/api';
@@ -14,12 +14,18 @@ function MahallaSelection({
   selectedMahallaId,
   setSelectedMahallaId,
   setMahallalar = () => {},
-  label
+  label,
+  defaultValue,
+  defaultValueDisabled,
+  defaultValueLabel
 }: {
   selectedMahallaId: number | string;
   setSelectedMahallaId: (e: number | string) => void;
   setMahallalar?: React.Dispatch<React.SetStateAction<{ id: number; name: string }[]>>;
   label?: string;
+  defaultValue?: string;
+  defaultValueLabel?: string;
+  defaultValueDisabled?: boolean;
 }) {
   const [mahallas, setMahallas] = useState<{ id: number; name: string }[]>([]);
 
@@ -34,18 +40,18 @@ function MahallaSelection({
   const labelId = useId();
 
   return (
-    <>
+    <FormControl fullWidth>
       {label && <InputLabel id={labelId}>{label}</InputLabel>}
       <Select
         labelId={labelId}
         label={label}
+        defaultValue={''}
         value={selectedMahallaId}
         onChange={(e) => setSelectedMahallaId(e.target.value)}
         fullWidth
-        displayEmpty
       >
-        <MenuItem disabled value="">
-          Mahalla
+        <MenuItem disabled={defaultValueDisabled} value={defaultValue || ''}>
+          {defaultValueLabel || 'Mahalla'}
         </MenuItem>
         {mahallas.map((mfy) => (
           <MenuItem key={mfy.id} value={mfy.id}>
@@ -53,7 +59,7 @@ function MahallaSelection({
           </MenuItem>
         ))}
       </Select>
-    </>
+    </FormControl>
   );
 }
 
