@@ -3,6 +3,8 @@ import MainCard from 'ui-component/cards/MainCard';
 import TasksToolbar from './TasksToolbar';
 import TasksTable from './TasksTable';
 import FiltersBar from './FiltersBar';
+import EditTaskDialog from './EditTaskDialog';
+import SendExcelToTelegramGroupDialog from './SendExcelToTelegramGroupDialog';
 
 function Tasks() {
   return (
@@ -18,6 +20,8 @@ function Tasks() {
           <FiltersBar />
         </Grid>
       </Grid>
+      <EditTaskDialog />
+      <SendExcelToTelegramGroupDialog />
     </MainCard>
   );
 }

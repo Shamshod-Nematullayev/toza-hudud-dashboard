@@ -7,17 +7,31 @@ import MahallaSelection from 'ui-component/MahallaSelection';
 import { IFilters, useTasksStore } from './useTasksStore';
 
 function FiltersBar() {
-  const [accountNumber, setAccountNumber] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [mahallaId, setMahallaId] = useState('');
-  const [type, setType] = useState<'' | 'electricity' | 'phone'>('');
-  const [nazoratchi_id, setNazoratchiId] = useState<number | ''>('');
-  const [status, setStatus] = useState<'' | 'completed' | 'in-progress' | 'rejected'>('');
+  // const [accountNumber, setAccountNumber] = useState('');
+  // const [fullName, setFullName] = useState('');
+  // const [mahallaId, setMahallaId] = useState('');
+  // const [type, setType] = useState<'' | 'electricity' | 'phone'>('');
+  // const [nazoratchi_id, setNazoratchiId] = useState<number | ''>('');
+  // const [status, setStatus] = useState<'' | 'completed' | 'in-progress' | 'rejected'>('');
 
   const typeLabelId = useId();
   const statusLabelId = useId();
 
-  const { setFilters } = useTasksStore();
+  const {
+    setFilters,
+    accountNumber,
+    setAccountNumber,
+    fullName,
+    setFullName,
+    mahallaId,
+    setMahallaId,
+    type,
+    setType,
+    nazoratchi_id,
+    setNazoratchiId,
+    status,
+    setStatus
+  } = useTasksStore();
 
   const handleClickSearchButton = () => {
     let filters: IFilters = {};

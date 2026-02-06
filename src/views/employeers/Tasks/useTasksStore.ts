@@ -21,6 +21,20 @@ export interface IFilters {
   status?: 'completed' | 'in-progress' | 'rejected';
 }
 
+export interface ITask {
+  accountNumber: string;
+  fullName: string;
+  id: number;
+  mahallaId: number;
+  companyId: number;
+  type: 'phone' | 'electricity';
+  nazoratchi_id: string;
+  nazoratchiName: string;
+  status: 'completed' | 'in-progress' | 'rejected';
+  purpose: string;
+  _id?: string;
+}
+
 interface ITasksStore {
   tasks: any[];
   openSETTDialogDate: boolean;
@@ -38,6 +52,24 @@ interface ITasksStore {
   fetchTasks: ({ page, limit, sortField, sortDirection, filters }: FetchParams) => Promise<FetchResult<any>>;
   filters: IFilters;
   setFilters: (filters: IFilters) => void;
+  downloadExcel: () => void;
+  accountNumber: string;
+  fullName: string;
+  mahallaId: string;
+  type: '' | 'electricity' | 'phone';
+  nazoratchi_id: number | '';
+  status: '' | 'completed' | 'in-progress' | 'rejected';
+  setAccountNumber: (accountNumber: string) => void;
+  setFullName: (fullName: string) => void;
+  setMahallaId: (mahallaId: string) => void;
+  setType: (type: '' | 'electricity' | 'phone') => void;
+  setNazoratchiId: (nazoratchi_id: number | '') => void;
+  setStatus: (status: '' | 'completed' | 'in-progress' | 'rejected') => void;
+  openEditTaskDialog: boolean;
+  handleOpenEditTaskDialog: (taskId: string) => void;
+  handleCloseEditTaskDialog: () => void;
+  task: ITask | null;
+  setTask: (task: ITask | null) => void;
 }
 
 export const useTasksStore = create<ITasksStore>((set, get) => ({
@@ -130,5 +162,57 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
     }
   },
   filters: {},
-  setFilters: (filters: IFilters) => set({ filters })
+  setFilters: (filters: IFilters) => set({ filters }),
+  downloadExcel: () => {
+    const { accountNumber, fullName, mahallaId, type, nazoratchi_id, status } = get();
+    let filters: IFilters = {};
+    if (accountNumber) filters.accountNumber = accountNumber;
+    if (fullName) filters.fullName = fullName;
+    if (mahallaId) filters.mahallaId = Number(mahallaId);
+    if (type) filters.type = type;
+    if (nazoratchi_id) filters.nazoratchi_id = Number(nazoratchi_id);
+    if (status) filters.status = status;
+
+    api
+      .get('/tasks/excel', {
+        responseType: 'blob',
+        params: {
+          filters
+        }
+      })
+      .then((response) => {
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'tasks.xlsx';
+        link.click();
+      });
+  },
+  accountNumber: '',
+  fullName: '',
+  mahallaId: '',
+  type: '',
+  nazoratchi_id: '',
+  status: '',
+  setAccountNumber: (accountNumber: string) => set({ accountNumber: accountNumber }),
+  setFullName: (fullName: string) => set({ fullName: fullName }),
+  setMahallaId: (mahallaId: string) => set({ mahallaId: mahallaId }),
+  setType: (type: '' | 'electricity' | 'phone') => set({ type: type }),
+  setNazoratchiId: (nazoratchi_id: number | '') => set({ nazoratchi_id: nazoratchi_id }),
+  setStatus: (status: '' | 'completed' | 'in-progress' | 'rejected') => set({ status: status }),
+  openEditTaskDialog: false,
+  handleOpenEditTaskDialog: async (taskId) => {
+    useLoaderStore.setState({ isLoading: true });
+    try {
+      const task = (await api.get(`/tasks/${taskId}`)).data;
+      set({ task, openEditTaskDialog: true });
+    } catch (error) {
+    } finally {
+      useLoaderStore.setState({ isLoading: false });
+    }
+    set({ openEditTaskDialog: true });
+  },
+  handleCloseEditTaskDialog: () => set({ openEditTaskDialog: false }),
+  setTask: (task) => set({ task: task }),
+  task: null
 }));

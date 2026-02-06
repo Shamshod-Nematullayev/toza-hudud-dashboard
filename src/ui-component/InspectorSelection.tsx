@@ -5,7 +5,7 @@ import api from 'utils/api';
 
 interface Props {
   selectedIspectorId: number | '';
-  setSelectedIspectorId: React.Dispatch<React.SetStateAction<number | ''>>;
+  setSelectedIspectorId: (e: number | '') => void;
   label?: string;
   defaultValue?: string;
   defaultValueLabel?: string;

@@ -4,8 +4,13 @@ import { useTasksStore } from './useTasksStore';
 import { t } from 'i18next';
 import api from 'utils/api';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
+import { Edit } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
 
 function TasksTable() {
+  const { fetchMahallas, fetchTasks, filters, openEditTaskDialog, handleOpenEditTaskDialog } = useTasksStore();
+  const { dataGridProps, rows, setPaginationModel } = useServerDataGrid(fetchTasks, [], 100, filters);
+
   const columns: readonly GridColDef<any>[] = [
     {
       field: 'id',
@@ -43,10 +48,19 @@ function TasksTable() {
       headerName: t('taskTypes.type'),
       flex: 1,
       renderCell: (row) => t(('taskTypes.' + row.row.type) as 'taskTypes.type')
+    },
+    {
+      type: 'actions',
+      field: 'actions',
+      headerName: t('tableHeaders.actions'),
+      flex: 1,
+      renderCell: (row) => (
+        <IconButton color="primary" onClick={() => handleOpenEditTaskDialog(row.row._id)}>
+          <Edit />
+        </IconButton>
+      )
     }
   ];
-  const { fetchMahallas, fetchTasks, filters } = useTasksStore();
-  const { dataGridProps, rows, setPaginationModel } = useServerDataGrid(fetchTasks, [], 100, filters);
 
   useEffect(() => {
     fetchMahallas();
