@@ -21,6 +21,11 @@ const uz = {
   errors: {
     missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan'
   },
+  successMessages: {
+    success: 'Muvaffaqiyatli amalga oshirildi',
+    successDelete: 'Muvaffaqiyatli o`chirildi',
+    successSave: 'Muvaffaqiyatli saqlandi'
+  },
   documentNumber: 'Xujjat raqami',
   menuItems: {
     employeers: 'Xodimlar',
@@ -120,7 +125,8 @@ const uz = {
     payer: "To'lovchi",
     forAccount: 'Hisobga',
     content: 'Mazmuni',
-    elementsCount: 'Elementlar soni'
+    elementsCount: 'Elementlar soni',
+    purpose: 'Asos'
   },
   tableActions: {
     edit: 'Tahrirlash',

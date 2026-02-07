@@ -28,7 +28,7 @@ export interface ITask {
   mahallaId: number;
   companyId: number;
   type: 'phone' | 'electricity';
-  nazoratchi_id: string;
+  nazoratchi_id: number;
   nazoratchiName: string;
   status: 'completed' | 'in-progress' | 'rejected';
   purpose: string;
@@ -70,6 +70,7 @@ interface ITasksStore {
   handleCloseEditTaskDialog: () => void;
   task: ITask | null;
   setTask: (task: ITask | null) => void;
+  handleSaveTask: () => void;
 }
 
 export const useTasksStore = create<ITasksStore>((set, get) => ({
@@ -214,5 +215,14 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
   },
   handleCloseEditTaskDialog: () => set({ openEditTaskDialog: false }),
   setTask: (task) => set({ task: task }),
-  task: null
+  task: null,
+  handleSaveTask: async () => {
+    try {
+      await api.put(`/tasks/${get().task?._id}`, get().task);
+      toast.success(t('successMessages.successSave'));
+      get().handleCloseEditTaskDialog();
+    } catch (error: any) {
+      toast.error(error?.message as string);
+    }
+  }
 }));
