@@ -48,7 +48,7 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
     set({ fileIdOnBilling: response.data.fileId });
   },
   downloadTemplate: () => {
-    api.get('/billing/import-acts-template', { responseType: 'blob' }).then((response) => {
+    api.get('/download-templates/import-acts', { responseType: 'blob' }).then((response) => {
       const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
