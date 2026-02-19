@@ -1,5 +1,5 @@
 import MainCard from 'ui-component/cards/MainCard';
-import DataTable from './DataTable';
+import DataTable from './DataTable/DataTable';
 import SideBar from './SideBarAbonentPetitions';
 import useStore from './useStore';
 import PrintSection from '../CreateAbonentPetition.jsx/PrintSection';
