@@ -234,7 +234,10 @@ const uz = {
     continue: 'Davom etish',
     swap: "O'rin almashtirish",
     submitEntry: 'Kiritish',
-    sendExcelToTelegramGroup: 'Excel faylni Telegram guruhiga yuborish'
+    sendExcelToTelegramGroup: 'Excel faylni Telegram guruhiga yuborish',
+    import: 'Import qilish',
+    update: 'Yangilash',
+    updateFromTozamakon: 'Tozamakondan yangilash'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',

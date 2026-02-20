@@ -1,3 +1,5 @@
+import { toast } from 'react-toastify';
+import api from 'utils/api';
 import { create } from 'zustand';
 
 interface Row {
@@ -44,6 +46,7 @@ interface IStore {
   setIsLoading: (isLoading: boolean) => void;
   reloadState: boolean;
   reload: () => void;
+  updateFromTozamakon: () => void;
 }
 
 const useStore = create<IStore>((set, get) => ({
@@ -81,7 +84,21 @@ const useStore = create<IStore>((set, get) => ({
   isLoading: false,
   setIsLoading: (isLoading) => set({ isLoading }),
   reloadState: false,
-  reload: () => set({ reloadState: !get().reloadState })
+  reload: () => set({ reloadState: !get().reloadState }),
+  updateFromTozamakon: async () => {
+    try {
+      set({ isLoading: true });
+      const { data } = (await api.get('/arizalar/ids', { params: get().filter })).data as { data: { ids: string[] } };
+
+      await api.put('/arizalar/update-ariza-status', { arizaIds: data });
+
+      toast.success('Yangilash jarayoni boshlandi, bildirishnoma orqali xabar qilinadi.');
+    } catch (error: any) {
+      console.error(error.response?.data?.message || error.message);
+    } finally {
+      set({ isLoading: false });
+    }
+  }
 }));
 
 export default useStore;

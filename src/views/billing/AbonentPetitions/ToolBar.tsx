@@ -1,5 +1,5 @@
-import { Add } from '@mui/icons-material';
-import { Button, Card, TextField, useMediaQuery } from '@mui/material';
+import { Add, NoteAddOutlined, Update, UploadFileOutlined } from '@mui/icons-material';
+import { Button, Card, TextField, Tooltip, useMediaQuery } from '@mui/material';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import useStore from './useStore';
@@ -7,17 +7,18 @@ import { useTranslation } from 'react-i18next';
 
 function ToolBar() {
   const { t } = useTranslation();
-  const { setFilter, filter, documentNumber, setDocumentNumber } = useStore();
+  const { setFilter, filter, documentNumber, setDocumentNumber, total, updateFromTozamakon, isLoading } = useStore();
   const isXs = useMediaQuery('(max-width:600px)');
-  const handleDocumentNumberChange = (e) => {
-    if (!isNaN(e.target.value)) {
+  const handleDocumentNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isNaN(Number(e.target.value))) {
       setDocumentNumber(e.target.value);
     }
   };
-  const handleDocumentNumberSubmit = (e) => {
+  const handleDocumentNumberSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFilter({ ...filter, document_number: documentNumber });
   };
+
   return (
     <Card
       sx={{
@@ -33,15 +34,26 @@ function ToolBar() {
       <div>
         <Link to="/billing/createAbonentAriza">
           <Button color="primary" variant="contained">
-            <Add /> {!isXs && ` ${t('buttons.add')}`}
+            <NoteAddOutlined /> {!isXs && ` ${t('buttons.add')}`}
           </Button>
         </Link>
 
         <Link to="/billing/importAbonentPetition">
-          <Button color="secondary" variant="outlined">
-            {t('menuItems.importAbonentPetition')}
+          <Button color="secondary" variant="outlined" startIcon={<UploadFileOutlined />}>
+            {t('buttons.import')}
           </Button>
         </Link>
+        <Tooltip title={t('buttons.updateFromTozamakon')}>
+          <Button
+            color="success"
+            variant="contained"
+            startIcon={<Update />}
+            disabled={total > 1000 || isLoading}
+            onClick={updateFromTozamakon}
+          >
+            {t('buttons.update')}
+          </Button>
+        </Tooltip>
       </div>
       <form onSubmit={handleDocumentNumberSubmit}>
         <TextField
