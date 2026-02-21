@@ -88,7 +88,12 @@ function FindedDataTable() {
     } else {
       setRowAfterAkt(rows[0]);
     }
-  }, [showSpoiler, rows, ariza, aktSumm]);
+  }, [showSpoiler, rows]);
+
+  useEffect(() => {
+    setAktSumm(ariza?.aktSummCounts.total.toString() || '0');
+  }, [ariza]);
+
   const btnRef = useRef(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
