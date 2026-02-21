@@ -24,6 +24,7 @@ export interface IAriza {
   aktSummasi: number;
   aktSummCounts: {
     total: number;
+    withoutQQSTotal: number;
   };
   current_prescribed_cnt: number;
   next_prescribed_cnt: number;

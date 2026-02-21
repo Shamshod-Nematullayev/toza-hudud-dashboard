@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 
 import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { CssBaseline, StyledEngineProvider } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 import '@react-pdf-viewer/core/lib/styles/index.css';
@@ -39,15 +40,17 @@ const App = () => {
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={themes(customization)}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <ToastContainer autoClose="5000" theme={customization.mode} position="top-right" />
-          <CssBaseline />
-          <NavigationScroll>
-            {isLoading && <Loader />}
-            {settingsModalOpenState && <SettingsModal />}
-            <RouterProvider router={router} />
-          </NavigationScroll>
-        </LocalizationProvider>
+        <StyledThemeProvider theme={themes(customization)}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <ToastContainer autoClose="5000" theme={customization.mode} position="top-right" />
+            <CssBaseline />
+            <NavigationScroll>
+              {isLoading && <Loader />}
+              {settingsModalOpenState && <SettingsModal />}
+              <RouterProvider router={router} />
+            </NavigationScroll>
+          </LocalizationProvider>
+        </StyledThemeProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   );

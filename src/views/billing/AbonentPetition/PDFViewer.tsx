@@ -1,6 +1,6 @@
 import { Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-const PdfViewer = ({ base64String }) => {
+const PdfViewer = ({ base64String }: { base64String: string }) => {
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   return (
