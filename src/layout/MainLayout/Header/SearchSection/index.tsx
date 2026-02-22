@@ -21,7 +21,7 @@ import Transitions from 'ui-component/extended/Transitions';
 // assets
 import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
 import menuItems, { MenuItem } from 'menu-items';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, List } from '@mui/material';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, List, Tooltip } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
 import { useTranslation } from 'react-i18next';
@@ -213,28 +213,23 @@ const SearchSection = () => {
         </PopupState>
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'relative' }}>
-        <OutlinedInput
-          inputRef={searchRef}
-          id="input-search-header"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={t('search') + '...'}
-          startAdornment={
-            <InputAdornment position="start">
-              <IconSearch stroke={1.5} size="16px" />
-            </InputAdornment>
-          }
-          // endAdornment={
-          //   <InputAdornment position="end">
-          //     <HeaderAvatar>
-          //       <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
-          //     </HeaderAvatar>
-          //   </InputAdornment>
-          // }
-          aria-describedby="search-helper-text"
-          inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
-          sx={{ width: { md: 250, lg: 434 }, ml: 2, px: 2 }}
-        />
+        <Tooltip title={t('search') + ' (Ctrl+K)'} placement="bottom">
+          <OutlinedInput
+            inputRef={searchRef}
+            id="input-search-header"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={t('search') + '...'}
+            startAdornment={
+              <InputAdornment position="start">
+                <IconSearch stroke={1.5} size="16px" />
+              </InputAdornment>
+            }
+            aria-describedby="search-helper-text"
+            inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
+            sx={{ width: { md: 250, lg: 434 }, ml: 2, px: 2 }}
+          />
+        </Tooltip>
         {value.length > 2 && <FindedList filteredItems={filteredItems} />}
       </Box>
     </>

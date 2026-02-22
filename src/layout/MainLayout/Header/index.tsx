@@ -15,11 +15,28 @@ import ProfileSection from './ProfileSection';
 // assets
 import { IconMenu2 } from '@tabler/icons-react';
 import LanguageSection from './LanguageSection';
+import { useEffect, useRef } from 'react';
+import { Tooltip } from '@mui/material';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
-const Header = ({ handleLeftDrawerToggle }) => {
+const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void }) => {
   const theme = useTheme();
+  const menuButtonRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Mac uchun metaKey ham tekshiramiz
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+
+        menuButtonRef.current?.click();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <>
@@ -39,24 +56,29 @@ const Header = ({ handleLeftDrawerToggle }) => {
           <LogoSection />
         </Box>
         <ButtonBase sx={{ borderRadius: '8px', overflow: 'hidden' }}>
-          <Avatar
-            variant="rounded"
-            sx={{
-              ...theme.typography.commonAvatar,
-              ...theme.typography.mediumAvatar,
-              transition: 'all .2s ease-in-out',
-              background: theme.palette.secondary.light,
-              color: theme.palette.secondary.dark,
-              '&:hover': {
-                background: theme.palette.secondary.dark,
-                color: theme.palette.secondary.light
-              }
-            }}
-            onClick={handleLeftDrawerToggle}
-            color="inherit"
-          >
-            <IconMenu2 stroke={1.5} size="1.3rem" />
-          </Avatar>
+          <Tooltip title="Asosiy menyu (Ctrl+B)" placement="bottom">
+            <Avatar
+              ref={menuButtonRef}
+              variant="rounded"
+              sx={{
+                // @ts-ignore
+                ...theme.typography.commonAvatar,
+                // @ts-ignore
+                ...theme.typography.mediumAvatar,
+                transition: 'all .2s ease-in-out',
+                background: theme.palette.secondary.light,
+                color: theme.palette.secondary.dark,
+                '&:hover': {
+                  background: theme.palette.secondary.dark,
+                  color: theme.palette.secondary.light
+                }
+              }}
+              onClick={handleLeftDrawerToggle}
+              color="inherit"
+            >
+              <IconMenu2 stroke={1.5} size="1.3rem" />
+            </Avatar>
+          </Tooltip>
         </ButtonBase>
       </Box>
 
