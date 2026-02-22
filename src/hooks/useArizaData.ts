@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
+import { getAbonentDataByAccountnumber } from 'services/getAbonentDataByAccountnumber';
+import { getAbonentDxjByResidentId } from 'services/getAbonentDHJ';
 import { IAriza } from 'types/models';
 import api from 'utils/api';
 
@@ -15,6 +17,8 @@ interface IRow {
 
 interface UseArizaDataReturn {
   rows: IRow[];
+  rowsDublicate: IRow[];
+  allPaymentsSumOnDublicate: number;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -22,8 +26,10 @@ interface UseArizaDataReturn {
 
 export function useArizaData(ariza: IAriza | null): UseArizaDataReturn {
   const [rows, setRows] = useState<IRow[]>([]);
+  const [rowsDublicate, setRowsDuplicate] = useState<IRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [allPaymentsSumOnDublicate, setAllPaymentsSumOnDuplicate] = useState<number>(0);
 
   const transformRows = (data: any[]): IRow[] =>
     data.map((row, i) => ({
@@ -44,18 +50,17 @@ export function useArizaData(ariza: IAriza | null): UseArizaDataReturn {
       setLoading(true);
       setError(null);
 
-      const response = await api.get('/billing/get-abonent-dxj-by-id', { params: { residentId: ariza.abonentId } });
+      const rows = await getAbonentDxjByResidentId(ariza.abonentId);
 
-      const data = response.data;
-
-      if (!data.ok) {
-        setError(data.message || 'Server error');
-        return;
-      }
-
-      const mappedRows = transformRows(data.rows);
+      const abonentData = await getAbonentDataByAccountnumber(ariza.ikkilamchi_licshet);
+      const responseDublicateRows = await getAbonentDxjByResidentId(abonentData.id);
+      const mappedRows = transformRows(rows);
+      const mappedRowsDublicate = transformRows(responseDublicateRows);
 
       setRows(mappedRows);
+      setRowsDuplicate(mappedRowsDublicate);
+      const sumOnDublicate = mappedRowsDublicate.reduce((sum, row) => sum + row.allPaymentsSum, 0);
+      setAllPaymentsSumOnDuplicate(sumOnDublicate);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch ariza data';
       setError(message);
@@ -70,6 +75,8 @@ export function useArizaData(ariza: IAriza | null): UseArizaDataReturn {
 
   return {
     rows,
+    rowsDublicate,
+    allPaymentsSumOnDublicate,
     loading,
     error,
     refetch: fetchData

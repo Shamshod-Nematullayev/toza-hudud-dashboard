@@ -55,7 +55,7 @@ export const columns: () => GridColDef[] = function () {
   };
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: '№', width: 50 },
+    { field: 'id', headerName: '№', width: 50, renderCell: (e) => <span>{e.row.documentNumber}</span> },
     { field: 'documentType', headerName: t('tableHeaders.documentType') },
     { field: 'accountNumber', headerName: t('tableHeaders.accountNumber'), width: 120 },
     { field: 'aktSummasi', headerName: t('tableHeaders.actAmount'), type: 'number' },

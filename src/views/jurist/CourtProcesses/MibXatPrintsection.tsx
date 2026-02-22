@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { AbonentDetails, IAbonent } from 'types/billing';
 import { formatName } from 'views/billing/CreateAbonentPetition.jsx/PrintSection';
 
-function formatCourtNumber(input) {
+function formatCourtNumber(input: string): string {
   // String ko‘rinishga o‘tkazamiz
   const str = String(input);
 
@@ -71,8 +71,8 @@ function MibXatPrintsection({
           {String(courtResultDate.date()).padStart(2, '0')}.{String(courtResultDate.month() + 1).padStart(2, '0')}.{courtResultDate.year()}
         </b>
         -yildagi*/}{' '}
-        <b>{formatCourtNumber(courtResultNumber)}</b> sonli ijro varaqasini O’zbekiston Respublikasi “Sud xujjatlari va boshqa organlar
-        qarorlarini ijro etish to’g’risidagi” Qonunning 40-moddasi 1-bandiga asosan ijro qilmasdan ijrosiz qaytarishingizni so’rayman.
+        <b>{formatCourtNumber(courtResultNumber)}</b> sonli ijro varaqasini qarzdorlik to'liq to'langanligi sababli ijro ishini
+        tamomlashingizni so'raymiz.
       </p>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>

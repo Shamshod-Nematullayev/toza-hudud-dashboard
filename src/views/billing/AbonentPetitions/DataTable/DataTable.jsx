@@ -25,7 +25,8 @@ function DataTable() {
         .then(({ data }) => {
           const rows = data.data.map((row, i) => ({
             _id: row._id,
-            id: i + 1,
+            id: i,
+            documentNumber: row.document_number,
             documentType: t('documentTypes.' + row.document_type),
             accountNumber: row.licshet,
             aktSummasi: row.aktSummasi,

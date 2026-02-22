@@ -17,19 +17,6 @@ import { useTariff } from 'hooks/useTariff';
 import { useArizaData } from 'hooks/useArizaData';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 
-function KeyValue({ kalit, value }: { kalit: string; value: string | number }) {
-  return (
-    <div
-      style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0 0 0', borderBottom: '1px solid #ccc' }}
-    >
-      <Typography variant="subtitle1" className="key">
-        <div>{kalit}:</div>
-      </Typography>
-      <Typography className="value">{value}</Typography>
-    </div>
-  );
-}
-
 interface IRow {
   id: number;
   davr: string;
@@ -54,7 +41,7 @@ function FindedDataTable() {
   const [isUploading, setIsUploading] = useState(false);
   const { setIsLoading } = useLoaderStore();
   const { refetch: refetchTariffs, currentTariff, loading: tariffsLoading } = useTariff();
-  const { rows, loading: arizaLoading } = useArizaData(ariza);
+  const { rows, rowsDublicate, allPaymentsSumOnDublicate, loading: arizaLoading } = useArizaData(ariza);
   const [rowAfterAkt, setRowAfterAkt] = useState<IRow | null>(null);
 
   useEffect(() => {
@@ -91,7 +78,11 @@ function FindedDataTable() {
   }, [showSpoiler, rows]);
 
   useEffect(() => {
-    setAktSumm(ariza?.aktSummCounts.total.toString() || '0');
+    if (ariza?.document_type === 'dvaynik') {
+      setAktSumm(allPaymentsSumOnDublicate.toString() || '0');
+    } else {
+      setAktSumm(ariza?.aktSummCounts.total.toString() || '0');
+    }
   }, [ariza]);
 
   const btnRef = useRef(null);
@@ -205,100 +196,113 @@ function FindedDataTable() {
 
   return (
     <div>
-      <Grid container spacing={0.5}>
-        <Grid item xs={1}>
-          <div>
-            <form onSubmit={handleSubmit}>
-              <IconButton aria-describedby={'transition-popper'} ref={btnRef} sx={{ padding: '15px' }} onClick={handleClickRefreshButton}>
-                <RefreshOutlinedIcon />
-              </IconButton>
-              <ChooseArizaPopper
-                anchorEl={btnRef.current}
-                open={showArizaChooseDialog}
-                handleClose={handleCloseChooseArizaModal}
-                rows={arizalarRows}
-                setAriza={setAriza}
-              />
-            </form>
-          </div>
-        </Grid>
-        <Grid item xs={1.5}>
-          <Tooltip title={t('documentNumber')}>
-            <TextField
-              disabled={inputDisabled}
-              variant="outlined"
-              name="licshet_input"
-              placeholder={t('documentNumber')}
-              value={arizaNumberInput}
-              onChange={(e) => setArizaNumberInput(e.target.value)}
-            />
-          </Tooltip>
-        </Grid>
-        <Grid item xs={2}>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        gap={2}
+        sx={{
+          p: 2,
+          borderRadius: 3,
+          backgroundColor: 'background.paper',
+          boxShadow: 2
+        }}
+      >
+        {/* LEFT SECTION */}
+        <Box display="flex" alignItems="center" gap={1.5}>
+          <IconButton ref={btnRef} onClick={handleClickRefreshButton}>
+            <RefreshOutlinedIcon />
+          </IconButton>
+
+          <TextField
+            size="small"
+            disabled={inputDisabled}
+            name="licshet_input"
+            placeholder={t('documentNumber')}
+            value={arizaNumberInput}
+            onChange={(e) => setArizaNumberInput(e.target.value)}
+            sx={{ width: 220 }}
+          />
+          <ChooseArizaPopper
+            anchorEl={btnRef.current}
+            open={showArizaChooseDialog}
+            handleClose={handleCloseChooseArizaModal}
+            rows={arizalarRows}
+            setAriza={setAriza}
+          />
+        </Box>
+
+        {/* CENTER SECTION */}
+        <Box display="flex" alignItems="center" gap={1.5}>
           <Button
-            sx={{ padding: '12px 15px' }}
-            onClick={handlePrimaryButtonClick}
             variant="contained"
-            disabled={(ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isUploading ? false : true}
+            startIcon={<FileUploadOutlinedIcon />}
+            disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isUploading)}
+            onClick={handlePrimaryButtonClick}
+            sx={{ px: 3 }}
           >
-            <FileUploadOutlinedIcon />
             {t('buttons.submitEntry')}
           </Button>
-        </Grid>
-        <Grid item xs={2.5}>
-          <Button sx={{ padding: '12px 0', color: 'secondary.main' }} onClick={handleDeleteButtonClick}>
-            <DeleteOutlinedIcon />
+
+          <Button variant="outlined" color="secondary" startIcon={<DeleteOutlinedIcon />} onClick={handleDeleteButtonClick}>
             {t('buttons.remove')}
           </Button>
-        </Grid>
-        <Grid item xs={2.5}>
+
           <Button
-            sx={{ padding: '12px 15px', color: 'error.main' }}
+            variant="outlined"
+            color="error"
+            startIcon={<Cancel />}
             onClick={() => setShowDialog(true)}
-            disabled={ariza?.status === 'yangi' ? false && isUploading : true}
+            disabled={ariza?.status !== 'yangi' || isUploading}
           >
-            <Cancel />
             {t('buttons.cancel')}
           </Button>
-        </Grid>
-        <Grid item xs={2}>
-          <IconButton sx={{ padding: '15px' }} onClick={() => setShowSpoiler(!showSpoiler)} disabled={!ariza || !rows.length}>
-            {showSpoiler ? <Visibility /> : <VisibilityOff />}
-          </IconButton>
-        </Grid>
-      </Grid>
+        </Box>
+
+        {/* RIGHT SECTION */}
+        <IconButton onClick={() => setShowSpoiler(!showSpoiler)} disabled={!ariza || !rows.length}>
+          {showSpoiler ? <Visibility /> : <VisibilityOff />}
+        </IconButton>
+      </Box>
       <div>
-        {/* <div
-          style={{ display: 'flex', justifyContent: 'space-between', padding: '0 40px', margin: '20px 0', borderBottom: '1px solid #ccc' }}
-        >
-          <Typography variant="subtitle1" className="key">
-            <div>{t('createAbonentPetitionPage.actAmount')}:</div>
-          </Typography>
-          <Typography className="value">
-            <input
-              type="text"
-              style={{ background: 'none', outline: 'none', border: 'none', color: theme.colors.darkTextPrimary, textAlign: 'right' }}
-              value={aktSumm}
-              onChange={(e) => setAktSumm(e.target.value)}
-            />
-          </Typography>
-        </div> */}
         <CompactKeyValue
           data={[
-            { key: t('tableHeaders.accountNumber'), value: ariza?.licshet || '' },
+            {
+              key: t('tableHeaders.accountNumber'),
+              value: ariza?.document_type === 'dvaynik' ? `${ariza?.licshet} : ${ariza?.ikkilamchi_licshet}` : ariza?.licshet || ''
+            },
             { key: t('tableHeaders.fullName'), value: ariza?.fio || '' },
             { key: t('tableHeaders.inhabitantCount'), value: ariza?.next_prescribed_cnt || '' },
             { key: t('tableHeaders.createdDate'), value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '' },
             { key: t('tableHeaders.status'), value: ariza?.status || '' },
-            { key: t('createAbonentPetitionPage.actAmount'), value: aktSumm }
+            {
+              key: t('createAbonentPetitionPage.actAmount'),
+              value: (
+                <input
+                  type="text"
+                  style={{
+                    background: 'none',
+                    outline: 'none',
+                    border: 'none',
+                    color: theme.colors.darkTextPrimary,
+                    textAlign: 'right',
+                    maxWidth: '100px'
+                  }}
+                  value={aktSumm}
+                  onChange={(e) => setAktSumm(e.target.value)}
+                />
+              )
+            }
           ]}
         />
       </div>
       <Tabs value={tabIndex} onChange={handleTabChange}>
         <Tab label="Asosiy jadval" />
-        <Tooltip title="Ikkilamchi hisob raqam jadvali">
-          <Tab label="Qo'shimcha jadval" />
-        </Tooltip>
+        {ariza?.document_type === 'dvaynik' && (
+          <Tooltip title="Ikkilamchi hisob raqam jadvali">
+            <Tab label="Qo'shimcha jadval" />
+          </Tooltip>
+        )}
       </Tabs>
 
       {/* Tab Panels */}
@@ -321,7 +325,7 @@ function FindedDataTable() {
             disableColumnFilter
             disableColumnSorting
             hideFooter
-            rows={showSpoiler ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
+            rows={showSpoiler ? [rowAfterAkt as IRow, ...rowsDublicate.slice(1)] : rowsDublicate}
             style={{ margin: '0 auto', height: '60vh' }}
           />
         </Box>

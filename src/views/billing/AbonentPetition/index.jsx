@@ -1,4 +1,4 @@
-import { Grid, List, ListItem, Tab, Tabs } from '@mui/material';
+import { Grid, Tab, Tabs } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { gridSpacing } from 'store/constant';

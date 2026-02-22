@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, forwardRef, useMemo, useEffect } from 'react';
-import DashboardIcon from '@mui/icons-material/Dashboard';
+import { useState, forwardRef, useMemo, useEffect, useRef } from 'react';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 // material-ui
@@ -21,21 +20,23 @@ import Transitions from 'ui-component/extended/Transitions';
 
 // assets
 import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
-import menuItems from 'menu-items';
+import menuItems, { MenuItem } from 'menu-items';
 import { Divider, ListItemButton, ListItemIcon, ListItemText, List } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
 import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
+import { PopupState as PopupStateType } from 'material-ui-popup-state/hooks';
 
-const flattenMenu = (items) => {
-  let result = [];
+const flattenMenu = (items: MenuItem[]) => {
+  let result: MenuItem[] = [];
   items.forEach((item) => {
     if (item.title) result.push(item);
     if (item.children) result = result.concat(flattenMenu(item.children));
   });
   return result;
 };
-const HeaderAvatar = forwardRef(({ children, ...others }, ref) => {
+const HeaderAvatar = forwardRef(({ children, ...others }: any, ref) => {
   const theme = useTheme();
 
   return (
@@ -43,7 +44,9 @@ const HeaderAvatar = forwardRef(({ children, ...others }, ref) => {
       ref={ref}
       variant="rounded"
       sx={{
+        // @ts-ignore
         ...theme.typography.commonAvatar,
+        // @ts-ignore
         ...theme.typography.mediumAvatar,
         bgcolor: 'secondary.light',
         color: 'secondary.dark',
@@ -65,10 +68,21 @@ HeaderAvatar.propTypes = {
 
 // ==============================|| SEARCH INPUT - MOBILE||============================== //
 
-const MobileSearch = ({ value, setValue, popupState }) => {
+const MobileSearch = ({
+  value,
+  setValue,
+  popupState
+}: {
+  value: string;
+  setValue: (value: string) => void;
+  popupState: PopupStateType;
+}) => {
   const theme = useTheme();
   const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
-  const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
+  const filteredItems = useMemo(
+    () => flatMenu.filter((item) => t(`menuItems.${item.title}`).toLowerCase().includes(value.toLowerCase())),
+    [value, flatMenu]
+  );
   const { t } = useTranslation();
   return (
     <Box style={{ position: 'relative' }}>
@@ -92,7 +106,9 @@ const MobileSearch = ({ value, setValue, popupState }) => {
                 <Avatar
                   variant="rounded"
                   sx={{
+                    // @ts-ignore
                     ...theme.typography.commonAvatar,
+                    // @ts-ignore
                     ...theme.typography.mediumAvatar,
                     bgcolor: 'orange.light',
                     color: 'orange.dark',
@@ -128,13 +144,38 @@ MobileSearch.propTypes = {
 
 const SearchSection = () => {
   const [value, setValue] = useState('');
-  const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
-  const filteredItems = useMemo(() => flatMenu.filter((item) => item.title.toLowerCase().includes(value.toLowerCase())), [value, flatMenu]);
+  const flatMenu: MenuItem[] = useMemo(() => flattenMenu(menuItems.items), []);
+  const filteredItems = useMemo(
+    // @ts-ignore
+    () => flatMenu.filter((item) => t(`menuItems.${item.title}`).toLowerCase().includes(value.toLowerCase())),
+    [value, flatMenu]
+  );
   const location = useLocation();
-  const { t } = useTranslation();
+  const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     setValue('');
   }, [location.pathname]);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Mac uchun metaKey ham tekshiramiz
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+
+        // Agar input ichida yozayotgan bo‘lsa qaytarmaymiz
+        const active = document.activeElement;
+        const isTyping =
+          active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.getAttribute('contenteditable') === 'true';
+
+        if (!isTyping) {
+          // Qachondir kerak bo'lsa shu coment o'rniga searchRef.current?.focus(); qo'yiladi
+        }
+        searchRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   return (
     <>
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
@@ -173,6 +214,7 @@ const SearchSection = () => {
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'relative' }}>
         <OutlinedInput
+          inputRef={searchRef}
           id="input-search-header"
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -199,7 +241,7 @@ const SearchSection = () => {
   );
 };
 
-const FindedList = ({ filteredItems }) => {
+const FindedList = ({ filteredItems }: { filteredItems: MenuItem[] }) => {
   const { customization } = useCustomizationStore();
 
   return (
@@ -228,9 +270,10 @@ const FindedList = ({ filteredItems }) => {
         return (
           <>
             <ListItemButton key={index}>
-              <Link to={item.url} style={{ textDecoration: 'none', display: 'flex' }}>
+              <Link to={item.url || '#'} style={{ textDecoration: 'none', display: 'flex' }}>
                 <ListItemIcon>{itemIcon}</ListItemIcon>
-                <ListItemText primary={item.title} />
+                {/* @ts-ignore */}
+                <ListItemText primary={t('menuItems.' + item.title)} />
               </Link>
             </ListItemButton>
             {index < filteredItems.length - 1 && <Divider />}

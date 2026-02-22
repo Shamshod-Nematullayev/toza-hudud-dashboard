@@ -11,7 +11,7 @@ import Zoom from '@mui/material/Zoom';
 
 // ==============================|| TRANSITIONS ||============================== //
 
-const Transitions = React.forwardRef(({ children, position, type, direction, ...others }, ref) => {
+const Transitions = React.forwardRef(({ children, position, type, direction, ...others }: any, ref) => {
   let positionSX = {
     transformOrigin: '0 0 0'
   };
