@@ -81,8 +81,9 @@ function FindedDataTable() {
     if (ariza?.document_type === 'dvaynik') {
       setAktSumm(allPaymentsSumOnDublicate.toString() || '0');
     } else {
-      setAktSumm(ariza?.aktSummCounts.total.toString() || '0');
+      setAktSumm(ariza?.aktSummCounts?.total?.toString() || '0');
     }
+    setArizaNumberInput(ariza?.document_number?.toString() || '');
   }, [ariza]);
 
   const btnRef = useRef(null);

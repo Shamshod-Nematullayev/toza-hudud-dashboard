@@ -51,7 +51,7 @@ function CreateAbonentPetition() {
         <Grid item xs={12} sm={3}>
           <InputForm />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={4} sx={{ height: '100%' }}>
           {aktType === 'dvaynik' ? (
             <DHJTable
               abonentData={abonentData2}
