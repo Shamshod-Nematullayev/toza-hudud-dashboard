@@ -6,9 +6,9 @@ import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import Logo from 'ui-component/Logo';
 import { useTranslation } from 'react-i18next';
 import useCustomizationStore from 'store/customizationStore';
+import { GoogleLoginButton } from './GoogleLoginButton';
 
 const Body = styled.div`
   display: flex;
@@ -195,6 +195,9 @@ function Login() {
             {t('login')}
           </Button>
         </form>
+
+        {/* Google login */}
+        <GoogleLoginButton />
       </LoginBox>
     </Body>
   );
