@@ -194,10 +194,9 @@ function Login() {
           <Button type="submit" disabled={disabled}>
             {t('login')}
           </Button>
+          {/* Google login */}
+          <GoogleLoginButton />
         </form>
-
-        {/* Google login */}
-        <GoogleLoginButton />
       </LoginBox>
     </Body>
   );
