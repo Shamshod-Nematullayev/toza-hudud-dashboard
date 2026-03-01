@@ -1,7 +1,5 @@
 import { lotinga } from 'helpers/lotinKiril';
-import { QRCodeCanvas } from 'qrcode.react';
-import React from 'react';
-import { ArizaHeading, ArizaTitle, formatName, ImzoJoyiRow, ImzolashJoyi, oylar, raqamlar } from '../PrintSection';
+import { ArizaHeading, ArizaTitle, formatName, ImzoJoyiRow, ImzolashJoyi, oylar, QRSection, raqamlar } from '../PrintSection';
 import { Dayjs } from 'dayjs';
 import { IAbonentData, IMahalla } from '../useStore';
 import useCustomizationStore from 'store/customizationStore';
@@ -47,23 +45,7 @@ function OdamSoni({
           Shuni yozib ma’lum qilamanki mening {abonentData?.accountNumber} hisob raqamim onlayn bazaga noto‘g‘ri hisob-kitob qilingani
           sababli dalolatnoma taqdim qilyapman. Ushbu dalolatnomam asosida qayta hisob-kitob qilib berishingizni so‘rayman.
         </p>
-        <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
-          "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил _______ {abonentData?.fullName}
-        </p>
-        {!ariza._id ? (
-          ''
-        ) : (
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <QRCodeCanvas
-              value={`ariza_${ariza._id}_${ariza.document_number}`}
-              size={150}
-              bgColor={'#ffffff'}
-              fgColor={'#000000'}
-              level={'Q'}
-              includeMargin={true}
-            />
-          </div>
-        )}
+        <QRSection abonentData={abonentData} ariza={ariza} date={date} />
       </div>
 
       {customization.documentVariantOdamSoni === '1' ? (
@@ -150,7 +132,7 @@ function OdamSoni({
           </p>
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             F.I.Sh. {formatName(abonentData.fullName)}, {lotinga(mahalla.data.name)} MFY raisi{' '}
-            {fullNameToShortName(mahalla?.data?.mfy_rais_name)}, {mahalla.company.name} {mahalla.company.locationName} aholi bo'lim
+            {fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, {mahalla.company.name} {mahalla.company.locationName} aholi bo'lim
             boshlig'i {lotinga(fullNameToShortName(mahalla.company.manager.fullName))}lar mazkur dalolatnomani shu haqida tuzdik
           </p>
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
@@ -165,11 +147,11 @@ function OdamSoni({
             Sababli yagona elektron tizimda qayta hisob kitob qilish maqsadga muvofiq deb hisoblaymiz. Abonentnig shaxsiy hisob raqami:{' '}
             {abonentData.accountNumber}
           </p>
-          <ImzoJoyiRow label={'Abonent'} name={abonentData.fullName} />
-          <br />
           <ImzoJoyiRow label={mahalla.company.name + ' nazoratchisi'} name={mahalla.data.biriktirilganNazoratchi?.inspector_name} />
           <br />
           <ImzoJoyiRow label={"Aholi bo'limi boshlig'i"} name={mahalla.company.manager.fullName} />
+          <br />
+          <ImzoJoyiRow label={'Abonent'} name={abonentData.fullName} />
           <br />
           <ImzoJoyiRow label={lotinga(mahalla.data.name) + ' MFY raisi'} name={mahalla.data.mfy_rais_name} />
           <br />

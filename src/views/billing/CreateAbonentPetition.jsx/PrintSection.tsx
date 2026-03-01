@@ -76,7 +76,8 @@ function PrintSection({
   recalculationPeriods: any[];
 }) {
   const [olderPeriod, setOlderPeriod] = useState(dayjs());
-  const { documentVariantOdamSoni, setCustomization } = useCustomizationStore();
+  const { customization, setCustomization } = useCustomizationStore();
+  const { documentVariantOdamSoni } = customization;
 
   const setDocumentVariantOdamSone = (e: '1' | '2') => setCustomization({ documentVariantOdamSoni: e });
 
@@ -291,25 +292,26 @@ export const ImzolashJoyi = ({
   mahalla2 = mahalla2?.data;
   return (
     <>
-      <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.manager.fullName} />
-      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdmin?.fullName} />
+      <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
       <br />
+
+      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
+      <br />
+      <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
+
+      <br />
+      {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
+        <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
+      )}
       {gpsOperator?.fullName && (
         <>
           <ImzoJoyiRow label="GPS kuzatuv xodimi:" name={gpsOperator.fullName} />
           <br />
         </>
       )}
-
-      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdmin?.fullName} />
       <br />
-      <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
-      <br />
-      <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
-
-      {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
-        <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
-      )}
+      <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.manager.fullName} />
     </>
   );
 };
@@ -357,9 +359,13 @@ export function ArizaTitle({ type }) {
 export function QRSection({ ariza, date, abonentData }) {
   return (
     <>
-      <p style={{ fontWeight: 'bold', textAlign: 'center' }}>
-        "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil _______ {formatName(abonentData.fullName)}
-      </p>
+      <div style={{ fontWeight: 'bold', textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '20px' }}>
+        "{date.getDate()}" {oylar[date.getMonth()]} {date.getFullYear()} йил <b>{formatName(abonentData?.fullName)}</b>{' '}
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+          <span>__________________</span>
+          <span>(Imzo)</span>
+        </div>
+      </div>
       {ariza._id && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <QRCodeCanvas

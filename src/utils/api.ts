@@ -65,8 +65,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await api.post('/auth/refresh-token');
-
+        const { data } = await axios.post(SERVER_URL + '/auth/refresh-token');
         Cookies.set('accessToken', data.accessToken);
 
         api.defaults.headers.common.Authorization = 'Bearer ' + data.accessToken;
@@ -75,7 +74,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (err) {
-        // processQueue(err);
+        failedQueue = [];
 
         Cookies.remove('accessToken');
 
