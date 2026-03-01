@@ -1,61 +1,97 @@
-import axios from 'axios';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 import { SERVER_URL } from 'store/constant';
 import { toast } from 'react-toastify';
+
+interface RetryConfig extends AxiosRequestConfig {
+  _retry?: boolean;
+}
+
 const api = axios.create({
   baseURL: SERVER_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': true
-  },
-  withCredentials: true
-});
-// axios.defaults.baseURL = SERVER_URL;
-api.interceptors.request.use(
-  (config) => {
-    const token = Cookies.get('accessToken');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
-);
+});
+
+api.interceptors.request.use((config) => {
+  const accessToken = Cookies.get('accessToken');
+
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return config;
+});
+
+let isRefreshing = false;
+let failedQueue: {
+  resolve: (value?: unknown) => void;
+  reject: (error: unknown) => void;
+}[] = [];
+
+const processQueue = (error: unknown, token?: string) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
+  });
+
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // try to refresh token
-      const refreshToken = Cookies.get('refreshToken');
-      if (refreshToken) {
-        return axios
-          .post(SERVER_URL + '/auth/refresh-token', { refreshToken })
-          .then((response) => {
-            Cookies.set('accessToken', response.data.accessToken);
-            error.config.headers['Authorization'] = 'Bearer ' + response.data.accessToken;
-            return api.request(error.config);
-          })
-          .catch((error) => {
-            toast.error('Token refreshing failed');
-            console.error(error);
-            Cookies.remove('accessToken');
-            Cookies.remove('refreshToken');
-            window.location.href = '/pages/login/login';
-            return Promise.reject(error);
+
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryConfig;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token: unknown) => {
+              originalRequest.headers!.Authorization = `Bearer ${token}`;
+              resolve(api(originalRequest));
+            },
+            reject
           });
-      } else {
-        toast.error('Session has expired');
-        console.log(error);
+        });
+      }
+
+      isRefreshing = true;
+
+      try {
+        const { data } = await api.post('/auth/refresh-token');
+
+        Cookies.set('accessToken', data.accessToken);
+
+        api.defaults.headers.common.Authorization = 'Bearer ' + data.accessToken;
+
+        processQueue(null, data.accessToken);
+
+        return api(originalRequest);
+      } catch (err) {
+        // processQueue(err);
+
         Cookies.remove('accessToken');
+
+        toast.error('Session expired. Please login again.');
         window.location.href = '/pages/login/login';
-        return Promise.reject(error);
+
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
-    if (error.response && error.response.status >= 400) {
-      toast.error(error.response.data.message);
+
+    if ((error.response?.data as any)?.message) {
+      toast.error((error.response?.data as any)?.message || error.message);
     }
+
     return Promise.reject(error);
   }
 );

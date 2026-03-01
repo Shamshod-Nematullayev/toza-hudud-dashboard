@@ -52,15 +52,17 @@ export function useArizaData(ariza: IAriza | null): UseArizaDataReturn {
 
       const rows = await getAbonentDxjByResidentId(ariza.abonentId);
 
-      const abonentData = await getAbonentDataByAccountnumber(ariza.ikkilamchi_licshet);
-      const responseDublicateRows = await getAbonentDxjByResidentId(abonentData.id);
       const mappedRows = transformRows(rows);
-      const mappedRowsDublicate = transformRows(responseDublicateRows);
 
       setRows(mappedRows);
-      setRowsDuplicate(mappedRowsDublicate);
-      const sumOnDublicate = mappedRowsDublicate.reduce((sum, row) => sum + row.allPaymentsSum, 0);
-      setAllPaymentsSumOnDuplicate(sumOnDublicate);
+      if (ariza.document_type === 'dvaynik') {
+        const abonentData = await getAbonentDataByAccountnumber(ariza.ikkilamchi_licshet);
+        const responseDublicateRows = await getAbonentDxjByResidentId(abonentData.id);
+        const mappedRowsDublicate = transformRows(responseDublicateRows);
+        const sumOnDublicate = mappedRowsDublicate.reduce((sum, row) => sum + row.allPaymentsSum, 0);
+        setAllPaymentsSumOnDuplicate(sumOnDublicate);
+        setRowsDuplicate(mappedRowsDublicate);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch ariza data';
       setError(message);
