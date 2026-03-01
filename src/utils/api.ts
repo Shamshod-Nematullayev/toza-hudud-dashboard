@@ -50,6 +50,7 @@ api.interceptors.response.use(
         console.log(error);
         Cookies.remove('accessToken');
         window.location.href = '/pages/login/login';
+        return Promise.reject(error);
       }
     }
     if (error.response && error.response.status >= 400) {
