@@ -208,7 +208,8 @@ const uz = {
     viza: 'Pasport viza kirdi-chiqdi',
     death: "O'lim guvohnomasi",
     dvaynik: 'Ikkilamchi kod',
-    gps: "Texnika xizmat ko'rsatmagan"
+    gps: "Texnika xizmat ko'rsatmagan",
+    maxsus: 'Maxsus'
   },
   buttons: {
     create: 'Yaratish',

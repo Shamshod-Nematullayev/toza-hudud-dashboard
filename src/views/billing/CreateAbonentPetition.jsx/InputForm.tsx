@@ -1,4 +1,4 @@
-import { Button, Grid, IconButton, MenuItem, Select, Stack, TextField, Tooltip } from '@mui/material';
+import { Button, Card, Grid, IconButton, MenuItem, Select, Stack, TextField, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -195,92 +195,94 @@ function InputForm() {
   };
 
   return (
-    <Grid container spacing={1}>
-      <Grid item xs={3}>
-        <Button
-          variant="contained"
-          color={'primary'}
-          disabled={
-            !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
-          }
-          onClick={handleCreateAktButtonClick}
-        >
-          {t('buttons.create')}
-        </Button>
-      </Grid>
-      <Grid item xs={4}>
-        <Button variant="outlined" color={'error'} onClick={handleClearButtonClick}>
-          {t('buttons.clear')}
-        </Button>
-      </Grid>
-      {aktType === 'gps' && (
-        // <Grid item xs={4}>
-        <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
-          {t('buttons.addImage')}
-        </Button>
-        // </Grid>
-      )}
-      <Grid item xs={6}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <Select value={aktType} onChange={(e) => setAktType(e.target.value as aktType)}>
-            {documentTypes.map((item) => (
-              <MenuItem key={item} value={item}>
-                {/* @ts-ignore */}
-                {t(`documentTypes.${item}`)}
-              </MenuItem>
-            ))}
-          </Select>
-          <TextField
-            label={t('createAbonentPetitionPage.inhabitantCnt')}
-            sx={{ margin: '10px 0', display: aktType === 'dvaynik' || aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
-            value={yashovchiSoniInput}
-            disabled={aktType === 'death'}
-            onChange={(e) => {
-              if (!isNaN(Number(e.target.value))) {
-                setYashovchiSoniInput(e.target.value);
-              }
-            }}
-          />
-          <Select
-            value={muzlatiladi}
-            onChange={(e) => setMuzlatiladi(e.target.value === 'true')}
-            sx={{
-              display: aktType === 'gps' ? 'auto' : 'none'
-            }}
+    <Card sx={{ boxShadow: 5, padding: 2 }}>
+      <Grid container spacing={1}>
+        <Grid item xs={3}>
+          <Button
+            variant="contained"
+            color={'primary'}
+            disabled={
+              !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
+            }
+            onClick={handleCreateAktButtonClick}
           >
-            <MenuItem value={'false'}>{t('createAbonentPetitionPage.notFreeze')}</MenuItem>
-            <MenuItem value={'true'}>{t('createAbonentPetitionPage.freeze')}</MenuItem>
-          </Select>
-          <TextField
-            label={t('createAbonentPetitionPage.actAmount')}
-            sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
-            value={aktSumma.total}
-            disabled
-          />
-        </div>
-      </Grid>
-      <Grid item xs={6}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Stack sx={{ display: 'flex', flexDirection: 'column' }}>
-            <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={licshet} setFunc={setLicshet} />
-
-            <AccountNumberInput
-              label={t('createAbonentPetitionPage.dublicateAccountNumber')}
-              value={dublicateLicshet}
-              setFunc={setDublicateLicshet}
-              sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
+            {t('buttons.create')}
+          </Button>
+        </Grid>
+        <Grid item xs={4}>
+          <Button variant="outlined" color={'error'} onClick={handleClearButtonClick}>
+            {t('buttons.clear')}
+          </Button>
+        </Grid>
+        {aktType === 'gps' && (
+          // <Grid item xs={4}>
+          <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
+            {t('buttons.addImage')}
+          </Button>
+          // </Grid>
+        )}
+        <Grid item xs={6}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Select value={aktType} onChange={(e) => setAktType(e.target.value as aktType)}>
+              {documentTypes.map((item) => (
+                <MenuItem key={item} value={item}>
+                  {/* @ts-ignore */}
+                  {t(`documentTypes.${item}`)}
+                </MenuItem>
+              ))}
+            </Select>
+            <TextField
+              label={t('createAbonentPetitionPage.inhabitantCnt')}
+              sx={{ margin: '10px 0', display: aktType === 'dvaynik' || aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
+              value={yashovchiSoniInput}
+              disabled={aktType === 'death'}
+              onChange={(e) => {
+                if (!isNaN(Number(e.target.value))) {
+                  setYashovchiSoniInput(e.target.value);
+                }
+              }}
             />
-          </Stack>
-          {aktType === 'dvaynik' && (
-            <Tooltip title={t('buttons.swap')}>
-              <IconButton onClick={handleSwapIconButtonClick}>
-                <ScreenRotationAlt />
-              </IconButton>
-            </Tooltip>
-          )}
-        </div>
+            <Select
+              value={muzlatiladi}
+              onChange={(e) => setMuzlatiladi(e.target.value === 'true')}
+              sx={{
+                display: aktType === 'gps' ? 'auto' : 'none'
+              }}
+            >
+              <MenuItem value={'false'}>{t('createAbonentPetitionPage.notFreeze')}</MenuItem>
+              <MenuItem value={'true'}>{t('createAbonentPetitionPage.freeze')}</MenuItem>
+            </Select>
+            <TextField
+              label={t('createAbonentPetitionPage.actAmount')}
+              sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
+              value={aktSumma.total}
+              disabled
+            />
+          </div>
+        </Grid>
+        <Grid item xs={6}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Stack sx={{ display: 'flex', flexDirection: 'column' }}>
+              <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={licshet} setFunc={setLicshet} />
+
+              <AccountNumberInput
+                label={t('createAbonentPetitionPage.dublicateAccountNumber')}
+                value={dublicateLicshet}
+                setFunc={setDublicateLicshet}
+                sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
+              />
+            </Stack>
+            {aktType === 'dvaynik' && (
+              <Tooltip title={t('buttons.swap')}>
+                <IconButton onClick={handleSwapIconButtonClick}>
+                  <ScreenRotationAlt />
+                </IconButton>
+              </Tooltip>
+            )}
+          </div>
+        </Grid>
       </Grid>
-    </Grid>
+    </Card>
   );
 }
 
