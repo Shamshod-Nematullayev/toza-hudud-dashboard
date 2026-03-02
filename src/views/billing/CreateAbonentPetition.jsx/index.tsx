@@ -7,7 +7,7 @@ import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import { useStore } from './useStore';
 import PasteImageDialog from './PasteImageDialog';
 import { useLocation } from 'react-router-dom';
-import { Grid } from '@mui/material';
+import { Box, Card, Grid, useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 function CreateAbonentPetition() {
@@ -29,11 +29,12 @@ function CreateAbonentPetition() {
   } = useStore();
   const { t } = useTranslation();
   const location = useLocation();
+  const theme = useTheme();
   useEffect(() => {
     setInitialState();
   }, [location]);
   return (
-    <MainCard>
+    <div>
       <PrintSection
         show={showPrintSection}
         aniqlanganYashovchiSoni={parseInt(yashovchiSoniInput)}
@@ -47,27 +48,31 @@ function CreateAbonentPetition() {
         muzlatiladi={muzlatiladi}
         recalculationPeriods={recalculationPeriods}
       />
-      <Grid container spacing={3} sx={{ height: 'calc(100vh - 170px)' }}>
+      <Grid container spacing={1} sx={{ height: 'calc(100vh - 170px)' }}>
         <Grid item xs={12} sm={3}>
           <InputForm />
         </Grid>
         <Grid item xs={12} sm={4} sx={{ height: '100%' }}>
-          {aktType === 'dvaynik' ? (
-            <DHJTable
-              abonentData={abonentData2}
-              title={`${t('createAbonentPetitionPage.dublicateAccountNumber')}: ${abonentData2.accountNumber}`}
-            />
-          ) : (
-            <Recalculate />
-          )}
+          <Card sx={{ height: '100%', boxShadow: 5, borderRadius: 4, padding: 2, background: 'divider' }}>
+            {aktType === 'dvaynik' ? (
+              <DHJTable
+                abonentData={abonentData2}
+                title={`${t('createAbonentPetitionPage.dublicateAccountNumber')}: ${abonentData2.accountNumber}`}
+              />
+            ) : (
+              <Recalculate />
+            )}
+          </Card>
         </Grid>
         <Grid item xs={12} sm={5} sx={{ height: '100%' }}>
-          <DHJTable abonentData={abonentData} title={`${t('createAbonentPetitionPage.DHJ jadval')}: ${abonentData.accountNumber}`} />
+          <Card sx={{ height: '100%', boxShadow: 5, borderRadius: 4, padding: 2, background: 'divider' }}>
+            <DHJTable abonentData={abonentData} title={`${t('createAbonentPetitionPage.DHJ jadval')}: ${abonentData.accountNumber}`} />
+          </Card>
         </Grid>
       </Grid>
 
       <PasteImageDialog open={pasteImageDialogOpen} setOpen={setPasteImageDialogOpen} />
-    </MainCard>
+    </div>
   );
 }
 

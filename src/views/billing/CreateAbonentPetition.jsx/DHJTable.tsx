@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { colors } from 'store/constant';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 import { IRowDhj } from 'types/billing';
+import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 
 interface IRow {
   id: number;
@@ -107,12 +108,20 @@ function DHJTable({ abonentData, title }: { abonentData: IAbonentData; title: st
 
   return (
     <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="h3">{title}</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <CompactKeyValue
+          data={[
+            { key: t('tableHeaders.accountNumber'), value: abonentData.accountNumber },
+            { key: t('tableHeaders.fullName'), value: abonentData.fullName },
+            { key: t('tableHeaders.mfy'), value: abonentData.mahallaName }
+          ]}
+        />
         <Tooltip title="Oldindan ko'rsatish">
-          <IconButton onClick={handleClickShow}>{show ? <IconEye /> : <IconEyeClosed />}</IconButton>
+          <IconButton color="primary" onClick={handleClickShow}>
+            {show ? <IconEye /> : <IconEyeClosed />}
+          </IconButton>
         </Tooltip>
-      </Toolbar>
+      </Box>
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <DataGrid
           columns={[

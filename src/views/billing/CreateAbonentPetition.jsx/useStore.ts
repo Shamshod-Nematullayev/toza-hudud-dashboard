@@ -95,6 +95,11 @@ interface IAktSumma {
 
 export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
 
+export interface ImgType {
+  file: File;
+  document_id: string;
+}
+
 interface StoreState {
   aktType: aktType;
   showPrintSection: boolean;
@@ -109,7 +114,7 @@ interface StoreState {
   recalculationPeriods: IRecalculationPeriod[];
   yashovchiSoniInput: string;
   pasteImageDialogOpen: boolean;
-  images: any;
+  images: ImgType[];
   muzlatiladi: boolean;
   hisoblandiJadval: IHisoblandiItem[];
   aktSumma: IAktSumma;
@@ -119,7 +124,7 @@ interface StoreState {
   setShowPrintSection: (showPrintSection: boolean) => void;
   setRecalculationPeriods: (recalculationPeriods: any[]) => void;
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => void;
-  setImages: (images) => void;
+  setImages: (images: ImgType[]) => void;
   setAbonentData: (abonentData: IAbonentData) => void;
   setAbonentData2: (abonentData: IAbonentData) => void;
   setMahalla: (mahalla: IMahalla) => void;

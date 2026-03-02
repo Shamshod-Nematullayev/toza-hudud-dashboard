@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { documentTypes } from 'store/constant';
 import { ScreenRotationAlt } from '@mui/icons-material';
 import { Dayjs } from 'dayjs';
+import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 
 // helpers
 interface IPeriod extends IRecalculationPeriod {
@@ -40,8 +41,8 @@ function generateSummary(data: IPeriod[]) {
   return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
 }
 
-function validateCreateAct({ aktType, inhabitantCnt }) {
-  if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(inhabitantCnt))) {
+function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }) {
+  if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(parseInt(inhabitantCnt)))) {
     return toast.error(i18next.t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
   }
 }
@@ -131,7 +132,7 @@ function InputForm() {
     }
   }, [dublicateLicshet]);
 
-  const handleCreateAktButtonClick = async (e) => {
+  const handleCreateAktButtonClick = async () => {
     validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput });
     setIsLoading(true);
     try {
@@ -169,14 +170,14 @@ function InputForm() {
         setMahallaDublicat(dublicatAccountMahalla);
       }
       setShowPrintSection(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleClearButtonClick = (e) => {
+  const handleClearButtonClick = () => {
     setLicshet('');
     setDublicateLicshet('');
     setAbonentData(defaultAbonentData);
@@ -195,11 +196,36 @@ function InputForm() {
 
   return (
     <Grid container spacing={1}>
+      <Grid item xs={3}>
+        <Button
+          variant="contained"
+          color={'primary'}
+          disabled={
+            !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
+          }
+          onClick={handleCreateAktButtonClick}
+        >
+          {t('buttons.create')}
+        </Button>
+      </Grid>
+      <Grid item xs={4}>
+        <Button variant="outlined" color={'error'} onClick={handleClearButtonClick}>
+          {t('buttons.clear')}
+        </Button>
+      </Grid>
+      {aktType === 'gps' && (
+        // <Grid item xs={4}>
+        <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
+          {t('buttons.addImage')}
+        </Button>
+        // </Grid>
+      )}
       <Grid item xs={6}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <Select value={aktType} onChange={(e) => setAktType(e.target.value as aktType)}>
             {documentTypes.map((item) => (
               <MenuItem key={item} value={item}>
+                {/* @ts-ignore */}
                 {t(`documentTypes.${item}`)}
               </MenuItem>
             ))}
@@ -254,45 +280,6 @@ function InputForm() {
           )}
         </div>
       </Grid>
-      <Grid item xs={4}>
-        <Button
-          variant="contained"
-          color={'primary'}
-          disabled={
-            !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
-          }
-          onClick={handleCreateAktButtonClick}
-        >
-          {t('buttons.create')}
-        </Button>
-      </Grid>
-      <Grid item xs={4}>
-        <Button variant="outlined" color={'error'} onClick={handleClearButtonClick}>
-          {t('buttons.clear')}
-        </Button>
-      </Grid>
-      {aktType === 'gps' && (
-        <Grid item xs={4}>
-          <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
-            {t('buttons.addImage')}
-          </Button>{' '}
-        </Grid>
-      )}
-
-      {abonentData.accountNumber && (
-        <div>
-          <KeyValue kalit={t('createAbonentPetitionPage.accountNumber')} value={abonentData.accountNumber} />
-          <KeyValue kalit={t('tableHeaders.fullName')} value={abonentData.fullName} />
-          <KeyValue kalit={t('tableHeaders.mfy')} value={abonentData.mahallaName} />
-        </div>
-      )}
-      {abonentData2.accountNumber && (
-        <div>
-          <KeyValue kalit={t('createAbonentPetitionPage.dublicateAccountNumber')} value={abonentData2.accountNumber} />
-          <KeyValue kalit={t('tableHeaders.fullName')} value={abonentData2.fullName} />
-          <KeyValue kalit={t('tableHeaders.mfy')} value={abonentData2.mahallaName} />
-        </div>
-      )}
     </Grid>
   );
 }

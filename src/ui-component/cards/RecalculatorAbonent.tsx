@@ -1,8 +1,8 @@
-import { DatePicker } from '@mui/x-date-pickers';
+import { CalendarIcon, DatePicker } from '@mui/x-date-pickers';
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
-import { Grid, IconButton, Button, Tooltip, Typography, Stack } from '@mui/material';
+import { Grid, IconButton, Button, Tooltip, Typography, Stack, ButtonGroup } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useStore } from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
@@ -12,6 +12,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { colors } from 'store/constant.js';
 import api from 'utils/api.js';
 import { useTranslation } from 'react-i18next';
+import { CalendarMonth } from '@mui/icons-material';
 
 dayjs.locale('uz-latn');
 
@@ -155,9 +156,9 @@ function RecalculatorAbonent() {
   };
 
   return (
-    <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Grid container spacing={1} sx={{ pt: 1 }}>
-        <Grid item xs={6}>
+    <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%', pt: 1 }}>
+      <Grid container spacing={0.5} alignItems="center">
+        <Grid item xs={3}>
           <DatePicker
             views={['year', 'month']}
             minDate={dayjs('2019-01-01')}
@@ -166,38 +167,63 @@ function RecalculatorAbonent() {
             format="DD.MM.YY"
             value={startDate}
             onChange={setStartDate}
+            sx={{
+              input: {
+                fontSize: '12px'
+              }
+            }}
+            slotProps={{
+              openPickerIcon: {
+                sx: {
+                  fontSize: '16px'
+                }
+              }
+            }}
           />
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={3}>
           <DatePicker
             views={['year', 'month']}
             minDate={dayjs('2019-01-01')}
             maxDate={dayjs()}
             label={t('recalculator.to')}
             format="DD.MM.YY"
-            sx={{ margin: 'auto 10px' }}
+            sx={{
+              input: {
+                fontSize: '12px'
+              }
+            }}
+            slotProps={{
+              openPickerIcon: {
+                sx: {
+                  fontSize: '16px'
+                }
+              }
+            }}
             value={endDate}
             onChange={setEndDate}
           />
         </Grid>
-        <Grid item xs={6}>
-          <Typography variant="h3">
+        <Grid item xs={3}>
+          <>
             <Tooltip title={t('recalculator.debitor')}>
-              <Button variant="outlined" color="error" onClick={handleAddButtonClick}>
-                <AddIcon sx={{ color: 'red', fontSize: '30px' }} />
+              <Button variant="outlined" color="error" onClick={handleAddButtonClick} sx={{ height: '40px', minWidth: '40px' }}>
+                <AddIcon sx={{ color: 'red' }} />
               </Button>
             </Tooltip>
+
             <Tooltip title={t('recalculator.kreditor')}>
-              <Button variant="outlined" color="success" onClick={handleRemoveButtonClick}>
-                <RemoveIcon sx={{ color: 'green', fontSize: '30px' }} />
+              <Button variant="outlined" color="success" onClick={handleRemoveButtonClick} sx={{ height: '40px', minWidth: '40px' }}>
+                <RemoveIcon sx={{ color: 'green' }} />
               </Button>
             </Tooltip>
-            {currentTotal.toFixed(2)}
-          </Typography>
+          </>
         </Grid>
-        <Grid item xs={6}>
-          <Typography variant="h2">
-            {t('recalculator.total')}: {totalSumm.toFixed(2)} {t('recalculator.so`m')}
+        <Grid item xs={3}>
+          <Typography variant="subtitle2">{currentTotal}</Typography>
+
+          <Typography variant="subtitle1">
+            {t('recalculator.total')}: {totalSumm.toLocaleString()}
           </Typography>
         </Grid>
       </Grid>
