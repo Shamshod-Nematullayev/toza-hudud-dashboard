@@ -2,50 +2,11 @@ import { Button, Card, Grid, IconButton, MenuItem, Select, Stack, TextField, Too
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
-import { aktType, defaultAbonentData, IRecalculationPeriod, useStore } from './useStore';
+import { aktType, defaultAbonentData, useStore } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
-import KeyValue from 'ui-component/KeyValue';
-import useLoaderStore from 'store/loaderStore';
-import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { documentTypes } from 'store/constant';
 import { ScreenRotationAlt } from '@mui/icons-material';
-import { Dayjs } from 'dayjs';
-import { CompactKeyValue } from 'ui-component/CompactKeyValue';
-
-// helpers
-interface IPeriod extends IRecalculationPeriod {
-  startDate: Dayjs;
-  endDate: Dayjs;
-}
-function generateSummary(data: IPeriod[]) {
-  function formatDateToMMYYYY(dateString: string) {
-    const date = new Date(dateString);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}.${year}`;
-  }
-  // Har bir elementni matn shaklida formatlash
-  const details = data
-    .map(
-      (item) =>
-        `Davr: ${formatDateToMMYYYY(item.startDate.toString())} - ${formatDateToMMYYYY(item.endDate.toString())}, Summa: ${item.total}`
-    )
-    .join('\n'); // Har bir elementni yangi qatorga joylash
-
-  // Umumiy yig'indini hisoblash
-
-  const totalSum = data.reduce((total, item) => total + item.total, 0);
-
-  // Yakuniy matnni yaratish
-  return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
-}
-
-function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }) {
-  if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(parseInt(inhabitantCnt)))) {
-    return toast.error(i18next.t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
-  }
-}
 
 function InputForm() {
   const {
@@ -69,9 +30,9 @@ function InputForm() {
     setMuzlatiladi,
     setImages,
     aktSumma,
-    setAktSumma
+    setAktSumma,
+    createAriza
   } = useStore();
-  const { isLoading, setIsLoading } = useLoaderStore();
   const [licshet, setLicshet] = useState('');
   const [dublicateLicshet, setDublicateLicshet] = useState('');
   const { t } = useTranslation();
@@ -132,51 +93,6 @@ function InputForm() {
     }
   }, [dublicateLicshet]);
 
-  const handleCreateAktButtonClick = async () => {
-    validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput });
-    setIsLoading(true);
-    try {
-      const newArizaData = (
-        await api.post('/arizalar/create', {
-          account_number: licshet,
-          abonentId: abonentData.id,
-          fullName: abonentData.fullName,
-          dublicat_account_number: aktType === 'dvaynik' ? abonentData2.accountNumber : undefined,
-          document_type: aktType,
-          akt_summasi: {
-            total: aktSumma.total,
-            withQQSTotal: aktSumma.totalWithQQS,
-            withoutQQSTotal: aktSumma.withoutQQSTotal
-          },
-          current_prescribed_cnt: abonentData.house.inhabitantCnt,
-          next_prescribed_cnt: isNaN(Number(yashovchiSoniInput)) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
-          comment: generateSummary(recalculationPeriods as IPeriod[]),
-          photos: images.map((img) => img.document_id),
-          recalculationPeriods,
-          muzlatiladi
-        })
-      ).data;
-
-      if (!newArizaData.ok) return toast.error(newArizaData.message);
-
-      setAriza(newArizaData.ariza);
-
-      const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
-      setMahalla(mahallaData);
-
-      // agarda ikkilamchi akt bo'lsa ikkilamchi kod joylashgan mahalla ma'lumotlari ham olinadi
-      if (aktType === 'dvaynik') {
-        const dublicatAccountMahalla = (await api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId)).data;
-        setMahallaDublicat(dublicatAccountMahalla);
-      }
-      setShowPrintSection(true);
-    } catch (error: any) {
-      console.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleClearButtonClick = () => {
     setLicshet('');
     setDublicateLicshet('');
@@ -204,7 +120,7 @@ function InputForm() {
             disabled={
               !abonentData.accountNumber || (aktType == 'dvaynik' && !abonentData2.accountNumber) || (aktType == 'gps' && !images.length)
             }
-            onClick={handleCreateAktButtonClick}
+            onClick={createAriza}
           >
             {t('buttons.create')}
           </Button>
@@ -233,7 +149,7 @@ function InputForm() {
             </Select>
             <TextField
               label={t('createAbonentPetitionPage.inhabitantCnt')}
-              sx={{ margin: '10px 0', display: aktType === 'dvaynik' || aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
+              sx={{ margin: '10px 0', display: aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
               value={yashovchiSoniInput}
               disabled={aktType === 'death'}
               onChange={(e) => {

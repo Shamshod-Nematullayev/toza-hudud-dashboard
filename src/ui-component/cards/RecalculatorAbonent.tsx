@@ -99,6 +99,10 @@ function RecalculatorAbonent() {
     setTotalSumm(total);
   }, [recalculationPeriods]);
 
+  useEffect(() => {
+    setEndDate(dayjs().startOf('month'));
+  }, [aktType]);
+
   const handleRemoveButtonClick = () => {
     if (currentTotal === 0) {
       return toast.info(t('recalculator.noValue'));
@@ -202,6 +206,7 @@ function RecalculatorAbonent() {
             }}
             value={endDate}
             onChange={setEndDate}
+            disabled={aktType === 'death'}
           />
         </Grid>
         <Grid item xs={3}>

@@ -112,9 +112,10 @@ function DHJTable({ abonentData, title }: { abonentData: IAbonentData; title: st
         <CompactKeyValue
           data={[
             { key: t('tableHeaders.accountNumber'), value: abonentData.accountNumber },
-            { key: t('tableHeaders.fullName'), value: abonentData.fullName },
-            { key: t('tableHeaders.mfy'), value: abonentData.mahallaName }
+            { key: t('tableHeaders.fullName'), value: abonentData.fullName }
           ]}
+          xs={6}
+          md={6}
         />
         <Tooltip title="Oldindan ko'rsatish">
           <IconButton color="primary" onClick={handleClickShow}>

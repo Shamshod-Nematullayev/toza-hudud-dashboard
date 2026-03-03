@@ -245,6 +245,8 @@ function renderSwitch({
           company={company}
           abonentData2={abonentData2}
           mahalla2={mahalla2}
+          currentPrescribedCnt={abonentData.house.inhabitantCnt}
+          nextPrescribedCnt={aniqlanganYashovchiSoni}
         />
       );
     case 'viza':

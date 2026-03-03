@@ -1,4 +1,8 @@
 import { Dayjs } from 'dayjs';
+import { t } from 'i18next';
+import { toast } from 'react-toastify';
+import useLoaderStore from 'store/loaderStore';
+import api from 'utils/api';
 import { create } from 'zustand';
 
 interface dhjRow {
@@ -10,6 +14,11 @@ interface dhjRow {
   akt: number;
   yashovchilar_soni: number;
   allPaymentsSum: number;
+}
+
+interface IPeriod extends IRecalculationPeriod {
+  startDate: Dayjs;
+  endDate: Dayjs;
 }
 
 export interface IRecalculationPeriod {
@@ -104,8 +113,6 @@ interface StoreState {
   aktType: aktType;
   showPrintSection: boolean;
   rowsDhjTable: dhjRow[];
-  rows: any;
-  rowsDublicat: any;
   abonentData: IAbonentData;
   abonentData2: IAbonentData;
   ariza: any;
@@ -134,19 +141,16 @@ interface StoreState {
   setPasteImageDialogOpen: (pasteImageDialogOpen: boolean) => void;
   setMuzlatiladi: (muzlatiladi: boolean) => void;
   setInitialState: () => void;
+  createAriza: () => void;
 }
 
-export const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>((set, get) => ({
   aktType: 'odam_soni',
   setAktType: (aktType: aktType) => set({ aktType }),
   showPrintSection: false,
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
   rowsDhjTable: [],
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => set({ rowsDhjTable }),
-  rows: [],
-  setRows: (files) => set({ rows: files }),
-  rowsDublicat: [],
-  setRowsDublicat: (files) => set({ rows: files }),
   abonentData: defaultAbonentData,
   setAbonentData: (data) => set({ abonentData: data }),
   abonentData2: defaultAbonentData,
@@ -181,8 +185,6 @@ export const useStore = create<StoreState>((set) => ({
       aktType: 'odam_soni',
       showPrintSection: false,
       rowsDhjTable: [],
-      rows: [],
-      rowsDublicat: [],
       abonentData: defaultAbonentData,
       abonentData2: defaultAbonentData,
       ariza: {},
@@ -208,5 +210,93 @@ export const useStore = create<StoreState>((set) => ({
   hisoblandiJadval: [],
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
   aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 },
-  setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma })
+  setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma }),
+  createAriza: async () => {
+    const {
+      aktType,
+      abonentData,
+      abonentData2,
+      aktSumma,
+      yashovchiSoniInput,
+      recalculationPeriods,
+      images,
+      muzlatiladi,
+      setAriza,
+      setMahalla,
+      setMahallaDublicat,
+      setShowPrintSection
+    } = get();
+    const { setIsLoading } = useLoaderStore.getState();
+    validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput });
+    setIsLoading(true);
+    try {
+      const newArizaData = (
+        await api.post('/arizalar/create', {
+          account_number: abonentData.accountNumber,
+          abonentId: abonentData.id,
+          fullName: abonentData.fullName,
+          dublicat_account_number: aktType === 'dvaynik' ? abonentData2.accountNumber : undefined,
+          document_type: aktType,
+          akt_summasi: {
+            total: aktSumma.total,
+            withQQSTotal: aktSumma.totalWithQQS,
+            withoutQQSTotal: aktSumma.withoutQQSTotal
+          },
+          current_prescribed_cnt: abonentData.house.inhabitantCnt,
+          next_prescribed_cnt: isNaN(Number(yashovchiSoniInput)) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
+          comment: generateSummary(recalculationPeriods as IPeriod[]),
+          photos: images.map((img) => img.document_id),
+          recalculationPeriods,
+          muzlatiladi
+        })
+      ).data;
+
+      if (!newArizaData.ok) return toast.error(newArizaData.message);
+
+      setAriza(newArizaData.ariza);
+
+      const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+      setMahalla(mahallaData);
+
+      // agarda ikkilamchi akt bo'lsa ikkilamchi kod joylashgan mahalla ma'lumotlari ham olinadi
+      if (aktType === 'dvaynik') {
+        const dublicatAccountMahalla = (await api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId)).data;
+        setMahallaDublicat(dublicatAccountMahalla);
+      }
+      setShowPrintSection(true);
+    } catch (error: any) {
+      console.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 }));
+
+function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }) {
+  if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(parseInt(inhabitantCnt)))) {
+    return toast.error(t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
+  }
+}
+
+function generateSummary(data: IPeriod[]) {
+  function formatDateToMMYYYY(dateString: string) {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}.${year}`;
+  }
+  // Har bir elementni matn shaklida formatlash
+  const details = data
+    .map(
+      (item) =>
+        `Davr: ${formatDateToMMYYYY(item.startDate.toString())} - ${formatDateToMMYYYY(item.endDate.toString())}, Summa: ${item.total}`
+    )
+    .join('\n'); // Har bir elementni yangi qatorga joylash
+
+  // Umumiy yig'indini hisoblash
+
+  const totalSum = data.reduce((total, item) => total + item.total, 0);
+
+  // Yakuniy matnni yaratish
+  return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
+}

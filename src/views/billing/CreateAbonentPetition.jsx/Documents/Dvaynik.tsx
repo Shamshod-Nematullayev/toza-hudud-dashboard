@@ -24,7 +24,9 @@ function Dvaynik({
   abonentData2,
   documentType = 'odam_soni',
   ariza,
-  company
+  company,
+  nextPrescribedCnt,
+  currentPrescribedCnt
 }: {
   date: Date;
   abonentData: any;
@@ -34,6 +36,8 @@ function Dvaynik({
   documentType: string;
   ariza: any;
   company: any;
+  nextPrescribedCnt: number;
+  currentPrescribedCnt: number;
 }) {
   return (
     <>
@@ -107,7 +111,9 @@ function Dvaynik({
           }}
         >
           Ushbu abonentlar ikkilamchi hisob raqam bo‘lganligi sababli yagona elektron tizimda ikkilamchi hisob rakamga tushgan pul
-          mablag‘larini haqiqiy hisob raqamga o‘tkazib, ikkilamchi abonentlarni o‘chirishni maqsadga muvofiq deb hisoblaymiz.
+          mablag‘larini haqiqiy hisob raqamga o‘tkazish,{' '}
+          {nextPrescribedCnt !== currentPrescribedCnt && <b>yashovchilar sonini {nextPrescribedCnt} kishiga o‘zgartirish,</b>} yagona
+          elektron tizimdan ikkilamchi abonentlarni o‘chirishni maqsadga muvofiq deb hisoblaymiz.
         </p>
         <ImzolashJoyi documentType={documentType} abonentData={abonentData} mahalla={mahalla} mahalla2={mahalla2} gpsOperator={{}} />
       </div>
