@@ -129,7 +129,6 @@ function Login() {
 
       toast.success('Login successful');
       Cookies.set('accessToken', data.accessToken);
-      Cookies.set('refreshToken', data.refreshToken);
       if (data.photo) {
         const uint8Array = new Uint8Array(data.photo.data);
         const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
