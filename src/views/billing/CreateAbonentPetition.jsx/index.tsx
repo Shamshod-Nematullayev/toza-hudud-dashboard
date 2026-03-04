@@ -50,10 +50,10 @@ function CreateAbonentPetition() {
         recalculationPeriods={recalculationPeriods}
       />
       <Grid container spacing={1} sx={{ height: 'calc(100vh - 170px)' }}>
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <CreateArizaStepperForm />
-        </Grid>
-        {/* <Grid item xs={12} sm={3} sx={{ gap: '10px' }}>
+        </Grid> */}
+        <Grid item xs={12} sm={3} sx={{ gap: '10px' }}>
           <InputForm />
         </Grid>
         <Grid item xs={12} sm={4} sx={{ height: '100%' }}>
@@ -72,7 +72,7 @@ function CreateAbonentPetition() {
           <Card sx={{ height: '100%', boxShadow: 5, borderRadius: 4, padding: 2, background: 'divider' }}>
             <DHJTable abonentData={abonentData} title={`${t('createAbonentPetitionPage.DHJ jadval')}: ${abonentData.accountNumber}`} />
           </Card>
-        </Grid> */}
+        </Grid>
       </Grid>
 
       <PasteImageDialog open={pasteImageDialogOpen} setOpen={setPasteImageDialogOpen} />
