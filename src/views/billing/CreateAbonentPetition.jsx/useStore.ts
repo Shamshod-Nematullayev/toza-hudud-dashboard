@@ -2,10 +2,11 @@ import { Dayjs } from 'dayjs';
 import { t } from 'i18next';
 import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
+import { Balance } from 'types/billing';
 import api from 'utils/api';
 import { create } from 'zustand';
 
-interface dhjRow {
+export interface dhjRow {
   id: number;
   davr: string;
   saldo_n: number;
@@ -51,7 +52,7 @@ export interface IAbonentData {
   id: number;
   accountNumber: string;
   fullName: string;
-  kSaldo: number;
+  balance: Balance;
   mahallaName: string;
   mahallaId: number;
   streetName: string;
@@ -68,11 +69,21 @@ export interface IAbonentData {
   };
 }
 
-export const defaultAbonentData = {
+export const defaultAbonentData: IAbonentData = {
   id: 0,
   accountNumber: '',
   fullName: '',
-  kSaldo: 0,
+  balance: {
+    accrual: 0,
+    frozenActAmount: 0,
+    frozenDebtSettlement: 0,
+    frozenKSaldo: 0,
+    frozenNSaldo: 0,
+    frozenRevenue: 0,
+    kSaldo: 0,
+    period: '',
+    rate: ''
+  },
   mahallaName: '',
   mahallaId: 0,
   streetName: '',
@@ -102,7 +113,7 @@ interface IAktSumma {
   withoutQQSTotal: number;
 }
 
-export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza';
+export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza' | null;
 
 export interface ImgType {
   file: File;
@@ -142,10 +153,11 @@ interface StoreState {
   setMuzlatiladi: (muzlatiladi: boolean) => void;
   setInitialState: () => void;
   createAriza: () => void;
+  updateAbonentDataByAccNum: (accountNumber: string, abonentData: 'main' | 'dublicate') => void;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
-  aktType: 'odam_soni',
+  aktType: null,
   setAktType: (aktType: aktType) => set({ aktType }),
   showPrintSection: false,
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
@@ -182,7 +194,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi }),
   setInitialState: () =>
     set({
-      aktType: 'odam_soni',
+      aktType: null,
       showPrintSection: false,
       rowsDhjTable: [],
       abonentData: defaultAbonentData,
@@ -269,6 +281,24 @@ export const useStore = create<StoreState>((set, get) => ({
     } finally {
       setIsLoading(false);
     }
+  },
+  updateAbonentDataByAccNum: async (accountNumber: string, abonentData) => {
+    const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + accountNumber);
+    if (!data.ok) {
+      toast.error(data.message);
+      return;
+    }
+    let updateObj: { abonentData: any } | { abonentData2: any } | {} = {};
+    if (abonentData === 'main') {
+      updateObj = {
+        abonentData: data.abonentData
+      };
+    } else if (abonentData === 'dublicate') {
+      updateObj = {
+        abonentData2: data.abonentData
+      };
+    }
+    set(updateObj);
   }
 }));
 

@@ -17,10 +17,6 @@ function InputForm() {
     abonentData2,
     setAbonentData2,
     recalculationPeriods,
-    setShowPrintSection,
-    setMahalla,
-    setMahallaDublicat,
-    setAriza,
     setRecalculationPeriods,
     yashovchiSoniInput,
     setYashovchiSoniInput,
@@ -31,10 +27,11 @@ function InputForm() {
     setImages,
     aktSumma,
     setAktSumma,
-    createAriza
+    createAriza,
+    updateAbonentDataByAccNum
   } = useStore();
-  const [licshet, setLicshet] = useState('');
-  const [dublicateLicshet, setDublicateLicshet] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountNumber2, setAccountNumber2] = useState('');
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -62,40 +59,23 @@ function InputForm() {
     });
   }, [recalculationPeriods]);
   useEffect(() => {
-    if (licshet.length === 12) {
-      async function fetchData() {
-        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + licshet);
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        setAbonentData(data.abonentData);
-        // console.log(data.abonentData);
-      }
-      fetchData();
+    if (accountNumber.length === 12) {
+      updateAbonentDataByAccNum(accountNumber, 'main');
     } else {
       if (abonentData.accountNumber) setAbonentData(defaultAbonentData);
     }
-  }, [licshet]);
+  }, [accountNumber]);
   useEffect(() => {
-    if (dublicateLicshet.length === 12) {
-      async function fetchData() {
-        const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + dublicateLicshet);
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        setAbonentData2(data.abonentData);
-      }
-      fetchData();
+    if (accountNumber.length === 12) {
+      updateAbonentDataByAccNum(accountNumber, 'dublicate');
     } else {
-      if (abonentData2.accountNumber) setAbonentData2(defaultAbonentData);
+      if (abonentData.accountNumber) setAbonentData(defaultAbonentData);
     }
-  }, [dublicateLicshet]);
+  }, [accountNumber2]);
 
   const handleClearButtonClick = () => {
-    setLicshet('');
-    setDublicateLicshet('');
+    setAccountNumber('');
+    setAccountNumber2('');
     setAbonentData(defaultAbonentData);
     setAbonentData2(defaultAbonentData);
     setYashovchiSoniInput('');
@@ -105,9 +85,9 @@ function InputForm() {
   };
 
   const handleSwapIconButtonClick = () => {
-    let tempLicshet = licshet;
-    setLicshet(dublicateLicshet);
-    setDublicateLicshet(tempLicshet);
+    let tempLicshet = accountNumber;
+    setAccountNumber(accountNumber2);
+    setAccountNumber2(tempLicshet);
   };
 
   return (
@@ -179,12 +159,12 @@ function InputForm() {
         <Grid item xs={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Stack sx={{ display: 'flex', flexDirection: 'column' }}>
-              <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={licshet} setFunc={setLicshet} />
+              <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={accountNumber} setFunc={setAccountNumber} />
 
               <AccountNumberInput
                 label={t('createAbonentPetitionPage.dublicateAccountNumber')}
-                value={dublicateLicshet}
-                setFunc={setDublicateLicshet}
+                value={accountNumber2}
+                setFunc={setAccountNumber2}
                 sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'inline' : 'none' }}
               />
             </Stack>

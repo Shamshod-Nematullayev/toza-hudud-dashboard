@@ -3,9 +3,9 @@ import { ReactNode } from 'react';
 
 export const CompactKeyValue = ({
   data,
-  xs = 6,
-  sm = 4,
-  md = 4
+  xs,
+  sm,
+  md
 }: {
   data: { key: string; value: string | number | ReactNode }[];
   xs?: number;

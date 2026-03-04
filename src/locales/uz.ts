@@ -9,6 +9,7 @@ const uz = {
   from: 'dan',
   to: 'gacha',
   'Drop your files': 'Fayllaringizni tashlang',
+  optional: 'Ixtiyoriy',
   weekDays: {
     'day-1': 'Dushanba',
     'day-2': 'Seshanba',
@@ -104,6 +105,7 @@ const uz = {
     act: 'Akt',
     allPaymentsSum: "To'lovlar summasi",
     inhabitantCount: 'Yashovchilar soni',
+    nextInhabitantCount: 'Aniqlangan yashovchilar soni',
     documentType: 'Xujjat turi',
     actsCount: 'Aktlar soni',
     checkedCount: 'Tekshirilganlar soni',
@@ -196,6 +198,16 @@ const uz = {
     pictureNotPicked: 'Rasm tanlanmagan',
     'Qoʻshimcha izohlar uchun': 'Qoʻshimcha izohlar uchun'
   },
+  createAbonentPetitionSteps: {
+    mainInfo: "Asosiy ma'lumotlar",
+    qaytaHisobKitob: 'Qayta hisob kitob',
+    finally: 'Yakun'
+  },
+  createAbonentPetitionStepsPage: {
+    recalculateType: 'Qayta hisob kitob turi',
+    general: 'Umumiy',
+    single: 'Yakka tartibda'
+  },
   importAktsPage: {
     actPack: 'Aktlar pachkasi',
     actPackType: 'Aktlar pachkasi turi',
@@ -203,13 +215,13 @@ const uz = {
     downloadTemplate: 'Shablonni yuklash',
     infoTitle: 'Aktlarni Import Qilish Bo‘yicha Qo‘llanma'
   },
+  petitionType: 'Ariza turi',
   documentTypes: {
     odam_soni: "Yashovchi soni o'zgartirish",
     viza: 'Pasport viza kirdi-chiqdi',
     death: "O'lim guvohnomasi",
     dvaynik: 'Ikkilamchi kod',
-    gps: "Texnika xizmat ko'rsatmagan",
-    maxsus: 'Maxsus'
+    gps: "Texnika xizmat ko'rsatmagan"
   },
   buttons: {
     create: 'Yaratish',
@@ -238,7 +250,10 @@ const uz = {
     sendExcelToTelegramGroup: 'Excel faylni Telegram guruhiga yuborish',
     import: 'Import qilish',
     update: 'Yangilash',
-    updateFromTozamakon: 'Tozamakondan yangilash'
+    updateFromTozamakon: 'Tozamakondan yangilash',
+    back: 'Orqaga qaytish',
+    next: 'Keyingi',
+    skip: 'Tashlab ketish'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
