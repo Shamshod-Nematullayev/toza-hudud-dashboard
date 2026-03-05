@@ -70,7 +70,7 @@ function PrintSection({
   abonentData2: IAbonentData;
   muzlatiladi: boolean;
   aniqlanganYashovchiSoni: number;
-  documentType: string;
+  documentType: string | null;
   mahalla: IMahalla;
   mahalla2: IMahalla;
   recalculationPeriods: any[];

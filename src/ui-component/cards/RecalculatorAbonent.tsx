@@ -290,7 +290,17 @@ function RecalculatorAbonent() {
 
 export default RecalculatorAbonent;
 
-function getTarifElement({ startAt, endAt, rate, rateWithoutQqs }) {
+export function getTarifElement({
+  startAt,
+  endAt,
+  rate,
+  rateWithoutQqs
+}: {
+  startAt: string | Date;
+  endAt: string | Date;
+  rate: number;
+  rateWithoutQqs: number;
+}) {
   const withQQS = rate - rateWithoutQqs;
   startAt = new Date(startAt);
   endAt = endAt ? new Date(endAt) : new Date();

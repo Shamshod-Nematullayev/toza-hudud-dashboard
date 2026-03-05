@@ -1,6 +1,6 @@
 import { aktType, dhjRow, IHisoblandiItem } from 'views/billing/CreateAbonentPetition.jsx/useStore';
 
-const calculateRevaluation = ({
+export const calculateRevaluation = ({
   fromMoon,
   fromYear,
   toMoon,
@@ -13,10 +13,9 @@ const calculateRevaluation = ({
   toMoon: number;
   toYear: number;
   yashovchilar?: number;
-  aktType: aktType;
-  rowsDhjTable?: dhjRow[];
   hisoblandiJadval?: IHisoblandiItem[];
 }) => {
+  // TODO: aniqlik va moslikni oshirish uchun TozaMakon hisoblash uskunalaridan foydalanish lozim, hozircha classic uslubdan foydalanamiz
   let totalSumm = 0;
   let totalWithQQS = 0;
   // 1. Standart holat uchun hisoblash
