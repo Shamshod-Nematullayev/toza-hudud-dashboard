@@ -34,6 +34,7 @@ import Folders from 'views/billing/Folders';
 import EtkKodRequests from 'views/billing/EtkKodRequests';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
+import Abonent from 'views/billing/Abonent/Abonent';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -250,6 +251,10 @@ const MainRoutes: MainRoutesProps = {
           element: <VisitGrafikPage />
         }
       ]
+    },
+    {
+      path: '/abonent/:residentId',
+      element: <Abonent />
     },
     {
       path: 'sample-page',

@@ -32,7 +32,7 @@ export default function CreateArizaStepperForm() {
   ];
 
   return (
-    <Card sx={{ p: 2, boxShadow: '5', mt: 2 }}>
+    <Card sx={{ p: 2, boxShadow: '5', mt: 2, height: '100%' }}>
       <Box sx={{ width: '100%' }}>
         <Stepper activeStep={activeStep}>
           {steps.map(({ label }, index) => {
@@ -62,8 +62,8 @@ export default function CreateArizaStepperForm() {
             </Box>
           </Fragment>
         ) : (
-          <Fragment>
-            {steps[activeStep].content}
+          <>
+            <Box sx={{ mt: 2, mb: 1, height: '60vh' }}>{steps[activeStep].content}</Box>
             <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
               <Button color="inherit" disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
                 {t('buttons.back')}
@@ -78,7 +78,7 @@ export default function CreateArizaStepperForm() {
                 {activeStep === steps.length - 1 ? 'Finish' : t('buttons.next')}
               </Button>
             </Box>
-          </Fragment>
+          </>
         )}
       </Box>
     </Card>

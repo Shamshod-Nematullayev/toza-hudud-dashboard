@@ -21,7 +21,7 @@ interface IRow {
   allPaymentsSum: number;
 }
 
-function DHJTable({ abonentData, title }: { abonentData: IAbonentData; title: string }) {
+function DHJTable({ abonentData }: { abonentData: IAbonentData }) {
   const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
   const [rowsPreviewTable, setRowsPreviewTable] = useState<IRow[]>([]);
   const store = useStore();

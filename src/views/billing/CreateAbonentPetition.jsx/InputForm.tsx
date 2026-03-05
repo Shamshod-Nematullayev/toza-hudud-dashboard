@@ -67,9 +67,9 @@ function InputForm() {
   }, [accountNumber]);
   useEffect(() => {
     if (accountNumber.length === 12) {
-      updateAbonentDataByAccNum(accountNumber, 'dublicate');
+      updateAbonentDataByAccNum(accountNumber2, 'dublicate');
     } else {
-      if (abonentData.accountNumber) setAbonentData(defaultAbonentData);
+      if (abonentData2.accountNumber) setAbonentData(defaultAbonentData);
     }
   }, [accountNumber2]);
 
@@ -82,6 +82,7 @@ function InputForm() {
     setAktSumma({ total: 0, totalWithQQS: 0, withoutQQSTotal: 0 });
     setRecalculationPeriods([]);
     setImages([]);
+    setAktType(null);
   };
 
   const handleSwapIconButtonClick = () => {

@@ -379,3 +379,20 @@ export interface IAutomobile {
   trackerSimcardNumber: string | null;
   wialonId: number;
 }
+
+export interface AbonentDetailsHistoryRow {
+  accountNumber: string | null;
+  changeDate: string;
+  changedValue: string;
+  channel: 'WEB';
+  companyId: number | null;
+  companyName: string | null;
+  districtId: number | null;
+  entityName: 'Act' | 'IndividualResident' | 'Citizen';
+  id: string;
+  operation: 'UPDATE';
+  residentId: number;
+  residentName: string | null;
+  userFullName: string;
+  userId: number;
+}
