@@ -396,3 +396,45 @@ export interface AbonentDetailsHistoryRow {
   userFullName: string;
   userId: number;
 }
+
+interface IConfirmSchema {
+  confirm: boolean;
+  inspector_id: number;
+  inspector_name: string;
+  inspector: {
+    name: string;
+    _id: number;
+  };
+  updated_at: Date;
+}
+
+export interface IAbonentFromDB {
+  id: number;
+  fio: string;
+  last_name: string;
+  first_name: string;
+  middle_name: string;
+  licshet: string;
+  caotoNumber: string;
+  companyId: number;
+  isConfirm: any;
+  createdAt: Date;
+  updatedAt: Date;
+  energy_licshet?: number;
+  kadastr_number?: string;
+  mahalla_name?: string;
+  mahallas_id?: number;
+  streets_id?: number;
+  streets_name?: string;
+  phone?: string;
+  pinfl?: number;
+  passport_number?: string;
+  shaxsi_tasdiqlandi?: IConfirmSchema;
+  shaxsi_tasdiqlandi_history?: any[];
+  ekt_kod_tasdiqlandi?: IConfirmSchema;
+  street_tasdiqlandi?: IConfirmSchema;
+  phone_tasdiqlandi?: IConfirmSchema;
+  sudAkt?: any;
+  warningLetter?: any;
+  ksaldo?: number;
+}
