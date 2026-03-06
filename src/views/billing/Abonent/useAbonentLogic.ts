@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAbonentStore } from './abonentsStore';
+import { useAbonentStore } from './abonentStore';
 
 export function useAbonentLogic() {
   const residentId = Number(useParams().residentId);
