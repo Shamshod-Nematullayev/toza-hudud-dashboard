@@ -77,7 +77,11 @@ const MainLayout = () => {
           transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
         }}
       >
-        <Toolbar>
+        <Toolbar
+          sx={{
+            height: 60
+          }}
+        >
           <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
         </Toolbar>
       </AppBar>

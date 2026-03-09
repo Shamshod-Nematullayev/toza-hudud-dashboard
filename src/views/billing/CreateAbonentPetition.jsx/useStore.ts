@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
 import { Balance } from 'types/billing';
 import api from 'utils/api';
+import { AutoMobile } from 'views/gpsMonitoring/VisitGrafikPage/useVisitGrafikStore';
 import { create } from 'zustand';
 
 export interface dhjRow {
@@ -154,6 +155,8 @@ interface StoreState {
   setInitialState: () => void;
   createAriza: () => void;
   updateAbonentDataByAccNum: (accountNumber: string, abonentData: 'main' | 'dublicate') => void;
+  autoMobile: AutoMobile | null;
+  getAutoMobile: (mahallaId: number) => void;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -299,6 +302,15 @@ export const useStore = create<StoreState>((set, get) => ({
       };
     }
     set(updateObj);
+  },
+  autoMobile: null,
+  getAutoMobile: async (mahallaId) => {
+    const { data } = await api.get('/automobiles', {
+      params: {
+        mahallaId
+      }
+    });
+    set({ autoMobile: data[0] });
   }
 }));
 

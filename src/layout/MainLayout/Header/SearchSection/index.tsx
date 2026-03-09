@@ -227,7 +227,7 @@ const SearchSection = () => {
             }
             aria-describedby="search-helper-text"
             inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
-            sx={{ width: { md: 250, lg: 434 }, ml: 2, px: 2 }}
+            sx={{ width: { md: 250, lg: 300 }, ml: 2, px: 2, input: { py: 1.5 } }}
           />
         </Tooltip>
         {value.length > 2 && <FindedList filteredItems={filteredItems} />}

@@ -9,6 +9,7 @@ import { colors } from 'store/constant';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 import { IRowDhj } from 'types/billing';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
+import { useLocation } from 'react-router-dom';
 
 interface IRow {
   id: number;
@@ -28,6 +29,15 @@ function DHJTable({ abonentData }: { abonentData: IAbonentData }) {
   const { t } = useTranslation();
 
   const [show, setShow] = useState(false);
+
+  const location = useLocation();
+  const dhjRows = location.state?.dhjRows;
+
+  useEffect(() => {
+    if (dhjRows) {
+      setRowsDhjTable(dhjRows);
+    }
+  }, []);
 
   const handleClickShow = () => {
     setShow(!show);

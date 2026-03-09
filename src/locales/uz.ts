@@ -128,7 +128,12 @@ const uz = {
     forAccount: 'Hisobga',
     content: 'Mazmuni',
     elementsCount: 'Elementlar soni',
-    purpose: 'Asos'
+    purpose: 'Asos',
+    registeredInhabitants: "IIB bazada ro'yxatdan o'tgan yashovchilar soni",
+    balance: 'Balans',
+    balanceToYearEnd: 'Yilning oxiri balansi',
+    tariff: 'Tarif',
+    calculated: 'Hisoblandi'
   },
   tableActions: {
     edit: 'Tahrirlash',
@@ -253,7 +258,10 @@ const uz = {
     updateFromTozamakon: 'Tozamakondan yangilash',
     back: 'Orqaga qaytish',
     next: 'Keyingi',
-    skip: 'Tashlab ketish'
+    skip: 'Tashlab ketish',
+    createAbonentPetition: 'Abonent arizasi yaratish',
+    addToMultipleLivings: "Yashovchilar soni o'zgartirish",
+    editPhone: 'Telefon raqamini tahrirlash'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',

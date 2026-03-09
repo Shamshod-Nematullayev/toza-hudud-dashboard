@@ -1,4 +1,4 @@
-import { Button, Card, Grid, IconButton, MenuItem, Select, Stack, TextField, Tooltip } from '@mui/material';
+import { Button, Card, Grid, IconButton, MenuItem, Select, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -7,6 +7,8 @@ import AccountNumberInput from 'ui-component/AccountNumberInput';
 import { useTranslation } from 'react-i18next';
 import { documentTypes } from 'store/constant';
 import { ScreenRotationAlt } from '@mui/icons-material';
+import { AutoMobile } from 'views/gpsMonitoring/VisitGrafikPage/useVisitGrafikStore';
+import { useLocation } from 'react-router-dom';
 
 function InputForm() {
   const {
@@ -28,11 +30,24 @@ function InputForm() {
     aktSumma,
     setAktSumma,
     createAriza,
-    updateAbonentDataByAccNum
+    updateAbonentDataByAccNum,
+    getAutoMobile,
+    autoMobile
   } = useStore();
+
+  // const {} = useQue
   const [accountNumber, setAccountNumber] = useState('');
   const [accountNumber2, setAccountNumber2] = useState('');
   const { t } = useTranslation();
+
+  const location = useLocation();
+  const abonentInputData = location.state?.abonentData;
+
+  useEffect(() => {
+    if (abonentInputData) {
+      setAccountNumber(abonentInputData.accountNumber || '');
+    }
+  }, []);
 
   useEffect(() => {
     if (muzlatiladi && aktType === 'gps') return setYashovchiSoniInput(0);
@@ -72,6 +87,12 @@ function InputForm() {
       if (abonentData2.accountNumber) setAbonentData(defaultAbonentData);
     }
   }, [accountNumber2]);
+
+  useEffect(() => {
+    if (aktType === 'gps' && abonentData.mahallaId) {
+      getAutoMobile(abonentData.mahallaId);
+    }
+  }, [abonentData.mahallaId, aktType]);
 
   const handleClearButtonClick = () => {
     setAccountNumber('');
@@ -178,6 +199,13 @@ function InputForm() {
             )}
           </div>
         </Grid>
+        {aktType === 'gps' && (
+          <Grid item xs={12}>
+            <Typography variant="body2" sx={{ display: 'inline-block', margin: 1 }}>
+              {autoMobile?.name}
+            </Typography>
+          </Grid>
+        )}
       </Grid>
     </Card>
   );

@@ -26,13 +26,20 @@ function CreateAbonentPetition() {
     muzlatiladi,
     recalculationPeriods,
     pasteImageDialogOpen,
-    setPasteImageDialogOpen
+    setPasteImageDialogOpen,
+    setAbonentData
   } = useStore();
   const { t } = useTranslation();
   const location = useLocation();
+  const data = location.state?.abonentData;
   const theme = useTheme();
+
   useEffect(() => {
     setInitialState();
+    if (data) {
+      console.log(data);
+      setAbonentData(data);
+    }
   }, [location]);
   return (
     <div>

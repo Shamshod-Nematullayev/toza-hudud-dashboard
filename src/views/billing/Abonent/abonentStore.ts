@@ -21,6 +21,8 @@ export interface IAbonentPageStore {
   updatePhone: (phone: string) => void;
   getResidentCadastrs: () => void;
   getDatasForCompare: () => void;
+  openChangePhoneDialogState: boolean;
+  setOpenChangePhoneDialog: (open: boolean) => void;
 }
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
@@ -66,5 +68,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   },
   getDatasForCompare: async () => {
     // Bu funksiya abonent ma'lumotlarini HET, Kadastr, IIB bazalaridan ma'lumot olib ularni solishturish uchun ishlatiladi. Hozircha bu funksiya ichida hech qanday kod yo'q, chunki bu funksiya uchun backendda endpoint mavjud emas.
-  }
+  },
+  openChangePhoneDialogState: false,
+  setOpenChangePhoneDialog: (open) => set({ openChangePhoneDialogState: open })
 }));

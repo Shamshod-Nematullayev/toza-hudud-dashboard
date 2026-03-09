@@ -12,7 +12,7 @@ interface BiriktirilganMahalla {
   }[];
 }
 
-interface AutoMobile {
+export interface AutoMobile {
   _id: string;
   name: string;
   model: string;
