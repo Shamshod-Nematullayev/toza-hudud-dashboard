@@ -117,7 +117,7 @@ function AbonentTools() {
           direction="row"
           sx={{
             p: 1,
-            bgcolor: '#f8fafc',
+            bgcolor: 'background.paper',
             borderRadius: '16px',
             border: '1px solid #e2e8f0',
             display: 'flex'
@@ -128,11 +128,12 @@ function AbonentTools() {
             sx={{
               '& .MuiButton-root': {
                 borderColor: '#cbd5e1',
-                color: '#475569',
-                bgcolor: '#ffffff',
+                color: 'text.primary',
+                bgcolor: 'background.default',
                 '&:hover': {
                   bgcolor: '#f1f5f9',
-                  borderColor: '#94a3b8'
+                  borderColor: '#94a3b8',
+                  color: '#475569'
                 }
               }
             }}
@@ -170,7 +171,7 @@ function AbonentTools() {
             </Button>
 
             {/* Tahrirlash guruhi - ajratilgan rangda */}
-            <Button startIcon={<EditIcon />} color="primary">
+            <Button sx={btnStyle} startIcon={<EditIcon />} color="primary">
               {t('buttons.edit')}
             </Button>
 

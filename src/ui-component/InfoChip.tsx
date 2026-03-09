@@ -24,10 +24,10 @@ const InfoChip = ({
         p: 1.5,
         borderRadius: '12px',
         border: '1px dashed #e0e0e0', // Dashed border - xohlasangiz 'solid' qiling
-        bgcolor: 'rgba(255, 255, 255, 0.6)',
+        bgcolor: 'dark.main',
         transition: 'all 0.2s',
         '&:hover': {
-          bgcolor: '#fff',
+          bgcolor: 'dark.dark',
           borderColor: 'primary.main',
           boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
         },
