@@ -32,7 +32,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   abonentDetailsFromDB: null,
   getDetails: async (residentId) => {
     const { data } = await api.get('/billing/get-abonent-details/' + residentId);
-    set({ abonentDetails: data.abonentDetails });
+    set({ abonentDetails: data });
   },
   getDhjRows: async () => {
     const { abonentDetails } = get();

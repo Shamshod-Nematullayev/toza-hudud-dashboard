@@ -47,8 +47,14 @@ export interface AbonentDetails {
   electricityAccountNumber: string;
   electricityCoato: string;
   companyId: number;
+  companyName: string;
   streetId: number;
   mahallaId: number;
+  regionId: number;
+  streetName: string;
+  mahallaName: string;
+  regionName: string;
+  fullName: string;
   contractNumber: string | null;
   contractDate: string;
   homePhone: string | null;
@@ -58,6 +64,7 @@ export interface AbonentDetails {
   citizen: Citizen;
   house: House;
   balance: Balance;
+  identified: boolean;
 }
 
 export interface AbonentSearchQuery {

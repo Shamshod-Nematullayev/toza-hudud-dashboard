@@ -19,13 +19,29 @@ let demoChipData = {
 };
 
 function Abonent() {
-  const { openChangePhoneDialogState, setOpenChangePhoneDialog } = useAbonentStore();
+  const { openChangePhoneDialogState, setOpenChangePhoneDialog, abonentDetails } = useAbonentStore();
+  useAbonentLogic();
   return (
     <div>
       <AbonentTools />
-      <InfoChips {...demoChipData} />
-      <AbonentProfileCard />
-
+      {/* Info Chips */}
+      {abonentDetails && (
+        <>
+          <InfoChips
+            {...{
+              balance: abonentDetails?.balance.kSaldo,
+              balanceToYearEnd: 999,
+              calculated: abonentDetails?.balance.accrual,
+              inhabitantCount: abonentDetails?.house.inhabitantCnt,
+              registeredInhabitants: 0,
+              payments: 999,
+              period: abonentDetails?.balance.period,
+              tariff: Number(abonentDetails?.balance.rate)
+            }}
+          />
+          <AbonentProfileCard data={{ image: '', ...abonentDetails }} />
+        </>
+      )}
       {/* Using modals */}
       <ChangePhoneDialog open={openChangePhoneDialogState} handleClose={() => setOpenChangePhoneDialog(false)} />
     </div>

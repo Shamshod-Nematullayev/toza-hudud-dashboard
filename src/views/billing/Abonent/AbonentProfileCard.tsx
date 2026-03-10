@@ -16,10 +16,16 @@ import {
   PhoneInTalkOutlined as HomePhoneIcon,
   FlashOnOutlined as EnergyIcon,
   NumbersOutlined as SoatoIcon,
-  InfoOutlined as NoteIcon
+  InfoOutlined as NoteIcon,
+  Verified as VerifiedIcon
 } from '@mui/icons-material';
+import { AbonentDetails } from 'types/billing';
 
-const AbonentProfileCard = ({ data }: any) => {
+interface Data extends AbonentDetails {
+  image?: string;
+}
+
+const AbonentProfileCard = ({ data }: { data: Data }) => {
   // Qatorlarni yaratish uchun yordamchi komponent
   const InfoRow = ({
     icon: Icon,
@@ -97,9 +103,13 @@ const AbonentProfileCard = ({ data }: any) => {
             <Box sx={{ mb: 2 }}>
               <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
                 <Typography variant="h4" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
-                  {data?.fullName || "ABDULLAYEVA GULGUNA G'AYBULLAYEVNA"}
+                  {data?.fullName || ''}
                 </Typography>
-                <WarningIcon sx={{ color: '#ff4d4f', fontSize: 20 }} />
+                {data.identified ? (
+                  <VerifiedIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                ) : (
+                  <WarningIcon sx={{ color: 'error.main', fontSize: 20 }} />
+                )}
                 <Chip
                   label={`ID: ${data?.id || '18860208'}`}
                   size="small"
@@ -122,30 +132,29 @@ const AbonentProfileCard = ({ data }: any) => {
                 fontSize={20}
                 copyable
               />
-              <InfoRow icon={PassportIcon} label="Паспорт рақами" value={data?.passportNumber || 'AD9836144'} />
-              <InfoRow icon={JshshirIcon} label="ЖШШИР" value={data?.jshshir || '41802793990114'} />
-              <InfoRow icon={ContractIcon} label="Шартнома рақами" value={data?.contractNumber || '18860208'} />
-              <InfoRow icon={CadastreIcon} label="Кадастр рақами" value={data?.cadastreNumber || '14:16:03:01:12:0005:0001:019'} />
-              <InfoRow icon={OldAccountIcon} label="Эски ҳисоб рақами" value={data?.oldAccount} />
+              <InfoRow icon={PassportIcon} label="Паспорт рақами" value={data?.citizen.passport} />
+              <InfoRow icon={JshshirIcon} label="ЖШШИР" value={data?.citizen.pnfl} />
+              <InfoRow icon={ContractIcon} label="Шартнома рақами" value={data?.contractNumber || ''} />
+              <InfoRow icon={CadastreIcon} label="Кадастр рақами" value={data?.house.cadastralNumber} />
               <InfoRow icon={DateIcon} label="Шартнома тасдиқланган сана" value={data?.contractDate} />
             </Box>
           </Grid>
           <Grid item xs={6}>
             <Stack spacing={0.5}>
-              <InfoRow icon={CompanyIcon} label="Корхона номи" value={data?.companyName || 'Marokand Obod'} />
+              <InfoRow icon={CompanyIcon} label="Корхона номи" value={data?.companyName || 'DEMO'} />
               <InfoRow
                 icon={AddressIcon}
                 label="Манзил"
                 value={
-                  data?.address ||
+                  data?.mahallaName ||
                   'Самарканд вилояти Самарканд шаҳар Сайқал МФЙ (4-сектор) маҳалла РУДАКИЙ (ТИТОВА) кўча 175 Ж уй 19-хонадон'
                 }
               />
-              <InfoRow icon={PhoneIcon} label="Телефон рақами" value={data?.phoneNumber || '991311313'} />
-              <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone} />
-              <InfoRow icon={SoatoIcon} label="Электр энергия СОАТО" value={data?.energySoato || '18405'} />
-              <InfoRow icon={EnergyIcon} label="Электр энергия рақами" value={data?.energyNumber || '8167219'} />
-              <InfoRow icon={NoteIcon} label="Изоҳ" value={data?.note || 'n'} />
+              <InfoRow icon={PhoneIcon} label="Телефон рақами" value={data?.phone || ''} />
+              <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone || ''} />
+              <InfoRow icon={SoatoIcon} label="Электр энергия СОАТО" value={data?.electricityCoato || ''} />
+              <InfoRow icon={EnergyIcon} label="Электр энергия рақами" value={data?.electricityAccountNumber || ''} />
+              <InfoRow icon={NoteIcon} label="Изоҳ" value={data?.description || ''} />
             </Stack>
           </Grid>
         </Grid>
