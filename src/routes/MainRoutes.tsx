@@ -35,6 +35,10 @@ import EtkKodRequests from 'views/billing/EtkKodRequests';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
 import Abonent from 'views/billing/Abonent/Abonent';
+import AbonentDetails from 'views/billing/Abonent/modals/pages/AbonentDetails';
+import DhjTable from 'views/billing/Abonent/modals/pages/AbonentDhjTable';
+import AbonentArizalar from 'views/billing/Abonent/modals/pages/AbonentArizalar';
+import AbonentActs from 'views/billing/Abonent/modals/pages/AbonentActs';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -254,7 +258,25 @@ const MainRoutes: MainRoutesProps = {
     },
     {
       path: '/abonent/:residentId',
-      element: <Abonent />
+      element: <Abonent />,
+      children: [
+        {
+          path: 'details',
+          element: <AbonentDetails />
+        },
+        {
+          path: 'dhj',
+          element: <DhjTable />
+        },
+        {
+          path: 'ariza',
+          element: <AbonentArizalar />
+        },
+        {
+          path: 'acts',
+          element: <AbonentActs />
+        }
+      ]
     },
     {
       path: 'sample-page',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, ButtonGroup, Stack, Menu, MenuItem, Tooltip, IconButton, useMediaQuery } from '@mui/material';
+import { Button, ButtonGroup, Stack, Menu, MenuItem, Tooltip, IconButton, useMediaQuery, Tabs, Tab } from '@mui/material';
 import {
   Print as PrintIcon,
   Edit as EditIcon,
@@ -88,9 +88,17 @@ export function AbonentToolsMobile() {
   );
 }
 
+type TabType = 'details' | 'dhj' | 'ariza' | 'acts';
+
 function AbonentTools() {
   const { setOpenChangePhoneDialog, abonentDetails, dhjRows } = useAbonentStore();
   const navigate = useNavigate();
+  const [tab, setTab] = useState<TabType>('details');
+
+  const handleTabsChange = (e: React.SyntheticEvent, newValue: TabType) => {
+    setTab(newValue);
+    navigate(`/abonent/${abonentDetails?.id}/${newValue}`);
+  };
 
   // Umumiy tugma stillari
   const btnStyle = {
@@ -115,12 +123,14 @@ function AbonentTools() {
       ) : (
         <Stack
           direction="row"
+          justifyContent={'space-between'}
           sx={{
             p: 1,
             bgcolor: 'background.paper',
             borderRadius: '16px',
             border: '1px solid #e2e8f0',
-            display: 'flex'
+            display: 'flex',
+            marginBottom: 2
           }}
         >
           <ButtonGroup
@@ -187,6 +197,12 @@ function AbonentTools() {
               {t('buttons.editPhone')}
             </Button>
           </ButtonGroup>
+          <Tabs value={tab} onChange={handleTabsChange}>
+            <Tab label={"Ma'lumotlar"} value={'details'} />
+            <Tab label={'DHJ'} value={'dhj'} />
+            <Tab label={'Ariza'} value={'ariza'} />
+            <Tab label={'Aktlar'} value={'acts'} />
+          </Tabs>
         </Stack>
       )}
     </>

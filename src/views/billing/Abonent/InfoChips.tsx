@@ -26,7 +26,7 @@ interface InfoChipsProps {
 
 function InfoChips(props: InfoChipsProps) {
   return (
-    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+    <Stack direction="row" spacing={1}>
       {/* Vaqt va Tarif guruhi */}
       <InfoChip icon={PeriodIcon} label={t('tableHeaders.period')} value={props.period} />
       <InfoChip icon={TariffIcon} label={t('tableHeaders.tariff')} value={props.tariff} />

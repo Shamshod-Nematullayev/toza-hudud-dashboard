@@ -78,7 +78,8 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
         borderRadius: '16px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
         overflow: 'hidden',
-        border: '1px solid #eef2f6'
+        border: '1px solid #eef2f6',
+        mt: 2
       }}
     >
       <CardContent sx={{ p: 3 }}>
