@@ -1,7 +1,60 @@
-import React from 'react';
+import { Card } from '@mui/material';
+import React, { useEffect } from 'react';
+import { useAbonentStore } from '../../abonentStore';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { t } from 'i18next';
+import { useAbonentLogic } from '../../useAbonentLogic';
 
 function AbonentArizalar() {
-  return <div>AbonentArizalar</div>;
+  const { residentId } = useAbonentLogic();
+  const { abonentPetitions, getAbonentPetitions } = useAbonentStore();
+  useEffect(() => {
+    getAbonentPetitions(residentId);
+  }, []);
+  const columns: GridColDef[] = [
+    {
+      field: 'id',
+      headerName: '№'
+    },
+    {
+      field: 'document_number',
+      headerName: t('documentNumber')
+    },
+    {
+      field: 'document_type',
+      headerName: t('tableHeaders.documentType')
+    },
+    {
+      field: 'aktSummasi',
+      headerName: t('tableHeaders.actAmount'),
+      type: 'number',
+      flex: 1
+    },
+    {
+      field: 'asosiy_licshet',
+      headerName: t('tableHeaders.accountNumber'),
+      flex: 1
+    },
+    {
+      field: 'ikkilamchi_licshet',
+      headerName: t('tableHeaders.dublicateAccountNumber'),
+      flex: 1
+    },
+    {
+      field: 'status',
+      headerName: t('tableHeaders.status'),
+      flex: 1
+    },
+    {
+      field: 'actStatus',
+      headerName: t('tableHeaders.actStatus')
+    }
+  ];
+  return (
+    <Card>
+      <DataGrid rows={abonentPetitions} columns={columns} hideFooter />
+    </Card>
+  );
 }
 
 export default AbonentArizalar;

@@ -1,14 +1,11 @@
-import React from 'react';
-import { Outlet, useParams } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import AbonentTools from './AbonentTools';
 import { useAbonentLogic } from './useAbonentLogic';
-import InfoChips from './InfoChips';
-import AbonentProfileCard from './AbonentProfileCard';
 import ChangePhoneDialog from './modals/ChangePhone';
 import { useAbonentStore } from './abonentStore';
 
 function Abonent() {
-  const { openChangePhoneDialogState, setOpenChangePhoneDialog, abonentDetails } = useAbonentStore();
+  const { openChangePhoneDialogState, setOpenChangePhoneDialog } = useAbonentStore();
   useAbonentLogic();
   return (
     <div>

@@ -12,7 +12,8 @@ import {
 } from '@mui/icons-material';
 import { t } from 'i18next';
 import { useAbonentStore } from './abonentStore';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAbonentLogic } from './useAbonentLogic';
 
 export function AbonentToolsMobile() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -93,11 +94,14 @@ type TabType = 'details' | 'dhj' | 'ariza' | 'acts';
 function AbonentTools() {
   const { setOpenChangePhoneDialog, abonentDetails, dhjRows } = useAbonentStore();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<TabType>('details');
+  const location = useLocation();
+  const { residentId } = useAbonentLogic();
+  const currentTab = location.pathname.split('/').pop();
+  const [tab, setTab] = useState<TabType>(currentTab as TabType);
 
   const handleTabsChange = (e: React.SyntheticEvent, newValue: TabType) => {
     setTab(newValue);
-    navigate(`/abonent/${abonentDetails?.id}/${newValue}`);
+    navigate(`/abonent/${residentId}/${newValue}`);
   };
 
   // Umumiy tugma stillari
@@ -200,7 +204,7 @@ function AbonentTools() {
           <Tabs value={tab} onChange={handleTabsChange}>
             <Tab label={"Ma'lumotlar"} value={'details'} />
             <Tab label={'DHJ'} value={'dhj'} />
-            <Tab label={'Ariza'} value={'ariza'} />
+            <Tab label={'Arizalar'} value={'ariza'} />
             <Tab label={'Aktlar'} value={'acts'} />
           </Tabs>
         </Stack>

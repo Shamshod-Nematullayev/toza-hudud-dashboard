@@ -445,3 +445,35 @@ export interface IAbonentFromDB {
   warningLetter?: any;
   ksaldo?: number;
 }
+
+export interface IncomeStatRow {
+  accrual: number;
+  cashAmount: number;
+  emoneyAmount: number;
+  god: number;
+  id: number;
+  income: number;
+  ksaldo: number;
+  mes: number;
+  munisAmount: number;
+  period: string;
+  q1031Amount: number;
+  residentId: number;
+}
+
+export interface IBalancePredict {
+  currentBalanceAmount: number;
+  currentTariffId: number;
+  currentTariffRate: number;
+  inhabitantCount: number;
+  predictedBalanceAmount: number;
+  predictedPeriod: string;
+  balancePredictItems: {
+    accrualAmount: number;
+    balanceAmount: number;
+    inhabitantCount: number;
+    period: string;
+    tariffId: number;
+    tariffRate: number;
+  }[];
+}

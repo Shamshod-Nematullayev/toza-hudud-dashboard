@@ -1,9 +1,11 @@
 import InfoChips from '../../InfoChips';
 import AbonentProfileCard from '../../AbonentProfileCard';
 import { useAbonentStore } from '../../abonentStore';
+import { useAbonentLogic } from '../../useAbonentLogic';
 
 function AbonentDetails() {
-  const { abonentDetails } = useAbonentStore();
+  const { abonentDetails, incomeStats, balancePredicts } = useAbonentStore();
+  const { periodEndYear } = useAbonentLogic();
 
   return (
     <>
@@ -11,12 +13,12 @@ function AbonentDetails() {
         <>
           <InfoChips
             {...{
-              balance: abonentDetails?.balance.kSaldo,
-              balanceToYearEnd: 999,
+              balance: abonentDetails?.balance.kSaldo * -1,
+              balanceToYearEnd: (balancePredicts?.balancePredictItems.find((i) => i.period === periodEndYear)?.balanceAmount || 0) * -1,
               calculated: abonentDetails?.balance.accrual,
               inhabitantCount: abonentDetails?.house.inhabitantCnt,
-              registeredInhabitants: 0,
-              payments: 999,
+              registeredInhabitants: abonentDetails.house.miaInhabitantCnt || 0,
+              payments: incomeStats.find((i) => i.period === abonentDetails?.balance.period)?.income || 0,
               period: abonentDetails?.balance.period,
               tariff: Number(abonentDetails?.balance.rate)
             }}
