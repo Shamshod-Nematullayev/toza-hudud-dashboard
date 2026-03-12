@@ -17,6 +17,7 @@ import { IconMenu2 } from '@tabler/icons-react';
 import LanguageSection from './LanguageSection';
 import { useEffect, useRef } from 'react';
 import { Tooltip } from '@mui/material';
+import SearchAbonentSection from './SearchAbonentSection/SearchAbonentSection';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -86,6 +87,7 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       <SearchSection />
       <Box sx={{ flexGrow: 1 }} />
       <Box sx={{ flexGrow: 1 }} />
+      <SearchAbonentSection />
       <LanguageSection />
       {/* notification & profile */}
       <NotificationSection />

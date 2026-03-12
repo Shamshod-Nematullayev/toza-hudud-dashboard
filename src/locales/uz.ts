@@ -150,7 +150,18 @@ const uz = {
     warnedByFullName: 'Ogohlantiruvchi',
     canceledAt: 'Bekor qilingan vaqti',
     canceledByFullName: 'Bekor qiluvchi',
-    dublicateAccountNumber: 'Ikkiilamchi hisob raqami'
+    dublicateAccountNumber: 'Ikkiilamchi hisob raqami',
+    abonentId: 'Abonent ID',
+    contractNumber: 'Shartnoma raqami',
+    electricityAccountNumber: 'Elektr hisob raqami',
+    cadastrNumber: 'Kadastr raqami',
+    inn: 'INN',
+    pnfl: 'PNFL',
+    passport: 'Passport raqami',
+    street: "Ko'cha",
+    buildingId: 'Uy',
+    flatId: 'Kvartira',
+    homeIndex: 'Index'
   },
   tableActions: {
     edit: 'Tahrirlash',

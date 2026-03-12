@@ -7,6 +7,7 @@ import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
+import { SxProps } from '@mui/system';
 
 // project-import
 
@@ -42,7 +43,7 @@ const MainCard = React.forwardRef(
       darkTitle?: boolean;
       secondary?: React.ReactNode;
       shadow?: string | number;
-      sx?: React.CSSProperties;
+      sx?: SxProps;
       title?: React.ReactNode;
     },
     ref: React.Ref<HTMLDivElement>
