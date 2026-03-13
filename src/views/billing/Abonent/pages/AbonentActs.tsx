@@ -1,8 +1,8 @@
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect } from 'react';
-import { useAbonentStore } from '../../abonentStore';
+import { useAbonentStore } from '../abonentStore';
 import { t } from 'i18next';
-import { useAbonentLogic } from '../../useAbonentLogic';
+import { useAbonentLogic } from '../useAbonentLogic';
 import { Card, Typography } from '@mui/material';
 import api from 'utils/api';
 

@@ -161,7 +161,8 @@ const uz = {
     street: "Ko'cha",
     buildingId: 'Uy',
     flatId: 'Kvartira',
-    homeIndex: 'Index'
+    homeIndex: 'Index',
+    homePhone: 'Uy telefon raqami'
   },
   tableActions: {
     edit: 'Tahrirlash',

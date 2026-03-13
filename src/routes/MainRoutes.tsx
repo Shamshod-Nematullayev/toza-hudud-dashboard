@@ -35,10 +35,10 @@ import EtkKodRequests from 'views/billing/EtkKodRequests';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
 import Abonent from 'views/billing/Abonent/Abonent';
-import AbonentDetails from 'views/billing/Abonent/modals/pages/AbonentDetails';
-import DhjTable from 'views/billing/Abonent/modals/pages/AbonentDhjTable';
-import AbonentArizalar from 'views/billing/Abonent/modals/pages/AbonentArizalar';
-import AbonentActs from 'views/billing/Abonent/modals/pages/AbonentActs';
+import AbonentDetails from 'views/billing/Abonent/pages/AbonentDetails';
+import DhjTable from 'views/billing/Abonent/pages/AbonentDhjTable';
+import AbonentArizalar from 'views/billing/Abonent/pages/AbonentArizalar';
+import AbonentActs from 'views/billing/Abonent/pages/AbonentActs';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));

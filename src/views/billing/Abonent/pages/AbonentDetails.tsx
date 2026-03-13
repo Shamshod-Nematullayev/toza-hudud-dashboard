@@ -1,7 +1,7 @@
-import InfoChips from '../../InfoChips';
-import AbonentProfileCard from '../../AbonentProfileCard';
-import { useAbonentStore } from '../../abonentStore';
-import { useAbonentLogic } from '../../useAbonentLogic';
+import InfoChips from '../InfoChips';
+import AbonentProfileCard from '../AbonentProfileCard';
+import { useAbonentStore } from '../abonentStore';
+import { useAbonentLogic } from '../useAbonentLogic';
 
 function AbonentDetails() {
   const { abonentDetails, incomeStats, balancePredicts } = useAbonentStore();

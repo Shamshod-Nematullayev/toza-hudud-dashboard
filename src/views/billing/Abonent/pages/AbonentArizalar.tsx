@@ -1,9 +1,9 @@
 import { Card } from '@mui/material';
 import React, { useEffect } from 'react';
-import { useAbonentStore } from '../../abonentStore';
+import { useAbonentStore } from '../abonentStore';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { t } from 'i18next';
-import { useAbonentLogic } from '../../useAbonentLogic';
+import { useAbonentLogic } from '../useAbonentLogic';
 
 function AbonentArizalar() {
   const { residentId } = useAbonentLogic();

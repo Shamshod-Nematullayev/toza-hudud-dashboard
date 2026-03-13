@@ -1,10 +1,10 @@
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
 import api from 'utils/api';
-import { useAbonentStore } from '../../abonentStore';
+import { useAbonentStore } from '../abonentStore';
 import { alpha, Card } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { useAbonentLogic } from '../../useAbonentLogic';
+import { useAbonentLogic } from '../useAbonentLogic';
 import { IRowDhj } from 'types/billing';
 
 function AbonentDhjTable() {

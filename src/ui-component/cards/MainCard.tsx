@@ -5,15 +5,16 @@ import React from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
-import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import { SxProps } from '@mui/system';
 
 // project-import
 
 // constant
-const headerSX = {
-  '& .MuiCardHeader-action': { mr: 0 }
+const headerSX: SxProps = {
+  '& .MuiCardHeader-action': { mr: 0, py: 0 },
+  py: 0,
+  pb: 2
 };
 
 // ==============================|| CUSTOM MAIN CARD ||============================== //
@@ -66,7 +67,7 @@ const MainCard = React.forwardRef(
         {darkTitle && title && <CardHeader sx={headerSX} title={<Typography variant="h3">{title}</Typography>} action={secondary} />}
 
         {/* content & header divider */}
-        {title && <Divider />}
+        {/* {title && <Divider />} */}
 
         {/* card content */}
         {content && (

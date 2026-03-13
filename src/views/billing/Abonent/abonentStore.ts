@@ -69,9 +69,12 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ abonentDetails: data.abonentDetails });
   },
   updatePhone: async (phone: string) => {
-    const { data } = await api.put('/billing/update-abonent-phone', { phone });
-    set({ abonentDetails: data.abonentDetails });
+    const abonentDetails = get().abonentDetails;
+    if (!abonentDetails) return;
+    await api.patch('/abonents/update-phone/' + get().abonentDetails?.id, { phone });
+    set({ abonentDetails: { ...abonentDetails, phone } });
   },
+
   getResidentCadastrs: async () => {
     const { data } = await api.get('/billing/get-resident-cadastrs/' + get().abonentDetails?.id);
     set({ abonentDetails: { ...get().abonentDetails, cadastrs: data.cadastrs } as AbonentDetails & { cadastrs: string[] } });
