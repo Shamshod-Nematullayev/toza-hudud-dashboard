@@ -1,5 +1,6 @@
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import { FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 import { lotinga } from 'helpers/lotinKiril';
+import { t } from 'i18next';
 import React, { useEffect, useId, useState } from 'react';
 import api from 'utils/api';
 
@@ -17,7 +18,8 @@ function MahallaSelection({
   label,
   defaultValue,
   defaultValueDisabled,
-  defaultValueLabel
+  defaultValueLabel,
+  native
 }: {
   selectedMahallaId: number | string;
   setSelectedMahallaId: (e: number | string) => void;
@@ -26,6 +28,7 @@ function MahallaSelection({
   defaultValue?: string;
   defaultValueLabel?: string;
   defaultValueDisabled?: boolean;
+  native?: boolean;
 }) {
   const [mahallas, setMahallas] = useState<{ id: number; name: string }[]>([]);
 
@@ -37,29 +40,47 @@ function MahallaSelection({
     });
   }, []);
 
-  const labelId = useId();
-
   return (
-    <FormControl fullWidth>
-      {label && <InputLabel id={labelId}>{label}</InputLabel>}
-      <Select
-        labelId={labelId}
-        label={label}
-        defaultValue={''}
-        value={selectedMahallaId}
-        onChange={(e) => setSelectedMahallaId(e.target.value)}
-        fullWidth
-      >
-        <MenuItem disabled={defaultValueDisabled} value={defaultValue || ''}>
-          {defaultValueLabel || 'Mahalla'}
-        </MenuItem>
-        {mahallas.map((mfy) => (
-          <MenuItem key={mfy.id} value={mfy.id}>
-            {mfy.name}
+    <>
+      {native ? (
+        <TextField
+          // label={label}
+          select
+          disabled={defaultValueDisabled}
+          value={selectedMahallaId}
+          onChange={(e) => setSelectedMahallaId(e.target.value)}
+          fullWidth
+          SelectProps={{ native: true }}
+        >
+          <option disabled={defaultValueDisabled} value="">
+            {label}
+          </option>
+          {mahallas.map((mfy) => (
+            <option key={mfy.id} value={mfy.id}>
+              {mfy.name}
+            </option>
+          ))}
+        </TextField>
+      ) : (
+        <TextField
+          label={label}
+          select
+          disabled={defaultValueDisabled}
+          value={selectedMahallaId}
+          onChange={(e) => setSelectedMahallaId(e.target.value)}
+          fullWidth
+        >
+          <MenuItem disabled={defaultValueDisabled} value="">
+            {t('all')}
           </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+          {mahallas.map((mfy) => (
+            <MenuItem key={mfy.id} value={mfy.id}>
+              {mfy.name}
+            </MenuItem>
+          ))}
+        </TextField>
+      )}
+    </>
   );
 }
 
