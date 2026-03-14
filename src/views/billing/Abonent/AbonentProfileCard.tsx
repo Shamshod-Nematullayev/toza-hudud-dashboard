@@ -147,7 +147,7 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                 icon={AddressIcon}
                 label="Манзил"
                 value={
-                  data?.mahallaName ||
+                  `${data?.mahallaName} ${data.streetName} ${data?.house.homeNumber} uy ${data?.house.homeIndex}-хонадон` ||
                   'Самарканд вилояти Самарканд шаҳар Сайқал МФЙ (4-сектор) маҳалла РУДАКИЙ (ТИТОВА) кўча 175 Ж уй 19-хонадон'
                 }
               />

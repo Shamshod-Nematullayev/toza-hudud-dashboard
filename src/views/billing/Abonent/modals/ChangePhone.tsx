@@ -4,10 +4,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../abonentStore';
 
-function ChangePhoneDialog({ open = true, handleClose }: { open?: boolean; handleClose: () => void }) {
-  const { updatePhone, abonentDetails } = useAbonentStore();
+function ChangePhoneDialog() {
+  const { updatePhone, abonentDetails, openChangePhoneDialogState, setOpenChangePhoneDialog } = useAbonentStore();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [homePhone, setHomePhone] = useState('');
+
+  const handleClose = () => {
+    setOpenChangePhoneDialog(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,14 +26,14 @@ function ChangePhoneDialog({ open = true, handleClose }: { open?: boolean; handl
     }
   };
   useEffect(() => {
-    if (open) {
+    if (openChangePhoneDialogState) {
       setPhoneNumber(abonentDetails?.phone || '');
       inputRef.current?.focus();
     }
-  }, [open]);
+  }, [openChangePhoneDialogState]);
 
   return (
-    <DraggableDialog title={t('buttons.editPhone')} open={open} onClose={handleClose} maxWidth="xs">
+    <DraggableDialog title={t('buttons.editPhone')} open={openChangePhoneDialogState} onClose={handleClose} maxWidth="xs">
       <form onSubmit={(e) => handleSubmit(e)}>
         <TextField
           label={t('tableHeaders.phone')}

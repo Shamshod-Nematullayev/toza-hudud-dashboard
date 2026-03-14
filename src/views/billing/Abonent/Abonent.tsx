@@ -3,9 +3,9 @@ import AbonentTools from './AbonentTools';
 import { useAbonentLogic } from './useAbonentLogic';
 import ChangePhoneDialog from './modals/ChangePhone';
 import { useAbonentStore } from './abonentStore';
+import EditDetails from './modals/EditDetails';
 
 function Abonent() {
-  const { openChangePhoneDialogState, setOpenChangePhoneDialog } = useAbonentStore();
   useAbonentLogic();
   return (
     <div>
@@ -14,7 +14,8 @@ function Abonent() {
       <Outlet />
 
       {/* Using modals */}
-      <ChangePhoneDialog open={openChangePhoneDialogState} handleClose={() => setOpenChangePhoneDialog(false)} />
+      <ChangePhoneDialog />
+      <EditDetails />
     </div>
   );
 }

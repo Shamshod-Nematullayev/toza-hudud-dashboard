@@ -1,3 +1,4 @@
 {
-    "i18next.i18nPaths": "c:/Users/HP/Desktop/projects/toza-hudud-dashboard/src/locales"
+  "i18next.i18nPaths": "c:/Users/HP/Desktop/projects/toza-hudud-dashboard/src/locales",
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

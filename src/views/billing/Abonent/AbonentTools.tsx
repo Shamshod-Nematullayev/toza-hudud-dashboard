@@ -92,7 +92,7 @@ export function AbonentToolsMobile() {
 type TabType = 'details' | 'dhj' | 'ariza' | 'acts';
 
 function AbonentTools() {
-  const { setOpenChangePhoneDialog, abonentDetails, dhjRows } = useAbonentStore();
+  const { setOpenChangePhoneDialog, abonentDetails, dhjRows, setEditDialogOpenState } = useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { residentId } = useAbonentLogic();
@@ -185,7 +185,7 @@ function AbonentTools() {
             </Button>
 
             {/* Tahrirlash guruhi - ajratilgan rangda */}
-            <Button sx={btnStyle} startIcon={<EditIcon />} color="primary">
+            <Button sx={btnStyle} startIcon={<EditIcon />} color="primary" onClick={() => setEditDialogOpenState(true)}>
               {t('buttons.edit')}
             </Button>
 

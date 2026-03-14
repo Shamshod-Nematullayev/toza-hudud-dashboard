@@ -32,6 +32,10 @@ export interface IAbonentPageStore {
   getAbonentActs: (residentId: number) => void;
   downLoadActPdfFile: (fileId: string) => void;
   getAbonentPetitions: (residentId: number) => void;
+  editDialogOpenState: boolean;
+  setEditDialogOpenState: (state: boolean) => void;
+  residentPhoto: string | null;
+  getResidentPhoto: (residentId: number) => void;
 }
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
@@ -133,6 +137,13 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       }
     });
     set({ abonentPetitions: data.data.map((row: any, i: number) => ({ ...row, createdAt: new Date(row.createdAt), id: i + 1 })) });
+  },
+  editDialogOpenState: false,
+  setEditDialogOpenState: (state) => set({ editDialogOpenState: state }),
+  residentPhoto: null,
+  getResidentPhoto: async (residentId) => {
+    const { data } = await api.get('/billing/get-resident-photo/' + residentId);
+    set({ residentPhoto: data });
   }
 }));
 

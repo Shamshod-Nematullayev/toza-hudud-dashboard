@@ -7,6 +7,8 @@ interface Props {
   value: number | string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
   native?: boolean;
+  defaultValueDisabled?: boolean;
+  required?: boolean;
 }
 
 interface Street {
@@ -14,7 +16,7 @@ interface Street {
   name: string;
 }
 
-function StreetSelection({ mahallaId, value, onChange, native }: Props) {
+function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisabled, required }: Props) {
   const [streets, setStreets] = useState<Street[]>([]);
   useEffect(() => {
     if (mahallaId) {
@@ -33,7 +35,9 @@ function StreetSelection({ mahallaId, value, onChange, native }: Props) {
     <>
       {native ? (
         <TextField select value={value} onChange={onChange} fullWidth SelectProps={{ native: true }}>
-          <option value="">{t('tableHeaders.street')}</option>
+          <option value="" disabled={defaultValueDisabled}>
+            {t('tableHeaders.street')}
+          </option>
           {streets.map((street) => (
             <option key={street.id} value={street.id}>
               {street.name}
@@ -42,7 +46,9 @@ function StreetSelection({ mahallaId, value, onChange, native }: Props) {
         </TextField>
       ) : (
         <TextField select value={value} onChange={onChange} label={t('tableHeaders.street')} fullWidth>
-          <MenuItem value="">{t('all')}</MenuItem>
+          <MenuItem value="" disabled={defaultValueDisabled}>
+            {t('all')}
+          </MenuItem>
           {streets.map((street) => (
             <MenuItem key={street.id} value={street.id}>
               {street.name}

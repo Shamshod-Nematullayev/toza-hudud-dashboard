@@ -120,26 +120,24 @@ function SearchAbonentSection() {
         {({ TransitionProps }) => (
           <Transitions position={matchesXs ? 'top-right' : 'top'} in={open} {...TransitionProps}>
             <Paper>
-              <ClickAwayListener onClickAway={handleClose} mouseEvent="onMouseDown" touchEvent="onTouchStart">
-                <div onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}>
-                  <MainCard
-                    title={'Abonentni izlash'}
-                    border={false}
-                    content={false}
-                    boxShadow
-                    sx={{
-                      boxShadow: 1,
-                      padding: 3,
-                      width: {
-                        xs: '100%',
-                        md: 500
-                      }
-                    }}
-                  >
-                    <SearchAbonentForm onClose={() => setOpen(false)} accountNumberInputRef={accountNumberInput} />
-                  </MainCard>
-                </div>
-              </ClickAwayListener>
+              <div onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}>
+                <MainCard
+                  title={'Abonentni izlash'}
+                  border={false}
+                  content={false}
+                  boxShadow
+                  sx={{
+                    boxShadow: 1,
+                    padding: 3,
+                    width: {
+                      xs: '100%',
+                      md: 500
+                    }
+                  }}
+                >
+                  <SearchAbonentForm onClose={() => setOpen(false)} accountNumberInputRef={accountNumberInput} />
+                </MainCard>
+              </div>
             </Paper>
           </Transitions>
         )}

@@ -6,6 +6,7 @@ import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
 import { useSearchAbonentSectionStore } from './useSearchAbonentSectionStore';
 import { lotinga } from 'helpers/lotinKiril';
+import { isNumberValue } from 'utils/isNumberValue';
 
 function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => void; accountNumberInputRef: any }) {
   const [abonentId, setAbonentId] = useState('');
@@ -89,7 +90,9 @@ function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => 
               fullWidth
               label={t('tableHeaders.accountNumber')}
               value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
+              onChange={(e) => {
+                if (isNumberValue(e.target.value)) setAccountNumber(e.target.value);
+              }}
               inputRef={accountNumberInputRef}
             />
           </Grid>

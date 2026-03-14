@@ -3,7 +3,8 @@ export const gridSpacing = 3;
 export const drawerWidth = 260;
 export const appDrawerWidth = 320;
 
-export const SERVER_DOMAIN = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://api.greenzone.uz'; //'http://localhost:3000'
+export const SERVER_DOMAIN = process.env.NODE_ENV === 'development1' ? 'http://localhost:5000' : 'https://api.greenzone.uz'; //'http://localhost:3000'
+// export const SERVER_DOMAIN = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://api.greenzone.uz'; //'http://localhost:3000'
 export const SERVER_URL = SERVER_DOMAIN + '/api';
 export const actStatusOptions = [
   { value: 'NEW', label: 'Yangi' },

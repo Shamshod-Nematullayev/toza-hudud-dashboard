@@ -162,7 +162,17 @@ const uz = {
     buildingId: 'Uy',
     flatId: 'Kvartira',
     homeIndex: 'Index',
-    homePhone: 'Uy telefon raqami'
+    homePhone: 'Uy telefon raqami',
+    firstName: 'Ism',
+    lastName: 'Familiya',
+    patronymic: 'Otasining ismi',
+    birthDate: 'Tug‘ilgan sanasi',
+    passportIssuer: 'Passport kim tomonidan berilgan',
+    foreignCitizen: 'Chet el fuqarosi',
+    cadastralNumber: 'Kadastr raqami',
+    temporaryCadastralNumber: 'Noturar kadastr raqami',
+    electricityCoato: 'Elektr Caoto',
+    email: 'Email'
   },
   tableActions: {
     edit: 'Tahrirlash',
@@ -341,6 +351,17 @@ const uz = {
     type: 'Turi',
     electricity: 'Elektr',
     phone: 'Telefon'
+  },
+  abonentCardPage: {
+    personalDetails: "Shaxsiy ma'lumotlar",
+    abonentDetails: "Abonent ma'lumotlari",
+    active: 'Faol',
+    inactive: 'Nofaol'
+  },
+  house: {
+    type: 'Uy turi',
+    APARTMENT: "Ko'p qavatli uy",
+    HOUSE: 'Uchastka'
   }
 };
 

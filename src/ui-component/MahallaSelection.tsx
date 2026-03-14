@@ -19,7 +19,8 @@ function MahallaSelection({
   defaultValue,
   defaultValueDisabled,
   defaultValueLabel,
-  native
+  native,
+  required
 }: {
   selectedMahallaId: number | string;
   setSelectedMahallaId: (e: number | string) => void;
@@ -29,6 +30,7 @@ function MahallaSelection({
   defaultValueLabel?: string;
   defaultValueDisabled?: boolean;
   native?: boolean;
+  required?: boolean;
 }) {
   const [mahallas, setMahallas] = useState<{ id: number; name: string }[]>([]);
 
@@ -51,6 +53,7 @@ function MahallaSelection({
           onChange={(e) => setSelectedMahallaId(e.target.value)}
           fullWidth
           SelectProps={{ native: true }}
+          required={required}
         >
           <option disabled={defaultValueDisabled} value="">
             {label}
@@ -62,14 +65,7 @@ function MahallaSelection({
           ))}
         </TextField>
       ) : (
-        <TextField
-          label={label}
-          select
-          disabled={defaultValueDisabled}
-          value={selectedMahallaId}
-          onChange={(e) => setSelectedMahallaId(e.target.value)}
-          fullWidth
-        >
+        <TextField label={label} select value={selectedMahallaId} onChange={(e) => setSelectedMahallaId(e.target.value)} fullWidth>
           <MenuItem disabled={defaultValueDisabled} value="">
             {t('all')}
           </MenuItem>
