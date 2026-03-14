@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, ButtonGroup, Stack, Menu, MenuItem, Tooltip, IconButton, useMediaQuery, Tabs, Tab } from '@mui/material';
+import { Button, ButtonGroup, Stack, Menu, MenuItem, Tooltip, IconButton, useMediaQuery, Tabs, Tab, Badge } from '@mui/material';
 import {
   Print as PrintIcon,
   Edit as EditIcon,
@@ -92,7 +92,7 @@ export function AbonentToolsMobile() {
 type TabType = 'details' | 'dhj' | 'ariza' | 'acts';
 
 function AbonentTools() {
-  const { setOpenChangePhoneDialog, abonentDetails, dhjRows, setEditDialogOpenState } = useAbonentStore();
+  const { setOpenChangePhoneDialog, abonentDetails, dhjRows, setEditDialogOpenState, abonentPetitions } = useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { residentId } = useAbonentLogic();
@@ -204,7 +204,15 @@ function AbonentTools() {
           <Tabs value={tab} onChange={handleTabsChange}>
             <Tab label={"Ma'lumotlar"} value={'details'} />
             <Tab label={'DHJ'} value={'dhj'} />
-            <Tab label={'Arizalar'} value={'ariza'} />
+            <Tab
+              label={
+                <Badge badgeContent={abonentPetitions.filter((a) => a.status === 'yangi').length} color="primary" variant="dot">
+                  Arizalar
+                </Badge>
+              }
+              value={'ariza'}
+            />
+
             <Tab label={'Aktlar'} value={'acts'} />
           </Tabs>
         </Stack>
