@@ -22,9 +22,32 @@ import dayjs, { Dayjs } from 'dayjs';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
 import { ArrowBack, ArrowForward, Save } from '@mui/icons-material';
+import { toast } from 'react-toastify';
+import { isNumberValue } from 'utils/isNumberValue';
+
+export function extractBirthDateString(jshshir: string) {
+  if (!/^\d{14}$/.test(jshshir)) {
+    throw new Error('Noto‘g‘ri JShShIR formati');
+  }
+
+  const g = parseInt(jshshir[0], 10);
+  const yearPart = jshshir.slice(5, 7);
+  const month = jshshir.slice(3, 5);
+  const day = jshshir.slice(1, 3);
+
+  let century;
+  if (g === 1 || g === 2) century = '18';
+  else if (g === 3 || g === 4) century = '19';
+  else if (g === 5 || g === 6) century = '20';
+  else throw new Error("Noma'lum asr kodi");
+
+  const fullYear = century + yearPart;
+
+  return `${fullYear}-${month}-${day}`;
+}
 
 function EditDetails() {
-  const { editDialogOpenState, setEditDialogOpenState, abonentDetails } = useAbonentStore();
+  const { editDialogOpenState, setEditDialogOpenState, abonentDetails, updateDetails, getCitizensDetails } = useAbonentStore();
   const [pnfl, setPnfl] = useState('');
   const [passport, setPassport] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -86,9 +109,96 @@ function EditDetails() {
     }
   }, [abonentDetails]);
 
+  useEffect(() => {
+    if (pnfl.length === 14 && pnfl !== abonentDetails?.citizen.pnfl) {
+      getCitizensDetails({ pnfl, passport, birthDate: birthDate ? dayjs(extractBirthDateString(pnfl)).format('YYYY-MM-DD') : '' }).then(
+        (details) => {
+          if (details.firstName !== null) {
+            setPassport(details.passport);
+            setFirstName(details.firstName);
+            setLastName(details.lastName);
+            setPatronymic(details.patronymic);
+            setBirthDate(details.birthDate ? dayjs(details.birthDate) : null);
+            setPassportIssuer(details.passportIssuer);
+            setForeignCitizen(details.foreignCitizen);
+            setPassportGivenDate(details.passportGivenDate ? dayjs(details.passportGivenDate) : null);
+            setPassportExpireDate(details.passportExpireDate ? dayjs(details.passportExpireDate) : null);
+            setInn(details.inn || '');
+          } else {
+            toast.error(t('abonentCardPage.noDataForPnfl'));
+          }
+        }
+      );
+    }
+  }, [pnfl]);
+
+  useEffect(() => {
+    if (passport.length === 9 && passport !== abonentDetails?.citizen.passport) {
+      getCitizensDetails({ pnfl, passport, birthDate: birthDate ? dayjs(extractBirthDateString(pnfl)).format('YYYY-MM-DD') : '' }).then(
+        (details) => {
+          if (details.firstName !== null) {
+            setPnfl(details.pnfl);
+            setFirstName(details.firstName);
+            setLastName(details.lastName);
+            setPatronymic(details.patronymic);
+            setBirthDate(details.birthDate ? dayjs(details.birthDate) : null);
+            setPassportIssuer(details.passportIssuer);
+            setForeignCitizen(details.foreignCitizen);
+            setPassportGivenDate(details.passportGivenDate ? dayjs(details.passportGivenDate) : null);
+            setPassportExpireDate(details.passportExpireDate ? dayjs(details.passportExpireDate) : null);
+            setInn(details.inn || '');
+          } else {
+            toast.error(t('abonentCardPage.noDataForPnfl'));
+          }
+        }
+      );
+    }
+  }, [passport]);
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    alert('ERR');
+    if (!homeType || !birthDate || !passportGivenDate || !passportExpireDate || !isNumberValue(homeIndex) || !abonentDetails) {
+      return;
+    }
+    await updateDetails({
+      ...abonentDetails,
+      citizen: {
+        ...abonentDetails?.citizen,
+        pnfl,
+        passport,
+        firstName,
+        lastName,
+        patronymic,
+        birthDate: birthDate?.toISOString(),
+        passportIssuer,
+        foreignCitizen,
+        passportGivenDate: passportGivenDate?.toISOString(),
+        passportExpireDate: passportExpireDate?.toISOString(),
+        inn,
+        email: typeof email === 'string' ? email : null,
+        photo: null
+      },
+      house: {
+        ...abonentDetails?.house,
+        id: abonentDetails?.house.id || 0,
+        inhabitantCnt: abonentDetails?.house.inhabitantCnt || 0,
+        cadastralNumber,
+        temporaryCadastralNumber,
+        type: homeType,
+        homeNumber: buildingId,
+        flatNumber: flatId,
+        homeIndex: homeIndex
+      },
+      accountNumber,
+      active,
+      description,
+      electricityCoato,
+      electricityAccountNumber,
+      mahallaId: parseInt(mahallaId),
+      streetId: parseInt(streetId),
+      phone,
+      homePhone: housePhone
+    });
   };
   return (
     <DraggableDialog title={t('buttons.edit')} open={editDialogOpenState} onClose={() => setEditDialogOpenState(false)}>

@@ -36,6 +36,19 @@ export interface IAbonentPageStore {
   setEditDialogOpenState: (state: boolean) => void;
   residentPhoto: string | null;
   getResidentPhoto: (residentId: number) => void;
+  getCitizensDetails: (params: { pnfl: string; passport: string; birthDate: string }) => Promise<{
+    birthDate: string;
+    firstName: string;
+    patronymic: string;
+    lastName: string;
+    foreignCitizen: boolean;
+    inn: string | null;
+    passport: string;
+    passportExpireDate: string;
+    passportGivenDate: string;
+    passportIssuer: string;
+    pnfl: string;
+  }>;
 }
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
@@ -69,8 +82,8 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ abonentDetailsFromDB: data.abonentDetailsFromDB });
   },
   updateDetails: async (details) => {
-    const { data } = await api.put('/billing/update-abonent-details', details);
-    set({ abonentDetails: data.abonentDetails });
+    await api.put('/abonents/details/' + details.id, details);
+    set({ abonentDetails: details });
   },
   updatePhone: async (phone: string) => {
     const abonentDetails = get().abonentDetails;
@@ -144,6 +157,10 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   getResidentPhoto: async (residentId) => {
     const { data } = await api.get('/billing/get-resident-photo/' + residentId);
     set({ residentPhoto: data });
+  },
+  getCitizensDetails: async (params) => {
+    const { data } = await api.get('/abonents/citizens', { params });
+    return data;
   }
 }));
 

@@ -356,7 +356,8 @@ const uz = {
     personalDetails: "Shaxsiy ma'lumotlar",
     abonentDetails: "Abonent ma'lumotlari",
     active: 'Faol',
-    inactive: 'Nofaol'
+    inactive: 'Nofaol',
+    noDataForPnfl: "Pasport ma'lumotlari topilmadi"
   },
   house: {
     type: 'Uy turi',
