@@ -17,6 +17,46 @@ const uzKirill: typeof uz = {
   filters: 'Филтрлар',
   from: 'дан',
   to: 'гача',
+  abonentCardPage: {
+    abonentDetails: 'Абонент маълумотлари',
+    active: 'Фаол',
+    inactive: 'Нофаол',
+    noDataForPnfl: 'Паспорт маълумотлари топилмади',
+    personalDetails: 'Шахси маълумотлар'
+  },
+  createAbonentPetitionSteps: {
+    finally: 'Якун',
+    mainInfo: 'Асосий маълумотлар',
+    qaytaHisobKitob: 'Қайта хисоб китоб'
+  },
+  createAbonentPetitionStepsPage: {
+    general: 'Умумий',
+    recalculateType: 'Ҳисоб китоб тури',
+    single: 'Алоҳида'
+  },
+  house: {
+    APARTMENT: 'Кўп қаватли уй',
+    HOUSE: 'Участка',
+    type: 'Уй тури'
+  },
+  optional: 'Ихтиёрий',
+  petitionType: 'Ариза тури',
+  successMessages: {
+    success: 'Муваффақиятли амалга оширилди',
+    successDelete: 'Муваффақиятли ўчирилди',
+    successSave: 'Муваффақиятли сақланди'
+  },
+  tasksStatus: {
+    'in-progress': 'Жараёнда',
+    completed: 'Тугалланган',
+    rejected: 'Муваффақиятсиз бажарилди'
+  },
+  taskTypes: {
+    type: 'Тури',
+    electricity: 'Электр',
+    phone: 'Телефон'
+  },
+  uzs: 'сўм',
   'Drop your files': 'Файлларингизни ташланг',
   documentNumber: 'Ҳужжат рақами',
   weekDays: {
@@ -84,7 +124,8 @@ const uzKirill: typeof uz = {
     gpsDalolatnomalar: 'GPS далолатномалар',
     gpsMonitoring: 'GPS мониторинг',
     importActs: 'Актларни импорт қилиш',
-    visitsGraph: 'Кўчиш графиклари'
+    visitsGraph: 'Кўчиш графиклари',
+    tasks: 'Топшириқлар'
   },
   dashboard: {
     identified: 'Шахси тасдиқланган',
@@ -139,7 +180,56 @@ const uzKirill: typeof uz = {
     forAccount: 'Ҳисобга',
     mustPayAmount: 'Қарздорлик суммаси',
     payer: 'Тўловчи',
-    startingAt: 'Яратилган санаси'
+    startingAt: 'Яратилган санаси',
+    abonentId: 'Абонент ID',
+    actPackName: 'Акт пакети номи',
+    balance: 'Баланс',
+    balanceToYearEnd: 'Йил охирига баланс',
+    birthDate: 'Туғилган санаси',
+    buildingId: 'Уй ID',
+    cadastralNumber: 'Кадастр рақами',
+    cadastrNumber: 'Кадастр рақами',
+    calculated: 'Ҳисобланди',
+    canceledAt: 'Бекор қилинган санаси',
+    canceledByFullName: 'Бекор қилувчи',
+    cashIncome: 'Наличные тушум',
+    choosedPeriodDebitor: 'Танланган вақтдаги қарздорлик',
+    confirmedAt: 'Тасдиқланган санаси',
+    contractNumber: 'Контракт рақами',
+    createdAt: 'Яратилган санаси',
+    currentDebitor: 'Жорий қарздорлик',
+    currentInhabitantCount: 'Жорий яшовчилар сони',
+    currentTariff: 'Жорий тариф',
+    description: 'Тавсиф',
+    dublicateAccountNumber: 'Иккиламчи ҳисоб рақами',
+    electricityAccountNumber: 'Электрик ҳисоб рақами',
+    electricityCoato: 'Электрик каото',
+    email: 'Электрон почта',
+    eMoneyAmount: 'Электрон тушум',
+    file: 'Файл',
+    firstName: 'Исм',
+    flatId: 'Квартира ID',
+    foreignCitizen: 'Чет эл фуқароси',
+    homeIndex: 'Уй индекси',
+    homePhone: 'Домашний телефон',
+    inn: 'ИНН',
+    lastName: 'Фамилия',
+    munisAmount: 'Мунис',
+    nextInhabitantCount: 'Аниқланди яшовчилар сони',
+    oldInhabitantCount: 'Олдин яшовчилар сони',
+    passport: 'Паспорт',
+    passportIssuer: 'Паспорт ким томонидан берилган',
+    patronymic: 'Отасининг исми',
+    penaltyFee: 'Пеня',
+    pnfl: 'ЖШШИР',
+    purpose: 'Асос',
+    q1031Amount: 'МИБ ва 1031 суммаси',
+    registeredInhabitants: 'ИИБ базада рўйхатдан ўтган яшовчилар сони',
+    street: 'Улица',
+    tariff: 'Тариф',
+    temporaryCadastralNumber: 'Нотурар кадастр рақами',
+    warnedAt: 'Огоҳлантирилган санаси',
+    warnedByFullName: 'Огоҳлантирувчи'
   },
   tableActions: {
     edit: 'Таҳрирлаш',
@@ -219,7 +309,17 @@ const uzKirill: typeof uz = {
     export: 'Экспорт',
     continue: 'Давом этиш',
     swap: 'Ўрин алмаштириш',
-    submitEntry: 'Киритиш'
+    submitEntry: 'Киритиш',
+    addToMultipleLivings: 'Яшовчилар сонини қўшиш',
+    back: 'Орқага',
+    createAbonentPetition: 'Ариза яратиш',
+    editPhone: 'Телефонни таҳрирлаш',
+    import: 'Импорт қилиш',
+    next: 'Кейинги',
+    sendExcelToTelegramGroup: 'Excel файли Telegram гуруҳига юбориш',
+    skip: 'Ўтказиш',
+    update: 'Янгилаш',
+    updateFromTozamakon: 'Тозамакондан янгилаш'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Рокировка қилиш (тавсия қилинмайди 🙅‍♂️)',

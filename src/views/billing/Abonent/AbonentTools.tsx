@@ -1,5 +1,20 @@
-import React, { useState } from 'react';
-import { Button, ButtonGroup, Stack, Menu, MenuItem, Tooltip, IconButton, useMediaQuery, Tabs, Tab, Badge } from '@mui/material';
+import React, { useRef, useState } from 'react';
+import {
+  Button,
+  ButtonGroup,
+  Stack,
+  Menu,
+  MenuItem,
+  Tooltip,
+  IconButton,
+  useMediaQuery,
+  Tabs,
+  Tab,
+  Badge,
+  List,
+  ListItem,
+  Divider
+} from '@mui/material';
 import {
   Print as PrintIcon,
   Edit as EditIcon,
@@ -14,6 +29,9 @@ import { t } from 'i18next';
 import { useAbonentStore } from './abonentStore';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAbonentLogic } from './useAbonentLogic';
+import MainPopper from 'ui-component/cards/MainPopper';
+import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
+import PrintAbonentCard from './modals/PrintAbonentCard';
 
 export function AbonentToolsMobile() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -92,9 +110,12 @@ export function AbonentToolsMobile() {
 type TabType = 'details' | 'dhj' | 'ariza' | 'acts';
 
 function AbonentTools() {
-  const { setOpenChangePhoneDialog, abonentDetails, dhjRows, setEditDialogOpenState, abonentPetitions } = useAbonentStore();
+  const { setOpenChangePhoneDialog, abonentDetails, dhjRows, setEditDialogOpenState, abonentPetitions, setOpenPrintAbonentcardState } =
+    useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const printSectionRef = useRef(null);
+  const [printSelectionOpen, setPrintSelectionOpen] = useState(false);
   const { residentId } = useAbonentLogic();
   const currentTab = location.pathname.split('/').pop();
   const [tab, setTab] = useState<TabType>(currentTab as TabType);
@@ -159,9 +180,26 @@ function AbonentTools() {
               </Button>
             </Tooltip>
 
-            <Button sx={btnStyle} startIcon={<PrintIcon />}>
+            <Button sx={btnStyle} startIcon={<PrintIcon />} ref={printSectionRef} onClick={() => setPrintSelectionOpen(true)}>
               {t('buttons.print')}
             </Button>
+            <MainPopper handleClose={() => setPrintSelectionOpen(false)} anchorEl={printSectionRef} open={printSelectionOpen}>
+              <List>
+                <MenuItem
+                  sx={{ display: 'flex', justifyContent: 'space-between', width: 180 }}
+                  onClick={() => {
+                    setOpenPrintAbonentcardState(true);
+                    setPrintSelectionOpen(false);
+                  }}
+                >
+                  <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
+                </MenuItem>
+                <Divider />
+                <MenuItem sx={{ display: 'flex', justifyContent: 'space-between', width: 180 }}>
+                  <IconCertificate /> {t('abonentCardPage.certificate')}
+                </MenuItem>
+              </List>
+            </MainPopper>
 
             <Button
               sx={btnStyle}
@@ -215,6 +253,7 @@ function AbonentTools() {
 
             <Tab label={'Aktlar'} value={'acts'} />
           </Tabs>
+          <PrintAbonentCard />
         </Stack>
       )}
     </>

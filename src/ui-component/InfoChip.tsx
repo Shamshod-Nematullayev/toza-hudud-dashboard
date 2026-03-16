@@ -7,19 +7,25 @@ const InfoChip = ({
   label,
   value,
   valueColor = '',
-  ...containerSX
+  onClick,
+  containerSX,
+  containerRef
 }: {
   icon: React.ElementType<SvgIconProps>;
   label: string | number;
   value: string | number;
   containerSX?: SxProps;
   valueColor?: string;
+  onClick?: () => void;
+  containerRef?: React.RefObject<HTMLDivElement>;
 }) => {
   return (
     <Stack
       direction="row"
       alignItems="center"
       spacing={1.5}
+      onClick={onClick}
+      ref={containerRef}
       sx={{
         p: 1.5,
         borderRadius: '12px',

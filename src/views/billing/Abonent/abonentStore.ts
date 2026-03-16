@@ -49,6 +49,8 @@ export interface IAbonentPageStore {
     passportIssuer: string;
     pnfl: string;
   }>;
+  openPrintAbonentcardState: boolean;
+  setOpenPrintAbonentcardState: (open: boolean) => void;
 }
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
@@ -161,7 +163,9 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   getCitizensDetails: async (params) => {
     const { data } = await api.get('/abonents/citizens', { params });
     return data;
-  }
+  },
+  openPrintAbonentcardState: false,
+  setOpenPrintAbonentcardState: (open) => set({ openPrintAbonentcardState: open })
 }));
 
 interface IAbonentPetition {

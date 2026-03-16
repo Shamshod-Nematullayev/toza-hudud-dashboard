@@ -19,6 +19,7 @@ const uz = {
     'day-6': 'Shanba',
     'day-7': 'Yakshanba'
   },
+  uzs: "so'm",
   errors: {
     missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan'
   },
@@ -172,7 +173,10 @@ const uz = {
     cadastralNumber: 'Kadastr raqami',
     temporaryCadastralNumber: 'Noturar kadastr raqami',
     electricityCoato: 'Elektr Caoto',
-    email: 'Email'
+    email: 'Email',
+    currentTariff: 'Joriy tarif',
+    currentDebitor: 'Joriy davr holatiga koʻra qarzdorlik',
+    choosedPeriodDebitor: 'Tanlangan davrgacha bo`lgan qarzdorlik'
   },
   tableActions: {
     edit: 'Tahrirlash',
@@ -357,7 +361,9 @@ const uz = {
     abonentDetails: "Abonent ma'lumotlari",
     active: 'Faol',
     inactive: 'Nofaol',
-    noDataForPnfl: "Pasport ma'lumotlari topilmadi"
+    noDataForPnfl: "Pasport ma'lumotlari topilmadi",
+    abonentCard: 'Abonent karta',
+    certificate: "Ma'lumotnoma"
   },
   house: {
     type: 'Uy turi',

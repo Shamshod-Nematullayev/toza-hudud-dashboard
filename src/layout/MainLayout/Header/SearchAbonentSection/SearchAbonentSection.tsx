@@ -41,7 +41,7 @@ function SearchAbonentSection() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Mac uchun metaKey ham tekshiramiz
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
         e.preventDefault();
 
         // Agar input ichida yozayotgan bo‘lsa qaytarmaymiz
