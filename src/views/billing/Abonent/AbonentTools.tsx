@@ -32,6 +32,7 @@ import { useAbonentLogic } from './useAbonentLogic';
 import MainPopper from 'ui-component/cards/MainPopper';
 import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
 import PrintAbonentCard from './modals/PrintAbonentCard';
+import PrintDebtCertificate from './modals/PrintDebtCertificate';
 
 export function AbonentToolsMobile() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -110,8 +111,15 @@ export function AbonentToolsMobile() {
 type TabType = 'details' | 'dhj' | 'ariza' | 'acts';
 
 function AbonentTools() {
-  const { setOpenChangePhoneDialog, abonentDetails, dhjRows, setEditDialogOpenState, abonentPetitions, setOpenPrintAbonentcardState } =
-    useAbonentStore();
+  const {
+    setOpenChangePhoneDialog,
+    abonentDetails,
+    dhjRows,
+    setEditDialogOpenState,
+    abonentPetitions,
+    setOpenPrintAbonentcardState,
+    setOpenDebtCertificateDialog
+  } = useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
   const printSectionRef = useRef(null);
@@ -195,7 +203,13 @@ function AbonentTools() {
                   <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
                 </MenuItem>
                 <Divider />
-                <MenuItem sx={{ display: 'flex', justifyContent: 'space-between', width: 180 }}>
+                <MenuItem
+                  sx={{ display: 'flex', justifyContent: 'space-between', width: 180 }}
+                  onClick={() => {
+                    setOpenDebtCertificateDialog(true);
+                    setPrintSelectionOpen(false);
+                  }}
+                >
                   <IconCertificate /> {t('abonentCardPage.certificate')}
                 </MenuItem>
               </List>
@@ -254,6 +268,7 @@ function AbonentTools() {
             <Tab label={'Aktlar'} value={'acts'} />
           </Tabs>
           <PrintAbonentCard />
+          <PrintDebtCertificate />
         </Stack>
       )}
     </>

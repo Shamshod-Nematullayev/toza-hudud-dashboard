@@ -176,7 +176,14 @@ const uz = {
     email: 'Email',
     currentTariff: 'Joriy tarif',
     currentDebitor: 'Joriy davr holatiga koʻra qarzdorlik',
-    choosedPeriodDebitor: 'Tanlangan davrgacha bo`lgan qarzdorlik'
+    choosedPeriodDebitor: 'Tanlangan davrgacha bo`lgan qarzdorlik',
+    address: 'Manzil',
+    contractDate: 'Shartnoma sanasi',
+    company: 'Kompaniya',
+    director: 'Direktor',
+    bankName: 'Bank nomi',
+    STIR: 'STIR',
+    bankCredentials: 'Bank rekviziti'
   },
   tableActions: {
     edit: 'Tahrirlash',
@@ -363,12 +370,25 @@ const uz = {
     inactive: 'Nofaol',
     noDataForPnfl: "Pasport ma'lumotlari topilmadi",
     abonentCard: 'Abonent karta',
-    certificate: "Ma'lumotnoma"
+    certificate: "Ma'lumotnoma",
+    calculationsOfAbonent: 'Abonentning xisob-kitobi'
   },
   house: {
     type: 'Uy turi',
     APARTMENT: "Ko'p qavatli uy",
     HOUSE: 'Uchastka'
+  },
+  language: {
+    lang: 'Til',
+    uz: "O'zbekcha",
+    ru: 'Ruscha',
+    'uz-cyrl': 'Ўзбекча'
+  },
+  periodSelection: {
+    current: 'Joriy davr',
+    currentYear: 'Joriy yil',
+    allPeriods: 'Barcha davrlar',
+    other: 'Boshqa'
   }
 };
 

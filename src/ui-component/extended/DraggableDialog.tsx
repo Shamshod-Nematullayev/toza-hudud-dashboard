@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Draggable from 'react-draggable';
-import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Paper, Box, SxProps } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Paper, Box, SxProps, PaperProps } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
 /* Draggable Paper */
@@ -21,7 +21,9 @@ export default function DraggableDialog({
   actions,
   maxWidth = 'sm',
   fullWidth = true,
-  sx
+  sx,
+  contentSX,
+  PaperProps
 }: {
   open: boolean;
   onClose: () => void;
@@ -31,6 +33,8 @@ export default function DraggableDialog({
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   fullWidth?: boolean;
   sx?: SxProps;
+  contentSX?: SxProps;
+  PaperProps?: Partial<PaperProps<React.ElementType<any, keyof React.JSX.IntrinsicElements>>>;
 }) {
   return (
     <Dialog
@@ -41,6 +45,7 @@ export default function DraggableDialog({
       maxWidth={maxWidth}
       fullWidth={fullWidth}
       sx={sx}
+      PaperProps={PaperProps}
     >
       {/* HEADER */}
       <DialogTitle
@@ -61,7 +66,9 @@ export default function DraggableDialog({
       </DialogTitle>
 
       {/* CONTENT */}
-      <DialogContent dividers>{children}</DialogContent>
+      <DialogContent dividers sx={contentSX}>
+        {children}
+      </DialogContent>
 
       {/* ACTIONS (optional) */}
       {actions && <DialogActions>{actions}</DialogActions>}
