@@ -33,6 +33,7 @@ import MainPopper from 'ui-component/cards/MainPopper';
 import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
 import PrintAbonentCard from './modals/PrintAbonentCard';
 import PrintDebtCertificate from './modals/PrintDebtCertificate';
+import IIBInhabitants from './modals/IIBInhabitants';
 
 export function AbonentToolsMobile() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -269,6 +270,7 @@ function AbonentTools() {
           </Tabs>
           <PrintAbonentCard />
           <PrintDebtCertificate />
+          <IIBInhabitants />
         </Stack>
       )}
     </>

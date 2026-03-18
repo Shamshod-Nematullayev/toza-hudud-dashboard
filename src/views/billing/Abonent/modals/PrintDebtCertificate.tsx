@@ -4,17 +4,24 @@ import { DebtCertificateResponse, ErrorResponse, useAbonentStore } from '../abon
 import { useAbonentLogic } from '../useAbonentLogic';
 import { Stack } from '@mui/system';
 import TozamakonLogo from 'ui-component/TozamakonLogo';
-import { Box, Divider, Typography } from '@mui/material';
+import { Box, Button, DialogActions, Divider, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { oylar } from 'views/billing/CreateAbonentPetition.jsx/PrintSection';
 import { CompactKeyValue } from './PrintAbonentCard';
 import { t } from 'i18next';
+import { useReactToPrint } from 'react-to-print';
+import { reactToPrintDefaultOptions } from 'store/constant';
 
 function PrintDebtCertificate() {
   const { openDebtCertificateDialog, setOpenDebtCertificateDialog, getDebtCertificate } = useAbonentStore();
   const { residentId } = useAbonentLogic();
   const [details, setDetails] = useState<ErrorResponse | DebtCertificateResponse | null>(null);
   const printSection = useRef<HTMLDivElement>(null);
+
+  const printFunc = useReactToPrint({
+    ...reactToPrintDefaultOptions,
+    contentRef: printSection
+  });
 
   const handleClose = () => {
     setOpenDebtCertificateDialog(false);
@@ -24,6 +31,7 @@ function PrintDebtCertificate() {
       (async () => {
         const data = await getDebtCertificate(residentId);
         setDetails(data);
+        console.log({ data });
       })();
     }
   }, [openDebtCertificateDialog]);
@@ -113,13 +121,18 @@ function PrintDebtCertificate() {
                 }
               ]}
             />
-            <img
-              src={'https://api.tozamakon.eco/file-service/buckets/download?file=' + details?.qrCodeImageUrl.split('*')[1]}
-              alt="qrCode"
-            />
+            <img src={details?.qrCodeImageUrl} alt="qrCode" width={100} height={100} />
           </Stack>
         </div>
       )}
+      <DialogActions>
+        <Button onClick={() => printFunc()} variant="contained" color="primary">
+          {t('buttons.print')}
+        </Button>
+        <Button variant="outlined" color="secondary" onClick={handleClose}>
+          {t('buttons.close')}
+        </Button>
+      </DialogActions>
     </DraggableDialog>
   );
 }

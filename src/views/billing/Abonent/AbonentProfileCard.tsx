@@ -20,6 +20,7 @@ import {
   Verified as VerifiedIcon
 } from '@mui/icons-material';
 import { AbonentDetails } from 'types/billing';
+import { useAbonentStore } from './abonentStore';
 
 interface Data extends AbonentDetails {
   image?: string;
@@ -72,6 +73,8 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     </Grid>
   );
 
+  const { verifyIdentity } = useAbonentStore();
+
   return (
     <Card
       sx={{
@@ -106,11 +109,13 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                 <Typography variant="h4" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
                   {data?.fullName || ''}
                 </Typography>
-                {data.identified ? (
-                  <VerifiedIcon sx={{ color: 'success.main', fontSize: 20 }} />
-                ) : (
-                  <WarningIcon sx={{ color: 'error.main', fontSize: 20 }} />
-                )}
+                <IconButton onClick={() => verifyIdentity(data.id, !data.identified)}>
+                  {data.identified ? (
+                    <VerifiedIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                  ) : (
+                    <WarningIcon sx={{ color: 'error.main', fontSize: 20 }} />
+                  )}
+                </IconButton>
                 <Chip
                   label={`ID: ${data?.id || '18860208'}`}
                   size="small"

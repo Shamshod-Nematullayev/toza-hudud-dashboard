@@ -59,9 +59,9 @@ function PrintAbonentCard() {
   };
 
   const handleClickPrintButton = async () => {
-    if (!cardDetails?.accountNumber) {
-      const periodFrom = period === 'other' ? `${fromPeriod?.get('month')}.${fromPeriod?.get('year')}` : period.split(':')[0];
-      const periodTo = period === 'other' ? `${toPeriod?.get('month')}.${toPeriod?.get('year')}` : period.split(':')[1];
+    if (!cardDetails?.accountNumber && fromPeriod && toPeriod) {
+      const periodFrom = period === 'other' ? `${fromPeriod?.get('month') + 1}.${fromPeriod?.get('year')}` : period.split(':')[0];
+      const periodTo = period === 'other' ? `${toPeriod?.get('month') + 1}.${toPeriod?.get('year')}` : period.split(':')[1];
       await getCardDetails({
         lang: documentLanguage,
         periodFrom,
@@ -111,7 +111,7 @@ function PrintAbonentCard() {
                   label={t('periodSelection.current')}
                 />
                 <FormControlLabel
-                  value={`${startOfYear.month() + 1}:${startOfYear.year()}:${abonentDetails?.balance.period}`}
+                  value={`${startOfYear.month() + 1}.${startOfYear.year()}:${abonentDetails?.balance.period}`}
                   control={<Radio />}
                   label={t('periodSelection.currentYear')}
                 />

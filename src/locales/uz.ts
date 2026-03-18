@@ -183,7 +183,10 @@ const uz = {
     director: 'Direktor',
     bankName: 'Bank nomi',
     STIR: 'STIR',
-    bankCredentials: 'Bank rekviziti'
+    bankCredentials: 'Bank rekviziti',
+    registeredAt: 'Ro`yxatdan o`tgandan vaqti',
+    unregisteredAt: 'Ro`yxatdan chiqarilgan vaqti',
+    sex: 'Jinsi'
   },
   tableActions: {
     edit: 'Tahrirlash',

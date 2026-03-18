@@ -59,6 +59,10 @@ export interface IAbonentPageStore {
   getDebtCertificate: (residentId: number) => Promise<ErrorResponse | DebtCertificateResponse>;
   openDebtCertificateDialog: boolean;
   setOpenDebtCertificateDialog: (open: boolean) => void;
+  verifyIdentity: (residentId: number, identify: boolean) => void;
+  openIIBInhabitantsDialog: boolean;
+  setOpenIIBInhabitantsDialog: (open: boolean) => void;
+  getIIBInhabitants: (cadastralNumber: string) => Promise<PermamentsResponse>;
 }
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
@@ -178,113 +182,46 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   setDocumentLanguage: (language) => set({ documentLanguage: language }),
   cardDetails: null,
   getCardDetails: async ({ lang, periodFrom, periodTo, residentId }) => {
-    // const { data } = await api.get(`/abonents/print-card/${residentId}`, {
-    //   params: {
-    //     lang,
-    //     periodFrom,
-    //     periodTo
-    //   }
-    // });
-    set({
-      cardDetails: {
-        currentPeriod: '3.2026',
-        qrCodeImage:
-          'iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQAAAACFI5MzAAADU0lEQVR4Xu3XMa7kKBAAUEjwFSCBq+EErmASMAm+gp3A1XACV8AJHn7/0Y57tHw73VVXZPEkWkBVQYOzF+DvgX/iIx/5io/8p6UCJGdKSfYCboUD80RMUh6uYGLh3Iusj4QLxKx1E0LEt++HgqnaQ96jsu6pyHAkLsA07sGmZ2ISQpxqzfJqlvy+np4AJP7EX/vWkRZeHbPQclsxfY3fSqVD4ZwUMKnKgZpfdiPNyLI4mMg+0zHvr6E72fIR6VDNPg+rnIcnUoetqkJWtc8AITQ+E7vKJewRbjOmv5d6I6ejE/R8WFlFFNr4ojuZx3DOJlivgZzZ8hq7kQoLwiykMbGlUCzMI7EJWidkgonzt/X0ReMhexUchsuxu2sm9gVGU03L9i3ClbzmuhdWSNQCaY3bYZ+X0+7Luexht8FNYtLAVPlEKlfn7vhXAg9ldN9LvZGzcEwFn6Bdosr5ej59WdZWj9JP7JiJTZes6ksFoE1HrG0/P6n1uqNdOfORc5xkMbnlo81/ZutL1Qhp4vFEMcCDu+5OV85t82OIX3vpwFgeSaWAhZkkIMbKEbhm4g+iyVEFbsmVSNJvs/XkdGKSdkZi3PZIvye7kyr0MMNcNbGhcM1fdCuADrYIwJXnFFz7aF/YUbCgeghRYPl22l05PZI2ysOzGW5JXc+0KxWTaCJsHUOzWatLd/lBlLUhUSHw4AF9W2lfponDyuFs9kRy/a7hGzkdl5tvIleZxDQ8Ek9NqENkhQqYczJPZG1nwFlrf7Bgiq63WV+Cp2yJgHm4+NE/koo4IlUQPzhuor7uQV/YquqEJrUtlRzbpVP8IOOS8LAlpDaHhXTmgZx5izJxZs8i2sV5rZKuVAoTxebYqha0FcwjkV6LMRRm2zultb5HQtxgHZIOEIdlvM7WF8CWkNqrgextpfraKbpyRgToOIN2kR2eqvAau5GK9DgbT5aztB62XO+fvsA9Jxgi4BMCCKgn0kwrx7WGaVyFNk+kgsHmiLUA0g9FXKrkBzEJtD7ktaqaTvrad/rCxVhoKw+uWu2/dbEfpL2DYutjLEovfj8d7iWC9uTy8lyKUPZr7FbancnCEc5cNGjP4kcCkG7/B/ZKx3bTCGweyL/GRz7yFR/5/8kvEhR/KgvRFxYAAAAASUVORK5CYII=',
-        currentKSaldo: -1767,
-        balanceDtoList: [
-          {
-            id: 590960367,
-            accrual: 32000,
-            additionalAccrual: 0,
-            actAmount: 0,
-            cashAmount: 0,
-            eMoneyAmount: 65000,
-            frozenActAmount: 0,
-            frozenDebtSettlement: 0,
-            frozenKSaldo: 0,
-            frozenNSaldo: 0,
-            frozenRevenue: 0,
-            god: 2026,
-            inhabitantCount: 4,
-            kSaldo: -1767,
-            kSaldoDt: 0,
-            kSaldoKt: -1767,
-            mes: '3',
-            munisAmount: 0,
-            nSaldo: 31233,
-            nSaldoDt: 31233,
-            nSaldoKt: 0,
-            penaltyFee: 0,
-            period: '3.2026',
-            q1031Amount: 0,
-            residentId: 13308006,
-            organizationId: null,
-            tariffId: 51578
-          }
-        ],
-        accountNumber: '105120640239',
-        address: "Samarqand viloyati Kattaqo'rg'on tumani Qumoq MFY (1-sektor) mahalla Кумок Кк ko'cha 0 uy",
-        companyAddress: 'Самарқанд вилояти Каттақурғон тумани Муллакурпа МФЙ Чим ққ',
-        companyBankAccount: '20208000900611603001',
-        companyBankMFO: '01037',
-        companyBankName: 'АТБ "Қишлоқ кўрилиш банк" Каттақўрғон филиали',
-        companyDirector: 'Жумаева Гулмира',
-        companyEmail: 'shersah401@gmail.com',
-        companyInn: '303421898',
-        companyName: '"ANVARJON BIZNES INVEST" MCHJ',
-        companyPhone: '+998557052555',
-        contractDate: '2020-05-15',
-        contractNumber: '13308006',
-        districtName: "Kattaqo'rg'on tumani",
-        flatNumber: null,
-        fullName: 'TO‘RAYEV BERDIYOR JUMAYEVICH',
-        inhabitantCnt: 4,
-        mahallaName: 'Qumoq MFY (1-sektor)',
-        phone: '944715475',
-        streetName: 'Кумок К\\к'
+    const { data } = await api.get(`/abonents/card/${residentId}`, {
+      params: {
+        lang,
+        periodFrom,
+        periodTo
       }
+    });
+    set({
+      cardDetails: data
     });
   },
   clearCardDetails: () => set({ cardDetails: null }),
   getDebtCertificate: async (residentId: number) => {
-    try {
-      const data = {
-        id: 342725,
-        residentId: 13308006,
-        residentAccountNumber: '105120640239',
-        fullName: 'TO‘RAYEV BERDIYOR JUMAYEVICH',
-        mahallaName: 'Qumoq MFY (1-sektor)',
-        streetName: 'Кумок К\\к',
-        homeNumber: '0',
-        flatNumber: null,
-        inhabitantCount: 4,
-        phone: '944715475',
-        companyDirector: 'Жумаева Гулмира',
-        companyName: '"ANVARJON BIZNES INVEST" MCHJ Davlat xususiy sherikchilik ',
-        companyAddress: 'Самарқанд вилояти Каттақурғон тумани Муллакурпа МФЙ Чим ққ',
-        companyPhone: '+998557052555',
-        companyBank: 'АТБ "Қишлоқ кўрилиш банк" Каттақўрғон филиали',
-        companyInn: '303421898',
-        bankDetails: '01037 20208000900611603001',
-        createdAt: '2026-03-17T14:46:07.134654951',
-        currentBalance: -1767.2,
-        qrCodeImageUrl: 'file.jpg*tozamakon/nfs/qrcode/2026/03/17/d4605c3ac5d74d998d493a9eb64373dd.jpg',
-        publicUrl: '9d31a7c432c541e189ee6935b52982ed',
-        fileId: 'file.pdf*tozamakon/nfs/reference/2026/03/17/db03b9c5e62a4ddba2c0feec6ede5b17.pdf'
-      };
-      const res = await api.get('/billing/download-file-from-billing/', {
-        params: { fileId: data.qrCodeImageUrl },
-        responseType: 'blob'
-      });
-      return;
-      const response = await api.get('/abonents/debt-certificate/' + residentId);
-      return response.data;
-    } catch (error: any) {
-      return error.response.data;
+    const { data } = await api.get('/abonents/nodebt-certificate/' + residentId);
+    if ('qrCodeImageUrl' in data) {
+      const res = (
+        await api.get('/billing/download-file-from-billing/', {
+          params: { file_id: data.qrCodeImageUrl },
+          responseType: 'blob'
+        })
+      ).data;
+      const blobUrl = URL.createObjectURL(res);
+      data.qrCodeImageUrl = blobUrl;
     }
+    return data;
   },
   openDebtCertificateDialog: false,
-  setOpenDebtCertificateDialog: (open: boolean) => set({ openDebtCertificateDialog: open })
+  setOpenDebtCertificateDialog: (open: boolean) => set({ openDebtCertificateDialog: open }),
+  verifyIdentity: async (residentId, identified) => {
+    await api.patch('/abonents/verify-identity/' + residentId, { identified });
+    const details = get().abonentDetails;
+    if (!details) return;
+    set({ abonentDetails: { ...details, identified } });
+  },
+  openIIBInhabitantsDialog: false,
+  setOpenIIBInhabitantsDialog: (open: boolean) => set({ openIIBInhabitantsDialog: open }),
+  getIIBInhabitants: async (cadastralNumber) => {
+    const { data } = await api.get('/abonents/iib-inhabitants', { params: { cadastralNumber } });
+    return data;
+  }
 }));
 
 interface IAbonentPetition {
@@ -391,4 +328,39 @@ export interface DebtCertificateResponse {
   qrCodeImageUrl: string;
   publicUrl: string;
   fileId: string;
+}
+
+export interface PermamentPerson {
+  DateBirth: string;
+  Id: string;
+  Person: string;
+  Pinpp: string;
+  RegistrationDate: string;
+  Sex: string;
+  Status: number;
+}
+
+export interface House {
+  cadastralNumber: string;
+  fullAddress: string;
+  houseNumber: string;
+  houseType: string;
+  isLegal: boolean;
+  numberOfOwners: number;
+  objectType: string;
+  streetName: string;
+  owners: {
+    name: string;
+    passport: string;
+    pinfl: string;
+    type: string;
+  }[];
+}
+
+export interface PermamentsResponse {
+  Data: {
+    PermanentPersons: PermamentPerson[] | null;
+    TemproaryPersons: PermamentPerson[] | null;
+  };
+  house: House | null;
 }

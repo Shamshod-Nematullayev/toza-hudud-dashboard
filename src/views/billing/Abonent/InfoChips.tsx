@@ -32,7 +32,7 @@ interface InfoChipsProps {
 
 function InfoChips(props: InfoChipsProps) {
   const { residentId } = useAbonentLogic();
-  const { balancePredicts, getIncomePredicts } = useAbonentStore();
+  const { balancePredicts, getIncomePredicts, setOpenIIBInhabitantsDialog } = useAbonentStore();
   const calculatorRef = useRef<any>(null);
   const [openCalc, setOpenCalc] = useState(false);
 
@@ -43,7 +43,6 @@ function InfoChips(props: InfoChipsProps) {
   };
 
   useEffect(() => {
-    console.log(toDate);
     let found = false;
     balancePredicts?.balancePredictItems.forEach((i) => {
       const [month, year] = i.period.split('.').map(Number);
@@ -66,7 +65,15 @@ function InfoChips(props: InfoChipsProps) {
 
       {/* Aholi guruhi */}
       <InfoChip icon={InhabitantsIcon} label={t('tableHeaders.inhabitantCount')} value={props.inhabitantCount} />
-      <InfoChip icon={RegisteredIcon} label={t('tableHeaders.registeredInhabitants')} value={props.registeredInhabitants} />
+      <InfoChip
+        icon={RegisteredIcon}
+        label={t('tableHeaders.registeredInhabitants')}
+        value={props.registeredInhabitants}
+        containerSX={{
+          cursor: 'pointer'
+        }}
+        onClick={() => setOpenIIBInhabitantsDialog(true)}
+      />
 
       {/* Moliyaviy hisob-kitoblar */}
       <InfoChip icon={CalculatedIcon} label={t('tableHeaders.calculated')} value={props.calculated.toLocaleString('uz-Latn')} />
