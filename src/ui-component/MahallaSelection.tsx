@@ -1,6 +1,7 @@
 import { FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
-import { lotinga } from 'helpers/lotinKiril';
+import { kirillga, lotinga } from 'helpers/lotinKiril';
 import { t } from 'i18next';
+import i18n from 'languageConfig';
 import React, { useEffect, useId, useState } from 'react';
 import api from 'utils/api';
 
@@ -36,7 +37,10 @@ function MahallaSelection({
 
   useEffect(() => {
     api.get('/inspectors').then(({ data }) => {
-      const mahalllalar = data.mahallalar.map((mfy: any) => ({ ...mfy, name: lotinga(mfy.name) }));
+      const mahalllalar = data.mahallalar.map((mfy: any) => ({
+        ...mfy,
+        name: i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)
+      }));
       setMahallas(mahalllalar);
       setMahallalar(mahalllalar);
     });

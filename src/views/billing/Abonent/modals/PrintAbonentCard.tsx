@@ -59,8 +59,10 @@ function PrintAbonentCard() {
   };
 
   const handleClickPrintButton = async () => {
-    if (!cardDetails?.accountNumber && fromPeriod && toPeriod) {
+    if (!cardDetails?.accountNumber) {
+      // @ts-ignore
       const periodFrom = period === 'other' ? `${fromPeriod?.get('month') + 1}.${fromPeriod?.get('year')}` : period.split(':')[0];
+      // @ts-ignore
       const periodTo = period === 'other' ? `${toPeriod?.get('month') + 1}.${toPeriod?.get('year')}` : period.split(':')[1];
       await getCardDetails({
         lang: documentLanguage,
@@ -174,7 +176,9 @@ function PrintAbonentCard() {
                   },
                   {
                     key: t('tableHeaders.address'),
-                    value: cardDetails.address
+                    value: [cardDetails.districtName, cardDetails.mahallaName, cardDetails.streetName, cardDetails.flatNumber]
+                      .filter(Boolean)
+                      .join(', ')
                   },
                   {
                     key: t('tableHeaders.contractDate'),

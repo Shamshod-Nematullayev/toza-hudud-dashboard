@@ -1,5 +1,7 @@
 import { MenuItem, TextField } from '@mui/material';
+import { kirillga, lotinga } from 'helpers/lotinKiril';
 import { t } from 'i18next';
+import i18n from 'languageConfig';
 import React, { useEffect, useState } from 'react';
 import api from 'utils/api';
 interface Props {
@@ -40,7 +42,7 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
           </option>
           {streets.map((street) => (
             <option key={street.id} value={street.id}>
-              {street.name}
+              {i18n.language === 'uz' ? lotinga(street.name) : kirillga(street.name)}
             </option>
           ))}
         </TextField>
@@ -51,7 +53,7 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
           </MenuItem>
           {streets.map((street) => (
             <MenuItem key={street.id} value={street.id}>
-              {street.name}
+              {i18n.language === 'uz' ? lotinga(street.name) : kirillga(street.name)}
             </MenuItem>
           ))}
         </TextField>
