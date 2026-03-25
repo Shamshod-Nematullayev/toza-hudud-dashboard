@@ -76,6 +76,7 @@ function EditDetails() {
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
   const [tabIndex, setTabIndex] = useState(0);
+  const [avatar, setAvatar] = useState<string>('');
 
   useEffect(() => {
     if (abonentDetails?.id) {
@@ -111,8 +112,13 @@ function EditDetails() {
 
   useEffect(() => {
     if (pnfl.length === 14 && pnfl !== abonentDetails?.citizen.pnfl) {
-      getCitizensDetails({ pnfl, passport, birthDate: birthDate ? dayjs(extractBirthDateString(pnfl)).format('YYYY-MM-DD') : '' }).then(
-        (details) => {
+      try {
+        getCitizensDetails({
+          pnfl,
+          passport,
+          birthDate: birthDate ? dayjs(extractBirthDateString(pnfl)).format('YYYY-MM-DD') : '',
+          photoStatus: 'WITH_PHOTO'
+        }).then((details) => {
           if (details.firstName !== null) {
             setPassport(details.passport);
             setFirstName(details.firstName);
@@ -124,18 +130,26 @@ function EditDetails() {
             setPassportGivenDate(details.passportGivenDate ? dayjs(details.passportGivenDate) : null);
             setPassportExpireDate(details.passportExpireDate ? dayjs(details.passportExpireDate) : null);
             setInn(details.inn || '');
+            setAvatar(details.photo || '');
           } else {
             toast.error(t('abonentCardPage.noDataForPnfl'));
           }
-        }
-      );
+        });
+      } catch (error: any) {
+        toast.error(error.message);
+      }
     }
   }, [pnfl]);
 
   useEffect(() => {
     if (passport.length === 9 && passport !== abonentDetails?.citizen.passport) {
-      getCitizensDetails({ pnfl, passport, birthDate: birthDate ? dayjs(extractBirthDateString(pnfl)).format('YYYY-MM-DD') : '' }).then(
-        (details) => {
+      try {
+        getCitizensDetails({
+          pnfl,
+          passport,
+          birthDate: birthDate ? dayjs(extractBirthDateString(pnfl)).format('YYYY-MM-DD') : '',
+          photoStatus: 'WITH_PHOTO'
+        }).then((details) => {
           if (details.firstName !== null) {
             setPnfl(details.pnfl);
             setFirstName(details.firstName);
@@ -147,11 +161,14 @@ function EditDetails() {
             setPassportGivenDate(details.passportGivenDate ? dayjs(details.passportGivenDate) : null);
             setPassportExpireDate(details.passportExpireDate ? dayjs(details.passportExpireDate) : null);
             setInn(details.inn || '');
+            setAvatar(details.photo || '');
           } else {
             toast.error(t('abonentCardPage.noDataForPnfl'));
           }
-        }
-      );
+        });
+      } catch (error: any) {
+        toast.error(error.message);
+      }
     }
   }, [passport]);
 
@@ -213,7 +230,7 @@ function EditDetails() {
               <Grid item xs={3}>
                 <Avatar
                   variant="rounded"
-                  src={''} // Bu yerga rasm url keladi
+                  src={'data:image/png;base64,' + (avatar ? avatar : abonentDetails?.citizen.photo)} // Bu yerga rasm url keladi
                   sx={{
                     width: '100%',
                     height: 'auto',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, Grid, Typography, Avatar, Box, Chip, Divider, Stack, SvgIconProps, IconButton } from '@mui/material';
 import {
   CreditCardOutlined as CardIcon,
@@ -21,9 +21,10 @@ import {
 } from '@mui/icons-material';
 import { AbonentDetails } from 'types/billing';
 import { useAbonentStore } from './abonentStore';
+import useLoaderStore from 'store/loaderStore';
 
 interface Data extends AbonentDetails {
-  image?: string;
+  photo?: string;
 }
 
 const AbonentProfileCard = ({ data }: { data: Data }) => {
@@ -73,7 +74,25 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     </Grid>
   );
 
-  const { verifyIdentity } = useAbonentStore();
+  const { verifyIdentity, getCitizensDetails, setResidentPhoto, abonentDetails, setOpenPhotoModal } = useAbonentStore();
+  const { setIsLoading } = useLoaderStore();
+
+  const handleClickAvatar = async () => {
+    try {
+      if (abonentDetails?.citizen.photo) return setOpenPhotoModal(true);
+      setIsLoading(true);
+      const citizenData = await getCitizensDetails({
+        birthDate: data.citizen.birthDate,
+        pnfl: data.citizen.pnfl,
+        passport: data.citizen.passport,
+        photoStatus: 'WITH_PHOTO'
+      });
+      if (typeof citizenData.photo === 'string') setResidentPhoto(citizenData.photo);
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Card
@@ -88,17 +107,19 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
       <CardContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
           {/* Chap tomon: Rasm */}
-          <Grid item xs={3} md={1} alignItems={'center'} justifyContent={'center'} display={'flex'}>
+          <Grid item xs={3} md={1.5} alignItems={'center'} justifyContent={'center'} display={'flex'}>
             <Avatar
               variant="rounded"
-              src={data?.image} // Bu yerga rasm url keladi
+              src={'data:image/png;base64,' + abonentDetails?.citizen.photo} // Bu yerga rasm url keladi
               sx={{
                 width: '100%',
                 height: 'auto',
                 aspectRatio: '1/1.2',
                 borderRadius: '12px',
-                bgcolor: '#f0f2f5'
+                bgcolor: '#f0f2f5',
+                cursor: 'pointer'
               }}
+              onClick={handleClickAvatar}
             />
           </Grid>
 

@@ -186,7 +186,8 @@ const uz = {
     bankCredentials: 'Bank rekviziti',
     registeredAt: 'Ro`yxatdan o`tgandan vaqti',
     unregisteredAt: 'Ro`yxatdan chiqarilgan vaqti',
-    sex: 'Jinsi'
+    sex: 'Jinsi',
+    actDate: 'Akt sanasi'
   },
   tableActions: {
     edit: 'Tahrirlash',
@@ -314,7 +315,8 @@ const uz = {
     skip: 'Tashlab ketish',
     createAbonentPetition: 'Abonent arizasi yaratish',
     addToMultipleLivings: "Yashovchilar soni o'zgartirish",
-    editPhone: 'Telefon raqamini tahrirlash'
+    editPhone: 'Telefon raqamini tahrirlash',
+    uploadFile: 'Faylni yuklash'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',

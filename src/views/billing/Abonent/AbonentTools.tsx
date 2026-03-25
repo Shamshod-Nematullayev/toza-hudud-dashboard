@@ -34,6 +34,7 @@ import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
 import PrintAbonentCard from './modals/PrintAbonentCard';
 import PrintDebtCertificate from './modals/PrintDebtCertificate';
 import IIBInhabitants from './modals/IIBInhabitants';
+import AddInhabitants from './modals/AddInhabitants';
 
 export function AbonentToolsMobile() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -119,7 +120,8 @@ function AbonentTools() {
     setEditDialogOpenState,
     abonentPetitions,
     setOpenPrintAbonentcardState,
-    setOpenDebtCertificateDialog
+    setOpenDebtCertificateDialog,
+    setOpenAddInhabitantsDialog
   } = useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -233,7 +235,7 @@ function AbonentTools() {
               {t('buttons.createAbonentPetition')}
             </Button>
 
-            <Button sx={btnStyle} startIcon={<MultipleIcon />} color="primary">
+            <Button sx={btnStyle} startIcon={<MultipleIcon />} color="primary" onClick={() => setOpenAddInhabitantsDialog(true)}>
               {t('buttons.addToMultipleLivings')}
             </Button>
 
@@ -271,6 +273,7 @@ function AbonentTools() {
           <PrintAbonentCard />
           <PrintDebtCertificate />
           <IIBInhabitants />
+          <AddInhabitants />
         </Stack>
       )}
     </>

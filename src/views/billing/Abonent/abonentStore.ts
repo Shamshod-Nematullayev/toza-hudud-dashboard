@@ -1,4 +1,13 @@
-import { AbonentDetails, AbonentDetailsHistoryRow, DHJRow, IAbonentFromDB, IAct, IBalancePredict, IncomeStatRow } from 'types/billing';
+import {
+  AbonentDetails,
+  AbonentDetailsHistoryRow,
+  Citizen,
+  DHJRow,
+  IAbonentFromDB,
+  IAct,
+  IBalancePredict,
+  IncomeStatRow
+} from 'types/billing';
 import api from 'utils/api';
 import { create } from 'zustand';
 
@@ -34,9 +43,13 @@ export interface IAbonentPageStore {
   getAbonentPetitions: (residentId: number) => void;
   editDialogOpenState: boolean;
   setEditDialogOpenState: (state: boolean) => void;
-  residentPhoto: string | null;
-  getResidentPhoto: (residentId: number) => void;
-  getCitizensDetails: (params: { pnfl: string; passport: string; birthDate: string }) => Promise<{
+  setResidentPhoto: (photo: string) => void;
+  getCitizensDetails: (params: {
+    pnfl: string;
+    passport: string;
+    birthDate: string;
+    photoStatus?: 'WITH_PHOTO' | 'WITHOUT_PHOTO';
+  }) => Promise<{
     birthDate: string;
     firstName: string;
     patronymic: string;
@@ -48,6 +61,8 @@ export interface IAbonentPageStore {
     passportGivenDate: string;
     passportIssuer: string;
     pnfl: string;
+    photo: string | null;
+    email: string | null;
   }>;
   openPrintAbonentcardState: boolean;
   setOpenPrintAbonentcardState: (open: boolean) => void;
@@ -63,6 +78,11 @@ export interface IAbonentPageStore {
   openIIBInhabitantsDialog: boolean;
   setOpenIIBInhabitantsDialog: (open: boolean) => void;
   getIIBInhabitants: (cadastralNumber: string) => Promise<PermamentsResponse>;
+  addInhabitantsToAbonent: (residentId: number, inhabitantCount: number, file: File) => void;
+  openAddInhabitantsDialog: boolean;
+  setOpenAddInhabitantsDialog: (open: boolean) => void;
+  openPhotoModalState: boolean;
+  setOpenPhotoModal: (open: boolean) => void;
 }
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
@@ -168,10 +188,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   editDialogOpenState: false,
   setEditDialogOpenState: (state) => set({ editDialogOpenState: state }),
   residentPhoto: null,
-  getResidentPhoto: async (residentId) => {
-    const { data } = await api.get('/billing/get-resident-photo/' + residentId);
-    set({ residentPhoto: data });
-  },
+
   getCitizensDetails: async (params) => {
     const { data } = await api.get('/abonents/citizens', { params });
     return data;
@@ -221,7 +238,27 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   getIIBInhabitants: async (cadastralNumber) => {
     const { data } = await api.get('/abonents/iib-inhabitants', { params: { cadastralNumber } });
     return data;
-  }
+  },
+  addInhabitantsToAbonent: async (residentId, inhabitantCount, file) => {
+    const formData = new FormData();
+    formData.append('inhabitantCount', inhabitantCount.toString());
+    formData.append('file', file);
+    await api.post('/abonents/add-inhabitants/' + residentId, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    await get().getDetails(residentId);
+    await get().getDhjRows();
+    set({ openAddInhabitantsDialog: false });
+  },
+  openAddInhabitantsDialog: false,
+  setOpenAddInhabitantsDialog: (open: boolean) => set({ openAddInhabitantsDialog: open }),
+  setResidentPhoto: (photo: string) => {
+    const details = get().abonentDetails;
+    if (!details?.citizen) return;
+    set({
+      abonentDetails: { ...details, citizen: { ...details.citizen, photo } }
+    });
+  },
+  openPhotoModalState: false,
+  setOpenPhotoModal: (open: boolean) => set({ openPhotoModalState: open })
 }));
 
 interface IAbonentPetition {

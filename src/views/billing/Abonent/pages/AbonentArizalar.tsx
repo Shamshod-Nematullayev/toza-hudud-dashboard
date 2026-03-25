@@ -31,6 +31,12 @@ function AbonentArizalar() {
       flex: 1
     },
     {
+      field: 'next_prescribed_cnt',
+      headerName: t('tableHeaders.nextInhabitantCount'),
+      type: 'number',
+      flex: 1
+    },
+    {
       field: 'asosiy_licshet',
       headerName: t('tableHeaders.accountNumber'),
       flex: 1
@@ -41,13 +47,29 @@ function AbonentArizalar() {
       flex: 1
     },
     {
+      field: 'sana',
+      headerName: t('tableHeaders.createdAt'),
+      flex: 1,
+      type: 'date',
+      valueGetter: (params) => new Date(params)
+    },
+    {
+      field: 'akt_date',
+      headerName: t('tableHeaders.actDate'),
+      flex: 1,
+      type: 'date',
+      valueGetter: (params) => new Date(params)
+    },
+    {
       field: 'status',
       headerName: t('tableHeaders.status'),
       flex: 1
     },
     {
       field: 'actStatus',
-      headerName: t('tableHeaders.actStatus')
+      headerName: t('tableHeaders.actStatus'),
+      // @ts-ignore
+      valueGetter: (params) => t('actStatus.' + params)
     }
   ];
   return (

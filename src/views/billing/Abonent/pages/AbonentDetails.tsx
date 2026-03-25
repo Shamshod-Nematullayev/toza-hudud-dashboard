@@ -23,7 +23,7 @@ function AbonentDetails() {
               tariff: Number(abonentDetails?.balance.rate)
             }}
           />
-          <AbonentProfileCard data={{ image: '', ...abonentDetails }} />
+          <AbonentProfileCard data={{ photo: '', ...abonentDetails }} />
         </>
       )}
     </>
