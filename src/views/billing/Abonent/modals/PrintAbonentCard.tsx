@@ -206,6 +206,7 @@ function PrintAbonentCard() {
             <Grid item xs={1.5}>
               <Avatar
                 variant="rounded"
+                src={`data:image/png;base64,${abonentDetails?.citizen.photo}`}
                 sx={{
                   width: '90%',
                   height: 'auto',
@@ -299,24 +300,27 @@ function PrintAbonentCard() {
 
 export default PrintAbonentCard;
 
-export const CompactKeyValue = ({ data }: { data: { key: string; value: string | number | ReactNode }[] }) => {
+export const CompactKeyValue = ({ data, divider }: { data: { key: string; value: string | number | ReactNode }[]; divider?: boolean }) => {
   return (
     <List>
       {data.map((item, i) => (
-        <ListItem sx={{ py: 0 }}>
-          <Typography variant="subtitle2" color="textSecondary" sx={{ display: 'inline-block', minWidth: '150px', fontSize: 14 }}>
-            {item.key}:
-          </Typography>
-          <span>
-            {typeof item.value === 'string' || typeof item.value === 'number' ? (
-              <Typography variant="body2" fontWeight={500} style={{ textOverflow: 'ellipsis' }}>
-                {item.value}
-              </Typography>
-            ) : (
-              item.value
-            )}
-          </span>
-        </ListItem>
+        <>
+          <ListItem sx={{ py: 0 }}>
+            <Typography variant="subtitle2" color="textSecondary" sx={{ display: 'inline-block', minWidth: '150px', fontSize: 14 }}>
+              {item.key}:
+            </Typography>
+            <span>
+              {typeof item.value === 'string' || typeof item.value === 'number' ? (
+                <Typography variant="body2" fontWeight={500} style={{ textOverflow: 'ellipsis' }}>
+                  {item.value}
+                </Typography>
+              ) : (
+                item.value
+              )}
+            </span>
+          </ListItem>
+          {divider && <Divider />}
+        </>
       ))}
     </List>
   );

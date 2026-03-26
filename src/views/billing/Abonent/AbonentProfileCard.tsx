@@ -74,11 +74,12 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     </Grid>
   );
 
-  const { verifyIdentity, getCitizensDetails, setResidentPhoto, abonentDetails, setOpenPhotoModal } = useAbonentStore();
+  const { verifyIdentity, getCitizensDetails, setResidentPhoto, abonentDetails, setOpenPhotoModal, blockReport } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
 
   const handleClickAvatar = async () => {
     try {
+      console.log(abonentDetails?.citizen.photo);
       if (abonentDetails?.citizen.photo) return setOpenPhotoModal(true);
       setIsLoading(true);
       const citizenData = await getCitizensDetails({
@@ -148,6 +149,9 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                   }}
                 />
               </Stack>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                {data?.citizen.birthDate || ''}
+              </Typography>
             </Box>
 
             <Box sx={{ mt: 1 }}>

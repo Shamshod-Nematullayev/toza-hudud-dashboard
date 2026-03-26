@@ -19,6 +19,8 @@ const uz = {
     'day-6': 'Shanba',
     'day-7': 'Yakshanba'
   },
+  hetAbonent: 'Elektr energiyasiga ulangan abonent',
+  cadastrAbonent: 'Kadastr abonent',
   uzs: "so'm",
   errors: {
     missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan'

@@ -23,7 +23,8 @@ import {
   PhoneIphone as PhoneIcon,
   Description as PetitionIcon,
   AddHomeWork as MultipleIcon,
-  Tune as ActionsIcon
+  Tune as ActionsIcon,
+  ElectricBolt
 } from '@mui/icons-material';
 import { t } from 'i18next';
 import { useAbonentStore } from './abonentStore';
@@ -31,10 +32,6 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAbonentLogic } from './useAbonentLogic';
 import MainPopper from 'ui-component/cards/MainPopper';
 import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
-import PrintAbonentCard from './modals/PrintAbonentCard';
-import PrintDebtCertificate from './modals/PrintDebtCertificate';
-import IIBInhabitants from './modals/IIBInhabitants';
-import AddInhabitants from './modals/AddInhabitants';
 
 export function AbonentToolsMobile() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -121,7 +118,8 @@ function AbonentTools() {
     abonentPetitions,
     setOpenPrintAbonentcardState,
     setOpenDebtCertificateDialog,
-    setOpenAddInhabitantsDialog
+    setOpenAddInhabitantsDialog,
+    setOpenEditElectricAccountState
   } = useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -218,8 +216,22 @@ function AbonentTools() {
               </List>
             </MainPopper>
 
+            <Button sx={btnStyle} startIcon={<MultipleIcon />} color="primary" onClick={() => setOpenAddInhabitantsDialog(true)}>
+              {t('buttons.addToMultipleLivings')}
+            </Button>
+
+            {/* Tahrirlash guruhi - ajratilgan rangda */}
+            <Button sx={btnStyle} startIcon={<EditIcon />} color="primary" onClick={() => setEditDialogOpenState(true)}>
+              {t('buttons.edit')}
+            </Button>
+
+            <Button sx={btnStyle} startIcon={<PhoneIcon />} onClick={() => setOpenChangePhoneDialog(true)}>
+              {t('tableHeaders.phone')}
+            </Button>
+            <Button sx={btnStyle} startIcon={<ElectricBolt />} onClick={() => setOpenEditElectricAccountState(true)}>
+              {t('tableHeaders.electricityAccountNumber')}
+            </Button>
             <Button
-              sx={btnStyle}
               startIcon={<PetitionIcon />}
               onClick={() =>
                 navigate('/billing/createAbonentAriza', {
@@ -231,29 +243,13 @@ function AbonentTools() {
                   }
                 })
               }
-            >
-              {t('buttons.createAbonentPetition')}
-            </Button>
-
-            <Button sx={btnStyle} startIcon={<MultipleIcon />} color="primary" onClick={() => setOpenAddInhabitantsDialog(true)}>
-              {t('buttons.addToMultipleLivings')}
-            </Button>
-
-            {/* Tahrirlash guruhi - ajratilgan rangda */}
-            <Button sx={btnStyle} startIcon={<EditIcon />} color="primary" onClick={() => setEditDialogOpenState(true)}>
-              {t('buttons.edit')}
-            </Button>
-
-            <Button
               sx={{
                 ...btnStyle,
                 borderTopRightRadius: '12px !important',
                 borderBottomRightRadius: '12px !important'
               }}
-              startIcon={<PhoneIcon />}
-              onClick={() => setOpenChangePhoneDialog(true)}
             >
-              {t('buttons.editPhone')}
+              {t('buttons.createAbonentPetition')}
             </Button>
           </ButtonGroup>
           <Tabs value={tab} onChange={handleTabsChange}>
@@ -270,10 +266,6 @@ function AbonentTools() {
 
             <Tab label={'Aktlar'} value={'acts'} />
           </Tabs>
-          <PrintAbonentCard />
-          <PrintDebtCertificate />
-          <IIBInhabitants />
-          <AddInhabitants />
         </Stack>
       )}
     </>

@@ -32,6 +32,7 @@ export interface IAbonentPageStore {
   getDetailsFromDB: () => void;
   updateDetails: (details: AbonentDetails) => void;
   updatePhone: (phone: string) => void;
+  updateElectricity: (params: { residentId: number; electricityAccountNumber: string; electricityCoato: string }) => void;
   getResidentCadastrs: () => void;
   getDatasForCompare: () => void;
   openChangePhoneDialogState: boolean;
@@ -83,6 +84,15 @@ export interface IAbonentPageStore {
   setOpenAddInhabitantsDialog: (open: boolean) => void;
   openPhotoModalState: boolean;
   setOpenPhotoModal: (open: boolean) => void;
+  openEditElectricAccountState: boolean;
+  setOpenEditElectricAccountState: (open: boolean) => void;
+  getHetAbonent: (params: { personalAccount: string; coato: string }) => Promise<HetAbonentResponse>;
+  hetAbonent: HETSuccessResponse | undefined;
+  setHetAbonent: (hetAbonent: HETSuccessResponse | undefined) => void;
+  cadastrAbonent: CadastrDetais | undefined;
+  fetchCadastrAbonent: (cadastr: string) => void;
+  blockReport?: BlockReport;
+  fetchBlockReport: (residentId: number) => void;
 }
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
@@ -93,7 +103,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   incomeStats: [],
   getDetails: async (residentId) => {
     const { data } = await api.get('/billing/get-abonent-details/' + residentId);
-    set({ abonentDetails: data });
+    set({ abonentDetails: { ...data, citizen: { ...data.citizen, photo: null } } });
   },
   getDhjRows: async () => {
     const { abonentDetails } = get();
@@ -258,7 +268,31 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     });
   },
   openPhotoModalState: false,
-  setOpenPhotoModal: (open: boolean) => set({ openPhotoModalState: open })
+  setOpenPhotoModal: (open: boolean) => set({ openPhotoModalState: open }),
+  openEditElectricAccountState: false,
+  setOpenEditElectricAccountState: (open: boolean) => set({ openEditElectricAccountState: open }),
+  getHetAbonent: async (params) => {
+    return (await api.get('/abonents/het-abonent', { params })).data;
+  },
+  updateElectricity: async (params) => {
+    const details = get().abonentDetails;
+    if (!details) return;
+    await api.patch('/abonents/electricity/' + params.residentId, params);
+    set({
+      abonentDetails: { ...details, electricityAccountNumber: params.electricityAccountNumber, electricityCoato: params.electricityCoato }
+    });
+  },
+  hetAbonent: undefined,
+  setHetAbonent: (abonent) => set({ hetAbonent: abonent }),
+  cadastrAbonent: undefined,
+  fetchCadastrAbonent: async (cadastralNumber) => {
+    const { data } = await api.get('/abonents/cadastr-details', { params: { cadastralNumber } });
+    set({ cadastrAbonent: data });
+  },
+  fetchBlockReport: async (params) => {
+    const { data } = await api.get('/abonents/het-warning-report', { params });
+    set({ blockReport: data });
+  }
 }));
 
 interface IAbonentPetition {
@@ -400,4 +434,53 @@ export interface PermamentsResponse {
     TemproaryPersons: PermamentPerson[] | null;
   };
   house: House | null;
+}
+
+interface HETErrorResponse {
+  code: 'ACCOUNT.NOT.FOUND';
+  message: string;
+  time: string;
+}
+
+export interface HETSuccessResponse {
+  address: string;
+  cadastralNumber: string;
+  coatoCode: string;
+  fullName: string;
+  inn: string;
+  mahallaName: string;
+  pasportNumber: string;
+  personalAccount: string;
+  phone: string;
+  pinfl: string;
+}
+
+export type HetAbonentResponse = HETErrorResponse | HETSuccessResponse;
+
+interface CadastrDetais {
+  cadastralNumber: string | null;
+  fullAddress: string | null;
+  houseNumber: string | null;
+  houseType: string | null;
+  isLegal: boolean;
+  numberOfOwners: number;
+  objectType: string | null;
+  owners: {
+    inn: string;
+    name: string;
+    passport: string;
+    percent: string;
+    pinfl: string;
+    type: string;
+  }[];
+  registeredDate: string | null;
+  streetName: string | null;
+}
+interface BlockReport {
+  blockDate: string;
+  blockStatus: 'BLOCK';
+  warningCreatedAt: string | null;
+  warningStatus: string | null;
+  warningDebt: number | null;
+  blockDebt: number;
 }
