@@ -9,7 +9,8 @@ import { red } from '@mui/material/colors';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
 import api from 'utils/api';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { useAbonentLogic } from '../useAbonentLogic';
+import { toast } from 'react-toastify';
 
 const StyledTable = styled.table`
   text-align: center;
@@ -23,58 +24,28 @@ const StyledTable = styled.table`
 `;
 
 function IIBInhabitants() {
-  const { openIIBInhabitantsDialog: open, setOpenIIBInhabitantsDialog, getIIBInhabitants, abonentDetails } = useAbonentStore();
+  const {
+    openIIBInhabitantsDialog: open,
+    setOpenIIBInhabitantsDialog,
+    getIIBInhabitants,
+    abonentDetails,
+    addInhabitantsToAbonent
+  } = useAbonentStore();
   const [details, setDetails] = useState<PermamentsResponse>();
   const [loading, setLoading] = useState(false);
+  const { residentId } = useAbonentLogic();
 
   const handleAddInhabitantsByIIB = async () => {
-    // try {
-    //   // 1. Yangi PDF hujjat yaratamiz
-    //   const pdfDoc = await PDFDocument.create();
-    //   const page = pdfDoc.addPage([595.28, 841.89]); // A4 o'lchami
-    //   const { width, height } = page.getSize();
-    //   // 2. Shrifitni yuklaymiz
-    //   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    //   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    //   // 3. Ma'lumotlarni chizamiz (details ob'ektidan foydalanib)
-    //   page.drawText("AHOLINI RO'YXATGA OLISH (IIB)", {
-    //     x: 150,
-    //     y: height - 50,
-    //     size: 18,
-    //     font: boldFont,
-    //     color: rgb(0, 0, 0)
-    //   });
-    //   page.drawText(`F.I.O: ${details?.house?.owners[0].name || "Noma'lum"}`, {
-    //     x: 50,
-    //     y: height - 100,
-    //     size: 12,
-    //     font: font
-    //   });
-    //   page.drawText(`Manzil: ${details?.house?.fullAddress || "Ko'rsatilmagan"}`, {
-    //     x: 50,
-    //     y: height - 120,
-    //     size: 12,
-    //     font: font
-    //   });
-    //   // 4. Agar QR kod kerak bo'lsa (qrcode.react orqali olingan rasm bo'lsa)
-    //   // QR kodni rasm sifatida embed qilish mumkin (ixtiyoriy)
-    //   // 5. PDF-ni saqlaymiz (Uint8Array qaytaradi)
-    //   const pdfBytes = await pdfDoc.save();
-    //   // 6. Yuklab olish jarayoni
-    //   const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    //   const url = URL.createObjectURL(blob);
-    //   const link = document.createElement('a');
-    //   link.href = url;
-    //   link.download = 'inhabitants_client.pdf';
-    //   document.body.appendChild(link);
-    //   link.click();
-    //   // Tozalash
-    //   document.body.removeChild(link);
-    //   URL.revokeObjectURL(url);
-    //   console.log("Mening Lordim, PDF qurilmaning o'zida muvaffaqiyatli yaratildi!");
-    // } catch (error) {
-    //   console.error('Xatolik, mening Lordim:', error);
-    // }
+    setLoading(true);
+    try {
+      const pdf = await api.post('/abonents/create-pdf-by-iib', details, { responseType: 'blob' });
+      const file = new File([pdf.data], 'file.pdf', { type: 'application/pdf' });
+      await addInhabitantsToAbonent(residentId, details?.Data.PermanentPersons?.length || 0, file);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err.message);
+    }
+    setLoading(false);
+    handleClose();
   };
 
   const handleClose = () => {
@@ -91,8 +62,8 @@ function IIBInhabitants() {
     if (open && abonentDetails) {
       setLoading(true);
       (async () => {
-        const details = await getIIBInhabitants(abonentDetails.house.cadastralNumber);
-        setDetails(details);
+        // const details = await getIIBInhabitants(abonentDetails.house.cadastralNumber);
+        // setDetails(details);
         setLoading(false);
       })();
     }
