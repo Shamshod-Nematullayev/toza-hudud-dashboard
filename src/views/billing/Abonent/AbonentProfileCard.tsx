@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Grid, Typography, Avatar, Box, Chip, Divider, Stack, SvgIconProps, IconButton } from '@mui/material';
+import { Card, CardContent, Grid, Typography, Avatar, Box, Chip, Divider, Stack, SvgIconProps, IconButton, Alert } from '@mui/material';
 import {
   CreditCardOutlined as CardIcon,
   BadgeOutlined as PassportIcon,
@@ -22,6 +22,8 @@ import {
 import { AbonentDetails } from 'types/billing';
 import { useAbonentStore } from './abonentStore';
 import useLoaderStore from 'store/loaderStore';
+import dayjs from 'dayjs';
+import { t } from 'i18next';
 
 interface Data extends AbonentDetails {
   photo?: string;
@@ -107,8 +109,7 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     >
       <CardContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
-          {/* Chap tomon: Rasm */}
-          <Grid item xs={3} md={1.5} alignItems={'center'} justifyContent={'center'} display={'flex'}>
+          <Grid item xs={3} md={1.5} alignItems={'center'} justifyContent={'center'} display={'flex'} direction={'column'}>
             <Avatar
               variant="rounded"
               src={'data:image/png;base64,' + abonentDetails?.citizen.photo} // Bu yerga rasm url keladi
@@ -122,11 +123,20 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
               }}
               onClick={handleClickAvatar}
             />
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {data?.citizen.birthDate || ''}{' '}
+            </Typography>
           </Grid>
+          {/* Chap tomon */}
 
-          {/* O'ng tomon: Ma'lumotlar */}
           <Grid item xs={6} md={4}>
             <Box sx={{ mb: 2 }}>
+              {blockReport?.blockStatus === 'BLOCK' && (
+                <Alert color="error">
+                  {t('abonentCardPage.blockedByHet')}: {dayjs(blockReport?.blockDate).format('DD.MM.YYYY')}{' '}
+                  {blockReport?.blockDebt.toLocaleString()} {t('uzs')}
+                </Alert>
+              )}
               <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
                 <Typography variant="h4" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
                   {data?.fullName || ''}
@@ -149,9 +159,6 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                   }}
                 />
               </Stack>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {data?.citizen.birthDate || ''}
-              </Typography>
             </Box>
 
             <Box sx={{ mt: 1 }}>
@@ -170,6 +177,7 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
               <InfoRow icon={DateIcon} label="Шартнома тасдиқланган сана" value={data?.contractDate} />
             </Box>
           </Grid>
+          {/* O'ng tomon: Ma'lumotlar */}
           <Grid item xs={6}>
             <Stack spacing={0.5}>
               <InfoRow icon={CompanyIcon} label="Корхона номи" value={data?.companyName || 'DEMO'} />

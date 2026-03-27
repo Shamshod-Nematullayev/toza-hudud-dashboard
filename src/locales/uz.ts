@@ -378,7 +378,8 @@ const uz = {
     noDataForPnfl: "Pasport ma'lumotlari topilmadi",
     abonentCard: 'Abonent karta',
     certificate: "Ma'lumotnoma",
-    calculationsOfAbonent: 'Abonentning xisob-kitobi'
+    calculationsOfAbonent: 'Abonentning xisob-kitobi',
+    blockedByHet: "Elektr to'lovi cheklangan"
   },
   house: {
     type: 'Uy turi',

@@ -8,8 +8,17 @@ import { t } from 'i18next';
 import { useEffect } from 'react';
 
 function AbonentDetails() {
-  const { abonentDetails, incomeStats, balancePredicts, hetAbonent, getHetAbonent, setHetAbonent, fetchCadastrAbonent, cadastrAbonent } =
-    useAbonentStore();
+  const {
+    abonentDetails,
+    incomeStats,
+    balancePredicts,
+    hetAbonent,
+    getHetAbonent,
+    setHetAbonent,
+    fetchCadastrAbonent,
+    cadastrAbonent,
+    fetchBlockReport
+  } = useAbonentStore();
   const { residentId } = useAbonentLogic();
   const { periodEndYear } = useAbonentLogic();
   useEffect(() => {
@@ -25,6 +34,9 @@ function AbonentDetails() {
       if (abonentDetails?.id && abonentDetails.house.cadastralNumber) {
         fetchCadastrAbonent(abonentDetails.house.cadastralNumber);
       }
+    } catch (error) {}
+    try {
+      fetchBlockReport(residentId);
     } catch (error) {}
   }, [residentId, abonentDetails?.id]);
 
