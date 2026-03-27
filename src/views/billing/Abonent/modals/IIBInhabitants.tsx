@@ -62,8 +62,8 @@ function IIBInhabitants() {
     if (open && abonentDetails) {
       setLoading(true);
       (async () => {
-        // const details = await getIIBInhabitants(abonentDetails.house.cadastralNumber);
-        // setDetails(details);
+        const details = await getIIBInhabitants(abonentDetails.house.cadastralNumber);
+        setDetails(details);
         setLoading(false);
       })();
     }
