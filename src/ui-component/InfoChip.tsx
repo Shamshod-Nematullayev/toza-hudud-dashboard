@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stack, Typography, Box, SvgIconProps, SxProps } from '@mui/material';
+import { Stack, Typography, Box, SvgIconProps, SxProps, Backdrop, CircularProgress } from '@mui/material';
 
 // Komponent parametrlari: icon (komponent), label (key), value
 const InfoChip = ({
@@ -9,7 +9,8 @@ const InfoChip = ({
   valueColor = '',
   onClick,
   containerSX,
-  containerRef
+  containerRef,
+  loading
 }: {
   icon: React.ElementType<SvgIconProps>;
   label: string | number;
@@ -18,6 +19,7 @@ const InfoChip = ({
   valueColor?: string;
   onClick?: () => void;
   containerRef?: React.RefObject<HTMLDivElement>;
+  loading?: boolean;
 }) => {
   return (
     <Stack
@@ -63,7 +65,13 @@ const InfoChip = ({
       {/* Matn qismi */}
       <Box>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, color: valueColor, mt: 0.5, fontSize: 18 }}>
-          {value}
+          {loading ? (
+            <>
+              <CircularProgress color="inherit" />
+            </>
+          ) : (
+            value
+          )}
         </Typography>
         <Typography variant="caption" display="block" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1 }}>
           {label}

@@ -27,7 +27,7 @@ interface InfoChipsProps {
   calculated: number;
   payments: number;
   balance: number;
-  balanceToYearEnd: number;
+  balanceToYearEnd: number | null;
 }
 
 function InfoChips(props: InfoChipsProps) {
@@ -89,13 +89,14 @@ function InfoChips(props: InfoChipsProps) {
       <InfoChip
         icon={YearEndIcon}
         label={t('tableHeaders.balanceToYearEnd')}
-        value={props.balanceToYearEnd.toLocaleString('uz-Latn')}
-        valueColor={props.balanceToYearEnd < 0 ? 'error.main' : 'success.main'}
+        value={(props.balanceToYearEnd || 0).toLocaleString('uz-Latn')}
+        valueColor={props.balanceToYearEnd || 0 < 0 ? 'error.main' : 'success.main'}
         onClick={() => setOpenCalc(true)}
         containerSX={{
           cursor: 'pointer'
         }}
         containerRef={calculatorRef}
+        loading={props.balanceToYearEnd === null}
       />
       <Popper
         placement={'bottom-start'}

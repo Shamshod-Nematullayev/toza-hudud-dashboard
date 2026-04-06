@@ -90,7 +90,7 @@ export interface IAbonentPageStore {
   hetAbonent: HETSuccessResponse | undefined;
   setHetAbonent: (hetAbonent: HETSuccessResponse | undefined) => void;
   cadastrAbonent: CadastrDetais | undefined;
-  fetchCadastrAbonent: (cadastr: string) => void;
+  fetchCadastrAbonent: (cadastr: string) => Promise<void>;
   blockReport?: BlockReport;
   fetchBlockReport: (residentId: number) => void;
 }
@@ -151,6 +151,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   },
   balancePredicts: null,
   getIncomePredicts: async (residentId, period) => {
+    set({ balancePredicts: null });
     const { data } = await api.get('/abonents/balance-recalc-predict', { params: { period, residentId } });
     set({ balancePredicts: data });
   },
