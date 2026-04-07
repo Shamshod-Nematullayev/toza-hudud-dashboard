@@ -24,11 +24,12 @@ import {
   Description as PetitionIcon,
   AddHomeWork as MultipleIcon,
   Tune as ActionsIcon,
-  ElectricBolt
+  ElectricBolt,
+  Refresh
 } from '@mui/icons-material';
 import { t } from 'i18next';
 import { useAbonentStore } from './abonentStore';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAbonentLogic } from './useAbonentLogic';
 import MainPopper from 'ui-component/cards/MainPopper';
 import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
@@ -119,13 +120,14 @@ function AbonentTools() {
     setOpenPrintAbonentcardState,
     setOpenDebtCertificateDialog,
     setOpenAddInhabitantsDialog,
-    setOpenEditElectricAccountState
+    setOpenEditElectricAccountState,
+    refreshAbonentDetailsPage
   } = useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
   const printSectionRef = useRef(null);
   const [printSelectionOpen, setPrintSelectionOpen] = useState(false);
-  const { residentId } = useAbonentLogic();
+  const { residentId, periodEndYear } = useAbonentLogic();
   const currentTab = location.pathname.split('/').pop();
   const [tab, setTab] = useState<TabType>(currentTab as TabType);
 
@@ -149,6 +151,10 @@ function AbonentTools() {
   };
 
   const isXs = useMediaQuery('(max-width:600px)');
+
+  const handleRefreshDetails = () => {
+    void refreshAbonentDetailsPage(residentId, periodEndYear);
+  };
 
   return (
     <>
@@ -252,6 +258,11 @@ function AbonentTools() {
               {t('buttons.createAbonentPetition')}
             </Button>
           </ButtonGroup>
+          <Tooltip title={t('buttons.refresh')}>
+            <IconButton onClick={handleRefreshDetails} sx={{ p: 1 }} aria-label={t('buttons.refresh')}>
+              <Refresh />
+            </IconButton>
+          </Tooltip>
           <Tabs value={tab} onChange={handleTabsChange}>
             <Tab label={"Ma'lumotlar"} value={'details'} />
             <Tab label={'DHJ'} value={'dhj'} />

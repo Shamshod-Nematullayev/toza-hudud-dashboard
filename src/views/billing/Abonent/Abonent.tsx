@@ -1,8 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import AbonentTools from './AbonentTools';
-import { useAbonentLogic } from './useAbonentLogic';
+import { usePrefetchAbonentPageData, useAbonentDetailsSupplementaryData } from './useAbonentLogic';
 import ChangePhoneDialog from './modals/ChangePhone';
-import { useAbonentStore } from './abonentStore';
 import EditDetails from './modals/EditDetails';
 import PrintAbonentCard from './modals/PrintAbonentCard';
 import PrintDebtCertificate from './modals/PrintDebtCertificate';
@@ -11,7 +10,8 @@ import AddInhabitants from './modals/AddInhabitants';
 import EditElectricAccountModal from './modals/ElectricAccountEdit';
 
 function Abonent() {
-  useAbonentLogic();
+  usePrefetchAbonentPageData();
+  useAbonentDetailsSupplementaryData();
   return (
     <div>
       <AbonentTools />

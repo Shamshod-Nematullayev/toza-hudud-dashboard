@@ -91,6 +91,14 @@ export interface IAbonentPageStore {
   setHetAbonent: (hetAbonent: HETSuccessResponse | undefined) => void;
   cadastrAbonent: CadastrDetais | undefined;
   fetchCadastrAbonent: (cadastr: string) => Promise<void>;
+  /** AbonentDetails HET kartochkasi yuklanishi (layout boshqaradi) */
+  abonentDetailsHetLoading: boolean;
+  /** AbonentDetails kadastr kartochkasi yuklanishi */
+  abonentDetailsCadastrLoading: boolean;
+  /** Qo\'shimcha ma\'lumotlarni qayta yuklash uchun (refresh tugmasi) */
+  abonentSupplementaryRefreshNonce: number;
+  /** Abonent kartasi: batafsil, tushum, bashorat va HET/kadastr/blok */
+  refreshAbonentDetailsPage: (residentId: number, periodEndYear: string) => Promise<void>;
   blockReport?: BlockReport;
   fetchBlockReport: (residentId: number) => void;
 }
@@ -286,12 +294,25 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   hetAbonent: undefined,
   setHetAbonent: (abonent) => set({ hetAbonent: abonent }),
   cadastrAbonent: undefined,
+  abonentDetailsHetLoading: false,
+  abonentDetailsCadastrLoading: false,
+  abonentSupplementaryRefreshNonce: 0,
+  refreshAbonentDetailsPage: async (residentId, periodEndYear) => {
+    if (Number.isNaN(residentId)) return;
+    await get().getDetails(residentId);
+    await Promise.all([get().getIncomeStats(residentId), get().getIncomePredicts(residentId, periodEndYear)]);
+    set((s) => ({ abonentSupplementaryRefreshNonce: s.abonentSupplementaryRefreshNonce + 1 }));
+  },
   fetchCadastrAbonent: async (cadastralNumber) => {
     const { data } = await api.get('/abonents/cadastr-details', { params: { cadastralNumber } });
+    const details = get().abonentDetails;
+    if (!details || details.house.cadastralNumber !== cadastralNumber) return;
     set({ cadastrAbonent: data });
   },
-  fetchBlockReport: async (params) => {
-    const { data } = await api.get('/abonents/het-warning-report', { params });
+  fetchBlockReport: async (residentId: number) => {
+    const { data } = await api.get('/abonents/het-warning-report', { params: { residentId } });
+    const current = get().abonentDetails;
+    if (!current || current.id !== residentId) return;
     set({ blockReport: data });
   }
 }));

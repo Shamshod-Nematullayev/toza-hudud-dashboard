@@ -5,7 +5,6 @@ import { useAbonentLogic } from '../useAbonentLogic';
 import { Card, CircularProgress, Grid, Typography } from '@mui/material';
 import { CompactKeyValue } from '../modals/PrintAbonentCard';
 import { t } from 'i18next';
-import { useEffect, useState } from 'react';
 
 function AbonentDetails() {
   const {
@@ -13,38 +12,11 @@ function AbonentDetails() {
     incomeStats,
     balancePredicts,
     hetAbonent,
-    getHetAbonent,
-    setHetAbonent,
-    fetchCadastrAbonent,
     cadastrAbonent,
-    fetchBlockReport
+    abonentDetailsHetLoading,
+    abonentDetailsCadastrLoading
   } = useAbonentStore();
-  const { residentId } = useAbonentLogic();
   const { periodEndYear } = useAbonentLogic();
-  const [hetAbonentLoading, setHetAbonentLoading] = useState(false);
-  const [cadastrAbonentLoading, setCadastrAbonentLoading] = useState(false);
-  useEffect(() => {
-    if (abonentDetails && abonentDetails.electricityCoato && abonentDetails.electricityAccountNumber) {
-      try {
-        setHetAbonentLoading(true);
-        getHetAbonent({ coato: abonentDetails.electricityCoato, personalAccount: abonentDetails.electricityAccountNumber })
-          .then((res) => {
-            if ('personalAccount' in res) setHetAbonent(res);
-            else setHetAbonent(undefined);
-          })
-          .finally(() => setHetAbonentLoading(false));
-      } catch (error) {}
-    }
-    try {
-      if (abonentDetails?.id && abonentDetails.house.cadastralNumber) {
-        setCadastrAbonentLoading(true);
-        fetchCadastrAbonent(abonentDetails.house.cadastralNumber).finally(() => setCadastrAbonentLoading(false));
-      }
-    } catch (error) {}
-    try {
-      fetchBlockReport(residentId);
-    } catch (error) {}
-  }, [residentId, abonentDetails?.id]);
 
   const balanceToYearEnd = balancePredicts?.balancePredictItems.find((i) => i.period === periodEndYear)?.balanceAmount || null;
 
@@ -69,7 +41,7 @@ function AbonentDetails() {
             <Grid item xs={4}>
               <Card sx={{ p: 2, boxShadow: '2' }}>
                 <Typography variant="h6">{t('hetAbonent')}</Typography>
-                {hetAbonentLoading ? (
+                {abonentDetailsHetLoading ? (
                   <CircularProgress />
                 ) : (
                   <CompactKeyValue
@@ -88,7 +60,7 @@ function AbonentDetails() {
             <Grid item xs={4}>
               <Card sx={{ p: 2, boxShadow: '2', height: '100%' }}>
                 <Typography variant="h6">{t('cadastrAbonent')}</Typography>
-                {cadastrAbonentLoading ? (
+                {abonentDetailsCadastrLoading ? (
                   <CircularProgress />
                 ) : (
                   <CompactKeyValue
