@@ -318,7 +318,8 @@ const uz = {
     createAbonentPetition: 'Abonent arizasi yaratish',
     addToMultipleLivings: "Yashovchilar soni o'zgartirish",
     editPhone: 'Telefon raqamini tahrirlash',
-    uploadFile: 'Faylni yuklash'
+    uploadFile: 'Faylni yuklash',
+    manualEntry: "Qo'lda"
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',

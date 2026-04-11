@@ -11,7 +11,7 @@ function ImportAbonentPetition() {
   const { pdfFiles, showDialog, setShowDialog } = useStore();
 
   return (
-    <MainCard contentSX={{ height: 'calc(100vh - 130px)' }}>
+    <MainCard contentSX={{ height: 'calc(100vh - 100px)' }}>
       <Grid container spacing={2} height={'100%'}>
         <Grid item xs={1.5} height={'100%'}>
           <FilesList />

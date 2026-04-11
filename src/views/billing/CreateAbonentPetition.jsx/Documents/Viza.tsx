@@ -22,7 +22,8 @@ function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDat
         >
           Shuni yozib ma’lum qilamanki mening <span style={{ textDecoration: 'underline' }}>{abonentData.accountNumber}</span> hisob raqamim
           onlayn bazada ma‘lumotlar o‘z vaqtida taqdim e‘tilmaganligi sababli pasport vizalari taqdim qilyapman. Ushbu pasport vizalari
-          asosida O‘zbekistonda yashamagan davrimni qayta hisob-kitob qilib berishingizni so‘rayman.
+          asosida xonadonimda yashovchi bo'lgan shaxslarni O‘zbekistonda yashamagan davr(lar)ni qayta hisob-kitob qilib berishingizni
+          so‘rayman.
         </p>
         <QRSection abonentData={abonentData} ariza={ariza} date={date} />
       </div>

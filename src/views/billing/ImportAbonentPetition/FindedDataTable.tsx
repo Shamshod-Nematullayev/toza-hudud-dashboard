@@ -16,173 +16,41 @@ import { useTranslation } from 'react-i18next';
 import { useTariff } from 'hooks/useTariff';
 import { useArizaData } from 'hooks/useArizaData';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
-
-interface IRow {
-  id: number;
-  davr: string;
-  saldo_n: number;
-  nachis: number;
-  saldo_k: number;
-  akt: number;
-  yashovchilar_soni: number;
-  allPaymentsSum: number;
-}
+import { Keyboard } from '@mui/icons-material';
+import RecalculateForm from '../CreateAbonentPetition.jsx/CreateArizaStepper/RecalculateForm';
+import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
+import { IRow, useFindedTableLogic } from './useFindedTableLogic';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function FindedDataTable() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog } = useStore();
-  const [arizaNumberInput, setArizaNumberInput] = useState('');
-  const [arizalarRows, setArizalarRows] = useState([]);
-  const [inputDisabled, setInputDisabled] = useState(true);
-  const [showSpoiler, setShowSpoiler] = useState(false);
-  const [aktSumm, setAktSumm] = useState('0');
+  const { ariza, setAriza, setShowDialog } = useStore();
 
-  const [isUploading, setIsUploading] = useState(false);
-  const { setIsLoading } = useLoaderStore();
-  const { refetch: refetchTariffs, currentTariff, loading: tariffsLoading } = useTariff();
-  const { rows, rowsDublicate, allPaymentsSumOnDublicate, loading: arizaLoading } = useArizaData(ariza);
-  const [rowAfterAkt, setRowAfterAkt] = useState<IRow | null>(null);
-
-  useEffect(() => {
-    if (tariffsLoading) {
-      setIsLoading(true);
-      setInputDisabled(true);
-    } else {
-      setInputDisabled(false);
-      setIsLoading(false);
-    }
-  }, [tariffsLoading, arizaLoading]);
-
-  useEffect(() => {
-    if (!currentTariff) {
-      refetchTariffs();
-      return;
-    }
-    if (showSpoiler && ariza) {
-      const yashovchilar_soni = isNaN(ariza.next_prescribed_cnt) ? rows[0].yashovchilar_soni : ariza.next_prescribed_cnt;
-      const nachis = isNaN(yashovchilar_soni) ? rows[0].nachis : currentTariff?.hisoblandi * yashovchilar_soni;
-      setRowAfterAkt({
-        id: 1,
-        davr: rows[0].davr,
-        saldo_n: rows[0].saldo_n,
-        nachis,
-        saldo_k: rows[0].saldo_n + nachis - rows[0].akt - rows[0].allPaymentsSum - eval(aktSumm),
-        akt: rows[0].akt + eval(aktSumm),
-        yashovchilar_soni: yashovchilar_soni,
-        allPaymentsSum: rows[0].allPaymentsSum
-      });
-    } else {
-      setRowAfterAkt(rows[0]);
-    }
-  }, [showSpoiler, rows]);
-
-  useEffect(() => {
-    if (ariza?.document_type === 'dvaynik') {
-      setAktSumm(allPaymentsSumOnDublicate.toString() || '0');
-    } else {
-      setAktSumm(ariza?.aktSummCounts?.total?.toString() || '0');
-    }
-    setArizaNumberInput(ariza?.document_number?.toString() || '');
-  }, [ariza]);
+  const {
+    handleClickRefreshButton,
+    handleCloseChooseArizaModal,
+    handleDeleteButtonClick,
+    handlePrimaryButtonClick,
+    handleTabChange,
+    showArizaChooseDialog,
+    tabIndex,
+    inputDisabled,
+    arizaNumberInput,
+    setArizaNumberInput,
+    arizalarRows,
+    isUploading,
+    setShowSpoiler,
+    showSpoiler,
+    rowAfterAkt,
+    aktSumm,
+    setAktSumm,
+    manualEditing,
+    setManualEditing
+  } = useFindedTableLogic();
+  const { rows, rowsDublicate } = useArizaData(ariza);
 
   const btnRef = useRef(null);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    handleClickRefreshButton();
-  };
-  const handleClickRefreshButton = async () => {
-    try {
-      const { data } = await api.get('/arizalar/', {
-        params: {
-          document_number: arizaNumberInput
-        }
-      });
-      if (!data.ok) {
-        return toast.error(data.message);
-      }
-      if (data.data.length === 0) {
-        return toast.error('Bunday tartib raqamga ega ariza topilmadi');
-      }
-      if (data.data.length === 1) {
-        setAriza(data.data[0]);
-      } else {
-        setArizalarRows(data.data);
-        setShowArizaChooseDialog(true);
-      }
-    } catch (err) {
-      console.log(err);
-      toast.error("Serverga so'rov yuborilmadi");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-  const handlePrimaryButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    try {
-      e.preventDefault();
-      setIsLoading(true);
-      setIsUploading(true);
-      if (!currentFile?.url) {
-        toast.error('Fayl tanlanmadi');
-        return;
-      }
-      if (!ariza) {
-        toast.error('Ariza tanlanmadi');
-        return;
-      }
-      const formData = new FormData();
-      formData.append('file', currentFile.blob, currentFile.file.name);
-      formData.append('document_type', ariza.document_type);
-      formData.append('ariza_id', ariza._id);
-      formData.append('licshet', ariza.licshet);
-      formData.append('residentId', ariza.abonentId.toString());
-      formData.append(
-        'next_inhabitant_count',
-        (ariza.next_prescribed_cnt === null ? rows[0].yashovchilar_soni : ariza.next_prescribed_cnt).toString()
-      );
-      formData.append('akt_sum', Math.floor(eval(aktSumm)).toString());
-      formData.append('amountWithoutQQS', (Math.floor(ariza.aktSummCounts?.withoutQQSTotal) || 0).toString());
-      formData.append('description', ariza.comment.length < 150 ? 'fuqaro arizasi ' + ariza.comment : 'fuqaro arizasi');
-      ariza.photos?.forEach((photo, index) => {
-        formData.append(`photos[${index}]`, photo);
-      });
-
-      const url = ariza.document_type === 'dvaynik' ? '/billing/create-dvaynik-akt-by-ariza' : '/billing/create-full-akt';
-      const { data } = await api.post(url, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      if (!data.ok) {
-        toast.error(data.message);
-        return;
-      }
-      handleDeleteButtonClick();
-      toast.success(data.message);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err ?? "Noma'lum xatolik");
-      console.error(message);
-    } finally {
-      setIsLoading(false);
-      setIsUploading(false);
-    }
-  };
-  const handleDeleteButtonClick = async () => {
-    if (!currentFile?.url) {
-      toast.error('Fayl tanlanmadi');
-      return;
-    }
-    removePdfFile(currentFile.file.name);
-    setCurrentFile('');
-    setAriza(null);
-    setArizaNumberInput('0');
-    setAktSumm('');
-  };
-  const [showArizaChooseDialog, setShowArizaChooseDialog] = useState(false);
-  const handleCloseChooseArizaModal = () => setShowArizaChooseDialog(false);
-
-  const [tabIndex, setTabIndex] = useState(0);
-
-  const handleTabChange = (_: any, newValue: number) => setTabIndex(newValue);
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: '№', width: 10 },
@@ -196,7 +64,7 @@ function FindedDataTable() {
   ];
 
   return (
-    <div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 130px)' }}>
       <Box
         display="flex"
         alignItems="center"
@@ -206,7 +74,8 @@ function FindedDataTable() {
           p: 2,
           borderRadius: 3,
           backgroundColor: 'background.paper',
-          boxShadow: 2
+          boxShadow: 2,
+          flex: 0
         }}
       >
         {/* LEFT SECTION */}
@@ -222,7 +91,7 @@ function FindedDataTable() {
             placeholder={t('documentNumber')}
             value={arizaNumberInput}
             onChange={(e) => setArizaNumberInput(e.target.value)}
-            sx={{ width: 220 }}
+            sx={{ maxWidth: 100 }}
           />
           <ChooseArizaPopper
             anchorEl={btnRef.current}
@@ -234,11 +103,11 @@ function FindedDataTable() {
         </Box>
 
         {/* CENTER SECTION */}
-        <Box display="flex" alignItems="center" gap={1.5}>
+        <Box display="flex" alignItems="center" gap={1.5} sx={{ textWrap: 'nowrap' }}>
           <Button
             variant="contained"
             startIcon={<FileUploadOutlinedIcon />}
-            disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isUploading)}
+            disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isUploading) && !manualEditing}
             onClick={handlePrimaryButtonClick}
             sx={{ px: 3 }}
           >
@@ -258,6 +127,9 @@ function FindedDataTable() {
           >
             {t('buttons.cancel')}
           </Button>
+          <Button startIcon={<Keyboard />} variant="outlined" color="secondary" onClick={() => setManualEditing(!manualEditing)}>
+            {t('buttons.manualEntry')}
+          </Button>
         </Box>
 
         {/* RIGHT SECTION */}
@@ -265,7 +137,7 @@ function FindedDataTable() {
           {showSpoiler ? <Visibility /> : <VisibilityOff />}
         </IconButton>
       </Box>
-      <div>
+      <Box sx={{ flex: 0, mt: 2 }}>
         <CompactKeyValue
           data={[
             {
@@ -296,8 +168,22 @@ function FindedDataTable() {
             }
           ]}
         />
-      </div>
-      <Tabs value={tabIndex} onChange={handleTabChange}>
+      </Box>
+      <AnimatePresence>
+        {manualEditing && (
+          <motion.div
+            style={{ flex: 1 }}
+            initial={{ y: -80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -80, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <RecalculatorAbonent />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Tabs value={tabIndex} onChange={handleTabChange} sx={{ flex: 0 }}>
         <Tab label="Asosiy jadval" />
         {ariza?.document_type === 'dvaynik' && (
           <Tooltip title="Ikkilamchi hisob raqam jadvali">
@@ -307,31 +193,29 @@ function FindedDataTable() {
       </Tabs>
 
       {/* Tab Panels */}
-      {tabIndex === 0 && (
-        <Box sx={{ mt: 2, height: '400px' }} className="scrollbar-container">
+      <Box sx={{ mt: 2, height: '200px', flex: 1 }}>
+        {tabIndex === 0 && (
           <DataGrid
             columns={columns}
             disableColumnFilter
             disableColumnSorting
             hideFooter
             rows={showSpoiler ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
-            style={{ margin: '0 auto', height: '60vh' }}
+            style={{ margin: '0 auto', height: '100%' }}
           />
-        </Box>
-      )}
-      {tabIndex === 1 && (
-        <Box sx={{ mt: 2, height: '400px' }} className="scrollbar-container">
+        )}
+        {tabIndex === 1 && (
           <DataGrid
             columns={columns}
             disableColumnFilter
             disableColumnSorting
             hideFooter
             rows={showSpoiler ? [rowAfterAkt as IRow, ...rowsDublicate.slice(1)] : rowsDublicate}
-            style={{ margin: '0 auto', height: '60vh' }}
+            style={{ margin: '0 auto', height: '100%' }}
           />
-        </Box>
-      )}
-    </div>
+        )}
+      </Box>
+    </Box>
   );
 }
 
