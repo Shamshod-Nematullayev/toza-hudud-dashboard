@@ -7,7 +7,8 @@ function AccountNumberInput({
   label,
   sx,
   disabled,
-  required
+  required,
+  size
 }: {
   value: string;
   setFunc: (e: string) => void;
@@ -15,6 +16,7 @@ function AccountNumberInput({
   sx?: SxProps;
   disabled?: boolean;
   required?: boolean;
+  size?: 'small' | 'medium';
 }) {
   const defaultValue = localStorage.getItem('abonentsPrefix') || '105120';
   const inputRef = useRef(null);
@@ -46,6 +48,7 @@ function AccountNumberInput({
       type="text"
       inputProps={{ maxLength: 12 }}
       onFocus={handleFocus}
+      size={size}
       onBlur={(e) => {
         if (e.target.value == defaultValue) {
           setFunc('');

@@ -86,12 +86,15 @@ function PrintSection() {
               <div>
                 &quot;{date.getDate()}&quot; {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
-              <div>Kattaqo‘rg‘on tumani {lotinga(mahalla?.name)}</div>
+              <div>
+                {company?.locationName} {lotinga(mahalla?.name)}
+              </div>
             </div>
             <p style={{ textIndent: '25px' }}>
-              Bizlar kim imzo chekuvchilar Kattaqo‘rg‘on tuman {lotinga(mahalla?.name)} MFY raisi{' '}
-              {fullNameToShortName(mahalla?.mfy_rais_name)}, “Anvarjon biznes invest” MCHJ rahbari {fullNameToShortName('Sadriddinov Aziz')}{' '}
-              va abonentlar bilan ishlash bo‘limi xodimi {fullNameToShortName("Ne'matullayev Shamshod")}
+              Bizlar kim imzo chekuvchilar {company?.locationName} {lotinga(mahalla?.name)} MFY raisi{' '}
+              {fullNameToShortName(mahalla?.mfy_rais_name) || '________________'}, {company.name} rahbari{' '}
+              {fullNameToShortName(company.managerName) || '________________'} va abonentlar bilan ishlash bo‘limi xodimi{' '}
+              {fullNameToShortName("Ne'matullayev Shamshod")}
               {mahalla?.biriktirilganNazoratchi?.inspector_name && (
                 <span>, aholi nazoratchisi {fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)}</span>
               )}{' '}
@@ -154,7 +157,7 @@ function PrintSection() {
             <br />
             <ImzoJoyiRow label="Axoli nazoratchisi:" name={fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
             <br />
-            <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali raxbari:`} name={company.managerName} />
+            <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali rahbari:`} name={company.managerName} />
             <br />
             <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas

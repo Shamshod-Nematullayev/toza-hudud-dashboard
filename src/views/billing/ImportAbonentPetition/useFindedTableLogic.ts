@@ -41,9 +41,7 @@ function buildManualActDescription(periods: IRecalculationPeriod[]): string {
     const from = item.startDate ? new Date(item.startDate as unknown as string) : null;
     const to = item.endDate ? new Date(item.endDate as unknown as string) : null;
     const fmt = (d: Date | null) =>
-      d && !Number.isNaN(d.getTime())
-        ? `${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
-        : '—';
+      d && !Number.isNaN(d.getTime()) ? `${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : '—';
     return `Davr: ${fmt(from)} - ${fmt(to)}, Summa: ${item.total}`;
   });
   const total = periods.reduce((s, p) => s + p.total, 0);
@@ -67,13 +65,14 @@ export function useFindedTableLogic() {
   const abonentData = useRecalculatorStore((s) => s.abonentData);
   const yashovchiSoniInput = useRecalculatorStore((s) => s.yashovchiSoniInput);
 
-  const manualResidentIdForDh =
-    manualEditing && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0 ? abonentData.id : null;
+  const manualResidentIdForDh = manualEditing && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0 ? abonentData.id : null;
 
-  const { rows, rowsDublicate, allPaymentsSumOnDublicate, loading: arizaLoading } = useArizaData(
-    ariza as IAriza | null,
-    manualResidentIdForDh
-  );
+  const {
+    rows,
+    rowsDublicate,
+    allPaymentsSumOnDublicate,
+    loading: arizaLoading
+  } = useArizaData(ariza as IAriza | null, manualResidentIdForDh);
   const [rowAfterAkt, setRowAfterAkt] = useState<IRow | null>(null);
 
   useEffect(() => {
@@ -101,8 +100,7 @@ export function useFindedTableLogic() {
       if (hasValidAriza(ariza as IAriza | null)) {
         const a = ariza as IAriza;
         const n = a.next_prescribed_cnt;
-        yashovchilar_soni =
-          n === null || n === undefined || Number.isNaN(Number(n)) ? first.yashovchilar_soni : Number(n);
+        yashovchilar_soni = n === null || n === undefined || Number.isNaN(Number(n)) ? first.yashovchilar_soni : Number(n);
       } else {
         const fromInput = Number(yashovchiSoniInput);
         yashovchilar_soni = !Number.isNaN(fromInput) && fromInput > 0 ? fromInput : first.yashovchilar_soni;
@@ -228,12 +226,9 @@ export function useFindedTableLogic() {
         }
 
         const nextInhabitantRaw = Number(useRecalculatorStore.getState().yashovchiSoniInput);
-        const next_inhabitant_count =
-          !Number.isNaN(nextInhabitantRaw) && nextInhabitantRaw > 0 ? nextInhabitantRaw : ad.house?.inhabitantCnt ?? 1;
+        const next_inhabitant_count = !Number.isNaN(nextInhabitantRaw) ? nextInhabitantRaw : ad.house?.inhabitantCnt ?? 1;
 
-        const withoutQQS = Math.floor(
-          recalculationPeriods.reduce((s, p) => s + (Number(p.withoutQQSTotal) || 0), 0)
-        );
+        const withoutQQS = Math.floor(recalculationPeriods.reduce((s, p) => s + (Number(p.withoutQQSTotal) || 0), 0));
 
         const formData = new FormData();
         formData.append('file', currentFile.blob, currentFile.file.name);
