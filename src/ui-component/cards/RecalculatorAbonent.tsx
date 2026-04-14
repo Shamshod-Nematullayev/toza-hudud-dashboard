@@ -155,7 +155,7 @@ function RecalculatorAbonent() {
     ]);
   };
 
-  const deleteItem = (index) => {
+  const deleteItem = (index: number) => {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
   };
 

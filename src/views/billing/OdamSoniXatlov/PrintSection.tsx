@@ -31,7 +31,7 @@ const raqamlar = [
   'O‘n to‘qqiz',
   'Yigirma'
 ];
-function stringToName(str) {
+function stringToName(str: string) {
   const parts = str.split(' ');
   let name = ``;
   parts.forEach((part) => {
@@ -135,7 +135,7 @@ function PrintSection() {
                         textAlign: 'left'
                       }}
                     >
-                      {lotinga(stringToName(row.fio))}
+                      {lotinga(stringToName(row.fio || ''))}
                     </td>
                     <td>
                       <div style={{ textAlign: 'left', margin: 'auto', width: '70px' }}>

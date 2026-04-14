@@ -1,4 +1,20 @@
-import { Box, Button, Grid, IconButton, Tab, Tabs, TextField, Tooltip, Typography, useTheme } from '@mui/material';
+import {
+  Box,
+  Button,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Tooltip,
+  Typography,
+  useTheme
+} from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -14,18 +30,23 @@ import Cancel from '@mui/icons-material/CancelOutlined';
 import ChooseArizaPopper from './ChooseArizaPopper';
 import { useTranslation } from 'react-i18next';
 import { useTariff } from 'hooks/useTariff';
-import { useArizaData } from 'hooks/useArizaData';
+import { documentTypes } from 'store/constant';
+import { useStore as useRecalculatorStore } from '../CreateAbonentPetition.jsx/useStore';
+import { IAriza } from 'types/models';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 import { Keyboard } from '@mui/icons-material';
 import RecalculateForm from '../CreateAbonentPetition.jsx/CreateArizaStepper/RecalculateForm';
 import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
-import { IRow, useFindedTableLogic } from './useFindedTableLogic';
+import { hasValidAriza, IRow, useFindedTableLogic } from './useFindedTableLogic';
 import { AnimatePresence, motion } from 'framer-motion';
 
 function FindedDataTable() {
   const { t } = useTranslation();
   const theme = useTheme();
   const { ariza, setAriza, setShowDialog } = useStore();
+  const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData } = useRecalculatorStore();
+
+  const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik');
 
   const {
     handleClickRefreshButton,
@@ -46,9 +67,13 @@ function FindedDataTable() {
     aktSumm,
     setAktSumm,
     manualEditing,
-    setManualEditing
+    setManualEditing,
+    rows,
+    rowsDublicate,
+    manualAccountNumber,
+    setManualAccountNumber,
+    loadAbonentByAccountForManual
   } = useFindedTableLogic();
-  const { rows, rowsDublicate } = useArizaData(ariza);
 
   const btnRef = useRef(null);
 
@@ -133,19 +158,108 @@ function FindedDataTable() {
         </Box>
 
         {/* RIGHT SECTION */}
-        <IconButton onClick={() => setShowSpoiler(!showSpoiler)} disabled={!ariza || !rows.length}>
+        <IconButton onClick={() => setShowSpoiler(!showSpoiler)} disabled={!rows.length}>
           {showSpoiler ? <Visibility /> : <VisibilityOff />}
         </IconButton>
       </Box>
+      {manualEditing && !hasValidAriza(ariza as IAriza | null) && (
+        <Box
+          sx={{
+            flex: 0,
+            mt: 2,
+            p: 2,
+            borderRadius: 2,
+            bgcolor: 'action.hover',
+            border: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} flexWrap="wrap">
+            <TextField
+              size="small"
+              label={t('tableHeaders.accountNumber')}
+              value={manualAccountNumber}
+              onChange={(e) => setManualAccountNumber(e.target.value)}
+              sx={{ minWidth: 160 }}
+            />
+            <Button variant="contained" color="secondary" onClick={() => void loadAbonentByAccountForManual()}>
+              Yuklash
+            </Button>
+            <FormControl size="small" sx={{ minWidth: 220 }}>
+              <InputLabel id="manual-akt-type">{t('tableHeaders.documentType')}</InputLabel>
+              <Select
+                labelId="manual-akt-type"
+                label={t('tableHeaders.documentType')}
+                value={aktType ?? ''}
+                displayEmpty
+                onChange={(e) => setAktType((e.target.value || null) as typeof aktType)}
+                renderValue={(v) => (v ? (t as (k: string) => string)(`documentTypes.${v}`) : 'Akt turini tanlang')}
+              >
+                <MenuItem value="">
+                  <em>Tanlanmagan</em>
+                </MenuItem>
+                {manualActDocumentTypes.map((dt) => (
+                  <MenuItem key={dt} value={dt}>
+                    {(t as (k: string) => string)(`documentTypes.${dt}`)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {abonentData?.fullName ? (
+              <Typography variant="body2" color="text.secondary">
+                {abonentData.fullName} (ID: {abonentData.id})
+              </Typography>
+            ) : null}
+          </Stack>
+        </Box>
+      )}
       <Box sx={{ flex: 0, mt: 2 }}>
         <CompactKeyValue
           data={[
             {
               key: t('tableHeaders.accountNumber'),
-              value: ariza?.document_type === 'dvaynik' ? `${ariza?.licshet} : ${ariza?.ikkilamchi_licshet}` : ariza?.licshet || ''
+              value: hasValidAriza(ariza as IAriza | null)
+                ? ariza?.document_type === 'dvaynik'
+                  ? `${ariza?.licshet} : ${ariza?.ikkilamchi_licshet}`
+                  : ariza?.licshet || ''
+                : abonentData?.accountNumber || '—'
             },
-            { key: t('tableHeaders.fullName'), value: ariza?.fio || '' },
-            { key: t('tableHeaders.inhabitantCount'), value: ariza?.next_prescribed_cnt || '' },
+            {
+              key: t('tableHeaders.fullName'),
+              value: hasValidAriza(ariza as IAriza | null) ? ariza?.fio || '' : abonentData?.fullName || '—'
+            },
+            {
+              key: t('tableHeaders.inhabitantCount'),
+              value: (
+                <input
+                  type="number"
+                  min={1}
+                  style={{
+                    background: 'none',
+                    outline: 'none',
+                    border: 'none',
+                    color: theme.colors.darkTextPrimary,
+                    textAlign: 'right',
+                    maxWidth: '100px'
+                  }}
+                  value={
+                    hasValidAriza(ariza as IAriza | null)
+                      ? String(
+                          (ariza as IAriza).next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? ''
+                        )
+                      : yashovchiSoniInput
+                  }
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (hasValidAriza(ariza as IAriza | null)) {
+                      setAriza({ ...(ariza as IAriza), next_prescribed_cnt: v === '' ? (null as any) : Number(v) });
+                    } else {
+                      setYashovchiSoniInput(v);
+                    }
+                  }}
+                />
+              )
+            },
             { key: t('tableHeaders.createdDate'), value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '' },
             { key: t('tableHeaders.status'), value: ariza?.status || '' },
             {
