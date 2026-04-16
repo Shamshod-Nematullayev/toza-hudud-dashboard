@@ -1,5 +1,5 @@
 import { DataGrid } from '@mui/x-data-grid';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { IAbonentData, useStore } from './useStore';
 import api from 'utils/api';
 import { Box, IconButton, Stack, Table, Toolbar, Tooltip, Typography } from '@mui/material';
@@ -225,6 +225,7 @@ function DHJTable({ abonentData }: { abonentData: IAbonentData }) {
           disableColumnSorting
           hideFooter
           rows={rowsPreviewTable}
+          getRowId={(row) => row.id}
           sx={{
             width: '100%',
             height: '100%',

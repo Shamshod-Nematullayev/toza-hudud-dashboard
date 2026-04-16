@@ -167,7 +167,7 @@ export function useFindedTableLogic() {
     await useRecalculatorStore.getState().updateAbonentDataByAccNum(acc, 'main');
     const { abonentData: ad, setRowsDhjTable, setYashovchiSoniInput } = useRecalculatorStore.getState();
     if (!ad?.id) return;
-    setYashovchiSoniInput(String(ad.house?.inhabitantCnt ?? 1));
+    setYashovchiSoniInput(String(rows[0].yashovchilar_soni ?? 1));
     try {
       const { data } = await api.get<{ ok: boolean; message?: string; rows: any[] }>('/billing/get-abonent-dxj-by-id', {
         params: { residentId: ad.id }
@@ -251,6 +251,8 @@ export function useFindedTableLogic() {
           return;
         }
         handleDeleteButtonClick();
+        setManualAccountNumber('');
+        useRecalculatorStore.getState().setRecalculationPeriods([]);
         toast.success(data.message || 'Akt muvaffaqiyatli qoʻshildi');
         return;
       }

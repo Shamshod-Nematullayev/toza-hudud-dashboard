@@ -16,30 +16,26 @@ import {
   useTheme
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import React, { useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { useRef } from 'react';
 import useStore from './useStore';
-import api from 'utils/api';
 import FileUploadOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import Visibility from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
-import useLoaderStore from 'store/loaderStore';
 import Cancel from '@mui/icons-material/CancelOutlined';
 import ChooseArizaPopper from './ChooseArizaPopper';
 import { useTranslation } from 'react-i18next';
-import { useTariff } from 'hooks/useTariff';
 import { documentTypes } from 'store/constant';
 import { useStore as useRecalculatorStore } from '../CreateAbonentPetition.jsx/useStore';
 import { IAriza } from 'types/models';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 import { Keyboard } from '@mui/icons-material';
-import RecalculateForm from '../CreateAbonentPetition.jsx/CreateArizaStepper/RecalculateForm';
 import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
 import { hasValidAriza, IRow, useFindedTableLogic } from './useFindedTableLogic';
 import { AnimatePresence, motion } from 'framer-motion';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
+import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
 
 function FindedDataTable() {
   const { t } = useTranslation();
@@ -307,14 +303,21 @@ function FindedDataTable() {
         {/* Tab Panels */}
         <Box sx={{ mt: 2, height: '200px', flex: 1 }}>
           {tabIndex === 0 && (
-            <DataGrid
-              columns={columns}
-              disableColumnFilter
-              disableColumnSorting
-              hideFooter
-              rows={showSpoiler ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
-              style={{ margin: '0 auto', height: '100%' }}
-            />
+            <>
+              {manualEditing ? (
+                <DHJTable abonentData={abonentData} />
+              ) : (
+                <DataGrid
+                  columns={columns}
+                  disableColumnFilter
+                  disableColumnSorting
+                  hideFooter
+                  rows={showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
+                  style={{ margin: '0 auto', height: '100%' }}
+                  getRowId={(row) => row.id}
+                />
+              )}
+            </>
           )}
           {tabIndex === 1 && (
             <DataGrid
@@ -322,9 +325,11 @@ function FindedDataTable() {
               disableColumnFilter
               disableColumnSorting
               hideFooter
-              rows={showSpoiler ? [rowAfterAkt as IRow, ...rowsDublicate.slice(1)] : rowsDublicate}
+              rows={showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rowsDublicate.slice(1)] : rowsDublicate}
               style={{ margin: '0 auto', height: '100%' }}
+              getRowId={(row) => row.id}
             />
+            // <DHJTable abonentData={abonentData} />
           )}
         </Box>
       </Box>
