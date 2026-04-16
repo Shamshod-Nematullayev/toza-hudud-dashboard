@@ -24,15 +24,14 @@ const getStatusRequest = function (data: IMultiplyRequest) {
 };
 function SidePanel() {
   const {
-    setPdfFiles,
-    pdfFiles,
-    clearPdfFiles,
-    uploadingDalolatnoma,
     setUploadingDalolatnoma,
     uploadingDalolatnomaRows,
     setUploadingDalolatnomaRows,
-    isLoading,
-    setIsLoading
+    setLoading: setIsLoading,
+    ui,
+    setPdfFile,
+    pdfFile,
+    dalolatnoma
   } = odamSoniXatlovStore();
   const { t } = useTranslation();
 
@@ -62,22 +61,24 @@ function SidePanel() {
   };
 
   const handleClickDoneButton = async function (_id: string, isUpdate = true) {
+    if (!pdfFile) return toast.error('Iltimos PDF faylni yuklang');
     setIsLoading(true);
     const formData = new FormData();
-    formData.append('file', pdfFiles[0]);
+    formData.append('file', pdfFile);
     await api.put(`/yashovchi-soni-xatlov/confirm/${_id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     });
-    if (isUpdate) await getDalolatnomaData({ _id: uploadingDalolatnoma._id });
+    if (isUpdate) await getDalolatnomaData({ _id: dalolatnoma._id });
     setIsLoading(false);
   };
   const handleClickAllDoneButton = async function () {
+    if (!pdfFile) return toast.error('Iltimos PDF faylni yuklang');
     setIsLoading(true);
     toast.info('Iltimos kuting...');
     const formData = new FormData();
-    formData.append('file', pdfFiles[0]);
+    formData.append('file', pdfFile);
     for (const row of uploadingDalolatnomaRows) {
       if (row.status === 'xujjat yaratilgan') {
         await handleClickDoneButton(row._id, false);
@@ -87,10 +88,12 @@ function SidePanel() {
 
     setIsLoading(false);
   };
+  const [clearPdfFileTrigger, setClearPdfFileTrigger] = useState(false);
   useEffect(() => {
-    if (pdfFiles.length > 0) {
+    if (pdfFile) {
       async function getDataFromQR() {
-        const arrayBuffer = await pdfFiles[0].arrayBuffer();
+        if (!pdfFile) return;
+        const arrayBuffer = await pdfFile.arrayBuffer();
         const pdfData = new Uint8Array(arrayBuffer);
         const data = await extractQRCodeFromPDF(pdfData, 'lastPage');
         if (!data.ok) return toast.error(data.message);
@@ -100,11 +103,11 @@ function SidePanel() {
       }
       getDataFromQR();
     }
-  }, [pdfFiles]);
+  }, [pdfFile]);
 
   useEffect(() => {
-    setDalolatnomaNumber(uploadingDalolatnoma.documentNumber);
-  }, [uploadingDalolatnoma]);
+    setDalolatnomaNumber(dalolatnoma.documentNumber.toString());
+  }, [dalolatnoma]);
 
   const handleClickRefresh = () => {
     getDalolatnomaData({
@@ -115,7 +118,7 @@ function SidePanel() {
     await api.put(`/yashovchi-soni-xatlov/${_id}`, {
       isCancel: true
     });
-    await getDalolatnomaData({ _id: uploadingDalolatnoma._id });
+    await getDalolatnomaData({ _id: dalolatnoma._id });
   };
   const handleClickCancelAll = async () => {
     for (const row of uploadingDalolatnomaRows) {
@@ -123,17 +126,22 @@ function SidePanel() {
         isCancel: true
       });
     }
-    await getDalolatnomaData({ _id: uploadingDalolatnoma._id });
+    await getDalolatnomaData({ _id: dalolatnoma._id });
   };
   return (
     <Grid container style={{ height: '100%' }} spacing={2}>
-      {pdfFiles.length === 0 ? (
+      {!pdfFile ? (
         <Grid item xs={12}>
-          <FileInputDrop setFiles={setPdfFiles} clearTrigger={clearPdfFiles} />
+          <FileInputDrop
+            setFiles={(files) => {
+              setPdfFile(files ? files[0] : null);
+            }}
+            clearTrigger={clearPdfFileTrigger}
+          />
         </Grid>
       ) : (
         <>
-          {isLoading && <Loader />}
+          {ui.loading && <Loader />}
           <Grid item md={3}>
             <div style={{ position: 'relative' }}>
               <TextField
@@ -155,7 +163,16 @@ function SidePanel() {
               <DeleteOutline />
               {t('buttons.rejectAll')}{' '}
             </Button>
-            <Button variant="outlined" color="secondary" sx={{ margin: 1 }} onClick={() => clearPdfFiles()} fullWidth>
+            <Button
+              variant="outlined"
+              color="secondary"
+              sx={{ margin: 1 }}
+              onClick={() => {
+                setPdfFile(null);
+                setClearPdfFileTrigger(!clearPdfFileTrigger);
+              }}
+              fullWidth
+            >
               {t('buttons.clear')}
             </Button>
           </Grid>

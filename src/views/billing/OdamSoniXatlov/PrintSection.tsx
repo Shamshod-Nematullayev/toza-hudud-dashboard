@@ -43,20 +43,26 @@ function stringToName(str: string) {
 
 function PrintSection() {
   const [mfyRaisi, setMfyRaisi] = useState(true);
-  const { dalolatnomaData, openPrintSection, setOpenPrintSection } = odamSoniXatlovStore();
-  const { mahalla, data } = dalolatnomaData;
+  const { dalolatnoma, ui, setPrintModal } = odamSoniXatlovStore();
+  const { mahalla } = dalolatnoma;
   const printComponentRef = useRef(null);
   const printFunction = useReactToPrint({
     ...reactToPrintDefaultOptions,
     documentTitle: mahalla?.name + 'xatlov',
     contentRef: printComponentRef
   });
-  console.log(dalolatnomaData);
-  const company = JSON.parse(localStorage.getItem('company'));
+  const company = JSON.parse(localStorage.getItem('company') || '{}') as {
+    billingAdminName: string;
+    managerName: string;
+    name: string;
+    locationName: string;
+    phone: string;
+    id: number;
+  };
   const date = new Date();
   return (
     <Dialog
-      open={openPrintSection}
+      open={ui.isPrintModalOpen}
       sx={{
         '& .MuiDialog-paper': {
           width: '80%', // kenglikni belgilash
@@ -94,7 +100,7 @@ function PrintSection() {
               Bizlar kim imzo chekuvchilar {company?.locationName} {lotinga(mahalla?.name)} MFY raisi{' '}
               {fullNameToShortName(mahalla?.mfy_rais_name) || '________________'}, {company.name} rahbari{' '}
               {fullNameToShortName(company.managerName) || '________________'} va abonentlar bilan ishlash bo‘limi xodimi{' '}
-              {fullNameToShortName("Ne'matullayev Shamshod")}
+              {fullNameToShortName(company.billingAdminName) || '________________'}
               {mahalla?.biriktirilganNazoratchi?.inspector_name && (
                 <span>, aholi nazoratchisi {fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)}</span>
               )}{' '}
@@ -129,7 +135,7 @@ function PrintSection() {
                 </tr>
               </thead>
               <tbody>
-                {dalolatnomaData.rows?.map((row, index) => (
+                {dalolatnoma.rows?.map((row, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{row.accountNumber}</td>
@@ -161,14 +167,14 @@ function PrintSection() {
             <br />
             <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas
-                value={`XatlovOdamSoni_${data._id}_${data.documentNumber}`}
+                value={`XatlovOdamSoni_${dalolatnoma._id}_${dalolatnoma.documentNumber}`}
                 size={150}
                 bgColor={'#ffffff'}
                 fgColor={'#000000'}
                 level={'Q'}
                 includeMargin={true}
               />
-              <p>{data?.documentNumber}</p>
+              <p>{dalolatnoma?.documentNumber}</p>
             </div>
           </div>
         </div>
@@ -183,7 +189,7 @@ function PrintSection() {
             {' '}
             <Checkbox checked={mfyRaisi} onChange={(e) => setMfyRaisi(e.target.checked)} /> MFY raisi
           </InputLabel>
-          <Button variant="outlined" color="primary" onClick={() => setOpenPrintSection(false)}>
+          <Button variant="outlined" color="primary" onClick={() => setPrintModal(false)}>
             Chiqish
           </Button>
           <Button variant="contained" color="primary" onClick={() => printFunction()}>

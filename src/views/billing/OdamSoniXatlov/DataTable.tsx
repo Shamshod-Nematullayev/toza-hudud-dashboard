@@ -8,23 +8,8 @@ import { lotinga } from 'helpers/lotinKiril';
 import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 
 function DataTable() {
-  const {
-    rows,
-    setRows,
-    totalPages,
-    total,
-    setTotal,
-    setTotalPages,
-    limit,
-    setLimit,
-    pageNum,
-    setPageNum,
-    sort,
-    setSort,
-    filter,
-    setFilter,
-    refreshTrigger
-  } = odamSoniXatlovStore();
+  const { rows, setRows, total, setTotal, setTotalPages, limit, setLimit, pageNum, setPageNum, filter, setFilter, pagination, ui } =
+    odamSoniXatlovStore();
   const [statusOptions, setStatusOptions] = useState([]);
   const [mahallaOptions, setMallaOptions] = useState([]);
   const apiRef = useGridApiRef();
@@ -60,7 +45,7 @@ function DataTable() {
         setTotalPages(data.meta.totalPages);
         setTotal(data.meta.total);
       });
-  }, [limit, pageNum, sort, refreshTrigger, filter]);
+  }, [pagination.limit, pagination.page, pagination.sort, ui.refreshToggle, pagination.filter]);
   useEffect(() => {
     const uniqueStatuses = [];
     rows.forEach((row) => {
