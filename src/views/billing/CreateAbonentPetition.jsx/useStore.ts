@@ -2,7 +2,7 @@ import { Dayjs } from 'dayjs';
 import { t } from 'i18next';
 import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
-import { Balance } from 'types/billing';
+import { AbonentDetails, Balance, IAbonent } from 'types/billing';
 import api from 'utils/api';
 import { AutoMobile } from 'views/gpsMonitoring/VisitGrafikPage/useVisitGrafikStore';
 import { create } from 'zustand';
@@ -28,8 +28,8 @@ export interface IRecalculationPeriod {
   withQQSTotal: number;
   withoutQQSTotal: number;
   total: number;
-  startDate: Dayjs | null;
-  endDate: Dayjs | null;
+  startDate: Dayjs;
+  endDate: Dayjs;
 }
 
 export interface IMahalla {
@@ -49,28 +49,28 @@ export interface IMahalla {
     billingAdminName: string;
   };
 }
-export interface IAbonentData {
-  id: number;
-  accountNumber: string;
-  fullName: string;
-  balance: Balance;
-  mahallaName: string;
-  mahallaId: number;
-  streetName: string;
-  house: {
-    cadastralNumber: string;
-    homeIndex: string;
-    homeNumber: string;
-    inhabitantCnt: number;
-  };
-  citizen: {
-    passport: string;
-    pnfl: string;
-    phone: string;
-  };
-}
+// export interface IAbonentData {
+//   id: number;
+//   accountNumber: string;
+//   fullName: string;
+//   balance: Balance;
+//   mahallaName: string;
+//   mahallaId: number;
+//   streetName: string;
+//   house: {
+//     cadastralNumber: string;
+//     homeIndex: string;
+//     homeNumber: string;
+//     inhabitantCnt: number;
+//   };
+//   citizen: {
+//     passport: string;
+//     pnfl: string;
+//     phone: string;
+//   };
+// }
 
-export const defaultAbonentData: IAbonentData = {
+export const defaultAbonentData: AbonentDetails = {
   id: 0,
   accountNumber: '',
   fullName: '',
@@ -92,13 +92,43 @@ export const defaultAbonentData: IAbonentData = {
     cadastralNumber: '',
     homeIndex: '',
     homeNumber: '',
-    inhabitantCnt: 0
+    inhabitantCnt: 0,
+    id: 0,
+    latitude: 0,
+    longitude: 0,
+    temporaryCadastralNumber: '',
+    type: 'HOUSE'
   },
+  phone: '',
   citizen: {
     passport: '',
     pnfl: '',
-    phone: ''
-  }
+    birthDate: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    patronymic: '',
+    foreignCitizen: false,
+    inn: '',
+    passportExpireDate: '',
+    passportGivenDate: '',
+    passportIssuer: '',
+    photo: ''
+  },
+  active: false,
+  streetId: 0,
+  companyId: 0,
+  companyName: '',
+  contractDate: '',
+  contractNumber: '',
+  description: '',
+  electricityAccountNumber: '',
+  electricityCoato: '',
+  homePhone: '',
+  identified: false,
+  regionId: 0,
+  regionName: '',
+  residentType: 'INDIVIDUAL'
 };
 
 export interface IHisoblandiItem {
@@ -125,8 +155,8 @@ interface StoreState {
   aktType: aktType;
   showPrintSection: boolean;
   rowsDhjTable: dhjRow[];
-  abonentData: IAbonentData;
-  abonentData2: IAbonentData;
+  abonentData: AbonentDetails;
+  abonentData2: AbonentDetails;
   ariza: any;
   mahalla: IMahalla;
   mahallaDublicat: any;
@@ -144,8 +174,8 @@ interface StoreState {
   setRecalculationPeriods: (recalculationPeriods: any[]) => void;
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => void;
   setImages: (images: ImgType[]) => void;
-  setAbonentData: (abonentData: IAbonentData) => void;
-  setAbonentData2: (abonentData: IAbonentData) => void;
+  setAbonentData: (abonentData: AbonentDetails) => void;
+  setAbonentData2: (abonentData: AbonentDetails) => void;
   setMahalla: (mahalla: IMahalla) => void;
   setMahallaDublicat: (mahalla: IMahalla) => void;
   setAriza: (ariza: any) => void;
@@ -342,3 +372,25 @@ function generateSummary(data: IPeriod[]) {
   // Yakuniy matnni yaratish
   return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
 }
+
+export const familyRelations = [
+  'Xotini',
+  'Eri',
+  "O'g'li",
+  'Qizi',
+  'Otasi',
+  'Onasi',
+  'Akasi',
+  'Ukasi',
+  'Opasi',
+  'Singlisi',
+  'Bobosi',
+  'Buvisi',
+  'Kelini',
+  'Kuyovi',
+  'Nevarasi',
+  'Ijarachi',
+  'Yordamchi',
+  'Qarindoshi',
+  'Mehmon'
+] as const;

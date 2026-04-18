@@ -1,10 +1,11 @@
 import React from 'react';
 import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar, QRSection } from '../PrintSection';
 import { IAriza } from 'types/models';
-import { IAbonentData, IMahalla } from '../useStore';
+import { IMahalla } from '../useStore';
 import { lotinga } from 'helpers/lotinKiril';
+import { AbonentDetails } from 'types/billing';
 
-function Death({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentData: IAbonentData; date: Date; mahalla: IMahalla }) {
+function Death({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentData: AbonentDetails; date: Date; mahalla: IMahalla }) {
   return (
     <>
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>

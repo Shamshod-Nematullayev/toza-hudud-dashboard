@@ -193,7 +193,8 @@ const uz = {
     registeredAt: 'Ro`yxatdan o`tgandan vaqti',
     unregisteredAt: 'Ro`yxatdan chiqarilgan vaqti',
     sex: 'Jinsi',
-    actDate: 'Akt sanasi'
+    actDate: 'Akt sanasi',
+    familyRelation: 'Aloqasi'
   },
   tableActions: {
     edit: 'Tahrirlash',

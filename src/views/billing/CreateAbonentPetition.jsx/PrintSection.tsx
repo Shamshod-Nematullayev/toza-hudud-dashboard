@@ -2,7 +2,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import styled from 'styled-components';
 import { lotinga } from '../../../helpers/lotinKiril';
-import { Button, Dialog, DialogActions, DialogContent, FormControl, InputLabel, MenuItem, Select, TextareaAutosize } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  FormControl,
+  InputLabel,
+  Menu,
+  MenuItem,
+  Select,
+  Stack,
+  TextareaAutosize,
+  TextField
+} from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import api from 'utils/api';
@@ -13,11 +26,12 @@ import dayjs from 'dayjs';
 import OdamSoni from './Documents/OdamSoni';
 import Dvaynik from './Documents/Dvaynik';
 import Gps from './Documents/Gps';
-import { IAbonentData, IMahalla } from './useStore';
+import { familyRelations, IAbonentData, IMahalla } from './useStore';
 import useCustomizationStore from 'store/customizationStore';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
+import { AbonentDetails } from 'types/billing';
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
@@ -88,6 +102,8 @@ function PrintSection({
     contentRef: componentRef
   });
   const [comment, setComment] = useState(ariza.comment || '');
+  const [relation, setRelation] = useState<(typeof familyRelations)[number] | ''>('');
+  const [relationFullName, setRelationFullName] = useState('');
   const { t } = useTranslation();
   const handleClose = () => {
     setShowPrintSection(false);
@@ -122,36 +138,58 @@ function PrintSection({
             asoslantiruvchi: comment,
             ariza,
             olderPeriod,
-            setOlderPeriod
+            setOlderPeriod,
+            relation,
+            relationFullName
           })}
         </div>
       </DialogContent>
-      {ariza.document_type === 'odam_soni' && (
-        <DialogContent sx={{ display: 'flex' }}>
-          <FormControl fullWidth sx={{ width: '200px' }}>
-            <InputLabel id="dument-variant-select-label">Variant</InputLabel>
-            <Select
-              labelId="dument-variant-select-label"
-              id="document-variant-select"
-              label="Variant"
-              value={documentVariantOdamSoni}
-              onChange={(e) => setDocumentVariantOdamSone(e.target.value)}
+      {
+        <DialogContent>
+          {ariza.document_type === 'odam_soni' && (
+            <Stack direction={'row'}>
+              <FormControl fullWidth sx={{ width: '200px' }}>
+                <InputLabel id="dument-variant-select-label">Variant</InputLabel>
+                <Select
+                  labelId="dument-variant-select-label"
+                  id="document-variant-select"
+                  label="Variant"
+                  value={documentVariantOdamSoni}
+                  onChange={(e) => setDocumentVariantOdamSone(e.target.value as '1' | '2')}
+                >
+                  <MenuItem value="1">Variant 1</MenuItem>
+                  <MenuItem value="2">Variant 2</MenuItem>
+                </Select>
+              </FormControl>
+              <DatePicker value={olderPeriod} onChange={(newValue) => setOlderPeriod(newValue)} label="dan boshlab" format="DD.MM.YY" />
+              <FormControl fullWidth>
+                <TextareaAutosize
+                  minRows={3}
+                  placeholder={t('createAbonentPetitionPage.Qoʻshimcha izohlar uchun')}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
+              </FormControl>
+            </Stack>
+          )}
+          <Stack direction={'row'} sx={{ width: '100%', mt: 2 }}>
+            <TextField
+              select
+              sx={{ width: '200px' }}
+              label={t('tableHeaders.familyRelation')}
+              value={relation}
+              onChange={(e) => setRelation(e.target.value as (typeof familyRelations)[number])}
             >
-              <MenuItem value="1">Variant 1</MenuItem>
-              <MenuItem value="2">Variant 2</MenuItem>
-            </Select>
-          </FormControl>
-          <DatePicker value={olderPeriod} onChange={(newValue) => setOlderPeriod(newValue)} label="dan boshlab" format="DD.MM.YY" />
-          <FormControl fullWidth>
-            <TextareaAutosize
-              minRows={3}
-              placeholder={t('createAbonentPetitionPage.Qoʻshimcha izohlar uchun')}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-          </FormControl>
+              {familyRelations.map((item) => (
+                <MenuItem key={item} value={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField label={t('tableHeaders.fullName')} value={relationFullName} onChange={(e) => setRelationFullName(e.target.value)} />
+          </Stack>
         </DialogContent>
-      )}
+      }
 
       <DialogActions>
         <Button variant="contained" color="primary" onClick={() => printFunction()}>
@@ -175,7 +213,9 @@ function renderSwitch({
   ariza,
   muzlatiladi,
   olderPeriod,
-  setOlderPeriod
+  setOlderPeriod,
+  relation,
+  relationFullName
 }: {
   date: Date;
   abonentData: IAbonentData;
@@ -190,9 +230,11 @@ function renderSwitch({
   muzlatiladi: any;
   olderPeriod: any;
   setOlderPeriod: any;
+  relation: string;
+  relationFullName: string;
 }) {
   const [photos, setPhotos] = useState([]);
-  const company = JSON.parse(localStorage.getItem('company'));
+  const { company } = useCustomizationStore();
   useEffect(() => {
     setPhotos([]);
     ariza.photos?.forEach((file_id) => {
@@ -232,6 +274,8 @@ function renderSwitch({
           mahalla2={mahalla2}
           date={date}
           documentType="odam_soni"
+          relation={relation}
+          relationFullName={relationFullName}
         />
       );
     case 'dvaynik':
@@ -250,7 +294,15 @@ function renderSwitch({
         />
       );
     case 'viza':
-      return <Viza ariza={ariza} abonentData={abonentData} date={date} mahalla={mahalla} />;
+      return (
+        <Viza
+          ariza={ariza}
+          abonentData={abonentData}
+          date={date}
+          mahalla={mahalla}
+          vakil={{ fullName: relationFullName || '', relation: relation }}
+        />
+      );
     case 'death':
       return <Death ariza={ariza} abonentData={abonentData} date={date} mahalla={mahalla} />;
     case 'gps':
@@ -317,29 +369,43 @@ export const ImzolashJoyi = ({
     </>
   );
 };
+export function ArizaHeading({ abonentData, vakil }: { abonentData: AbonentDetails; vakil?: { relation: string; fullName: string } }) {
+  const { company } = useCustomizationStore();
 
-export function ArizaHeading({ abonentData }: { abonentData: IAbonentData }) {
-  const company = JSON.parse(localStorage.getItem('company'));
+  // Vakil borligini tekshirish
+  const hasVakil = !!vakil?.fullName;
+
+  // Arizachi qatorini shakllantirish
+  const applicantInfo = hasVakil
+    ? `fuqaro ${formatName(vakil.fullName)} (${formatName(abonentData.fullName)}ning ${vakil.relation.toLowerCase()})`
+    : `fuqaro ${formatName(abonentData.fullName)}`;
+
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      {/* Chap tomon bo'sh qoladi, o'ng tomonga ma'lumotlar joylashadi */}
       <div></div>
       <p
         style={{
-          width: 300,
+          width: 320,
           textAlign: 'justify',
           fontWeight: 'bold',
           textIndent: '40px',
-          lineHeight: '30px'
+          lineHeight: '24px',
+          fontSize: '14px'
         }}
       >
-        {company?.locationName} {company?.name} rahbari {fullNameToShortName(company?.managerName)}ga {company?.locationName}{' '}
-        {lotinga(abonentData.mahallaName)}da yashovchi fuqaro {formatName(abonentData.fullName)} tomonidan <br />
-        Telefon: {formatPhoneNumber(abonentData.citizen?.phone)}
+        {company?.locationName} {company?.name} rahbari {fullNameToShortName(company?.managerName)}ga
+        <br />
+        {company?.locationName} {lotinga(abonentData.mahallaName)}da yashovchi {applicantInfo} tomonidan
+        <br />
+        <br />
+        Telefon: {formatPhoneNumber(abonentData.phone || '')}
       </p>
     </div>
   );
 }
-export function ArizaTitle({ type }) {
+
+export function ArizaTitle({ type }: { type: string }) {
   return (
     <>
       <h1

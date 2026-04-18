@@ -1,15 +1,38 @@
 import React from 'react';
 import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar, QRSection } from '../PrintSection';
 import { IAriza } from 'types/models';
-import { IAbonentData, IMahalla } from '../useStore';
+import { IMahalla } from '../useStore';
 import { lotinga } from 'helpers/lotinKiril';
+import { AbonentDetails } from 'types/billing';
 
-function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentData: IAbonentData; date: Date; mahalla: IMahalla }) {
+interface VizaProps {
+  ariza: IAriza;
+  abonentData: AbonentDetails;
+  date: Date;
+  mahalla: IMahalla;
+  vakil?: {
+    relation: string;
+    fullName: string;
+  };
+}
+
+function Viza({ ariza, abonentData, date, mahalla, vakil }: VizaProps) {
+  // Vakillik mantiqini aniqlash
+  const isRelative = !!vakil?.fullName;
+  const relationText = vakil?.relation ? vakil.relation.toLowerCase() : '';
+
+  // Dinamik ariza matni
+  const arizaMatni = isRelative
+    ? `Shuni yozib ma’lum qilamanki, men fuqaro ${abonentData?.fullName}ning ${relationText} — ${vakil?.fullName} bo'laman. Mazkur xonadonga tegishli ${abonentData?.accountNumber} shaxsiy hisob raqami bo‘yicha onlayn bazaga ma‘lumotlar o‘z vaqtida taqdim etilmaganligi sababli pasport vizalarini taqdim qilyapman.`
+    : `Shuni yozib ma’lum qilamanki, mening ${abonentData.accountNumber} hisob raqamim onlayn bazada ma‘lumotlar o‘z vaqtida taqdim etilmaganligi sababli pasport vizalari taqdim qilyapman.`;
+
   return (
     <>
+      {/* 1-SAHIFA: ARIZA */}
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-        <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-        <ArizaHeading abonentData={abonentData} />
+        <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
+        {/* ArizaHeading komponentiga vakil ob'ektini uzatamiz */}
+        <ArizaHeading abonentData={abonentData} vakil={vakil} />
         <br />
         <ArizaTitle type="pasport viza" />
         <br />
@@ -20,13 +43,13 @@ function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDat
             textIndent: '40px'
           }}
         >
-          Shuni yozib ma’lum qilamanki mening <span style={{ textDecoration: 'underline' }}>{abonentData.accountNumber}</span> hisob raqamim
-          onlayn bazada ma‘lumotlar o‘z vaqtida taqdim e‘tilmaganligi sababli pasport vizalari taqdim qilyapman. Ushbu pasport vizalari
-          asosida xonadonimda yashovchi bo'lgan shaxslarni O‘zbekistonda yashamagan davr(lar)ni qayta hisob-kitob qilib berishingizni
-          so‘rayman.
+          {arizaMatni} Ushbu pasport vizalari asosida xonadonimizda istiqomat qiluvchi shaxslarning O‘zbekistonda bo'lmagan davr(lar)ini
+          qayta hisob-kitob qilib berishingizni so‘rayman.
         </p>
         <QRSection abonentData={abonentData} ariza={ariza} date={date} />
       </div>
+
+      {/* 2-SAHIFA: DALOLATNOMA */}
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
         <p style={{ textAlign: 'center' }}>
           <b>Abonentlar bilan birga istiqomat qiluvchi shaxslar xorijga chiqib kelganligini aniqlash</b>
@@ -34,6 +57,7 @@ function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDat
         <p style={{ textAlign: 'center' }}>
           <b>DALOLATNOMASI</b>
         </p>
+
         <div
           style={{
             display: 'flex',
@@ -46,6 +70,7 @@ function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDat
           </div>
           <div>{mahalla?.company?.locationName}</div>
         </div>
+
         <p>
           <b>Quyidagi manzil bo‘yicha:</b>
         </p>
@@ -54,15 +79,26 @@ function Viza({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDat
           Manzil: {abonentData.mahallaName} {abonentData.streetName}
         </p>
         <p>Shaxsiy hisob raqami: {abonentData?.accountNumber}</p>
+
         <p>
           <b>Abonent: {abonentData?.fullName}</b>
         </p>
-        <p>
-          Abonent xonadonida jami {abonentData.house.inhabitantCnt} kishi ro'yxatga qo'yilgan. Shundan, mazkur dalolatnomaga xorijga chiqish
-          pasport nusxalari ilova qilingan, shu xonadonda yashovchi bo'lgan shaxsni O'zbekistonda yashamagan davrlarini kirish-chiqish
-          muhrlariga asosan qayta hisob-kitob qilish maqsadga muvofiq deb hisoblaymiz.
+        {isRelative && (
+          <p>
+            <b>
+              Murojaatchi (Vakil): {vakil?.fullName} ({vakil?.relation})
+            </b>
+          </p>
+        )}
+
+        <p style={{ textIndent: '40px', lineHeight: '30px' }}>
+          Abonent xonadonida jami {abonentData.house.inhabitantCnt} kishi ro'yxatga qo'yilgan. Mazkur dalolatnomaga ilova qilingan xorijga
+          chiqish pasport nusxalari hamda kirish-chiqish muhrlariga asosan, xonadonda yashovchi shaxslarning O'zbekiston hududidan
+          tashqarida bo'lgan davrlarini inobatga olgan holda, yagona elektron tizimda qayta hisob-kitob qilishni maqsadga muvofiq deb
+          hisoblaymiz.
         </p>
-        <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} />
+
+        <ImzolashJoyi abonentData={{ ...abonentData, fullName: vakil?.fullName }} mahalla={mahalla} documentType={'viza'} />
       </div>
     </>
   );
