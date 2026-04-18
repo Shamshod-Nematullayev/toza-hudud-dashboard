@@ -1,14 +1,16 @@
 import React from 'react';
 import MainCard from 'ui-component/cards/MainCard';
-import ToolBar from './ToolBar';
-import DataTable from './DataTable';
+import XatlovActionsToolbar from './XatlovActionsToolbar';
+import XatlovTable from './DataTable';
 import SidePanel from './SidePanel';
 import { Backdrop, CircularProgress, Grid } from '@mui/material';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import PrintSection from './PrintSection';
 
 function XatlovOdamSoni() {
-  const { loading } = odamSoniXatlovStore();
+  const {
+    ui: { loading }
+  } = odamSoniXatlovStore();
   return (
     <MainCard contentSX={{ position: 'relative' }}>
       <PrintSection />
@@ -26,7 +28,7 @@ function XatlovOdamSoni() {
       </Backdrop>
       <Grid container spacing={2}>
         <Grid item xs={12} md={5}>
-          <DataTable />
+          <XatlovTable />
         </Grid>
         <Grid item xs={12} md={7}>
           <SidePanel />

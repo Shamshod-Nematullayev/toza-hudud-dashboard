@@ -1,221 +1,159 @@
-import { DataGrid, GridToolbarContainer, useGridApiRef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
-import odamSoniXatlovStore from './odamSoniXatlovStore';
-import api from 'utils/api';
+import { DataGrid, GridToolbarContainer, useGridApiRef } from '@mui/x-data-grid';
 import { FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip } from '@mui/material';
-import ToolBar from './ToolBar';
-import { lotinga } from 'helpers/lotinKiril';
 import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 
-function DataTable() {
-  const { rows, setRows, total, setTotal, setTotalPages, limit, setLimit, pageNum, setPageNum, filter, setFilter, pagination, ui } =
-    odamSoniXatlovStore();
-  const [statusOptions, setStatusOptions] = useState([]);
-  const [mahallaOptions, setMallaOptions] = useState([]);
+import useOdamSoniXatlovStore from './odamSoniXatlovStore'; // Store importi
+import api from 'utils/api';
+import XatlovActionsToolbar from './XatlovActionsToolbar';
+import { lotinga } from 'helpers/lotinKiril';
+
+function XatlovTable() {
   const apiRef = useGridApiRef();
+  const [mahallaOptions, setMahallaOptions] = useState([]);
+  const [statusOptions, setStatusOptions] = useState(['yangi', 'xujjat yaratilgan']);
 
-  useEffect(() => {
-    api
-      .get(`/yashovchi-soni-xatlov`, {
-        params: {
-          page: pageNum,
-          limit,
-          ...filter
-        }
-      })
-      .then(({ data }) => {
-        setRows(
-          data.data.map((row, i) => {
-            return {
-              id: i + 1,
-              _id: row._id,
-              abonentId: row.abonentId,
-              accountNumber: row.KOD,
-              fio: row.fio,
-              currentInhabitantCount: row.currentInhabitantCount,
-              YASHOVCHILAR: row.YASHOVCHILAR,
-              mahallaId: {
-                mahallaId: row.mahallaId,
-                mahallaName: row.mahallaName
-              },
-              status: !row.document_id ? 'yangi' : 'xujjat yaratilgan'
-            };
-          })
-        ); // hali buni ustida ishlash kerak to'g'ridan to'g'ri qabul qilmaydi
-        setTotalPages(data.meta.totalPages);
-        setTotal(data.meta.total);
-      });
-  }, [pagination.limit, pagination.page, pagination.sort, ui.refreshToggle, pagination.filter]);
-  useEffect(() => {
-    const uniqueStatuses = [];
-    rows.forEach((row) => {
-      if (!uniqueStatuses.includes(row.status)) {
-        uniqueStatuses.push(row.status);
-      }
-    });
-    setStatusOptions(uniqueStatuses);
+  // Store'dan kerakli qiymatlar va actionlarni olish
+  const { rows, total, pagination, ui, fetchRows, updatePagination } = useOdamSoniXatlovStore();
 
+  // 1. Ma'lumotlarni yuklash (Fetch)
+  useEffect(() => {
+    fetchRows();
+  }, [pagination.page, pagination.limit, pagination.filter, ui.refreshToggle]);
+
+  // 2. Mahalla variantlarini yuklash
+  useEffect(() => {
     api.get('/yashovchi-soni-xatlov/mahallas').then(({ data }) => {
-      setMallaOptions(data.data.map((mfy) => ({ mahallaId: mfy.mahallaId, mahallaName: lotinga(mfy.mahallaName) })));
+      const options = data.data.map((mfy: any) => ({
+        mahallaId: mfy.mahallaId,
+        mahallaName: lotinga(mfy.mahallaName)
+      }));
+      setMahallaOptions(options);
     });
-  }, [rows]);
+  }, []);
 
-  const handleChangeFilterModel = (newModel) => {
-    if (!newModel.items[0]) {
-      setFilter({});
+  // Filter o'zgarganda store'ni yangilash
+  const handleChangeFilterModel = (newModel: any) => {
+    if (!newModel.items[0] || !newModel.items[0].value) {
+      updatePagination({ filter: {}, page: 1 });
       return;
     }
-    switch (newModel.items[0].field) {
+
+    const { field, value } = newModel.items[0];
+    let filterQuery = {};
+
+    switch (field) {
       case 'status':
-        if (newModel.items[0].value === 'yangi') {
-          setFilter({ document_id: { $exists: false } });
-        } else if (newModel.items[0].value === 'xujjat yaratilgan') {
-          setFilter({ document_id: { $exists: true } });
-        }
+        filterQuery = {
+          document_id: value === 'yangi' ? { $exists: false } : { $exists: true }
+        };
         break;
       case 'mahallaId':
-        setFilter({ mahallaId: newModel.items[0].value });
+        filterQuery = { mahallaId: value };
         break;
+      default:
+        filterQuery = {};
     }
+
+    updatePagination({ filter: filterQuery, page: 1 });
   };
+
+  const columns = [
+    { field: 'id', headerName: '№', width: 60, filterable: false },
+    { field: 'accountNumber', headerName: 'Hisob raqam', width: 130, filterable: false },
+    { field: 'fio', headerName: 'F.I.O', width: 200, filterable: false },
+    { field: 'currentInhabitantCount', headerName: 'Joriy soni', width: 120, filterable: false },
+    { field: 'YASHOVCHILAR', headerName: 'Aniqlandi', width: 100, filterable: false },
+    {
+      field: 'mahallaId',
+      headerName: 'Manzil',
+      width: 180,
+      renderCell: (params: any) => params.value?.mahallaName || '',
+      filterOperators: [
+        {
+          label: 'Mahalla',
+          value: 'mahallaFilter',
+          InputComponent: ({ item, applyValue }: any) => (
+            <FormControl variant="standard" fullWidth>
+              <InputLabel>Mahalla</InputLabel>
+              <Select value={item.value || ''} onChange={(e) => applyValue({ ...item, value: e.target.value })}>
+                <MenuItem value="">
+                  <em>Barchasi</em>
+                </MenuItem>
+                {mahallaOptions.map((opt: any) => (
+                  <MenuItem key={opt.mahallaId} value={opt.mahallaId}>
+                    {opt.mahallaName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ),
+          getApplyFilterFn: (filterItem: any) => {
+            if (!filterItem.value) return null;
+            return (params: any) => params.mahallaId === filterItem.value;
+          }
+        }
+      ]
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 150,
+      filterOperators: [
+        {
+          label: 'Saralash',
+          value: 'statusFilter',
+          InputComponent: ({ item, applyValue }: any) => (
+            <FormControl variant="standard" fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select value={item.value || ''} onChange={(e) => applyValue({ ...item, value: e.target.value })}>
+                <MenuItem value="">
+                  <em>Barchasi</em>
+                </MenuItem>
+                {statusOptions.map((opt) => (
+                  <MenuItem key={opt} value={opt}>
+                    {opt}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ),
+          getApplyFilterFn: (filterItem: any) => {
+            if (!filterItem.value) return null;
+            return (params: any) => params === filterItem.value;
+          }
+        }
+      ]
+    }
+  ];
+
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
+    <div style={{ height: '80vh', width: '100%' }}>
       <DataGrid
-        columns={[
-          {
-            field: 'id',
-            headerName: '№',
-            width: 50,
-            filterable: false
-          },
-          {
-            field: 'accountNumber',
-            headerName: 'Hisob raqam',
-            width: 120,
-            sortable: false,
-            filterable: false
-          },
-          {
-            field: 'fio',
-            headerName: 'FIO',
-            width: 150,
-            filterable: false
-          },
-          {
-            field: 'currentInhabitantCount',
-            headerName: 'Joriy yashovchilar soni',
-            width: 100,
-            filterable: false
-          },
-          {
-            field: 'YASHOVCHILAR',
-            headerName: 'Aniqlandi',
-            width: 100,
-            filterable: false
-          },
-          {
-            field: 'mahallaId',
-            headerName: 'Manzil',
-            width: 100,
-            renderCell: (row) => row.value.mahallaName,
-            filterOperators: [
-              {
-                label: 'Mahalla',
-                value: 'mahallaFilter',
-                InputComponent: ({ item, applyValue }) => (
-                  <FormControl variant="standard" fullWidth>
-                    <InputLabel variant="standard" htmlFor="mahallaFilter">
-                      Mahalla
-                    </InputLabel>
-                    <Select
-                      value={item.value || ''}
-                      onChange={(e) => applyValue({ ...item, value: e.target.value })}
-                      inputProps={{
-                        id: 'mahallaFilter',
-                        name: 'mahallaFilter'
-                      }}
-                    >
-                      <MenuItem value="">
-                        <em>Select</em>
-                      </MenuItem>
-                      {mahallaOptions.map((option) => (
-                        <MenuItem key={option.mahallaId} value={option.mahallaId}>
-                          {option.mahallaName}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                ),
-                getApplyFilterFn: (filterItem) => {
-                  if (!filterItem.value) return null;
-                  return (params) => params.mahallaId === filterItem.value;
-                }
-              }
-            ]
-          },
-          {
-            field: 'status',
-            headerName: 'Status',
-            width: 100,
-            sortable: false,
-            filterable: false,
-            label: '',
-            filterOperators: [
-              {
-                label: 'barobar',
-                value: 'statusFilter',
-                InputComponent: ({ item, applyValue }) => (
-                  <FormControl variant="standard" fullWidth>
-                    <InputLabel htmlFor="status">Status</InputLabel>
-                    <Select
-                      value={item.value || ''}
-                      onChange={(e) => applyValue({ ...item, value: e.target.value })}
-                      inputProps={{
-                        id: 'status',
-                        name: 'status'
-                      }}
-                    >
-                      <MenuItem value="">
-                        <em>Select</em>
-                      </MenuItem>
-                      {statusOptions.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                ),
-                getApplyFilterFn: (filterItem) => {
-                  if (!filterItem.value) return null;
-                  return (params) => params === filterItem.value;
-                }
-              }
-            ]
-          }
-        ]}
         rows={rows}
+        columns={columns}
         rowCount={total}
-        initialState={{
-          pagination: {
-            paginationModel: { page: pageNum - 1, pageSize: limit }
-          }
-        }}
-        sortingMode="server"
-        filterMode="server"
+        loading={ui.loading}
         paginationMode="server"
-        onPaginationModelChange={(model) => {
-          setPageNum(model.page + 1);
-          setLimit(model.pageSize);
+        filterMode="server"
+        sortingMode="server"
+        paginationModel={{
+          page: pagination.page - 1,
+          pageSize: pagination.limit
         }}
-        disableColumnMenu
-        disableColumnSorting
+        onPaginationModelChange={(model) => {
+          updatePagination({
+            page: model.page + 1,
+            limit: model.pageSize
+          });
+        }}
         onFilterModelChange={handleChangeFilterModel}
+        apiRef={apiRef}
         slots={{
           toolbar: () => (
             <GridToolbarContainer>
-              <ToolBar />
-              <Tooltip title="Filterlar">
+              <XatlovActionsToolbar />
+              <Tooltip title="Filtrlash paneli">
                 <IconButton onClick={() => apiRef.current.showFilterPanel()} color="primary">
                   <FilterListOutlinedIcon />
                 </IconButton>
@@ -223,21 +161,16 @@ function DataTable() {
             </GridToolbarContainer>
           )
         }}
-        localeText={{
-          toolbarFilters: ''
-        }}
         sx={{
-          '.MuiDataGrid-filterFormOperatorInput': {
-            display: 'none', // Operator tanlash maydonini yashiramiz,
-            background: '#000'
-          },
-          height: '80vh',
-          width: '100%'
+          '& .MuiDataGrid-filterFormOperatorInput': { display: 'none' },
+          border: 'none',
+          backgroundColor: 'background.paper'
         }}
-        apiRef={apiRef}
+        disableColumnMenu
+        disableColumnSorting
       />
     </div>
   );
 }
 
-export default DataTable;
+export default XatlovTable;

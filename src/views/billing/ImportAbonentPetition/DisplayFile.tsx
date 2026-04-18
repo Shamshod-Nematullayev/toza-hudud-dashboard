@@ -3,10 +3,10 @@ import useStore from './useStore';
 import { Card, Paper } from '@mui/material';
 import api from 'utils/api';
 import PdfViewer from '../AbonentPetition/PDFViewer';
-const blobToBase64 = (blob) => {
+const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result); // Base64 natija
+    reader.onloadend = () => resolve(`${reader.result}`); // Base64 natija
     reader.onerror = (error) => reject(error);
     reader.readAsDataURL(blob); // Blobni o'qish va base64ga aylantirish
   });
@@ -14,7 +14,7 @@ const blobToBase64 = (blob) => {
 
 function DisplayFile() {
   const { currentFile, ariza } = useStore();
-  const [photos, setPhotos] = useState([]);
+  const [photos, setPhotos] = useState<string[]>([]);
   const [openImages, setOpenImages] = useState(false);
   useEffect(() => {
     setPhotos([]);
@@ -43,7 +43,7 @@ function DisplayFile() {
             boxShadow: 1,
             position: 'absolute',
             transition: 0.5,
-            bottom: openImages ? 0 : undefined
+            bottom: openImages ? 0 : '-100px'
           }}
         >
           <Card

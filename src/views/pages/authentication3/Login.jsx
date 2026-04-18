@@ -119,6 +119,8 @@ function Login() {
   const navigate = useNavigate();
   const [disabled, setDisabled] = useState(false);
   const { t } = useTranslation();
+
+  const { setCompany, customization } = useCustomizationStore();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setDisabled(true);
@@ -136,7 +138,7 @@ function Login() {
         delete data.photo;
       }
       localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('company', JSON.stringify(data.company));
+      setCompany(data.company);
       localStorage.setItem('fullName', data.fullName);
       localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
       navigate('/');
@@ -150,7 +152,6 @@ function Login() {
   const handleChangeInputValue = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
-  const { customization } = useCustomizationStore();
   return (
     <Body
       style={{

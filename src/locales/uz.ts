@@ -23,12 +23,16 @@ const uz = {
   cadastrAbonent: 'Kadastr abonent',
   uzs: "so'm",
   errors: {
-    missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan'
+    missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan',
+    noDocumentsToConfirm: "Tasdiqlash uchun hujjatlar yo'q",
+    somethingWentWrong: 'Xatolik kuzatildi',
+    pdfFileRequired: 'Iltimos PDF faylni yuklang'
   },
   successMessages: {
     success: 'Muvaffaqiyatli amalga oshirildi',
     successDelete: 'Muvaffaqiyatli o`chirildi',
-    successSave: 'Muvaffaqiyatli saqlandi'
+    successSave: 'Muvaffaqiyatli saqlandi',
+    allDocumentConfirmed: 'Barcha hujjatlar tasdiqlandi'
   },
   documentNumber: 'Xujjat raqami',
   menuItems: {
