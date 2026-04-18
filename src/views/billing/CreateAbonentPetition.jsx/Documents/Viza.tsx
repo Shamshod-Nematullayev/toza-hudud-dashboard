@@ -1,9 +1,10 @@
 import React from 'react';
-import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar, QRSection } from '../PrintSection';
+import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar } from '../PrintSection';
 import { IAriza } from 'types/models';
 import { IMahalla } from '../useStore';
 import { lotinga } from 'helpers/lotinKiril';
 import { AbonentDetails } from 'types/billing';
+import { QRSection } from '../DocumentComponents/QRSection';
 
 interface VizaProps {
   ariza: IAriza;
@@ -98,7 +99,7 @@ function Viza({ ariza, abonentData, date, mahalla, vakil }: VizaProps) {
           hisoblaymiz.
         </p>
 
-        <ImzolashJoyi abonentData={{ ...abonentData, fullName: vakil?.fullName }} mahalla={mahalla} documentType={'viza'} />
+        <ImzolashJoyi abonentData={{ ...abonentData, fullName: vakil?.fullName || '' }} mahalla={mahalla} documentType={'viza'} />
       </div>
     </>
   );

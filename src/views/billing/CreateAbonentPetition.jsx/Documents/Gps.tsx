@@ -1,6 +1,7 @@
 import { lotinga } from 'helpers/lotinKiril';
 import React from 'react';
-import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar, QRSection } from '../PrintSection';
+import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar } from '../PrintSection';
+import { QRSection } from '../DocumentComponents/QRSection';
 
 function Gps({
   date,
@@ -75,7 +76,7 @@ function Gps({
       </div>
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
         <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-        <ArizaHeading mahalla={mahalla} abonentData={abonentData} />
+        <ArizaHeading abonentData={abonentData} />
         <br />
         <ArizaTitle type="xizmat ko'rsatilmagan" />
         <p
