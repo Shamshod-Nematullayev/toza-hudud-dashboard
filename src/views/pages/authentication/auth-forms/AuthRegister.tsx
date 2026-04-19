@@ -43,7 +43,13 @@ const AuthRegister = ({ ...others }) => {
   const [checked, setChecked] = useState(true);
 
   const [strength, setStrength] = useState(0);
-  const [level, setLevel] = useState();
+  const [level, setLevel] = useState<{
+    color: string;
+    label: string;
+  }>({
+    color: '',
+    label: ''
+  });
 
   const googleHandler = async () => {
     console.error('Register');
@@ -53,11 +59,11 @@ const AuthRegister = ({ ...others }) => {
     setShowPassword(!showPassword);
   };
 
-  const handleMouseDownPassword = (event) => {
+  const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   };
 
-  const changePassword = (value) => {
+  const changePassword = (value: string) => {
     const temp = strengthIndicator(value);
     setStrength(temp);
     setLevel(strengthColor(temp));
@@ -130,6 +136,17 @@ const AuthRegister = ({ ...others }) => {
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
           password: Yup.string().max(255).required('Password is required')
         })}
+        onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+          try {
+            setStatus({ success: false });
+            setSubmitting(true);
+          } catch (err: any) {
+            console.error(err);
+            setStatus({ success: false });
+            setErrors({ submit: err.message });
+            setSubmitting(false);
+          }
+        }}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit} {...others}>
@@ -142,7 +159,7 @@ const AuthRegister = ({ ...others }) => {
                   name="fname"
                   type="text"
                   defaultValue=""
-                  sx={{ ...theme.typography.customInput }}
+                  sx={{ ...(theme.typography as any)?.customInput }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -153,11 +170,11 @@ const AuthRegister = ({ ...others }) => {
                   name="lname"
                   type="text"
                   defaultValue=""
-                  sx={{ ...theme.typography.customInput }}
+                  sx={{ ...(theme.typography as any)?.customInput }}
                 />
               </Grid>
             </Grid>
-            <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...theme.typography.customInput }}>
+            <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...(theme.typography as any)?.customInput }}>
               <InputLabel htmlFor="outlined-adornment-email-register">Email Address / Username</InputLabel>
               <OutlinedInput
                 id="outlined-adornment-email-register"
@@ -175,7 +192,7 @@ const AuthRegister = ({ ...others }) => {
               )}
             </FormControl>
 
-            <FormControl fullWidth error={Boolean(touched.password && errors.password)} sx={{ ...theme.typography.customInput }}>
+            <FormControl fullWidth error={Boolean(touched.password && errors.password)} sx={{ ...(theme.typography as any)?.customInput }}>
               <InputLabel htmlFor="outlined-adornment-password-register">Password</InputLabel>
               <OutlinedInput
                 id="outlined-adornment-password-register"

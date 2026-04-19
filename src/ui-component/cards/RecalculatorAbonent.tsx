@@ -12,20 +12,32 @@ import { DataGrid } from '@mui/x-data-grid';
 import { colors } from 'store/constant.js';
 import api from 'utils/api.js';
 import { useTranslation } from 'react-i18next';
-import { CalendarMonth } from '@mui/icons-material';
 
 dayjs.locale('uz-latn');
 
 function RecalculatorAbonent() {
   const { t } = useTranslation();
-  const { recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable, hisoblandiJadval, setHisoblandiJadval } = useStore();
+  const { setAktSumma, recalculationPeriods, setRecalculationPeriods, aktType, rowsDhjTable, hisoblandiJadval, setHisoblandiJadval } =
+    useStore();
   const [currentTotal, setCurrentTotal] = useState(0);
   const [withQQS, setWithQQS] = useState(0);
   const [totalSumm, setTotalSumm] = useState(0);
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(dayjs().startOf('month'));
 
-  const qaytaHisob = ({ fromMoon, fromYear, toMoon, toYear, yashovchilar = 1 }) => {
+  const qaytaHisob = ({
+    fromMoon,
+    fromYear,
+    toMoon,
+    toYear,
+    yashovchilar = 1
+  }: {
+    fromMoon: number;
+    fromYear: number;
+    toMoon: number;
+    toYear: number;
+    yashovchilar?: number;
+  }) => {
     if (aktType === 'gps') {
       let summ = 0;
       let withNdsSumm = 0;
@@ -62,6 +74,22 @@ function RecalculatorAbonent() {
   };
 
   useEffect(() => {
+    let total = 0;
+    let totalWithQQS = 0;
+    let withoutQQSTotal = 0;
+    recalculationPeriods.forEach((period) => {
+      total += period.total;
+      totalWithQQS += period.withQQSTotal;
+      withoutQQSTotal += period.withoutQQSTotal;
+    });
+    setAktSumma({
+      total,
+      totalWithQQS,
+      withoutQQSTotal
+    });
+  }, [recalculationPeriods]);
+
+  useEffect(() => {
     api.get('/billing/get-tariffs').then((res) => {
       const tariffs = res.data.tariffs;
 
@@ -83,11 +111,12 @@ function RecalculatorAbonent() {
   }, []);
 
   useEffect(() => {
+    if (!startDate || !endDate) return;
     qaytaHisob({
-      fromMoon: startDate?.date() > 15 ? startDate?.month() + 1 : startDate?.month(),
-      fromYear: startDate?.year(),
-      toMoon: +(endDate?.date() > 15 ? endDate?.month() : endDate?.month() - 1),
-      toYear: endDate?.year()
+      fromMoon: startDate.date() > 15 ? startDate.month() + 1 : startDate.month(),
+      fromYear: startDate.year(),
+      toMoon: +(endDate.date() > 15 ? endDate.month() : endDate.month() - 1),
+      toYear: endDate.year()
     });
   }, [startDate, endDate]);
 

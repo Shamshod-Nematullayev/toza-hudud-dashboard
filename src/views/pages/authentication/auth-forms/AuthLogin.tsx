@@ -4,17 +4,12 @@ import { useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
 
 // third party
 import * as Yup from 'yup';
@@ -31,21 +26,23 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import api from 'utils/api';
 import Cookies from 'js-cookie';
+import useCustomizationStore from 'store/customizationStore';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const AuthLogin = ({ ...others }) => {
   const theme = useTheme();
+  const { setCompany } = useCustomizationStore();
 
   const navigate = useNavigate();
-  const uint8ArrayToBase64 = (uint8Array) => {
+  const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
     let binary = '';
     uint8Array.forEach((byte) => {
       binary += String.fromCharCode(byte);
     });
     return btoa(binary); // Base64 ga o‘girish
   };
-  const handleLogin = async (values) => {
+  const handleLogin = async (values: { email: string; password: string }) => {
     try {
       const response = await api.post('/auth/login', { login: values.email, password: values.password });
       const data = response.data;
@@ -60,7 +57,7 @@ const AuthLogin = ({ ...others }) => {
           delete data.photo;
         }
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('company', JSON.stringify(data.company));
+        setCompany(data.company);
         localStorage.setItem('fullName', data.fullName);
         localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
         navigate('/');
@@ -78,7 +75,7 @@ const AuthLogin = ({ ...others }) => {
     setShowPassword(!showPassword);
   };
 
-  const handleMouseDownPassword = (event) => {
+  const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   };
 
@@ -98,7 +95,7 @@ const AuthLogin = ({ ...others }) => {
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit} {...others}>
-            <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...theme.typography.customInput }}>
+            <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...(theme.typography as any)?.customInput }}>
               <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
               <OutlinedInput
                 id="outlined-adornment-email-login"
@@ -117,7 +114,7 @@ const AuthLogin = ({ ...others }) => {
               )}
             </FormControl>
 
-            <FormControl fullWidth error={Boolean(touched.password && errors.password)} sx={{ ...theme.typography.customInput }}>
+            <FormControl fullWidth error={Boolean(touched.password && errors.password)} sx={{ ...(theme.typography as any)?.customInput }}>
               <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
               <OutlinedInput
                 id="outlined-adornment-password-login"

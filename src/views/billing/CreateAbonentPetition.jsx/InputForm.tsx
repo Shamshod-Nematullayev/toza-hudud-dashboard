@@ -59,21 +59,6 @@ function InputForm() {
   }, [aktType, abonentData, muzlatiladi]);
 
   useEffect(() => {
-    let total = 0;
-    let totalWithQQS = 0;
-    let withoutQQSTotal = 0;
-    recalculationPeriods.forEach((period) => {
-      total += period.total;
-      totalWithQQS += period.withQQSTotal;
-      withoutQQSTotal += period.withoutQQSTotal;
-    });
-    setAktSumma({
-      total,
-      totalWithQQS,
-      withoutQQSTotal
-    });
-  }, [recalculationPeriods]);
-  useEffect(() => {
     if (accountNumber.length === 12) {
       updateAbonentDataByAccNum(accountNumber, 'main');
     } else {

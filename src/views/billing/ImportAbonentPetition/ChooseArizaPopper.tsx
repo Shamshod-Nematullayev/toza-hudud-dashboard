@@ -1,13 +1,25 @@
 import React from 'react';
 import { Popper, Paper, ClickAwayListener } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import Transitions from 'ui-component/extended/Transitions';
 
-function ChooseArizaPopper({ anchorEl, open, handleClose, rows = [], setAriza }) {
+function ChooseArizaPopper({
+  anchorEl,
+  open,
+  handleClose,
+  rows = [],
+  setAriza
+}: {
+  anchorEl: any;
+  open: boolean;
+  handleClose: () => void;
+  rows: any[];
+  setAriza: any;
+}) {
   const { t } = useTranslation();
 
-  const columns = [
+  const columns: GridColDef[] = [
     {
       field: 'id',
       headerName: '№',
@@ -19,7 +31,7 @@ function ChooseArizaPopper({ anchorEl, open, handleClose, rows = [], setAriza })
     { field: 'fullName', headerName: t('tableHeaders.fullName'), flex: 1 }
   ];
 
-  const handlePickAriza = ({ row }) => {
+  const handlePickAriza = ({ row }: { row: any }) => {
     setAriza(row);
     handleClose();
   };
@@ -40,10 +52,7 @@ function ChooseArizaPopper({ anchorEl, open, handleClose, rows = [], setAriza })
               offset: [0, 20]
             }
           }
-        ],
-        preventOverflow: {
-          escapeWithReference: true
-        }
+        ]
       }}
     >
       {({ TransitionProps }) => (

@@ -22,29 +22,51 @@ interface CustomizationState {
   language: string;
   setLanguage: (lang: string) => void;
   resetCustomization: () => void;
+  company: {
+    billingAdminName: string;
+    gpsOperatorName: string;
+    id: number;
+    locationName: string;
+    managerName: string;
+    name: string;
+    phone: string;
+  };
+  setCompany: (company: CustomizationState['company']) => void;
 }
 
 const initialState = {
-  isOpen: [],
-  defaultId: 'default',
-  fontFamily: FontFamily.Roboto,
-  borderRadius: config.borderRadius,
-  opened: true,
-  mode: 'dark',
-  documentVariantOdamSoni: '1'
+  customization: {
+    isOpen: [],
+    defaultId: 'default',
+    fontFamily: FontFamily.Roboto,
+    borderRadius: config.borderRadius,
+    opened: true,
+    mode: 'dark',
+    documentVariantOdamSoni: '1'
+  },
+  company: {
+    billingAdminName: '',
+    gpsOperatorName: '',
+    id: 0,
+    locationName: '',
+    managerName: '',
+    name: '',
+    phone: ''
+  }
 };
 
 const useCustomizationStore = create<CustomizationState>()(
   persist<CustomizationState>(
     (set) => ({
-      customization: initialState,
+      ...initialState,
       setCustomization: (customization) =>
         set((state) => ({
           customization: { ...state.customization, ...customization }
         })),
       language: 'ru',
       setLanguage: (language) => set({ language }),
-      resetCustomization: () => set({ customization: initialState })
+      resetCustomization: () => set({ customization: initialState.customization }),
+      setCompany: (company) => set({ company })
     }),
     {
       name: 'customization-store',
