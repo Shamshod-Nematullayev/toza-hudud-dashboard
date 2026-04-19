@@ -64,7 +64,8 @@ const uz = {
     importActs: 'Aktlarni import qilish',
     folders: 'Papkalar',
     etkKodRequests: 'ETK kiritish talablar',
-    visitsGraph: 'Tashriflar grafiki'
+    visitsGraph: 'Tashriflar grafiki',
+    mahallas: 'Mahallalar'
   },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',

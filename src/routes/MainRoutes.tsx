@@ -39,6 +39,7 @@ import AbonentDetails from 'views/billing/Abonent/pages/AbonentDetails';
 import DhjTable from 'views/billing/Abonent/pages/AbonentDhjTable';
 import AbonentArizalar from 'views/billing/Abonent/pages/AbonentArizalar';
 import AbonentActs from 'views/billing/Abonent/pages/AbonentActs';
+import Mahalla from 'views/billing/Mahalla/Mahalla';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -109,6 +110,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'inspectors',
           element: <Inspectors />
+        },
+        {
+          path: 'mahallas',
+          element: <Mahalla />
         },
         {
           path: 'tasks',

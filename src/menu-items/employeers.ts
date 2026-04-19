@@ -1,9 +1,9 @@
 //assets
-import { Checklist } from '@mui/icons-material';
+import { Checklist, LocationCity } from '@mui/icons-material';
 import BadgeIcon from '@mui/icons-material/BadgeOutlined';
 import { MenuItem } from 'menu-items';
 //contans
-const icons = { BadgeIcon, Checklist };
+const icons = { BadgeIcon, Checklist, LocationCity };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
 const employeers: MenuItem = {
@@ -18,6 +18,15 @@ const employeers: MenuItem = {
       type: 'item',
       url: '/employeers/inspectors',
       icon: icons.BadgeIcon,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
+    },
+    {
+      id: 'mahallas',
+      title: 'mahallas',
+      type: 'item',
+      url: '/employeers/mahallas',
+      icon: icons.LocationCity,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
     },
