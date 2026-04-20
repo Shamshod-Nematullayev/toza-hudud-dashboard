@@ -15,7 +15,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, FolderOutlined, ElectricBolt } from '@mui/icons-material';
+import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, FolderOutlined, ElectricBolt, MessageOutlined } from '@mui/icons-material';
 import uz from '../locales/uz';
 import { MenuItem } from 'menu-items';
 
@@ -40,7 +40,8 @@ const icons = {
   DocumentScannerOutlined,
   ReceiptOutlined,
   FolderOutlined,
-  ElectricBolt
+  ElectricBolt,
+  MessageOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -80,6 +81,15 @@ const billing: MenuItem = {
       type: 'item',
       url: '/billing/folders',
       icon: icons.FolderOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
+    },
+    {
+      id: 'sms-warnings',
+      title: 'sms-warnings',
+      type: 'item',
+      url: '/billing/sms-warnings',
+      icon: icons.MessageOutlined,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
     },

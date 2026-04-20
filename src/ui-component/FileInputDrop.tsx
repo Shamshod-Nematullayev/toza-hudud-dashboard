@@ -84,7 +84,15 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
-function FileInputDrop({ setFiles, clearTrigger }: { setFiles: (files: FileList | null) => void; clearTrigger: boolean }) {
+function FileInputDrop({
+  setFiles,
+  clearTrigger,
+  fileType = 'pdf'
+}: {
+  setFiles: (files: FileList | null) => void;
+  clearTrigger: boolean;
+  fileType?: 'pdf' | 'excel';
+}) {
   const dropZoneRef = useRef<HTMLLabelElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
@@ -98,7 +106,7 @@ function FileInputDrop({ setFiles, clearTrigger }: { setFiles: (files: FileList 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; // Inputni tozalash
     }
-    setLabel('PDF ' + t('Drop your files'));
+    setLabel(fileType === 'pdf' ? 'PDF ' + t('Drop your files') : 'Excel ' + t('Drop your files'));
   };
   const updateThumbnail = useCallback((file: File) => {
     if (!file) return;
@@ -148,7 +156,7 @@ function FileInputDrop({ setFiles, clearTrigger }: { setFiles: (files: FileList 
           type="file"
           className="drop-zone__input"
           ref={fileInputRef}
-          accept=".pdf"
+          accept={fileType === 'pdf' ? '".pdf"' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
           onChange={(e) => {
             if (e.target.files) updateThumbnail(e.target.files[0]);
             setFiles(e.target.files);

@@ -57,6 +57,7 @@ function Mahalla() {
             field: 'employees',
             headerName: 'Xodimlar',
             width: 350,
+            sortable: false,
             renderCell: (params: any) => {
               const employees = params.value || [];
               if (employees.length === 0)
@@ -101,7 +102,8 @@ function Mahalla() {
               <IconButton onClick={() => handleEditClick(params.id)}>
                 <Edit />
               </IconButton>
-            )
+            ),
+            sortable: false
           }
         ]}
       />

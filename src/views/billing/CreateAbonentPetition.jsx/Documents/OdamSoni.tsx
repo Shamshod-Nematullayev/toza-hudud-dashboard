@@ -51,7 +51,7 @@ function OdamSoni({
   return (
     <>
       {/* 1-SAHIFA: ARIZA */}
-      <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+      {/* <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
         <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
         <ArizaHeading abonentData={abonentData} vakil={relation ? { relation, fullName: relationFullName || '' } : undefined} />
         <br />
@@ -61,10 +61,11 @@ function OdamSoni({
           {renderArizaText()} Ushbu dalolatnomam asosida qayta hisob-kitob qilib berishingizni so‘rayman.
         </p>
         <QRSection abonentData={abonentData} ariza={ariza} date={date} />
-      </div>
+      </div> */}
 
       {/* 2-SAHIFA: DALOLATNOMA */}
       <div className="page" style={{ fontSize: '16px', textAlign: 'justify' }}>
+        <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
         <p style={{ textAlign: 'center' }}>
           <b>
             {customization.documentVariantOdamSoni === '1'
@@ -150,6 +151,7 @@ function OdamSoni({
           <br />
           <ImzoJoyiRow label={company.name + '  boshligi'} name={mahalla.company.manager.fullName} />
         </div>
+        <QRSection abonentData={abonentData} ariza={ariza} date={date} />
       </div>
     </>
   );

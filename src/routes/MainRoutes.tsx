@@ -40,6 +40,7 @@ import DhjTable from 'views/billing/Abonent/pages/AbonentDhjTable';
 import AbonentArizalar from 'views/billing/Abonent/pages/AbonentArizalar';
 import AbonentActs from 'views/billing/Abonent/pages/AbonentActs';
 import Mahalla from 'views/billing/Mahalla/Mahalla';
+import SmsWarnings from 'views/billing/SmsWarnings/SmsWarnings';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -151,6 +152,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'folders',
           element: <Folders />
+        },
+        {
+          path: 'sms-warnings',
+          element: <SmsWarnings />
         },
         {
           path: 'printAbonentsList',

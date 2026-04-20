@@ -69,7 +69,8 @@ const uz = {
     folders: 'Papkalar',
     etkKodRequests: 'ETK kiritish talablar',
     visitsGraph: 'Tashriflar grafiki',
-    mahallas: 'Mahallalar'
+    mahallas: 'Mahallalar',
+    'sms-warnings': 'SMS ogohlantirishlar'
   },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',
@@ -195,7 +196,9 @@ const uz = {
     unregisteredAt: 'Ro`yxatdan chiqarilgan vaqti',
     sex: 'Jinsi',
     actDate: 'Akt sanasi',
-    familyRelation: 'Aloqasi'
+    familyRelation: 'Aloqasi',
+    debtAmount: 'Qarzdorlik summasi',
+    errorMessage: 'Xatolik habari'
   },
   tableActions: {
     edit: 'Tahrirlash',
