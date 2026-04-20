@@ -1,10 +1,13 @@
 import React from 'react';
-import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar } from '../PrintSection';
+import { oylar } from '../PrintSection';
 import { IAriza } from 'types/models';
 import { IMahalla } from '../useStore';
 import { lotinga } from 'helpers/lotinKiril';
 import { AbonentDetails } from 'types/billing';
 import { QRSection } from '../DocumentComponents/QRSection';
+import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
+import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
+import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 
 interface VizaProps {
   ariza: IAriza;

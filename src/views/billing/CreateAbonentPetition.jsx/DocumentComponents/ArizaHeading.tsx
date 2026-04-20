@@ -1,8 +1,8 @@
 import useCustomizationStore from 'store/customizationStore';
 import { AbonentDetails } from 'types/billing';
-import { formatName } from '../PrintSection';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import { lotinga } from 'helpers/lotinKiril';
+import { formatName } from '../PrintSection';
 
 /**
  * Format phone number to "+998(xx xxxxxx" format.

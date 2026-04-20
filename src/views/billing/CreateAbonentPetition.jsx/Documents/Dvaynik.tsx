@@ -1,8 +1,11 @@
 import { lotinga } from 'helpers/lotinKiril';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import styled from 'styled-components';
-import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar } from '../PrintSection';
+import { oylar } from '../PrintSection';
 import { QRSection } from '../DocumentComponents/QRSection';
+import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
+import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
+import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 
 const StyledTable = styled.table`
   margin: auto;

@@ -39,6 +39,15 @@ import { lotinga } from 'helpers/lotinKiril';
 import { AbonentDetails } from 'types/billing';
 import { IAriza } from 'types/models';
 
+export function formatName(name: string) {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 // Constants
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
@@ -141,7 +150,7 @@ const DocumentRenderer = ({
   }
 };
 
-function PrintSection({
+export default function PrintSection({
   show,
   ariza,
   setShowPrintSection,

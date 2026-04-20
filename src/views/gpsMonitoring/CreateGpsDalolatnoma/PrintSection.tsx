@@ -5,7 +5,8 @@ import useCustomizationStore from 'store/customizationStore';
 import { IAutomobile } from 'types/billing';
 import EditableTypography from 'ui-component/EditableTypography';
 import { Company } from 'views/billing/Blanks';
-import { ImzoJoyiRow, oylar } from 'views/billing/CreateAbonentPetition.jsx/PrintSection';
+import { ImzoJoyiRow } from 'views/billing/CreateAbonentPetition.jsx/DocumentComponents/ImzolashJoyi';
+import { oylar } from 'views/billing/CreateAbonentPetition.jsx/PrintSection';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 
 function PrintSection({

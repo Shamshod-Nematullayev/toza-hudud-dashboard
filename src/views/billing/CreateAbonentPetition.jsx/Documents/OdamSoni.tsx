@@ -1,11 +1,14 @@
 import { lotinga } from 'helpers/lotinKiril';
-import { ArizaHeading, ArizaTitle, formatName, ImzoJoyiRow, ImzolashJoyi, oylar,  raqamlar } from '../PrintSection';
+import { formatName, oylar, raqamlar } from '../PrintSection';
 import { Dayjs } from 'dayjs';
 import { IMahalla } from '../useStore';
 import useCustomizationStore from 'store/customizationStore';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import { AbonentDetails } from 'types/billing';
 import { QRSection } from '../DocumentComponents/QRSection';
+import { ImzoJoyiRow } from '../DocumentComponents/ImzolashJoyi';
+import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
+import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 
 function OdamSoni({
   date,

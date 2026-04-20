@@ -1,7 +1,10 @@
 import { lotinga } from 'helpers/lotinKiril';
 import React from 'react';
-import { ArizaHeading, ArizaTitle, ImzolashJoyi, oylar } from '../PrintSection';
+import { oylar } from '../PrintSection';
 import { QRSection } from '../DocumentComponents/QRSection';
+import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
+import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
+import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 
 function Gps({
   date,
