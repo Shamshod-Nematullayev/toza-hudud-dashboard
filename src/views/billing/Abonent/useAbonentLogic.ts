@@ -15,9 +15,7 @@ export function useAbonentLogic() {
 /** Asosiy abonent ma'lumotlarini bitta joyda yuklash (layout). Takroriy chaqirish API ni ko'p marta urmaydi. */
 export function usePrefetchAbonentPageData() {
   const { residentId, periodEndYear } = useAbonentLogic();
-  const getDetails = useAbonentStore((s) => s.getDetails);
-  const getIncomeStats = useAbonentStore((s) => s.getIncomeStats);
-  const getIncomePredicts = useAbonentStore((s) => s.getIncomePredicts);
+  const { getDetails, getIncomeStats, getIncomePredicts } = useAbonentStore();
 
   useEffect(() => {
     if (Number.isNaN(residentId)) return;

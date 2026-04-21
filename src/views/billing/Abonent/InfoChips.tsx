@@ -55,7 +55,7 @@ function InfoChips(props: InfoChipsProps) {
     if (!found && toDate) {
       getIncomePredicts(residentId, `${toDate?.month() + 1}.${toDate?.year()}`);
     }
-  }, [toDate, openCalc, balancePredicts]);
+  }, [toDate, openCalc]);
 
   return (
     <Stack direction="row" spacing={1}>
