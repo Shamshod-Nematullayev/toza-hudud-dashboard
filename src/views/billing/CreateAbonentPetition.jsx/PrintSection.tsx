@@ -104,7 +104,7 @@ const DocumentRenderer = ({
   }, [recalculationPeriods, setOlderPeriod]);
 
   const commonProps = {
-    date: new Date(ariza.date),
+    date: new Date(ariza.sana),
     abonentData,
     mahalla,
     ariza,

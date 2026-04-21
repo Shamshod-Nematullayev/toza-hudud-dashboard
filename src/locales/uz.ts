@@ -72,6 +72,11 @@ const uz = {
     mahallas: 'Mahallalar',
     'sms-warnings': 'SMS ogohlantirishlar'
   },
+  smsWarningStatus: {
+    pending: 'Jarayonda',
+    sent: 'Yuborildi',
+    failed: 'Muvaffaqqiyatsiz'
+  },
   dashboard: {
     identified: 'Shaxsi tasdiqlangan',
     electacityContirmed: 'Elektr kodi tasdiqlangan'
