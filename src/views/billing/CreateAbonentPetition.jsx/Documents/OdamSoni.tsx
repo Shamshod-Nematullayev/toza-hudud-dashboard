@@ -35,6 +35,7 @@ function OdamSoni({
   relation?: string;
   relationFullName?: string;
 }) {
+  date = new Date();
   const { customization, company } = useCustomizationStore();
   // Dinamik mantiqiy o'zgaruvchilar
   const isRelative = !!relation && !!relationFullName;
@@ -147,10 +148,13 @@ function OdamSoni({
           <br />
           <ImzoJoyiRow label={'Aholi nazoratchisi'} name={mahalla.data.biriktirilganNazoratchi?.inspector_name} />
           <br />
-          <ImzoJoyiRow label={"Aholi bo'limi xodimi"} name={mahalla.company.billingAdminName} />
-          <br />
           <ImzoJoyiRow label={company.name + '  boshligi'} name={mahalla.company.manager.fullName} />
+          <br />
+          <ImzoJoyiRow label={"Aholi bo'limi xodimi"} name={mahalla.company.billingAdminName} />
         </div>
+        <br />
+        <br />
+        <br />
         <QRSection abonentData={abonentData} ariza={ariza} date={date} />
       </div>
     </>

@@ -225,8 +225,8 @@ export default function PrintSection({
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           {/* Variant va Sana boshqaruvi */}
-          <Grid item xs={12} md={6}>
-            <Stack spacing={2}>
+          <Grid item xs={12}>
+            <Stack spacing={2} direction="row">
               {ariza.document_type === 'odam_soni' && (
                 <FormControl fullWidth>
                   <InputLabel>Hujjat varianti</InputLabel>
@@ -246,6 +246,14 @@ export default function PrintSection({
                 onChange={(v) => v && setOlderPeriod(v)}
                 format="DD.MM.YYYY"
                 slotProps={{ textField: { fullWidth: true } }}
+              />
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                label="Asoslantiruvchi izoh"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
               />
             </Stack>
           </Grid>
@@ -274,14 +282,6 @@ export default function PrintSection({
                   />
                 </Grid>
               </Grid>
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                label="Asoslantiruvchi izoh"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
             </Stack>
           </Grid>
         </Grid>

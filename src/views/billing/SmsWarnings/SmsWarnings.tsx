@@ -20,7 +20,9 @@ function SmsWarnings() {
   const [openImportModal, setOpenImportModal] = useState(false);
 
   const handleImport = (excelFile: File) => {
-    console.log(excelFile);
+    const formData = new FormData();
+    formData.append('file', excelFile);
+    api.post('/sms-service/warnings', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   };
   return (
     <MainCard>
