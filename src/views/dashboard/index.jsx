@@ -61,7 +61,6 @@ const Dashboard = () => {
           </Grid>
         </Card>
       </Grid>
-      <NotariusCheck />
     </Grid>
   );
 };

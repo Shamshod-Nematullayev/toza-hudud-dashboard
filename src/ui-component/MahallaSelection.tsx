@@ -48,7 +48,7 @@ function MahallaSelection({
         }));
         setMahallas(mahallalar);
         setMahallalar(mahallalar);
-        setMahallalarStore(mahallalar.map((m) => ({ id: m.id, name: m.name })));
+        setMahallalarStore(mahallalar.map((m: any) => ({ id: m.id, name: m.name })));
       });
     }
   }, []);
