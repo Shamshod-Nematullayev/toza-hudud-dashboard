@@ -3,6 +3,7 @@ import { kirillga, lotinga } from 'helpers/lotinKiril';
 import { t } from 'i18next';
 import i18n from 'languageConfig';
 import React, { useEffect, useId, useState } from 'react';
+import useCustomizationStore from 'store/customizationStore';
 import api from 'utils/api';
 
 /**
@@ -34,16 +35,22 @@ function MahallaSelection({
   required?: boolean;
 }) {
   const [mahallas, setMahallas] = useState<{ id: number; name: string }[]>([]);
-
+  const { mahallalar, setMahallalar: setMahallalarStore } = useCustomizationStore();
   useEffect(() => {
-    api.get('/inspectors').then(({ data }) => {
-      const mahalllalar = data.mahallalar.map((mfy: any) => ({
-        ...mfy,
-        name: i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)
-      }));
-      setMahallas(mahalllalar);
-      setMahallalar(mahalllalar);
-    });
+    console.log(mahallalar);
+    if (mahallalar.length > 0) {
+      setMahallas(mahallalar);
+    } else {
+      api.get('/mahallas', { params: { page: 1, limit: 1000 } }).then(({ data }) => {
+        const mahallalar = data.data.map((mfy: any) => ({
+          ...mfy,
+          name: i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)
+        }));
+        setMahallas(mahallalar);
+        setMahallalar(mahallalar);
+        setMahallalarStore(mahallalar.map((m) => ({ id: m.id, name: m.name })));
+      });
+    }
   }, []);
 
   return (

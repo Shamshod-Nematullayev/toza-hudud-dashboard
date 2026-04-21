@@ -15,14 +15,16 @@ export function useAbonentLogic() {
 /** Asosiy abonent ma'lumotlarini bitta joyda yuklash (layout). Takroriy chaqirish API ni ko'p marta urmaydi. */
 export function usePrefetchAbonentPageData() {
   const { residentId, periodEndYear } = useAbonentLogic();
-  const { getDetails, getIncomeStats, getIncomePredicts } = useAbonentStore();
+  const { getDetails, getIncomeStats, getIncomePredicts, resetStore } = useAbonentStore();
 
   useEffect(() => {
     if (Number.isNaN(residentId)) return;
-    getDetails(residentId);
-    getIncomeStats(residentId);
+    resetStore();
     getIncomePredicts(residentId, periodEndYear);
-  }, [residentId, periodEndYear, getDetails, getIncomeStats, getIncomePredicts]);
+    getDetails(residentId);
+
+    getIncomeStats(residentId);
+  }, [residentId]);
 }
 
 /**

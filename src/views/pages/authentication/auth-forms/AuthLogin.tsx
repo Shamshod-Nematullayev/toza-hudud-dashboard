@@ -32,7 +32,7 @@ import useCustomizationStore from 'store/customizationStore';
 
 const AuthLogin = ({ ...others }) => {
   const theme = useTheme();
-  const { setCompany } = useCustomizationStore();
+  const { setCompany, setMahallalar } = useCustomizationStore();
 
   const navigate = useNavigate();
   const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
@@ -58,6 +58,7 @@ const AuthLogin = ({ ...others }) => {
         }
         localStorage.setItem('user', JSON.stringify(data.user));
         setCompany(data.company);
+        setMahallalar([]);
         localStorage.setItem('fullName', data.fullName);
         localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
         navigate('/');

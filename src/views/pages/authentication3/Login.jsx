@@ -120,7 +120,7 @@ function Login() {
   const [disabled, setDisabled] = useState(false);
   const { t } = useTranslation();
 
-  const { setCompany, customization } = useCustomizationStore();
+  const { setCompany, customization, setMahallalar } = useCustomizationStore();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setDisabled(true);
@@ -139,6 +139,7 @@ function Login() {
       }
       localStorage.setItem('user', JSON.stringify(data.user));
       setCompany(data.company);
+      setMahallalar([]);
       localStorage.setItem('fullName', data.fullName);
       localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
       navigate('/');

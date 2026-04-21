@@ -7,6 +7,7 @@ import { useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import ImportSmsModal from './ImportSmsModal';
+import { toast } from 'react-toastify';
 
 function SmsWarnings() {
   const [reloadState, setReloadState] = useState(false);
@@ -30,10 +31,15 @@ function SmsWarnings() {
     const formData = new FormData();
     formData.append('file', excelFile);
     setLoading(true);
-    await api.post('/sms-service/warnings', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-
-    setLoading(false);
-    setReloadState(!reloadState);
+    try {
+      const { data } = await api.post('/sms-service/warnings', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast.success(data.message, { autoClose: false });
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Xatolik kuzatildi');
+    } finally {
+      setLoading(false);
+      setReloadState(!reloadState);
+    }
   };
 
   const handleClickExport = async () => {

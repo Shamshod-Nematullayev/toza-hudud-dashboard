@@ -32,6 +32,8 @@ interface CustomizationState {
     phone: string;
   };
   setCompany: (company: CustomizationState['company']) => void;
+  mahallalar: { id: number; name: string }[];
+  setMahallalar: (mahallalar: CustomizationState['mahallalar']) => void;
 }
 
 const initialState = {
@@ -52,7 +54,8 @@ const initialState = {
     managerName: '',
     name: '',
     phone: ''
-  }
+  },
+  mahallalar: []
 };
 
 const useCustomizationStore = create<CustomizationState>()(
@@ -66,7 +69,8 @@ const useCustomizationStore = create<CustomizationState>()(
       language: 'ru',
       setLanguage: (language) => set({ language }),
       resetCustomization: () => set({ customization: initialState.customization }),
-      setCompany: (company) => set({ company })
+      setCompany: (company) => set({ company }),
+      setMahallalar: (mahallalar) => set({ mahallalar })
     }),
     {
       name: 'customization-store',

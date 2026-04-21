@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Button,
   ButtonGroup,
@@ -130,6 +130,9 @@ function AbonentTools() {
   const { residentId, periodEndYear } = useAbonentLogic();
   const currentTab = location.pathname.split('/').pop();
   const [tab, setTab] = useState<TabType>(currentTab as TabType);
+  useEffect(() => {
+    setTab('details');
+  }, [residentId]);
 
   const handleTabsChange = (e: React.SyntheticEvent, newValue: TabType) => {
     setTab(newValue);
