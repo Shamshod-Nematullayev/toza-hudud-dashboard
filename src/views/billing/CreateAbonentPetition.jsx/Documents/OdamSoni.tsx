@@ -155,7 +155,7 @@ function OdamSoni({
         <br />
         <br />
         <br />
-        <QRSection abonentData={abonentData} ariza={ariza} date={date} />
+        <QRSection ariza={ariza} date={date} />
       </div>
     </>
   );
