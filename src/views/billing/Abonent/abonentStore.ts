@@ -10,7 +10,8 @@ import {
   HETSuccessResponse,
   HetAbonentResponse,
   IAbonentPetition,
-  PermamentsResponse
+  PermamentsResponse,
+  MvdAddress
 } from './types';
 
 const initialState = {
@@ -36,7 +37,12 @@ const initialState = {
   openIIBInhabitantsDialog: false,
   openAddInhabitantsDialog: false,
   abonentPetitions: [],
-  openChangePhoneDialogState: false
+  openChangePhoneDialogState: false,
+  abonentMvdAddress: null,
+  ui: {
+    mvdAddressLoading: false,
+    mvdAddressModalOpenState: false
+  }
 };
 
 export interface IAbonentPageStore {
@@ -49,6 +55,13 @@ export interface IAbonentPageStore {
   acts: IAct[];
   abonentPetitions: IAbonentPetition[];
   residentPhoto: string | null;
+  abonentMvdAddress: MvdAddress | null;
+  fetchAbonentMvdAddress: (pnfl: string) => void;
+  ui: {
+    mvdAddressLoading: boolean;
+    mvdAddressModalOpenState: boolean;
+  };
+  closeMvdAddressModal: () => void;
   /** * Abonent ma'lumotlari.
    * TozaMakondan olinadi.
    */
@@ -323,5 +336,16 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     if (!current || current.id !== residentId) return;
     set({ blockReport: data });
   },
-  resetStore: () => set(initialState)
+  resetStore: () => set(initialState),
+  closeMvdAddressModal: () => {
+    const { ui } = get();
+    set({ ui: { ...ui, mvdAddressModalOpenState: false } });
+  },
+  fetchAbonentMvdAddress: async (pnfl) => {
+    const { ui, abonentMvdAddress } = get();
+    set({ ui: { ...ui, mvdAddressLoading: true } });
+    if (abonentMvdAddress) return set({ ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
+    const { data } = await api.get('/abonents/mvd-address/' + pnfl);
+    return set({ abonentMvdAddress: data, ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
+  }
 }));

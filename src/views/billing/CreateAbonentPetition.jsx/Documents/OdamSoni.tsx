@@ -84,55 +84,47 @@ function OdamSoni({
           <div>{mahalla?.company?.locationName}</div>
         </div>
 
-        {customization.documentVariantOdamSoni === '1' ? (
-          <>
-            <p>
-              <b>Quyidagi manzil bo‘yicha:</b>
-            </p>
-            <p>MFY nomi: {mahalla.data?.name && lotinga(mahalla?.data?.name)}</p>
-            <p>
-              Manzil: {abonentData.mahallaName} {abonentData.streetName}
-            </p>
-            <p>Shaxsiy hisob raqami: {abonentData?.accountNumber}</p>
-            <p>
-              <b>Abonent: {abonentData?.fullName}</b>
-            </p>
-            {isRelative && (
-              <p>
-                <b>
-                  Murojaatchi (Vakil): {relationFullName} ({relation})
-                </b>
-              </p>
-            )}
-            <p>
-              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.year()} yilning “
-              {olderPeriod.date()}” {lotinga(oylar[olderPeriod.month()])} oyidan buyon birga istiqomat qilishi aniqlandi.
-            </p>
-            <p>{asoslantiruvchi}</p>
-          </>
-        ) : (
-          <>
-            <p style={{ textAlign: 'justify', textIndent: '40px' }}>
-              Biz quyidagi imzo chekuvchilar, Samarqand viloyat {mahalla.company?.locationName}, {lotinga(mahalla?.data?.name)} MFY dagi,{' '}
-              {lotinga(abonentData.streetName)} ko'chasi, uy {abonentData.house.homeNumber} kv {abonentData.house.homeIndex} xonadonida
-              istiqomat qiluvchi fuqaro {formatName(abonentData.fullName)}{' '}
-              {isRelative ? `(vakili ${relationText} — ${relationFullName})` : ''}
-              ning pasport ma'lumotlari seriya {abonentData.citizen.passport} PNFL {abonentData.citizen.pnfl}, xonadonning kadastr raqami{' '}
-              {abonentData.house.cadastralNumber}, tel raqami {abonentData.phone}
-            </p>
-            <p style={{ textAlign: 'justify', textIndent: '40px' }}>
-              F.I.Sh. {formatName(abonentData.fullName)}, {lotinga(mahalla.data.name)} MFY raisi{' '}
-              {fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, {mahalla.company.name} {mahalla.company.locationName} aholi bo'lim
-              boshlig'i {lotinga(fullNameToShortName(mahalla.company.manager.fullName))}lar mazkur dalolatnomani shu haqida tuzdik.
-            </p>
-            <p style={{ textAlign: 'justify', textIndent: '40px' }}>
-              Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
-              {abonentData.house.inhabitantCnt} nafar ko'rsatilgan. O'rganish natijasida {olderPeriod.year()} yil «{olderPeriod.date()}»{' '}
-              {oylar[olderPeriod.month()]}dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
-            </p>
-            {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px' }}>{asoslantiruvchi}</p>}
-          </>
+        <p>
+          <b>Quyidagi manzil bo‘yicha:</b>
+        </p>
+        <p>MFY nomi: {mahalla.data?.name && lotinga(mahalla?.data?.name)}</p>
+        <p>
+          Manzil: {abonentData.mahallaName} {abonentData.streetName}
+        </p>
+        <p>Shaxsiy hisob raqami: {abonentData?.accountNumber}</p>
+        <p>
+          <b>Abonent: {abonentData?.fullName}</b>
+        </p>
+        {isRelative && (
+          <p>
+            <b>
+              Murojaatchi (Vakil): {relationFullName} ({relation})
+            </b>
+          </p>
         )}
+        <p>
+          Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.year()} yilning “
+          {olderPeriod.date()}” {lotinga(oylar[olderPeriod.month()])} oyidan buyon birga istiqomat qilishi aniqlandi.
+        </p>
+        <p>{asoslantiruvchi}</p>
+        <p style={{ textAlign: 'justify', textIndent: '40px' }}>
+          Biz quyidagi imzo chekuvchilar, Samarqand viloyat {mahalla.company?.locationName}, {lotinga(mahalla?.data?.name)} MFY dagi,{' '}
+          {lotinga(abonentData.streetName)} ko'chasi, uy {abonentData.house.homeNumber} kv {abonentData.house.homeIndex} xonadonida
+          istiqomat qiluvchi fuqaro {formatName(abonentData.fullName)} {isRelative ? `(vakili ${relationText} — ${relationFullName})` : ''}
+          ning pasport ma'lumotlari seriya {abonentData.citizen.passport} PNFL {abonentData.citizen.pnfl}, xonadonning kadastr raqami{' '}
+          {abonentData.house.cadastralNumber}, tel raqami {abonentData.phone}
+        </p>
+        <p style={{ textAlign: 'justify', textIndent: '40px' }}>
+          F.I.Sh. {formatName(abonentData.fullName)}, {lotinga(mahalla.data.name)} MFY raisi{' '}
+          {fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, {mahalla.company.name} {mahalla.company.locationName} aholi bo'lim
+          boshlig'i {lotinga(fullNameToShortName(mahalla.company.manager.fullName))}lar mazkur dalolatnomani shu haqida tuzdik.
+        </p>
+        <p style={{ textAlign: 'justify', textIndent: '40px' }}>
+          Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
+          {abonentData.house.inhabitantCnt} nafar ko'rsatilgan. O'rganish natijasida {olderPeriod.year()} yil «{olderPeriod.date()}»{' '}
+          {oylar[olderPeriod.month()]}dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
+        </p>
+        {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px' }}>{asoslantiruvchi}</p>}
 
         <p>
           Yuqoridagilarga va asoslantiruvchi hujjatlarga muvofiq, hisobga olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi

@@ -1,5 +1,19 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Grid, Typography, Avatar, Box, Chip, Divider, Stack, SvgIconProps, IconButton, Alert } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+  Avatar,
+  Box,
+  Chip,
+  Divider,
+  Stack,
+  SvgIconProps,
+  IconButton,
+  Alert,
+  CircularProgress
+} from '@mui/material';
 import {
   CreditCardOutlined as CardIcon,
   BadgeOutlined as PassportIcon,
@@ -17,7 +31,8 @@ import {
   FlashOnOutlined as EnergyIcon,
   NumbersOutlined as SoatoIcon,
   InfoOutlined as NoteIcon,
-  Verified as VerifiedIcon
+  Verified as VerifiedIcon,
+  TravelExplore as MvdIcon
 } from '@mui/icons-material';
 import { AbonentDetails } from 'types/billing';
 import { useAbonentStore } from './abonentStore';
@@ -76,7 +91,16 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     </Grid>
   );
 
-  const { verifyIdentity, getCitizensDetails, setResidentPhoto, abonentDetails, setOpenPhotoModal, blockReport } = useAbonentStore();
+  const {
+    verifyIdentity,
+    getCitizensDetails,
+    setResidentPhoto,
+    abonentDetails,
+    setOpenPhotoModal,
+    blockReport,
+    fetchAbonentMvdAddress,
+    ui
+  } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
 
   const handleClickAvatar = async () => {
@@ -171,7 +195,31 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                 copyable
               />
               <InfoRow icon={PassportIcon} label="Паспорт рақами" value={data?.citizen.passport} />
-              <InfoRow icon={JshshirIcon} label="ЖШШИР" value={data?.citizen.pnfl} />
+              <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
+                <Grid item xs={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <JshshirIcon sx={{ fontSize: 18, color: 'text.secondary', opacity: 0.7 }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    ЖШШИР:
+                  </Typography>
+                </Grid>
+                <Grid item xs={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {data?.citizen.pnfl || '—'}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => fetchAbonentMvdAddress(abonentDetails?.citizen.pnfl || '')}
+                    disabled={ui.mvdAddressLoading || !abonentDetails?.citizen.pnfl || abonentDetails.citizen.pnfl.length === 14}
+                    sx={{ ml: 0.5, p: 0.5 }}
+                  >
+                    {ui.mvdAddressLoading ? (
+                      <CircularProgress size={18} thickness={5} />
+                    ) : (
+                      <MvdIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                    )}
+                  </IconButton>
+                </Grid>
+              </Grid>
               <InfoRow icon={ContractIcon} label="Шартнома рақами" value={data?.contractNumber || ''} />
               <InfoRow icon={CadastreIcon} label="Кадастр рақами" value={data?.house.cadastralNumber} />
               <InfoRow icon={DateIcon} label="Шартнома тасдиқланган сана" value={data?.contractDate} />

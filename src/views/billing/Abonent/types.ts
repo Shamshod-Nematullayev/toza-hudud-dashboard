@@ -187,3 +187,24 @@ export interface BlockReport {
   warningDebt: number | null;
   blockDebt: number;
 }
+
+interface Place {
+  Id: number;
+  Value: string;
+  Guid?: string;
+  IdValue?: string;
+}
+
+export interface MvdAddress {
+  PermanentRegistration: {
+    Address: string;
+    Cadastre: string;
+    Country: Place;
+    District: Place;
+    Maxalla: Place;
+    Region: Place;
+    Street: Place;
+    RegistrationDate: string; // ISO string
+    dateTime: string; // ISO string
+  };
+}

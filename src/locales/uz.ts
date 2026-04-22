@@ -19,6 +19,8 @@ const uz = {
     'day-6': 'Shanba',
     'day-7': 'Yakshanba'
   },
+  "MVD Doimiy Ro'yxat": "MVD Doimiy Ro'yxat",
+  "Yashash manzili ma'lumotlari": "Yashash manzili ma'lumotlari",
   hetAbonent: 'Elektr energiyasiga ulangan abonent',
   cadastrAbonent: 'Kadastr abonent',
   uzs: "so'm",
@@ -26,7 +28,8 @@ const uz = {
     missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan',
     noDocumentsToConfirm: "Tasdiqlash uchun hujjatlar yo'q",
     somethingWentWrong: 'Xatolik kuzatildi',
-    pdfFileRequired: 'Iltimos PDF faylni yuklang'
+    pdfFileRequired: 'Iltimos PDF faylni yuklang',
+    notFoundData: "Ma'lumot topilmadi"
   },
   successMessages: {
     success: 'Muvaffaqiyatli amalga oshirildi',
@@ -203,7 +206,9 @@ const uz = {
     actDate: 'Akt sanasi',
     familyRelation: 'Aloqasi',
     debtAmount: 'Qarzdorlik summasi',
-    errorMessage: 'Xatolik habari'
+    errorMessage: 'Xatolik habari',
+    Viloyat: 'Viloyat',
+    Tuman: 'Tuman'
   },
   tableActions: {
     edit: 'Tahrirlash',

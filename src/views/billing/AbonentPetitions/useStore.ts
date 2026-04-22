@@ -52,7 +52,7 @@ interface IStore {
 const useStore = create<IStore>((set, get) => ({
   rows: [],
   setRows: (rows) => set({ rows }),
-  limit: 50,
+  limit: 25,
   setLimit: (limit) => set({ limit }),
   totalPages: 0,
   setTotalPages: (totalPages) => set({ totalPages }),
