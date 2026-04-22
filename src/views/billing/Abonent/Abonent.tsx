@@ -8,6 +8,7 @@ import PrintDebtCertificate from './modals/PrintDebtCertificate';
 import IIBInhabitants from './modals/IIBInhabitants';
 import AddInhabitants from './modals/AddInhabitants';
 import EditElectricAccountModal from './modals/ElectricAccountEdit';
+import MvdAddress from './modals/MvdAddress';
 
 function Abonent() {
   usePrefetchAbonentPageData();
@@ -26,6 +27,7 @@ function Abonent() {
       <IIBInhabitants />
       <AddInhabitants />
       <EditElectricAccountModal />
+      <MvdAddress />
     </div>
   );
 }

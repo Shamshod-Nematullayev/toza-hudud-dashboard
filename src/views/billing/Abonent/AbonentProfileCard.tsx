@@ -12,7 +12,8 @@ import {
   SvgIconProps,
   IconButton,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
 import {
   CreditCardOutlined as CardIcon,
@@ -206,18 +207,20 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {data?.citizen.pnfl || '—'}
                   </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => fetchAbonentMvdAddress(abonentDetails?.citizen.pnfl || '')}
-                    disabled={ui.mvdAddressLoading || !abonentDetails?.citizen.pnfl || abonentDetails.citizen.pnfl.length === 14}
-                    sx={{ ml: 0.5, p: 0.5 }}
-                  >
-                    {ui.mvdAddressLoading ? (
-                      <CircularProgress size={18} thickness={5} />
-                    ) : (
-                      <MvdIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                    )}
-                  </IconButton>
+                  <Tooltip title={t("Yashash manzili ma'lumotlari")} placement="top">
+                    <IconButton
+                      size="small"
+                      onClick={() => fetchAbonentMvdAddress(abonentDetails?.citizen.pnfl || '')}
+                      disabled={ui.mvdAddressLoading || !abonentDetails?.citizen.pnfl || abonentDetails.citizen.pnfl.length !== 14}
+                      sx={{ ml: 0.5, p: 0.5 }}
+                    >
+                      {ui.mvdAddressLoading ? (
+                        <CircularProgress size={18} thickness={5} />
+                      ) : (
+                        <MvdIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                      )}
+                    </IconButton>
+                  </Tooltip>
                 </Grid>
               </Grid>
               <InfoRow icon={ContractIcon} label="Шартнома рақами" value={data?.contractNumber || ''} />

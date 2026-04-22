@@ -35,7 +35,7 @@ function MahallaSelection({
   required?: boolean;
 }) {
   const [mahallas, setMahallas] = useState<{ id: number; name: string }[]>([]);
-  const { mahallalar, setMahallalar: setMahallalarStore } = useCustomizationStore();
+  const { mahallalar, setMahallalar: setMahallalarStore, language } = useCustomizationStore();
   useEffect(() => {
     console.log(mahallalar);
     if (mahallalar.length > 0) {
@@ -44,7 +44,7 @@ function MahallaSelection({
       api.get('/mahallas', { params: { page: 1, limit: 1000 } }).then(({ data }) => {
         const mahallalar = data.data.map((mfy: any) => ({
           ...mfy,
-          name: i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)
+          name: mfy.name
         }));
         setMahallas(mahallalar);
         setMahallalar(mahallalar);
@@ -71,7 +71,7 @@ function MahallaSelection({
           </option>
           {mahallas.map((mfy) => (
             <option key={mfy.id} value={mfy.id}>
-              {mfy.name}
+              {i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)}
             </option>
           ))}
         </TextField>
@@ -82,7 +82,7 @@ function MahallaSelection({
           </MenuItem>
           {mahallas.map((mfy) => (
             <MenuItem key={mfy.id} value={mfy.id}>
-              {mfy.name}
+              {i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)}
             </MenuItem>
           ))}
         </TextField>

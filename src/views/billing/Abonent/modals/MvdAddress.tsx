@@ -64,14 +64,6 @@ function MvdAddress() {
           </Typography>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={closeMvdAddressModal} color="inherit">
-          {t('buttons.close')}
-        </Button>
-        <Button type="submit" variant="contained">
-          {t('buttons.saveChanges')}
-        </Button>
-      </DialogActions>
     </DraggableDialog>
   );
 }
