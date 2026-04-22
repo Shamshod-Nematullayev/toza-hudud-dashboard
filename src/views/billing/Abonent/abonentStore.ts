@@ -332,7 +332,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ cadastrAbonent: data });
   },
   fetchBlockReport: async (residentId: number) => {
-    const { data } = await api.get('/abonents/het-warning-report', { params: { residentId } });
+    const { data } = await api.get('/abonents/het-warning-report/' + residentId);
     const current = get().abonentDetails;
     if (!current || current.id !== residentId) return;
     set({ blockReport: data });
