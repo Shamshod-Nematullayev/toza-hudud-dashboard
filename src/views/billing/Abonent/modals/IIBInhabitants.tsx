@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { PermamentsResponse, useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../abonentStore';
 import { Backdrop, Button, CircularProgress, DialogActions, Typography } from '@mui/material';
 import styled from 'styled-components';
 import { t } from 'i18next';
@@ -11,6 +11,7 @@ import { reactToPrintDefaultOptions } from 'store/constant';
 import api from 'utils/api';
 import { useAbonentLogic } from '../useAbonentLogic';
 import { toast } from 'react-toastify';
+import { PermamentsResponse } from '../types';
 
 const StyledTable = styled.table`
   text-align: center;
@@ -40,7 +41,7 @@ function IIBInhabitants() {
     try {
       const pdf = await api.post('/abonents/create-pdf-by-iib', details, { responseType: 'blob' });
       const file = new File([pdf.data], 'file.pdf', { type: 'application/pdf' });
-      await addInhabitantsToAbonent(residentId, details?.Data.PermanentPersons?.length || 0, file);
+      await addInhabitantsToAbonent(residentId, details?.Data?.PermanentPersons?.length || 0, file);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || err.message);
     }
@@ -101,7 +102,7 @@ function IIBInhabitants() {
         <StyledTable border={1}>
           <tr>
             <td>{t('tableHeaders.fullName')}</td>
-            <td style={{ width: 400 }}>{details?.house?.owners[0].name}</td>
+            <td style={{ width: 400 }}>{details?.house?.owners[0]?.name}</td>
           </tr>
           <tr>
             <td>{t('tableHeaders.address')}</td>
@@ -113,11 +114,11 @@ function IIBInhabitants() {
           </tr>
           <tr>
             <td>{t('tableHeaders.passport')}</td>
-            <td>{details?.house?.owners[0].passport}</td>
+            <td>{details?.house?.owners[0]?.passport}</td>
           </tr>
           <tr>
             <td>{t('tableHeaders.pnfl')}</td>
-            <td>{details?.house?.owners[0].pinfl}</td>
+            <td>{details?.house?.owners[0]?.pinfl}</td>
           </tr>
         </StyledTable>
         <StyledTable border={1}>
@@ -132,7 +133,7 @@ function IIBInhabitants() {
               <th>{t('tableHeaders.birthDate')}</th>
               <th>{t('tableHeaders.sex')}</th>
             </tr>
-            {details?.Data.PermanentPersons?.map((permament, i) => (
+            {details?.Data?.PermanentPersons?.map((permament, i) => (
               <tr key={i}>
                 <td>{i + 1}</td>
                 <td>{permament.Person}</td>

@@ -174,8 +174,23 @@ function EditDetails() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    const requiredFields = {
+      homeType,
+      birthDate,
+      passportGivenDate,
+      passportExpireDate,
+      abonentDetails
+    };
+
+    for (const [key, value] of Object.entries(requiredFields)) {
+      if (!value) return toast.error(t(`errors.${key as 'homeType'}Required`));
+    }
+
+    if (!isNumberValue(homeIndex)) {
+      return toast.error(t('errors.invalidHomeIndex'));
+    }
     if (!homeType || !birthDate || !passportGivenDate || !passportExpireDate || !isNumberValue(homeIndex) || !abonentDetails) {
-      return;
+      return toast.error(t('errors.missingRequiredFields'));
     }
     await updateDetails({
       ...abonentDetails,
@@ -216,6 +231,7 @@ function EditDetails() {
       phone,
       homePhone: housePhone
     });
+    setEditDialogOpenState(false);
   };
   return (
     <DraggableDialog title={t('buttons.edit')} open={editDialogOpenState} onClose={() => setEditDialogOpenState(false)}>
