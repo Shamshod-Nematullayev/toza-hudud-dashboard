@@ -23,7 +23,13 @@ function PrintAbonentCard({ open, fetchParams, onClose }: PrintAbonentCardProps)
   const [fromPeriod, setFromPeriod] = useState<Dayjs | null>(null);
   const [toPeriod, setToPeriod] = useState<Dayjs | null>(null);
 
-  const [period, setPeriod] = useState(`${abonentDetails?.balance.period}:${abonentDetails?.balance.period}`);
+  const today = dayjs();
+  const format = 'MM.YYYY';
+  const currentPeriod = `${today.format(format)}:${today.format(format)}`;
+  const currentYearPeriod = `${today.startOf('year').format(format)}:${today.endOf('month').format(format)}`;
+  const allPeriods = `01.2019:${today.endOf('month').format(format)}`;
+
+  const [period, setPeriod] = useState(currentPeriod);
   const startOfYear = dayjs().startOf('year');
 
   const printSectionRef = useRef<any>(null);
@@ -40,9 +46,9 @@ function PrintAbonentCard({ open, fetchParams, onClose }: PrintAbonentCardProps)
   const handleClickPrintButton = async () => {
     if (!cardDetails?.accountNumber) {
       // @ts-ignore
-      const periodFrom = period === 'other' ? `${fromPeriod?.get('month') + 1}.${fromPeriod?.get('year')}` : period.split(':')[0];
+      const periodFrom = period === 'other' ? `${fromPeriod?.format(format)}` : period.split(':')[0];
       // @ts-ignore
-      const periodTo = period === 'other' ? `${toPeriod?.get('month') + 1}.${toPeriod?.get('year')}` : period.split(':')[1];
+      const periodTo = period === 'other' ? `${toPeriod?.format(format)}` : period.split(':')[1];
       await getCardDetails({
         lang: documentLanguage,
         periodFrom,
@@ -87,21 +93,9 @@ function PrintAbonentCard({ open, fetchParams, onClose }: PrintAbonentCardProps)
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
               >
-                <FormControlLabel
-                  value={`${abonentDetails?.balance.period}:${abonentDetails?.balance.period}`}
-                  control={<Radio />}
-                  label={t('periodSelection.current')}
-                />
-                <FormControlLabel
-                  value={`${startOfYear.month() + 1}.${startOfYear.year()}:${abonentDetails?.balance.period}`}
-                  control={<Radio />}
-                  label={t('periodSelection.currentYear')}
-                />
-                <FormControlLabel
-                  value={`01.2019:${abonentDetails?.balance.period}`}
-                  control={<Radio />}
-                  label={t('periodSelection.allPeriods')}
-                />
+                <FormControlLabel value={currentPeriod} control={<Radio />} label={t('periodSelection.current')} />
+                <FormControlLabel value={currentYearPeriod} control={<Radio />} label={t('periodSelection.currentYear')} />
+                <FormControlLabel value={allPeriods} control={<Radio />} label={t('periodSelection.allPeriods')} />
                 <FormControlLabel value={`other`} control={<Radio />} label={t('periodSelection.other')} />
               </RadioGroup>
             </FormControl>
@@ -124,7 +118,7 @@ function PrintAbonentCard({ open, fetchParams, onClose }: PrintAbonentCardProps)
           )}
         </>
       ) : (
-        <AbonentCardView abonentDetails={abonentDetails} cardDetails={cardDetails} t={t} />
+        <AbonentCardView abonentDetails={abonentDetails} cardDetails={cardDetails} t={t} ref={printSectionRef} />
       )}
       <DialogActions>
         <Button variant="contained" color="primary" onClick={handleClickPrintButton}>

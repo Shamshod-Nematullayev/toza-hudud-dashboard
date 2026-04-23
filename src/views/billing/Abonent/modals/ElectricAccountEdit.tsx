@@ -1,11 +1,12 @@
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { HETSuccessResponse, useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../abonentStore';
 import { t } from 'i18next';
 import { useEffect, useState } from 'react';
 import { useAbonentLogic } from '../useAbonentLogic';
 import { Button, DialogActions, Stack, TextField } from '@mui/material';
 import { toast } from 'react-toastify';
-import { CompactKeyValue } from './PrintAbonentCard';
+import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
+import { HETSuccessResponse } from '../types';
 
 function EditElectricAccountModal() {
   const {

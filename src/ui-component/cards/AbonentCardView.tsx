@@ -5,7 +5,7 @@ import { AbonentDetails } from 'types/billing';
 import { AbonentCard } from 'views/billing/Abonent/types';
 
 export const AbonentCardView = forwardRef(
-  ({ cardDetails, abonentDetails, t }: { cardDetails: AbonentCard; abonentDetails: AbonentDetails | null; t: any }, ref: any) => {
+  ({ cardDetails, abonentDetails, t }: { cardDetails: AbonentCard; abonentDetails?: AbonentDetails | null; t: any }, ref: any) => {
     return (
       <div className="page" ref={ref}>
         <Typography variant="h2" sx={{ color: 'success.main', textAlign: 'right' }}>

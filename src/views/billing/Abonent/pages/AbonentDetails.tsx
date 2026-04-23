@@ -3,7 +3,7 @@ import AbonentProfileCard from '../AbonentProfileCard';
 import { useAbonentStore } from '../abonentStore';
 import { useAbonentLogic } from '../useAbonentLogic';
 import { Card, CircularProgress, Grid, Typography } from '@mui/material';
-import { CompactKeyValue } from '../modals/PrintAbonentCard';
+import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
 import { t } from 'i18next';
 
 function AbonentDetails() {

@@ -10,6 +10,7 @@ import { Card, Grid, IconButton, TextField, useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import PrintAbonentCard from '../Abonent/modals/PrintAbonentCard';
 import { Search } from '@mui/icons-material';
+import { t } from 'i18next';
 
 function CreateAbonentPetition() {
   const {
@@ -68,10 +69,28 @@ function CreateAbonentPetition() {
         <Grid item xs={12} sm={3} sx={{ gap: '10px' }}>
           <InputForm />
           <Card sx={{ position: 'relative', p: 1, m: '10px 0' }}>
-            <TextField fullWidth value={ui.globalAbonentAccountNumber} onChange={(e) => setGlobalAbonentAccountNumber(e.target.value)} />
-            <IconButton onClick={() => setAbonentCardOpenState(true)} sx={{ position: 'absolute', right: '10px' }}>
-              <Search />
-            </IconButton>
+            <TextField
+              fullWidth
+              variant="standard"
+              placeholder={t('Abonent karta olish')}
+              value={ui.globalAbonentAccountNumber}
+              onChange={(e) => setGlobalAbonentAccountNumber(e.target.value)}
+              InputProps={{
+                disableUnderline: true,
+                sx: { ml: 1, flex: 1, fontSize: '0.95rem' },
+                endAdornment: (
+                  <IconButton
+                    onClick={() => setAbonentCardOpenState(true)}
+                    size="small"
+                    sx={{
+                      color: 'primary.main'
+                    }}
+                  >
+                    <Search fontSize="small" />
+                  </IconButton>
+                )
+              }}
+            />
           </Card>
         </Grid>
         <Grid item xs={12} sm={4} sx={{ height: '100%' }}>

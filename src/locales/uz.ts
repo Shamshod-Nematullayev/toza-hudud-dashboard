@@ -24,6 +24,7 @@ const uz = {
   hetAbonent: 'Elektr energiyasiga ulangan abonent',
   cadastrAbonent: 'Kadastr abonent',
   uzs: "so'm",
+  'Abonent karta olish': 'Abonent karta olish',
   errors: {
     // Umumiy xatolar
     somethingWentWrong: 'Xatolik kuzatildi',

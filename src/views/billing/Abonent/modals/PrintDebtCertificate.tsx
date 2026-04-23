@@ -1,16 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { DebtCertificateResponse, ErrorResponse, useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../abonentStore';
 import { useAbonentLogic } from '../useAbonentLogic';
 import { Stack } from '@mui/system';
 import TozamakonLogo from 'ui-component/TozamakonLogo';
 import { Box, Button, DialogActions, Divider, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { oylar } from 'views/billing/CreateAbonentPetition.jsx/PrintSection';
-import { CompactKeyValue } from './PrintAbonentCard';
 import { t } from 'i18next';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
+import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
+import { DebtCertificateResponse, ErrorResponse } from '../types';
 
 function PrintDebtCertificate() {
   const { openDebtCertificateDialog, setOpenDebtCertificateDialog, getDebtCertificate } = useAbonentStore();
