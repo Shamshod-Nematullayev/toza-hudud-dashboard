@@ -209,15 +209,15 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                   </Typography>
                   <Tooltip title={t("Yashash manzili ma'lumotlari")} placement="top">
                     <IconButton
-                      size="small"
+                      size="large"
                       onClick={() => fetchAbonentMvdAddress(abonentDetails?.citizen.pnfl || '')}
                       disabled={ui.mvdAddressLoading || !abonentDetails?.citizen.pnfl || abonentDetails.citizen.pnfl.length !== 14}
                       sx={{ ml: 0.5, p: 0.5 }}
                     >
                       {ui.mvdAddressLoading ? (
-                        <CircularProgress size={18} thickness={5} />
+                        <CircularProgress size={21} thickness={5} />
                       ) : (
-                        <MvdIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                        <MvdIcon sx={{ fontSize: 21, color: 'primary.main' }} />
                       )}
                     </IconButton>
                   </Tooltip>
