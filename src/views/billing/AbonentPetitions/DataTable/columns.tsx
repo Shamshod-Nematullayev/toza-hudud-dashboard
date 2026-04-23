@@ -13,7 +13,7 @@ export const columns: () => GridColDef[] = function () {
     useStore();
 
   const handleMoveToInboxIconClick = (_id: string) => {
-    api.patch('/arizalar/move-to-inbox/' + _id).then(() => {
+    api.put('/arizalar/move-to-inbox/' + _id).then(() => {
       reload();
     });
   };

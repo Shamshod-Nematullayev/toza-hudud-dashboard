@@ -16,7 +16,7 @@ interface CustomizationState {
     borderRadius: number;
     opened: boolean;
     mode: string;
-    documentVariantOdamSoni: string;
+    documentVariantOdamSoni: 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza';
   };
   setCustomization: (customization: Partial<CustomizationState['customization']>) => void;
   language: string;
@@ -44,7 +44,7 @@ const initialState = {
     borderRadius: config.borderRadius,
     opened: true,
     mode: 'dark',
-    documentVariantOdamSoni: '1'
+    documentVariantOdamSoni: 'ariza+dalolatnoma'
   },
   company: {
     billingAdminName: '',
@@ -62,13 +62,14 @@ const useCustomizationStore = create<CustomizationState>()(
   persist<CustomizationState>(
     (set) => ({
       ...initialState,
+      customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' },
       setCustomization: (customization) =>
         set((state) => ({
           customization: { ...state.customization, ...customization }
         })),
       language: 'ru',
       setLanguage: (language) => set({ language }),
-      resetCustomization: () => set({ customization: initialState.customization }),
+      resetCustomization: () => set({ customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' } }),
       setCompany: (company) => set({ company }),
       setMahallalar: (mahallalar) => set({ mahallalar })
     }),

@@ -96,7 +96,6 @@ function InfoChips(props: InfoChipsProps) {
           cursor: 'pointer'
         }}
         containerRef={calculatorRef}
-        loading={props.balanceToYearEnd === null}
       />
       <Popper
         placement={'bottom-start'}

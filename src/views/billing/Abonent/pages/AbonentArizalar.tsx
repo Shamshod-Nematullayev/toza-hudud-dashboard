@@ -1,16 +1,21 @@
-import { Card } from '@mui/material';
+import { Card, IconButton, Tooltip } from '@mui/material';
 import React, { useEffect } from 'react';
 import { useAbonentStore } from '../abonentStore';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { t } from 'i18next';
 import { useAbonentLogic } from '../useAbonentLogic';
+import api from 'utils/api';
+import { MoveToInboxOutlined } from '@mui/icons-material';
 
 function AbonentArizalar() {
-  const { residentId } = useAbonentLogic();
   const { abonentPetitions, getAbonentPetitions } = useAbonentStore();
-  useEffect(() => {
-    getAbonentPetitions(residentId);
-  }, []);
+  const { residentId } = useAbonentLogic();
+  const handleMoveToInboxIconClick = (_id: string) => {
+    api.put('/arizalar/move-to-inbox/' + _id).then(() => {
+      getAbonentPetitions(residentId);
+    });
+  };
+
   const columns: GridColDef[] = [
     {
       field: 'id',
@@ -51,14 +56,14 @@ function AbonentArizalar() {
       headerName: t('tableHeaders.createdAt'),
       flex: 1,
       type: 'date',
-      valueGetter: (params) => new Date(params)
+      valueGetter: (params) => params && new Date(params)
     },
     {
       field: 'akt_date',
       headerName: t('tableHeaders.actDate'),
       flex: 1,
       type: 'date',
-      valueGetter: (params) => new Date(params)
+      valueGetter: (params) => params && new Date(params)
     },
     {
       field: 'status',
@@ -69,7 +74,24 @@ function AbonentArizalar() {
       field: 'actStatus',
       headerName: t('tableHeaders.actStatus'),
       // @ts-ignore
-      valueGetter: (params) => t('actStatus.' + params)
+      valueGetter: (params) => params && t('actStatus.' + params)
+    },
+    {
+      field: 'actions',
+      headerName: t('tableHeaders.actions'),
+      renderCell(params) {
+        return (
+          <div>
+            <Tooltip title="qabul qilish" arrow enterDelay={1000}>
+              <span>
+                <IconButton onClick={() => handleMoveToInboxIconClick(params.row._id)} disabled={params.row.status !== 'yangi'}>
+                  <MoveToInboxOutlined />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </div>
+        );
+      }
     }
   ];
   return (

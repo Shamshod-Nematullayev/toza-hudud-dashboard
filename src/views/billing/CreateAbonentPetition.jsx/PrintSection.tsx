@@ -129,7 +129,6 @@ const DocumentRenderer = ({
       return (
         <Dvaynik
           {...commonProps}
-          company={company}
           abonentData2={abonentData2}
           mahalla2={mahalla2}
           currentPrescribedCnt={abonentData.house.inhabitantCnt}
@@ -203,7 +202,7 @@ export default function PrintSection({
       <DialogContent sx={{ p: 0, bgcolor: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
         {/* PRINT AREA */}
         <Box sx={{ p: 4, bgcolor: '#fff', boxShadow: 1, m: 2, borderRadius: 1, overflowY: 'auto', maxHeight: '60vh' }}>
-          <div ref={componentRef}>
+          <div style={{ color: '#000', backgroundColor: '#fff' }} ref={componentRef}>
             <DocumentRenderer
               ariza={ariza}
               abonentData={abonentData}
@@ -223,79 +222,82 @@ export default function PrintSection({
       </DialogContent>
 
       <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+        <Grid container spacing={1} sx={{ mt: 0 }}>
           {/* Variant va Sana boshqaruvi */}
-          <Grid item xs={12}>
-            <Stack spacing={2} direction="row">
-              {ariza.document_type === 'odam_soni' && (
-                <FormControl fullWidth>
-                  <InputLabel>Hujjat varianti</InputLabel>
-                  <Select
-                    value={customization.documentVariantOdamSoni}
-                    label="Hujjat varianti"
-                    onChange={(e) => setCustomization({ documentVariantOdamSoni: e.target.value })}
-                  >
-                    <MenuItem value="1">Variant 1 (Standart)</MenuItem>
-                    <MenuItem value="2">Variant 2 (Kengaytirilgan)</MenuItem>
-                  </Select>
-                </FormControl>
-              )}
-              <DatePicker
-                label="Qayta hisob boshi"
-                value={olderPeriod}
-                onChange={(v) => v && setOlderPeriod(v)}
-                format="DD.MM.YYYY"
-                slotProps={{ textField: { fullWidth: true } }}
-              />
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                label="Asoslantiruvchi izoh"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
-            </Stack>
+          <Grid item xs={3}>
+            <FormControl fullWidth>
+              <InputLabel>Hujjat varianti</InputLabel>
+              <Select
+                value={customization.documentVariantOdamSoni}
+                label="Hujjat varianti"
+                onChange={(e) =>
+                  setCustomization({ documentVariantOdamSoni: e.target.value as 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza' })
+                }
+              >
+                <MenuItem value="ariza+dalolatnoma">Variant 1 (Standart)</MenuItem>
+                <MenuItem value="dalolatnoma">Variant 2 (Faqat dalolatnoma)</MenuItem>
+                <MenuItem value="ariza">Variant 3 (Faqat ariza)</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
-
-          {/* Vakillik ma'lumotlari */}
-          <Grid item xs={12} md={6}>
-            <Stack spacing={2}>
-              <Grid container spacing={1}>
-                <Grid item xs={5}>
-                  <TextField select fullWidth label="Kim orqali" value={relation} onChange={(e) => setRelation(e.target.value)}>
-                    <MenuItem value="">Abonent o'zi</MenuItem>
-                    {familyRelations.map((item) => (
-                      <MenuItem key={item} value={item}>
-                        {item}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-                <Grid item xs={7}>
-                  <TextField
-                    fullWidth
-                    label="Vakil F.I.Sh"
-                    value={relationFullName}
-                    disabled={!relation}
-                    onChange={(e) => setRelationFullName(e.target.value)}
-                  />
-                </Grid>
-              </Grid>
-            </Stack>
+          <Grid item xs={2.5}>
+            <DatePicker
+              label="Qayta hisob boshi"
+              value={olderPeriod}
+              onChange={(v) => v && setOlderPeriod(v)}
+              format="DD.MM.YYYY"
+              slotProps={{ textField: { fullWidth: true } }}
+            />
+          </Grid>
+          <Grid item xs={6.5}>
+            <TextField
+              fullWidth
+              multiline
+              rows={1}
+              label="Asoslantiruvchi izoh"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
           </Grid>
         </Grid>
       </DialogContent>
 
       <Divider />
 
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={handleClose} color="inherit">
-          Yopish
-        </Button>
-        <Button variant="contained" color="secondary" size="large" onClick={() => printFunction()} sx={{ px: 4 }}>
-          {t('buttons.print')}
-        </Button>
+      <DialogActions sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        {/* Vakillik ma'lumotlari */}
+
+        <Stack spacing={2} sx={{ width: 400 }}>
+          <Grid container spacing={1}>
+            <Grid item xs={4}>
+              <TextField select fullWidth label="Kim orqali" value={relation} onChange={(e) => setRelation(e.target.value)}>
+                <MenuItem value="">Abonent o'zi</MenuItem>
+                {familyRelations.map((item) => (
+                  <MenuItem key={item} value={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                label="Vakil F.I.Sh"
+                value={relationFullName}
+                disabled={!relation}
+                onChange={(e) => setRelationFullName(e.target.value)}
+              />
+            </Grid>
+          </Grid>
+        </Stack>
+        <Stack direction="row" spacing={2}>
+          <Button onClick={handleClose} color="inherit">
+            Yopish
+          </Button>
+          <Button variant="contained" color="secondary" size="large" onClick={() => printFunction()} sx={{ px: 4 }}>
+            {t('buttons.print')}
+          </Button>
+        </Stack>
       </DialogActions>
     </DraggableDialog>
   );

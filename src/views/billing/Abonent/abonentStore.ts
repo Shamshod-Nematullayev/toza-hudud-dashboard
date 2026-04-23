@@ -66,7 +66,7 @@ export interface IAbonentPageStore {
   /** * Abonent ma'lumotlari.
    * TozaMakondan olinadi.
    */
-  getDetails: (residentId: number) => void;
+  getDetails: (residentId: number) => Promise<void>;
   getDhjRows: () => void;
   getDetailsHistory: () => void;
   /** * Ma'lumotlarni bevosita bazadan (MongoDB) olish.
@@ -80,8 +80,8 @@ export interface IAbonentPageStore {
   getDatasForCompare: () => void;
   openChangePhoneDialogState: boolean;
   setOpenChangePhoneDialog: (open: boolean) => void;
-  getIncomeStats: (residentId: number) => void;
-  getIncomePredicts: (residentId: number, period: string) => void;
+  getIncomeStats: (residentId: number) => Promise<void>;
+  getIncomePredicts: (residentId: number, period: string) => Promise<void>;
   getAbonentActs: (residentId: number) => void;
   downLoadActPdfFile: (fileId: string) => void;
   getAbonentPetitions: (residentId: number) => void;

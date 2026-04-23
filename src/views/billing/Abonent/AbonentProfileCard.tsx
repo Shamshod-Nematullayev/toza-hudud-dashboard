@@ -108,11 +108,10 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
 
   const handleClickAvatar = async () => {
     try {
-      console.log(abonentDetails?.citizen.photo);
       if (abonentDetails?.citizen.photo) return setOpenPhotoModal(true);
       setIsLoading(true);
       const citizenData = await getCitizensDetails({
-        birthDate: data.citizen.birthDate,
+        birthDate: dayjs(data.citizen.birthDate).format('YYYY-MM-DD'),
         pnfl: data.citizen.pnfl,
         passport: data.citizen.passport,
         photoStatus: 'WITH_PHOTO'
