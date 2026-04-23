@@ -9,6 +9,7 @@ import IIBInhabitants from './modals/IIBInhabitants';
 import AddInhabitants from './modals/AddInhabitants';
 import EditElectricAccountModal from './modals/ElectricAccountEdit';
 import MvdAddress from './modals/MvdAddress';
+import ArizaDocumentModal from './modals/ArizaDocumentModal';
 
 function Abonent() {
   usePrefetchAbonentPageData();
@@ -28,6 +29,7 @@ function Abonent() {
       <AddInhabitants />
       <EditElectricAccountModal />
       <MvdAddress />
+      <ArizaDocumentModal />
     </div>
   );
 }

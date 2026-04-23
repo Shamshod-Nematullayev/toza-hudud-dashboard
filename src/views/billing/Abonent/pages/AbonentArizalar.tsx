@@ -5,10 +5,10 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { t } from 'i18next';
 import { useAbonentLogic } from '../useAbonentLogic';
 import api from 'utils/api';
-import { MoveToInboxOutlined } from '@mui/icons-material';
+import { InsertDriveFile, MoveToInboxOutlined } from '@mui/icons-material';
 
 function AbonentArizalar() {
-  const { abonentPetitions, getAbonentPetitions } = useAbonentStore();
+  const { abonentPetitions, getAbonentPetitions, openAbonentPetitionModal } = useAbonentStore();
   const { residentId } = useAbonentLogic();
   const handleMoveToInboxIconClick = (_id: string) => {
     api.put('/arizalar/move-to-inbox/' + _id).then(() => {
@@ -59,6 +59,13 @@ function AbonentArizalar() {
       valueGetter: (params) => params && new Date(params)
     },
     {
+      field: 'acceptedDate',
+      headerName: t('tableHeaders.acceptedDate'),
+      flex: 1,
+      type: 'date',
+      valueGetter: (params) => params && new Date(params)
+    },
+    {
       field: 'akt_date',
       headerName: t('tableHeaders.actDate'),
       flex: 1,
@@ -82,6 +89,17 @@ function AbonentArizalar() {
       renderCell(params) {
         return (
           <div>
+            <Tooltip title="ariza chiqarish" arrow>
+              <span>
+                <IconButton
+                  onClick={() => openAbonentPetitionModal(params.row._id)}
+                  disabled={params.row.status !== 'yangi'}
+                  color="primary"
+                >
+                  <InsertDriveFile />
+                </IconButton>
+              </span>
+            </Tooltip>
             <Tooltip title="qabul qilish" arrow enterDelay={1000}>
               <span>
                 <IconButton onClick={() => handleMoveToInboxIconClick(params.row._id)} disabled={params.row.status !== 'yangi'}>

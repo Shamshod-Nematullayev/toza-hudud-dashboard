@@ -14,6 +14,7 @@ import {
   MvdAddress
 } from './types';
 import { toast } from 'react-toastify';
+import { IAriza } from 'types/models';
 
 const initialState = {
   abonentDetails: null,
@@ -40,9 +41,11 @@ const initialState = {
   abonentPetitions: [],
   openChangePhoneDialogState: false,
   abonentMvdAddress: null,
+  currentArizaId: '',
   ui: {
     mvdAddressLoading: false,
-    mvdAddressModalOpenState: false
+    mvdAddressModalOpenState: false,
+    abonentPetitionModalOpenState: false
   }
 };
 
@@ -54,14 +57,18 @@ export interface IAbonentPageStore {
   incomeStats: IncomeStatRow[];
   balancePredicts: IBalancePredict | null;
   acts: IAct[];
-  abonentPetitions: IAbonentPetition[];
+  abonentPetitions: IAriza[];
   residentPhoto: string | null;
   abonentMvdAddress: MvdAddress | null;
   fetchAbonentMvdAddress: (pnfl: string) => void;
+  currentArizaId: string;
   ui: {
     mvdAddressLoading: boolean;
     mvdAddressModalOpenState: boolean;
+    abonentPetitionModalOpenState: boolean;
   };
+  closeAbonentPetitionModal: () => void;
+  openAbonentPetitionModal: (ariza_id: string) => void;
   closeMvdAddressModal: () => void;
   /** * Abonent ma'lumotlari.
    * TozaMakondan olinadi.
@@ -353,5 +360,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       toast.error(error?.response?.data?.message || error?.message);
       set({ ui: { ...ui, mvdAddressLoading: false } });
     }
-  }
+  },
+  closeAbonentPetitionModal: () => set({ ui: { ...get().ui, abonentPetitionModalOpenState: false }, currentArizaId: '' }),
+  openAbonentPetitionModal: (ariza_id) => set({ ui: { ...get().ui, abonentPetitionModalOpenState: true }, currentArizaId: ariza_id })
 }));

@@ -219,7 +219,8 @@ const uz = {
     debtAmount: 'Qarzdorlik summasi',
     errorMessage: 'Xatolik habari',
     Viloyat: 'Viloyat',
-    Tuman: 'Tuman'
+    Tuman: 'Tuman',
+    acceptedDate: 'Qabul qilingan vaqti'
   },
   tableActions: {
     edit: 'Tahrirlash',
