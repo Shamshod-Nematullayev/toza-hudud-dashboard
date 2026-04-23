@@ -25,11 +25,22 @@ const uz = {
   cadastrAbonent: 'Kadastr abonent',
   uzs: "so'm",
   errors: {
-    missingRequiredFields: 'Kerakli maydonlar to`ldirilmagan',
-    noDocumentsToConfirm: "Tasdiqlash uchun hujjatlar yo'q",
+    // Umumiy xatolar
     somethingWentWrong: 'Xatolik kuzatildi',
-    pdfFileRequired: 'Iltimos PDF faylni yuklang',
-    notFoundData: "Ma'lumot topilmadi"
+    notFoundData: "Ma'lumot topilmadi",
+
+    // Maydonlar uchun xatolar
+    homeTypeRequired: 'Uy turi tanlanmagan',
+    birthDateRequired: "Tug'ilgan sana kiritilmagan",
+    passportGivenDateRequired: 'Pasport berilgan sana kiritilmagan',
+    passportExpireDateRequired: 'Pasport amal qilish muddati kiritilmagan',
+    abonentDetailsRequired: "Abonent ma'lumotlari yetarli emas",
+
+    // Maxsus xatolar
+    invalidHomeIndex: "Uy raqami (indeksi) noto'g'ri",
+    pdfFileRequired: 'Iltimos, PDF faylni yuklang',
+    noDocumentsToConfirm: "Tasdiqlash uchun hujjatlar yo'q",
+    missingRequiredFields: "Kerakli maydonlar to'ldirilmagan"
   },
   successMessages: {
     success: 'Muvaffaqiyatli amalga oshirildi',

@@ -13,6 +13,7 @@ import {
   PermamentsResponse,
   MvdAddress
 } from './types';
+import { toast } from 'react-toastify';
 
 const initialState = {
   abonentDetails: null,
@@ -331,7 +332,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ cadastrAbonent: data });
   },
   fetchBlockReport: async (residentId: number) => {
-    const { data } = await api.get('/abonents/het-warning-report', { params: { residentId } });
+    const { data } = await api.get('/abonents/het-warning-report/' + residentId);
     const current = get().abonentDetails;
     if (!current || current.id !== residentId) return;
     set({ blockReport: data });
@@ -344,8 +345,13 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   fetchAbonentMvdAddress: async (pnfl) => {
     const { ui, abonentMvdAddress } = get();
     set({ ui: { ...ui, mvdAddressLoading: true } });
-    if (abonentMvdAddress) return set({ ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
-    const { data } = await api.get('/abonents/mvd-address/' + pnfl);
-    return set({ abonentMvdAddress: data, ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
+    try {
+      if (abonentMvdAddress) return set({ ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
+      const { data } = await api.get('/abonents/mvd-address/' + pnfl);
+      return set({ abonentMvdAddress: data, ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message);
+      set({ ui: { ...ui, mvdAddressLoading: false } });
+    }
   }
 }));

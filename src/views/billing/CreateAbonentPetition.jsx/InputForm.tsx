@@ -66,7 +66,7 @@ function InputForm() {
     }
   }, [accountNumber]);
   useEffect(() => {
-    if (accountNumber.length === 12) {
+    if (accountNumber2.length === 12) {
       updateAbonentDataByAccNum(accountNumber2, 'dublicate');
     } else {
       if (abonentData2.accountNumber) setAbonentData(defaultAbonentData);

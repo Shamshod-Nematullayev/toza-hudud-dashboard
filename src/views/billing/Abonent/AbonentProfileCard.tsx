@@ -53,19 +53,21 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     value,
     color = 'text.primary',
     fontSize,
-    copyable
+    copyable,
+    labelColor
   }: {
     icon: React.ElementType<SvgIconProps>;
     label: string | number;
     value: string | number;
     color?: string;
+    labelColor?: string;
     fontSize?: number;
     copyable?: boolean;
   }) => (
     <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
       <Grid item xs={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Icon sx={{ fontSize: 18, color: 'text.secondary', opacity: 0.7 }} />
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        <Icon sx={{ fontSize: 18, color: labelColor || 'text.secondary', opacity: 0.7 }} />
+        <Typography variant="body2" sx={{ color: labelColor || 'text.secondary' }}>
           {label}:
         </Typography>
       </Grid>
@@ -149,7 +151,7 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
               onClick={handleClickAvatar}
             />
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {data?.citizen.birthDate || ''}{' '}
+              {dayjs(data?.citizen.birthDate).format('DD.MM.YYYY') || ''}{' '}
             </Typography>
           </Grid>
           {/* Chap tomon */}
@@ -240,7 +242,13 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                   'Самарканд вилояти Самарканд шаҳар Сайқал МФЙ (4-сектор) маҳалла РУДАКИЙ (ТИТОВА) кўча 175 Ж уй 19-хонадон'
                 }
               />
-              <InfoRow icon={PhoneIcon} label="Телефон рақами" value={data?.phone || ''} />
+              <InfoRow
+                icon={PhoneIcon}
+                label="Телефон рақами"
+                value={data?.phone || ''}
+                labelColor={!data.phone ? 'error.main' : undefined}
+                color={!data.phone ? 'error.main' : undefined}
+              />
               <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone || ''} />
               <InfoRow icon={SoatoIcon} label="Электр энергия СОАТО" value={data?.electricityCoato || ''} />
               <InfoRow icon={EnergyIcon} label="Электр энергия рақами" value={data?.electricityAccountNumber || ''} />

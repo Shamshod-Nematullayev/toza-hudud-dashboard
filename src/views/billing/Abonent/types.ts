@@ -135,7 +135,7 @@ export interface PermamentsResponse {
   Data: {
     PermanentPersons: PermamentPerson[] | null;
     TemproaryPersons: PermamentPerson[] | null;
-  };
+  } | null;
   house: House | null;
 }
 
