@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import AbonentTools from './AbonentTools';
-import { usePrefetchAbonentPageData, useAbonentDetailsSupplementaryData } from './useAbonentLogic';
+import { usePrefetchAbonentPageData, useAbonentDetailsSupplementaryData, useAbonentLogic } from './useAbonentLogic';
 import ChangePhoneDialog from './modals/ChangePhone';
 import EditDetails from './modals/EditDetails';
 import PrintAbonentCard from './modals/PrintAbonentCard';
@@ -10,10 +10,13 @@ import AddInhabitants from './modals/AddInhabitants';
 import EditElectricAccountModal from './modals/ElectricAccountEdit';
 import MvdAddress from './modals/MvdAddress';
 import ArizaDocumentModal from './modals/ArizaDocumentModal';
+import { useAbonentStore } from './abonentStore';
 
 function Abonent() {
   usePrefetchAbonentPageData();
   useAbonentDetailsSupplementaryData();
+  const { openPrintAbonentcardState, setOpenPrintAbonentcardState } = useAbonentStore();
+  const { residentId } = useAbonentLogic();
   return (
     <div>
       <AbonentTools />
@@ -23,7 +26,7 @@ function Abonent() {
       {/* Using modals */}
       <ChangePhoneDialog />
       <EditDetails />
-      <PrintAbonentCard />
+      <PrintAbonentCard open={openPrintAbonentcardState} onClose={() => setOpenPrintAbonentcardState(false)} fetchParams={{ residentId }} />
       <PrintDebtCertificate />
       <IIBInhabitants />
       <AddInhabitants />

@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import MainCard from 'ui-component/cards/MainCard';
+import { useEffect } from 'react';
 import PrintSection from './PrintSection';
 import InputForm from './InputForm';
 import DHJTable from './DHJTable';
@@ -7,9 +6,10 @@ import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import { useStore } from './useStore';
 import PasteImageDialog from './PasteImageDialog';
 import { useLocation } from 'react-router-dom';
-import { Box, Card, Grid, useTheme } from '@mui/material';
+import { Card, Grid, IconButton, TextField, useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import CreateArizaStepperForm from './CreateArizaStepper/CreateArizaStepperForm';
+import PrintAbonentCard from '../Abonent/modals/PrintAbonentCard';
+import { Search } from '@mui/icons-material';
 
 function CreateAbonentPetition() {
   const {
@@ -27,17 +27,17 @@ function CreateAbonentPetition() {
     recalculationPeriods,
     pasteImageDialogOpen,
     setPasteImageDialogOpen,
-    setAbonentData
+    setAbonentData,
+    ui,
+    setAbonentCardOpenState,
+    setGlobalAbonentAccountNumber
   } = useStore();
-  const { t } = useTranslation();
   const location = useLocation();
   const data = location.state?.abonentData;
-  const theme = useTheme();
 
   useEffect(() => {
     setInitialState();
     if (data) {
-      console.log(data);
       setAbonentData(data);
     }
   }, [location]);
@@ -56,12 +56,23 @@ function CreateAbonentPetition() {
         muzlatiladi={muzlatiladi}
         recalculationPeriods={recalculationPeriods}
       />
+      <PrintAbonentCard
+        open={ui.abonentCardOpenState}
+        onClose={() => setAbonentCardOpenState(false)}
+        fetchParams={{ accountNumber: ui.globalAbonentAccountNumber }}
+      />
       <Grid container spacing={1} sx={{ height: 'calc(100vh - 170px)' }}>
         {/* <Grid item xs={12}>
           <CreateArizaStepperForm />
         </Grid> */}
         <Grid item xs={12} sm={3} sx={{ gap: '10px' }}>
           <InputForm />
+          <Card sx={{ position: 'relative', p: 1, m: '10px 0' }}>
+            <TextField fullWidth value={ui.globalAbonentAccountNumber} onChange={(e) => setGlobalAbonentAccountNumber(e.target.value)} />
+            <IconButton onClick={() => setAbonentCardOpenState(true)} sx={{ position: 'absolute', right: '10px' }}>
+              <Search />
+            </IconButton>
+          </Card>
         </Grid>
         <Grid item xs={12} sm={4} sx={{ height: '100%' }}>
           <Card sx={{ height: '100%', boxShadow: 5, borderRadius: 4, padding: 2, background: 'divider' }}>

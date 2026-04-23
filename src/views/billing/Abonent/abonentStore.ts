@@ -50,7 +50,7 @@ const initialState = {
 };
 
 export interface IAbonentPageStore {
-  abonentDetails: (AbonentDetails & { cadastrs?: string[] }) | null;
+  abonentDetails: AbonentDetails | null;
   dhjRows: DHJRow[];
   detailsHistory: AbonentDetailsHistoryRow[];
   abonentDetailsFromDB: IAbonentFromDB | null;
@@ -120,7 +120,13 @@ export interface IAbonentPageStore {
   documentLanguage: 'UZ' | 'ru' | 'uz-cyrl';
   setDocumentLanguage: (lang: 'UZ' | 'ru' | 'uz-cyrl') => void;
   cardDetails: null | AbonentCard;
-  getCardDetails: (params: { residentId: number; lang: 'UZ' | 'ru' | 'uz-cyrl'; periodFrom: string; periodTo: string }) => void;
+  getCardDetails: (params: {
+    residentId?: number;
+    accountNumber?: string;
+    lang: 'UZ' | 'ru' | 'uz-cyrl';
+    periodFrom: string;
+    periodTo: string;
+  }) => void;
   clearCardDetails: () => void;
   getDebtCertificate: (residentId: number) => Promise<ErrorResponse | DebtCertificateResponse>;
   openDebtCertificateDialog: boolean;
@@ -256,7 +262,11 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   },
   setOpenPrintAbonentcardState: (open) => set({ openPrintAbonentcardState: open }),
   setDocumentLanguage: (language) => set({ documentLanguage: language }),
-  getCardDetails: async ({ lang, periodFrom, periodTo, residentId }) => {
+  getCardDetails: async ({ lang, periodFrom, periodTo, residentId, accountNumber }) => {
+    if (!residentId && !accountNumber) return toast.error('Majburiy qiymatlar kiritilmadi. Abonent id yoki hisob raqami kiritilmadi.');
+    if (!residentId) {
+      residentId = (await api.get('/abonents/abonent-id-from-all-accounts/' + accountNumber)).data.id;
+    }
     const { data } = await api.get(`/abonents/card/${residentId}`, {
       params: {
         lang,

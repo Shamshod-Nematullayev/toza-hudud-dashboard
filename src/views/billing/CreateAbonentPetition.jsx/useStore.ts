@@ -187,10 +187,25 @@ interface StoreState {
   updateAbonentDataByAccNum: (accountNumber: string, abonentData: 'main' | 'dublicate') => void;
   autoMobile: AutoMobile | null;
   getAutoMobile: (mahallaId: number) => void;
+  ui: UIState;
+  setAbonentCardOpenState: (abonentCardOpenState: boolean) => void;
+  setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) => void;
+}
+
+interface UIState {
+  abonentCardOpenState: boolean;
+  globalAbonentAccountNumber: string;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
   aktType: null,
+  ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' },
+  setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) =>
+    set({ ui: { ...get().ui, globalAbonentAccountNumber: globalAbonentAccountNumber } }),
+  setAbonentCardOpenState: (abonentCardOpenState: boolean) => {
+    const ui = get().ui;
+    set({ ui: { ...ui, abonentCardOpenState: abonentCardOpenState } });
+  },
   setAktType: (aktType: aktType) => set({ aktType }),
   showPrintSection: false,
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
