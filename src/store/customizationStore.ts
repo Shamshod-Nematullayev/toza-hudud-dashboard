@@ -22,6 +22,8 @@ interface CustomizationState {
     fullName: string;
     avatar: string;
     id: string;
+    roles: string[];
+    isTestUser: boolean;
   } | null;
   setUser: (user: CustomizationState['user']) => void;
   setCustomization: (customization: Partial<CustomizationState['customization']>) => void;

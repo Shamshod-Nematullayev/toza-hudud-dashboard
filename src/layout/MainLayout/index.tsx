@@ -17,9 +17,20 @@ import { drawerWidth } from 'store/constant';
 // assets
 import { IconChevronRight } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
+import { useEffect } from 'react';
+import api from 'utils/api';
 
+const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
+  let binary = '';
+  uint8Array.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary); // Base64 ga o‘girish
+};
+
+// @ts-ignore
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'theme' })(({ theme, open }) => ({
-  ...theme.typography.mainContent,
+  ...(theme.typography as any).mainContent,
   borderBottomLeftRadius: 0,
   borderBottomRightRadius: 0,
   transition: theme.transitions.create(
@@ -57,11 +68,37 @@ const MainLayout = () => {
   const theme = useTheme();
   const matchDownMd = useMediaQuery(theme.breakpoints.down('md'));
   // Handle left drawer
-  const { customization, setCustomization } = useCustomizationStore();
+  const { customization, setCustomization, user, company, setCompany, setUser } = useCustomizationStore();
   const leftDrawerOpened = customization.opened;
   const handleLeftDrawerToggle = () => {
     setCustomization({ opened: !leftDrawerOpened });
   };
+
+  useEffect(() => {
+    if (!user) {
+      (async () => {
+        const user: {
+          id: string;
+          roles: string[];
+          companyId: number;
+          fullName: string;
+          login: string;
+          isTestUser?: boolean;
+        } = (await api.get('/auth/me')).data;
+
+        setUser({ ...user, isTestUser: user.isTestUser ?? false, avatar: '' });
+
+        // const company = (await api.get('/auth/company')).data;
+        // setCompany(company);
+
+        api.get('/auth/get-photo').then(({ data }) => {
+          const uint8Array = new Uint8Array(data.photo.data);
+          const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
+          setUser({ ...user, isTestUser: user.isTestUser ?? false, avatar: base64Image });
+        });
+      })();
+    }
+  }, []);
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -90,8 +127,10 @@ const MainLayout = () => {
       <Sidebar drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
 
       {/* main content */}
+      {/* @ts-ignore */}
       <Main theme={theme} open={leftDrawerOpened}>
         {/* breadcrumb */}
+        {/* @ts-ignore */}
         <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
         <Outlet />
       </Main>

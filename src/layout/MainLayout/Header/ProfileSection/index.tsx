@@ -39,7 +39,7 @@ import api from 'utils/api';
 
 const ProfileSection = () => {
   const theme = useTheme();
-  const { customization } = useCustomizationStore();
+  const { customization, user } = useCustomizationStore();
   const { openSettingsModal } = useUserStore();
   const navigate = useNavigate();
 
@@ -51,6 +51,10 @@ const ProfileSection = () => {
   const anchorRef = useRef<any>(null);
   const handleLogout = async () => {
     Cookies.remove('accessToken');
+    useCustomizationStore.setState({
+      user: null,
+      company: { billingAdminName: '', gpsOperatorName: '', id: 0, locationName: '', managerName: '', name: '', phone: '' }
+    });
     navigate('/pages/login/login');
   };
 
@@ -78,20 +82,6 @@ const ProfileSection = () => {
     prevOpen.current = open;
   }, [open]);
 
-  const [avatar, setAvatar] = useState<string | null>(null);
-
-  useEffect(() => {
-    const avatar = localStorage.getItem('avatar');
-    if (avatar) setAvatar(avatar);
-    else
-      api.get('/auth/get-photo').then(({ data }) => {
-        const uint8Array = new Uint8Array(data.photo.data);
-        const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
-        localStorage.setItem('avatar', base64Image);
-        setAvatar(base64Image);
-      });
-  }, []);
-
   return (
     <>
       <Chip
@@ -116,7 +106,7 @@ const ProfileSection = () => {
         }}
         icon={
           <Avatar
-            src={avatar || undefined}
+            src={user?.avatar}
             sx={{
               ...(theme.typography as any).mediumAvatar,
               margin: '8px 0 8px 8px !important',
@@ -169,23 +159,6 @@ const ProfileSection = () => {
                       </Stack>
                       <Typography variant="subtitle2">Project Admin</Typography>
                     </Stack>
-                    {/* <OutlinedInput
-                      sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
-                      id="input-search-profile"
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                      placeholder="Search profile options"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <IconSearch stroke={1.5} size="1rem" color={theme.palette.grey[500]} />
-                        </InputAdornment>
-                      }
-                      aria-describedby="search-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight'
-                      }}
-                    />
-                    <Divider /> */}
                   </Box>
                   <Box sx={{ p: 2, pt: 0 }}>
                     <Divider />
@@ -235,13 +208,6 @@ const ProfileSection = () => {
       </Popper>
     </>
   );
-};
-const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
-  let binary = '';
-  uint8Array.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary); // Base64 ga o‘girish
 };
 
 export default ProfileSection;

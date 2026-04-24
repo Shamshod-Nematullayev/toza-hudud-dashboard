@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 import { SERVER_URL } from 'store/constant';
 import { toast } from 'react-toastify';
+import useCustomizationStore from 'store/customizationStore';
 
 interface RetryConfig extends AxiosRequestConfig {
   _retry?: boolean;
@@ -81,6 +82,10 @@ api.interceptors.response.use(
 
         toast.error('Session expired. Please login again.');
         window.location.href = '/pages/login/login';
+        useCustomizationStore.setState({
+          user: null,
+          company: { billingAdminName: '', gpsOperatorName: '', id: 0, locationName: '', managerName: '', name: '', phone: '' }
+        });
 
         return Promise.reject(err);
       } finally {
