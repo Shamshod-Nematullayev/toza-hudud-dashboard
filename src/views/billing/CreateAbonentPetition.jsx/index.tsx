@@ -72,7 +72,8 @@ function CreateAbonentPetition() {
             <TextField
               fullWidth
               variant="standard"
-              placeholder={t('Abonent karta olish')}
+              placeholder={t('tableHeaders.accountNumber')}
+              label={t('Abonent karta olish')}
               value={ui.globalAbonentAccountNumber}
               onChange={(e) => setGlobalAbonentAccountNumber(e.target.value)}
               InputProps={{

@@ -18,6 +18,12 @@ interface CustomizationState {
     mode: string;
     documentVariantOdamSoni: 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza';
   };
+  user: {
+    fullName: string;
+    avatar: string;
+    id: string;
+  } | null;
+  setUser: (user: CustomizationState['user']) => void;
   setCustomization: (customization: Partial<CustomizationState['customization']>) => void;
   language: string;
   setLanguage: (lang: string) => void;
@@ -46,6 +52,7 @@ const initialState = {
     mode: 'dark',
     documentVariantOdamSoni: 'ariza+dalolatnoma'
   },
+  user: null,
   company: {
     billingAdminName: '',
     gpsOperatorName: '',
@@ -71,7 +78,8 @@ const useCustomizationStore = create<CustomizationState>()(
       setLanguage: (language) => set({ language }),
       resetCustomization: () => set({ customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' } }),
       setCompany: (company) => set({ company }),
-      setMahallalar: (mahallalar) => set({ mahallalar })
+      setMahallalar: (mahallalar) => set({ mahallalar }),
+      setUser: (user) => set({ user })
     }),
     {
       name: 'customization-store',

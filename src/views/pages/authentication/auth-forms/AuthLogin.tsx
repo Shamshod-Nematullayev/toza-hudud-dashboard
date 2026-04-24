@@ -32,7 +32,7 @@ import useCustomizationStore from 'store/customizationStore';
 
 const AuthLogin = ({ ...others }) => {
   const theme = useTheme();
-  const { setCompany, setMahallalar } = useCustomizationStore();
+  const { setCompany, setMahallalar, setUser } = useCustomizationStore();
 
   const navigate = useNavigate();
   const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {

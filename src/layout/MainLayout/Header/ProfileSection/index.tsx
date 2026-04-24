@@ -48,29 +48,20 @@ const ProfileSection = () => {
   /**
    * anchorRef is used on different componets and specifying one type leads to other components throwing an error
    * */
-  const anchorRef = useRef(null);
+  const anchorRef = useRef<any>(null);
   const handleLogout = async () => {
     Cookies.remove('accessToken');
-    Cookies.set('refreshToken');
     navigate('/pages/login/login');
   };
 
-  const handleClose = (event) => {
+  const handleClose = (event: any) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
     setOpen(false);
   };
 
-  const handleListItemClick = (event, index, route = '') => {
-    setSelectedIndex(index);
-    handleClose(event);
-
-    if (route && route !== '') {
-      navigate(route);
-    }
-  };
-  const handleSettingsButtonClick = (event) => {
+  const handleSettingsButtonClick = (event: any) => {
     handleClose(event);
     openSettingsModal();
   };
@@ -87,7 +78,7 @@ const ProfileSection = () => {
     prevOpen.current = open;
   }, [open]);
 
-  const [avatar, setAvatar] = useState(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     const avatar = localStorage.getItem('avatar');
@@ -125,9 +116,9 @@ const ProfileSection = () => {
         }}
         icon={
           <Avatar
-            src={avatar}
+            src={avatar || undefined}
             sx={{
-              ...theme.typography.mediumAvatar,
+              ...(theme.typography as any).mediumAvatar,
               margin: '8px 0 8px 8px !important',
               cursor: 'pointer'
             }}
@@ -167,7 +158,7 @@ const ProfileSection = () => {
           <Transitions in={open} {...TransitionProps}>
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
-                <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
+                <MainCard border={false} content={false} boxShadow shadow={theme.shadows[16]}>
                   <Box sx={{ p: 2, pb: 0 }}>
                     <Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
@@ -197,49 +188,6 @@ const ProfileSection = () => {
                     <Divider /> */}
                   </Box>
                   <Box sx={{ p: 2, pt: 0 }}>
-                    {/* <Divider />
-                      <Card
-                        sx={{
-                          bgcolor: theme.palette.primary.light,
-                          my: 2
-                        }}
-                      >
-                        <CardContent>
-                          <Grid container spacing={3} direction="column">
-                            <Grid item>
-                              <Grid item container alignItems="center" justifyContent="space-between">
-                                <Grid item>
-                                  <Typography variant="subtitle1">Start DND Mode</Typography>
-                                </Grid>
-                                <Grid item>
-                                  <Switch
-                                    color="primary"
-                                    checked={sdm}
-                                    onChange={(e) => setSdm(e.target.checked)}
-                                    name="sdm"
-                                    size="small"
-                                  />
-                                </Grid>
-                              </Grid>
-                            </Grid>
-                            <Grid item>
-                              <Grid item container alignItems="center" justifyContent="space-between">
-                                <Grid item>
-                                  <Typography variant="subtitle1">Allow Notifications</Typography>
-                                </Grid>
-                                <Grid item>
-                                  <Switch
-                                    checked={notification}
-                                    onChange={(e) => setNotification(e.target.checked)}
-                                    name="sdm"
-                                    size="small"
-                                  />
-                                </Grid>
-                              </Grid>
-                            </Grid>
-                          </Grid>
-                        </CardContent>
-                      </Card> */}
                     <Divider />
                     <List
                       component="nav"
@@ -267,34 +215,6 @@ const ProfileSection = () => {
                         </ListItemIcon>
                         <ListItemText primary={<Typography variant="body2">Sozlamalar</Typography>} />
                       </ListItemButton>
-                      {/* <ListItemButton
-                          sx={{ borderRadius: `${customization.borderRadius}px` }}
-                          selected={selectedIndex === 1}
-                          onClick={(event) => handleListItemClick(event, 1, '#')}
-                        >
-                          <ListItemIcon>
-                            <IconUser stroke={1.5} size="1.3rem" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Grid container spacing={1} justifyContent="space-between">
-                                <Grid item>
-                                  <Typography variant="body2">Social Profile</Typography>
-                                </Grid>
-                                <Grid item>
-                                  <Chip
-                                    label="02"
-                                    size="small"
-                                    sx={{
-                                      bgcolor: theme.palette.warning.dark,
-                                      color: theme.palette.background.default
-                                    }}
-                                  />
-                                </Grid>
-                              </Grid>
-                            }
-                          />
-                        </ListItemButton> */}
                       <ListItemButton
                         sx={{ borderRadius: `${customization.borderRadius}px` }}
                         selected={selectedIndex === 4}
@@ -316,7 +236,7 @@ const ProfileSection = () => {
     </>
   );
 };
-const uint8ArrayToBase64 = (uint8Array) => {
+const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
   let binary = '';
   uint8Array.forEach((byte) => {
     binary += String.fromCharCode(byte);
