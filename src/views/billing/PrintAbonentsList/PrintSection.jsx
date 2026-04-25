@@ -2,16 +2,14 @@ import React, { useEffect, useState } from 'react';
 import useStore from './useStore';
 import { kirillga } from 'helpers/lotinKiril';
 import { formatName } from '../CreateAbonentPetition.jsx/PrintSection';
+import useCustomizationStore from 'store/customizationStore';
 
 function PrintSection({ printContentRef }) {
   const date = new Date();
   const { abonents } = useStore();
-  const [company, setCompany] = useState({});
+  const { company } = useCustomizationStore();
   const withHomeNumberCompanyIds = [1824, 621, 337];
 
-  useEffect(() => {
-    setCompany(JSON.parse(localStorage.getItem('company')));
-  }, []);
   return (
     <div ref={printContentRef}>
       <table>

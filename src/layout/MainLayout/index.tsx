@@ -105,7 +105,7 @@ const MainLayout = () => {
           address: string;
           tin: string;
           premium: boolean;
-        } = (await api.get('/auth/company')).data;
+        } = (await api.get('/auth/company')).data.company;
         setCompany({
           ...company,
           billingAdminName: company.billingAdmin?.fullName,

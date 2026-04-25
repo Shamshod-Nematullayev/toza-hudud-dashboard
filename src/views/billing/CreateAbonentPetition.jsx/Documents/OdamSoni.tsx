@@ -35,7 +35,7 @@ function OdamSoni({
   relation?: string;
   relationFullName?: string;
 }) {
-  const { customization, company } = useCustomizationStore();
+  let { customization, company } = useCustomizationStore();
   // Dinamik mantiqiy o'zgaruvchilar
   const isRelative = !!relation && !!relationFullName;
   const currentApplicant = isRelative ? relationFullName : abonentData?.fullName;
