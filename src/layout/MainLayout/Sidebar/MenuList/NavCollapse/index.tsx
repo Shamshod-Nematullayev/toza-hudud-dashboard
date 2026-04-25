@@ -19,17 +19,17 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
 import { useTranslation } from 'react-i18next';
+import { MenuItem } from 'menu-items';
 
 // ==============================|| SIDEBAR MENU LIST COLLAPSE ITEMS ||============================== //
 
-const NavCollapse = ({ menu, level }) => {
+const NavCollapse = ({ menu, level }: { menu: MenuItem; level: number }) => {
   const theme = useTheme();
   const { t } = useTranslation();
-  const { customization } = useCustomizationStore();
+  const { customization, user } = useCustomizationStore();
 
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
-  const user = JSON.parse(localStorage.getItem('user'));
+  const [selected, setSelected] = useState<string | null>(null);
 
   const handleClick = () => {
     setOpen(!open);
@@ -41,7 +41,7 @@ const NavCollapse = ({ menu, level }) => {
   };
 
   const { pathname } = useLocation();
-  const checkOpenForParent = (child, id) => {
+  const checkOpenForParent = (child: MenuItem[], id: string) => {
     child.forEach((item) => {
       if (item.url === pathname) {
         setOpen(true);
@@ -73,9 +73,9 @@ const NavCollapse = ({ menu, level }) => {
   const menus = menu.children?.map((item) => {
     switch (item.type) {
       case 'collapse':
-        return item.allowedRoles.some((role) => user.roles.includes(role)) && <NavCollapse key={item.id} menu={item} level={level + 1} />;
+        return item.allowedRoles?.some((role) => user?.roles.includes(role)) && <NavCollapse key={item.id} menu={item} level={level + 1} />;
       case 'item':
-        return item.allowedRoles.some((role) => user.roles.includes(role)) && <NavItem key={item.id} item={item} level={level + 1} />;
+        return item.allowedRoles?.some((role) => user?.roles.includes(role)) && <NavItem key={item.id} item={item} level={level + 1} />;
       default:
         return (
           <Typography key={item.id} variant="h6" color="error" align="center">
@@ -121,7 +121,7 @@ const NavCollapse = ({ menu, level }) => {
           }
           secondary={
             menu.caption && (
-              <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption }} display="block" gutterBottom>
+              <Typography variant="caption" sx={{ ...(theme.typography as any).subMenuCaption }} display="block" gutterBottom>
                 {menu.caption}
               </Typography>
             )

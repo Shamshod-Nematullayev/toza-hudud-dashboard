@@ -39,7 +39,7 @@ import api from 'utils/api';
 
 const ProfileSection = () => {
   const theme = useTheme();
-  const { customization, user } = useCustomizationStore();
+  const { customization, user, logOut } = useCustomizationStore();
   const { openSettingsModal } = useUserStore();
   const navigate = useNavigate();
 
@@ -51,10 +51,7 @@ const ProfileSection = () => {
   const anchorRef = useRef<any>(null);
   const handleLogout = async () => {
     Cookies.remove('accessToken');
-    useCustomizationStore.setState({
-      user: null,
-      company: { billingAdminName: '', gpsOperatorName: '', id: 0, locationName: '', managerName: '', name: '', phone: '' }
-    });
+    logOut();
     navigate('/pages/login/login');
   };
 
@@ -152,7 +149,7 @@ const ProfileSection = () => {
                   <Box sx={{ p: 2, pb: 0 }}>
                     <Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography variant="h4">Assalomu alaykum, {localStorage.getItem('fullName')}</Typography>
+                        <Typography variant="h4">Assalomu alaykum, {user?.fullName}</Typography>
                         <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
                           {}
                         </Typography>

@@ -24,6 +24,7 @@ interface CustomizationState {
     id: string;
     roles: string[];
     isTestUser: boolean;
+    login: string;
   } | null;
   setUser: (user: CustomizationState['user']) => void;
   setCustomization: (customization: Partial<CustomizationState['customization']>) => void;
@@ -42,6 +43,7 @@ interface CustomizationState {
   setCompany: (company: CustomizationState['company']) => void;
   mahallalar: { id: number; name: string }[];
   setMahallalar: (mahallalar: CustomizationState['mahallalar']) => void;
+  logOut: () => void;
 }
 
 const initialState = {
@@ -81,7 +83,13 @@ const useCustomizationStore = create<CustomizationState>()(
       resetCustomization: () => set({ customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' } }),
       setCompany: (company) => set({ company }),
       setMahallalar: (mahallalar) => set({ mahallalar }),
-      setUser: (user) => set({ user })
+      setUser: (user) => set({ user }),
+      logOut: () =>
+        set({
+          user: null,
+          company: { billingAdminName: '', gpsOperatorName: '', id: 0, locationName: '', managerName: '', name: '', phone: '' },
+          mahallalar: []
+        })
     }),
     {
       name: 'customization-store',

@@ -477,3 +477,8 @@ export interface IBalancePredict {
     tariffRate: number;
   }[];
 }
+
+export interface Employee {
+  user_id: string;
+  fullName: string;
+}

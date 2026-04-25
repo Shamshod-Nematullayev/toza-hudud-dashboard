@@ -10,22 +10,30 @@ import Typography from '@mui/material/Typography';
 import NavItem from '../NavItem';
 import NavCollapse from '../NavCollapse';
 import { useTranslation } from 'react-i18next';
+import useCustomizationStore from 'store/customizationStore';
+import { MenuItem } from 'menu-items';
 
 // ==============================|| SIDEBAR MENU LIST GROUP ||============================== //
 
-const NavGroup = ({ item }) => {
+const NavGroup = ({ item }: { item: MenuItem }) => {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  const user = JSON.parse(localStorage.getItem('user'));
+  const { user } = useCustomizationStore();
 
   // menu list collapse & items
   const items = item.children?.map((menu) => {
     switch (menu.type) {
       case 'collapse':
-        return menu.allowedRoles.some(role => user.roles.includes(role)) && item.allowedRoles.some(role => user.roles.includes(role)) && <NavCollapse key={menu.id} menu={menu} level={1} />;
+        return (
+          menu.allowedRoles?.some((role) => user?.roles.includes(role)) &&
+          item.allowedRoles?.some((role) => user?.roles.includes(role)) && <NavCollapse key={menu.id} menu={menu} level={1} />
+        );
       case 'item':
-        return menu.allowedRoles.some(role => user.roles.includes(role)) && item.allowedRoles.some(role => user.roles.includes(role)) && <NavItem key={menu.id} item={menu} level={1} />;
+        return (
+          menu.allowedRoles?.some((role) => user?.roles.includes(role)) &&
+          item.allowedRoles?.some((role) => user?.roles.includes(role)) && <NavItem key={menu.id} item={menu} level={1} />
+        );
       default:
         return (
           <Typography key={menu.id} variant="h6" color="error" align="center">
@@ -40,10 +48,10 @@ const NavGroup = ({ item }) => {
       <List
         subheader={
           item.title && (
-            <Typography variant="caption" sx={{ ...theme.typography.menuCaption }} display="block" gutterBottom>
+            <Typography variant="caption" sx={{ ...(theme.typography as any).menuCaption }} display="block" gutterBottom>
               {t(`menuItems.${item.title}`)}
               {item.caption && (
-                <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption }} display="block" gutterBottom>
+                <Typography variant="caption" sx={{ ...(theme.typography as any).subMenuCaption }} display="block" gutterBottom>
                   {item.caption}
                 </Typography>
               )}

@@ -14,6 +14,7 @@ export interface MenuItem {
   breadcrumbs?: boolean;
   children?: MenuItem[];
   allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps')[];
+  caption?: string;
 }
 
 const menuItems = {

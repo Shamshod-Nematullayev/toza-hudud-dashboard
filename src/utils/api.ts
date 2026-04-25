@@ -82,10 +82,7 @@ api.interceptors.response.use(
 
         toast.error('Session expired. Please login again.');
         window.location.href = '/pages/login/login';
-        useCustomizationStore.setState({
-          user: null,
-          company: { billingAdminName: '', gpsOperatorName: '', id: 0, locationName: '', managerName: '', name: '', phone: '' }
-        });
+        useCustomizationStore.getState().logOut();
 
         return Promise.reject(err);
       } finally {

@@ -19,6 +19,7 @@ import { IconChevronRight } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
 import { useEffect } from 'react';
 import api from 'utils/api';
+import { Employee } from 'types/billing';
 
 const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
   let binary = '';
@@ -84,12 +85,33 @@ const MainLayout = () => {
           fullName: string;
           login: string;
           isTestUser?: boolean;
-        } = (await api.get('/auth/me')).data;
+        } = (await api.get('/auth/me')).data.user;
 
         setUser({ ...user, isTestUser: user.isTestUser ?? false, avatar: '' });
 
-        // const company = (await api.get('/auth/company')).data;
-        // setCompany(company);
+        const company: {
+          id: number;
+          name: string;
+          locationName: string;
+          regionId: number;
+          type: string;
+          activeExpiresDate: string;
+          manager: Employee;
+          gpsOperator: Employee;
+          billingAdmin: Employee;
+          abonentsPrefix: string;
+          districtId: number;
+          phone: string;
+          address: string;
+          tin: string;
+          premium: boolean;
+        } = (await api.get('/auth/company')).data;
+        setCompany({
+          ...company,
+          billingAdminName: company.billingAdmin?.fullName,
+          gpsOperatorName: company.gpsOperator?.fullName,
+          managerName: company.manager?.fullName
+        });
 
         api.get('/auth/get-photo').then(({ data }) => {
           const uint8Array = new Uint8Array(data.photo.data);

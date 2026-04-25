@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import useCustomizationStore from 'store/customizationStore';
 import useLoaderStore from 'store/loaderStore';
 import { useUserStore } from 'store/userStore';
 import api from 'utils/api';
@@ -21,13 +22,14 @@ function SettingsModal() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const { setIsLoading } = useLoaderStore();
+  const { user } = useCustomizationStore();
 
-  const onKeyDown = (e) => {
+  const onKeyDown = (e: any) => {
     if (e.key === 'Escape') {
       closeSettingsModal();
     }
   };
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
     try {
@@ -41,15 +43,14 @@ function SettingsModal() {
       const result = (
         await api.put('/auth/change-password', {
           newPassword,
-          login: JSON.parse(localStorage.getItem('user')).login,
+          login: user?.login,
           password: currentPassword
         })
       ).data;
       if (!result.ok) throw new Error(result.message);
       toast.success(result.message);
       closeSettingsModal();
-    } catch (error) {
-      console.log({ err: error.message });
+    } catch (error: any) {
       toast.error(error.message);
     } finally {
       setIsLoading(false);
