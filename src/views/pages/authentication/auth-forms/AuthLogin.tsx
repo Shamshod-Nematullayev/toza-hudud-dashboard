@@ -47,7 +47,6 @@ const AuthLogin = ({ ...others }) => {
       const response = await api.post('/auth/login', { login: values.email, password: values.password });
       const data = response.data;
       if (data.ok) {
-        toast.success('Login successful');
         Cookies.set('accessToken', data.accessToken);
         Cookies.set('refreshToken', data.refreshToken);
         localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
