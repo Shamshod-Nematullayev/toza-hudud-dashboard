@@ -25,6 +25,12 @@ const uz = {
   cadastrAbonent: 'Kadastr abonent',
   uzs: "so'm",
   'Abonent karta olish': 'Abonent karta olish',
+  callResults: {
+    warned: 'Rozi',
+    wrongNumber: "Telefon raqami noto'g'ri",
+    unanswered: 'Javobsiz',
+    badNumber: "Telefon raqami noto'g'ri"
+  },
   errors: {
     // Umumiy xatolar
     somethingWentWrong: 'Xatolik kuzatildi',
