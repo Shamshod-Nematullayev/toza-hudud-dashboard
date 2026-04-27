@@ -67,8 +67,18 @@ export const createCallWarningsService = (axios: AxiosInstance) => {
     /**
      * Barcha monitoring yozuvlarini filtrlar bilan olish
      */
-    getAll: async (params?: { status?: CallStatus; priority?: Priority }) => {
-      const { data } = await axios.get<{ ok: boolean; content: ICallWarning[] }>(prefix, { params });
+    getAll: async (params?: {
+      page?: number;
+      limit?: number;
+      sortDirection?: string;
+      sortField?: string;
+      status?: CallStatus | string;
+      priority?: Priority | string;
+    }) => {
+      const { data } = await axios.get<{ ok: boolean; content: ICallWarning[]; meta: { total: number; page: number; limit: number } }>(
+        prefix,
+        { params }
+      );
       return data;
     },
 

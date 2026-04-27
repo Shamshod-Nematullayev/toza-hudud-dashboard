@@ -42,6 +42,7 @@ import AbonentActs from 'views/billing/Abonent/pages/AbonentActs';
 import Mahalla from 'views/billing/Mahalla/Mahalla';
 import SmsWarnings from 'views/billing/SmsWarnings/SmsWarnings';
 import { CallerWorkspace } from 'views/billing/CallerWorkspace/CallerWorkspace';
+import CallRequestAdmin from 'views/billing/CallRequestAdmin/CallRequestAdmin';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -201,6 +202,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'importAkt',
           element: <ImportAkt />
+        },
+        {
+          path: 'callerWorkspace',
+          element: <CallRequestAdmin />
         },
         {
           path: 'callerWorkspace/:id',
