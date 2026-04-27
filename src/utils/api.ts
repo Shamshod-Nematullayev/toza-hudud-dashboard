@@ -90,10 +90,6 @@ api.interceptors.response.use(
       }
     }
 
-    if ((error.response?.data as any)?.message) {
-      toast.error((error.response?.data as any)?.message || error.message);
-    }
-
     return Promise.reject(error);
   }
 );

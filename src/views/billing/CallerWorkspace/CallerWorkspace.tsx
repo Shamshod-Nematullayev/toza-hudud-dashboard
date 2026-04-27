@@ -25,7 +25,6 @@ import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CallResult, createCallWarningsService, ICallWarning } from 'services/caller.service';
 import api from 'utils/api';
-import { AbonentDetails } from 'types/billing';
 import { useAbonentStore } from '../Abonent/abonentStore';
 import { toast } from 'react-toastify';
 import { t } from 'i18next';
@@ -37,20 +36,6 @@ const SCRIPTS = {
   DEMAND: "Sizning qarzingiz kritik darajaga yetgan. Bugun kun yakunigacha to'lov qilinmasa, ma'lumotlar sudga oshirilishi mumkin.",
   WARNING:
     "DIQQAT: 5 ish kuni ichida qarzdorlik bartaraf etilmasa, qonunchilikka asosan elektr energiyasi ta'minotiga cheklov qo'yilishi haqida ogohlantiramiz."
-};
-
-const subscriber = {
-  id: '884592',
-  accountNumber: '105120500123', // 12 xonali raqam
-  fullName: 'Nematullayev Shamshod',
-  birthYear: 1995,
-  phone: '+998 90 123 45 67',
-  address: 'Samarqand v, Urgut t, Dehqonobod MFY, 12-uy',
-  debt: '150,000',
-  yearEndDebt: '400,000',
-  members: 4,
-  tariff: 'Standart',
-  isDebtor: true
 };
 
 export const CallerWorkspace: React.FC = () => {
@@ -66,58 +51,75 @@ export const CallerWorkspace: React.FC = () => {
   const [balanceYearEnd, setBalanceYearEnd] = useState(0);
   const { getDetails, abonentDetails, getIncomePredicts, balancePredicts } = useAbonentStore();
 
+  // Umumiy yordamchi funksiya - Tafsilotlarni olish uchun
+  const updateAbonentInfo = async (residentId: number) => {
+    await getDetails(residentId);
+    const periodYearEnd = dayjs().endOf('year').format('MM.YYYY');
+
+    // Yil oxirigacha balansni bashorat qilish uchun
+    await getIncomePredicts(residentId, periodYearEnd);
+
+    const balanceYearEnd = useAbonentStore.getState().balancePredicts?.balancePredictItems.find((b) => b.period === periodYearEnd);
+    setBalanceYearEnd(balanceYearEnd?.balanceAmount || 0);
+  };
+
   useEffect(() => {
     const fetchSubscriber = async () => {
+      if (!id) return;
+      setLoading(true);
+
       try {
-        setLoading(true);
-        if (!id) return;
-        // const response = await callerService.getById(id);
+        const response = await callerService.claim(id);
+        await updateAbonentInfo(response.content.residentId);
+        setData(response.content);
+      } catch (error: any) {
+        const errorMsg = error?.response?.data?.message;
+        const content = error?.response?.data?.content;
 
-        // Bu yerda claim bo'lishi kerak
-
-        // await getDetails(response.content.residentId || 12529474);
-        getDetails(12529474);
-        const periodYearEnd = dayjs().endOf('year').format('MM.YYYY');
-        getIncomePredicts(12529474, periodYearEnd).then(() => {
-          const balanceYearEnd = balancePredicts?.balancePredictItems.find((b) => b.period === periodYearEnd);
-          setBalanceYearEnd(balanceYearEnd?.balanceAmount || 0);
-        });
-        setData(
-          // response.content ||
-          {
-            _id: 'test_id',
-            accountNumber: '105120500100',
-            attemptCount: 0,
-            calls: [
-              {
-                date: new Date('2026-04-20T10:00:00'),
-                comment: 'Raqam band edi, 3 marta qayta tel qilindi biroq javob bermadi.',
-                userId: 'test_user_id',
-                phoneNumber: '+998 90 123 45 67',
-                result: 'unanswered'
-              },
-              {
-                date: new Date('2026-03-28T15:30:00'),
-                comment: "Maosh chiqqanda to'layman dedi, 1-aprelga va'da berdi.",
-                userId: 'test_user_id',
-                phoneNumber: '+998 90 123 45 67',
-                result: 'unanswered'
-              }
-            ],
-            priority: 'high',
-            residentId: 12529474,
-            status: 'new',
-            pendingUserId: null
+        // 1-holat: Tugallanmagan vazifa
+        if (errorMsg === 'Sizda tugallanmagan vazifa bor') {
+          if (content?._id !== id) {
+            toast.error(errorMsg);
+            navigate(`/billing/caller-warnings/${content._id}`);
+          } else {
+            await updateAbonentInfo(content.residentId);
+            setData(content);
           }
-        );
-      } catch (error) {
-        console.error("Ma'lumot olishda xato:", error);
+        }
+        // 2-holat: Abonent band yoki holati o'zgargan
+        else if (errorMsg === "Bu abonent allaqachon band qilingan yoki holati o'zgargan.") {
+          await handleGoNext();
+        }
+        // Qolgan xatoliklar
+        else {
+          console.error("Ma'lumot olishda xato:", error);
+          toast.error(errorMsg || "Noma'lum xatolik");
+        }
       } finally {
         setLoading(false);
       }
     };
+
     fetchSubscriber();
   }, [id]);
+
+  // Keyingisiga o'tish logikasini alohida funksiyaga chiqaramiz
+  const handleGoNext = async () => {
+    try {
+      const next = await callerService.getNext();
+      const nextId = next.content?._id;
+
+      if (nextId) {
+        setNote('');
+        navigate(`/caller-warnings/${nextId}`);
+      } else {
+        toast.success(next.message || "Barcha qo'ng'iroqlar yakunlandi, To'ram!", { autoClose: false });
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Navbatdagi abonentni olishda xato:', error);
+    }
+  };
 
   // 2. Natijani saqlash va keyingisiga o'tish
   const handleAction = async (status: CallResult) => {
@@ -126,39 +128,17 @@ export const CallerWorkspace: React.FC = () => {
       const payload = {
         result: status,
         comment: note,
-        phoneNumber: abonentDetails?.phone || undefined
+        phoneNumber: abonentDetails?.phone || ''
       };
 
-      // Natijani saqlaymiz, server bizga navbatdagi IDni beradi
-      const response = await callerService.setResult(id!, payload);
-
-      const nextId = response.content._id;
-
-      if (nextId) {
-        setNote(''); // Izohni tozalash
-        navigate(`/callerWorkspace/${nextId}`);
-      } else {
-        // Agar navbat tugagan bo'lsa
-        toast.success("Barcha qo'ng'iroqlar yakunlandi, To'ram!", { autoClose: false });
-        navigate('/');
-      }
+      await callerService.setResult(id!, payload);
+      await handleGoNext();
     } catch (error) {
       console.error('Saqlashda xatolik:', error);
     } finally {
       setSubmitting(false);
     }
   };
-
-  // Tarix ma'lumotlari (misol uchun)
-  const historyData = [
-    {
-      date: '2026-04-20T10:00:00',
-      status: 'Javobsiz',
-      op: 'Aziza',
-      comment: 'Raqam band edi, 3 marta qayta tel qilindi biroq javob bermadi.'
-    },
-    { date: '2026-03-28T15:30:00', status: 'Rozi', op: 'Jasur', comment: "Maosh chiqqanda to'layman dedi, 1-aprelga va'da berdi." }
-  ];
 
   if (loading)
     return (
@@ -236,7 +216,9 @@ export const CallerWorkspace: React.FC = () => {
                   </Typography>
                 </Box>
 
-                {subscriber.isDebtor && <Chip label="Qarzdor" color="error" variant="filled" sx={{ fontWeight: 'bold' }} />}
+                {(abonentDetails?.balance.kSaldo || 0) > 0 && (
+                  <Chip label="Qarzdor" color="error" variant="filled" sx={{ fontWeight: 'bold' }} />
+                )}
               </Box>
 
               <Grid container spacing={1}>
@@ -292,6 +274,7 @@ export const CallerWorkspace: React.FC = () => {
                 size="large"
                 startIcon={<SuccessIcon />}
                 onClick={() => handleAction('warned')}
+                disabled={submitting}
               >
                 To'lovga rozi
               </Button>
@@ -302,6 +285,7 @@ export const CallerWorkspace: React.FC = () => {
                 size="large"
                 startIcon={<FailIcon />}
                 onClick={() => handleAction('unanswered')}
+                disabled={submitting}
               >
                 Band / Keyinroq
               </Button>
@@ -312,6 +296,7 @@ export const CallerWorkspace: React.FC = () => {
                 size="large"
                 startIcon={<InfoIcon />}
                 onClick={() => handleAction('wrongNumber')}
+                disabled={submitting}
               >
                 Noto'g'ri raqam
               </Button>

@@ -50,13 +50,14 @@ export default function SideFilters() {
           <MenuItem value="all">Barchasi</MenuItem>
           <MenuItem value="high">Yuqori</MenuItem>
           <MenuItem value="medium">O'rta</MenuItem>
+          <MenuItem value="low">Past</MenuItem>
         </TextField>
 
-        <MahallaSelection
+        {/* <MahallaSelection
           label={t('tableHeaders.mfy')}
           selectedMahallaId={filters.mahallaId || ''}
           setSelectedMahallaId={(id) => setFilter('mahallaId', id)}
-        />
+        /> */}
 
         <Divider sx={{ my: 1 }} />
 

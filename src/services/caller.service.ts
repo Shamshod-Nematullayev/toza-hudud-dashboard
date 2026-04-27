@@ -50,6 +50,13 @@ export interface IOperatorStats {
   successRate: number;
 }
 
+export interface ImportStats {
+  requested: number;
+  imported: number;
+  alreadyExisted: number;
+  notFoundInAbonents: number;
+}
+
 // --- SERVICE ---
 
 export const createCallWarningsService = (axios: AxiosInstance) => {
@@ -59,8 +66,16 @@ export const createCallWarningsService = (axios: AxiosInstance) => {
     /**
      * Reja asosida residentId'larni ommaviy import qilish
      */
-    import: async (residentIds: number[]) => {
+    import: async (residentIds: number[]): Promise<{ ok: boolean; content: ICallWarning[]; stats: ImportStats }> => {
       const { data } = await axios.post<{ ok: boolean; content: ICallWarning[]; stats: any }>(`${prefix}/import`, residentIds);
+      return data;
+    },
+
+    /**
+     * Bitta dona call warning yaratish
+     */
+    create: async (callWarning: { residentId: number; accountNumber: string; priority: Priority }) => {
+      const { data } = await axios.post<{ ok: boolean; content: ICallWarning }>(`${prefix}`, callWarning);
       return data;
     },
 
@@ -74,6 +89,7 @@ export const createCallWarningsService = (axios: AxiosInstance) => {
       sortField?: string;
       status?: CallStatus | string;
       priority?: Priority | string;
+      accountNumber?: string;
     }) => {
       const { data } = await axios.get<{ ok: boolean; content: ICallWarning[]; meta: { total: number; page: number; limit: number } }>(
         prefix,
@@ -86,7 +102,7 @@ export const createCallWarningsService = (axios: AxiosInstance) => {
      * Navbatdagi eng muhim qo'ng'iroqni olish (Auto-claim)
      */
     getNext: async () => {
-      const { data } = await axios.get<{ ok: boolean; content: ICallWarning }>(`${prefix}/next`);
+      const { data } = await axios.get<{ ok: boolean; content?: ICallWarning; message?: string }>(`${prefix}/next`);
       return data;
     },
 

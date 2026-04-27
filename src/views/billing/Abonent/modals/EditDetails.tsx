@@ -142,7 +142,7 @@ function EditDetails() {
   }, [pnfl]);
 
   useEffect(() => {
-    if (passport.length === 9 && passport !== abonentDetails?.citizen.passport) {
+    if (passport?.length === 9 && passport !== abonentDetails?.citizen.passport) {
       try {
         getCitizensDetails({
           pnfl,

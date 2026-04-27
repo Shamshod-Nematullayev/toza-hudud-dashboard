@@ -91,7 +91,10 @@ const uz = {
     etkKodRequests: 'ETK kiritish talablar',
     visitsGraph: 'Tashriflar grafiki',
     mahallas: 'Mahallalar',
-    'sms-warnings': 'SMS ogohlantirishlar'
+    'sms-warnings': 'SMS ogohlantirishlar',
+    caller: 'Telefonchi',
+    'call-warnings': 'Telefon ogohlantirishlar',
+    'call-warnings-workspace': 'Telefonchi ishmaydoni'
   },
   smsWarningStatus: {
     pending: 'Jarayonda',

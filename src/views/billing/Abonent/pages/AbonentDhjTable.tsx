@@ -53,6 +53,11 @@ function AbonentDhjTable() {
       type: 'number'
     },
     {
+      field: 'accrual',
+      headerName: t('tableHeaders.nachis'),
+      type: 'number'
+    },
+    {
       field: 'actAmount',
       headerName: t('tableHeaders.actAmount'),
       type: 'number'

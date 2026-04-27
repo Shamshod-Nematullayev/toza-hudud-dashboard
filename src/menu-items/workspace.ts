@@ -16,7 +16,6 @@ import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutl
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, FolderOutlined, ElectricBolt, MessageOutlined } from '@mui/icons-material';
-import uz from '../locales/uz';
 import { MenuItem } from 'menu-items';
 
 //contans

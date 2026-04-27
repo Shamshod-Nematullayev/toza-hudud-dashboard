@@ -10,6 +10,8 @@ import { createCallWarningsService } from 'services/caller.service';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import SideFilters from './SideFilters';
 import { useCallerStore } from './useCallerStore';
+import { CreateCallModal } from './modals/CreateCallModal';
+import { ImportCallModal } from './modals/ImportCallModal';
 
 // Status ranglari
 const statusColors: any = {
@@ -20,21 +22,23 @@ const statusColors: any = {
 };
 
 const CallRequestAdmin = () => {
-  const [openCreateModal, setOpenCreateModal] = useState(false);
   const callerService = createCallWarningsService(api);
-  const { filters: callFilters, refreshTrigger } = useCallerStore();
+  const { filters: callFilters, refreshTrigger, setModal } = useCallerStore();
 
   // 1. Server DataGrid Hook
-  const { dataGridProps, rows } = useServerDataGrid(
+  const { dataGridProps } = useServerDataGrid(
     async ({ limit, page, filters, sortDirection, sortField }) => {
-      // Bu yerda o'zingizning api endpointingiz bo'ladi
       const data = await callerService.getAll({
         page,
         limit,
         sortDirection: sortDirection || undefined,
         sortField: sortField || undefined,
         ...filters,
-        ...callFilters
+        ...callFilters,
+
+        priority: filters?.priority === 'all' ? undefined : filters?.priority,
+        status: filters?.status === 'all' ? undefined : filters?.status,
+        accountNumber: filters?.accountNumber
       });
       return {
         data: data.content, // Odatda content bo'ladi
@@ -51,10 +55,17 @@ const CallRequestAdmin = () => {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Stack direction="row" spacing={1}>
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenCreateModal(true)}>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setModal('create', true)}>
               Yangi qo'shish
             </Button>
-            <Button variant="outlined" color="secondary" startIcon={<ImportIcon />}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<ImportIcon />}
+              onClick={() => {
+                setModal('import', true);
+              }}
+            >
               Import (Excel)
             </Button>
           </Stack>
@@ -113,6 +124,7 @@ const CallRequestAdmin = () => {
                 )
               }
             ]}
+            disableColumnMenu
           />
         </Grid>
 
@@ -123,6 +135,8 @@ const CallRequestAdmin = () => {
       </Grid>
 
       {/* Yangi qo'shish uchun bo'sh modal */}
+      <CreateCallModal />
+      <ImportCallModal />
       {/* <CreateCallWarningDialog open={openCreateModal} onClose={() => setOpenCreateModal(false)} /> */}
     </MainCard>
   );

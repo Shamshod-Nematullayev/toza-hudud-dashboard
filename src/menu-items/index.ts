@@ -2,6 +2,7 @@ import uz from 'locales/uz';
 import employeers from './employeers';
 import workspace from './workspace';
 import gpsMonitoring from './gps.monitoring';
+import { caller } from './caller';
 
 // ==============================|| MENU ITEMS ||============================== //
 
@@ -18,7 +19,7 @@ export interface MenuItem {
 }
 
 const menuItems = {
-  items: [employeers, workspace, gpsMonitoring]
+  items: [employeers, workspace, gpsMonitoring, caller]
 };
 
 export default menuItems;
