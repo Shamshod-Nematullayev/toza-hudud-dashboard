@@ -48,6 +48,10 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryConfig;
 
+    if (error.response?.status === 403) {
+      toast.error("Sizning ushbu amaliyotni bajarish uchun huquqingiz yo'q");
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 

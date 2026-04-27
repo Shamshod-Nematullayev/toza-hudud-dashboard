@@ -12,6 +12,7 @@ import SideFilters from './SideFilters';
 import { useCallerStore } from './useCallerStore';
 import { CreateCallModal } from './modals/CreateCallModal';
 import { ImportCallModal } from './modals/ImportCallModal';
+import { t } from 'i18next';
 
 // Status ranglari
 const statusColors: any = {
@@ -102,15 +103,20 @@ const CallRequestAdmin = () => {
                 headerName: 'Prioritet',
                 width: 120,
                 renderCell: (params) => (
-                  <Chip label={params.value} variant="outlined" color={params.value === 'high' ? 'error' : 'default'} size="small" />
+                  <Chip
+                    label={t(`priority.${params.value}` as 'priority.1')}
+                    variant="outlined"
+                    color={params.value === 3 ? 'error' : params.value === 2 ? 'warning' : 'default'}
+                    size="small"
+                  />
                 )
               },
               { field: 'attemptCount', headerName: 'Urinishlar', width: 100, align: 'center' },
               {
-                field: 'updatedAt',
+                field: 'lastCalledAt',
                 headerName: "Oxirgi qo'ng'iroq",
                 width: 180,
-                valueGetter: (params: any) => (params.value ? dayjs(params.value).format('DD.MM.YYYY HH:mm') : '—')
+                valueGetter: (params: any) => (params?.value ? dayjs(params.value).format('DD.MM.YYYY HH:mm') : '—')
               },
               {
                 field: 'actions',

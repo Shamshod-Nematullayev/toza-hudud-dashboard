@@ -96,6 +96,11 @@ const uz = {
     'call-warnings': 'Telefon ogohlantirishlar',
     'call-warnings-workspace': 'Telefonchi ishmaydoni'
   },
+  priority: {
+    '1': 'Past',
+    '2': "O'rta",
+    '3': 'Yuqori'
+  },
   smsWarningStatus: {
     pending: 'Jarayonda',
     sent: 'Yuborildi',
