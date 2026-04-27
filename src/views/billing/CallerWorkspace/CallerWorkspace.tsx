@@ -23,7 +23,7 @@ import {
 import { CheckCircle as SuccessIcon, Cancel as FailIcon, ErrorOutline as InfoIcon, Message as MessageIcon } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CallResult, createCallWarningsService, ICallWarning } from 'services/caller.service';
+import { CallResult, createCallWarningsService, ICallStats, ICallWarning } from 'services/caller.service';
 import api from 'utils/api';
 import { useAbonentStore } from '../Abonent/abonentStore';
 import { toast } from 'react-toastify';
@@ -44,6 +44,16 @@ export const CallerWorkspace: React.FC = () => {
   const [balanceYearEnd, setBalanceYearEnd] = useState(0);
   const { getDetails, abonentDetails, getIncomePredicts, balancePredicts } = useAbonentStore();
   const { language } = useCustomizationStore();
+  const [todayStats, setTodayStats] = useState<ICallStats>({
+    summary: {
+      completed: 0,
+      rejected: 0,
+      totalCalls: 0,
+      unanswered: 0,
+      uniqueResidents: 0
+    },
+    timeline: []
+  });
 
   // Skriptlar ro'yxati
   const SCRIPTS = {
@@ -107,6 +117,14 @@ export const CallerWorkspace: React.FC = () => {
     };
 
     fetchSubscriber();
+
+    async function fetchStats() {
+      const data = await callerService.getDailyStats(dayjs().startOf('day').toISOString(), dayjs().toISOString(), 'daily');
+
+      setTodayStats(data.content);
+      callerService.getOperatorStats(dayjs().startOf('month').toISOString(), dayjs().endOf('month').toISOString());
+    }
+    fetchStats();
   }, [id]);
 
   // Keyingisiga o'tish logikasini alohida funksiyaga chiqaramiz
@@ -159,10 +177,15 @@ export const CallerWorkspace: React.FC = () => {
       {/* 1. Header: Statistika (Ranglar va ko'rinish light modeda to'g'rilandi) */}
       <Grid container spacing={1.5} sx={{ mb: 2 }}>
         {[
-          { label: 'Jami', val: '120', color: 'primary.main', bg: 'primary.light' },
-          { label: 'Muvaffaqiyatli', val: '85', color: 'success.dark', bg: 'success.light' },
-          { label: 'Rad etildi', val: '20', color: 'error.main', bg: 'error.light' },
-          { label: 'Qolgan', val: '15', color: 'warning.dark', bg: 'warning.light' }
+          {
+            label: 'Bugun jami',
+            val: todayStats.summary.completed + todayStats.summary.rejected + todayStats.summary.unanswered,
+            color: 'primary.main',
+            bg: 'primary.light'
+          },
+          { label: 'Muvaffaqiyatli', val: todayStats.summary.completed, color: 'success.dark', bg: 'success.light' },
+          { label: "Bog'lanib bo'lmadi", val: todayStats.summary.unanswered, color: 'warning.dark', bg: 'warning.light' },
+          { label: "Noto'g'ri raqam", val: todayStats.summary.rejected, color: 'error.main', bg: 'error.light' }
         ].map((stat) => (
           <Grid item xs={6} md={3} key={stat.label}>
             <Paper
@@ -358,7 +381,7 @@ export const CallerWorkspace: React.FC = () => {
                   <ListItem key={index} divider sx={{ px: 0 }}>
                     <ListItemText
                       primary={dayjs(item.date).format('DD.MM.YYYY HH:mm')}
-                      secondary={`${t(('callResults.' + item.result) as 'callResults.warned')} - ${item.userId}`}
+                      secondary={`${t(('callResults.' + item.result) as 'callResults.warned')} - ${item.userId.fullName}`}
                       primaryTypographyProps={{ variant: 'caption', fontWeight: 'bold' }}
                     />
                     <Tooltip title={item.comment} arrow placement="left">
