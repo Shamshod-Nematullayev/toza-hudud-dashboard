@@ -28,15 +28,8 @@ import api from 'utils/api';
 import { useAbonentStore } from '../Abonent/abonentStore';
 import { toast } from 'react-toastify';
 import { t } from 'i18next';
-
-// Skriptlar ro'yxati
-const SCRIPTS = {
-  POLITE:
-    "Assalomu alaykum, hurmatli abonent. 'GreenZone' xizmati bo'yicha joriy qarzingiz mavjud. To'lovni amalga oshirish imkoniyatingizni bilmoqchi edik.",
-  DEMAND: "Sizning qarzingiz kritik darajaga yetgan. Bugun kun yakunigacha to'lov qilinmasa, ma'lumotlar sudga oshirilishi mumkin.",
-  WARNING:
-    "DIQQAT: 5 ish kuni ichida qarzdorlik bartaraf etilmasa, qonunchilikka asosan elektr energiyasi ta'minotiga cheklov qo'yilishi haqida ogohlantiramiz."
-};
+import useCustomizationStore from 'store/customizationStore';
+import { kirillga } from 'helpers/lotinKiril';
 
 export const CallerWorkspace: React.FC = () => {
   const { id } = useParams();
@@ -50,6 +43,19 @@ export const CallerWorkspace: React.FC = () => {
   const callerService = createCallWarningsService(api);
   const [balanceYearEnd, setBalanceYearEnd] = useState(0);
   const { getDetails, abonentDetails, getIncomePredicts, balancePredicts } = useAbonentStore();
+  const { language } = useCustomizationStore();
+
+  // Skriptlar ro'yxati
+  const SCRIPTS = {
+    // 1. Yumshoq eslatma (Dastlabki aloqa)
+    POLITE: `Assalomu alaykum, ${abonentDetails?.fullName}! Siz bilan maishiy chiqindilarni olib chiqib ketish xizmatidan bog'lanyapmiz. Monitoring natijasida hisobingizda ${abonentDetails?.balance.kSaldo.toLocaleString()} so'm qarzdorlik borligi aniqlandi. To'lovni yaqin orada amalga oshirish imkoningiz bormi?`,
+
+    // 2. Jiddiy talab (Ikkinchi bosqich)
+    DEMAND: `Assalomu alaykum, ${abonentDetails?.fullName}. Sizga maishiy chiqindi xizmatidan mavjud ${abonentDetails?.balance.kSaldo.toLocaleString()} so'm qarzdorlik bo'yicha avval ham eslatma berilgan edi. Agarda bugun kun yakuniga qadar to'lov amalga oshirilmasa, qarzdorlik majburiy tartibda undirish uchun tegishli organlarga yuboriladi.`,
+
+    // 3. Rasmiy ogohlantirish (Eng yuqori bosqich - Sizning namunangiz asosida)
+    WARNING: `Assalomu alaykum, ${abonentDetails?.fullName} siz bo'lasizmi? Sizning maishiy chiqindi to'lovlaridan ${abonentDetails?.balance.kSaldo.toLocaleString()} so'm qarzdorligingiz mavjud. Agarda 5 ish kuni ichida ushbu qarzdorlik bartaraf etilmasa, amaldagi qonunchilikka asosan elektr energiyasi yetkazib berishga cheklov qo'yilishi haqida rasman ogohlantiramiz.`
+  };
 
   // Umumiy yordamchi funksiya - Tafsilotlarni olish uchun
   const updateAbonentInfo = async (residentId: number) => {
@@ -329,7 +335,15 @@ export const CallerWorkspace: React.FC = () => {
               </Tabs>
               <Box sx={{ p: 2, minHeight: '80px' }}>
                 <Typography variant="body1" color="text.primary" sx={{ fontStyle: 'italic', fontSize: '1.9rem' }}>
-                  "{activeTab === 0 ? SCRIPTS.POLITE : activeTab === 1 ? SCRIPTS.DEMAND : SCRIPTS.WARNING}"
+                  "{' '}
+                  {language !== 'uz'
+                    ? kirillga(activeTab === 0 ? SCRIPTS.POLITE : activeTab === 1 ? SCRIPTS.DEMAND : SCRIPTS.WARNING)
+                    : activeTab === 0
+                      ? SCRIPTS.POLITE
+                      : activeTab === 1
+                        ? SCRIPTS.DEMAND
+                        : SCRIPTS.WARNING}
+                  "
                 </Typography>
               </Box>
             </Paper>
