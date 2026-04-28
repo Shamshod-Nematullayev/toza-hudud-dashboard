@@ -75,7 +75,7 @@ export interface IAbonentPageStore {
    */
   getDetails: (residentId: number) => Promise<void>;
   getDhjRows: () => void;
-  getDetailsHistory: () => void;
+  getDetailsHistory: (accountNumber: number | string) => Promise<void>;
   /** * Ma'lumotlarni bevosita bazadan (MongoDB) olish.
    * TozaMakondan olinmaydi.
    */
@@ -175,13 +175,11 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
 
     set({ dhjRows: data.rows });
   },
-  getDetailsHistory: async () => {
-    const { abonentDetails } = get();
-    if (!abonentDetails?.id) return;
+  getDetailsHistory: async (accountNumber) => {
+    if (!accountNumber) return;
+    const { data } = await api.get('/abonents/history/' + accountNumber);
 
-    const { data } = await api.get('/billing/get-abonent-details-history/' + abonentDetails.id);
-
-    set({ detailsHistory: data.detailsHistory });
+    set({ detailsHistory: data });
   },
   getDetailsFromDB: async () => {
     const { data } = await api.get('/billing/get-abonent-details-from-db/' + get().abonentDetails?.id);

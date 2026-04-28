@@ -15,7 +15,7 @@ export function useAbonentLogic() {
 /** Asosiy abonent ma'lumotlarini bitta joyda yuklash (layout). Takroriy chaqirish API ni ko'p marta urmaydi. */
 export function usePrefetchAbonentPageData() {
   const { residentId, periodEndYear } = useAbonentLogic();
-  const { getDetails, getIncomeStats, getIncomePredicts, resetStore, getAbonentPetitions } = useAbonentStore();
+  const { getDetails, getIncomeStats, getIncomePredicts, resetStore, getAbonentPetitions, getDetailsHistory } = useAbonentStore();
 
   useEffect(() => {
     if (Number.isNaN(residentId)) return;
@@ -24,6 +24,7 @@ export function usePrefetchAbonentPageData() {
       const promises: Promise<any>[] = [getIncomePredicts(residentId, periodEndYear), getDetails(residentId), getIncomeStats(residentId)];
       await Promise.all(promises);
 
+      getDetailsHistory(useAbonentStore.getState().abonentDetails?.accountNumber || '');
       getAbonentPetitions(residentId);
     })();
   }, [residentId]);

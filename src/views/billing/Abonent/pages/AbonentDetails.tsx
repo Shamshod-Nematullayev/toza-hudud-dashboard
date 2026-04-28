@@ -2,9 +2,11 @@ import InfoChips from '../InfoChips';
 import AbonentProfileCard from '../AbonentProfileCard';
 import { useAbonentStore } from '../abonentStore';
 import { useAbonentLogic } from '../useAbonentLogic';
-import { Card, CircularProgress, Grid, Typography } from '@mui/material';
+import { Card, Chip, CircularProgress, Grid, Typography } from '@mui/material';
 import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
 import { t } from 'i18next';
+import { TimelineItem, Timeline, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
+import { NameHistory } from '../NameHistoryCard';
 
 function AbonentDetails() {
   const {
@@ -14,7 +16,8 @@ function AbonentDetails() {
     hetAbonent,
     cadastrAbonent,
     abonentDetailsHetLoading,
-    abonentDetailsCadastrLoading
+    abonentDetailsCadastrLoading,
+    detailsHistory
   } = useAbonentStore();
   const { periodEndYear } = useAbonentLogic();
 
@@ -75,6 +78,14 @@ function AbonentDetails() {
                   />
                 )}
               </Card>
+            </Grid>
+            <Grid item xs={4}>
+              <NameHistory
+                data={[
+                  ...detailsHistory,
+                  { accountNumber: Number(abonentDetails.accountNumber), fullName: abonentDetails.fullName, date: new Date().toISOString() }
+                ]}
+              />
             </Grid>
           </Grid>
         </>
