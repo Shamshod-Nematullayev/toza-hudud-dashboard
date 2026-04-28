@@ -9,7 +9,10 @@ export type Priority = 'low' | 'medium' | 'high';
 export interface ICallHistory {
   date: Date;
   result: CallResult;
-  userId: string;
+  userId: {
+    _id: string;
+    fullName: string;
+  };
   phoneNumber: string;
   comment: string;
 }
@@ -37,6 +40,8 @@ export interface ICallStats {
     totalCalls: number;
     uniqueResidents: number;
     completed: number;
+    rejected: number;
+    unanswered: number;
   };
 }
 
