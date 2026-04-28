@@ -6,6 +6,7 @@ import odamSoniXatlovStore from './odamSoniXatlovStore';
 import { useReactToPrint } from 'react-to-print';
 import { QRCodeCanvas } from 'qrcode.react';
 import { reactToPrintDefaultOptions } from 'store/constant';
+import useCustomizationStore from 'store/customizationStore';
 
 const oylar = ['Январ', 'Февраль', 'Март', 'Апрель', 'Май', 'Июн', 'Июл', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабр'];
 const raqamlar = [
@@ -51,14 +52,7 @@ function PrintSection() {
     documentTitle: mahalla?.name + 'xatlov',
     contentRef: printComponentRef
   });
-  const company = JSON.parse(localStorage.getItem('company') || '{}') as {
-    billingAdminName: string;
-    managerName: string;
-    name: string;
-    locationName: string;
-    phone: string;
-    id: number;
-  };
+  const { company } = useCustomizationStore();
   const date = new Date();
   return (
     <Dialog

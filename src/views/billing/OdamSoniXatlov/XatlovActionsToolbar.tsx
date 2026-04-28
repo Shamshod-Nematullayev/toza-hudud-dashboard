@@ -37,7 +37,9 @@ function XatlovActionsToolbar() {
           ...state.dalolatnoma,
           data: responseData.data,
           mahalla: responseData.mahalla,
-          rows: rows.filter((row) => request_ids.includes(row._id))
+          rows: rows.filter((row) => request_ids.includes(row._id)),
+          _id: responseData.data._id,
+          documentNumber: responseData.data.documentNumber
         }
       }));
 

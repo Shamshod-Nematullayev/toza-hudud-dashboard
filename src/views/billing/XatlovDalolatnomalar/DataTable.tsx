@@ -27,11 +27,11 @@ function DataTable({
   rowsMeta?: any;
   setRows: any;
   setCurrentDocument: any;
-  setRequestDocuments: (any) => void;
-  setOpenPreviewDialog: (any) => void;
+  setRequestDocuments: (args0: any) => void;
+  setOpenPreviewDialog: (args0: number) => void;
 }) {
   const [mahallalar, setMahallalar] = useState([]);
-  const { setOpenPrintSection, setDalolatnomaData } = odamSoniXatlovStore();
+  const { setPrintModal } = odamSoniXatlovStore();
 
   useEffect(() => {
     api.get('/billing/get-all-active-mfy').then(({ data }) => {
@@ -76,8 +76,25 @@ function DataTable({
     const dalolatnoma = await getXatlovDocumentById(document._id);
     const requestDocuments = await getRequestdocumentByIds(document.request_ids);
     const mahalla = await getMahallaById(document.mahallaId.toString());
-    setDalolatnomaData({ data: dalolatnoma, mahalla: mahalla.data, rows: requestDocuments.map((r) => ({ ...r, accountNumber: r.KOD })) });
-    setOpenPrintSection(true);
+    odamSoniXatlovStore.setState((state) => ({
+      dalolatnoma: {
+        ...state.dalolatnoma,
+        data: dalolatnoma,
+        mahalla: {
+          ...mahalla.data,
+          biriktirilganNazoratchi: {
+            inspector_name: mahalla.data.biriktirilganNazoratchi?.inspector_name || ''
+          },
+          mfy_rais_name: mahalla.data.mfy_rais_name,
+          name: mahalla.data.name
+        },
+        rows: requestDocuments.map((r) => ({ ...r, accountNumber: r.KOD.toString() })),
+        _id: dalolatnoma._id,
+        documentNumber: dalolatnoma.documentNumber,
+        isPrinting: true
+      }
+    }));
+    setPrintModal(true);
   };
 
   return (

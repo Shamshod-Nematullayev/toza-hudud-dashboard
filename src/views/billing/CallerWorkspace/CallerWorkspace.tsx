@@ -86,7 +86,7 @@ export const CallerWorkspace: React.FC = () => {
         if (errorMsg === 'Sizda tugallanmagan vazifa bor') {
           if (content?._id !== id) {
             toast.error(errorMsg);
-            navigate(`/billing/caller-warnings/${content._id}`);
+            navigate(`/caller/warnings/${content._id}`);
           } else {
             await updateAbonentInfo(content.residentId);
             setData(content);
@@ -117,7 +117,7 @@ export const CallerWorkspace: React.FC = () => {
 
       if (nextId) {
         setNote('');
-        navigate(`/caller-warnings/${nextId}`);
+        navigate(`/caller/warnings/${nextId}`);
       } else {
         toast.success(next.message || "Barcha qo'ng'iroqlar yakunlandi, To'ram!", { autoClose: false });
         navigate('/');
