@@ -1,4 +1,4 @@
-import { Card, Chip, Stack, Typography } from '@mui/material';
+import { Card, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 
 export interface AbonentDetailsHistoryRow {
@@ -23,7 +23,8 @@ export const NameHistory = ({ data }: Props) => {
       return {
         from: prev.fullName,
         to: item.fullName,
-        date: item.date
+        date: item.date,
+        fromDate: prev.date
       };
     })
     .filter(Boolean);
@@ -37,10 +38,40 @@ export const NameHistory = ({ data }: Props) => {
         {changes.map((c, i) => (
           <Stack key={i} direction="row" alignItems="center" justifyContent="space-between">
             {/* Chap: o‘zgarish */}
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Chip label={c?.from} variant="outlined" size="small" />
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mr: 1 }}>
+              <Tooltip title={dayjs(c?.fromDate).format('DD.MM.YYYY')}>
+                <Chip
+                  label={c?.from}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    height: 'auto',
+                    '& .MuiChip-label': {
+                      whiteSpace: 'normal',
+                      display: 'block',
+                      lineHeight: 1.2,
+                      paddingTop: '4px',
+                      paddingBottom: '4px'
+                    }
+                  }}
+                />
+              </Tooltip>
               <Typography fontSize={14}>→</Typography>
-              <Chip label={c?.to} color="primary" size="small" />
+              <Chip
+                label={c?.to}
+                color="primary"
+                size="small"
+                sx={{
+                  height: 'auto',
+                  '& .MuiChip-label': {
+                    whiteSpace: 'normal',
+                    display: 'block',
+                    lineHeight: 1.2,
+                    paddingTop: '4px',
+                    paddingBottom: '4px'
+                  }
+                }}
+              />
             </Stack>
 
             {/* O‘ng: sana */}

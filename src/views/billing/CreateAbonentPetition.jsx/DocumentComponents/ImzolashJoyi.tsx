@@ -1,4 +1,5 @@
 import { lotinga } from 'helpers/lotinKiril';
+import useCustomizationStore from 'store/customizationStore';
 import { AbonentDetails } from 'types/billing';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 
@@ -19,9 +20,9 @@ interface ImzolashJoyiProps {
 }
 
 export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator }: ImzolashJoyiProps) => {
-  const company = mahalla?.company;
   mahalla = mahalla?.data;
   mahalla2 = mahalla2?.data;
+  const { company, user } = useCustomizationStore();
   return (
     <>
       <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
@@ -41,9 +42,12 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
           <br />
         </>
       )}
-      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdmin?.fullName} />
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdminName} />
       <br />
-      <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.manager.fullName} />
+      <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.managerName} />
+      <p style={{ textAlign: 'left', fontSize: '12px' }}>
+        Created: <b>{user?.fullName}</b>
+      </p>
     </>
   );
 };
