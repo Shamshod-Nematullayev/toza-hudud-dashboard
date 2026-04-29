@@ -39,7 +39,7 @@ export function extractBirthDateString(jshshir: string) {
   if (g === 1 || g === 2) century = '18';
   else if (g === 3 || g === 4) century = '19';
   else if (g === 5 || g === 6) century = '20';
-  else throw new Error("Noma'lum asr kodi");
+  else return '';
 
   const fullYear = century + yearPart;
 
