@@ -94,8 +94,9 @@ api.interceptors.response.use(
       }
     }
 
-    if (error.response?.status === 400) {
-      toast.error("Sizning ushbu amaliyotni bajarish uchun huquqingiz yo'q");
+    if (error.response?.status === 400 && !Boolean(error.request.headers['hide-error'])) {
+      // @ts-ignore
+      toast.error(error.response?.data?.message || error.message || 'Xatolik kuzatildi');
     }
 
     return Promise.reject(error);
