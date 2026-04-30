@@ -91,7 +91,8 @@ function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => 
               label={t('tableHeaders.accountNumber')}
               value={accountNumber}
               onChange={(e) => {
-                if (isNumberValue(e.target.value)) setAccountNumber(e.target.value);
+                const numberValue = e.target.value.replace(/[^0-9]/g, '');
+                setAccountNumber(numberValue);
               }}
               inputRef={accountNumberInputRef}
             />

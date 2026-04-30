@@ -94,6 +94,10 @@ api.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 400) {
+      toast.error("Sizning ushbu amaliyotni bajarish uchun huquqingiz yo'q");
+    }
+
     return Promise.reject(error);
   }
 );
