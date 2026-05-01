@@ -115,7 +115,15 @@ export const createCallWarningsService = (axios: AxiosInstance) => {
      * Abonentni qo'lda band qilish
      */
     claim: async (id: string) => {
-      const { data } = await axios.patch<{ ok: boolean; content: ICallWarning }>(`${prefix}/${id}/claim`);
+      const { data } = await axios.patch<{ ok: boolean; content: ICallWarning }>(
+        `${prefix}/${id}/claim`,
+        {},
+        {
+          headers: {
+            'hide-error': true
+          }
+        }
+      );
       return data;
     },
 

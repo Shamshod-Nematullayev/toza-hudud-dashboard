@@ -94,7 +94,7 @@ api.interceptors.response.use(
       }
     }
 
-    if (error.response?.status === 400 && !Boolean(error.request.headers['hide-error'])) {
+    if (error.response?.status === 400 && !Boolean(error.config?.headers['hide-error'])) {
       // @ts-ignore
       toast.error(error.response?.data?.message || error.message || 'Xatolik kuzatildi');
     }
