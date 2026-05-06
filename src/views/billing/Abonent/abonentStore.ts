@@ -134,7 +134,7 @@ export interface IAbonentPageStore {
   verifyIdentity: (residentId: number, identify: boolean) => void;
   openIIBInhabitantsDialog: boolean;
   setOpenIIBInhabitantsDialog: (open: boolean) => void;
-  getIIBInhabitants: (cadastralNumber: string) => Promise<PermamentsResponse>;
+  getIIBInhabitants: (cadastralNumber: string, residentId?: number) => Promise<PermamentsResponse>;
   addInhabitantsToAbonent: (residentId: number, inhabitantCount: number, file: File) => void;
   openAddInhabitantsDialog: boolean;
   setOpenAddInhabitantsDialog: (open: boolean) => void;
@@ -299,8 +299,8 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ abonentDetails: { ...details, identified } });
   },
   setOpenIIBInhabitantsDialog: (open: boolean) => set({ openIIBInhabitantsDialog: open }),
-  getIIBInhabitants: async (cadastralNumber) => {
-    const { data } = await api.get('/abonents/iib-inhabitants', { params: { cadastralNumber } });
+  getIIBInhabitants: async (cadastralNumber, residentId) => {
+    const { data } = await api.get('/abonents/iib-inhabitants', { params: { cadastralNumber, residentId } });
     return data;
   },
   addInhabitantsToAbonent: async (residentId, inhabitantCount, file) => {

@@ -126,19 +126,24 @@ function InputForm() {
         )}
         <Grid item xs={6}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Select value={aktType} onChange={(e) => setAktType(e.target.value as aktType)}>
+            <TextField
+              select
+              label={t('tableHeaders.documentType')}
+              value={aktType}
+              onChange={(e) => setAktType(e.target.value as aktType)}
+            >
               {documentTypes.map((item) => (
                 <MenuItem key={item} value={item}>
                   {/* @ts-ignore */}
                   {t(`documentTypes.${item}`)}
                 </MenuItem>
               ))}
-            </Select>
+            </TextField>
             <TextField
               label={t('createAbonentPetitionPage.inhabitantCnt')}
               sx={{ margin: '10px 0', display: aktType === 'viza' || aktType === 'gps' ? 'none' : 'inline' }}
               value={yashovchiSoniInput}
-              disabled={aktType === 'death'}
+              disabled={aktType === 'death' || aktType === null}
               onChange={(e) => {
                 if (!isNaN(Number(e.target.value))) {
                   setYashovchiSoniInput(e.target.value);

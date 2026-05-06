@@ -87,7 +87,7 @@ function EditDetails() {
       setPatronymic(abonentDetails.citizen.patronymic || '');
       setBirthDate(abonentDetails.citizen.birthDate ? dayjs(abonentDetails.citizen.birthDate) : null);
       setPassportIssuer(abonentDetails.citizen.passportIssuer);
-      setForeignCitizen(abonentDetails.citizen.foreignCitizen);
+      setForeignCitizen(Boolean(abonentDetails.citizen.foreignCitizen));
       setPassportGivenDate(abonentDetails.citizen.passportGivenDate ? dayjs(abonentDetails.citizen.passportGivenDate) : null);
       setPassportExpireDate(abonentDetails.citizen.passportExpireDate ? dayjs(abonentDetails.citizen.passportExpireDate) : null);
       setCadastralNumber(abonentDetails.house.cadastralNumber);
