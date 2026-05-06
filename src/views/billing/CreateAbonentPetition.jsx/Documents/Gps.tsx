@@ -6,6 +6,7 @@ import { ImzoJoyiRow, ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import useCustomizationStore from 'store/customizationStore';
+import dayjs from 'dayjs';
 
 function Gps({
   date,
@@ -110,16 +111,14 @@ function Gps({
           )}
 
           <p style={{ lineHeight: '30px' }}>
-            Haqiqatdan ham abonent xonadoniga {new Date(recalculationPeriods[0]?.startDate).getFullYear()} yil{' '}
-            {oylar[new Date(recalculationPeriods[0]?.startDate).getMonth()]} oyidan{' '}
-            {new Date(recalculationPeriods[0]?.endDate).getFullYear()} yil {oylar[new Date(recalculationPeriods[0]?.endDate).getMonth()]}{' '}
-            oyi oxirigacha yo‘lning yaroqsizligi sababli tegishli sifatdagi xizmat ko‘rsatilmaganligi aniqlandi.{' '}
+            Haqiqatdan ham abonent xonadoniga {dayjs(recalculationPeriods[0]?.startDate).format('DD.MM.YYYY')} davrdan{' '}
+            {dayjs(recalculationPeriods[0]?.endDate).format('DD.MM.YYYY')} davrigacha yo‘lning yaroqsizligi sababli tegishli sifatdagi
+            xizmat ko‘rsatilmaganligi aniqlandi.{' '}
             {muzlatiladi && <>Ushbu abonentga bugungi kunda ham xizmat ko‘rsatish imkoniyati mavjud emas.</>}
           </p>
           <p>
-            Yuqoridagilarga va GPS ma’lumotlariga muvofiq, {date.getFullYear()} yilning {lotinga(oylar[date.getMonth()])} oyida hisobga
-            olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda qayta
-            hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
+            Yuqoridagilarga va GPS ma’lumotlariga muvofiq, hisobga olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi
+            ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda qayta hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.
           </p>
 
           {/* IMZOLAR BO'LIMI - ImzoJoyiRow orqali tartiblandi */}

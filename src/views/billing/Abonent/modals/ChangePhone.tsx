@@ -3,6 +3,8 @@ import { t } from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../abonentStore';
+import PhoneInput from 'ui-component/PhoneInput';
+import { onChange } from 'react-toastify/dist/core/store';
 
 function ChangePhoneDialog() {
   const { updatePhone, abonentDetails, openChangePhoneDialogState, setOpenChangePhoneDialog } = useAbonentStore();
@@ -35,30 +37,12 @@ function ChangePhoneDialog() {
   return (
     <DraggableDialog title={t('buttons.editPhone')} open={openChangePhoneDialogState} onClose={handleClose} maxWidth="xs">
       <form onSubmit={(e) => handleSubmit(e)}>
-        <TextField
+        <PhoneInput
           label={t('tableHeaders.phone')}
           value={phoneNumber}
-          inputProps={{ maxLength: 9 }}
-          onChange={(e) => {
-            if (!isNaN(Number(e.target.value))) {
-              setPhoneNumber(e.target.value);
-            }
-          }}
-          error={phoneNumber.length !== 9 && phoneNumber.length > 0}
-          inputRef={inputRef}
-          onFocus={handleFocus}
+          textFieldProps={{ inputRef, onFocus: handleFocus, error: phoneNumber.length !== 9 && phoneNumber.length > 0 }}
+          onChange={(e) => setPhoneNumber(e)}
         />
-        {/* <TextField
-          label={t('tableHeaders.homePhone')}
-          value={homePhone}
-          inputProps={{ maxLength: 9 }}
-          onChange={(e) => {
-            if (!isNaN(Number(e.target.value))) {
-              setHomePhone(e.target.value);
-            }
-          }}
-          error={homePhone.length !== 9 && homePhone.length > 0}
-        /> */}
         <DialogActions>
           <Button type="submit" variant="contained">
             {t('buttons.saveChanges')}

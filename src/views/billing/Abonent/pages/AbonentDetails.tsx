@@ -2,11 +2,13 @@ import InfoChips from '../InfoChips';
 import AbonentProfileCard from '../AbonentProfileCard';
 import { useAbonentStore } from '../abonentStore';
 import { useAbonentLogic } from '../useAbonentLogic';
-import { Card, Chip, CircularProgress, Grid, Typography } from '@mui/material';
+import { Card, Chip, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material';
 import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
 import { t } from 'i18next';
 import { TimelineItem, Timeline, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
 import { NameHistory } from '../NameHistoryCard';
+import { Add, DownloadForOffline, Link, SaveAlt } from '@mui/icons-material';
+import { formatPhoneNumber } from 'views/tools/formatters';
 
 function AbonentDetails() {
   const {
@@ -17,11 +19,16 @@ function AbonentDetails() {
     cadastrAbonent,
     abonentDetailsHetLoading,
     abonentDetailsCadastrLoading,
-    detailsHistory
+    detailsHistory,
+    updatePhone
   } = useAbonentStore();
   const { periodEndYear } = useAbonentLogic();
 
   const balanceToYearEnd = balancePredicts?.balancePredictItems.find((i) => i.period === periodEndYear)?.balanceAmount || null;
+
+  const handleClickImportPhone = () => {
+    updatePhone(hetAbonent?.phone.slice(3) || '');
+  };
 
   return (
     <>
@@ -51,7 +58,21 @@ function AbonentDetails() {
                     divider
                     data={[
                       { key: t('tableHeaders.fullName'), value: hetAbonent?.fullName },
-                      { key: t('tableHeaders.phone'), value: hetAbonent?.phone },
+                      {
+                        key: t('tableHeaders.phone'),
+                        value: (
+                          <Typography sx={{ fontWeight: 'bold' }}>
+                            {formatPhoneNumber(hetAbonent?.phone.slice(3) || '')}{' '}
+                            {hetAbonent?.phone && hetAbonent?.phone.slice(3) !== abonentDetails.phone && (
+                              <Tooltip title={t('buttons.importPhone')}>
+                                <IconButton size="small" color="info" onClick={handleClickImportPhone}>
+                                  <SaveAlt />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Typography>
+                        )
+                      },
                       { key: t('tableHeaders.cadastralNumber'), value: hetAbonent?.cadastralNumber },
                       { key: t('tableHeaders.address'), value: hetAbonent?.address },
                       { key: t('tableHeaders.pnfl'), value: hetAbonent?.pinfl }

@@ -40,6 +40,7 @@ import { useAbonentStore } from './abonentStore';
 import useLoaderStore from 'store/loaderStore';
 import dayjs from 'dayjs';
 import { t } from 'i18next';
+import { formatPhoneNumber } from 'views/tools/formatters';
 
 interface Data extends AbonentDetails {
   photo?: string;
@@ -244,7 +245,7 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
               <InfoRow
                 icon={PhoneIcon}
                 label="Телефон рақами"
-                value={data?.phone || ''}
+                value={formatPhoneNumber(data?.phone || '')}
                 labelColor={!data.phone ? 'error.main' : undefined}
                 color={!data.phone ? 'error.main' : undefined}
               />
