@@ -27,7 +27,7 @@ function AbonentDetails() {
   const balanceToYearEnd = balancePredicts?.balancePredictItems.find((i) => i.period === periodEndYear)?.balanceAmount || null;
 
   const handleClickImportPhone = () => {
-    updatePhone(hetAbonent?.phone.slice(3) || '');
+    updatePhone(hetAbonent?.phone?.slice(3) || '');
   };
 
   return (
@@ -62,8 +62,8 @@ function AbonentDetails() {
                         key: t('tableHeaders.phone'),
                         value: (
                           <Typography sx={{ fontWeight: 'bold' }}>
-                            {formatPhoneNumber(hetAbonent?.phone.slice(3) || '')}{' '}
-                            {hetAbonent?.phone && hetAbonent?.phone.slice(3) !== abonentDetails.phone && (
+                            {formatPhoneNumber(hetAbonent?.phone?.slice(3) || '')}{' '}
+                            {hetAbonent?.phone && hetAbonent?.phone?.slice(3) !== abonentDetails.phone && (
                               <Tooltip title={t('buttons.importPhone')}>
                                 <IconButton size="small" color="info" onClick={handleClickImportPhone}>
                                   <SaveAlt />
