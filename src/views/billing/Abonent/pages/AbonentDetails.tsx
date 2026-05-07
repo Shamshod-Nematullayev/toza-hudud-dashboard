@@ -27,7 +27,7 @@ function AbonentDetails() {
   const balanceToYearEnd = balancePredicts?.balancePredictItems.find((i) => i.period === periodEndYear)?.balanceAmount || null;
 
   const handleClickImportPhone = () => {
-    updatePhone(hetAbonent?.phone?.slice(3) || '');
+    updatePhone(hetAbonent?.phone.length === 12 ? hetAbonent?.phone?.slice(3) : hetAbonent?.phone || '');
   };
 
   return (
@@ -62,14 +62,16 @@ function AbonentDetails() {
                         key: t('tableHeaders.phone'),
                         value: (
                           <Typography sx={{ fontWeight: 'bold' }}>
-                            {formatPhoneNumber(hetAbonent?.phone?.slice(3) || '')}{' '}
-                            {hetAbonent?.phone && hetAbonent?.phone?.slice(3) !== abonentDetails.phone && (
-                              <Tooltip title={t('buttons.importPhone')}>
-                                <IconButton size="small" color="info" onClick={handleClickImportPhone}>
-                                  <SaveAlt />
-                                </IconButton>
-                              </Tooltip>
-                            )}
+                            {formatPhoneNumber(hetAbonent?.phone.length === 12 ? hetAbonent?.phone?.slice(3) : hetAbonent?.phone || '')}{' '}
+                            {hetAbonent?.phone && hetAbonent.phone.length === 12
+                              ? hetAbonent?.phone?.slice(3)
+                              : hetAbonent?.phone !== abonentDetails.phone && (
+                                  <Tooltip title={t('buttons.importPhone')}>
+                                    <IconButton size="small" color="info" onClick={handleClickImportPhone}>
+                                      <SaveAlt />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
                           </Typography>
                         )
                       },

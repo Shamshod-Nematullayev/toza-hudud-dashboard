@@ -142,7 +142,7 @@ function IIBInhabitants() {
                 <td>{dayjs(permament.RegistrationDate).format('DD.MM.YYYY')}</td>
                 <td>{''}</td>
                 <td>{permament.DateBirth}</td>
-                <td>{permament.Sex === '1' ? 'Erkak' : 'Ayol'}</td>
+                <td>{permament.Sex == '1' ? 'Erkak' : 'Ayol'}</td>
               </tr>
             ))}
           </thead>
