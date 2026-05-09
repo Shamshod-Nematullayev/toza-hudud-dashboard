@@ -26,10 +26,13 @@ function AbonentDetails() {
 
   const balanceToYearEnd = balancePredicts?.balancePredictItems.find((i) => i.period === periodEndYear)?.balanceAmount || null;
 
-  const handleClickImportPhone = () => {
-    updatePhone(hetAbonent?.phone.length === 12 ? hetAbonent?.phone?.slice(3) : hetAbonent?.phone || '');
-  };
+  const hetPhone = hetAbonent?.phone || '';
+  const displayPhone = hetPhone.length === 12 ? hetPhone.slice(3) : hetPhone;
+  const isDifferent = hetPhone && displayPhone !== abonentDetails?.phone;
 
+  const handleClickImportPhone = () => {
+    updatePhone(displayPhone);
+  };
   return (
     <>
       {abonentDetails && (
@@ -62,16 +65,14 @@ function AbonentDetails() {
                         key: t('tableHeaders.phone'),
                         value: (
                           <Typography sx={{ fontWeight: 'bold' }}>
-                            {formatPhoneNumber(hetAbonent?.phone.length === 12 ? hetAbonent?.phone?.slice(3) : hetAbonent?.phone || '')}{' '}
-                            {hetAbonent?.phone && hetAbonent.phone.length === 12
-                              ? hetAbonent?.phone?.slice(3)
-                              : hetAbonent?.phone !== abonentDetails.phone && (
-                                  <Tooltip title={t('buttons.importPhone')}>
-                                    <IconButton size="small" color="info" onClick={handleClickImportPhone}>
-                                      <SaveAlt />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
+                            {formatPhoneNumber(displayPhone)}{' '}
+                            {isDifferent && (
+                              <Tooltip title={t('buttons.importPhone')}>
+                                <IconButton size="small" color="info" onClick={handleClickImportPhone}>
+                                  <SaveAlt />
+                                </IconButton>
+                              </Tooltip>
+                            )}
                           </Typography>
                         )
                       },
