@@ -40,23 +40,20 @@ import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
 function FindedDataTable() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { ariza, setAriza, setShowDialog } = useStore();
+  const { ariza, setAriza, setShowDialog, ui } = useStore();
   const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData } = useRecalculatorStore();
 
   const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik');
 
   const {
     handleClickRefreshButton,
-    handleCloseChooseArizaModal,
     handleDeleteButtonClick,
     handlePrimaryButtonClick,
     handleTabChange,
-    showArizaChooseDialog,
     tabIndex,
     inputDisabled,
     arizaNumberInput,
     setArizaNumberInput,
-    arizalarRows,
     isUploading,
     setShowSpoiler,
     showSpoiler,
@@ -118,10 +115,8 @@ function FindedDataTable() {
             />
             <ChooseArizaPopper
               anchorEl={btnRef.current}
-              open={showArizaChooseDialog}
-              handleClose={handleCloseChooseArizaModal}
-              rows={arizalarRows}
-              setAriza={setAriza}
+              open={ui.arizaChooseDialog}
+              handleClose={() => useStore.setState({ ui: { ...ui, arizaChooseDialog: false } })}
             />
           </Box>
 

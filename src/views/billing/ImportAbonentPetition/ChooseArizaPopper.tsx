@@ -3,21 +3,11 @@ import { Popper, Paper, ClickAwayListener } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import Transitions from 'ui-component/extended/Transitions';
+import useStore from './useStore';
 
-function ChooseArizaPopper({
-  anchorEl,
-  open,
-  handleClose,
-  rows = [],
-  setAriza
-}: {
-  anchorEl: any;
-  open: boolean;
-  handleClose: () => void;
-  rows: any[];
-  setAriza: any;
-}) {
+function ChooseArizaPopper({ anchorEl, open, handleClose }: { anchorEl: any; open: boolean; handleClose: () => void }) {
   const { t } = useTranslation();
+  const { chooseArizaFromList, arizalarList } = useStore();
 
   const columns: GridColDef[] = [
     {
@@ -32,7 +22,7 @@ function ChooseArizaPopper({
   ];
 
   const handlePickAriza = ({ row }: { row: any }) => {
-    setAriza(row);
+    chooseArizaFromList(row._id);
     handleClose();
   };
 
@@ -60,7 +50,7 @@ function ChooseArizaPopper({
           <ClickAwayListener onClickAway={handleClose}>
             <Paper sx={{ width: 400, height: 400, overflow: 'auto' }}>
               <DataGrid
-                rows={rows.map((row, index) => ({ ...row, id: index }))}
+                rows={arizalarList.map((row, index) => ({ ...row, id: index }))}
                 columns={columns}
                 hideFooter
                 onRowDoubleClick={handlePickAriza}

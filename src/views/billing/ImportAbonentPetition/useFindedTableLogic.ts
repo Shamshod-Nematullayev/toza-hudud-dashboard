@@ -49,9 +49,8 @@ function buildManualActDescription(periods: IRecalculationPeriod[]): string {
 }
 
 export function useFindedTableLogic() {
-  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog } = useStore();
+  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog, getArizalarByNumber } = useStore();
   const [arizaNumberInput, setArizaNumberInput] = useState('');
-  const [arizalarRows, setArizalarRows] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(true);
   const [showSpoiler, setShowSpoiler] = useState(false);
   const [aktSumm, setAktSumm] = useState('0');
@@ -132,27 +131,12 @@ export function useFindedTableLogic() {
   }, [ariza, allPaymentsSumOnDublicate]);
 
   const handleClickRefreshButton = async () => {
+    setIsLoading(true);
     try {
-      const { data } = await api.get('/arizalar/', {
-        params: {
-          document_number: arizaNumberInput
-        }
-      });
-      if (!data.ok) {
-        return toast.error(data.message);
-      }
-      if (data.data.length === 0) {
-        return toast.error('Bunday tartib raqamga ega ariza topilmadi');
-      }
-      if (data.data.length === 1) {
-        setAriza(data.data[0]);
-      } else {
-        setArizalarRows(data.data);
-        setShowArizaChooseDialog(true);
-      }
+      await getArizalarByNumber(Number(arizaNumberInput));
     } catch (err) {
-      console.log(err);
-      toast.error("Serverga so'rov yuborilmadi");
+      toast.error('Xatolik kuzatildi');
+      throw err;
     } finally {
       setIsUploading(false);
     }
@@ -239,8 +223,8 @@ export function useFindedTableLogic() {
         formData.append('amountWithoutQQS', String(withoutQQS));
         formData.append('description', buildManualActDescription(recalculationPeriods));
 
-        images?.forEach((img, index) => {
-          if (img?.file) formData.append(`photos[${index}]`, img.file);
+        ariza?.tempPhotos?.forEach((img, index) => {
+          formData.append(`photos[${index}]`, img);
         });
 
         const { data } = await api.post(CREATE_RESIDENT_ACT_URL, formData, {
@@ -275,7 +259,7 @@ export function useFindedTableLogic() {
       formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
       formData.append('amountWithoutQQS', (Math.floor(a.aktSummCounts?.withoutQQSTotal) || 0).toString());
       formData.append('description', (a.comment?.length ?? 0) < 150 ? 'fuqaro arizasi ' + (a.comment || '') : 'fuqaro arizasi');
-      a.photos?.forEach((photo, index) => {
+      a.tempPhotos?.forEach((photo, index) => {
         formData.append(`photos[${index}]`, photo);
       });
 
@@ -310,9 +294,6 @@ export function useFindedTableLogic() {
     setAktSumm('');
   };
 
-  const [showArizaChooseDialog, setShowArizaChooseDialog] = useState(false);
-  const handleCloseChooseArizaModal = () => setShowArizaChooseDialog(false);
-
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabChange = (_: any, newValue: number) => setTabIndex(newValue);
@@ -334,14 +315,11 @@ export function useFindedTableLogic() {
     handlePrimaryButtonClick,
     handleDeleteButtonClick,
     handleClickRefreshButton,
-    showArizaChooseDialog,
-    handleCloseChooseArizaModal,
     tabIndex,
     handleTabChange,
     inputDisabled,
     arizaNumberInput,
     setArizaNumberInput,
-    arizalarRows,
     isUploading,
     showSpoiler,
     setShowSpoiler,

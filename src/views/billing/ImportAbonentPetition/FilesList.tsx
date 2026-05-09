@@ -1,73 +1,25 @@
 import { Grid, List, ListItem, ListItemButton, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import useStore from './useStore';
+import useStore, { PDFFile } from './useStore';
 import { useTheme } from '@mui/material/styles';
-import { toast } from 'react-toastify';
-import { getArizaById } from 'services/getArizaById';
-import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
 import { useTranslation } from 'react-i18next';
 
 function FilesList() {
-  const { pdfFiles, setCurrentFile, currentFile, setAriza } = useStore();
+  const { pdfFiles, processFile } = useStore();
   const theme = useTheme();
   const { t } = useTranslation();
 
   // handlers
   const handleListItemClick = async (file_name: string) => {
-    setAriza({});
-    try {
-      const currentFile = pdfFiles.find(({ file }: { file: any }) => file.name === file_name);
-      const file = currentFile.file;
-      if (!file) {
-        toast.error('Fayl topilmadi.');
-        return;
-      }
-
-      // Fayldan QR kod ma'lumotlarini olish
-      const data = await extractQRCodeFromPDF(new Uint8Array(await file.arrayBuffer()), 1);
-
-      setCurrentFile(file_name);
-      if (!data.ok) {
-        return toast.error(data.message);
-      }
-      const [key, id, document_number] = data.result?.split('_') as string[];
-      if (key !== 'ariza') {
-        return toast.error("Noma'lum QR kod");
-      }
-      const ariza = await getArizaById(id);
-      if (ariza.document_number !== Number(document_number)) {
-        return toast.error("QR koddagi va bazadagi ariza raqamlari o'zaro mos emas");
-      }
-      if (ariza.document_type === 'pul_kuchirish') {
-        return toast.info("Pul ko'chirish arizalari: Maxsus aktlar / Pul ko'chirish bo'limi orqali amalga oshiriladi", {
-          autoClose: false
-        });
-      }
-      setAriza({ ...ariza, isScanedFromQR: true });
-    } catch (error) {
-      console.error(error);
-    }
+    await processFile(file_name);
   };
 
-  const [rows, setRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   useEffect(() => {
-    setRows(pdfFiles);
     setSearchQuery('');
   }, [pdfFiles]);
-  useEffect(() => {
-    if (!searchQuery) {
-      setRows(pdfFiles);
-    } else {
-      setRows(
-        pdfFiles.filter(({ file }) => {
-          console.log(file?.name?.toLowerCase());
-          console.log(searchQuery.toLowerCase());
-          return file?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-        })
-      );
-    }
-  }, [searchQuery]);
+
+  const filteredFiles = pdfFiles.filter(({ file }) => file?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <Grid container height={'100%'}>
@@ -76,17 +28,15 @@ function FilesList() {
       </Grid>
       <Grid item xs={12} height={'100%'}>
         <List sx={{ overflowY: 'auto', height: 'calc(100% - 5vh)' }}>
-          {rows.map((pdfFile, i) => (
+          {filteredFiles.map((pdfFile, i) => (
             <ListItem key={pdfFile.file.name}>
               <ListItemButton
-                // sx={{ color: theme.colors.menuSelected }}
+                selected={pdfFile.active}
                 sx={{
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
-                  paddingRight: '10px',
-                  color: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelected : '',
-                  background: currentFile?.file?.name == pdfFile.file?.name ? theme.colors.menuSelectedBack : ''
+                  paddingRight: '10px'
                 }}
                 onClick={() => handleListItemClick(pdfFile.file.name)}
               >

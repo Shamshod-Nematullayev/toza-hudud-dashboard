@@ -5,25 +5,10 @@ import useStore from './useStore';
 import { toast } from 'react-toastify';
 
 function CancelDialog({ showDialog, setShowDialog }: { showDialog: boolean; setShowDialog: (show: boolean) => void }) {
-  const { ariza, currentFile, setCurrentFile, setAriza, removePdfFile } = useStore();
+  const { cancelAriza } = useStore();
   const [cancelingDescription, setCancelingDescription] = useState('');
   const handleClickContinue = function () {
-    api
-      .post('/arizalar/cancel-ariza-by-id', {
-        _id: ariza,
-        canceling_description: cancelingDescription
-      })
-      .then(({ data }) => {
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        toast.success('Ariza bekor qilindi!');
-        removePdfFile(currentFile.file.name);
-        setCurrentFile('');
-        setAriza(null);
-        setShowDialog(false);
-      });
+    cancelAriza(cancelingDescription);
   };
   return (
     <Dialog open={showDialog}>

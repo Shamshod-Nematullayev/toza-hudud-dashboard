@@ -1,17 +1,9 @@
+import { toast } from 'react-toastify';
+import { getArizaById, getArizasByNumber } from 'services/getArizaById';
 import { IAriza } from 'types/models';
+import api from 'utils/api';
+import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
 import { create } from 'zustand';
-
-interface State {
-  showDialog: boolean;
-  setShowDialog: (state: boolean) => void;
-  pdfFiles: any[];
-  setPdfFiles: (files: any[]) => void;
-  currentFile: any;
-  setCurrentFile: (file_name: string) => void;
-  removePdfFile: (file_name: string) => void;
-  ariza: IAriza | null;
-  setAriza: (ariza: IAriza | null) => void;
-}
 
 function sortFilesByNumber(files: any[]) {
   return files.sort((a, b) => {
@@ -38,16 +30,145 @@ function sortFilesByNumber(files: any[]) {
   });
 }
 
-const useStore = create<State>((set) => ({
-  showDialog: false,
-  setShowDialog: (state) => set({ showDialog: state }),
+interface Ariza extends IAriza {
+  isScanedFromQR?: boolean;
+}
+
+export interface PDFFile {
+  blob: Blob;
+  url: string;
+  file: File;
+  active?: boolean;
+}
+
+interface StateData {
+  ariza: Ariza | null;
+  arizalarList: Ariza[]; // raqam bilan izlaganda chiqadigan arizalar ro'yxati
+  pdfFiles: PDFFile[];
+  currentFile: PDFFile | null;
+  showDialog: boolean; // bu eskicha usul hozircha ishlatilmoqda, keyinchalik uni ui state ga o'tkazish rejalashtirilgan
+  ui: {
+    showDialog: boolean;
+    arizaChooseDialog: boolean;
+  };
+}
+
+interface StateActions {
+  setShowDialog: (state: boolean) => void;
+  setPdfFiles: (files: PDFFile[]) => void;
+  setCurrentFile: (file_name: string) => void;
+  removePdfFile: (file_name: string) => void;
+  processFile: (fileName: string) => void;
+  resetState: () => void;
+  setAriza: (ariza: Ariza | null) => void;
+  cancelAriza: (description: string) => void;
+  getArizalarByNumber: (number: number) => Promise<Ariza[]>;
+  chooseArizaFromList: (arizaId: string) => void;
+}
+
+interface State extends StateData, StateActions {}
+
+const initialState: Readonly<StateData> = {
+  arizalarList: [],
+  ariza: null,
+  currentFile: null,
   pdfFiles: [],
+  showDialog: false,
+  ui: {
+    showDialog: false,
+    arizaChooseDialog: false
+  }
+};
+
+const useStore = create<State>((set, get) => ({
+  ...initialState,
+  setShowDialog: (state) => set({ showDialog: state }),
   setPdfFiles: (files) => set({ pdfFiles: sortFilesByNumber(files) }),
   removePdfFile: (file_name) => set((state) => ({ pdfFiles: state.pdfFiles.filter(({ file }) => file.name != file_name) })),
-  currentFile: {},
-  setCurrentFile: (file_name) => set((state) => ({ currentFile: state.pdfFiles.find(({ file }) => file.name == file_name) })),
-  ariza: null,
-  setAriza: (ariza) => set({ ariza })
+  setCurrentFile: (file_name) => {
+    set({ pdfFiles: get().pdfFiles.map((f) => ({ ...f, active: f.file.name === file_name })) });
+    set({ currentFile: get().pdfFiles.find((f) => f.file.name === file_name) });
+  },
+  setAriza: (ariza) => set({ ariza }),
+  processFile: async (fileName: string) => {
+    const { pdfFiles } = get();
+    set({ ariza: null });
+    const target = pdfFiles.find((f) => f.file.name === fileName);
+    if (!target?.file) return toast.error('Fayl topilmadi.');
+
+    try {
+      // PDF ishlov berish
+      const buffer = new Uint8Array(await target.file.arrayBuffer());
+      const data = await extractQRCodeFromPDF(buffer, 1);
+
+      if (!data.ok) return toast.error(data.message);
+
+      const [key, id, docNum] = data.result?.split('_') || [];
+      if (key !== 'ariza') return toast.error("Noma'lum QR kod");
+
+      // API va Validatsiya
+      const ariza = await getArizaById(id);
+      if (ariza.document_number !== Number(docNum)) {
+        return toast.error('QR koddagi va bazadagi ariza raqamlari mos emas');
+      }
+
+      get().setCurrentFile(fileName);
+      set({ ariza: { ...ariza, isScanedFromQR: true } });
+    } catch (error) {
+      toast.error('Tizim xatoligi');
+    }
+  },
+  getArizalarByNumber: async (number) => {
+    try {
+      const arizalar = await getArizasByNumber(number);
+
+      if (arizalar.length === 0) {
+        toast.error('Bunday tartib raqamga ega ariza topilmadi');
+        return [];
+      }
+
+      if (arizalar.length === 1) {
+        set({ ariza: arizalar[0] });
+      }
+      set({ arizalarList: arizalar, ui: { ...get().ui, arizaChooseDialog: arizalar.length > 1 } });
+      return arizalar;
+    } catch (error) {
+      toast.error('Xatolik kuzatildi');
+      throw error;
+    }
+  },
+  resetState: () => set({ ...initialState }),
+  cancelAriza: (description) => {
+    const { ariza, currentFile, removePdfFile, ui } = get();
+    if (!ariza) return toast.error('Bekor qilinadigan ariza topilmadi');
+    if (!currentFile) return toast.error('Fayl topilmadi');
+
+    api
+      .post('/arizalar/cancel-ariza-by-id', {
+        _id: ariza,
+        canceling_description: description
+      })
+      .then(({ data }) => {
+        if (!data.ok) {
+          toast.error(data.message);
+          return;
+        }
+        toast.success('Ariza bekor qilindi!');
+        removePdfFile(currentFile.file.name);
+        set({
+          currentFile: null,
+          ariza: null,
+          showDialog: false,
+          ui: { ...ui, showDialog: false }
+        });
+      });
+  },
+  chooseArizaFromList: (arizaId) => {
+    const { arizalarList } = get();
+    const ariza = arizalarList.find((ariza) => ariza._id === arizaId);
+    if (!ariza) return toast.error('Ariza topilmadi');
+    set({ ariza });
+  }
 }));
 
 export default useStore;
