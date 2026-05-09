@@ -234,7 +234,7 @@ var alphaRus = [
 
 /*=================kirillga o'girish=================== */
 
-function kirillga(originalMessage) {
+function kirillga(originalMessage: string): string {
   /*original textni olyapti */
   var CyrillicTranslated = ''; //kirill ga o'girilgan xabar
   /*avval bu harf birikmalar o'zgartirilsin : */
@@ -276,7 +276,7 @@ function kirillga(originalMessage) {
   originalMessage = originalMessage.replace(/g\'/g, 'ғ');
   originalMessage = originalMessage.replace(/o\'/g, 'ў');
 
-  function Eliser(currentWord) {
+  function Eliser(currentWord: string) {
     //bu e harfini nastroyka qiladi ;)
 
     if (currentWord[0] === 'E') {
@@ -295,7 +295,7 @@ function kirillga(originalMessage) {
   originalMessage = letterE;
 
   /*kirillga o'girish algoritmi :*/
-  function encrypt(string) {
+  function encrypt(string: string) {
     /*asosiy kirill ga o'girish algoritmi */
     for (var i = 0; i < string.length; i++) {
       for (var j = 0; j < alphaLatin.length; j++) {
@@ -330,11 +330,11 @@ function kirillga(originalMessage) {
 
 /*====================lotinga o'girish==============================*/
 
-function lotinga(CyrillicMessage) {
-  if (!CyrillicMessage) return;
+function lotinga(CyrillicMessage: string): string {
+  if (!CyrillicMessage) return '';
   var LatinTranslated = ''; //lotin ga o'girilgan xabar
 
-  function Eliser2(currentWord) {
+  function Eliser2(currentWord: string) {
     //bu e harfini nastroyka qiladi ;)
 
     if (currentWord[0] === 'Ц') {
@@ -450,7 +450,7 @@ function lotinga(CyrillicMessage) {
   CyrillicMessage = letterE2;
 
   /*lotinga o'girish algoritmi :*/
-  function decrypt(string) {
+  function decrypt(string: string) {
     for (var i = 0; i < string.length; i++) {
       for (var j = 0; j < alphaRus.length; j++) {
         /* lotinchaga o'tkazadi*/

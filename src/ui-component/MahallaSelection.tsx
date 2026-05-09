@@ -42,7 +42,7 @@ function MahallaSelection({
       setMahallas(mahallalar);
     } else {
       api.get('/mahallas', { params: { page: 1, limit: 1000 } }).then(({ data }) => {
-        const mahallalar = data.data.map((mfy: any) => ({
+        let mahallalar = data.data.map((mfy: any) => ({
           ...mfy,
           name: mfy.name
         }));
@@ -69,22 +69,36 @@ function MahallaSelection({
           <option disabled={defaultValueDisabled} value="">
             {label}
           </option>
-          {mahallas.map((mfy) => (
-            <option key={mfy.id} value={mfy.id}>
-              {i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)}
-            </option>
-          ))}
+          {mahallas
+            .sort((a, b) => {
+              const nameA = i18n.language === 'uz' ? lotinga(a.name) : kirillga(a.name);
+              const nameB = i18n.language === 'uz' ? lotinga(b.name) : kirillga(b.name);
+
+              return nameA.localeCompare(nameB, i18n.language === 'uz' ? 'uz-Latn' : 'uz-Cyrl');
+            })
+            .map((mfy) => (
+              <option key={mfy.id} value={mfy.id}>
+                {i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)}
+              </option>
+            ))}
         </TextField>
       ) : (
         <TextField label={label} select value={selectedMahallaId} onChange={(e) => setSelectedMahallaId(e.target.value)} fullWidth>
           <MenuItem disabled={defaultValueDisabled} value="">
             {t('all')}
           </MenuItem>
-          {mahallas.map((mfy) => (
-            <MenuItem key={mfy.id} value={mfy.id}>
-              {i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)}
-            </MenuItem>
-          ))}
+          {mahallas
+            .sort((a, b) => {
+              const nameA = i18n.language === 'uz' ? lotinga(a.name) : kirillga(a.name);
+              const nameB = i18n.language === 'uz' ? lotinga(b.name) : kirillga(b.name);
+
+              return nameA.localeCompare(nameB, i18n.language === 'uz' ? 'uz-Latn' : 'uz-Cyrl');
+            })
+            .map((mfy) => (
+              <MenuItem key={mfy.id} value={mfy.id}>
+                {i18n.language == 'uz' ? lotinga(mfy.name) : kirillga(mfy.name)}
+              </MenuItem>
+            ))}
         </TextField>
       )}
     </>
