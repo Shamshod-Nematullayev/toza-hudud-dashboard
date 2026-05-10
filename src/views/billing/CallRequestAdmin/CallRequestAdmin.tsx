@@ -34,12 +34,9 @@ const CallRequestAdmin = () => {
         limit,
         sortDirection: sortDirection || undefined,
         sortField: sortField || undefined,
-        ...filters,
-        ...callFilters,
-
-        priority: filters?.priority === 'all' ? undefined : filters?.priority,
-        status: filters?.status === 'all' ? undefined : filters?.status,
-        accountNumber: filters?.accountNumber
+        priority: callFilters?.priority === 'all' ? undefined : callFilters?.priority,
+        status: callFilters?.status === 'all' ? undefined : callFilters?.status,
+        accountNumber: callFilters.accountNumber ? callFilters.accountNumber : undefined
       });
       return {
         data: data.content, // Odatda content bo'ladi

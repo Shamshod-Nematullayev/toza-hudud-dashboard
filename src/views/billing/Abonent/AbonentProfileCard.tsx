@@ -164,7 +164,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           {/* Markaziy qism: F.I.O va asosiy ID ma'lumotlar */}
           <Grid item xs={6} md={4.5}>
             <Box sx={{ mb: 2 }}>
-              {!isLoading && blockReport?.blockStatus === 'BLOCK' && (
+              {!isLoading && ['BLOCK', 'ALREADY_BLOCK'].includes(blockReport?.blockStatus || '') && (
                 <Alert color="error" sx={{ mb: 1 }}>
                   {t('abonentCardPage.blockedByHet')}: {dayjs(blockReport?.blockDate).format('DD.MM.YYYY')}{' '}
                   {blockReport?.blockDebt.toLocaleString()} {t('uzs')}
