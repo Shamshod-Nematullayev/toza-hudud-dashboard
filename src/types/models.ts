@@ -44,4 +44,5 @@ export interface IAriza {
   actHistory: any[];
   companyId: number;
   version: number;
+  shouldBeMoneyTransfer: boolean;
 }

@@ -86,6 +86,7 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
   a.tempPhotos?.forEach((photo, index) => {
     formData.append(`photos[${index}]`, photo);
   });
+  if (a.document_type === 'dvaynik') formData.append('shouldTransferMoney', a.shouldBeMoneyTransfer ? '1' : '0');
   return formData;
 };
 

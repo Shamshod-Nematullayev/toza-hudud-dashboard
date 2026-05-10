@@ -13,7 +13,8 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  Skeleton
 } from '@mui/material';
 import {
   CreditCardOutlined as CardIcon,
@@ -46,54 +47,8 @@ interface Data extends AbonentDetails {
   photo?: string;
 }
 
-const AbonentProfileCard = ({ data }: { data: Data }) => {
-  // Qatorlarni yaratish uchun yordamchi komponent
-  const InfoRow = ({
-    icon: Icon,
-    label,
-    value,
-    color = 'text.primary',
-    fontSize,
-    copyable,
-    labelColor
-  }: {
-    icon: React.ElementType<SvgIconProps>;
-    label: string | number;
-    value: string | number;
-    color?: string;
-    labelColor?: string;
-    fontSize?: number;
-    copyable?: boolean;
-  }) => (
-    <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
-      <Grid item xs={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Icon sx={{ fontSize: 18, color: labelColor || 'text.secondary', opacity: 0.7 }} />
-        <Typography variant="body2" sx={{ color: labelColor || 'text.secondary' }}>
-          {label}:
-        </Typography>
-      </Grid>
-      <Grid item xs={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, color: color, fontSize }}>
-          {value || '—'}
-        </Typography>
-        {copyable && (
-          <Grid item xs={12}>
-            <IconButton
-              onClick={() => {
-                navigator.clipboard.writeText(value.toString());
-              }}
-              sx={{
-                cursor: 'pointer',
-                opacity: 0.9
-              }}
-            >
-              <ContentCopy color="primary" />
-            </IconButton>
-          </Grid>
-        )}
-      </Grid>
-    </Grid>
-  );
+const AbonentProfileCard = ({ data }: { data: Data | null }) => {
+  const isLoading = !data;
 
   const {
     verifyIdentity,
@@ -108,6 +63,7 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
   const { setIsLoading } = useLoaderStore();
 
   const handleClickAvatar = async () => {
+    if (isLoading || !data) return;
     try {
       if (abonentDetails?.citizen.photo) return setOpenPhotoModal(true);
       setIsLoading(true);
@@ -124,6 +80,51 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     }
   };
 
+  const InfoRow = ({
+    icon: Icon,
+    label,
+    value,
+    color = 'text.primary',
+    fontSize,
+    copyable,
+    labelColor,
+    isSkeleton
+  }: {
+    icon: React.ElementType<SvgIconProps>;
+    label: string | number;
+    value?: string | number;
+    color?: string;
+    labelColor?: string;
+    fontSize?: number;
+    copyable?: boolean;
+    isSkeleton?: boolean;
+  }) => (
+    <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
+      <Grid item xs={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Icon sx={{ fontSize: 18, color: labelColor || 'text.secondary', opacity: 0.7 }} />
+        <Typography variant="body2" sx={{ color: labelColor || 'text.secondary' }}>
+          {label}:
+        </Typography>
+      </Grid>
+      <Grid item xs={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {isSkeleton ? (
+          <Skeleton variant="text" width="80%" height={20} />
+        ) : (
+          <>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: color, fontSize }}>
+              {value || '—'}
+            </Typography>
+            {copyable && value && (
+              <IconButton size="small" onClick={() => navigator.clipboard.writeText(value.toString())} sx={{ opacity: 0.8 }}>
+                <ContentCopy fontSize="small" color="primary" />
+              </IconButton>
+            )}
+          </>
+        )}
+      </Grid>
+    </Grid>
+  );
+
   return (
     <Card
       sx={{
@@ -136,68 +137,77 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
     >
       <CardContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
+          {/* Avatar qismi */}
           <Grid item xs={3} md={1.5} alignItems={'center'} justifyContent={'center'} display={'flex'} direction={'column'}>
-            <Avatar
-              variant="rounded"
-              src={'data:image/png;base64,' + abonentDetails?.citizen.photo} // Bu yerga rasm url keladi
-              sx={{
-                width: '100%',
-                height: 'auto',
-                aspectRatio: '1/1.2',
-                borderRadius: '12px',
-                bgcolor: '#f0f2f5',
-                cursor: 'pointer'
-              }}
-              onClick={handleClickAvatar}
-            />
+            {isLoading ? (
+              <Skeleton variant="rounded" sx={{ width: '100%', aspectRatio: '1/1.2', borderRadius: '12px', mb: 1 }} />
+            ) : (
+              <Avatar
+                variant="rounded"
+                src={abonentDetails?.citizen.photo ? 'data:image/png;base64,' + abonentDetails.citizen.photo : undefined}
+                sx={{
+                  width: '100%',
+                  height: 'auto',
+                  aspectRatio: '1/1.2',
+                  borderRadius: '12px',
+                  bgcolor: '#f0f2f5',
+                  cursor: 'pointer'
+                }}
+                onClick={handleClickAvatar}
+              />
+            )}
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {dayjs(data?.citizen.birthDate).format('DD.MM.YYYY') || ''}{' '}
+              {isLoading ? <Skeleton width={60} /> : dayjs(data?.citizen.birthDate).format('DD.MM.YYYY') || ''}
             </Typography>
           </Grid>
-          {/* Chap tomon */}
 
-          <Grid item xs={6} md={4}>
+          {/* Markaziy qism: F.I.O va asosiy ID ma'lumotlar */}
+          <Grid item xs={6} md={4.5}>
             <Box sx={{ mb: 2 }}>
-              {blockReport?.blockStatus === 'BLOCK' && (
-                <Alert color="error">
+              {!isLoading && blockReport?.blockStatus === 'BLOCK' && (
+                <Alert color="error" sx={{ mb: 1 }}>
                   {t('abonentCardPage.blockedByHet')}: {dayjs(blockReport?.blockDate).format('DD.MM.YYYY')}{' '}
                   {blockReport?.blockDebt.toLocaleString()} {t('uzs')}
                 </Alert>
               )}
+
               <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-                <Typography variant="h4" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
-                  {data?.fullName || ''}
-                </Typography>
-                <IconButton onClick={() => verifyIdentity(data.id, !data.identified)}>
-                  {data.identified ? (
-                    <VerifiedIcon sx={{ color: 'success.main', fontSize: 20 }} />
-                  ) : (
-                    <WarningIcon sx={{ color: 'error.main', fontSize: 20 }} />
-                  )}
-                </IconButton>
-                <Chip
-                  label={`ID: ${data?.id || '18860208'}`}
-                  size="small"
-                  sx={{
-                    bgcolor: '#e6f7f0',
-                    color: '#5299fa',
-                    fontWeight: 'bold',
-                    borderRadius: '6px'
-                  }}
-                />
+                {isLoading ? (
+                  <Skeleton variant="text" width="70%" height={40} />
+                ) : (
+                  <>
+                    <Typography variant="h4" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+                      {data?.fullName || ''}
+                    </Typography>
+                    <IconButton onClick={() => verifyIdentity(data!.id, !data!.identified)}>
+                      {data?.identified ? (
+                        <VerifiedIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                      ) : (
+                        <WarningIcon sx={{ color: 'error.main', fontSize: 20 }} />
+                      )}
+                    </IconButton>
+                    <Chip
+                      label={`ID: ${data?.id || ''}`}
+                      size="small"
+                      sx={{ bgcolor: '#e6f7f0', color: '#5299fa', fontWeight: 'bold', borderRadius: '6px' }}
+                    />
+                  </>
+                )}
               </Stack>
             </Box>
 
-            <Box sx={{ mt: 1 }}>
+            <Box>
               <InfoRow
                 icon={CardIcon}
                 label="Ҳисоб рақами"
-                value={data?.accountNumber || '105120500123'}
+                value={data?.accountNumber}
                 color="#52c41a"
                 fontSize={20}
                 copyable
+                isSkeleton={isLoading}
               />
-              <InfoRow icon={PassportIcon} label="Паспорт рақами" value={data?.citizen.passport} />
+              <InfoRow icon={PassportIcon} label="Паспорт рақами" value={data?.citizen.passport} isSkeleton={isLoading} />
+
               <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
                 <Grid item xs={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <JshshirIcon sx={{ fontSize: 18, color: 'text.secondary', opacity: 0.7 }} />
@@ -206,53 +216,55 @@ const AbonentProfileCard = ({ data }: { data: Data }) => {
                   </Typography>
                 </Grid>
                 <Grid item xs={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {data?.citizen.pnfl || '—'}
-                  </Typography>
-                  <Tooltip title={t("Yashash manzili ma'lumotlari")} placement="top">
-                    <IconButton
-                      size="large"
-                      onClick={() => fetchAbonentMvdAddress(abonentDetails?.citizen.pnfl || '')}
-                      disabled={ui.mvdAddressLoading || !abonentDetails?.citizen.pnfl || abonentDetails.citizen.pnfl.length !== 14}
-                      sx={{ ml: 0.5, p: 0.5 }}
-                    >
-                      {ui.mvdAddressLoading ? (
-                        <CircularProgress size={21} thickness={5} />
-                      ) : (
-                        <MvdIcon sx={{ fontSize: 21, color: 'primary.main' }} />
-                      )}
-                    </IconButton>
-                  </Tooltip>
+                  {isLoading ? (
+                    <Skeleton variant="text" width="80%" height={20} />
+                  ) : (
+                    <>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {data?.citizen.pnfl || '—'}
+                      </Typography>
+                      <Tooltip title={t("Yashash manzili ma'lumotlari")} placement="top">
+                        <IconButton
+                          size="small"
+                          onClick={() => fetchAbonentMvdAddress(data?.citizen.pnfl || '')}
+                          disabled={ui.mvdAddressLoading || !data?.citizen.pnfl || data.citizen.pnfl.length !== 14}
+                        >
+                          {ui.mvdAddressLoading ? <CircularProgress size={16} /> : <MvdIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
                 </Grid>
               </Grid>
-              <InfoRow icon={ContractIcon} label="Шартнома рақами" value={data?.contractNumber || ''} />
-              <InfoRow icon={CadastreIcon} label="Кадастр рақами" value={data?.house.cadastralNumber} />
-              <InfoRow icon={DateIcon} label="Шартнома тасдиқланган сана" value={data?.contractDate} />
+
+              <InfoRow icon={ContractIcon} label="Шартнома рақами" value={data?.contractNumber || ''} isSkeleton={isLoading} />
+              <InfoRow icon={CadastreIcon} label="Кадастр рақами" value={data?.house.cadastralNumber} isSkeleton={isLoading} />
+              <InfoRow icon={DateIcon} label="Шартнома санаси" value={data?.contractDate} isSkeleton={isLoading} />
             </Box>
           </Grid>
-          {/* O'ng tomon: Ma'lumotlar */}
+
+          {/* O'ng tomon: Qo'shimcha ma'lumotlar */}
           <Grid item xs={6}>
             <Stack spacing={0.5}>
-              <InfoRow icon={CompanyIcon} label="Корхона номи" value={data?.companyName || 'DEMO'} />
+              <InfoRow icon={CompanyIcon} label="Корхона номи" value={data?.companyName} isSkeleton={isLoading} />
               <InfoRow
                 icon={AddressIcon}
                 label="Манзил"
-                value={
-                  `${data?.mahallaName} ${data.streetName} ${data?.house.homeNumber} uy ${data?.house.homeIndex}-хонадон` ||
-                  'Самарканд вилояти Самарканд шаҳар Сайқал МФЙ (4-сектор) маҳалла РУДАКИЙ (ТИТОВА) кўча 175 Ж уй 19-хонадон'
-                }
+                value={data ? `${data.mahallaName} ${data.streetName} ${data.house.homeNumber} uy` : undefined}
+                isSkeleton={isLoading}
               />
               <InfoRow
                 icon={PhoneIcon}
                 label="Телефон рақами"
-                value={formatPhoneNumber(data?.phone || '')}
-                labelColor={!data.phone ? 'error.main' : undefined}
-                color={!data.phone ? 'error.main' : undefined}
+                value={data ? formatPhoneNumber(data.phone || '') : undefined}
+                labelColor={data && !data.phone ? 'error.main' : undefined}
+                color={data && !data.phone ? 'error.main' : undefined}
+                isSkeleton={isLoading}
               />
-              <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone || ''} />
-              <InfoRow icon={SoatoIcon} label="Электр энергия СОАТО" value={data?.electricityCoato || ''} />
-              <InfoRow icon={EnergyIcon} label="Электр энергия рақами" value={data?.electricityAccountNumber || ''} />
-              <InfoRow icon={NoteIcon} label="Изоҳ" value={data?.description || ''} />
+              <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone || ''} isSkeleton={isLoading} />
+              <InfoRow icon={SoatoIcon} label="Электр СОАТО" value={data?.electricityCoato} isSkeleton={isLoading} />
+              <InfoRow icon={EnergyIcon} label="Электр рақами" value={data?.electricityAccountNumber} isSkeleton={isLoading} />
+              <InfoRow icon={NoteIcon} label="Изоҳ" value={data?.description || ''} isSkeleton={isLoading} />
             </Stack>
           </Grid>
         </Grid>

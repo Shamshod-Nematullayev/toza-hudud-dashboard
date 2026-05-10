@@ -258,33 +258,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setPasteImageDialogOpen: (pasteImageDialogOpen) => set({ pasteImageDialogOpen }),
   setImages: (images) => set({ images }),
   setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi }),
-  setInitialState: () =>
-    set({
-      aktType: null,
-      showPrintSection: false,
-      rowsDhjTable: [],
-      abonentData: defaultAbonentData,
-      abonentData2: defaultAbonentData,
-      ariza: {},
-      mahalla: {
-        data: {},
-        company: {
-          id: 0,
-          name: '',
-          locationName: '',
-          manager: {
-            fullName: ''
-          },
-          billingAdminName: ''
-        }
-      },
-      mahallaDublicat: {},
-      recalculationPeriods: [],
-      yashovchiSoniInput: '',
-      pasteImageDialogOpen: false,
-      images: [],
-      muzlatiladi: false
-    }),
+  setInitialState: () => set(initialStoreDataState),
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
   setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma }),
   createAriza: async () => {

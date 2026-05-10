@@ -1,4 +1,4 @@
-import { Button, Grid, TextField, useTheme } from '@mui/material';
+import { Backdrop, Box, Button, Grid, Skeleton, TextField, useTheme } from '@mui/material';
 import { t } from 'i18next';
 import { Ref, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
@@ -7,6 +7,11 @@ import StreetSelection from 'ui-component/StreetSelection';
 import { useSearchAbonentSectionStore } from './useSearchAbonentSectionStore';
 import { lotinga } from 'helpers/lotinKiril';
 import { isNumberValue } from 'utils/isNumberValue';
+import useLoaderStore from 'store/loaderStore';
+import { useMutation } from '@tanstack/react-query';
+import { useSearchAbonent } from './hooks/useSearchAbonent';
+import { AbonentSearchQuery } from 'types/billing';
+import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
 
 function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => void; accountNumberInputRef: any }) {
   const [abonentId, setAbonentId] = useState('');
@@ -25,11 +30,14 @@ function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => 
   const [flatId, setFlatId] = useState('');
   const [homeIndex, setHomeIndex] = useState('');
 
-  const { searchAbonent } = useSearchAbonentSectionStore();
+  const { mutate, isPending } = useSearchAbonent();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    searchAbonent({
+
+    if (isPending) return;
+
+    const filters: any = {
       id: abonentId,
       accountNumber,
       contractNumber,
@@ -44,12 +52,47 @@ function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => 
       streetId: streetId,
       homeNumber: buildingId,
       flatNumber: flatId,
-      homeIndex
-    });
+      homeIndex: homeIndex
+    };
+    // await searchAbonent({
+    //   id: abonentId,
+    //   accountNumber,
+    //   contractNumber,
+    //   electricityAccountNumber,
+    //   cadastralNumber: cadastrNumber,
+    //   inn,
+    //   fullName: lotinga(name),
+    //   pnfl,
+    //   passport,
+    //   phone,
+    //   mahallaId: mahallaId,
+    //   streetId: streetId,
+    //   homeNumber: buildingId,
+    //   flatNumber: flatId,
+    //   homeIndex
+    // });
+    mutate(filters);
   };
 
   return (
     <>
+      {isPending && (
+        <Box
+          sx={{
+            position: 'fixed',
+            inset: -10,
+            zIndex: 20,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(6px)',
+            borderRadius: 2
+          }}
+        >
+          <CustomAtomLoader />
+        </Box>
+      )}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           {/* 0-qator */}

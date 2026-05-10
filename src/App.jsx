@@ -26,7 +26,18 @@ import SettingsModal from 'layout/MainLayout/SettingsModal';
 import { useUserStore } from 'store/userStore';
 import i18n from './languageConfig';
 import { GlobalWorkerOptions } from 'pdfjs-dist';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // ==============================|| APP ||============================== //
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Boshqa tabga o'tib qaytganda avtomatik qayta yuklamaslik uchun
+      retry: 1, // Xatolik bo'lsa, faqat bir marta qayta urunish
+      staleTime: 5 * 60 * 1000 // Ma'lumotlarni 5 daqiqa davomida "yangi" deb hisoblash
+    }
+  }
+});
 
 const App = () => {
   GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
@@ -38,21 +49,23 @@ const App = () => {
     i18n.changeLanguage(language);
   }, [language]);
   return (
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={themes(customization)}>
-        <StyledThemeProvider theme={themes(customization)}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <ToastContainer autoClose="5000" theme={customization.mode} position="top-right" />
-            <CssBaseline />
-            <NavigationScroll>
-              {isLoading && <Loader />}
-              {settingsModalOpenState && <SettingsModal />}
-              <RouterProvider router={router} />
-            </NavigationScroll>
-          </LocalizationProvider>
-        </StyledThemeProvider>
-      </ThemeProvider>
-    </StyledEngineProvider>
+    <QueryClientProvider client={queryClient}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={themes(customization)}>
+          <StyledThemeProvider theme={themes(customization)}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <ToastContainer autoClose="5000" theme={customization.mode} position="top-right" />
+              <CssBaseline />
+              <NavigationScroll>
+                {isLoading && <Loader />}
+                {settingsModalOpenState && <SettingsModal />}
+                <RouterProvider router={router} />
+              </NavigationScroll>
+            </LocalizationProvider>
+          </StyledThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
+    </QueryClientProvider>
   );
 };
 

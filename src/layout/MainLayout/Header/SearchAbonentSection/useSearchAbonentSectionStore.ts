@@ -54,12 +54,13 @@ interface Filters {
 
 interface StoreState {
   searchResults: { content: IAbonent[]; totalPages: number; totalElements: number };
-  searchAbonent: (filtes: AbonentSearchQuery) => void;
+  searchAbonent: (filtes: AbonentSearchQuery) => Promise<any>;
   clearResults: () => void;
   openState: boolean;
   setOpenState: (open: boolean) => void;
   navigate: (to: string) => void;
   setNavigate: (n: (to: string) => void) => void;
+  setSearchResults: (results: { content: IAbonent[]; totalPages: number; totalElements: number }) => void;
 }
 
 export const useSearchAbonentSectionStore = create<StoreState>((set, get) => ({
@@ -69,6 +70,7 @@ export const useSearchAbonentSectionStore = create<StoreState>((set, get) => ({
     totalElements: 0
   },
   clearResults: () => set({ searchResults: { content: [], totalPages: 0, totalElements: 0 } }),
+  setSearchResults: (results) => set({ searchResults: results }),
   searchAbonent: async (filters) => {
     const { data } = await api.get('/abonents/tozamakon', { params: filters });
     if (data.content.length === 0) return toast.warning('Abonent topilmadi', { autoClose: 2000 });
