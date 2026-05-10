@@ -144,7 +144,7 @@ interface IAktSumma {
   withoutQQSTotal: number;
 }
 
-export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza' | null;
+export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza' | 'cancelContract' | null;
 
 export interface ImgType {
   file: File;
@@ -169,7 +169,7 @@ interface StoreState {
   aktSumma: IAktSumma;
   setAktSumma: (aktSumma: IAktSumma) => void;
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => void;
-  setAktType: (aktType: aktType) => void;
+  setAktType: (aktType: aktType | 'cancelContract') => void;
   setShowPrintSection: (showPrintSection: boolean) => void;
   setRecalculationPeriods: (recalculationPeriods: any[]) => void;
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => void;
@@ -206,7 +206,7 @@ export const useStore = create<StoreState>((set, get) => ({
     const ui = get().ui;
     set({ ui: { ...ui, abonentCardOpenState: abonentCardOpenState } });
   },
-  setAktType: (aktType: aktType) => set({ aktType }),
+  setAktType: (aktType) => set({ aktType }),
   showPrintSection: false,
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
   rowsDhjTable: [],

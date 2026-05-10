@@ -44,6 +44,7 @@ function FindedDataTable() {
   const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData } = useRecalculatorStore();
 
   const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik');
+  manualActDocumentTypes.push('cancelContract');
 
   const {
     handleClickRefreshButton,
@@ -255,33 +256,30 @@ function FindedDataTable() {
                 <Button variant="contained" color="secondary" onClick={() => void loadAbonentByAccountForManual()}>
                   Yuklash
                 </Button>
-                <FormControl size="small" sx={{ minWidth: 220 }}>
-                  <InputLabel id="manual-akt-type">{t('tableHeaders.documentType')}</InputLabel>
-                  <Select
-                    labelId="manual-akt-type"
-                    label={t('tableHeaders.documentType')}
-                    value={aktType ?? ''}
-                    displayEmpty
-                    onChange={(e) => setAktType((e.target.value || null) as typeof aktType)}
-                    renderValue={(v) => (v ? (t as (k: string) => string)(`documentTypes.${v}`) : 'Akt turini tanlang')}
-                  >
-                    <MenuItem value="">
-                      <em>Tanlanmagan</em>
+                <TextField
+                  select
+                  label={t('tableHeaders.documentType')}
+                  value={aktType ?? ''}
+                  onChange={(e) => setAktType((e.target.value || null) as typeof aktType)}
+                  size="small"
+                  sx={{ minWidth: 220 }}
+                >
+                  <MenuItem value="">
+                    <em>Tanlanmagan</em>
+                  </MenuItem>
+                  {manualActDocumentTypes.map((dt) => (
+                    <MenuItem key={dt} value={dt}>
+                      {(t as (k: string) => string)(`documentTypes.${dt}`)}
                     </MenuItem>
-                    {manualActDocumentTypes.map((dt) => (
-                      <MenuItem key={dt} value={dt}>
-                        {(t as (k: string) => string)(`documentTypes.${dt}`)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                  ))}
+                </TextField>
                 {abonentData?.fullName ? (
                   <Typography variant="body2" color="text.secondary">
                     {abonentData.fullName} (ID: {abonentData.id})
                   </Typography>
                 ) : null}
               </Stack>
-              <RecalculatorAbonent />
+              {aktType && aktType !== 'cancelContract' && <RecalculatorAbonent />}
             </Box>
           </motion.div>
         )}

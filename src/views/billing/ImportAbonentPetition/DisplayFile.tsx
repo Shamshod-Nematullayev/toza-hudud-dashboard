@@ -18,7 +18,7 @@ function DisplayFile() {
   const [openImages, setOpenImages] = useState(false);
   useEffect(() => {
     setPhotos([]);
-    ariza?.photos?.forEach((file_id) => {
+    ariza?.tempPhotos?.forEach((file_id) => {
       api.get(`/fetchTelegram/${file_id}`, { responseType: 'blob' }).then(async (blob) => {
         const base64 = await blobToBase64(blob.data);
         setPhotos((prev) => [...prev, base64]);
@@ -35,8 +35,8 @@ function DisplayFile() {
         // outline: 'none'
       }}
     >
-      <PdfViewer base64String={currentFile?.url} />
-      {ariza?.photos?.length && (
+      <PdfViewer base64String={currentFile?.url || ''} />
+      {ariza?.tempPhotos?.length && (
         <Paper
           sx={{
             width: '100%',

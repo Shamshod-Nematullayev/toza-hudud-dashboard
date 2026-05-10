@@ -3,7 +3,7 @@ import useStore from './useStore';
 import useLoaderStore from 'store/loaderStore';
 import { useTariff } from 'hooks/useTariff';
 import { useArizaData } from 'hooks/useArizaData';
-import { useStore as useRecalculatorStore, IRecalculationPeriod } from '../CreateAbonentPetition.jsx/useStore';
+import { useStore as useRecalculatorStore, IRecalculationPeriod, aktType } from '../CreateAbonentPetition.jsx/useStore';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
@@ -47,6 +47,47 @@ function buildManualActDescription(periods: IRecalculationPeriod[]): string {
   const total = periods.reduce((s, p) => s + p.total, 0);
   return `${lines.join('\n')}\n\nUmumiy: ${total}`;
 }
+
+// 1. Manual holat uchun FormData yig'ish
+const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: string) => {
+  const { abonentData: ad, recalculationPeriods, yashovchiSoniInput } = useRecalculatorStore.getState();
+  const nextInhabitantRaw = Number(yashovchiSoniInput);
+  const next_inhabitant_count = !Number.isNaN(nextInhabitantRaw) ? nextInhabitantRaw : ad.house?.inhabitantCnt ?? 1;
+  const withoutQQS = Math.floor(recalculationPeriods.reduce((s, p) => s + (Number(p.withoutQQSTotal) || 0), 0));
+
+  const formData = new FormData();
+  formData.append('file', currentFile.blob, currentFile.file.name);
+  formData.append('document_type', aktType);
+  formData.append('residentId', String(ad.id));
+  formData.append('next_inhabitant_count', String(next_inhabitant_count));
+  formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
+  formData.append('amountWithoutQQS', String(withoutQQS));
+  formData.append('description', buildManualActDescription(recalculationPeriods));
+  if (aktType === 'cancelContract')
+    formData.append('description', prompt('Shartnoma bekor qilish akti uchun izoh kiriting') || 'Shartnoma bekor qilish akti');
+
+  return formData;
+};
+
+const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, rows: IRow[]) => {
+  const formData = new FormData();
+  formData.append('file', currentFile.blob, currentFile.file.name);
+  formData.append('document_type', a.document_type);
+  formData.append('ariza_id', a._id);
+  formData.append('licshet', a.licshet);
+  formData.append('residentId', a.abonentId.toString());
+  formData.append(
+    'next_inhabitant_count',
+    (a.next_prescribed_cnt === null || a.next_prescribed_cnt === undefined ? rows[0].yashovchilar_soni : a.next_prescribed_cnt).toString()
+  );
+  formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
+  formData.append('amountWithoutQQS', (Math.floor(a.aktSummCounts?.withoutQQSTotal) || 0).toString());
+  formData.append('description', (a.comment?.length ?? 0) < 150 ? 'fuqaro arizasi ' + (a.comment || '') : 'fuqaro arizasi');
+  a.tempPhotos?.forEach((photo, index) => {
+    formData.append(`photos[${index}]`, photo);
+  });
+  return formData;
+};
 
 export function useFindedTableLogic() {
   const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog, getArizalarByNumber } = useStore();
@@ -178,103 +219,56 @@ export function useFindedTableLogic() {
   }, [manualAccountNumber]);
 
   const handlePrimaryButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    // 1. Dastlabki bloklovchi tekshiruvlar (Guard Clauses)
+    if (!currentFile?.blob) return toast.error('Fayl tanlanmadi');
+
+    const validAriza = hasValidAriza(ariza as IAriza | null);
+    // Agar ariza tanlanmasa, faqat qo'lda kiritish rejimi uchun tekshirishlarni o'tkazamiz
+    if (!manualEditing && !validAriza) return toast.error('Ariza tanlanmadi');
+
     try {
-      e.preventDefault();
       setIsLoading(true);
       setIsUploading(true);
-      if (!currentFile?.url) {
-        toast.error('Fayl tanlanmadi');
-        return;
-      }
 
-      const validAriza = hasValidAriza(ariza as IAriza | null);
-
-      if (!manualEditing && !validAriza) {
-        toast.error('Ariza tanlanmadi');
-        return;
-      }
+      let formData: FormData;
+      let url: string;
 
       if (manualEditing && !validAriza) {
-        const { abonentData: ad, aktType, recalculationPeriods, images } = useRecalculatorStore.getState();
-        if (!ad?.id) {
-          toast.error("Avval hisob raqam bo'yicha abonentni yuklang");
-          return;
-        }
-        if (!aktType) {
-          toast.error('Akt (hujjat) turini tanlang');
-          return;
-        }
-        if (aktType === 'dvaynik') {
-          toast.error('Ikkilamchi kod akti uchun ariza talab qilinadi');
-          return;
-        }
+        const { abonentData: ad, aktType } = useRecalculatorStore.getState();
 
-        const nextInhabitantRaw = Number(useRecalculatorStore.getState().yashovchiSoniInput);
-        const next_inhabitant_count = !Number.isNaN(nextInhabitantRaw) ? nextInhabitantRaw : ad.house?.inhabitantCnt ?? 1;
+        if (!ad?.id) throw new Error("Avval hisob raqam bo'yicha abonentni yuklang");
+        if (!aktType) throw new Error('Akt (hujjat) turini tanlang');
+        if (aktType === 'dvaynik') throw new Error('Ikkilamchi kod akti uchun ariza talab qilinadi');
 
-        const withoutQQS = Math.floor(recalculationPeriods.reduce((s, p) => s + (Number(p.withoutQQSTotal) || 0), 0));
+        formData = prepareManualFormData(currentFile, aktSumm, aktType);
+        url = CREATE_RESIDENT_ACT_URL;
+      } else {
+        if (!ariza) throw new Error('Ariza maʼlumotlari mavjud emas');
+        formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows);
 
-        const formData = new FormData();
-        formData.append('file', currentFile.blob, currentFile.file.name);
-        formData.append('document_type', aktType);
-        formData.append('residentId', String(ad.id));
-        formData.append('next_inhabitant_count', String(next_inhabitant_count));
-        formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
-        formData.append('amountWithoutQQS', String(withoutQQS));
-        formData.append('description', buildManualActDescription(recalculationPeriods));
-
-        ariza?.tempPhotos?.forEach((img, index) => {
-          formData.append(`photos[${index}]`, img);
-        });
-
-        const { data } = await api.post(CREATE_RESIDENT_ACT_URL, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        handleDeleteButtonClick();
-        setManualAccountNumber('');
-        useRecalculatorStore.getState().setRecalculationPeriods([]);
-        toast.success(data.message || 'Akt muvaffaqiyatli qoʻshildi');
-        return;
+        // URL Map orqali switch-caseni yanada qisqartirish mumkin
+        const urlMap: Record<string, string> = {
+          dvaynik: '/billing/create-dvaynik-akt-by-ariza',
+          cancelContract: '/billing/create-cancelcontract-act'
+        };
+        url = urlMap[ariza.document_type] || CREATE_RESIDENT_ACT_URL;
       }
 
-      const a = ariza as IAriza;
-
-      const formData = new FormData();
-      formData.append('file', currentFile.blob, currentFile.file.name);
-      formData.append('document_type', a.document_type);
-      formData.append('ariza_id', a._id);
-      formData.append('licshet', a.licshet);
-      formData.append('residentId', a.abonentId.toString());
-      formData.append(
-        'next_inhabitant_count',
-        (a.next_prescribed_cnt === null || a.next_prescribed_cnt === undefined
-          ? rows[0].yashovchilar_soni
-          : a.next_prescribed_cnt
-        ).toString()
-      );
-      formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
-      formData.append('amountWithoutQQS', (Math.floor(a.aktSummCounts?.withoutQQSTotal) || 0).toString());
-      formData.append('description', (a.comment?.length ?? 0) < 150 ? 'fuqaro arizasi ' + (a.comment || '') : 'fuqaro arizasi');
-      a.tempPhotos?.forEach((photo, index) => {
-        formData.append(`photos[${index}]`, photo);
-      });
-
-      const url = a.document_type === 'dvaynik' ? '/billing/create-dvaynik-akt-by-ariza' : '/billing/create-full-akt';
+      // 3. Yagona API chaqiruvi (Markazlashgan execution)
       const { data } = await api.post(url, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      if (!data.ok) {
-        toast.error(data.message);
-        return;
-      }
+
+      if (!data.ok) throw new Error(data.message);
+
+      // 4. Muvaffaqiyatli yakun (Cleanup)
       handleDeleteButtonClick();
-      toast.success(data.message);
+      toast.success(data.message || 'Muvaffaqiyatli bajarildi');
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err ?? "Noma'lum xatolik");
+      const message = err instanceof Error ? err.message : "Noma'lum xatolik";
+      toast.error(message);
       console.error(message);
     } finally {
       setIsLoading(false);
@@ -292,6 +286,8 @@ export function useFindedTableLogic() {
     setAriza(null);
     setArizaNumberInput('0');
     setAktSumm('');
+    setManualAccountNumber('');
+    useRecalculatorStore.getState().setRecalculationPeriods([]);
   };
 
   const [tabIndex, setTabIndex] = useState(0);
