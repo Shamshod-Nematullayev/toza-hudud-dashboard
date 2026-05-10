@@ -16,7 +16,7 @@ import {
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
 
-const initialState = {
+const initialState: IAbonentPageDataStore = {
   abonentDetails: null,
   dhjRows: [],
   detailsHistory: [],
@@ -46,10 +46,12 @@ const initialState = {
     mvdAddressLoading: false,
     mvdAddressModalOpenState: false,
     abonentPetitionModalOpenState: false
-  }
+  },
+  documentLanguage: 'UZ',
+  blockReport: undefined
 };
 
-export interface IAbonentPageStore {
+interface IAbonentPageDataStore {
   abonentDetails: AbonentDetails | null;
   dhjRows: DHJRow[];
   detailsHistory: AbonentDetailsHistoryRow[];
@@ -60,13 +62,32 @@ export interface IAbonentPageStore {
   abonentPetitions: IAriza[];
   residentPhoto: string | null;
   abonentMvdAddress: MvdAddress | null;
-  fetchAbonentMvdAddress: (pnfl: string) => void;
   currentArizaId: string;
   ui: {
     mvdAddressLoading: boolean;
     mvdAddressModalOpenState: boolean;
     abonentPetitionModalOpenState: boolean;
   };
+  openChangePhoneDialogState: boolean;
+  editDialogOpenState: boolean;
+  openPrintAbonentcardState: boolean;
+  documentLanguage: 'UZ' | 'ru' | 'uz-cyrl';
+  cardDetails: null | AbonentCard;
+  openDebtCertificateDialog: boolean;
+  openIIBInhabitantsDialog: boolean;
+  openAddInhabitantsDialog: boolean;
+  openPhotoModalState: boolean;
+  openEditElectricAccountState: boolean;
+  hetAbonent: HETSuccessResponse | undefined;
+  cadastrAbonent: CadastrDetais | undefined;
+  abonentDetailsHetLoading: boolean;
+  abonentDetailsCadastrLoading: boolean;
+  abonentSupplementaryRefreshNonce: number;
+  blockReport?: BlockReport;
+}
+
+export interface IAbonentPageActionsStore {
+  fetchAbonentMvdAddress: (pnfl: string) => void;
   closeAbonentPetitionModal: () => void;
   openAbonentPetitionModal: (ariza_id: string) => void;
   closeMvdAddressModal: () => void;
@@ -85,14 +106,13 @@ export interface IAbonentPageStore {
   updateElectricity: (params: { residentId: number; electricityAccountNumber: string; electricityCoato: string }) => void;
   getResidentCadastrs: () => void;
   getDatasForCompare: () => void;
-  openChangePhoneDialogState: boolean;
   setOpenChangePhoneDialog: (open: boolean) => void;
   getIncomeStats: (residentId: number) => Promise<void>;
   getIncomePredicts: (residentId: number, period: string) => Promise<void>;
   getAbonentActs: (residentId: number) => void;
   downLoadActPdfFile: (fileId: string) => void;
   getAbonentPetitions: (residentId: number) => void;
-  editDialogOpenState: boolean;
+
   setEditDialogOpenState: (state: boolean) => void;
   setResidentPhoto: (photo: string) => void;
   getCitizensDetails: (params: {
@@ -115,11 +135,11 @@ export interface IAbonentPageStore {
     photo: string | null;
     email: string | null;
   }>;
-  openPrintAbonentcardState: boolean;
+
   setOpenPrintAbonentcardState: (open: boolean) => void;
-  documentLanguage: 'UZ' | 'ru' | 'uz-cyrl';
+
   setDocumentLanguage: (lang: 'UZ' | 'ru' | 'uz-cyrl') => void;
-  cardDetails: null | AbonentCard;
+
   getCardDetails: (params: {
     residentId?: number;
     accountNumber?: string;
@@ -129,40 +149,41 @@ export interface IAbonentPageStore {
   }) => void;
   clearCardDetails: () => void;
   getDebtCertificate: (residentId: number) => Promise<ErrorResponse | DebtCertificateResponse>;
-  openDebtCertificateDialog: boolean;
+
   setOpenDebtCertificateDialog: (open: boolean) => void;
   verifyIdentity: (residentId: number, identify: boolean) => void;
-  openIIBInhabitantsDialog: boolean;
+
   setOpenIIBInhabitantsDialog: (open: boolean) => void;
   getIIBInhabitants: (cadastralNumber: string, residentId?: number) => Promise<PermamentsResponse>;
   addInhabitantsToAbonent: (residentId: number, inhabitantCount: number, file: File) => void;
-  openAddInhabitantsDialog: boolean;
+
   setOpenAddInhabitantsDialog: (open: boolean) => void;
-  openPhotoModalState: boolean;
+
   setOpenPhotoModal: (open: boolean) => void;
-  openEditElectricAccountState: boolean;
+
   setOpenEditElectricAccountState: (open: boolean) => void;
   getHetAbonent: (params: { personalAccount: string; coato: string }) => Promise<HetAbonentResponse>;
-  hetAbonent: HETSuccessResponse | undefined;
+
   setHetAbonent: (hetAbonent: HETSuccessResponse | undefined) => void;
-  cadastrAbonent: CadastrDetais | undefined;
+
   fetchCadastrAbonent: (cadastr: string) => Promise<void>;
   /** AbonentDetails HET kartochkasi yuklanishi (layout boshqaradi) */
-  abonentDetailsHetLoading: boolean;
+
   /** AbonentDetails kadastr kartochkasi yuklanishi */
-  abonentDetailsCadastrLoading: boolean;
+
   /** Qo\'shimcha ma\'lumotlarni qayta yuklash uchun (refresh tugmasi) */
-  abonentSupplementaryRefreshNonce: number;
+
   /** Abonent kartasi: batafsil, tushum, bashorat va HET/kadastr/blok */
   refreshAbonentDetailsPage: (residentId: number, periodEndYear: string) => Promise<void>;
-  blockReport?: BlockReport;
+
   fetchBlockReport: (residentId: number) => void;
   resetStore: () => void;
 }
 
+export type IAbonentPageStore = IAbonentPageDataStore & IAbonentPageActionsStore;
+
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   ...initialState,
-  documentLanguage: 'UZ',
   getDetails: async (residentId) => {
     const { data } = await api.get('/billing/get-abonent-details/' + residentId);
     set({ abonentDetails: { ...data, citizen: { ...data.citizen, photo: null } } });

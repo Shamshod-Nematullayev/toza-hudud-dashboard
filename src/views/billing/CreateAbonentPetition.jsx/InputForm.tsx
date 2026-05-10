@@ -1,4 +1,17 @@
-import { Button, Card, Grid, IconButton, MenuItem, Select, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import {
+  Button,
+  Card,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  IconButton,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -32,7 +45,9 @@ function InputForm() {
     createAriza,
     updateAbonentDataByAccNum,
     getAutoMobile,
-    autoMobile
+    autoMobile,
+    shouldBeMoneyTransfer,
+    setShouldBeMoneyTransfer
   } = useStore();
 
   // const {} = useQue
@@ -150,16 +165,7 @@ function InputForm() {
                 }
               }}
             />
-            <Select
-              value={muzlatiladi}
-              onChange={(e) => setMuzlatiladi(e.target.value === 'true')}
-              sx={{
-                display: aktType === 'gps' ? 'auto' : 'none'
-              }}
-            >
-              <MenuItem value={'false'}>{t('createAbonentPetitionPage.notFreeze')}</MenuItem>
-              <MenuItem value={'true'}>{t('createAbonentPetitionPage.freeze')}</MenuItem>
-            </Select>
+
             <TextField
               label={t('createAbonentPetitionPage.actAmount')}
               sx={{ margin: '10px 0', display: aktType === 'dvaynik' ? 'none' : 'inline' }}
@@ -188,6 +194,20 @@ function InputForm() {
               </Tooltip>
             )}
           </div>
+        </Grid>
+        <Grid item xs={12}>
+          {aktType === 'gps' && (
+            <FormControlLabel
+              control={<Checkbox value={muzlatiladi} onChange={(e) => setMuzlatiladi(Boolean(e.target.value))} />}
+              label="Muzlatish (Hozirda ham xizmat ko'rsatilmaydi)"
+            />
+          )}
+          {aktType === 'dvaynik' && (
+            <FormControlLabel
+              control={<Checkbox value={shouldBeMoneyTransfer} onChange={(e) => setShouldBeMoneyTransfer(Boolean(e.target.value))} />}
+              label="Asosiy hisob raqamga ikkilamchidagi to'lovlarni ko'chirish"
+            />
+          )}
         </Grid>
         {aktType === 'gps' && (
           <Grid item xs={12}>

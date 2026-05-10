@@ -36,6 +36,7 @@ import { hasValidAriza, IRow, useFindedTableLogic } from './useFindedTableLogic'
 import { AnimatePresence, motion } from 'framer-motion';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
+import { NameHistory } from '../Abonent/NameHistoryCard';
 
 function FindedDataTable() {
   const { t } = useTranslation();

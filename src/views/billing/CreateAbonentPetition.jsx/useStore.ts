@@ -151,22 +151,7 @@ export interface ImgType {
   document_id: string;
 }
 
-interface StoreState {
-  aktType: aktType;
-  showPrintSection: boolean;
-  rowsDhjTable: dhjRow[];
-  abonentData: AbonentDetails;
-  abonentData2: AbonentDetails;
-  ariza: any;
-  mahalla: IMahalla;
-  mahallaDublicat: any;
-  recalculationPeriods: IRecalculationPeriod[];
-  yashovchiSoniInput: string;
-  pasteImageDialogOpen: boolean;
-  images: ImgType[];
-  muzlatiladi: boolean;
-  hisoblandiJadval: IHisoblandiItem[];
-  aktSumma: IAktSumma;
+interface StoreActionsState {
   setAktSumma: (aktSumma: IAktSumma) => void;
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => void;
   setAktType: (aktType: aktType | 'cancelContract') => void;
@@ -185,11 +170,10 @@ interface StoreState {
   setInitialState: () => void;
   createAriza: () => void;
   updateAbonentDataByAccNum: (accountNumber: string, abonentData: 'main' | 'dublicate') => void;
-  autoMobile: AutoMobile | null;
   getAutoMobile: (mahallaId: number) => void;
-  ui: UIState;
   setAbonentCardOpenState: (abonentCardOpenState: boolean) => void;
   setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) => void;
+  setShouldBeMoneyTransfer: (shouldBeMoneyTransfer: boolean) => void;
 }
 
 interface UIState {
@@ -197,8 +181,63 @@ interface UIState {
   globalAbonentAccountNumber: string;
 }
 
-export const useStore = create<StoreState>((set, get) => ({
+interface StoreDataState {
+  ui: UIState;
+  shouldBeMoneyTransfer: boolean;
+  aktType: aktType;
+  showPrintSection: boolean;
+  rowsDhjTable: dhjRow[];
+  abonentData: AbonentDetails;
+  abonentData2: AbonentDetails;
+  ariza: any;
+  mahalla: IMahalla;
+  mahallaDublicat: any;
+  recalculationPeriods: IRecalculationPeriod[];
+  yashovchiSoniInput: string;
+  pasteImageDialogOpen: boolean;
+  images: ImgType[];
+  muzlatiladi: boolean;
+  hisoblandiJadval: IHisoblandiItem[];
+  aktSumma: IAktSumma;
+  autoMobile: AutoMobile | null;
+}
+
+const initialStoreDataState: StoreDataState = {
+  shouldBeMoneyTransfer: true,
   aktType: null,
+  abonentData: defaultAbonentData,
+  abonentData2: defaultAbonentData,
+  aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 },
+  ariza: {},
+  hisoblandiJadval: [],
+  images: [],
+  mahalla: {
+    data: {},
+    company: {
+      id: 0,
+      name: '',
+      locationName: '',
+      manager: {
+        fullName: ''
+      },
+      billingAdminName: ''
+    }
+  },
+  mahallaDublicat: {},
+  recalculationPeriods: [],
+  yashovchiSoniInput: '',
+  pasteImageDialogOpen: false,
+  muzlatiladi: false,
+  showPrintSection: false,
+  rowsDhjTable: [],
+  autoMobile: null,
+  ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' }
+};
+
+type StoreState = StoreDataState & StoreActionsState;
+
+export const useStore = create<StoreState>((set, get) => ({
+  ...initialStoreDataState,
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' },
   setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) =>
     set({ ui: { ...get().ui, globalAbonentAccountNumber: globalAbonentAccountNumber } }),
@@ -207,38 +246,17 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ ui: { ...ui, abonentCardOpenState: abonentCardOpenState } });
   },
   setAktType: (aktType) => set({ aktType }),
-  showPrintSection: false,
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
-  rowsDhjTable: [],
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => set({ rowsDhjTable }),
-  abonentData: defaultAbonentData,
   setAbonentData: (data) => set({ abonentData: data }),
-  abonentData2: defaultAbonentData,
   setAbonentData2: (data) => set({ abonentData2: data }),
-  ariza: {},
   setAriza: (data) => set({ ariza: data }),
-  mahalla: {
-    data: {},
-    company: {
-      id: 0,
-      name: '',
-      locationName: '',
-      manager: { fullName: '' },
-      billingAdminName: ''
-    }
-  },
   setMahalla: (mfy) => set({ mahalla: mfy }),
-  mahallaDublicat: {},
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
-  recalculationPeriods: [],
   setRecalculationPeriods: (data: IRecalculationPeriod[]) => set({ recalculationPeriods: data }),
-  yashovchiSoniInput: '',
   setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: String(data) }),
-  pasteImageDialogOpen: false,
   setPasteImageDialogOpen: (pasteImageDialogOpen) => set({ pasteImageDialogOpen }),
-  images: [],
   setImages: (images) => set({ images }),
-  muzlatiladi: false,
   setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi }),
   setInitialState: () =>
     set({
@@ -267,9 +285,7 @@ export const useStore = create<StoreState>((set, get) => ({
       images: [],
       muzlatiladi: false
     }),
-  hisoblandiJadval: [],
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
-  aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 },
   setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma }),
   createAriza: async () => {
     const {
@@ -348,7 +364,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     set(updateObj);
   },
-  autoMobile: null,
+
   getAutoMobile: async (mahallaId) => {
     const { data } = await api.get('/automobiles', {
       params: {
@@ -356,7 +372,8 @@ export const useStore = create<StoreState>((set, get) => ({
       }
     });
     set({ autoMobile: data[0] });
-  }
+  },
+  setShouldBeMoneyTransfer: (shouldBeMoneyTransfer: boolean) => set({ shouldBeMoneyTransfer })
 }));
 
 function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }) {
