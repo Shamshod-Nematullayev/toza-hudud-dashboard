@@ -58,7 +58,7 @@ interface StateActions {
   setPdfFiles: (files: PDFFile[]) => void;
   setCurrentFile: (file_name: string) => void;
   removePdfFile: (file_name: string) => void;
-  processFile: (fileName: string) => void;
+  processFile: (fileName: string) => Promise<any>;
   resetState: () => void;
   setAriza: (ariza: Ariza | null) => void;
   cancelAriza: (description: string) => void;
@@ -96,12 +96,13 @@ const useStore = create<State>((set, get) => ({
     const target = pdfFiles.find((f) => f.file.name === fileName);
     if (!target?.file) return toast.error('Fayl topilmadi.');
 
+    get().setCurrentFile(fileName);
     try {
       // PDF ishlov berish
       const buffer = new Uint8Array(await target.file.arrayBuffer());
       const data = await extractQRCodeFromPDF(buffer, 1);
 
-      if (!data.ok) return toast.error(data.message);
+      if (!data.ok) throw toast.error(data.message);
 
       const [key, id, docNum] = data.result?.split('_') || [];
       if (key !== 'ariza') return toast.error("Noma'lum QR kod");
@@ -112,11 +113,8 @@ const useStore = create<State>((set, get) => ({
         return toast.error('QR koddagi va bazadagi ariza raqamlari mos emas');
       }
 
-      get().setCurrentFile(fileName);
       set({ ariza: { ...ariza, isScanedFromQR: true } });
-    } catch (error) {
-      get().setCurrentFile(fileName);
-    }
+    } catch (error) {}
   },
   getArizalarByNumber: async (number) => {
     try {

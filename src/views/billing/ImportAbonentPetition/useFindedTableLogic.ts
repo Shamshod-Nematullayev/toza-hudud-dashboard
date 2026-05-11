@@ -62,9 +62,10 @@ const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: strin
   formData.append('next_inhabitant_count', String(next_inhabitant_count));
   formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
   formData.append('amountWithoutQQS', String(withoutQQS));
-  formData.append('description', buildManualActDescription(recalculationPeriods));
+
   if (aktType === 'cancelContract')
     formData.append('description', prompt('Shartnoma bekor qilish akti uchun izoh kiriting') || 'Shartnoma bekor qilish akti');
+  else formData.append('description', buildManualActDescription(recalculationPeriods));
 
   return formData;
 };
@@ -244,7 +245,12 @@ export function useFindedTableLogic() {
         if (aktType === 'dvaynik') throw new Error('Ikkilamchi kod akti uchun ariza talab qilinadi');
 
         formData = prepareManualFormData(currentFile, aktSumm, aktType);
-        url = CREATE_RESIDENT_ACT_URL;
+        // URL Map orqali switch-caseni yanada qisqartirish mumkin
+        const urlMap: Record<string, string> = {
+          dvaynik: '/billing/create-dvaynik-akt',
+          cancelContract: '/billing/create-cancelcontract-act'
+        };
+        url = urlMap[aktType] || CREATE_RESIDENT_ACT_URL;
       } else {
         if (!ariza) throw new Error('Ariza maʼlumotlari mavjud emas');
         formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows);

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import useStore from './useStore';
-import { Card, Paper } from '@mui/material';
+import { Box, Card, Paper } from '@mui/material';
 import api from 'utils/api';
 import PdfViewer from '../AbonentPetition/PDFViewer';
+import { useUiStore } from './hooks/useUiStore';
+import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

@@ -1,17 +1,19 @@
 import { Grid, List, ListItem, ListItemButton, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import useStore, { PDFFile } from './useStore';
-import { useTheme } from '@mui/material/styles';
+import useStore from './useStore';
 import { useTranslation } from 'react-i18next';
+import { useUiStore } from './hooks/useUiStore';
 
 function FilesList() {
   const { pdfFiles, processFile } = useStore();
-  const theme = useTheme();
+  const { setPdfFileLoading } = useUiStore();
   const { t } = useTranslation();
 
   // handlers
   const handleListItemClick = async (file_name: string) => {
+    setPdfFileLoading(true);
     await processFile(file_name);
+    setPdfFileLoading(false);
   };
 
   const [searchQuery, setSearchQuery] = useState('');

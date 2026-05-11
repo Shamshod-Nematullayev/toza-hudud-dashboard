@@ -5,10 +5,13 @@ import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
 import CancelDialog from './CancelDialog';
 import DisplayFile from './DisplayFile';
-import { Grid } from '@mui/material';
+import { Box, Grid } from '@mui/material';
+import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
+import { useUiStore } from './hooks/useUiStore';
 
 function ImportAbonentPetition() {
   const { pdfFiles, showDialog, setShowDialog } = useStore();
+  const { pdfFileLoading } = useUiStore();
 
   return (
     <MainCard contentSX={{ height: 'calc(100vh - 100px)' }}>
@@ -16,7 +19,24 @@ function ImportAbonentPetition() {
         <Grid item xs={1.5} height={'100%'}>
           <FilesList />
         </Grid>
-        <Grid item xs={4.5} height={'100%'}>
+        <Grid item xs={4.5} height={'100%'} sx={{ position: 'relative' }}>
+          {pdfFileLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: -10,
+                zIndex: 20,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backdropFilter: 'blur(60px)',
+                borderRadius: 2
+              }}
+            >
+              <CustomAtomLoader />
+            </Box>
+          )}
           {pdfFiles.length == 0 ? <FileInputDrop /> : <DisplayFile />}
         </Grid>
         <Grid item xs={6}>

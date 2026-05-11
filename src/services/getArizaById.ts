@@ -11,6 +11,6 @@ export async function getArizasByNumber(number: number): Promise<IAriza[]> {
       document_number: number
     }
   });
-  if (data.arizalar.length === 0) throw new Error('Ariza topilmadi');
+  if (data.data.length === 0) throw new Error('Ariza topilmadi');
   return data.data;
 }
