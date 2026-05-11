@@ -115,7 +115,7 @@ const useStore = create<State>((set, get) => ({
       get().setCurrentFile(fileName);
       set({ ariza: { ...ariza, isScanedFromQR: true } });
     } catch (error) {
-      toast.error('Tizim xatoligi');
+      get().setCurrentFile(fileName);
     }
   },
   getArizalarByNumber: async (number) => {
