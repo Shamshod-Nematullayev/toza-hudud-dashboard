@@ -13,7 +13,10 @@ import {
   Typography,
   Divider,
   Grid,
-  Box
+  Box,
+  InputAdornment,
+  Tooltip,
+  IconButton
 } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +41,7 @@ import { familyRelations, IMahalla } from './useStore';
 import { lotinga } from 'helpers/lotinKiril';
 import { AbonentDetails } from 'types/billing';
 import { IAriza } from 'types/models';
+import { AutoFixHigh } from '@mui/icons-material';
 
 export function formatName(name: string) {
   if (!name) return '';
@@ -166,7 +170,7 @@ export default function PrintSection({
   const { customization, setCustomization } = useCustomizationStore();
 
   const [olderPeriod, setOlderPeriod] = useState<Dayjs>(dayjs());
-  const [comment, setComment] = useState(ariza.comment || '');
+  const [comment, setComment] = useState('');
   const [relation, setRelation] = useState<string>(ariza.relation || '');
   const [relationFullName, setRelationFullName] = useState(ariza.relationFullName || '');
 
@@ -180,7 +184,7 @@ export default function PrintSection({
     setShowPrintSection(false);
     // Faqat o'zgarish bo'lsa saqlash mantiqini qo'shish mumkin
     if (comment !== ariza.comment || relation !== ariza.relation) {
-      api.patch('/arizalar/' + ariza._id, { comment, relation, relationFullName });
+      api.put('/arizalar/' + ariza._id, { comment, relation, relationFullName });
     }
   };
 
@@ -191,6 +195,8 @@ export default function PrintSection({
     }),
     [relation, relationFullName]
   );
+
+  const [autoComment, setAutoComment] = useState(false);
 
   return (
     <DraggableDialog
@@ -224,6 +230,7 @@ export default function PrintSection({
       <DialogContent>
         <Grid container spacing={1} sx={{ mt: 0 }}>
           {/* Variant va Sana boshqaruvi */}
+          {/* Variant va Sana boshqaruvi */}
           <Grid item xs={3}>
             <FormControl fullWidth>
               <InputLabel>Hujjat varianti</InputLabel>
@@ -256,7 +263,35 @@ export default function PrintSection({
               rows={1}
               label="Asoslantiruvchi izoh"
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={(e) => {
+                setComment(e.target.value);
+                setAutoComment(false); // Qo'lda o'zgartirilsa auto o'chsin
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip title={autoComment ? 'Avto-matn yoqilgan' : "Avto-matn bilan to'ldirish"}>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          const newVal = !autoComment;
+                          setAutoComment(newVal);
+                          if (newVal) {
+                            const sana = olderPeriod?.format('DD.MM.YYYY') ?? '';
+                            const cnt = abonentData?.house?.inhabitantCnt ?? '';
+                            setComment(
+                              `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
+                            );
+                          }
+                        }}
+                        sx={{ color: autoComment ? 'primary.main' : 'text.disabled' }}
+                      >
+                        <AutoFixHigh fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                )
+              }}
             />
           </Grid>
         </Grid>
