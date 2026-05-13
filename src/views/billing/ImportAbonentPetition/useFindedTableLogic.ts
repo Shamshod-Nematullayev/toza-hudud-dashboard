@@ -7,6 +7,7 @@ import { useStore as useRecalculatorStore, IRecalculationPeriod, aktType } from 
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
+import { AxiosError } from 'axios';
 
 /** Backend: createResidentAct — ariza ixtiyoriy */
 export const CREATE_RESIDENT_ACT_URL = '/billing/create-full-akt';
@@ -274,9 +275,10 @@ export function useFindedTableLogic() {
       handleDeleteButtonClick();
       toast.success(data.message || 'Muvaffaqiyatli bajarildi');
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Noma'lum xatolik";
-      toast.error(message);
-      console.error(message);
+      let message = err instanceof Error ? err.message : "Noma'lum xatolik";
+      if (err instanceof AxiosError) message = '';
+      if (message) toast.error(message);
+      console.error(err);
     } finally {
       setIsLoading(false);
       setIsUploading(false);
