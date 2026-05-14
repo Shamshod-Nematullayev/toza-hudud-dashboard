@@ -3,7 +3,7 @@ import { Popper, Paper, ClickAwayListener } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import Transitions from 'ui-component/extended/Transitions';
-import useStore from './useStore';
+import useStore from './hooks/useStore';
 
 function ChooseArizaPopper({ anchorEl, open, handleClose }: { anchorEl: any; open: boolean; handleClose: () => void }) {
   const { t } = useTranslation();

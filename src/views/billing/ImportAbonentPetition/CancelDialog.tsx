@@ -1,8 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, FormControl, TextareaAutosize } from '@mui/material';
-import React, { useState } from 'react';
-import api from 'utils/api';
-import useStore from './useStore';
-import { toast } from 'react-toastify';
+import { useState } from 'react';
+import useStore from './hooks/useStore';
 
 function CancelDialog({ showDialog, setShowDialog }: { showDialog: boolean; setShowDialog: (show: boolean) => void }) {
   const { cancelAriza } = useStore();

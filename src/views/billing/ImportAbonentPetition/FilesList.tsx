@@ -1,6 +1,6 @@
 import { Grid, List, ListItem, ListItemButton, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import useStore from './useStore';
+import useStore from './hooks/useStore';
 import { useTranslation } from 'react-i18next';
 import { useUiStore } from './hooks/useUiStore';
 

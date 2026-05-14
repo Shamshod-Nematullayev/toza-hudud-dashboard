@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import useStore from './useStore';
+import useStore from './hooks/useStore';
 import { Box, Card, Paper } from '@mui/material';
 import api from 'utils/api';
 import PdfViewer from '../AbonentPetition/PDFViewer';

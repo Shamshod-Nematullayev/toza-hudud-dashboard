@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useRef } from 'react';
-import useStore from './useStore';
+import useStore from './hooks/useStore';
 import FileUploadOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
@@ -32,11 +32,12 @@ import { IAriza } from 'types/models';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 import { Keyboard } from '@mui/icons-material';
 import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
-import { hasValidAriza, IRow, useFindedTableLogic } from './useFindedTableLogic';
+import { hasValidAriza, IRow, useFindedTableLogic } from './hooks/useFindedTableLogic';
 import { AnimatePresence, motion } from 'framer-motion';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
 import { NameHistory } from '../Abonent/NameHistoryCard';
+import useLoaderStore from 'store/loaderStore';
 
 function FindedDataTable() {
   const { t } = useTranslation();
@@ -56,7 +57,6 @@ function FindedDataTable() {
     inputDisabled,
     arizaNumberInput,
     setArizaNumberInput,
-    isUploading,
     setShowSpoiler,
     showSpoiler,
     rowAfterAkt,
@@ -70,6 +70,7 @@ function FindedDataTable() {
     setManualAccountNumber,
     loadAbonentByAccountForManual
   } = useFindedTableLogic();
+  const { isLoading } = useLoaderStore();
 
   const btnRef = useRef(null);
 
@@ -127,7 +128,7 @@ function FindedDataTable() {
             <Button
               variant="contained"
               startIcon={<FileUploadOutlinedIcon />}
-              disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isUploading) && !manualEditing}
+              disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isLoading) && !manualEditing}
               onClick={handlePrimaryButtonClick}
               sx={{ px: 3 }}
             >
@@ -143,12 +144,9 @@ function FindedDataTable() {
               color="error"
               startIcon={<Cancel />}
               onClick={() => setShowDialog(true)}
-              disabled={ariza?.status !== 'yangi' || isUploading}
+              disabled={ariza?.status !== 'yangi' || isLoading}
             >
               {t('buttons.cancel')}
-            </Button>
-            <Button startIcon={<Keyboard />} variant="outlined" color="secondary" onClick={() => setManualEditing(!manualEditing)}>
-              {t('buttons.manualEntry')}
             </Button>
           </Box>
 

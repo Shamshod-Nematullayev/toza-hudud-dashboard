@@ -367,7 +367,7 @@ const uz = {
     addToMultipleLivings: "Yashovchilar soni o'zgartirish",
     editPhone: 'Telefon raqamini tahrirlash',
     uploadFile: 'Faylni yuklash',
-    manualEntry: "Qo'lda",
+    manualEntry: "Qo'lda kiritish",
     importPhone: 'Telefon raqamini import qilish'
   },
   pendingAbonentsPage: {

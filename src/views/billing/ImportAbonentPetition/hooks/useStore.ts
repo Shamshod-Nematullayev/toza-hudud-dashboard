@@ -41,12 +41,15 @@ export interface PDFFile {
   active?: boolean;
 }
 
+type ManualEnteringMode = 'ariza' | 'manual';
+
 interface StateData {
   ariza: Ariza | null;
   arizalarList: Ariza[]; // raqam bilan izlaganda chiqadigan arizalar ro'yxati
   pdfFiles: PDFFile[];
   currentFile: PDFFile | null;
   showDialog: boolean; // bu eskicha usul hozircha ishlatilmoqda, keyinchalik uni ui state ga o'tkazish rejalashtirilgan
+  enteringMode: ManualEnteringMode;
   ui: {
     showDialog: boolean;
     arizaChooseDialog: boolean;
@@ -64,6 +67,7 @@ interface StateActions {
   cancelAriza: (description: string) => void;
   getArizalarByNumber: (number: number) => Promise<Ariza[]>;
   chooseArizaFromList: (arizaId: string) => void;
+  setEnteringMode: (mode: ManualEnteringMode) => void;
 }
 
 interface State extends StateData, StateActions {}
@@ -74,6 +78,7 @@ const initialState: Readonly<StateData> = {
   currentFile: null,
   pdfFiles: [],
   showDialog: false,
+  enteringMode: 'ariza',
   ui: {
     showDialog: false,
     arizaChooseDialog: false
@@ -166,7 +171,8 @@ const useStore = create<State>((set, get) => ({
     const ariza = arizalarList.find((ariza) => ariza._id === arizaId);
     if (!ariza) return toast.error('Ariza topilmadi');
     set({ ariza });
-  }
+  },
+  setEnteringMode: (mode) => set({ enteringMode: mode })
 }));
 
 export default useStore;

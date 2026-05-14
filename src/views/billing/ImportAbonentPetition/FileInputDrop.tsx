@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import useStore from './useStore';
+import useStore from './hooks/useStore';
 import { useTranslation } from 'react-i18next';
 
 const CustomStyle = createGlobalStyle`

@@ -3,7 +3,7 @@ import useStore from './useStore';
 import useLoaderStore from 'store/loaderStore';
 import { useTariff } from 'hooks/useTariff';
 import { useArizaData } from 'hooks/useArizaData';
-import { useStore as useRecalculatorStore, IRecalculationPeriod, aktType } from '../CreateAbonentPetition.jsx/useStore';
+import { useStore as useRecalculatorStore, IRecalculationPeriod, aktType } from '../../CreateAbonentPetition.jsx/useStore';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
@@ -100,7 +100,6 @@ export function useFindedTableLogic() {
   const [aktSumm, setAktSumm] = useState('0');
   const [manualAccountNumber, setManualAccountNumber] = useState('');
 
-  const [isUploading, setIsUploading] = useState(false);
   const { setIsLoading } = useLoaderStore();
   const { refetch: refetchTariffs, currentTariff, loading: tariffsLoading } = useTariff();
 
@@ -182,7 +181,7 @@ export function useFindedTableLogic() {
       toast.error('Xatolik kuzatildi');
       throw err;
     } finally {
-      setIsUploading(false);
+      setIsLoading(false);
     }
   };
 
@@ -233,7 +232,6 @@ export function useFindedTableLogic() {
 
     try {
       setIsLoading(true);
-      setIsUploading(true);
 
       let formData: FormData;
       let url: string;
@@ -281,7 +279,6 @@ export function useFindedTableLogic() {
       console.error(err);
     } finally {
       setIsLoading(false);
-      setIsUploading(false);
     }
   };
 
@@ -296,6 +293,7 @@ export function useFindedTableLogic() {
     setArizaNumberInput('0');
     setAktSumm('');
     setManualAccountNumber('');
+    setManualEditing(false);
     useRecalculatorStore.getState().setRecalculationPeriods([]);
   };
 
@@ -325,7 +323,6 @@ export function useFindedTableLogic() {
     inputDisabled,
     arizaNumberInput,
     setArizaNumberInput,
-    isUploading,
     showSpoiler,
     setShowSpoiler,
     rowAfterAkt,
