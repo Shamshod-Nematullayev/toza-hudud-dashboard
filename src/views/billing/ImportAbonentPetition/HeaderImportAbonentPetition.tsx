@@ -36,13 +36,13 @@ function HeaderImportAbonentPetition() {
         )}
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <TextField label="Ariza №" variant="outlined" size="small" />
+        {/* <TextField label="Ariza №" variant="outlined" size="small" />
         <Button variant="outlined" startIcon={<CachedOutlined />} sx={{ width: 200, borderRadius: 3 }}>
           {t('buttons.refresh')}
         </Button>
         <Button variant="outlined" startIcon={<KeyboardOutlined />} sx={{ width: 200, borderRadius: 3 }} onClick={handleClickManualButton}>
           {t('buttons.manualEntry')}
-        </Button>
+        </Button> */}
       </Box>
     </div>
   );

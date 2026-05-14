@@ -258,7 +258,8 @@ const uz = {
     acceptAll: 'Barchasini qabul qilish',
     refresh: 'Yangilash',
     export: 'Eksport',
-    continue: 'Davom etish'
+    continue: 'Davom etish',
+    'search-file': 'Faylni qidirish'
   },
   petitionStatus: {
     new: 'Yangi',
@@ -408,8 +409,11 @@ const uz = {
     noRowsLabel: 'Hech narsa yuq',
     footerRowSelected: '{{count}} ta tanlandi',
     labelRowsPerPage: 'Sahifadagi qatorlar:',
-    labelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) => `${count} tadan ${from} dan ${to} gacha`
+    labelDisplayedRows: `{{count}} tadan {{from}} dan {{to}} gacha`
   },
+  countFiles: `{{cnt}} ta fayl`,
+  'Hech qanday PDF yuklanmagan': 'Hech qanday PDF yuklanmagan',
+  'Davom etish uchun PDF fayl(lar)ni tizimga kiriting': 'Davom etish uchun PDF fayl(lar)ni tizimga kiriting',
   tasksStatus: {
     completed: 'Tugallangan',
     'in-progress': 'Jarayonda',

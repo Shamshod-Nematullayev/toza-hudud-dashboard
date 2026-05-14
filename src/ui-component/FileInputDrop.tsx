@@ -1,6 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createGlobalStyle } from 'styled-components';
+import { motion } from 'framer-motion';
+import { Stack, Typography } from '@mui/material';
+import { CloudUpload } from '@mui/icons-material';
 
 const GlobalStyles = createGlobalStyle`
   .drop-zone {
@@ -162,7 +165,18 @@ function FileInputDrop({
             setFiles(e.target.files);
           }}
         />
-        <div className="drop-zone__prompt">{label}</div>
+        {/* <div className="drop-zone__prompt">{label}</div> */}
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <Stack alignItems="center" spacing={2}>
+            <CloudUpload sx={{ fontSize: 80, color: 'primary.main', opacity: 0.5 }} />
+            <Typography variant="h4" color="text.secondary">
+              {t('Hech qanday PDF yuklanmagan')}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {t('Davom etish uchun PDF fayl(lar)ni tizimga kiriting')}
+            </Typography>
+          </Stack>
+        </motion.div>
       </label>
     </>
   );
