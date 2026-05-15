@@ -44,17 +44,17 @@ function ImportAbonentPetition() {
   const isOnlyFileDrop = pdfFiles.length === 0;
 
   return (
-    <MainCard contentSX={{ height: 'calc(100vh - 100px)', position: 'relative' }}>
-      <Grid container spacing={2} height={'100%'}>
+    <MainCard contentSX={{ minHeight: 'calc(100vh - 130px)', position: 'relative' }}>
+      <Grid container spacing={2}>
         {/* <Grid item xs={12}>
           <HeaderImportAbonentPetition />
         </Grid> */}
         {!isOnlyFileDrop && (
-          <Grid item xs={1.5} height={'100%'}>
+          <Grid item xs={1.5}>
             <FilesList />
           </Grid>
         )}
-        <Grid item xs={pdfFiles.length === 0 ? 12 : 4.5} height={'100%'} sx={{ position: 'relative' }}>
+        <Grid item xs={pdfFiles.length === 0 ? 12 : 4.5} sx={{ position: 'relative' }}>
           {pdfFileLoading && (
             <Box
               sx={{

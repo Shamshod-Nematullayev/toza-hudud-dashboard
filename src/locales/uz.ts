@@ -403,7 +403,8 @@ const uz = {
     periodFrom: 'qachondan',
     periodTo: 'qachongacha',
     sum: 'Jami',
-    'so`m': 'so`m'
+    'so`m': 'so`m',
+    periodSum: 'Davr summasi'
   },
   dataGrid: {
     noRowsLabel: 'Hech narsa yuq',
@@ -413,7 +414,17 @@ const uz = {
   },
   countFiles: `{{cnt}} ta fayl`,
   'Hech qanday PDF yuklanmagan': 'Hech qanday PDF yuklanmagan',
+  'Fayl tanlanmagan': 'Fayl tanlanmagan',
+  'Davom etish uchun chap tomondagi ro‘yxatdan kerakli faylni tanlang':
+    'Davom etish uchun chap tomondagi ro‘yxatdan kerakli faylni tanlang',
+  Kutilmoqda: 'Kutilmoqda',
+  'Raqam bo‘yicha qidirish': 'Raqam bo‘yicha qidirish',
+  yoki: 'yoki',
+  'Qo‘lda kiritish rejimiga o‘tish': 'Qo‘lda kiritish rejimiga o‘tish',
   'Davom etish uchun PDF fayl(lar)ni tizimga kiriting': 'Davom etish uchun PDF fayl(lar)ni tizimga kiriting',
+  'Hujjat topilmadi': 'Hujjat topilmadi',
+  'QR kodni o‘qib bo‘lmadi yoki ma’lumot bazada mavjud emas. Iltimos, raqamni o‘zingiz kiriting.':
+    'QR kodni o‘qib bo‘lmadi yoki ma’lumot bazada mavjud emas. Iltimos, raqamni o‘zingiz kiriting.',
   tasksStatus: {
     completed: 'Tugallangan',
     'in-progress': 'Jarayonda',

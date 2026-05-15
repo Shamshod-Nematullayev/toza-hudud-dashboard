@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box } from '@mui/material';
+import { Box, Stack, useTheme } from '@mui/material';
 import api from 'utils/api';
 import PdfViewer from '../AbonentPetition/PDFViewer';
 import useStore from './hooks/useStore';
@@ -33,6 +33,7 @@ function DisplayFile() {
 
   const hasPhotos = !!ariza?.tempPhotos?.length;
   const hasFile = !!currentFile?.url;
+  const theme = useTheme();
 
   return (
     <Box position="relative" width="100%" height="100%" overflow="hidden">
@@ -40,31 +41,132 @@ function DisplayFile() {
         <PdfViewer base64String={currentFile?.url || ''} />
       ) : (
         /* PDF Placeholder - So'zlarsiz vizual ko'rsatma */
-        <Box display="flex" alignItems="center" justifyContent="center" height="100%" width="100%" style={{ border: '1px solid' }}>
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'background.paper',
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            overflow: 'hidden',
+            height: '100%'
+          }}
+        >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
+            initial={{ opacity: 0.3 }}
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 2,
-                color: 'text.disabled'
+            <motion.div
+              initial={{ x: 0, opacity: 0.4 }}
+              animate={{ x: [-20, 0, -20], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              style={{
+                position: 'absolute',
+                left: '20px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 2
               }}
             >
-              <PictureAsPdfOutlined sx={{ fontSize: 120, opacity: 0.2 }} />
               <Box
                 sx={{
-                  width: 60,
-                  height: 4,
-                  borderRadius: 2,
-                  bgcolor: 'divider'
+                  width: 0,
+                  height: 0,
+                  borderTop: '20px solid transparent',
+                  borderBottom: '20px solid transparent',
+                  borderRight: `30px solid ${theme.palette.primary.main}`,
+                  filter: 'drop-shadow(0px 0px 8px rgba(0,0,0,0.1))'
+                }}
+              />
+            </motion.div>
+            {/* Header qismining vizual imitatsiyasi */}
+            <Stack direction="row" spacing={2} sx={{ width: '100%', px: 4 }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'action.hover' }} />
+              <Box sx={{ width: 120, height: 40, borderRadius: 2, bgcolor: 'action.hover' }} />
+              <Box sx={{ width: 200, height: 40, borderRadius: 2, bgcolor: 'action.hover', flex: 1 }} />
+            </Stack>
+
+            {/* Markaziy belgi - Ro'yxatdan tanlash kerakligini bildiradi */}
+            <Box sx={{ position: 'relative' }}>
+              <Box
+                sx={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 3,
+                  border: '3px dashed',
+                  borderColor: 'divider',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 8,
+                    borderRadius: 4,
+                    bgcolor: 'divider',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: -15,
+                      left: 0,
+                      width: '80%',
+                      height: 8,
+                      borderRadius: 4,
+                      bgcolor: 'divider'
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 15,
+                      left: 0,
+                      width: '60%',
+                      height: 8,
+                      borderRadius: 4,
+                      bgcolor: 'divider'
+                    }
+                  }}
+                />
+              </Box>
+              {/* Kichik "cursor" yoki "touch" belgisi imitatsiyasi */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: -10,
+                  right: -10,
+                  width: 30,
+                  height: 30,
+                  borderRadius: '50%',
+                  bgcolor: 'primary.light',
+                  opacity: 0.5,
+                  border: '2px solid white'
                 }}
               />
             </Box>
+
+            {/* Jadval qismining vizual imitatsiyasi (Skeleton) */}
+            <Stack spacing={1.5} sx={{ width: '100%', px: 4 }}>
+              {[...Array(4)].map((_, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    width: '100%',
+                    height: 30,
+                    borderRadius: 1,
+                    bgcolor: 'action.hover',
+                    opacity: 1 - i * 0.2 // Pastga qarab xiralashish
+                  }}
+                />
+              ))}
+            </Stack>
           </motion.div>
         </Box>
       )}
