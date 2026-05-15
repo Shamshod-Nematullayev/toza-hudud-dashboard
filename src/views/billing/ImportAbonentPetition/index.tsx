@@ -54,7 +54,11 @@ function ImportAbonentPetition() {
             <FilesList />
           </Grid>
         )}
-        <Grid item xs={pdfFiles.length === 0 ? 12 : 4.5} sx={{ position: 'relative' }}>
+        <Grid
+          item
+          xs={pdfFiles.length === 0 ? 12 : 4.5}
+          sx={{ position: 'relative', minHeight: 'calc(100vh - 130px)', maxHeight: 'calc(100vh - 130px)' }}
+        >
           {pdfFileLoading && (
             <Box
               sx={{

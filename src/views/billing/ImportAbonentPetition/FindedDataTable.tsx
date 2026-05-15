@@ -17,7 +17,7 @@ import {
   useTheme
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { ReactNode, useCallback, useEffect, useRef } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import useStore from './hooks/useStore';
 import FileUploadOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
@@ -31,7 +31,7 @@ import { documentTypes } from 'store/constant';
 import { useStore as useRecalculatorStore } from '../CreateAbonentPetition.jsx/useStore';
 import { IAriza } from 'types/models';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
-import { CloudUpload, Keyboard, PictureAsPdfOutlined, SearchOffOutlined } from '@mui/icons-material';
+import { Close, CloudUpload, Delete, Keyboard, PictureAsPdfOutlined, SearchOffOutlined, UploadFileOutlined } from '@mui/icons-material';
 import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
 import { hasValidAriza, IRow, useFindedTableLogic } from './hooks/useFindedTableLogic';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -39,6 +39,7 @@ import AccountNumberInput from 'ui-component/AccountNumberInput';
 import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
 import { NameHistory } from '../Abonent/NameHistoryCard';
 import useLoaderStore from 'store/loaderStore';
+import { useUiStore } from './hooks/useUiStore';
 
 function FindedDataTable() {
   const { t } = useTranslation();
@@ -49,7 +50,7 @@ function FindedDataTable() {
 
   const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik');
   manualActDocumentTypes.push('cancelContract');
-
+  // const [showSpoiler, setShowSpoiler] = useState(false);
   const {
     handleClickRefreshButton,
     handleDeleteButtonClick,
@@ -73,6 +74,7 @@ function FindedDataTable() {
     loadAbonentByAccountForManual
   } = useFindedTableLogic();
   const { isLoading } = useLoaderStore();
+  const { pdfFileLoading } = useUiStore();
 
   const btnRef = useRef(null);
 
@@ -97,7 +99,7 @@ function FindedDataTable() {
     return;
   }
 
-  if (!currentFile?.blob)
+  if (!currentFile?.blob || pdfFileLoading)
     page = (
       <Box
         sx={{
@@ -112,7 +114,8 @@ function FindedDataTable() {
           borderColor: 'divider',
           position: 'relative',
           overflow: 'hidden',
-          p: 4
+          p: 4,
+          minHeight: 'calc(100vh - 130px)'
         }}
       >
         {/* Chapga yo'naltiruvchi dinamik ko'prik (Pulse Ring) */}
@@ -288,23 +291,30 @@ function FindedDataTable() {
             {/* Qidiruv Formasi */}
             <Box sx={{ width: '100%', p: 3, borderRadius: 3, bgcolor: 'action.hover' }}>
               <Stack spacing={2.5}>
-                <TextField
-                  fullWidth
-                  label={t('documentNumber')}
-                  variant="outlined"
-                  value={arizaNumberInput}
-                  onChange={(e) => setArizaNumberInput(e.target.value)}
-                  autoFocus
-                  placeholder="Masalan: 123456"
-                  InputProps={{
-                    endAdornment: (
-                      <IconButton color="primary" onClick={handleClickRefreshButton}>
-                        <RefreshOutlinedIcon />
-                      </IconButton>
-                    )
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleClickRefreshButton();
                   }}
-                  ref={btnRef}
-                />
+                >
+                  <TextField
+                    fullWidth
+                    label={t('documentNumber')}
+                    variant="outlined"
+                    value={arizaNumberInput}
+                    onChange={(e) => setArizaNumberInput(e.target.value)}
+                    autoFocus
+                    placeholder="Masalan: 123456"
+                    InputProps={{
+                      endAdornment: (
+                        <IconButton color="primary" onClick={handleClickRefreshButton}>
+                          <RefreshOutlinedIcon />
+                        </IconButton>
+                      )
+                    }}
+                    ref={btnRef}
+                  />
+                </form>
 
                 <Button
                   fullWidth
@@ -535,6 +545,100 @@ function FindedDataTable() {
     );
   }
 
+  if (enteringMode === 'ariza' && ariza) {
+    page = (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {/* 1. Yuqori Ma'lumotlar Qismi */}
+        <Box sx={{ p: 1 }}>
+          {[
+            { label: 'Hisob raqami', value: ariza?.licshet || '—' },
+            { label: 'F.I.Sh', value: ariza?.fio || '—' },
+            { label: 'Yashovchilar soni', value: ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '0' },
+            { label: 'Yaratilgan sana', value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—' }
+          ].map((item, index) => (
+            <Stack key={index} direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                {item.label}
+              </Typography>
+              <Typography variant="body2" fontWeight="700">
+                {item.value}
+              </Typography>
+            </Stack>
+          ))}
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">
+              Holat
+            </Typography>
+            <Box
+              sx={{
+                px: 1.5,
+                py: 0.2,
+                borderRadius: 5,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText'
+              }}
+            >
+              {ariza?.status || 'yangi'}
+            </Box>
+          </Stack>
+
+          <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Akt summa
+            </Typography>
+            <Typography variant="body2" fontWeight="700" sx={{ borderBottom: '1px dotted', borderColor: 'divider' }}>
+              {Number(aktSumm).toLocaleString()}
+            </Typography>
+          </Stack>
+        </Box>
+
+        {/* 3. Jadval */}
+
+        <Box sx={{ height: '55vh', width: '100%' }}>
+          <Stack direction="row" justifyContent={'space-between'} spacing={1} sx={{ mb: 1 }}>
+            <Tabs value={tabIndex} onChange={handleTabChange} sx={{ minHeight: 40, mb: '5px' }}>
+              <Tab label="Asosiy jadval" sx={{ textTransform: 'none' }} />
+              <Tab label="Qo'shimcha" sx={{ textTransform: 'none' }} />
+            </Tabs>
+            <IconButton onClick={() => setShowSpoiler(!showSpoiler)}>{showSpoiler ? <Visibility /> : <VisibilityOff />}</IconButton>
+          </Stack>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            hideFooter
+            density="compact"
+            disableColumnMenu
+            getRowId={(row) => row.id}
+            sx={{ height: '90%' }}
+          />
+        </Box>
+
+        {/* 4. Pastki Tugmalar */}
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <Button
+            startIcon={<UploadFileOutlined />}
+            sx={{ flex: 1, py: 1.2 }}
+            variant="contained"
+            color="primary"
+            onClick={handlePrimaryButtonClick}
+            disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isLoading)}
+          >
+            {t('buttons.submitEntry')}
+          </Button>
+          <Button startIcon={<Close />} sx={{ flex: 0.5, py: 1.2 }} variant="contained" color="error" onClick={() => setShowDialog(true)}>
+            {t('buttons.cancel')}
+          </Button>
+          <Button sx={{ flex: 0.2, py: 1.2 }} variant="contained" color="secondary" onClick={handleDeleteButtonClick}>
+            <Delete />
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
+
   return (
     <AnimatePresence>
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>{page}</Box>
@@ -542,235 +646,4 @@ function FindedDataTable() {
   );
 }
 
-// <>
-//   <Box
-//     display="flex"
-//     alignItems="center"
-//     justifyContent="space-between"
-//     gap={2}
-//     sx={{
-//       p: 2,
-//       borderRadius: 3,
-//       backgroundColor: 'background.paper',
-//       boxShadow: 2,
-//       flex: 0
-//     }}
-//   ></Box>
-//   {/* LEFT SECTION */}
-//   <Box display="flex" alignItems="center" gap={1.5}>
-//     <IconButton ref={btnRef} onClick={handleClickRefreshButton}>
-//       <RefreshOutlinedIcon />
-//     </IconButton>
-
-//     <TextField
-//       size="small"
-//       disabled={inputDisabled}
-//       name="licshet_input"
-//       placeholder={t('documentNumber')}
-//       value={arizaNumberInput}
-//       onChange={(e) => setArizaNumberInput(e.target.value)}
-//       sx={{ maxWidth: 100 }}
-//     />
-
-//   </Box>
-//   {/* CENTER SECTION */}
-//   <Box display="flex" alignItems="center" gap={1.5} sx={{ textWrap: 'nowrap' }}>
-//     <Button
-//       variant="contained"
-//       startIcon={<FileUploadOutlinedIcon />}
-//       disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isLoading) && !manualEditing}
-//       onClick={handlePrimaryButtonClick}
-//       sx={{ px: 3 }}
-//     >
-//       {t('buttons.submitEntry')}
-//     </Button>
-
-//     <Button variant="outlined" color="secondary" startIcon={<DeleteOutlinedIcon />} onClick={handleDeleteButtonClick}>
-//       {t('buttons.remove')}
-//     </Button>
-
-//     <Button
-//       variant="outlined"
-//       color="error"
-//       startIcon={<Cancel />}
-//       onClick={() => setShowDialog(true)}
-//       disabled={ariza?.status !== 'yangi' || isLoading}
-//     >
-//       {t('buttons.cancel')}
-//     </Button>
-//   </Box>
-//   {/* RIGHT SECTION */}
-//   <IconButton onClick={() => setShowSpoiler(!showSpoiler)} disabled={!rows.length}>
-//     {showSpoiler ? <Visibility /> : <VisibilityOff />}
-//   </IconButton>
-//   <Box sx={{ flex: 0, mt: 2 }}>
-//     <CompactKeyValue
-//       data={[
-//         {
-//           key: t('tableHeaders.accountNumber'),
-//           value: hasValidAriza(ariza as IAriza | null)
-//             ? ariza?.document_type === 'dvaynik'
-//               ? `${ariza?.licshet} : ${ariza?.ikkilamchi_licshet}`
-//               : ariza?.licshet || ''
-//             : abonentData?.accountNumber || '—'
-//         },
-//         {
-//           key: t('tableHeaders.fullName'),
-//           value: hasValidAriza(ariza as IAriza | null) ? ariza?.fio || '' : abonentData?.fullName || '—'
-//         },
-//         {
-//           key: t('tableHeaders.inhabitantCount'),
-//           value: (
-//             <input
-//               type="number"
-//               min={1}
-//               style={{
-//                 background: 'none',
-//                 outline: 'none',
-//                 border: 'none',
-//                 color: theme.colors.darkTextPrimary,
-//                 textAlign: 'right',
-//                 maxWidth: '100px'
-//               }}
-//               value={
-//                 hasValidAriza(ariza as IAriza | null)
-//                   ? String((ariza as IAriza).next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '')
-//                   : yashovchiSoniInput
-//               }
-//               onChange={(e) => {
-//                 const v = e.target.value;
-//                 if (hasValidAriza(ariza as IAriza | null)) {
-//                   setAriza({ ...(ariza as IAriza), next_prescribed_cnt: v === '' ? (null as any) : Number(v) });
-//                 } else {
-//                   setYashovchiSoniInput(v);
-//                 }
-//               }}
-//             />
-//           )
-//         },
-//         { key: t('tableHeaders.createdDate'), value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '' },
-//         { key: t('tableHeaders.status'), value: ariza?.status || '' },
-//         {
-//           key: t('createAbonentPetitionPage.actAmount'),
-//           value: (
-//             <input
-//               type="text"
-//               style={{
-//                 background: 'none',
-//                 outline: 'none',
-//                 border: 'none',
-//                 color: theme.colors.darkTextPrimary,
-//                 textAlign: 'right',
-//                 maxWidth: '100px'
-//               }}
-//               value={aktSumm}
-//               onChange={(e) => setAktSumm(e.target.value)}
-//             />
-//           )
-//         }
-//       ]}
-//     />
-//   </Box>
-
-//   {manualEditing && !hasValidAriza(ariza as IAriza | null) && (
-//     <motion.div
-//       style={{ flex: 1 }}
-//       initial={{ y: -80, opacity: 0 }}
-//       animate={{ y: 0, opacity: 1 }}
-//       exit={{ y: -80, opacity: 0 }}
-//       transition={{ duration: 0.3 }}
-//     >
-//       <Box
-//         sx={{
-//           mt: 2,
-//           p: 2,
-//           borderRadius: 2,
-//           bgcolor: 'action.hover',
-//           border: '1px solid',
-//           borderColor: 'divider',
-//           maxHeight: 300,
-//           overflow: 'auto'
-//         }}
-//       >
-//         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} flexWrap="wrap">
-//           <AccountNumberInput
-//             size="small"
-//             label={t('tableHeaders.accountNumber')}
-//             value={manualAccountNumber}
-//             setFunc={setManualAccountNumber}
-//             sx={{ minWidth: 160 }}
-//           />
-//           <Button variant="contained" color="secondary" onClick={() => void loadAbonentByAccountForManual()}>
-//             Yuklash
-//           </Button>
-//           <TextField
-//             select
-//             label={t('tableHeaders.documentType')}
-//             value={aktType ?? ''}
-//             onChange={(e) => setAktType((e.target.value || null) as typeof aktType)}
-//             size="small"
-//             sx={{ minWidth: 220 }}
-//           >
-//             <MenuItem value="">
-//               <em>Tanlanmagan</em>
-//             </MenuItem>
-//             {manualActDocumentTypes.map((dt) => (
-//               <MenuItem key={dt} value={dt}>
-//                 {(t as (k: string) => string)(`documentTypes.${dt}`)}
-//               </MenuItem>
-//             ))}
-//           </TextField>
-//           {abonentData?.fullName ? (
-//             <Typography variant="body2" color="text.secondary">
-//               {abonentData.fullName} (ID: {abonentData.id})
-//             </Typography>
-//           ) : null}
-//         </Stack>
-//         {aktType && aktType !== 'cancelContract' && <RecalculatorAbonent />}
-//       </Box>
-//     </motion.div>
-//   )}
-
-//   <Tabs value={tabIndex} onChange={handleTabChange} sx={{ flex: 0 }}>
-//     <Tab label="Asosiy jadval" />
-//     {ariza?.document_type === 'dvaynik' && (
-//       <Tooltip title="Ikkilamchi hisob raqam jadvali">
-//         <Tab label="Qo'shimcha jadval" />
-//       </Tooltip>
-//     )}
-//   </Tabs>
-
-//   {/* Tab Panels */}
-//   <Box sx={{ mt: 2, height: '200px', flex: 1 }}>
-//     {tabIndex === 0 && (
-//       <>
-//         {manualEditing ? (
-//           <DHJTable abonentData={abonentData} />
-//         ) : (
-//           <DataGrid
-//             columns={columns}
-//             disableColumnFilter
-//             disableColumnSorting
-//             hideFooter
-//             rows={showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
-//             style={{ margin: '0 auto', height: '100%' }}
-//             getRowId={(row) => row.id}
-//           />
-//         )}
-//       </>
-//     )}
-//     {tabIndex === 1 && (
-//       <DataGrid
-//         columns={columns}
-//         disableColumnFilter
-//         disableColumnSorting
-//         hideFooter
-//         rows={showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rowsDublicate.slice(1)] : rowsDublicate}
-//         style={{ margin: '0 auto', height: '100%' }}
-//         getRowId={(row) => row.id}
-//       />
-//       // <DHJTable abonentData={abonentData} />
-//     )}
-//   </Box>
-// </>
 export default FindedDataTable;
