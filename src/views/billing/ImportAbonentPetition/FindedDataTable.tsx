@@ -31,7 +31,16 @@ import { documentTypes } from 'store/constant';
 import { useStore as useRecalculatorStore } from '../CreateAbonentPetition.jsx/useStore';
 import { IAriza } from 'types/models';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
-import { Close, CloudUpload, Delete, Keyboard, PictureAsPdfOutlined, SearchOffOutlined, UploadFileOutlined } from '@mui/icons-material';
+import {
+  Close,
+  CloudUpload,
+  Delete,
+  EditOutlined,
+  Keyboard,
+  PictureAsPdfOutlined,
+  SearchOffOutlined,
+  UploadFileOutlined
+} from '@mui/icons-material';
 import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
 import { hasValidAriza, IRow, useFindedTableLogic } from './hooks/useFindedTableLogic';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -40,9 +49,10 @@ import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
 import { NameHistory } from '../Abonent/NameHistoryCard';
 import useLoaderStore from 'store/loaderStore';
 import { useUiStore } from './hooks/useUiStore';
+import useCustomizationStore from 'store/customizationStore';
+import { t } from 'i18next';
 
 function FindedDataTable() {
-  const { t } = useTranslation();
   const theme = useTheme();
   const { ariza, setAriza, setShowDialog, ui, pdfFiles, currentFile, enteringMode, setEnteringMode } = useStore();
   const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData, recalculationPeriods, setRecalculationPeriods } =
@@ -79,8 +89,12 @@ function FindedDataTable() {
   const btnRef = useRef(null);
 
   useEffect(() => {
-    setAktSumm(recalculationPeriods.reduce((a, b) => a + b.total, 0).toString());
+    if (enteringMode === 'manual') {
+      setAktSumm(recalculationPeriods.reduce((a, b) => a + b.total, 0).toString());
+    }
   }, [recalculationPeriods]);
+  const [aktSumEditing, setAktSumEditing] = useState(false);
+  const [inhabitantCountEditing, setInhabitantCountEditing] = useState(false);
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: '№', width: 10 },
@@ -553,7 +567,25 @@ function FindedDataTable() {
           {[
             { label: 'Hisob raqami', value: ariza?.licshet || '—' },
             { label: 'F.I.Sh', value: ariza?.fio || '—' },
-            { label: 'Yashovchilar soni', value: ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '0' },
+            {
+              label: 'Yashovchilar soni',
+              value: inhabitantCountEditing ? (
+                <TextField
+                  size="small"
+                  type="number"
+                  value={ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '0'}
+                  onChange={(e) => setAriza({ ...ariza, next_prescribed_cnt: Number(e.target.value) })}
+                  onBlur={() => setInhabitantCountEditing(false)}
+                />
+              ) : (
+                <>
+                  <IconButton sx={{ color: 'primary.main', fontSize: '12' }}>
+                    <EditOutlined fontSize="small" onClick={() => setInhabitantCountEditing(true)} />
+                  </IconButton>
+                  {ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '0'}
+                </>
+              )
+            },
             { label: 'Yaratilgan sana', value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—' }
           ].map((item, index) => (
             <Stack key={index} direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
@@ -590,7 +622,21 @@ function FindedDataTable() {
               Akt summa
             </Typography>
             <Typography variant="body2" fontWeight="700" sx={{ borderBottom: '1px dotted', borderColor: 'divider' }}>
-              {Number(aktSumm).toLocaleString()}
+              {aktSumEditing ? (
+                <TextField
+                  size="small"
+                  value={aktSumm}
+                  onChange={(e) => setAktSumm(e.target.value)}
+                  onBlur={() => setAktSumEditing(false)}
+                />
+              ) : (
+                <>
+                  <IconButton sx={{ color: 'primary.main', fontSize: '12' }}>
+                    <EditOutlined fontSize="small" onClick={() => setAktSumEditing(true)} />
+                  </IconButton>{' '}
+                  {Number(aktSumm).toLocaleString()}
+                </>
+              )}
             </Typography>
           </Stack>
         </Box>
@@ -606,13 +652,17 @@ function FindedDataTable() {
             <IconButton onClick={() => setShowSpoiler(!showSpoiler)}>{showSpoiler ? <Visibility /> : <VisibilityOff />}</IconButton>
           </Stack>
           <DataGrid
-            rows={rows}
+            rows={showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
             columns={columns}
             hideFooter
             density="compact"
             disableColumnMenu
             getRowId={(row) => row.id}
-            sx={{ height: '90%' }}
+            sx={{
+              height: '90%',
+              '.first-row': { bgcolor: useCustomizationStore.getState().customization.mode === 'dark' ? 'warning.dark' : 'warning.light' }
+            }}
+            getRowClassName={(params) => (params.indexRelativeToCurrentPage === 0 ? 'first-row' : '')}
           />
         </Box>
 
