@@ -93,7 +93,7 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
 };
 
 export function useFindedTableLogic() {
-  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog, getArizalarByNumber } = useStore();
+  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog, getArizalarByNumber, enteringMode } = useStore();
   const [arizaNumberInput, setArizaNumberInput] = useState('');
   const [inputDisabled, setInputDisabled] = useState(true);
   const [showSpoiler, setShowSpoiler] = useState(false);
@@ -228,7 +228,7 @@ export function useFindedTableLogic() {
 
     const validAriza = hasValidAriza(ariza as IAriza | null);
     // Agar ariza tanlanmasa, faqat qo'lda kiritish rejimi uchun tekshirishlarni o'tkazamiz
-    if (!manualEditing && !validAriza) return toast.error('Ariza tanlanmadi');
+    if (enteringMode !== 'manual' && !validAriza) return toast.error('Ariza tanlanmadi');
 
     try {
       setIsLoading(true);
@@ -304,7 +304,7 @@ export function useFindedTableLogic() {
   const { recalculationPeriods } = useRecalculatorStore();
 
   useEffect(() => {
-    if (manualEditing) {
+    if (enteringMode === 'manual') {
       setTabIndex(0);
       let summ = 0;
       recalculationPeriods.forEach((item) => {
@@ -312,7 +312,7 @@ export function useFindedTableLogic() {
       });
       setAktSumm(summ.toString());
     }
-  }, [manualEditing, recalculationPeriods]);
+  }, [enteringMode, recalculationPeriods]);
 
   return {
     handlePrimaryButtonClick,
