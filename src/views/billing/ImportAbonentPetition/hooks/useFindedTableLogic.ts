@@ -293,7 +293,7 @@ export function useFindedTableLogic() {
     setArizaNumberInput('0');
     setAktSumm('');
     setManualAccountNumber('');
-    setManualEditing(false);
+    useStore.getState().setEnteringMode('ariza');
     useRecalculatorStore.getState().setRecalculationPeriods([]);
   };
 
