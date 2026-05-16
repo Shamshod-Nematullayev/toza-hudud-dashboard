@@ -99,7 +99,7 @@ function FindedDataTable() {
     return;
   }
 
-  if (!currentFile?.blob || pdfFileLoading)
+  if (!currentFile?.blob)
     page = (
       <Box
         sx={{
@@ -225,7 +225,7 @@ function FindedDataTable() {
       </Box>
     );
 
-  if (currentFile && !ariza) {
+  if (currentFile && !ariza && !pdfFileLoading) {
     page = (
       <Box
         sx={{
