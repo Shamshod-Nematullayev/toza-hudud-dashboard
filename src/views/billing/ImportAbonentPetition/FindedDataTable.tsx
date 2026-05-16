@@ -37,6 +37,7 @@ import {
   Delete,
   EditOutlined,
   Keyboard,
+  Photo,
   PictureAsPdfOutlined,
   SearchOffOutlined,
   UploadFileOutlined
@@ -51,6 +52,8 @@ import useLoaderStore from 'store/loaderStore';
 import { useUiStore } from './hooks/useUiStore';
 import useCustomizationStore from 'store/customizationStore';
 import { t } from 'i18next';
+import api from 'utils/api';
+import PasteImageDialog from 'ui-component/PasteImageDialog';
 
 function FindedDataTable() {
   const theme = useTheme();
@@ -81,7 +84,9 @@ function FindedDataTable() {
     rowsDublicate,
     manualAccountNumber,
     setManualAccountNumber,
-    loadAbonentByAccountForManual
+    loadAbonentByAccountForManual,
+    photos,
+    setPhotos
   } = useFindedTableLogic();
   const { isLoading } = useLoaderStore();
   const { pdfFileLoading } = useUiStore();
@@ -95,6 +100,18 @@ function FindedDataTable() {
   }, [recalculationPeriods]);
   const [aktSumEditing, setAktSumEditing] = useState(false);
   const [inhabitantCountEditing, setInhabitantCountEditing] = useState(false);
+  const [openPasteImageDialog, setOpenPasteImageDialog] = useState(false);
+
+  const handleAddPhoto = async (photo: File) => {
+    const formData = new FormData();
+    formData.append('file', photo);
+    const document_id = (
+      await api.post('/fetchTelegram/create-document', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+    ).data.document_id;
+    setPhotos([...photos, document_id]);
+  };
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: '№', width: 10 },
@@ -524,7 +541,7 @@ function FindedDataTable() {
                 value={aktType ?? ''}
                 onChange={(e) => setAktType((e.target.value || null) as typeof aktType)}
                 size="small"
-                sx={{ minWidth: 220 }}
+                sx={{ minWidth: 180 }}
               >
                 <MenuItem value="">
                   <em>Tanlanmagan</em>
@@ -538,12 +555,20 @@ function FindedDataTable() {
               <Button
                 variant="contained"
                 startIcon={<FileUploadOutlinedIcon />}
-                disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isLoading) && enteringMode !== 'manual'}
+                disabled={
+                  (aktType === 'gps' && photos.length === 0) ||
+                  (!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isLoading) && enteringMode !== 'manual')
+                }
                 onClick={handlePrimaryButtonClick}
                 sx={{ px: 3 }}
               >
                 {t('buttons.submitEntry')}
               </Button>
+              {aktType === 'gps' && (
+                <Button variant="contained" color="success" onClick={() => setOpenPasteImageDialog(true)}>
+                  <Photo />
+                </Button>
+              )}
 
               <Button variant="outlined" color="secondary" onClick={handleDeleteButtonClick}>
                 <DeleteOutlinedIcon />
@@ -691,6 +716,7 @@ function FindedDataTable() {
 
   return (
     <AnimatePresence>
+      <PasteImageDialog open={openPasteImageDialog} onClose={() => setOpenPasteImageDialog(false)} onAddButtonClick={handleAddPhoto} />
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>{page}</Box>
     </AnimatePresence>
   );

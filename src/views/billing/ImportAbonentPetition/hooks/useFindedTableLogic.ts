@@ -50,7 +50,7 @@ function buildManualActDescription(periods: IRecalculationPeriod[]): string {
 }
 
 // 1. Manual holat uchun FormData yig'ish
-const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: string) => {
+const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: string, photos: string[]) => {
   const { abonentData: ad, recalculationPeriods, yashovchiSoniInput } = useRecalculatorStore.getState();
   const nextInhabitantRaw = Number(yashovchiSoniInput);
   const next_inhabitant_count = !Number.isNaN(nextInhabitantRaw) ? nextInhabitantRaw : ad.house?.inhabitantCnt ?? 1;
@@ -67,6 +67,10 @@ const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: strin
   if (aktType === 'cancelContract')
     formData.append('description', prompt('Shartnoma bekor qilish akti uchun izoh kiriting') || 'Shartnoma bekor qilish akti');
   else formData.append('description', buildManualActDescription(recalculationPeriods));
+
+  photos.forEach((photo, index) => {
+    formData.append(`photos[${index}]`, photo);
+  });
 
   return formData;
 };
@@ -99,6 +103,7 @@ export function useFindedTableLogic() {
   const [showSpoiler, setShowSpoiler] = useState(false);
   const [aktSumm, setAktSumm] = useState('0');
   const [manualAccountNumber, setManualAccountNumber] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
 
   const { setIsLoading } = useLoaderStore();
   const { refetch: refetchTariffs, currentTariff, loading: tariffsLoading } = useTariff();
@@ -243,7 +248,7 @@ export function useFindedTableLogic() {
         if (!aktType) throw new Error('Akt (hujjat) turini tanlang');
         if (aktType === 'dvaynik') throw new Error('Ikkilamchi kod akti uchun ariza talab qilinadi');
 
-        formData = prepareManualFormData(currentFile, aktSumm, aktType);
+        formData = prepareManualFormData(currentFile, aktSumm, aktType, photos);
         // URL Map orqali switch-caseni yanada qisqartirish mumkin
         const urlMap: Record<string, string> = {
           dvaynik: '/billing/create-dvaynik-akt',
@@ -334,6 +339,8 @@ export function useFindedTableLogic() {
     rowsDublicate,
     manualAccountNumber,
     setManualAccountNumber,
-    loadAbonentByAccountForManual
+    loadAbonentByAccountForManual,
+    photos,
+    setPhotos
   };
 }
