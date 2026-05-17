@@ -1,16 +1,10 @@
 import { Backdrop, Box, Button, Grid, Skeleton, TextField, useTheme } from '@mui/material';
 import { t } from 'i18next';
-import { Ref, useState } from 'react';
-import MainCard from 'ui-component/cards/MainCard';
+import { useState } from 'react';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
-import { useSearchAbonentSectionStore } from './useSearchAbonentSectionStore';
 import { lotinga } from 'helpers/lotinKiril';
-import { isNumberValue } from 'utils/isNumberValue';
-import useLoaderStore from 'store/loaderStore';
-import { useMutation } from '@tanstack/react-query';
 import { useSearchAbonent } from './hooks/useSearchAbonent';
-import { AbonentSearchQuery } from 'types/billing';
 import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
 
 function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => void; accountNumberInputRef: any }) {

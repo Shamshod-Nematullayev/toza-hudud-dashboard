@@ -1,56 +1,56 @@
 import { Navigate, redirect } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import router from 'routes';
-import { IAbonent } from 'types/billing';
+import { AbonentSearchQuery, IAbonent } from 'types/billing';
 import api from 'utils/api';
 import { create } from 'zustand';
 
-interface AbonentSearchQuery {
-  accountNumber?: string;
-  balanceFrom?: number;
-  balanceTo?: number;
-  cadastralNumber?: string | null;
-  contractNumber?: string;
-  districtId?: number;
-  electricityAccountNumber?: string;
-  flatNumber?: string;
-  foreignCitizen?: boolean;
-  fullName?: string;
-  homeIndex?: string;
-  homeNumber?: string;
-  identified?: boolean;
-  inhabitantCnt?: number;
-  mahallaId?: string;
-  page?: number;
-  passport?: string;
-  phone?: string;
-  pnfl?: string;
-  size?: number;
-  sort?: string;
-  streetId?: string;
-  mahallaBindStatus?: boolean;
-  bindStatus?: boolean;
-  id?: string;
-  inn?: string;
-}
+// interface AbonentSearchQuery {
+//   accountNumber?: string;
+//   balanceFrom?: number;
+//   balanceTo?: number;
+//   cadastralNumber?: string | null;
+//   contractNumber?: string;
+//   districtId?: number;
+//   electricityAccountNumber?: string;
+//   flatNumber?: string;
+//   foreignCitizen?: boolean;
+//   fullName?: string;
+//   homeIndex?: string;
+//   homeNumber?: string;
+//   identified?: boolean;
+//   inhabitantCnt?: number;
+//   mahallaId?: string;
+//   page?: number;
+//   passport?: string;
+//   phone?: string;
+//   pnfl?: string;
+//   size?: number;
+//   sort?: string;
+//   streetId?: string;
+//   mahallaBindStatus?: boolean;
+//   bindStatus?: boolean;
+//   id?: string;
+//   inn?: string;
+// }
 
-interface Filters {
-  abonentId?: string;
-  accountNumber?: string;
-  contractNumber?: string;
-  electricityAccountNumber?: string;
-  cadastrNumber?: string;
-  inn?: string;
-  name?: string;
-  pnfl?: string;
-  passport?: string;
-  phone?: string;
-  mahallaId?: string;
-  streetId?: string;
-  buildingId?: string;
-  flatId?: string;
-  homeIndex?: string;
-}
+// interface Filters {
+//   abonentId?: string;
+//   accountNumber?: string;
+//   contractNumber?: string;
+//   electricityAccountNumber?: string;
+//   cadastrNumber?: string;
+//   inn?: string;
+//   name?: string;
+//   pnfl?: string;
+//   passport?: string;
+//   phone?: string;
+//   mahallaId?: string;
+//   streetId?: string;
+//   buildingId?: string;
+//   flatId?: string;
+//   homeIndex?: string;
+// }
 
 interface StoreState {
   searchResults: { content: IAbonent[]; totalPages: number; totalElements: number };

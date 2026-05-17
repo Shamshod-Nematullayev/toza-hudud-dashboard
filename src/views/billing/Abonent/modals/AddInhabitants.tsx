@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 import { t } from 'i18next';
 import { Alert, Box, Button, DialogActions, Stack, TextField } from '@mui/material';
 import { isNumberValue } from 'utils/isNumberValue';

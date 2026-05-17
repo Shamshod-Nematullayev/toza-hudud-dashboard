@@ -25,7 +25,7 @@ import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CallResult, createCallWarningsService, ICallStats, ICallWarning } from 'services/caller.service';
 import api from 'utils/api';
-import { useAbonentStore } from '../Abonent/abonentStore';
+import { useAbonentStore } from '../Abonent/hooks/abonentStore';
 import { toast } from 'react-toastify';
 import { t } from 'i18next';
 import useCustomizationStore from 'store/customizationStore';

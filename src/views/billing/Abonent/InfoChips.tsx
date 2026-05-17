@@ -14,10 +14,10 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import Transitions from 'ui-component/extended/Transitions';
 import MainCard from 'ui-component/cards/MainCard';
-import { useAbonentStore } from './abonentStore';
+import { useAbonentStore } from './hooks/abonentStore';
 import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from '@mui/x-date-pickers';
-import { useAbonentLogic } from './useAbonentLogic';
+import { useAbonentLogic } from './hooks/useAbonentLogic';
 
 interface InfoChipsProps {
   period: string;

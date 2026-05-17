@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 import { Backdrop, Button, CircularProgress, DialogActions, Typography } from '@mui/material';
 import styled from 'styled-components';
 import { t } from 'i18next';
@@ -9,7 +9,7 @@ import { red } from '@mui/material/colors';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
 import api from 'utils/api';
-import { useAbonentLogic } from '../useAbonentLogic';
+import { useAbonentLogic } from '../hooks/useAbonentLogic';
 import { toast } from 'react-toastify';
 import { PermamentsResponse } from '../types';
 

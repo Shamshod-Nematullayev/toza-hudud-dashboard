@@ -1,9 +1,9 @@
 import { Card, IconButton, Tooltip } from '@mui/material';
 import React, { useEffect } from 'react';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { t } from 'i18next';
-import { useAbonentLogic } from '../useAbonentLogic';
+import { useAbonentLogic } from '../hooks/useAbonentLogic';
 import api from 'utils/api';
 import { InsertDriveFile, MoveToInboxOutlined } from '@mui/icons-material';
 

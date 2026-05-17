@@ -2,7 +2,7 @@ import React from 'react';
 import { t } from 'i18next';
 import { Button, DialogActions, DialogContent, Grid, Typography, Divider, Box } from '@mui/material';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 
 // Ma'lumotlarni qatorma-qator ko'rsatish uchun yordamchi komponent
 const InfoRow = ({ label, value }: { label: string; value?: string | number }) => (

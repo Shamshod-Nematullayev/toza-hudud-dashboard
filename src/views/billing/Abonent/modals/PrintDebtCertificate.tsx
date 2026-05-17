@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { useAbonentStore } from '../abonentStore';
-import { useAbonentLogic } from '../useAbonentLogic';
+import { useAbonentStore } from '../hooks/abonentStore';
+import { useAbonentLogic } from '../hooks/useAbonentLogic';
 import { Stack } from '@mui/system';
 import TozamakonLogo from 'ui-component/TozamakonLogo';
 import { Box, Button, DialogActions, Divider, Typography } from '@mui/material';

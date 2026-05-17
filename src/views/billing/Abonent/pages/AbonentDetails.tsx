@@ -1,7 +1,7 @@
 import InfoChips from '../InfoChips';
 import AbonentProfileCard from '../AbonentProfileCard';
-import { useAbonentStore } from '../abonentStore';
-import { useAbonentLogic } from '../useAbonentLogic';
+import { useAbonentStore } from '../hooks/abonentStore';
+import { useAbonentLogic } from '../hooks/useAbonentLogic';
 import { Box, Card, Chip, CircularProgress, Grid, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
 import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
 import { t } from 'i18next';

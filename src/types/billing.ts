@@ -72,7 +72,7 @@ export interface AbonentSearchQuery {
   balanceFrom?: number;
   balanceTo?: number;
   cadastralNumber?: string;
-  companyId: number;
+  companyId?: number;
   contractNumber?: string;
   districtId?: number;
   electricityAccountNumber?: string;

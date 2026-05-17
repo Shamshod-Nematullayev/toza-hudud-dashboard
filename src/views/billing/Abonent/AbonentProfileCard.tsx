@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -14,7 +14,10 @@ import {
   Alert,
   CircularProgress,
   Tooltip,
-  Skeleton
+  Skeleton,
+  Menu,
+  Button,
+  MenuItem
 } from '@mui/material';
 import {
   CreditCardOutlined as CardIcon,
@@ -37,11 +40,12 @@ import {
   TravelExplore as MvdIcon
 } from '@mui/icons-material';
 import { AbonentDetails } from 'types/billing';
-import { useAbonentStore } from './abonentStore';
+import { useAbonentStore } from './hooks/abonentStore';
 import useLoaderStore from 'store/loaderStore';
 import dayjs from 'dayjs';
 import { t } from 'i18next';
 import { formatPhoneNumber } from 'views/tools/formatters';
+import { Link } from 'react-router-dom';
 
 interface Data extends AbonentDetails {
   photo?: string;
@@ -58,9 +62,22 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
     setOpenPhotoModal,
     blockReport,
     fetchAbonentMvdAddress,
-    ui
+    ui,
+    similarAbonentsByElectricity
   } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
+
+  const isDublicateElectricity = similarAbonentsByElectricity.length > 0;
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleClickAvatar = async () => {
     if (isLoading || !data) return;
@@ -92,7 +109,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
   }: {
     icon: React.ElementType<SvgIconProps>;
     label: string | number;
-    value?: string | number;
+    value?: string | number | ReactNode;
     color?: string;
     labelColor?: string;
     fontSize?: number;
@@ -263,7 +280,42 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
               />
               <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone || ''} isSkeleton={isLoading} />
               <InfoRow icon={SoatoIcon} label="Электр СОАТО" value={data?.electricityCoato} isSkeleton={isLoading} />
-              <InfoRow icon={EnergyIcon} label="Электр рақами" value={data?.electricityAccountNumber} isSkeleton={isLoading} />
+              <InfoRow
+                icon={EnergyIcon}
+                label="Электр рақами"
+                labelColor={isDublicateElectricity ? 'error.main' : undefined}
+                value={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber}</Typography>
+
+                    {isDublicateElectricity && (
+                      <>
+                        <Button
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          onClick={handleOpen}
+                          startIcon={<WarningIcon />}
+                          sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                        >
+                          {similarAbonentsByElectricity.length} dublikat
+                        </Button>
+                        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+                          <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
+                            O'xshash abonentlarga o'tish:
+                          </MenuItem>
+                          {similarAbonentsByElectricity.map((sub) => (
+                            <MenuItem key={sub.id} component={Link} to={`/abonents/${sub.id}`} onClick={handleClose}>
+                              {sub.fullName} ({sub.accountNumber})
+                            </MenuItem>
+                          ))}
+                        </Menu>
+                      </>
+                    )}
+                  </Box>
+                }
+                isSkeleton={isLoading}
+              />
               <InfoRow icon={NoteIcon} label="Изоҳ" value={data?.description || ''} isSkeleton={isLoading} />
             </Stack>
           </Grid>

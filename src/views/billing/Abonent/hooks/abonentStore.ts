@@ -12,9 +12,10 @@ import {
   IAbonentPetition,
   PermamentsResponse,
   MvdAddress
-} from './types';
+} from '../types';
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
+import { IAbonent, searchAbonentFromTozamakon } from 'services/searchAbonentFromTozamakon';
 
 const initialState: IAbonentPageDataStore = {
   abonentDetails: null,
@@ -48,7 +49,8 @@ const initialState: IAbonentPageDataStore = {
     abonentPetitionModalOpenState: false
   },
   documentLanguage: 'UZ',
-  blockReport: undefined
+  blockReport: undefined,
+  similarAbonentsByElectricity: []
 };
 
 interface IAbonentPageDataStore {
@@ -84,6 +86,7 @@ interface IAbonentPageDataStore {
   abonentDetailsCadastrLoading: boolean;
   abonentSupplementaryRefreshNonce: number;
   blockReport?: BlockReport;
+  similarAbonentsByElectricity: IAbonent[];
 }
 
 export interface IAbonentPageActionsStore {
@@ -111,7 +114,7 @@ export interface IAbonentPageActionsStore {
   getIncomePredicts: (residentId: number, period: string) => Promise<void>;
   getAbonentActs: (residentId: number) => void;
   downLoadActPdfFile: (fileId: string) => void;
-  getAbonentPetitions: (residentId: number) => void;
+  getAbonentPetitions: (residentId: number) => Promise<void>;
 
   setEditDialogOpenState: (state: boolean) => void;
   setResidentPhoto: (photo: string) => void;
@@ -178,6 +181,7 @@ export interface IAbonentPageActionsStore {
 
   fetchBlockReport: (residentId: number) => void;
   resetStore: () => void;
+  getSimilarAbonentsByElectricity: (electrycityAccountNumber: string) => Promise<any>;
 }
 
 export type IAbonentPageStore = IAbonentPageDataStore & IAbonentPageActionsStore;
@@ -391,5 +395,11 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     }
   },
   closeAbonentPetitionModal: () => set({ ui: { ...get().ui, abonentPetitionModalOpenState: false }, currentArizaId: '' }),
-  openAbonentPetitionModal: (ariza_id) => set({ ui: { ...get().ui, abonentPetitionModalOpenState: true }, currentArizaId: ariza_id })
+  openAbonentPetitionModal: (ariza_id) => set({ ui: { ...get().ui, abonentPetitionModalOpenState: true }, currentArizaId: ariza_id }),
+  getSimilarAbonentsByElectricity: async (electricityAccountNumber) => {
+    const { content } = await searchAbonentFromTozamakon({ electricityAccountNumber });
+    const filtered = content.filter((a) => a.electricityAccountNumber == electricityAccountNumber);
+    set({ similarAbonentsByElectricity: filtered });
+    return filtered;
+  }
 }));

@@ -28,9 +28,9 @@ import {
   Refresh
 } from '@mui/icons-material';
 import { t } from 'i18next';
-import { useAbonentStore } from './abonentStore';
+import { useAbonentStore } from './hooks/abonentStore';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAbonentLogic } from './useAbonentLogic';
+import { useAbonentLogic } from './hooks/useAbonentLogic';
 import MainPopper from 'ui-component/cards/MainPopper';
 import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
 

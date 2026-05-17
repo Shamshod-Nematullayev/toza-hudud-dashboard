@@ -5,13 +5,13 @@ import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { ArizaHeading } from 'views/billing/CreateAbonentPetition.jsx/DocumentComponents/ArizaHeading';
 import { ArizaTitle } from 'views/billing/CreateAbonentPetition.jsx/DocumentComponents/ArizaTitle';
 import { QRSection } from 'views/billing/CreateAbonentPetition.jsx/DocumentComponents/QRSection';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 import { Button, DialogActions, DialogContent } from '@mui/material';
 import { t } from 'i18next';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
 import api from 'utils/api';
-import { useAbonentLogic } from '../useAbonentLogic';
+import { useAbonentLogic } from '../hooks/useAbonentLogic';
 
 interface Props {
   relation?: string;

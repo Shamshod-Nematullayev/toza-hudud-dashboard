@@ -2,7 +2,7 @@ import { Button, DialogActions, OutlinedInput, TextField } from '@mui/material';
 import { t } from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 import PhoneInput from 'ui-component/PhoneInput';
 import { onChange } from 'react-toastify/dist/core/store';
 

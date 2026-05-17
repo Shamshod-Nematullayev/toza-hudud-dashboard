@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 import { t } from 'i18next';
 import { Button, DialogActions, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Stack, TextField } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from '@mui/x-date-pickers';
-import { useAbonentLogic } from '../useAbonentLogic';
+import { useAbonentLogic } from '../hooks/useAbonentLogic';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
 import { AbonentCardView } from 'ui-component/cards/AbonentCardView';

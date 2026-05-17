@@ -1,7 +1,7 @@
 import { t } from 'i18next';
 import React, { useEffect, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { useAbonentStore } from '../abonentStore';
+import { useAbonentStore } from '../hooks/abonentStore';
 import {
   alertTitleClasses,
   Avatar,

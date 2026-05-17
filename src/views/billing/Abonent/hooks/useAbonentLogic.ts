@@ -1,15 +1,21 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAbonentStore } from './abonentStore';
+import dayjs from 'dayjs';
+import { searchAbonentFromTozamakon } from 'services/searchAbonentFromTozamakon';
 
 /** URL va yil oxirigacha bashorat davri; effektsiz — istalgan childda xavfsiz chaqirish mumkin. */
 export function useAbonentLogic() {
   const residentId = Number(useParams().residentId);
-  const periodEndYear = '12.' + new Date().getFullYear();
+  const periodEndYear = dayjs().endOf('year').format('MM.YYYY');
   return {
     residentId,
     periodEndYear
   };
+}
+
+function awaitPromises(promises: Promise<any>[]) {
+  return Promise.all(promises);
 }
 
 /** Asosiy abonent ma'lumotlarini bitta joyda yuklash (layout). Takroriy chaqirish API ni ko'p marta urmaydi. */
@@ -21,11 +27,18 @@ export function usePrefetchAbonentPageData() {
     if (Number.isNaN(residentId)) return;
     (async () => {
       resetStore();
-      const promises: Promise<any>[] = [getIncomePredicts(residentId, periodEndYear), getDetails(residentId), getIncomeStats(residentId)];
-      await Promise.all(promises);
+      // End birinchi sahifada ko'rinishi kerak bo'lgan ma'lumotlar
+      await awaitPromises([getIncomePredicts(residentId, periodEndYear), getDetails(residentId), getIncomeStats(residentId)]);
 
-      getDetailsHistory(useAbonentStore.getState().abonentDetails?.accountNumber || '');
-      getAbonentPetitions(residentId);
+      // Qo'shimcha ma'lumotlar
+      await awaitPromises([
+        getDetailsHistory(useAbonentStore.getState().abonentDetails?.accountNumber || ''),
+        getAbonentPetitions(residentId)
+      ]);
+
+      // Qo'shimcha ma'lumotlar part 2
+      // await awaitPromises([])
+      // abonentlarni izlash elektr kodi bo'yicha
     })();
   }, [residentId]);
 }
@@ -43,6 +56,7 @@ export function useAbonentDetailsSupplementaryData() {
   const setHetAbonent = useAbonentStore((s) => s.setHetAbonent);
   const fetchCadastrAbonent = useAbonentStore((s) => s.fetchCadastrAbonent);
   const fetchBlockReport = useAbonentStore((s) => s.fetchBlockReport);
+  const { getSimilarAbonentsByElectricity } = useAbonentStore();
   useEffect(() => {
     if (Number.isNaN(residentId)) return;
 
@@ -77,6 +91,8 @@ export function useAbonentDetailsSupplementaryData() {
         .finally(() => {
           if (!cancelled) useAbonentStore.setState({ abonentDetailsHetLoading: false });
         });
+
+      void getSimilarAbonentsByElectricity(accountNumber);
     } else {
       setHetAbonent(undefined);
       useAbonentStore.setState({ abonentDetailsHetLoading: false });
