@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -67,12 +67,13 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
   } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
 
-  const isDublicateElectricity = similarAbonentsByElectricity.length > 0;
+  console.log(similarAbonentsByElectricity);
+  const isDublicateElectricity = similarAbonentsByElectricity.length > 1;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
+  const etkInfoRow = useRef<HTMLDivElement>(null);
   const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+    setAnchorEl(etkInfoRow.current);
   };
 
   const handleClose = () => {
@@ -280,42 +281,46 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
               />
               <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone || ''} isSkeleton={isLoading} />
               <InfoRow icon={SoatoIcon} label="Электр СОАТО" value={data?.electricityCoato} isSkeleton={isLoading} />
-              <InfoRow
-                icon={EnergyIcon}
-                label="Электр рақами"
-                labelColor={isDublicateElectricity ? 'error.main' : undefined}
-                value={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber}</Typography>
+              <div ref={etkInfoRow}>
+                <InfoRow
+                  icon={EnergyIcon}
+                  label="Электр рақами"
+                  labelColor={isDublicateElectricity ? 'error.main' : undefined}
+                  value={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
+                      <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber}</Typography>
 
-                    {isDublicateElectricity && (
-                      <>
-                        <Button
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          onClick={handleOpen}
-                          startIcon={<WarningIcon />}
-                          sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
-                        >
-                          {similarAbonentsByElectricity.length} dublikat
-                        </Button>
-                        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-                          <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
-                            O'xshash abonentlarga o'tish:
-                          </MenuItem>
-                          {similarAbonentsByElectricity.map((sub) => (
-                            <MenuItem key={sub.id} component={Link} to={`/abonents/${sub.id}`} onClick={handleClose}>
-                              {sub.fullName} ({sub.accountNumber})
+                      {isDublicateElectricity && (
+                        <>
+                          <Button
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            onClick={handleOpen}
+                            startIcon={<WarningIcon />}
+                            sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                          >
+                            {similarAbonentsByElectricity.length - 1} dublikat
+                          </Button>
+                          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} sx={{ maxHeight: 300 }}>
+                            <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
+                              O'xshash abonentlarga o'tish:
                             </MenuItem>
-                          ))}
-                        </Menu>
-                      </>
-                    )}
-                  </Box>
-                }
-                isSkeleton={isLoading}
-              />
+                            {similarAbonentsByElectricity
+                              .filter((a) => a.id !== data?.id)
+                              .map((sub) => (
+                                <MenuItem key={sub.id} component={Link} to={`/abonent/${sub.id}/details`} onClick={handleClose}>
+                                  {sub.fullName} ({sub.accountNumber})
+                                </MenuItem>
+                              ))}
+                          </Menu>
+                        </>
+                      )}
+                    </Box>
+                  }
+                  isSkeleton={isLoading}
+                />
+              </div>
               <InfoRow icon={NoteIcon} label="Изоҳ" value={data?.description || ''} isSkeleton={isLoading} />
             </Stack>
           </Grid>

@@ -61,5 +61,5 @@ export interface SearchAbonentResponse {
 }
 
 export async function searchAbonentFromTozamakon(filters: AbonentSearchQuery): Promise<SearchAbonentResponse> {
-  return await api.get('/abonents/tozamakon', { params: filters });
+  return (await api.get('/abonents/tozamakon', { params: filters })).data;
 }

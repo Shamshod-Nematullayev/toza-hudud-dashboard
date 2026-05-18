@@ -400,6 +400,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     const { content } = await searchAbonentFromTozamakon({ electricityAccountNumber });
     const filtered = content.filter((a) => a.electricityAccountNumber == electricityAccountNumber);
     set({ similarAbonentsByElectricity: filtered });
+    console.log({ filtered });
     return filtered;
   }
 }));
