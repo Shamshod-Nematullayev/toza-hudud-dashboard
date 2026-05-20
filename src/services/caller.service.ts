@@ -130,7 +130,7 @@ export const createCallWarningsService = (axios: AxiosInstance) => {
     /**
      * Qo'ng'iroq natijasini saqlash
      */
-    setResult: async (id: string, payload: { result: CallResult; comment: string; phoneNumber?: string }) => {
+    setResult: async (id: string, payload: { result: CallResult; comment: string; phoneNumber?: string; fullName: string }) => {
       const { data } = await axios.patch<{ ok: boolean; content: ICallWarning }>(`${prefix}/${id}/result`, payload);
       return data;
     },

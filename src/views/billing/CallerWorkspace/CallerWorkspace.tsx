@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Grid,
@@ -18,7 +18,9 @@ import {
   Tooltip,
   Chip,
   Backdrop,
-  CircularProgress
+  CircularProgress,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import { CheckCircle as SuccessIcon, Cancel as FailIcon, ErrorOutline as InfoIcon, Message as MessageIcon } from '@mui/icons-material';
 import dayjs from 'dayjs';
@@ -30,6 +32,7 @@ import { toast } from 'react-toastify';
 import { t } from 'i18next';
 import useCustomizationStore from 'store/customizationStore';
 import { kirillga } from 'helpers/lotinKiril';
+import { useGetUnansweredList } from './hooks/useGetUnansweredList';
 
 export const CallerWorkspace: React.FC = () => {
   const { id } = useParams();
@@ -152,7 +155,8 @@ export const CallerWorkspace: React.FC = () => {
       const payload = {
         result: status,
         comment: note,
-        phoneNumber: abonentDetails?.phone || ''
+        phoneNumber: abonentDetails?.phone || '',
+        fullName: abonentDetails?.fullName || ''
       };
 
       await callerService.setResult(id!, payload);
@@ -163,6 +167,20 @@ export const CallerWorkspace: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  const [anchorElUnansweredList, setAnchorElUnansweredList] = useState<null | HTMLElement>(null);
+  const handleClickUnansweredStat = (e: any) => {
+    setAnchorElUnansweredList(e.currentTarget);
+  };
+  const handleCloseUnansweredList = () => {
+    setAnchorElUnansweredList(null);
+  };
+
+  // Unanswered ro'yxatini olish react query usuli
+  const { data: unansweredList, mutate } = useGetUnansweredList();
+  useEffect(() => {
+    mutate();
+  }, [id]);
 
   if (loading)
     return (
@@ -184,7 +202,13 @@ export const CallerWorkspace: React.FC = () => {
             bg: 'primary.light'
           },
           { label: 'Muvaffaqiyatli', val: todayStats.summary.completed, color: 'success.dark', bg: 'success.light' },
-          { label: "Bog'lanib bo'lmadi", val: todayStats.summary.unanswered, color: 'warning.dark', bg: 'warning.light' },
+          {
+            label: "Bog'lanib bo'lmadi",
+            val: todayStats.summary.unanswered,
+            color: 'warning.dark',
+            bg: 'warning.light',
+            onClick: handleClickUnansweredStat
+          },
           { label: "Noto'g'ri raqam", val: todayStats.summary.rejected, color: 'error.main', bg: 'error.light' }
         ].map((stat) => (
           <Grid item xs={6} md={3} key={stat.label}>
@@ -195,8 +219,10 @@ export const CallerWorkspace: React.FC = () => {
                 textAlign: 'center',
                 borderColor: stat.color,
                 bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'transparent' : stat.bg),
-                opacity: 0.9
+                opacity: 0.9,
+                cursor: stat.onClick ? 'pointer' : 'default'
               }}
+              onClick={stat.onClick}
             >
               <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                 {stat.label}
@@ -208,6 +234,20 @@ export const CallerWorkspace: React.FC = () => {
           </Grid>
         ))}
       </Grid>
+
+      {/* Javobsiz qolgan qo'ng'iroqlar ro'yxati */}
+      <Menu
+        open={Boolean(anchorElUnansweredList)}
+        anchorEl={anchorElUnansweredList}
+        onClose={handleCloseUnansweredList}
+        sx={{ maxHeight: 500 }}
+      >
+        {unansweredList?.content.map((item) => (
+          <MenuItem key={item._id} onClick={handleCloseUnansweredList}>
+            {item.accountNumber} - {item.calls[item.calls.length - 1]?.phoneNumber} - {item.calls[item.calls.length - 1]?.comment}
+          </MenuItem>
+        ))}
+      </Menu>
 
       <Grid container spacing={2}>
         {/* 2. Main Work Area (70%) */}
@@ -305,7 +345,7 @@ export const CallerWorkspace: React.FC = () => {
                 onClick={() => handleAction('warned')}
                 disabled={submitting}
               >
-                To'lovga rozi
+                Ogohlantirildi
               </Button>
               <Button
                 fullWidth
