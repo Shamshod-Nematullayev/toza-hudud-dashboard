@@ -159,8 +159,8 @@ export function useFindedTableLogic() {
         davr: first.davr,
         saldo_n: first.saldo_n,
         nachis,
-        saldo_k: first.saldo_n + nachis - first.akt - first.allPaymentsSum - aktDelta,
-        akt: first.akt + aktDelta,
+        saldo_k: first.saldo_n + nachis + first.akt - first.allPaymentsSum - aktDelta,
+        akt: first.akt - aktDelta,
         yashovchilar_soni,
         allPaymentsSum: first.allPaymentsSum
       });
