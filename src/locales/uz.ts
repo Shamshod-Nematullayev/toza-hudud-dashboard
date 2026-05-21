@@ -425,6 +425,7 @@ const uz = {
   'Hujjat topilmadi': 'Hujjat topilmadi',
   'QR kodni o‘qib bo‘lmadi yoki ma’lumot bazada mavjud emas. Iltimos, raqamni o‘zingiz kiriting.':
     'QR kodni o‘qib bo‘lmadi yoki ma’lumot bazada mavjud emas. Iltimos, raqamni o‘zingiz kiriting.',
+  'Nomidagi uylar': 'Nomidagi uylar',
   tasksStatus: {
     completed: 'Tugallangan',
     'in-progress': 'Jarayonda',

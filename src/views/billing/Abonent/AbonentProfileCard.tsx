@@ -63,7 +63,8 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
     blockReport,
     fetchAbonentMvdAddress,
     ui,
-    similarAbonentsByElectricity
+    similarAbonentsByElectricity,
+    getResidentCadastrs
   } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
 
@@ -256,7 +257,27 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
               </Grid>
 
               <InfoRow icon={ContractIcon} label="Шартнома рақами" value={data?.contractNumber || ''} isSkeleton={isLoading} />
-              <InfoRow icon={CadastreIcon} label="Кадастр рақами" value={data?.house.cadastralNumber} isSkeleton={isLoading} />
+              <InfoRow
+                icon={CadastreIcon}
+                label="Кадастр рақами"
+                value={
+                  <>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {data?.house.cadastralNumber}
+                      <Tooltip title={t('Nomidagi uylar')} placement="top">
+                        <IconButton
+                          size="small"
+                          onClick={() => getResidentCadastrs(data?.citizen.pnfl || '')}
+                          disabled={ui.residentCadastrsLoading || !data?.citizen.pnfl || data.citizen.pnfl.length !== 14}
+                        >
+                          {ui.residentCadastrsLoading ? <CircularProgress size={16} /> : '🏠'}
+                        </IconButton>
+                      </Tooltip>
+                    </Typography>
+                  </>
+                }
+                isSkeleton={isLoading}
+              />
               <InfoRow icon={DateIcon} label="Шартнома санаси" value={data?.contractDate} isSkeleton={isLoading} />
             </Box>
           </Grid>

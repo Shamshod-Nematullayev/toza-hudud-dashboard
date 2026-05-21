@@ -11,6 +11,7 @@ import EditElectricAccountModal from './modals/ElectricAccountEdit';
 import MvdAddress from './modals/MvdAddress';
 import ArizaDocumentModal from './modals/ArizaDocumentModal';
 import { useAbonentStore } from './hooks/abonentStore';
+import ResidentCadastrs from './modals/ResidentCadastrs';
 
 function Abonent() {
   usePrefetchAbonentPageData();
@@ -33,6 +34,7 @@ function Abonent() {
       <EditElectricAccountModal />
       <MvdAddress />
       <ArizaDocumentModal />
+      <ResidentCadastrs />
     </div>
   );
 }

@@ -46,15 +46,19 @@ const initialState: IAbonentPageDataStore = {
   ui: {
     mvdAddressLoading: false,
     mvdAddressModalOpenState: false,
-    abonentPetitionModalOpenState: false
+    abonentPetitionModalOpenState: false,
+    residentCadastrsLoading: false,
+    residentCadastrsModalOpen: false
   },
   documentLanguage: 'UZ',
   blockReport: undefined,
-  similarAbonentsByElectricity: []
+  similarAbonentsByElectricity: [],
+  abonentCadastrs: []
 };
 
 interface IAbonentPageDataStore {
   abonentDetails: AbonentDetails | null;
+  abonentCadastrs: string[];
   dhjRows: DHJRow[];
   detailsHistory: AbonentDetailsHistoryRow[];
   abonentDetailsFromDB: IAbonentFromDB | null;
@@ -69,6 +73,8 @@ interface IAbonentPageDataStore {
     mvdAddressLoading: boolean;
     mvdAddressModalOpenState: boolean;
     abonentPetitionModalOpenState: boolean;
+    residentCadastrsLoading: boolean;
+    residentCadastrsModalOpen: boolean;
   };
   openChangePhoneDialogState: boolean;
   editDialogOpenState: boolean;
@@ -107,7 +113,7 @@ export interface IAbonentPageActionsStore {
   updateDetails: (details: AbonentDetails) => void;
   updatePhone: (phone: string) => void;
   updateElectricity: (params: { residentId: number; electricityAccountNumber: string; electricityCoato: string }) => void;
-  getResidentCadastrs: () => void;
+  getResidentCadastrs: (pnfl: string | number) => void;
   getDatasForCompare: () => void;
   setOpenChangePhoneDialog: (open: boolean) => void;
   getIncomeStats: (residentId: number) => Promise<void>;
@@ -221,9 +227,17 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ abonentDetails: { ...abonentDetails, phone } });
   },
 
-  getResidentCadastrs: async () => {
-    const { data } = await api.get('/billing/get-resident-cadastrs/' + get().abonentDetails?.id);
-    set({ abonentDetails: { ...get().abonentDetails, cadastrs: data.cadastrs } as AbonentDetails & { cadastrs: string[] } });
+  getResidentCadastrs: async (pnfl) => {
+    const { ui } = get();
+    set({ ui: { ...ui, residentCadastrsLoading: true } });
+    try {
+      const { data } = await api.get('/abonents/cadastrs', { params: { pnfl } });
+      set({ ui: { ...get().ui, residentCadastrsModalOpen: true }, abonentCadastrs: data });
+    } catch (error) {
+      throw error;
+    } finally {
+      set({ ui: { ...get().ui, residentCadastrsLoading: false } });
+    }
   },
   getDatasForCompare: async () => {
     // Bu funksiya abonent ma'lumotlarini HET, Kadastr, IIB bazalaridan ma'lumot olib ularni solishturish uchun ishlatiladi. Hozircha bu funksiya ichida hech qanday kod yo'q, chunki bu funksiya uchun backendda endpoint mavjud emas.
