@@ -244,7 +244,7 @@ export const CallerWorkspace: React.FC = () => {
       >
         {unansweredList?.content.map((item) => (
           <MenuItem key={item._id} onClick={handleCloseUnansweredList}>
-            {item.accountNumber} - {item.calls[item.calls.length - 1]?.phoneNumber} - {item.calls[item.calls.length - 1]?.comment}
+            {item.accountNumber} - {item.calls[item.calls.length - 1]?.phoneNumber} - {item.calls[item.calls.length - 1]?.fullName}
           </MenuItem>
         ))}
       </Menu>

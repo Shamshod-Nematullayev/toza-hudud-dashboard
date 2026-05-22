@@ -15,6 +15,7 @@ export interface ICallHistory {
   };
   phoneNumber: string;
   comment: string;
+  fullName: string;
 }
 
 export interface ICallWarning {
