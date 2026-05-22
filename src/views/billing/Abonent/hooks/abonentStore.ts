@@ -110,7 +110,7 @@ export interface IAbonentPageActionsStore {
    * TozaMakondan olinmaydi.
    */
   getDetailsFromDB: () => void;
-  updateDetails: (details: AbonentDetails) => void;
+  updateDetails: (details: Partial<AbonentDetails>) => Promise<void>;
   updatePhone: (phone: string) => void;
   updateElectricity: (params: { residentId: number; electricityAccountNumber: string; electricityCoato: string }) => void;
   getResidentCadastrs: (pnfl: string | number) => void;
@@ -218,7 +218,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   },
   updateDetails: async (details) => {
     await api.put('/abonents/details/' + details.id, details);
-    set({ abonentDetails: details });
+    set({ abonentDetails: { ...(get().abonentDetails as AbonentDetails), ...details } });
   },
   updatePhone: async (phone: string) => {
     const abonentDetails = get().abonentDetails;

@@ -68,7 +68,7 @@ function ImportAkt() {
               value={selectedActPackId}
               onChange={(e) => setSelectedActPackId(Number(e.target.value))}
             >
-              {actPacks.map((a) => (
+              {actPacks?.map((a) => (
                 <MenuItem key={a.id} value={a.id}>
                   {a.name}-{new Date(a.createdDate).toLocaleDateString()}
                 </MenuItem>

@@ -13,7 +13,10 @@ import {
   Chip,
   CircularProgress,
   Avatar,
-  Divider
+  Divider,
+  IconButton,
+  useTheme,
+  Tooltip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -25,10 +28,10 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import ApartmentOutlinedIcon from '@mui/icons-material/ApartmentOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
-import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
-import ContactPageOutlinedIcon from '@mui/icons-material/ContactPageOutlined';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import api from 'utils/api';
+import { Download, SaveAlt } from '@mui/icons-material';
+import { AbonentDetails } from 'types/billing';
 
 export interface House {
   cadastralNumber: string;
@@ -81,22 +84,54 @@ async function fetchHouseByCadastr(cadastralNumber: string): Promise<House> {
 }
 
 function HouseDetail({ house }: { house: House }) {
+  const theme = useTheme();
+  const { updateDetails, ui } = useAbonentStore();
+  const onClose = () => {
+    useAbonentStore.setState({ ui: { ...ui, residentCadastrsModalOpen: false }, abonentCadastrs: [] });
+  };
+  const handleClickSaveAddress = async () => {
+    const aDetails = useAbonentStore.getState().abonentDetails as AbonentDetails;
+    await updateDetails({
+      id: aDetails.id,
+      house: {
+        ...aDetails?.house,
+        cadastralNumber: house.cadastralNumber,
+        homeNumber: house.houseNumber
+      }
+    });
+    onClose();
+  };
   return (
     <Box sx={{ px: 0.5 }}>
       <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
         <Grid item xs={12}>
-          <InfoCard>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 'bold' }}
-            >
-              <LocationOnOutlinedIcon fontSize="small" /> TO'LIQ MANZIL
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>
-              {house.fullAddress}
-            </Typography>
-          </InfoCard>
+          <Box
+            sx={{
+              borderRadius: theme.shape.borderRadius * 1.5,
+              padding: theme.spacing(1.5),
+              border: `1px solid ${theme.palette.grey[100]}`,
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}
+          >
+            <div>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 'bold' }}
+              >
+                <LocationOnOutlinedIcon fontSize="small" /> TO'LIQ MANZIL
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>
+                {house.fullAddress}
+              </Typography>
+            </div>
+            <Tooltip title="Kadastr & manzilni saqlash">
+              <IconButton color="primary" onClick={handleClickSaveAddress}>
+                <SaveAlt />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Grid>
 
         <Grid item xs={6}>
