@@ -83,6 +83,32 @@ async function fetchHouseByCadastr(cadastralNumber: string): Promise<House> {
   return (await api.get('/abonents/cadastr-details', { params: { cadastralNumber } })).data as House;
 }
 
+function parseAddress(text: string) {
+  const parts = text.split(',').map((s) => s.trim());
+
+  let mfy = null,
+    street = null,
+    houseNumber = null,
+    corpus = null,
+    flatNumber = null;
+
+  for (const part of parts) {
+    if (/МФЙ|MFY|mahalla/i.test(part)) {
+      mfy = part.replace(/\s*(МФЙ|MFY|mahalla)\s*/gi, '').trim();
+    } else if (/ko['ʼ']cha|улица|кўча/i.test(part)) {
+      street = part.replace(/\s*ko['ʼ']cha(si)?\s*|\s*улица\s*|\s*кўча(си)?\s*/gi, '').trim();
+    } else if (/uy|дом|уй/i.test(part)) {
+      houseNumber = part.match(/\d+/)?.[0] ?? null;
+    } else if (/корпус|korpus/i.test(part)) {
+      corpus = part.match(/\d+/)?.[0] ?? null;
+    } else if (/xonadon|квартира/i.test(part)) {
+      flatNumber = part.match(/\d+/)?.[0] ?? null;
+    }
+  }
+
+  return { mfy, street, houseNumber, corpus, flatNumber };
+}
+
 function HouseDetail({ house }: { house: House }) {
   const theme = useTheme();
   const { updateDetails, ui } = useAbonentStore();
@@ -91,12 +117,21 @@ function HouseDetail({ house }: { house: House }) {
   };
   const handleClickSaveAddress = async () => {
     const aDetails = useAbonentStore.getState().abonentDetails as AbonentDetails;
+    const houseTypes: { [key: string]: 'HOUSE' | 'APARTMENT' } = {
+      'Индивидуальное жилое помещение (Yakka tartibdagi uy-joy)': 'HOUSE',
+      "Квартира в многоэтажном доме (Ko'p qavatli uydagi xonadon)": 'APARTMENT',
+      HOUSE: 'HOUSE',
+      APARTMENT: 'APARTMENT'
+    };
+    const address = parseAddress(house.fullAddress);
     await updateDetails({
       id: aDetails.id,
       house: {
         ...aDetails?.house,
         cadastralNumber: house.cadastralNumber,
-        homeNumber: house.houseNumber
+        homeNumber: house.houseNumber,
+        type: houseTypes[house.houseType],
+        flatNumber: address.flatNumber || undefined
       }
     });
     onClose();
