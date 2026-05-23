@@ -22,7 +22,7 @@ interface ImzolashJoyiProps {
 export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator }: ImzolashJoyiProps) => {
   mahalla = mahalla?.data;
   mahalla2 = mahalla2?.data;
-  const { company, user } = useCustomizationStore();
+  const { company, user, customization } = useCustomizationStore();
   return (
     <>
       <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
@@ -30,11 +30,15 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
 
       <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
       <br />
-      <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
+      {customization.mfyRaisiIshtirok && (
+        <>
+          <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
 
-      <br />
-      {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
-        <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
+          <br />
+          {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
+            <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
+          )}
+        </>
       )}
       {gpsOperator?.fullName && (
         <>
@@ -44,7 +48,9 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
       )}
       <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdminName} />
       <br />
-      <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.managerName} />
+      {customization.boshliqIshtirokida && (
+        <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.managerName} />
+      )}
       <p style={{ textAlign: 'left', fontSize: '12px' }}>
         Created: <b>{user?.fullName}</b>
       </p>

@@ -1,22 +1,24 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Button,
-  DialogActions,
   DialogContent,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   Stack,
-  TextareaAutosize,
   TextField,
   Typography,
-  Divider,
   Grid,
   Box,
   InputAdornment,
   Tooltip,
-  IconButton
+  IconButton,
+  Card,
+  Checkbox,
+  FormControlLabel,
+  Chip,
+  DialogActions
 } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import { useTranslation } from 'react-i18next';
@@ -35,37 +37,33 @@ import Dvaynik from './Documents/Dvaynik';
 import Gps from './Documents/Gps';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
-import { familyRelations, IMahalla } from './useStore';
+import { familyRelations } from './useStore';
 
-// Helpers & Types
-import { lotinga } from 'helpers/lotinKiril';
-import { AbonentDetails } from 'types/billing';
-import { IAriza } from 'types/models';
-import { AutoFixHigh } from '@mui/icons-material';
+// Constants
+
+export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
+
+export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
+
+// Helpers & Icons
+import { DescriptionOutlined, AutoFixHigh, PrintOutlined, Close } from '@mui/icons-material';
+import { IconEye } from '@tabler/icons-react';
 
 export function formatName(name: string) {
   if (!name) return '';
+
   return name
+
     .toLowerCase()
+
     .split(' ')
+
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+
     .join(' ');
 }
 
-// Constants
-export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
-export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
-
-const blobToBase64 = (blob: Blob): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-};
-
-// --- ALOHIDA KOMPONENT SIFATIDA REFAKTOR QILINDI (HOOKLAR UCHUN) ---
+// --- DOCUMENT RENDERER ---
 const DocumentRenderer = ({
   ariza,
   abonentData,
@@ -81,7 +79,6 @@ const DocumentRenderer = ({
   vakil
 }: any) => {
   const [photos, setPhotos] = useState<string[]>([]);
-  const { company } = useCustomizationStore();
 
   useEffect(() => {
     if (ariza.photos?.length) {
@@ -90,8 +87,9 @@ const DocumentRenderer = ({
         api
           .get(`/fetchTelegram/${file_id}`, { responseType: 'blob' })
           .then(async (blob) => {
-            const base64 = await blobToBase64(blob.data);
-            setPhotos((prev) => [...prev, base64]);
+            const reader = new FileReader();
+            reader.onloadend = () => setPhotos((prev) => [...prev, reader.result as string]);
+            reader.readAsDataURL(blob.data);
           })
           .catch((err) => console.error('Photo load error:', err));
       });
@@ -153,6 +151,7 @@ const DocumentRenderer = ({
   }
 };
 
+// --- MAIN COMPONENT ---
 export default function PrintSection({
   show,
   ariza,
@@ -165,7 +164,6 @@ export default function PrintSection({
   mahalla2,
   recalculationPeriods
 }: any) {
-  const { t } = useTranslation();
   const componentRef = useRef(null);
   const { customization, setCustomization } = useCustomizationStore();
 
@@ -173,6 +171,15 @@ export default function PrintSection({
   const [comment, setComment] = useState('');
   const [relation, setRelation] = useState<string>(ariza.relation || '');
   const [relationFullName, setRelationFullName] = useState(ariza.relationFullName || '');
+  const [autoComment, setAutoComment] = useState(false);
+
+  // Ishtirokchilar statelari (Dizayndagi yangi qism uchun)
+  const boshliqIshtirok = customization.boshliqIshtirokida;
+  const setBoshliqIshtirok = (state: boolean) => setCustomization({ boshliqIshtirokida: state });
+  const raisiIshtirok = customization.mfyRaisiIshtirok;
+  const setRaisiIshtirok = (state: boolean) => setCustomization({ mfyRaisiIshtirok: state });
+
+  const [showPreview, setShowPreview] = useState(false);
 
   const printFunction = useReactToPrint({
     ...reactToPrintDefaultOptions,
@@ -182,33 +189,288 @@ export default function PrintSection({
 
   const handleClose = () => {
     setShowPrintSection(false);
-    // Faqat o'zgarish bo'lsa saqlash mantiqini qo'shish mumkin
-    if (comment !== ariza.comment || relation !== ariza.relation) {
+    if (comment !== ariza.comment || relation !== ariza.relation || relationFullName !== ariza.relationFullName) {
       api.put('/arizalar/' + ariza._id, { comment, relation, relationFullName });
     }
   };
 
-  const vakilData = useMemo(
-    () => ({
-      relation,
-      fullName: relationFullName
-    }),
-    [relation, relationFullName]
-  );
+  const vakilData = useMemo(() => ({ relation, fullName: relationFullName }), [relation, relationFullName]);
 
-  const [autoComment, setAutoComment] = useState(false);
+  // Hujjat turi sarlavhasini chiroyli formatlash
+  const documentTitle = useMemo(() => {
+    if (ariza.document_type === 'viza') return 'Pasport viza arizasi';
+    if (ariza.document_type === 'odam_soni') return 'Yashovchilar soni arizasi';
+    return 'Hujjat arizasi';
+  }, [ariza.document_type]);
 
   return (
     <DraggableDialog
       open={show}
       onClose={handleClose}
-      title={t('menuItems.createAbonentPetition')}
-      sx={{ '& .MuiDialog-paper': { width: '85%', maxWidth: '900px' } }}
+      title={'Ariza yaratish'}
+      sx={{
+        '& .MuiDialog-paper': {
+          width: '100%',
+          maxWidth: '780px',
+          borderRadius: '16px',
+          overflow: 'hidden'
+        }
+      }}
     >
-      <DialogContent sx={{ p: 0, bgcolor: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
-        {/* PRINT AREA */}
-        <Box sx={{ p: 4, bgcolor: '#fff', boxShadow: 1, m: 2, borderRadius: 1, overflowY: 'auto', maxHeight: '60vh' }}>
-          <div style={{ color: '#000', backgroundColor: '#fff' }} ref={componentRef}>
+      <DraggableDialog
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        title={`${documentTitle} — Oldindan ko'rish`}
+        sx={{ '& .MuiDialog-paper': { width: '90%', maxWidth: '850px', borderRadius: '12px' } }}
+      >
+        <DialogContent sx={{ p: 3, display: 'flex', justifyContent: 'center', maxHeight: '70vh', overflowY: 'auto' }}>
+          {/* Haqiqiy A4 qog'oz ko'rinishidagi render zonasi */}
+          <Box
+            sx={{
+              p: '40px',
+              borderRadius: '4px',
+              width: '100%',
+              maxWidth: '210mm', // A4 standart eni
+              minHeight: '297mm', // A4 standart bo'yi
+              color: '#000'
+            }}
+          >
+            <DocumentRenderer
+              ariza={ariza}
+              abonentData={abonentData}
+              abonentData2={abonentData2}
+              mahalla={mahalla}
+              mahalla2={mahalla2}
+              aniqlanganYashovchiSoni={aniqlanganYashovchiSoni}
+              recalculationPeriods={recalculationPeriods}
+              muzlatiladi={muzlatiladi}
+              asoslantiruvchi={comment}
+              olderPeriod={olderPeriod}
+              setOlderPeriod={setOlderPeriod}
+              vakil={vakilData}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: '24px' }}>
+          <Button variant="contained" onClick={() => printFunction()}>
+            Chop etish
+          </Button>
+        </DialogActions>
+      </DraggableDialog>
+      <DialogContent sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Pasport viza arizasi (Top Card Info) */}
+        <Card
+          elevation={0}
+          sx={{
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: '#f9f8f6',
+            border: '1px solid #f0ede7',
+            borderRadius: '12px'
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={2}>
+            <Box sx={{ p: 1.5, bgcolor: '#fff', borderRadius: '10px', border: '1px solid #e8e5dd', display: 'flex' }}>
+              <DescriptionOutlined sx={{ color: '#888' }} />
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" fontWeight="600" color="#1a1a1a">
+                {documentTitle}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {abonentData?.fullName || 'F.I.Sh aniqlanmadi'} · Hisob: {abonentData?.accountNumber || '—'}
+              </Typography>
+            </Box>
+          </Box>
+          <Button
+            variant="outlined"
+            color="inherit"
+            size="large"
+            sx={{
+              borderRadius: '8px',
+              textTransform: 'none',
+              borderColor: '#dcd8cf',
+              bgcolor: '#fff'
+            }}
+            onClick={() => setShowPreview(true)}
+          >
+            <IconEye style={{ marginRight: '8px' }} /> Ko'rish
+          </Button>
+        </Card>
+
+        {/* Form Selection Row */}
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <FormControl fullWidth size="medium">
+              <InputLabel>Hujjat varianti</InputLabel>
+              <Select
+                value={customization.documentVariantOdamSoni || 'ariza+dalolatnoma'}
+                label="Hujjat varianti"
+                onChange={(e) => setCustomization({ documentVariantOdamSoni: e.target.value as any })}
+                sx={{ borderRadius: '8px' }}
+              >
+                <MenuItem value="ariza+dalolatnoma">Variant 1 (Standart)</MenuItem>
+                <MenuItem value="dalolatnoma">Variant 2 (Faqat dalolatnoma)</MenuItem>
+                <MenuItem value="ariza">Variant 3 (Faqat ariza)</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={6}>
+            <DatePicker
+              label="Qayta hisob boshi"
+              value={olderPeriod}
+              onChange={(v) => v && setOlderPeriod(v)}
+              format="DD.MM.YYYY"
+              slotProps={{ textField: { fullWidth: true, size: 'medium', sx: { '& .MuiOutlinedInput-root': { borderRadius: '8px' } } } }}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Asoslantiruvchi izoh */}
+        <TextField
+          fullWidth
+          multiline
+          rows={3}
+          label="Asoslantiruvchi izoh"
+          placeholder="Ixtiyoriy..."
+          value={comment}
+          onChange={(e) => {
+            setComment(e.target.value);
+            setAutoComment(false);
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '8px',
+              position: 'relative',
+              paddingRight: '44px' // Tayoqcha matn bilan to'qnashib ketmasligi uchun joy ajratildi
+            }
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment
+                position="end"
+                sx={{
+                  position: 'absolute',
+                  right: 15,
+                  top: 'calc(50% - 12px)',
+                  margin: 0
+                }}
+              >
+                <Tooltip title={autoComment ? 'Avto-matn yoqilgan' : "Avto-matn bilan to'ldirish"}>
+                  <IconButton
+                    size="medium"
+                    onClick={() => {
+                      const newVal = !autoComment;
+                      setAutoComment(newVal);
+                      if (newVal) {
+                        const sana = olderPeriod?.format('DD.MM.YYYY') ?? '';
+                        const cnt = abonentData?.house?.inhabitantCnt ?? '';
+                        setComment(
+                          `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
+                        );
+                      }
+                    }}
+                    sx={{ color: autoComment ? 'primary.main' : 'text.disabled' }}
+                  >
+                    <AutoFixHigh fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </InputAdornment>
+            )
+          }}
+        />
+
+        {/* Hujjatda ishtirok etuvchilar */}
+        <Box>
+          <Typography variant="subtitle2" fontWeight="600" color="textSecondary" sx={{ mb: 1 }}>
+            Hujjatda ishtirok etuvchilar
+          </Typography>
+          <Stack spacing={1}>
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="between"
+              sx={{ p: '10px 16px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+            >
+              <FormControlLabel
+                control={<Checkbox checked={boshliqIshtirok} onChange={(e) => setBoshliqIshtirok(e.target.checked)} color="primary" />}
+                label={
+                  <Typography variant="body2" fontWeight="500">
+                    Boshliq ishtirok etadimi?
+                  </Typography>
+                }
+              />
+              <Chip label="Qo'shiladi" size="small" sx={{ bgcolor: '#eedffd', color: '#7b1fa2', fontWeight: '500' }} />
+            </Box>
+
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="between"
+              sx={{ p: '10px 16px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+            >
+              <FormControlLabel
+                control={<Checkbox checked={raisiIshtirok} onChange={(e) => setRaisiIshtirok(e.target.checked)} color="primary" />}
+                label={
+                  <Typography variant="body2" fontWeight="500">
+                    Mahalla raisi ishtirok etadimi?
+                  </Typography>
+                }
+              />
+              <Chip label="Qo'shiladi" size="small" sx={{ bgcolor: '#eedffd', color: '#7b1fa2', fontWeight: '500' }} />
+            </Box>
+          </Stack>
+        </Box>
+
+        {/* UX Dizayn Bo'yicha Footer Qismi */}
+        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 2, pt: 2, borderTop: '1px solid #f0f0f0' }}>
+          {/* Vakillik ma'lumotlari (Kim orqali va Vakil F.I.Sh) */}
+          <Box display="flex" gap={1.5} width="60%">
+            <FormControl size="medium" sx={{ width: '40%' }}>
+              <Select value={relation} onChange={(e) => setRelation(e.target.value)} displayEmpty sx={{ borderRadius: '8px' }}>
+                <MenuItem value="">Kim orqali</MenuItem>
+                <MenuItem value="O'zi">Abonent o'zi</MenuItem>
+                {familyRelations.map((item) => (
+                  <MenuItem key={item} value={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              size="medium"
+              placeholder="Vakil F.I.Sh"
+              value={relationFullName}
+              disabled={!relation}
+              onChange={(e) => setRelationFullName(e.target.value)}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+            />
+          </Box>
+
+          {/* Faqatgina Chop etish tugmasi (Yopish butkul o'chirildi) */}
+          <Button
+            variant="contained"
+            onClick={() => printFunction()}
+            startIcon={<PrintOutlined />}
+            color="primary"
+            sx={{
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: '600',
+              px: 4,
+              py: 1.2
+            }}
+          >
+            Chop etish
+          </Button>
+        </Box>
+
+        {/* Yashirin Print rendereri (Faqat pechat qilish uchun) */}
+        <Box sx={{ display: 'none' }}>
+          <div ref={componentRef}>
             <DocumentRenderer
               ariza={ariza}
               abonentData={abonentData}
@@ -226,114 +488,6 @@ export default function PrintSection({
           </div>
         </Box>
       </DialogContent>
-
-      <DialogContent>
-        <Grid container spacing={1} sx={{ mt: 0 }}>
-          {/* Variant va Sana boshqaruvi */}
-          {/* Variant va Sana boshqaruvi */}
-          <Grid item xs={3}>
-            <FormControl fullWidth>
-              <InputLabel>Hujjat varianti</InputLabel>
-              <Select
-                value={customization.documentVariantOdamSoni}
-                label="Hujjat varianti"
-                onChange={(e) =>
-                  setCustomization({ documentVariantOdamSoni: e.target.value as 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza' })
-                }
-              >
-                <MenuItem value="ariza+dalolatnoma">Variant 1 (Standart)</MenuItem>
-                <MenuItem value="dalolatnoma">Variant 2 (Faqat dalolatnoma)</MenuItem>
-                <MenuItem value="ariza">Variant 3 (Faqat ariza)</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={2.5}>
-            <DatePicker
-              label="Qayta hisob boshi"
-              value={olderPeriod}
-              onChange={(v) => v && setOlderPeriod(v)}
-              format="DD.MM.YYYY"
-              slotProps={{ textField: { fullWidth: true } }}
-            />
-          </Grid>
-          <Grid item xs={6.5}>
-            <TextField
-              fullWidth
-              multiline
-              rows={1}
-              label="Asoslantiruvchi izoh"
-              value={comment}
-              onChange={(e) => {
-                setComment(e.target.value);
-                setAutoComment(false); // Qo'lda o'zgartirilsa auto o'chsin
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Tooltip title={autoComment ? 'Avto-matn yoqilgan' : "Avto-matn bilan to'ldirish"}>
-                      <IconButton
-                        size="small"
-                        onClick={() => {
-                          const newVal = !autoComment;
-                          setAutoComment(newVal);
-                          if (newVal) {
-                            const sana = olderPeriod?.format('DD.MM.YYYY') ?? '';
-                            const cnt = abonentData?.house?.inhabitantCnt ?? '';
-                            setComment(
-                              `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
-                            );
-                          }
-                        }}
-                        sx={{ color: autoComment ? 'primary.main' : 'text.disabled' }}
-                      >
-                        <AutoFixHigh fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-
-      <Divider />
-
-      <DialogActions sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        {/* Vakillik ma'lumotlari */}
-
-        <Stack spacing={2} sx={{ width: 400 }}>
-          <Grid container spacing={1}>
-            <Grid item xs={4}>
-              <TextField select fullWidth label="Kim orqali" value={relation} onChange={(e) => setRelation(e.target.value)}>
-                <MenuItem value="">Abonent o'zi</MenuItem>
-                {familyRelations.map((item) => (
-                  <MenuItem key={item} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={8}>
-              <TextField
-                fullWidth
-                label="Vakil F.I.Sh"
-                value={relationFullName}
-                disabled={!relation}
-                onChange={(e) => setRelationFullName(e.target.value)}
-              />
-            </Grid>
-          </Grid>
-        </Stack>
-        <Stack direction="row" spacing={2}>
-          <Button onClick={handleClose} color="inherit">
-            Yopish
-          </Button>
-          <Button variant="contained" color="secondary" size="large" onClick={() => printFunction()} sx={{ px: 4 }}>
-            {t('buttons.print')}
-          </Button>
-        </Stack>
-      </DialogActions>
     </DraggableDialog>
   );
 }

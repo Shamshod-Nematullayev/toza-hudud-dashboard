@@ -17,6 +17,8 @@ interface CustomizationState {
     opened: boolean;
     mode: string;
     documentVariantOdamSoni: 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza';
+    boshliqIshtirokida: boolean;
+    mfyRaisiIshtirok: boolean;
   };
   user: {
     fullName: string;
@@ -54,7 +56,9 @@ const initialState = {
     borderRadius: config.borderRadius,
     opened: true,
     mode: 'dark',
-    documentVariantOdamSoni: 'ariza+dalolatnoma'
+    documentVariantOdamSoni: 'ariza+dalolatnoma',
+    boshliqIshtirokida: false,
+    mfyRaisiIshtirok: true
   },
   user: null,
   company: {

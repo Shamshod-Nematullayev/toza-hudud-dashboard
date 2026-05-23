@@ -6,7 +6,7 @@ import useCustomizationStore from 'store/customizationStore';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import { AbonentDetails } from 'types/billing';
 import { QRSection } from '../DocumentComponents/QRSection';
-import { ImzoJoyiRow } from '../DocumentComponents/ImzolashJoyi';
+import { ImzoJoyiRow, ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 
@@ -35,7 +35,7 @@ function OdamSoni({
   relation?: string;
   relationFullName?: string;
 }) {
-  let { customization, company } = useCustomizationStore();
+  let { customization, company, user } = useCustomizationStore();
   // Dinamik mantiqiy o'zgaruvchilar
   const isRelative = !!relation && !!relationFullName;
   const currentApplicant = isRelative ? relationFullName : abonentData?.fullName;
@@ -115,7 +115,7 @@ function OdamSoni({
           </p>
 
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
-            Fuqoro {formatName(isRelative ? relationFullName : abonentData?.fullName)}, {lotinga(mahalla.data.name)} MFY raisi{' '}
+            Fuqoro {formatName(isRelative ? relationFullName : abonentData?.fullName)}, {lotinga(mahalla.data.name || '')} MFY raisi{' '}
             {fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, {company.name} {company.locationName} aholi bo'lim boshlig'i{' '}
             {lotinga(fullNameToShortName(company.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.
           </p>
@@ -132,17 +132,11 @@ function OdamSoni({
           </p>
 
           {/* IMZOLAR BO'LIMI */}
-          <div style={{ marginTop: '20px' }}>
-            <ImzoJoyiRow label={isRelative ? `Abonent vakili (${relation})` : 'Abonent'} name={currentApplicant} />
-            <br />
-            <ImzoJoyiRow label={lotinga(mahalla.data.name) + ' MFY raisi'} name={mahalla.data.mfy_rais_name} />
-            <br />
-            <ImzoJoyiRow label={'Aholi nazoratchisi'} name={mahalla.data.biriktirilganNazoratchi?.inspector_name} />
-            <br />
-            <ImzoJoyiRow label={"Aholi bo'limi xodimi"} name={company.billingAdminName} />
-            <br />
-            <ImzoJoyiRow label={company.name + '  boshlig`i'} name={company.managerName} />
-          </div>
+          <ImzolashJoyi
+            abonentData={{ ...abonentData, fullName: isRelative ? relationFullName : abonentData?.fullName }}
+            mahalla={mahalla}
+            documentType={'odam_soni'}
+          />
           <br />
           <br />
           <br />
