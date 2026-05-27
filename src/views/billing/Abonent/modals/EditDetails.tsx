@@ -24,6 +24,7 @@ import StreetSelection from 'ui-component/StreetSelection';
 import { ArrowBack, ArrowForward, Save } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { isNumberValue } from 'utils/isNumberValue';
+import PhoneInput from 'ui-component/PhoneInput';
 
 export function extractBirthDateString(jshshir: string) {
   if (!/^\d{14}$/.test(jshshir)) {
@@ -440,22 +441,15 @@ function EditDetails() {
                 </Grid>
               )}
               <Grid item xs={4}>
-                <TextField
+                <PhoneInput
                   label={t('tableHeaders.phone')}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  fullWidth
-                  required
-                  error={!phone}
+                  onChange={(value) => setPhone(value)}
+                  textFieldProps={{ error: !phone }}
                 />
               </Grid>
               <Grid item xs={4}>
-                <TextField
-                  label={t('tableHeaders.homePhone')}
-                  value={housePhone}
-                  onChange={(e) => setHousePhone(e.target.value)}
-                  fullWidth
-                />
+                <PhoneInput label={t('tableHeaders.homePhone')} value={housePhone} onChange={(value) => setHousePhone(value)} />
               </Grid>
               <Grid item xs={4}>
                 <TextField label={t('tableHeaders.email')} value={email} onChange={(e) => setEmail(e.target.value)} fullWidth />

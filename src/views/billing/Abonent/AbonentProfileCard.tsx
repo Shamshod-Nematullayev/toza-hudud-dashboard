@@ -300,7 +300,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                 color={data && !data.phone ? 'error.main' : undefined}
                 isSkeleton={isLoading}
               />
-              <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={data?.homePhone || ''} isSkeleton={isLoading} />
+              <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={formatPhoneNumber(data?.homePhone || '')} isSkeleton={isLoading} />
               <InfoRow icon={SoatoIcon} label="Электр СОАТО" value={data?.electricityCoato} isSkeleton={isLoading} />
               <div ref={etkInfoRow}>
                 <InfoRow

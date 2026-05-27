@@ -1,4 +1,4 @@
-import { ClickAwayListener, Divider, List, ListItem, Menu, MenuItem, Paper, Popper, Stack } from '@mui/material';
+import { ClickAwayListener, Divider, List, ListItem, Menu, MenuItem, Paper, Popper, Stack, Tooltip } from '@mui/material';
 import { t } from 'i18next';
 import InfoChip from 'ui-component/InfoChip';
 import {
@@ -18,6 +18,9 @@ import { useAbonentStore } from './hooks/abonentStore';
 import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from '@mui/x-date-pickers';
 import { useAbonentLogic } from './hooks/useAbonentLogic';
+import { useReactToPrint } from 'react-to-print';
+import { reactToPrintDefaultOptions } from 'store/constant';
+import { AbonentCardView } from 'ui-component/cards/AbonentCardView';
 
 interface InfoChipsProps {
   period: string;
@@ -32,7 +35,8 @@ interface InfoChipsProps {
 
 function InfoChips(props: InfoChipsProps) {
   const { residentId } = useAbonentLogic();
-  const { balancePredicts, getIncomePredicts, setOpenIIBInhabitantsDialog } = useAbonentStore();
+  const { balancePredicts, getIncomePredicts, setOpenIIBInhabitantsDialog, getCardDetails, abonentDetails, cardDetails } =
+    useAbonentStore();
   const calculatorRef = useRef<any>(null);
   const [openCalc, setOpenCalc] = useState(false);
 
@@ -57,8 +61,29 @@ function InfoChips(props: InfoChipsProps) {
     }
   }, [toDate, openCalc]);
 
+  const printSectionRef = useRef(null);
+  const printAbonentCard = useReactToPrint({
+    ...reactToPrintDefaultOptions,
+    contentRef: printSectionRef
+  });
+
+  const handleClickIncomeChip = async () => {
+    const today = dayjs();
+    const format = 'MM.YYYY';
+    await getCardDetails({
+      lang: 'UZ',
+      periodFrom: today.format(format),
+      periodTo: today.format(format),
+      residentId: residentId
+    });
+    printAbonentCard();
+  };
+
   return (
     <Stack direction="row" spacing={1}>
+      <div style={{ display: 'none' }}>
+        {cardDetails && <AbonentCardView abonentDetails={abonentDetails} cardDetails={cardDetails} t={t} ref={printSectionRef} />}
+      </div>
       {/* Vaqt va Tarif guruhi */}
       <InfoChip icon={PeriodIcon} label={t('tableHeaders.period')} value={props.period} />
       <InfoChip icon={TariffIcon} label={t('tableHeaders.tariff')} value={props.tariff} />
@@ -77,7 +102,17 @@ function InfoChips(props: InfoChipsProps) {
 
       {/* Moliyaviy hisob-kitoblar */}
       <InfoChip icon={CalculatedIcon} label={t('tableHeaders.calculated')} value={props.calculated.toLocaleString('uz-Latn')} />
-      <InfoChip icon={IncomeIcon} label={t('tableHeaders.income')} value={props.payments.toLocaleString('uz-Latn')} />
+      <Tooltip title={'Joriy davrni chop etish'}>
+        <InfoChip
+          icon={IncomeIcon}
+          label={t('tableHeaders.income')}
+          value={props.payments.toLocaleString('uz-Latn')}
+          onClick={handleClickIncomeChip}
+          containerSX={{
+            cursor: 'pointer'
+          }}
+        />
+      </Tooltip>
 
       {/* Yakuniy holat */}
       <InfoChip

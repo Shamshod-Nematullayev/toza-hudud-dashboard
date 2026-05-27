@@ -9,7 +9,7 @@ interface Props {
   textFieldProps?: Omit<TextFieldProps, 'variant'>;
 }
 
-const PhoneInput = ({ value, onChange, textFieldProps }: Props) => {
+const PhoneInput = ({ value, onChange, textFieldProps, label }: Props) => {
   return (
     // @ts-ignore
     <PatternFormat
@@ -22,6 +22,7 @@ const PhoneInput = ({ value, onChange, textFieldProps }: Props) => {
         onChange(values.value); // Biz bazaga faqat 991872536 ni yuboramiz
       }}
       {...textFieldProps}
+      label={label}
       value={value}
     />
   );
