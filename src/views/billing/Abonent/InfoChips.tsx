@@ -89,8 +89,8 @@ function InfoChips(props: InfoChipsProps) {
       <InfoChip
         icon={YearEndIcon}
         label={t('tableHeaders.balanceToYearEnd')}
-        value={(props.balanceToYearEnd || 0).toLocaleString('uz-Latn')}
-        valueColor={props.balanceToYearEnd || 0 < 0 ? 'error.main' : 'success.main'}
+        value={Number(props.balanceToYearEnd).toLocaleString('uz-Latn')}
+        valueColor={Number(props.balanceToYearEnd) < 0 ? 'error.main' : 'success.main'}
         onClick={() => setOpenCalc(true)}
         containerSX={{
           cursor: 'pointer'
