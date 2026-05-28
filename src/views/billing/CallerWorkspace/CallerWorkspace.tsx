@@ -22,7 +22,12 @@ import {
   Menu,
   MenuItem
 } from '@mui/material';
-import { CheckCircle as SuccessIcon, Cancel as FailIcon, ErrorOutline as InfoIcon, Message as MessageIcon } from '@mui/icons-material';
+import {
+  CheckCircle as SuccessIcon,
+  Cancel as FailIcon,
+  ErrorOutlineOutlined as InfoIcon,
+  Message as MessageIcon
+} from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CallResult, createCallWarningsService, ICallStats, ICallWarning } from 'services/caller.service';
@@ -234,7 +239,6 @@ export const CallerWorkspace: React.FC = () => {
           </Grid>
         ))}
       </Grid>
-
       {/* Javobsiz qolgan qo'ng'iroqlar ro'yxati */}
       <Menu
         open={Boolean(anchorElUnansweredList)}
@@ -248,7 +252,6 @@ export const CallerWorkspace: React.FC = () => {
           </MenuItem>
         ))}
       </Menu>
-
       <Grid container spacing={2}>
         {/* 2. Main Work Area (70%) */}
         <Grid item xs={12} md={8}>

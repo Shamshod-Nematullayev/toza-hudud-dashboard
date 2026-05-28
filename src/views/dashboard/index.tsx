@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid';
 import { gridSpacing } from 'store/constant';
 import RadialChart from './RadialChart';
@@ -47,7 +47,7 @@ const Dashboard = () => {
   return (
     <Grid container spacing={gridSpacing}>
       {/* 1. ASOSIY STRATEGIK KARTALAR */}
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Grid container spacing={gridSpacing}>
           <StatCard
             title="Umumiy Iste'molchilar"
@@ -74,7 +74,7 @@ const Dashboard = () => {
       </Grid>
 
       {/* 2. ASOSIY GRAFIK PANEL (Dahshatli qism) */}
-      <Grid item xs={12} lg={8}>
+      <Grid size={{ xs: 12, lg: 8 }}>
         <Card
           sx={{
             p: 3,
@@ -88,8 +88,8 @@ const Dashboard = () => {
             Tizim Nazorati <IconChartBar size="1.5rem" style={{ verticalAlign: 'middle' }} />
           </Typography>
 
-          <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={6}>
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(33, 150, 243, 0.04)', borderRadius: '15px' }}>
                 <RadialChart isLoading={isLoading} progress={identityProcent || 51} label="Identifikatsiya" />
                 <Typography variant="caption" color="textSecondary">
@@ -97,7 +97,7 @@ const Dashboard = () => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 193, 7, 0.04)', borderRadius: '15px' }}>
                 <RadialChart isLoading={isLoading} progress={etkIdentityProcent || 45} label="ETK Tasdiq" />
                 <Typography variant="caption" color="textSecondary">
@@ -110,7 +110,7 @@ const Dashboard = () => {
       </Grid>
 
       {/* 3. TEZKOR PROGRESS PANEL */}
-      <Grid item xs={12} lg={4}>
+      <Grid size={{ xs: 12, lg: 4 }}>
         <Card sx={{ p: 3, height: '100%', borderRadius: '20px' }}>
           <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
             Haqiqiy vaqtda holat
@@ -136,7 +136,7 @@ interface PropsStatCard {
 }
 
 const StatCard = ({ title, count, icon, color, loading }: PropsStatCard) => (
-  <Grid item xs={12} sm={4}>
+  <Grid size={{ xs: 12, md: 4 }}>
     <Card
       sx={{
         p: 3,
@@ -160,8 +160,8 @@ const StatCard = ({ title, count, icon, color, loading }: PropsStatCard) => (
 
 const ProgressBlock = ({ label, value, color }: { label: string; value: number; color: 'primary' | 'secondary' | 'success' }) => (
   <Box>
-    <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-      <Typography variant="body2" fontWeight={600}>
+    <Stack direction="row" sx={{ mb: 1, justifyContent: 'space-between' }}>
+      <Typography variant="body2" sx={{ fontWeight: 600 }}>
         {label}
       </Typography>
       <Typography variant="body2" color="textSecondary">

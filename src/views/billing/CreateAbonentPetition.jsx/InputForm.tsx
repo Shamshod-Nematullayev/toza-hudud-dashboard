@@ -134,9 +134,9 @@ function InputForm() {
         </Grid>
         {aktType === 'gps' && (
           // <Grid item xs={4}>
-          <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
+          (<Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
             {t('buttons.addImage')}
-          </Button>
+          </Button>)
           // </Grid>
         )}
         <Grid item xs={6}>

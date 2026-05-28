@@ -178,8 +178,7 @@ function Inspectors() {
       />
       <Grid container spacing={1}>
         <Grid
-          item
-          xs={12}
+          size={{ xs: 12 }}
           sx={{
             button: {
               margin: '5px'
@@ -196,8 +195,7 @@ function Inspectors() {
           </Button>
         </Grid>
         <Grid
-          item
-          xs={2}
+          size={{ xs: 2 }}
           sx={{
             display: { xs: 'none', sm: 'block' }
           }}
@@ -220,7 +218,7 @@ function Inspectors() {
               ))}
           </List>
         </Grid>
-        <Grid item xs={12} sm={8}>
+        <Grid size={{ xs: 12, sm: 8 }}>
           <DataGrid
             rows={rows}
             columns={columns}
@@ -236,8 +234,7 @@ function Inspectors() {
           />
         </Grid>
         <Grid
-          item
-          xs={2}
+          size={{ xs: 2 }}
           sx={{
             display: { xs: 'none', sm: 'block' }
           }}

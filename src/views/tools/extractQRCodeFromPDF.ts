@@ -1,7 +1,7 @@
 export const extractQRCodeFromPDF = async (pdfData: Uint8Array, pageNumber: number | 'lastPage') => {
   const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
   const { default: jsQR } = await import('jsqr');
-  GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+  GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
   const loadingTask = getDocument({ data: pdfData });
   const pdfDoc = await loadingTask.promise;

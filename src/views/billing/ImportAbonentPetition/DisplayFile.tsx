@@ -4,7 +4,6 @@ import api from 'utils/api';
 import PdfViewer from '../AbonentPetition/PDFViewer';
 import useStore from './hooks/useStore';
 import { motion } from 'framer-motion';
-import { PictureAsPdfOutlined } from '@mui/icons-material';
 
 const blobToBase64 = (blob: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -36,11 +35,11 @@ function DisplayFile() {
   const theme = useTheme();
 
   return (
-    <Box position="relative" width="100%" height="100%" overflow="hidden">
+    <Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
       {hasFile ? (
         <PdfViewer base64String={currentFile?.url || ''} />
       ) : (
-        /* PDF Placeholder - So'zlarsiz vizual ko'rsatma */
+        /* PDF Placeholder - Vizual ko'rsatma */
         <Box
           sx={{
             flex: 1,
@@ -60,7 +59,7 @@ function DisplayFile() {
             initial={{ opacity: 0.3 }}
             animate={{ opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 2, repeat: Infinity }}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', width: '100%' }}
           >
             <motion.div
               initial={{ x: 0, opacity: 0.4 }}
@@ -85,14 +84,15 @@ function DisplayFile() {
                 }}
               />
             </motion.div>
-            {/* Header qismining vizual imitatsiyasi */}
-            <Stack direction="row" spacing={2} sx={{ width: '100%', px: 4 }}>
+
+            {/* Header imitatsiyasi - direction sx ichiga olindi */}
+            <Stack spacing={2} sx={{ direction: 'row', width: '100%', px: 4 }}>
               <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'action.hover' }} />
               <Box sx={{ width: 120, height: 40, borderRadius: 2, bgcolor: 'action.hover' }} />
               <Box sx={{ width: 200, height: 40, borderRadius: 2, bgcolor: 'action.hover', flex: 1 }} />
             </Stack>
 
-            {/* Markaziy belgi - Ro'yxatdan tanlash kerakligini bildiradi */}
+            {/* Markaziy belgi */}
             <Box sx={{ position: 'relative' }}>
               <Box
                 sx={{
@@ -136,7 +136,6 @@ function DisplayFile() {
                   }}
                 />
               </Box>
-              {/* Kichik "cursor" yoki "touch" belgisi imitatsiyasi */}
               <Box
                 sx={{
                   position: 'absolute',
@@ -152,7 +151,7 @@ function DisplayFile() {
               />
             </Box>
 
-            {/* Jadval qismining vizual imitatsiyasi (Skeleton) */}
+            {/* Skeleton qatorlari */}
             <Stack spacing={1.5} sx={{ width: '100%', px: 4 }}>
               {[...Array(4)].map((_, i) => (
                 <Box
@@ -162,7 +161,7 @@ function DisplayFile() {
                     height: 30,
                     borderRadius: 1,
                     bgcolor: 'action.hover',
-                    opacity: 1 - i * 0.2 // Pastga qarab xiralashish
+                    opacity: 1 - i * 0.2
                   }}
                 />
               ))}
@@ -170,18 +169,20 @@ function DisplayFile() {
           </motion.div>
         </Box>
       )}
+
+      {/* Rasmlar paneli */}
       {hasPhotos && (
         <Box
-          position="absolute"
-          bottom={0}
-          left={0}
-          right={0}
           sx={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
             transform: isOpen ? 'translateY(-10px)' : 'translateY(100px)',
             transition: 'transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)'
           }}
         >
-          {/* Handle */}
+          {/* Handle panel */}
           <Box
             onClick={() => setIsOpen((p) => !p)}
             sx={{
@@ -196,8 +197,7 @@ function DisplayFile() {
               cursor: 'pointer'
             }}
           >
-            <Box display="flex" alignItems="center" gap={1}>
-              {/* icon + label */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>Rasmlar</span>
               <span
                 style={{
@@ -223,7 +223,7 @@ function DisplayFile() {
             </span>
           </Box>
 
-          {/* Grid */}
+          {/* CSS Grid qismi endi to'liq MUI Box sx tizimiga o'tkazildi */}
           <Box
             sx={{
               background: 'rgba(20,20,20,0.95)',
@@ -260,8 +260,15 @@ function DisplayFile() {
       {lightboxSrc && (
         <Box
           onClick={() => setLightboxSrc(null)}
-          position="absolute"
-          sx={{ inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100
+          }}
         >
           <img
             src={lightboxSrc}

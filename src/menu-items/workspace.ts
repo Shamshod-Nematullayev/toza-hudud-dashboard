@@ -3,7 +3,7 @@ import ImportantDevicesOutlinedIcon from '@mui/icons-material/ImportantDevicesOu
 import CalculateIcon from '@mui/icons-material/CalculateOutlined';
 import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOnOutlined';
 import BookIcon from '@mui/icons-material/BookOutlined';
-import MailIcon from '@mui/icons-material/MailOutline';
+import MailIcon from '@mui/icons-material/MailOutlineOutlined';
 import GavelIcon from '@mui/icons-material/GavelOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
@@ -192,10 +192,10 @@ const billing: MenuItem = {
       allowedRoles: ['admin', 'billing']
     },
     {
-      id: 'etkKodRequests',
-      title: 'etkKodRequests',
+      id: 'debitors',
+      title: 'debitors',
       type: 'item',
-      url: '/billing/etkKodRequests',
+      url: '/billing/debitors',
       icon: icons.ElectricBolt,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']

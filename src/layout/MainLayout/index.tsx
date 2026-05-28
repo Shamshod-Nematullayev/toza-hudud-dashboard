@@ -150,7 +150,7 @@ const MainLayout = () => {
 
       {/* main content */}
       {/* @ts-ignore */}
-      <Main theme={theme} open={leftDrawerOpened}>
+      <Main open={leftDrawerOpened}>
         {/* breadcrumb */}
         {/* @ts-ignore */}
         <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />

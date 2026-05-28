@@ -31,7 +31,7 @@ import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
 import Folders from 'views/billing/Folders';
-import EtkKodRequests from 'views/billing/EtkKodRequests';
+import Debitors from 'views/billing/Debitors';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
 import Abonent from 'views/billing/Abonent/Abonent';
@@ -193,8 +193,8 @@ const MainRoutes: MainRoutesProps = {
           element: <PendingNewAbonents />
         },
         {
-          path: 'etkKodRequests',
-          element: <EtkKodRequests />
+          path: 'debitors',
+          element: <Debitors />
         },
         {
           path: 'blanks',

@@ -4,6 +4,7 @@ import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
 import CancelDialog from './CancelDialog';
 import DisplayFile from './DisplayFile';
+// Grid va boshqa komponentlar yangi standartda
 import { Box, Button, Chip, Grid, TextField } from '@mui/material';
 import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
 import { useUiStore } from './hooks/useUiStore';
@@ -45,18 +46,18 @@ function ImportAbonentPetition() {
 
   return (
     <MainCard contentSX={{ minHeight: 'calc(100vh - 130px)', position: 'relative' }}>
+      {/* Konteyner o'zgarishsiz qoladi, lekin ichi tozalandi */}
       <Grid container spacing={2}>
-        {/* <Grid item xs={12}>
-          <HeaderImportAbonentPetition />
-        </Grid> */}
+        {/* 1. Fayllar ro'yxati ustuni */}
         {!isOnlyFileDrop && (
-          <Grid item xs={1.5}>
+          <Grid size={{ xs: 1.5 }}>
             <FilesList />
           </Grid>
         )}
+
+        {/* 2. Dinamik o'lchamli PDF Ko'rsatuvchi/Drop ustun */}
         <Grid
-          item
-          xs={pdfFiles.length === 0 ? 12 : 4.5}
+          size={{ xs: pdfFiles.length === 0 ? 12 : 4.5 }}
           sx={{ position: 'relative', minHeight: 'calc(100vh - 130px)', maxHeight: 'calc(100vh - 130px)' }}
         >
           {pdfFileLoading && (
@@ -76,18 +77,21 @@ function ImportAbonentPetition() {
               <CustomAtomLoader />
             </Box>
           )}
-          {pdfFiles.length == 0 ? (
+          {pdfFiles.length === 0 ? (
             <FileInputDrop clearTrigger={pdfFiles.length > 0} setFiles={handleChangeFiles} fileType="pdf" />
           ) : (
             <DisplayFile />
           )}
         </Grid>
+
+        {/* 3. Topilgan ma'lumotlar jadvali ustuni */}
         {!isOnlyFileDrop && (
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <FindedDataTable />
           </Grid>
         )}
       </Grid>
+
       <CancelDialog showDialog={showDialog} setShowDialog={setShowDialog} />
     </MainCard>
   );

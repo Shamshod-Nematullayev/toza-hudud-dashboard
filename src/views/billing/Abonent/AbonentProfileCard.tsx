@@ -27,7 +27,7 @@ import {
   MapOutlined as CadastreIcon,
   HistoryOutlined as OldAccountIcon,
   EventAvailableOutlined as DateIcon,
-  ErrorOutline as WarningIcon,
+  ErrorOutlineOutlined as WarningIcon,
   ContentCopy,
   BusinessOutlined as CompanyIcon,
   LocationOnOutlined as AddressIcon,

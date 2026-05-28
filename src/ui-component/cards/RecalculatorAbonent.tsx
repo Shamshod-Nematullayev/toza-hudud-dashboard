@@ -1,11 +1,10 @@
-import { DatePicker } from '@mui/x-date-pickers';
 import React, { useEffect, useState } from 'react';
+import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uz-latn';
 import { Grid, IconButton, Button, Tooltip, Typography, Stack, Box, Chip, Paper, Divider } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';

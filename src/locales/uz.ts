@@ -88,7 +88,7 @@ const uz = {
     gpsDalolatnomalar: 'GPS dalolatnomalar',
     importActs: 'Aktlarni import qilish',
     folders: 'Papkalar',
-    etkKodRequests: 'ETK kiritish talablar',
+    debitors: 'Debitorlar',
     visitsGraph: 'Tashriflar grafiki',
     mahallas: 'Mahallalar',
     'sms-warnings': 'SMS ogohlantirishlar',

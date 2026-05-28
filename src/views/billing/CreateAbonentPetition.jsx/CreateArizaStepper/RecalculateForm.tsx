@@ -29,13 +29,12 @@ function RecalculateForm() {
         <Box height={'100%'}>
           {actsCanChangeInhabitants.includes(aktType) ? (
             // Yashovchi soni o'zgaratigan aktlar uchun
-            <>
+            (<>
               <TextField
                 label={t('tableHeaders.nextInhabitantCount')}
                 value={yashovchiSoniInput}
                 onChange={(e) => setYashovchiSoniInput(e.target.value)}
               />
-
               <Box>
                 <FormControl sx={{ my: 2 }}>
                   <RadioGroup
@@ -118,12 +117,12 @@ function RecalculateForm() {
                   </FormControl>
                 </Box>
               )}
-            </>
+            </>)
           ) : aktType === 'viza' ? (
             // Pasport vizasi yoki boshqa xujjatlari asosida faqat qayta hisob kitob qilinadigan aktlar uchun
-            <>
+            (<>
               <RecalculatorAbonent />
-            </>
+            </>)
           ) : (
             ''
           )}

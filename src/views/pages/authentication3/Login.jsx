@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutlineOutlined';
 import { LockOpenOutlined, LockOutlined } from '@mui/icons-material';
 import api from 'utils/api';
 import { toast } from 'react-toastify';

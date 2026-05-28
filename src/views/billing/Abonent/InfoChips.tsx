@@ -8,7 +8,7 @@ import {
   ReceiptLongOutlined as TariffIcon, // Tarif
   CalculateOutlined as CalculatedIcon, // Hisoblangan (Nachisleniye)
   AccountBalanceWalletOutlined as IncomeIcon, // Tushum (Payments)
-  PieChartOutline as BalanceIcon, // Balans
+  PieChartOutlineOutlined as BalanceIcon, // Balans
   EventRepeatOutlined as YearEndIcon // Yil oxiri balansi
 } from '@mui/icons-material';
 import { useEffect, useRef, useState } from 'react';

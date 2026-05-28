@@ -30,7 +30,7 @@ function HeaderImportAbonentPetition() {
         </Button>
         {enteringMode === 'ariza' ? (
           // PDF rejimi QR kod orqali olish
-          <Chip label="Ariza rejimi" color="primary" />
+          (<Chip label="Ariza rejimi" color="primary" />)
         ) : (
           <Chip label="Qo'lda kiritish rejimi" color="secondary" />
         )}

@@ -124,7 +124,6 @@ export const CreateCallModal = () => {
           </TextField>
         </Stack>
       </DialogContent>
-
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={handleClose} color="inherit">
           Bekor qilish

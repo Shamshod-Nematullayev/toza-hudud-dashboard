@@ -1,91 +1,50 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createGlobalStyle } from 'styled-components';
+// styled-components o'rniga MUI o'ziniki import qilindi
+import { styled, Stack, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Stack, Typography } from '@mui/material';
 import { CloudUpload } from '@mui/icons-material';
 
-const GlobalStyles = createGlobalStyle`
-  .drop-zone {
-    width: 100%;
-    height: 100%;
-    padding: 48px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
+// MUIning o'z dynamic styled komponenti - theme xavfsiz va kafolatlangan!
+const StyledDropZone = styled('label')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  padding: '48px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '12px',
+  textAlign: 'center',
+  fontFamily: '"Inter", sans-serif',
+  fontWeight: 500,
+  fontSize: '18px',
+  cursor: 'pointer',
+  borderRadius: '20px',
+  color: theme.palette.text.secondary,
+  background:
+    theme.palette.mode === 'dark'
+      ? `linear-gradient(145deg, ${theme.palette.background.paper}, ${theme.palette.background.default})`
+      : `linear-gradient(145deg, #ffffff, ${theme.palette.grey[100]})`,
+  border: `2px dashed ${theme.palette.primary.main}`,
+  transition: 'all 0.3s ease',
 
-    text-align: center;
-    font-family: "Inter", sans-serif;
-    font-weight: 500;
-    font-size: 18px;
+  '&:hover': {
+    transform: 'translateY(-3px)',
+    background: theme.palette.action.hover,
+    boxShadow: `0 12px 30px ${theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.1)'}`
+  },
 
-    cursor: pointer;
-    border-radius: 20px;
+  '&.drop-zone--over': {
+    borderStyle: 'solid',
+    borderColor: theme.palette.primary.dark,
+    boxShadow: `0 0 0 4px ${theme.palette.primary.main}33`
+  },
 
-    color: ${({ theme }) => theme.palette.text.secondary};
-
-    background: ${({ theme }) =>
-      theme.palette.mode === 'dark'
-        ? `linear-gradient(145deg, ${theme.palette.background.paper}, ${theme.palette.background.default})`
-        : `linear-gradient(145deg, #ffffff, ${theme.palette.grey[100]})`};
-
-    border: 2px dashed ${({ theme }) => theme.palette.primary.main};
-
-    transition: all 0.3s ease;
+  '& .drop-zone__input': {
+    display: 'none'
   }
-
-  .drop-zone:hover {
-    transform: translateY(-3px);
-    background: ${({ theme }) => theme.palette.action.hover};
-    box-shadow: 0 12px 30px
-      ${({ theme }) => (theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.1)')};
-  }
-
-  .drop-zone--over {
-    border-style: solid;
-    border-color: ${({ theme }) => theme.palette.primary.dark};
-    box-shadow: 0 0 0 4px
-      ${({ theme }) => theme.palette.primary.main}33;
-  }
-
-  .drop-zone__input {
-    display: none;
-  }
-
-  .drop-zone__thumb {
-    width: 100%;
-    height: 100%;
-    border-radius: 16px;
-    overflow: hidden;
-
-    background-color: ${({ theme }) => theme.palette.background.default};
-    background-size: cover;
-    background-position: center;
-
-    position: relative;
-  }
-
-  .drop-zone__thumb::after {
-    content: attr(data-label);
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-
-    padding: 12px 0;
-    font-size: 13px;
-    font-weight: 500;
-
-    color: #fff;
-
-    background: ${({ theme }) =>
-      theme.palette.mode === 'dark'
-        ? 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)'
-        : 'linear-gradient(to top, rgba(0,0,0,0.65), transparent)'};
-  }
-`;
+}));
 
 function FileInputDrop({
   setFiles,
@@ -99,18 +58,21 @@ function FileInputDrop({
   const dropZoneRef = useRef<HTMLLabelElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
-  const [label, setLabel] = useState('PDF ' + t('Drop your files'));
+  const [label, setLabel] = useState(fileType === 'pdf' ? 'PDF ' + t('Drop your files') : 'Excel ' + t('Drop your files'));
+
   useEffect(() => {
     if (clearTrigger) {
       handleClear();
     }
   }, [clearTrigger]);
+
   const handleClear = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''; // Inputni tozalash
+      fileInputRef.current.value = '';
     }
     setLabel(fileType === 'pdf' ? 'PDF ' + t('Drop your files') : 'Excel ' + t('Drop your files'));
   };
+
   const updateThumbnail = useCallback((file: File) => {
     if (!file) return;
     setLabel(file.name);
@@ -136,49 +98,55 @@ function FileInputDrop({
     const dropZone = dropZoneRef.current;
     if (!dropZone) return;
 
-    dropZone.addEventListener('dragover', (e) => {
+    const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
       dropZone.classList.add('drop-zone--over');
-    });
+    };
 
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone--over'));
+    const handleDragLeave = () => {
+      dropZone.classList.remove('drop-zone--over');
+    };
+
+    dropZone.addEventListener('dragover', handleDragOver);
+    dropZone.addEventListener('dragleave', handleDragLeave);
     dropZone.addEventListener('drop', handleDrop);
 
     return () => {
-      dropZone.removeEventListener('dragover', (e) => e.preventDefault());
-      dropZone.removeEventListener('dragleave', () => dropZone.classList.remove('drop-zone--over'));
+      dropZone.removeEventListener('dragover', handleDragOver);
+      dropZone.removeEventListener('dragleave', handleDragLeave);
       dropZone.removeEventListener('drop', handleDrop);
     };
   }, [handleDrop]);
 
   return (
-    <>
-      <GlobalStyles />
-      <label className="drop-zone" ref={dropZoneRef}>
-        <input
-          type="file"
-          className="drop-zone__input"
-          ref={fileInputRef}
-          accept={fileType === 'pdf' ? '".pdf"' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
-          onChange={(e) => {
-            if (e.target.files) updateThumbnail(e.target.files[0]);
-            setFiles(e.target.files);
-          }}
-        />
-        {/* <div className="drop-zone__prompt">{label}</div> */}
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <Stack alignItems="center" spacing={2}>
-            <CloudUpload sx={{ fontSize: 80, color: 'primary.main', opacity: 0.5 }} />
-            <Typography variant="h4" color="text.secondary">
-              {t('Hech qanday PDF yuklanmagan')}
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {t('Davom etish uchun PDF fayl(lar)ni tizimga kiriting')}
-            </Typography>
-          </Stack>
-        </motion.div>
-      </label>
-    </>
+    <StyledDropZone ref={dropZoneRef}>
+      <input
+        type="file"
+        className="drop-zone__input"
+        ref={fileInputRef}
+        accept={fileType === 'pdf' ? '.pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            updateThumbnail(e.target.files[0]);
+          }
+          setFiles(e.target.files);
+        }}
+      />
+
+      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+        <Stack sx={{ alignItems: 'center', direction: 'column' }} spacing={2}>
+          <CloudUpload sx={{ fontSize: 80, color: 'primary.main', opacity: 0.5 }} />
+          <Typography variant="h4" color="text.secondary">
+            {label}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            {fileType === 'pdf'
+              ? t('Davom etish uchun PDF fayl(lar)ni tizimga kiriting')
+              : t('Davom etish uchun Excel faylni tizimga kiriting')}
+          </Typography>
+        </Stack>
+      </motion.div>
+    </StyledDropZone>
   );
 }
 

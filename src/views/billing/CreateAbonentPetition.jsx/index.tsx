@@ -66,7 +66,7 @@ function CreateAbonentPetition() {
         {/* <Grid item xs={12}>
           <CreateArizaStepperForm />
         </Grid> */}
-        <Grid item xs={12} sm={3} sx={{ gap: '10px' }}>
+        <Grid component={'div'} size={{ xs: 12, sm: 3 }} sx={{ gap: '10px' }}>
           <InputForm />
           <Card sx={{ position: 'relative', p: 1, m: '10px 0' }}>
             <TextField
@@ -76,30 +76,32 @@ function CreateAbonentPetition() {
               label={t('Abonent karta olish')}
               value={ui.globalAbonentAccountNumber}
               onChange={(e) => setGlobalAbonentAccountNumber(e.target.value)}
-              InputProps={{
-                disableUnderline: true,
-                sx: { ml: 1, flex: 1, fontSize: '0.95rem' },
-                endAdornment: (
-                  <IconButton
-                    onClick={() => setAbonentCardOpenState(true)}
-                    size="small"
-                    sx={{
-                      color: 'primary.main'
-                    }}
-                  >
-                    <Search fontSize="small" />
-                  </IconButton>
-                )
+              slotProps={{
+                input: {
+                  disableUnderline: true,
+                  sx: { ml: 1, flex: 1, fontSize: '0.95rem' },
+                  endAdornment: (
+                    <IconButton
+                      onClick={() => setAbonentCardOpenState(true)}
+                      size="small"
+                      sx={{
+                        color: 'primary.main'
+                      }}
+                    >
+                      <Search fontSize="small" />
+                    </IconButton>
+                  )
+                }
               }}
             />
           </Card>
         </Grid>
-        <Grid item xs={12} sm={4} sx={{ height: '100%' }}>
+        <Grid component={'div'} size={{ xs: 12, sm: 4 }} sx={{ height: '100%' }}>
           <Card sx={{ height: '100%', boxShadow: 5, borderRadius: 4, padding: 2, background: 'divider' }}>
             {aktType === 'dvaynik' ? <DHJTable abonentData={abonentData2} /> : <Recalculate />}
           </Card>
         </Grid>
-        <Grid item xs={12} sm={5} sx={{ height: '100%' }}>
+        <Grid component={'div'} size={{ xs: 12, sm: 5 }} sx={{ height: '100%' }}>
           <Card sx={{ height: '100%', boxShadow: 5, borderRadius: 4, padding: 2, background: 'divider' }}>
             <DHJTable abonentData={abonentData} />
           </Card>

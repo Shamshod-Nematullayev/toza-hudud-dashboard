@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Grid, IconButton, TextField } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { DoneOutline, Delete, DeleteOutline, DoneAllOutlined, Refresh } from '@mui/icons-material';
+import { DoneOutlineOutlined, Delete, DeleteOutlineOutlined, DoneAllOutlined, Refresh } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 

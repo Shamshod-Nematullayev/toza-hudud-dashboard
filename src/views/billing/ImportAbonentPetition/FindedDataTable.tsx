@@ -190,7 +190,7 @@ function FindedDataTable() {
           transition={{ duration: 0.6 }}
           style={{ textAlign: 'center', zIndex: 3 }}
         >
-          <Stack alignItems="center" spacing={3}>
+          <Stack sx={{ alignItems: 'center' }} spacing={3}>
             {/* Markaziy Ramz */}
             <Box
               sx={{
@@ -210,7 +210,7 @@ function FindedDataTable() {
 
             {/* Matnli muloqot */}
             <Box>
-              <Typography variant="h4" fontWeight="600" color="text.primary" gutterBottom>
+              <Typography variant="h4" sx={{ fontWeight: 600 }} color="text.primary" gutterBottom>
                 {t('Fayl tanlanmagan')}
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 300, mx: 'auto' }}>
@@ -278,7 +278,7 @@ function FindedDataTable() {
           transition={{ duration: 0.4 }}
           style={{ width: '100%', maxWidth: 450 }}
         >
-          <Stack spacing={4} alignItems="center">
+          <Stack spacing={4} sx={{ alignItems: 'center' }}>
             {/* Skanerlash xatosi ramzi */}
             <Box sx={{ position: 'relative' }}>
               <Box
@@ -310,8 +310,8 @@ function FindedDataTable() {
               />
             </Box>
 
-            <Box textAlign="center">
-              <Typography variant="h3" fontWeight="700" color="text.primary" gutterBottom>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h3" sx={{ fontWeight: 700 }} color="text.primary" gutterBottom>
                 {t('Hujjat topilmadi')}
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -336,12 +336,14 @@ function FindedDataTable() {
                     onChange={(e) => setArizaNumberInput(e.target.value)}
                     autoFocus
                     placeholder="Masalan: 123456"
-                    InputProps={{
-                      endAdornment: (
-                        <IconButton color="primary" onClick={handleClickRefreshButton}>
-                          <RefreshOutlinedIcon />
-                        </IconButton>
-                      )
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <IconButton color="primary" onClick={handleClickRefreshButton}>
+                            <RefreshOutlinedIcon />
+                          </IconButton>
+                        )
+                      }
                     }}
                     ref={btnRef}
                   />
@@ -422,7 +424,7 @@ function FindedDataTable() {
                 <Typography variant="caption" color="text.disabled" sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>
                   {t('tableHeaders.accountNumber')}
                 </Typography>
-                <Typography variant="h5" fontWeight="700">
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>
                   {hasValidAriza(ariza as IAriza | null)
                     ? ariza?.document_type === 'dvaynik'
                       ? `${ariza?.licshet} : ${ariza?.ikkilamchi_licshet}`
@@ -435,7 +437,7 @@ function FindedDataTable() {
                 <Typography variant="caption" color="text.disabled" sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>
                   {t('tableHeaders.fullName')}
                 </Typography>
-                <Typography variant="h5" fontWeight="600" sx={{ color: 'primary.main' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: 'primary.main' }}>
                   {hasValidAriza(ariza as IAriza | null) ? ariza?.fio || '' : abonentData?.fullName || '—'}
                 </Typography>
               </Box>
@@ -524,7 +526,11 @@ function FindedDataTable() {
               overflow: 'auto'
             }}
           >
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} flexWrap="nowrap">
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              sx={{ alignItems: { xs: 'flex-start', sm: 'center', flexWrap: 'nowrap' } }}
+            >
               <AccountNumberInput
                 size="small"
                 label={t('tableHeaders.accountNumber')}
@@ -613,17 +619,17 @@ function FindedDataTable() {
             },
             { label: 'Yaratilgan sana', value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—' }
           ].map((item, index) => (
-            <Stack key={index} direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+            <Stack key={index} sx={{ justifyContent: 'space-between', mb: 0.5 }} direction="row">
               <Typography variant="body2" color="text.secondary">
                 {item.label}
               </Typography>
-              <Typography variant="body2" fontWeight="700">
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
                 {item.value}
               </Typography>
             </Stack>
           ))}
 
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+          <Stack direction="row" sx={{ mb: 0.5, alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography variant="body2" color="text.secondary">
               Holat
             </Typography>
@@ -642,11 +648,11 @@ function FindedDataTable() {
             </Box>
           </Stack>
 
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+          <Stack direction="row" sx={{ mt: 1, justifyContent: 'space-between' }}>
             <Typography variant="body2" color="text.secondary">
               Akt summa
             </Typography>
-            <Typography variant="body2" fontWeight="700" sx={{ borderBottom: '1px dotted', borderColor: 'divider' }}>
+            <Typography variant="body2" sx={{ borderBottom: '1px dotted', borderColor: 'divider', fontWeight: 700 }}>
               {aktSumEditing ? (
                 <TextField
                   size="small"
@@ -669,7 +675,7 @@ function FindedDataTable() {
         {/* 3. Jadval */}
 
         <Box sx={{ height: '55vh', width: '100%' }}>
-          <Stack direction="row" justifyContent={'space-between'} spacing={1} sx={{ mb: 1 }}>
+          <Stack direction="row" spacing={1} sx={{ mb: 1, justifyContent: 'space-between' }}>
             <Tabs value={tabIndex} onChange={handleTabChange} sx={{ minHeight: 40, mb: '5px' }}>
               <Tab label="Asosiy jadval" sx={{ textTransform: 'none' }} />
               <Tab label="Qo'shimcha" sx={{ textTransform: 'none' }} />

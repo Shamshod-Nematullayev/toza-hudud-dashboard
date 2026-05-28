@@ -81,7 +81,10 @@ export function useServerDataGrid<T>(
         });
 
         setRows(
-          res.data.map((r, idx) => ({ ...r, id: (r as any).id ?? `${paginationModel.page * paginationModel.pageSize + idx + 1}` }) as T)
+          res.data.map((r, idx) => (({
+            ...r,
+            id: (r as any).id ?? `${paginationModel.page * paginationModel.pageSize + idx + 1}`
+          }) as T))
         );
         setRowCount(res.meta.total);
       } catch (err) {

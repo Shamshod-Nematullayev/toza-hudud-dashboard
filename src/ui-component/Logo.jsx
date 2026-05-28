@@ -31,9 +31,8 @@ const Logo = ({ style, imgSize }) => {
         ...style
       }}
     >
-      <img src={logo} alt="Berry" width={imgSize || '50'} />
-      GreenZone
-    </h2>
+      <img src={logo} alt="Berry" width={imgSize || '50'} />GreenZone
+          </h2>
   );
 };
 
