@@ -3,20 +3,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import PrintIcon from '@mui/icons-material/PrintOutlined';
 
-import {
-  Backdrop,
-  Card,
-  CardContent,
-  CircularProgress,
-  Divider,
-  Grid,
-  IconButton,
-  List,
-  ListItem,
-  Popper,
-  Typography,
-  useMediaQuery
-} from '@mui/material';
+import { Card, CardContent, Grid, IconButton, List, ListItem, Typography } from '@mui/material';
 import api from 'utils/api';
 import useCustomizationStore from 'store/customizationStore';
 import { createGlobalStyle } from 'styled-components';
@@ -51,9 +38,8 @@ table {
 `;
 
 function PrintAbonentsList() {
-  const { minSaldo, maxSaldo, setAbonents, selectedMahalla, setSelectedMahalla, mahallas, setMahallas, onlyNotIdentited, etkStatus } =
-    useStore();
-  const { isLoading, setIsLoading } = useLoaderStore();
+  const { minSaldo, maxSaldo, setAbonents, selectedMahalla, setSelectedMahalla, mahallas, setMahallas } = useStore();
+  const { setIsLoading } = useLoaderStore();
   const { customization } = useCustomizationStore();
   const printContentRef = useRef(null);
   const [filters, setFilters] = useState({
@@ -115,10 +101,10 @@ function PrintAbonentsList() {
     <MainCard sx={{ height: 'calc(100vh - 120px)' }}>
       <CustomStyle />
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Header printContentRef={printContentRef} getAbonents={getAbonents} filters={filters} setFilters={setFilters} />
         </Grid>
-        <Grid item sx={{ display: { xs: 'none', md: 'block' } }} sm={2}>
+        <Grid sx={{ display: { xs: 'none', md: 'block' } }} size={2}>
           <Typography sx={{ fontWeight: '700' }}>Topshirilishi kerak</Typography>
           <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto' }}>
             {mahallas
@@ -137,15 +123,15 @@ function PrintAbonentsList() {
               ))}
           </List>
         </Grid>
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card sx={{ boxShadow: '5', height: 'calc(100vh - 180px)', overflow: 'auto' }}>
             <CardContent sx={{ position: 'relative' }}>
               <PrintSection printContentRef={printContentRef} />
             </CardContent>
           </Card>
         </Grid>
-        <Grid item sx={{ display: { xs: 'none', md: 'block' }, height: '100%' }} sm={2}>
-          <Typography sx={{ fontWeight: '700' }}>Ro'yxati topshirilgan</Typography>
+        <Grid sx={{ display: { xs: 'none', md: 'block' }, height: '100%' }} size={2}>
+          <Typography sx={{ fontWeight: '700' }}>Ro&apos;yxati topshirilgan</Typography>
           <List sx={{ margin: '0 25px 0 0', height: '95%', overflow: 'auto' }}>
             {mahallas
               .filter((mfy) => mfy.reja > 0 && mfy.abarotka_berildi)

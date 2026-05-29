@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
-  Grid,
+  Grid, // MUI v9 standartidagi yangilangan Grid komponenti
   Paper,
   Typography,
   Button,
@@ -65,22 +65,15 @@ export const CallerWorkspace: React.FC = () => {
 
   // Skriptlar ro'yxati
   const SCRIPTS = {
-    // 1. Yumshoq eslatma (Dastlabki aloqa)
     POLITE: `Assalomu alaykum, ${abonentDetails?.fullName}! Siz bilan maishiy chiqindilarni olib chiqib ketish xizmatidan bog'lanyapmiz. Monitoring natijasida hisobingizda ${abonentDetails?.balance.kSaldo.toLocaleString()} so'm qarzdorlik borligi aniqlandi. To'lovni yaqin orada amalga oshirish imkoningiz bormi?`,
-
-    // 2. Jiddiy talab (Ikkinchi bosqich)
     DEMAND: `Assalomu alaykum, ${abonentDetails?.fullName}. Sizga maishiy chiqindi xizmatidan mavjud ${abonentDetails?.balance.kSaldo.toLocaleString()} so'm qarzdorlik bo'yicha avval ham eslatma berilgan edi. Agarda bugun kun yakuniga qadar to'lov amalga oshirilmasa, qarzdorlik majburiy tartibda undirish uchun tegishli organlarga yuboriladi.`,
-
-    // 3. Rasmiy ogohlantirish (Eng yuqori bosqich - Sizning namunangiz asosida)
-    WARNING: `Assalomu alaykum, ${abonentDetails?.fullName} siz bo'lasizmi? Sizning maishiy chiqindi to'lovlaridan ${abonentDetails?.balance.kSaldo.toLocaleString()} so'm qarzdorligingiz mavjud. Agarda 5 ish kuni ichida ushbu qarzdorlik bartaraf etilmasa, amaldagi qonunchilikka asosan elektr energiyasi yetkazib berishga cheklov qo'yilishi haqida rasman ogohlantiramiz.`
+    WARNING: `Assalomu alaykum, ${abonentDetails?.fullName} siz bo'lasizmi? Sizning maishiy chiqindi to'lovlaridan ${abonentDetails?.balance.kSaldo.toLocaleString()} so'm qarzdorligingiz mutable. Agarda 5 ish kuni ichida ushbu qarzdorlik bartaraf etilmasa, amaldagi qonunchilikka asosan elektr energiyasi yetkazib berishga cheklov qo'yilishi haqida rasman ogohlantiramiz.`
   };
 
-  // Umumiy yordamchi funksiya - Tafsilotlarni olish uchun
   const updateAbonentInfo = async (residentId: number) => {
     await getDetails(residentId);
     const periodYearEnd = dayjs().endOf('year').format('MM.YYYY');
 
-    // Yil oxirigacha balansni bashorat qilish uchun
     await getIncomePredicts(residentId, periodYearEnd);
 
     const balanceYearEnd = useAbonentStore.getState().balancePredicts?.balancePredictItems.find((b) => b.period === periodYearEnd);
@@ -100,7 +93,6 @@ export const CallerWorkspace: React.FC = () => {
         const errorMsg = error?.response?.data?.message;
         const content = error?.response?.data?.content;
 
-        // 1-holat: Tugallanmagan vazifa
         if (errorMsg === 'Sizda tugallanmagan vazifa bor') {
           if (content?._id !== id) {
             toast.error(errorMsg);
@@ -109,13 +101,9 @@ export const CallerWorkspace: React.FC = () => {
             await updateAbonentInfo(content.residentId);
             setData(content);
           }
-        }
-        // 2-holat: Abonent band yoki holati o'zgargan
-        else if (errorMsg === "Bu abonent allaqachon band qilingan yoki holati o'zgargan.") {
+        } else if (errorMsg === "Bu abonent allaqachon band qilingan yoki holati o'zgargan.") {
           await handleGoNext();
-        }
-        // Qolgan xatoliklar
-        else {
+        } else {
           console.error("Ma'lumot olishda xato:", error);
           toast.error(errorMsg || "Noma'lum xatolik");
         }
@@ -128,14 +116,12 @@ export const CallerWorkspace: React.FC = () => {
 
     async function fetchStats() {
       const data = await callerService.getDailyStats(dayjs().startOf('day').toISOString(), dayjs().toISOString(), 'daily');
-
       setTodayStats(data.content);
       callerService.getOperatorStats(dayjs().startOf('month').toISOString(), dayjs().endOf('month').toISOString());
     }
     fetchStats();
   }, [id]);
 
-  // Keyingisiga o'tish logikasini alohida funksiyaga chiqaramiz
   const handleGoNext = async () => {
     try {
       const next = await callerService.getNext();
@@ -153,7 +139,6 @@ export const CallerWorkspace: React.FC = () => {
     }
   };
 
-  // 2. Natijani saqlash va keyingisiga o'tish
   const handleAction = async (status: CallResult) => {
     try {
       setSubmitting(true);
@@ -181,7 +166,6 @@ export const CallerWorkspace: React.FC = () => {
     setAnchorElUnansweredList(null);
   };
 
-  // Unanswered ro'yxatini olish react query usuli
   const { data: unansweredList, mutate } = useGetUnansweredList();
   useEffect(() => {
     mutate();
@@ -197,7 +181,7 @@ export const CallerWorkspace: React.FC = () => {
 
   return (
     <Box sx={{ p: 2, bgcolor: 'background.default', transition: '0.3s' }}>
-      {/* 1. Header: Statistika (Ranglar va ko'rinish light modeda to'g'rilandi) */}
+      {/* 1. Header: Statistika paneli */}
       <Grid container spacing={1.5} sx={{ mb: 2 }}>
         {[
           {
@@ -216,7 +200,7 @@ export const CallerWorkspace: React.FC = () => {
           },
           { label: "Noto'g'ri raqam", val: todayStats.summary.rejected, color: 'error.main', bg: 'error.light' }
         ].map((stat) => (
-          <Grid item xs={6} md={3} key={stat.label}>
+          <Grid size={{ xs: 6, md: 3 }} key={stat.label}>
             <Paper
               variant="outlined"
               sx={{
@@ -239,6 +223,7 @@ export const CallerWorkspace: React.FC = () => {
           </Grid>
         ))}
       </Grid>
+
       {/* Javobsiz qolgan qo'ng'iroqlar ro'yxati */}
       <Menu
         open={Boolean(anchorElUnansweredList)}
@@ -252,14 +237,14 @@ export const CallerWorkspace: React.FC = () => {
           </MenuItem>
         ))}
       </Menu>
+
       <Grid container spacing={2}>
-        {/* 2. Main Work Area (70%) */}
-        <Grid item xs={12} md={8}>
+        {/* 2. Asosiy ishchi maydon (70%) */}
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3, borderRadius: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  {/* Hisob raqami o'qishga qulay bo'lishi uchun bo'shliqlar bilan (4-4-4 formatida) */}
                   <Typography variant="caption" color="secondary" sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
                     ID: #{abonentDetails?.id} — HISOB RAQAM:{' '}
                     <Typography
@@ -277,7 +262,6 @@ export const CallerWorkspace: React.FC = () => {
                     <b>Tug'ilgan yili:</b> {dayjs(abonentDetails?.citizen.birthDate).get('year')} | <b>Tel:</b> {abonentDetails?.phone}
                   </Typography>
 
-                  {/* Yangi qo'shilgan Manzil qismi */}
                   <Typography variant="body2" sx={{ color: 'text.primary', mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <strong>Manzil:</strong>{' '}
                     {[
@@ -294,7 +278,7 @@ export const CallerWorkspace: React.FC = () => {
               </Box>
 
               <Grid container spacing={1}>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Alert severity="error" icon={false} sx={{ py: 0.5, textAlign: 'center', border: '1px solid' }}>
                     <Typography variant="h3" sx={{ lineHeight: 1.2 }}>
                       {abonentDetails?.balance.kSaldo.toLocaleString()}
@@ -304,7 +288,7 @@ export const CallerWorkspace: React.FC = () => {
                     </Typography>
                   </Alert>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Alert severity="warning" icon={false} sx={{ py: 0.5, textAlign: 'center', border: '1px solid' }}>
                     <Typography variant="h3" sx={{ lineHeight: 1.2 }}>
                       {balanceYearEnd.toLocaleString()}
@@ -314,7 +298,7 @@ export const CallerWorkspace: React.FC = () => {
                     </Typography>
                   </Alert>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Alert severity="info" icon={false} sx={{ py: 0.5, textAlign: 'center', border: '1px solid' }}>
                     <Typography variant="h3" sx={{ lineHeight: 1.2 }}>
                       {abonentDetails?.house.inhabitantCnt} kishi
@@ -324,7 +308,7 @@ export const CallerWorkspace: React.FC = () => {
                     </Typography>
                   </Alert>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Alert severity="success" icon={false} sx={{ py: 0.5, textAlign: 'center', border: '1px solid' }}>
                     <Typography variant="h3" sx={{ lineHeight: 1.2 }}>
                       {abonentDetails?.balance.rate}
@@ -337,7 +321,7 @@ export const CallerWorkspace: React.FC = () => {
               </Grid>
             </Box>
 
-            {/* Amallar */}
+            {/* Amallar tugmalari */}
             <Stack direction="row" spacing={1.5}>
               <Button
                 fullWidth
@@ -374,7 +358,6 @@ export const CallerWorkspace: React.FC = () => {
               </Button>
             </Stack>
 
-            {/* Optional Note (Sxemadagi izoh joyi) */}
             <TextField
               fullWidth
               multiline
@@ -389,8 +372,8 @@ export const CallerWorkspace: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* 3. Sidebar (30%) */}
-        <Grid item xs={12} md={4}>
+        {/* 3. Yon panel (Sidebar - 30%) */}
+        <Grid size={{ xs: 12, md: 4 }}>
           <Stack spacing={2}>
             {/* Skriptlar Tabi */}
             <Paper sx={{ p: 1 }}>
@@ -414,7 +397,7 @@ export const CallerWorkspace: React.FC = () => {
               </Box>
             </Paper>
 
-            {/* Tarix: Dayjs va Popper bilan */}
+            {/* Tarix paneli */}
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
                 Qo'ng'iroqlar tarixi
@@ -425,7 +408,12 @@ export const CallerWorkspace: React.FC = () => {
                     <ListItemText
                       primary={dayjs(item.date).format('DD.MM.YYYY HH:mm')}
                       secondary={`${t(('callResults.' + item.result) as 'callResults.warned')} - ${item.userId.fullName}`}
-                      primaryTypographyProps={{ variant: 'caption', fontWeight: 'bold' }}
+                      slotProps={{
+                        primary: {
+                          variant: 'caption',
+                          sx: { fontWeight: 'bold' }
+                        }
+                      }}
                     />
                     <Tooltip title={item.comment} arrow placement="left">
                       <IconButton size="small" color="primary">

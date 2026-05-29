@@ -51,7 +51,7 @@ const CallRequestAdmin = () => {
   return (
     <MainCard>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Stack direction="row" spacing={1}>
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => setModal('create', true)}>
               Yangi qo'shish
@@ -69,7 +69,12 @@ const CallRequestAdmin = () => {
           </Stack>
         </Grid>
         {/* JADVAL QISMI (Chap tomon - 9/12) */}
-        <Grid item xs={12} md={9}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 9
+          }}
+        >
           <DataGrid
             {...dataGridProps}
             columns={[
@@ -132,7 +137,7 @@ const CallRequestAdmin = () => {
         </Grid>
 
         {/* FILTRLAR SIDEBARI (O'ng tomon - 3/12) */}
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <SideFilters />
         </Grid>
       </Grid>

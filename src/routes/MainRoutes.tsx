@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { JSX, lazy } from 'react';
 
 // project imports
 import MainLayout from 'layout/MainLayout';

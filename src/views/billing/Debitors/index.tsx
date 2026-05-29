@@ -17,9 +17,11 @@ import {
 
 import {
   BoltOutlined,
+  DownloadOutlined,
   EditOutlined,
   PlayArrowOutlined,
   RefreshOutlined,
+  Search,
   SearchOutlined,
   SmsOutlined,
   SyncOutlined,
@@ -31,6 +33,8 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
+import { useMutation } from '@tanstack/react-query';
+import DebitorDetailDialog from './modals/DebitorDetailDialog';
 
 // ─── Tiplar ───────────────────────────────────────────────────────
 
@@ -42,13 +46,50 @@ interface SmsBalance {
   estimatedMessages: number;
 }
 
-interface DebitorStats {
-  totalDebtors: number;
-  grandTotalDebt: number;
-  blockedCount: number;
-  noPhoneCount: number;
+interface Stat {
+  count: number;
+  summ: number;
 }
 
+interface DebitorStats {
+  // Debitor Status
+  totalDebtors: Stat;
+  blocked: Stat;
+  active: Stat;
+  pendingBlock: Stat;
+  no_het: Stat;
+  // Phone Status
+  no_phone: Stat;
+  identified: Stat;
+  pending_check: Stat;
+  needs_het_update: Stat;
+  null: Stat;
+}
+
+export interface Debitor {
+  _id: string;
+  accountNumberEtk: string;
+  residentId: number;
+  fullName: string;
+  debtAmount: number;
+  debtMonths: number;
+  status: DebitorStatus;
+  phones: {
+    number: string;
+    source: string;
+    verified: boolean;
+  }[];
+  primaryPhone: string | null;
+  phoneIdentified: boolean;
+  companyId: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: 0;
+  phoneStatus: PhoneStatus;
+  primaryPhoneSource: string | null;
+  accountNumber: string;
+  id: string; // DataGrid uchun tartib raqami id
+}
 // ─── Config ───────────────────────────────────────────────────────
 
 const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'error' | 'warning' | 'default' }> = {
@@ -78,13 +119,13 @@ function SmsBanner({ bal, loading }: { bal: SmsBalance | null; loading: boolean 
   if (loading) return <Skeleton variant="rounded" height={36} />;
   if (!bal) return null;
 
-  const isEmpty = bal.amount === 0;
-  const isLow = !isEmpty && bal.amount < 10_000;
+  const isEmpty = bal.amount <= 10000;
+  const isLow = !isEmpty && bal.amount < 200_000;
   const sev = isEmpty ? 'error' : isLow ? 'warning' : 'success';
 
   return (
     <Alert severity={sev} icon={<SmsOutlined fontSize="small" />} sx={{ py: 0.5 }}>
-      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <span>
           SMS balans: <strong>{fmtMoney(bal.amount)}</strong>
         </span>
@@ -93,7 +134,7 @@ function SmsBanner({ bal, loading }: { bal: SmsBalance | null; loading: boolean 
         )}
         {isEmpty && (
           <Typography variant="caption" color="error.main">
-            — Bashorat jobini ishga tushirish uchun avval balansingizni to'ldiring.
+            — Muammolarni aniqlash jarayonini ishga tushirish uchun avval balansingizni to'ldiring.
           </Typography>
         )}
         {isLow && (
@@ -106,14 +147,15 @@ function SmsBanner({ bal, loading }: { bal: SmsBalance | null; loading: boolean 
   );
 }
 
-function StatCard({ label, value, valueColor }: { label: string; value: string | number; valueColor?: string }) {
+function StatCard({ label, value, valueColor }: { label: string; value: { count: number; summ: number }; valueColor?: string }) {
   return (
     <Box sx={{ flex: 1, bgcolor: 'background.default', borderRadius: 2, px: 2, py: 1.5, minWidth: 110 }}>
-      <Typography variant="caption" color="text.secondary" display="block" gutterBottom noWrap>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }} gutterBottom noWrap>
         {label}
       </Typography>
-      <Typography variant="h5" fontWeight={500} color={valueColor}>
-        {value}
+      <Typography variant="h5" sx={{ fontWeight: 600, color: valueColor || 'text.primary' }}>
+        {fmt(value.count)} ta <br />
+        {fmtMoney(value.summ)}
       </Typography>
     </Box>
   );
@@ -123,7 +165,7 @@ function StatCard({ label, value, valueColor }: { label: string; value: string |
 
 function ChipRow({ options, value, onChange }: { options: string[][]; value: string; onChange: (v: string) => void }) {
   return (
-    <Stack direction="row" flexWrap="wrap" gap={0.5}>
+    <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5 }}>
       {options.map(([val, label]) => (
         <Chip
           key={val}
@@ -177,7 +219,7 @@ function Sidebar({
   return (
     <Box
       sx={{
-        width: 220,
+        width: 320,
         minWidth: 220,
         borderRight: '1px solid',
         borderColor: 'divider',
@@ -195,21 +237,21 @@ function Sidebar({
       </Box>
 
       <Box sx={{ px: 2, pb: 1.5 }}>
-        <Typography variant="caption" color="text.disabled" display="block" mb={0.75}>
+        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.75 }}>
           STATUS
         </Typography>
         <ChipRow options={STATUS_ALL} value={status} onChange={onStatusChange} />
       </Box>
 
       <Box sx={{ px: 2, pb: 1.5 }}>
-        <Typography variant="caption" color="text.disabled" display="block" mb={0.75}>
+        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.75 }}>
           TELEFON HOLATI
         </Typography>
         <ChipRow options={PHONE_ALL} value={phoneStatus} onChange={onPhoneChange} />
       </Box>
 
       <Box sx={{ px: 2, pb: 1.5 }}>
-        <Typography variant="caption" color="text.disabled" display="block" mb={0.75}>
+        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.75 }}>
           QARZ DIAPAZONI (so'm)
         </Typography>
         <Stack spacing={1}>
@@ -219,7 +261,13 @@ function Sidebar({
             type="number"
             value={debtFrom}
             onChange={(e) => onDebtFromChange(e.target.value)}
-            inputProps={{ style: { fontSize: 12 } }}
+            slotProps={{
+              input: {
+                style: {
+                  fontSize: 12
+                }
+              }
+            }}
           />
           <TextField
             size="small"
@@ -227,12 +275,18 @@ function Sidebar({
             type="number"
             value={debtTo}
             onChange={(e) => onDebtToChange(e.target.value)}
-            inputProps={{ style: { fontSize: 12 } }}
+            slotProps={{
+              input: {
+                style: {
+                  fontSize: 12
+                }
+              }
+            }}
           />
         </Stack>
       </Box>
 
-      <Stack direction="row" spacing={1} px={2} pb={2}>
+      <Stack direction="row" spacing={1} sx={{ px: 2, pb: 2 }}>
         <Button size="small" variant="contained" onClick={onApply} fullWidth>
           Qo'llash
         </Button>
@@ -250,21 +304,22 @@ function Sidebar({
         </Typography>
       </Box>
 
-      <Stack spacing={0.75} px={1.5} pb={2}>
+      <Stack spacing={0.75} sx={{ px: 1.5, pb: 2 }}>
         {/* Debitorlarni aniqlash */}
         <Button
           size="small"
           variant="outlined"
           fullWidth
-          startIcon={<PlayArrowOutlined />}
+          startIcon={<Search />}
+          endIcon={<PlayArrowOutlined />}
           loading={jobLoading['detect']}
-          onClick={() => onTrigger('detect', '/debitors/jobs/detect')}
+          onClick={() => onTrigger('detect', '/debitors/trigger-detection')}
           sx={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: 12 }}
         >
           <Box>
             Debitorlarni aniqlash
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: 10 }}>
-              CreateDebitorTargets
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10, display: 'block', textTransform: 'none' }}>
+              Muddati o'tkan qarzdor abonentlarni tozamakondan aniqlash va mavjud ma'lumotlarni yangilash jarayoni
             </Typography>
           </Box>
         </Button>
@@ -278,15 +333,17 @@ function Sidebar({
               color={smsEmpty ? 'warning' : 'inherit'}
               fullWidth
               startIcon={smsEmpty ? <WarningAmberOutlined /> : <BoltOutlined />}
+              endIcon={<PlayArrowOutlined />}
               disabled={smsEmpty || smsLoading}
               loading={jobLoading['forecast']}
-              onClick={() => onTrigger('forecast', '/debitors/jobs/forecast')}
+              onClick={() => onTrigger('forecast', '/debitors/trigger-forecast')}
               sx={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: 12 }}
             >
               <Box>
-                Ulanish bashorati
-                <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: 10 }}>
-                  CheckDebitorsReadyToConnect
+                Muammolarni aniqlash
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10, display: 'block', textTransform: 'none' }}>
+                  {' '}
+                  Elektrga ulanish jarayonida yuzaga kelishi mumkin bo'lgan muammolarni aniqlash va oldindan ogohlantirish
                 </Typography>
               </Box>
             </Button>
@@ -300,14 +357,15 @@ function Sidebar({
           color="success"
           fullWidth
           startIcon={<SyncOutlined />}
+          endIcon={<PlayArrowOutlined />}
           loading={jobLoading['het']}
-          onClick={() => onTrigger('het', '/debitors/jobs/het-sync')}
+          onClick={() => onTrigger('het', '/debitors/trigger-phone-sync')}
           sx={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: 12 }}
         >
           <Box>
             HET sinxronizatsiya
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: 10 }}>
-              CheckNeedsHetUpdate
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10, display: 'block', textTransform: 'none' }}>
+              Elektr bazasiga telefon raqamlari kiritilgandan keyin kiritilganlikni tekshirish uchun jarayon
             </Typography>
           </Box>
         </Button>
@@ -367,8 +425,13 @@ function Debitors() {
   React.useEffect(() => {
     setSmsLoad(true);
     api
-      .get('/sms/balance')
-      .then(({ data }) => setSmsbal(data.data))
+      .get('/sms-service/balance')
+      .then(({ data }) =>
+        setSmsbal({
+          amount: data.balance,
+          estimatedMessages: Math.floor(data.balance / 80) // Faraz qilaylik, 1 SMS 80 so'm turadi
+        })
+      )
       .catch(() => setSmsbal(null))
       .finally(() => setSmsLoad(false));
   }, [refreshState]);
@@ -379,10 +442,46 @@ function Debitors() {
       .then(({ data }) => {
         const s = data.data;
         setStats({
-          totalDebtors: s.summary?.totalDebtors ?? 0,
-          grandTotalDebt: s.summary?.grandTotalDebt ?? 0,
-          blockedCount: s.statusStatistics?.find((x: any) => x._id === 'blocked')?.count ?? 0,
-          noPhoneCount: s.phoneStatistics?.find((x: any) => x._id === 'no_phone')?.count ?? 0
+          totalDebtors: {
+            count: s.summary.totalDebtors,
+            summ: s.summary.grandTotalDebt
+          },
+          active: {
+            count: s.statusStatistics.find((x: any) => x._id === 'active')?.count || 0,
+            summ: s.statusStatistics.find((x: any) => x._id === 'active')?.totalDebt || 0
+          },
+          blocked: {
+            count: s.statusStatistics.find((x: any) => x._id === 'blocked')?.count || 0,
+            summ: s.statusStatistics.find((x: any) => x._id === 'blocked')?.totalDebt || 0
+          },
+          pendingBlock: {
+            count: s.statusStatistics.find((x: any) => x._id === 'pendingBlock')?.count || 0,
+            summ: s.statusStatistics.find((x: any) => x._id === 'pendingBlock')?.totalDebt || 0
+          },
+          no_het: {
+            count: s.statusStatistics.find((x: any) => x._id === 'no_het')?.count || 0,
+            summ: s.statusStatistics.find((x: any) => x._id === 'no_het')?.totalDebt || 0
+          },
+          identified: {
+            count: s.phoneStatistics.find((x: any) => x._id === 'identified')?.count || 0,
+            summ: 0
+          },
+          pending_check: {
+            count: s.phoneStatistics.find((x: any) => x._id === 'pending_check')?.count || 0,
+            summ: 0
+          },
+          needs_het_update: {
+            count: s.phoneStatistics.find((x: any) => x._id === 'needs_het_update')?.count || 0,
+            summ: 0
+          },
+          null: {
+            count: s.phoneStatistics.find((x: any) => x._id === null)?.count || 0,
+            summ: 0
+          },
+          no_phone: {
+            count: s.phoneStatistics.find((x: any) => x._id === 'no_phone')?.count || 0,
+            summ: 0
+          }
         });
       })
       .catch(() => setStats(null));
@@ -414,6 +513,57 @@ function Debitors() {
     }
   };
 
+  // Excel yuklash funksiyasi
+  const fetchExcelFile = async () => {
+    const response = await api.get('/debitors/excel', {
+      params: {
+        page: 0,
+        limit: 0,
+        sortField: '',
+        sortDirection: '',
+        search: appliedSearch || undefined,
+        status: applied.status || undefined,
+        phoneStatus: applied.phoneStatus || undefined,
+        debtAmountFrom: applied.debtFrom || undefined,
+        debtAmountTo: applied.debtTo || undefined
+      },
+      responseType: 'blob' // Serverdan fayl (binary) kelayotganini bildiradi
+    });
+    return response.data;
+  };
+
+  const { mutate: downloadExcel, ...others } = useMutation({
+    mutationFn: fetchExcelFile,
+    onSuccess: (data) => {
+      // Kelgan blob ma'lumotidan URL yaratamiz
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Fayl nomini belgilash
+      link.setAttribute('download', `Debitors_Report_${Date.now()}.xlsx`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Tozalash
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+    onError: (error) => {
+      console.error('Excel yuklashda xatolik:', error);
+    }
+  });
+
+  const [selectedDebitor, setSelectedDebitor] = React.useState<Debitor | null>(null);
+  const handleClickShow = (id: string) => {
+    console.log(
+      "Ko'rish:",
+      dataGridProps.rows?.find((r) => r._id === id)
+    );
+    setSelectedDebitor(dataGridProps.rows?.find((r) => r._id === id) || null);
+  };
+
   // ─── Ustunlar ─────────────────────────────────────────────────
 
   const columns: GridColDef[] = [
@@ -443,7 +593,7 @@ function Debitors() {
       headerName: "Qarz (so'm)",
       width: 155,
       renderCell: ({ value }) => (
-        <Typography variant="body2" fontWeight={500} color={value > 1_000_000 ? 'error.main' : 'text.primary'}>
+        <Typography variant="body2" sx={{ fontWeight: 500 }} color={value > 1_000_000 ? 'error.main' : 'text.primary'}>
           {fmt(value)}
         </Typography>
       )
@@ -478,15 +628,15 @@ function Debitors() {
       headerName: '',
       width: 88,
       sortable: false,
-      renderCell: () => (
+      renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.5}>
           <Tooltip title="Ko'rish">
-            <IconButton size="small">
+            <IconButton size="small" onClick={() => handleClickShow(row._id)}>
               <VisibilityOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
           <Tooltip title="Tahrirlash">
-            <IconButton size="small">
+            <IconButton size="small" onClick={() => handleClickShow(row._id)}>
               <EditOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -497,10 +647,10 @@ function Debitors() {
 
   // ─── Render ───────────────────────────────────────────────────
 
-  const smsEmpty = smsbal?.amount === 0;
+  const smsEmpty = Number(smsbal?.amount) < 1000;
 
   return (
-    <MainCard contentSX={{ p: 0 }}>
+    <MainCard contentSX={{ padding: 0 }}>
       <Box sx={{ display: 'flex', height: '100%' }}>
         {/* Sol panel: filtrlar + triggerlar */}
         <Sidebar
@@ -528,10 +678,11 @@ function Debitors() {
           {/* 2. Statistika kartalari */}
           {stats ? (
             <Stack direction="row" spacing={1.5}>
-              <StatCard label="Jami debitorlar" value={fmt(stats.totalDebtors)} />
-              <StatCard label="Umumiy qarz" value={fmtMoney(stats.grandTotalDebt)} valueColor="error.main" />
-              <StatCard label="Bloklangan" value={fmt(stats.blockedCount)} />
-              <StatCard label="Telefon yo'q" value={fmt(stats.noPhoneCount)} valueColor="warning.main" />
+              <StatCard label="Jami debitorlar" value={stats.totalDebtors} />
+              <StatCard label="🚫 Bloklangan" value={stats.blocked} valueColor="success.main" />
+              <StatCard label="⏳ Bloklanishi Kutilmoqda" value={stats.pendingBlock} valueColor="warning.main" />
+              <StatCard label="⚠️ Elektr kodi yo'q" value={stats.no_het} valueColor="error.main" />
+              <StatCard label="❓ Noma'lum" value={stats.active} valueColor="error.main" />
             </Stack>
           ) : (
             <Stack direction="row" spacing={1.5}>
@@ -542,19 +693,21 @@ function Debitors() {
           )}
 
           {/* 3. Qidiruv qatori */}
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <TextField
               size="small"
               placeholder="F.I.O yoki hisob raqami..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && applySearch()}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchOutlined fontSize="small" />
-                  </InputAdornment>
-                )
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchOutlined fontSize="small" />
+                    </InputAdornment>
+                  )
+                }
               }}
               sx={{ width: 320 }}
             />
@@ -567,6 +720,17 @@ function Debitors() {
                 <RefreshOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
+            <Button
+              variant="contained"
+              color="success"
+              size="small"
+              onClick={() => downloadExcel()}
+              startIcon={<DownloadOutlined fontSize="small" />}
+              loading={others.isPending}
+              loadingPosition="start"
+            >
+              Excelga yuklash
+            </Button>
           </Stack>
 
           {/* 4. DataGrid */}
@@ -575,10 +739,18 @@ function Debitors() {
             columns={columns}
             getRowId={(row) => row._id}
             rowHeight={52}
-            sx={{ flex: 1, minHeight: 400, border: 'none' }}
+            sx={{ flex: 1, minHeight: 400, border: 'none', maxHeight: '60vh' }}
           />
         </Box>
       </Box>
+      {selectedDebitor && (
+        <DebitorDetailDialog
+          open={selectedDebitor !== null}
+          onClose={() => setSelectedDebitor(null)}
+          debitor={selectedDebitor}
+          onEdit={() => 'todo'}
+        />
+      )}
     </MainCard>
   );
 }

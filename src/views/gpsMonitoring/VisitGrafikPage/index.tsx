@@ -12,10 +12,10 @@ function VisitGrafikPage() {
   return (
     <MainCard>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <HeaderVisitGPage />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <VisitGrafik />
         </Grid>
       </Grid>

@@ -22,7 +22,7 @@ function FindedDataTable() {
   const { currentFile, removePdfFile, setCurrentFile } = useStore();
   const [rows, setRows] = useState([]);
   const [licshetInput, setLicshetInput] = useState('');
-  const [activeRow, setActiveRow] = useState({});
+  const [activeRow, setActiveRow] = useState<any>({});
 
   // Fetch data from API or any other source
   const fetchData = async () => {
@@ -38,7 +38,7 @@ function FindedDataTable() {
         toast.info('No results found');
         return;
       }
-      const rows = data.rows.map((row, i) => {
+      const rows = data.rows.map((row: any, i: number) => {
         return {
           id: i + 1,
           ...row,

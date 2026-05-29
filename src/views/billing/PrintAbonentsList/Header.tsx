@@ -8,7 +8,7 @@ import {
   InputLabel,
   FormControl,
   Box,
-  Grid,
+  Grid, // MUI v9/v5+ Grid2 yoki moslashtirilgan o'lchamlar uchun
   Paper,
   ButtonBase,
   Avatar,
@@ -30,28 +30,33 @@ import { toPng } from 'html-to-image';
 import { isMobile } from 'react-device-detect';
 import MahallaSelection from 'ui-component/MahallaSelection';
 
-function Header({ printContentRef, getAbonents, filters, setFilters }) {
+interface Props {
+  printContentRef: React.RefObject<HTMLDivElement>;
+  getAbonents: () => void;
+  filters: {
+    identified: string;
+    elektrAccountNumberConfirmed: string;
+  };
+  setFilters: (e: any) => void;
+}
+
+function Header({ printContentRef, getAbonents, filters, setFilters }: Props) {
   const {
     selectedMahalla,
     setSelectedMahalla,
-    mahallas,
-    setMahallas,
     abonents,
     mainFunctionsDisabled,
     setMainFunctionsDisabled,
     minSaldo,
     maxSaldo,
     setMinSaldo,
-    setMaxSaldo,
-    onlyNotIdentited,
-    setOnlyNotIdentited,
-    etkStatus,
-    setEtkStatus
+    setMaxSaldo
   } = useStore();
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
   const popperRef = useRef(null);
   const theme = useTheme();
+
   useEffect(() => {
     if (abonents.length > 0) {
       setMainFunctionsDisabled(false);
@@ -76,11 +81,11 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
     documentTitle: abonents[0]?.mahallaName + '_' + new Date().getTime(),
     contentRef: printContentRef
   });
+
   const printFunction = () => {
     if (isMobile) {
       document.body.innerHTML = printContentRef.current.innerHTML;
       window.print();
-      // window.location.reload();
     } else {
       printFunc();
     }
@@ -96,53 +101,41 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
     }
 
     const rows = document.querySelectorAll('.abonent_rows');
-    const maxRowsPerImage = 50; // Har bir rasmga sig'adigan maksimal qatorlar
+    const maxRowsPerImage = 50;
     const tempContainer = document.createElement('div');
-    const images = []; // Rasmlarni saqlash uchun array
+    const images = [];
 
     tempContainer.style.position = 'absolute';
-    tempContainer.style.top = '-9999px'; // Ko'rinmas joyda bo'lishi uchun
+    tempContainer.style.top = '-9999px';
     tempContainer.style.left = '-9999px';
     document.body.appendChild(tempContainer);
 
     try {
       for (let i = 0; i < rows.length; i += maxRowsPerImage) {
-        const clonedTable = printContentRef.current.querySelectorAll('table')[1].cloneNode(true);
+        const clonedTable = printContentRef.current.querySelectorAll('table')[1].cloneNode(true) as HTMLElement;
+        const tbody = clonedTable.querySelector('tbody') as HTMLElement;
 
-        const tbody = clonedTable.querySelector('tbody');
-
-        // Asosiy jadvalning kerakli qismini olish
         const rowsToRender = Array.from(rows).slice(i, i + maxRowsPerImage);
-        tbody.innerHTML = ''; // Jadvalni tozalash
+        tbody.innerHTML = '';
         rowsToRender.forEach((row) => tbody.appendChild(row.cloneNode(true)));
 
-        // << BU YERDA BARCHA ELEMENTLARGA QORA RANG BERIB KETAMIZ
         const elements = clonedTable.querySelectorAll('*');
-        elements.forEach((el) => {
+        elements.forEach((el: any) => {
           el.style.color = '#000';
         });
 
-        // Vaqtinchalik konteynerga jadvalni qo'shish
         tempContainer.appendChild(clonedTable);
-
-        // Rasmga aylantirish
         const dataUrl = await toPng(clonedTable);
-
-        // Base64 formatni blobga aylantirish va arrayga qo'shish
         const blob = await (await fetch(dataUrl)).blob();
         images.push(blob);
-
-        // Qo'shilgan jadvalni konteynerdan o'chirish
         tempContainer.innerHTML = '';
       }
 
-      // Rasmlarni bir so'rovda yuborish
       const formData = new FormData();
       images.forEach((blob, index) => {
         formData.append(`image_${index + 1}`, blob, `abonentlar_${index + 1}.png`);
       });
 
-      // Axios orqali yuborish
       api
         .post('/billing/send-abonents-list-to-telegram', formData, {
           headers: {
@@ -157,50 +150,14 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
         })
         .then(({ data }) => {
           if (!data.ok) return toast.error(data.message);
-
           toast.success('Barcha rasmlar muvaffaqiyatli yuborildi!');
         });
     } catch (error) {
       console.error('Rasm yuborishda xatolik:', error);
       toast.error('Rasm yuborishda xatolik yuz berdi.');
     } finally {
-      // Vaqtinchalik konteynerni o'chirish
       document.body.removeChild(tempContainer);
     }
-  };
-
-  const handleClickDone = function () {
-    if (abonents.length === 0) {
-      return toast.error('Xatolik');
-    }
-    api.put('/billing/abarotka-berildi/' + abonents[0].mahallaId).then(({ data }) => {
-      if (!data.ok) return toast.error(data.message);
-      api.get('/inspectors').then(({ data }) => {
-        const mahalllalar = data.mahallalar.map((mfy) => ({ ...mfy, name: lotinga(mfy.name) }));
-        setMahallas(mahalllalar);
-      });
-    });
-  };
-
-  const handleClickClearAll = function () {
-    if (confirm("Rostdan ham hamma mahallalar abarotka berilganligi haqidagi ma'lumotni tozalamoqchimisiz?")) {
-      api.put('/billing/barchasiga-abarotka-berilmadi').then(({ data }) => {
-        if (!data.ok) return toast.error(data.message);
-
-        api.get('/inspectors').then(({ data }) => {
-          const inspectors = data.rows.map((ins) => ({
-            id: ins.id,
-            name: ins.name,
-            biriktirilgan: ins.biriktirilgan
-          }));
-          const mahalllalar = data.mahallalar.map((mfy) => ({ ...mfy, name: lotinga(mfy.name) }));
-          setMahallas(mahalllalar);
-        });
-      });
-    }
-  };
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
   };
 
   const handleClickExcel = async () => {
@@ -228,24 +185,22 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
     }
   };
 
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
   return (
     <Grid container spacing={2} sx={{ backgroundColor: 'background.paper', zIndex: 100, alignItems: 'center', justifyContent: 'center' }}>
       {/* MobileSection */}
-      <Grid item xs={12} sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 2 }}>
-        <Box
-          sx={{
-            ml: 2,
-            mr: 3,
-            [theme.breakpoints.down('md')]: {
-              mr: 2
-            }
-          }}
-        >
+      <Grid size={12} sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 2 }}>
+        <Box sx={{ ml: 2, mr: 3, [theme.breakpoints.down('md')]: { mr: 2 } }}>
           <ButtonBase sx={{ borderRadius: '12px' }}>
             <Avatar
               variant="rounded"
               sx={{
+                // @ts-ignore
                 ...theme.typography.commonAvatar,
+                // @ts-ignore
                 ...theme.typography.mediumAvatar,
                 transition: 'all .2s ease-in-out',
                 background: theme.palette.secondary.light,
@@ -273,37 +228,21 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
             transition
             disablePortal
             popperOptions={{
-              modifiers: [
-                {
-                  name: 'offset',
-                  options: {
-                    offset: [0, 9]
-                  }
-                }
-              ]
+              modifiers: [{ name: 'offset', options: { offset: [0, 9] } }]
             }}
-            sx={{
-              zIndex: 11
-            }}
+            sx={{ zIndex: 11 }}
           >
             {({ TransitionProps }) => (
               <Box sx={{ borderRadius: '12px' }}>
-                <Grow
-                  {...TransitionProps}
-                  style={{
-                    transformOrigin: 'right top',
-                    willChange: 'transform'
-                  }}
-                >
+                <Grow {...TransitionProps} style={{ transformOrigin: 'right top', willChange: 'transform' }}>
                   <Paper sx={{ boxShadow: 9, padding: '10px' }}>
-                    <Grid container spacing={1} width={'70vw'}>
-                      {/* Identifikatsiya */}
-                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                    <Grid container spacing={1} sx={{ width: '70vw' }}>
+                      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
                         <FormControl fullWidth>
-                          <InputLabel id="identity">Identifikatsiya</InputLabel>
+                          <InputLabel id="identity-mob">Identifikatsiya</InputLabel>
                           <Select
                             value={filters.identified}
-                            labelId="identity"
+                            labelId="identity-mob"
                             label="Identifikatsiya"
                             onChange={(e) => setFilters({ ...filters, identified: e.target.value })}
                           >
@@ -314,13 +253,12 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
                         </FormControl>
                       </Grid>
 
-                      {/* Elektr holati */}
-                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
                         <FormControl fullWidth>
-                          <InputLabel id="etk-status">Elektr holati</InputLabel>
+                          <InputLabel id="etk-status-mob">Elektr holati</InputLabel>
                           <Select
                             value={filters.elektrAccountNumberConfirmed}
-                            labelId="etk-status"
+                            labelId="etk-status-mob"
                             label="Elektr holati"
                             onChange={(e) => setFilters({ ...filters, elektrAccountNumberConfirmed: e.target.value })}
                           >
@@ -331,42 +269,46 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
                         </FormControl>
                       </Grid>
 
-                      {/* Qarzdorlik dan */}
-                      <Grid item xs={6} sm={6} md={4} lg={2}>
+                      <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2 }}>
                         <TextField
                           label="dan"
                           type="number"
                           placeholder="qarzdorlik summasi"
-                          InputProps={{ inputProps: { step: 100000 } }}
+                          slotProps={{
+                            htmlInput: {
+                              step: 100_000
+                            }
+                          }}
                           value={minSaldo}
                           onChange={(e) => setMinSaldo(e.target.value)}
                           fullWidth
                         />
                       </Grid>
 
-                      {/* Qarzdorlik gacha */}
-                      <Grid item xs={6} sm={6} md={4} lg={2}>
+                      <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2 }}>
                         <TextField
                           label="gacha"
                           type="number"
                           placeholder="qarzdorlik summasi"
-                          InputProps={{ inputProps: { step: 100000 } }}
+                          slotProps={{
+                            htmlInput: {
+                              step: 100_000
+                            }
+                          }}
                           value={maxSaldo}
                           onChange={(e) => setMaxSaldo(e.target.value)}
                           fullWidth
                         />
                       </Grid>
 
-                      {/* Mahalla tanlov */}
-                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
                         <MahallaSelection selectedMahallaId={selectedMahalla} setSelectedMahallaId={setSelectedMahalla} />
                       </Grid>
 
-                      {/* Yangilash tugmasi */}
-                      <Grid item xs={12} sm={6} md={4} lg={2}>
+                      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
                         <Button
-                          onClick={(e) => {
-                            handleClickUpdate(e);
+                          onClick={() => {
+                            handleClickUpdate();
                             setOpen(false);
                           }}
                           variant="outlined"
@@ -390,10 +332,10 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
           <PrintIcon />
         </Button>
       </Grid>
-      {/* Filterlar va Uskunalar */}
-      <Grid container item xs={10} md={9} spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
-        {/* Identifikatsiya */}
-        <Grid item xs={12} sm={6} md={4} lg={2}>
+
+      {/* Desktop/Tablet Filterlar */}
+      <Grid container size={{ xs: 10, md: 9 }} spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <FormControl fullWidth>
             <InputLabel id="identity">Identifikatsiya</InputLabel>
             <Select
@@ -409,8 +351,7 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
           </FormControl>
         </Grid>
 
-        {/* Elektr holati */}
-        <Grid item xs={12} sm={6} md={4} lg={2}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <FormControl fullWidth>
             <InputLabel id="etk-status">Elektr holati</InputLabel>
             <Select
@@ -426,58 +367,62 @@ function Header({ printContentRef, getAbonents, filters, setFilters }) {
           </FormControl>
         </Grid>
 
-        {/* Qarzdorlik dan */}
-        <Grid item xs={6} sm={6} md={4} lg={2}>
+        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2 }}>
           <TextField
             label="dan"
             type="number"
             placeholder="qarzdorlik summasi"
-            InputProps={{ inputProps: { step: 100000 } }}
+            slotProps={{
+              htmlInput: {
+                step: 100_000
+              }
+            }}
             value={minSaldo}
             onChange={(e) => setMinSaldo(e.target.value)}
             fullWidth
           />
         </Grid>
 
-        {/* Qarzdorlik gacha */}
-        <Grid item xs={6} sm={6} md={4} lg={2}>
+        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2 }}>
           <TextField
             label="gacha"
             type="number"
             placeholder="qarzdorlik summasi"
-            InputProps={{ inputProps: { step: 100000 } }}
+            slotProps={{
+              htmlInput: {
+                step: 100_000
+              }
+            }}
             value={maxSaldo}
             onChange={(e) => setMaxSaldo(e.target.value)}
             fullWidth
           />
         </Grid>
 
-        {/* Mahalla tanlov */}
-        <Grid item xs={12} sm={6} md={4} lg={2}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <MahallaSelection selectedMahallaId={selectedMahalla} setSelectedMahallaId={setSelectedMahalla} />
         </Grid>
 
-        {/* Yangilash tugmasi */}
-        <Grid item xs={12} sm={6} md={4} lg={2}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Button onClick={handleClickUpdate} variant="outlined" fullWidth sx={{ height: '100%' }}>
             <SyncOutlinedIcon sx={{ mr: 1 }} /> Yangilash
           </Button>
         </Grid>
       </Grid>
 
-      {/* Telegram va Chop etish */}
-      <Grid container item xs={10} md={3} spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
-        <Grid item sm={4} md={12} lg={4}>
+      {/* Telegram va Chop etish tugmalari */}
+      <Grid container size={{ xs: 10, md: 3 }} spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+        <Grid size={{ sm: 4, md: 12, lg: 4 }}>
           <Button disabled={mainFunctionsDisabled} onClick={handleClickSendTelegramAsImg} variant="contained" fullWidth>
             <TelegramIcon sx={{ mr: 1 }} /> yuborish
           </Button>
         </Grid>
-        <Grid item sm={4} md={12} lg={4}>
+        <Grid size={{ sm: 4, md: 12, lg: 4 }}>
           <Button disabled={mainFunctionsDisabled} onClick={printFunction} variant="contained" fullWidth sx={{ textWrap: 'nowrap' }}>
             <PrintIcon sx={{ mr: 1 }} /> Chop etish
           </Button>
         </Grid>
-        <Grid item sm={4}>
+        <Grid size={{ sm: 4, md: 12, lg: 4 }}>
           <Button disabled={mainFunctionsDisabled} onClick={handleClickExcel} variant="contained" fullWidth>
             <GridOn sx={{ mr: 1 }} /> Excel
           </Button>

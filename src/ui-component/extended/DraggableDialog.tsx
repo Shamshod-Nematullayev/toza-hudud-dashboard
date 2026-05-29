@@ -1,6 +1,19 @@
 import * as React from 'react';
 import Draggable from 'react-draggable';
-import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Paper, Box, SxProps, PaperProps } from '@mui/material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Typography,
+  Paper,
+  Box,
+  SxProps,
+  PaperProps,
+  DialogProps,
+  DialogSlotsAndSlotProps
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
 /* Draggable Paper */
@@ -23,7 +36,8 @@ export default function DraggableDialog({
   fullWidth = true,
   sx,
   contentSX,
-  PaperProps
+  PaperProps,
+  slotProps
 }: {
   open: boolean;
   onClose: () => void;
@@ -35,6 +49,7 @@ export default function DraggableDialog({
   sx?: SxProps;
   contentSX?: SxProps;
   PaperProps?: Partial<PaperProps<React.ElementType<any, keyof React.JSX.IntrinsicElements>>>;
+  slotProps?: DialogSlotsAndSlotProps['slotProps'];
 }) {
   return (
     <Dialog
@@ -45,6 +60,7 @@ export default function DraggableDialog({
       maxWidth={maxWidth}
       fullWidth={fullWidth}
       sx={sx}
+      slotProps={slotProps}
       PaperProps={PaperProps}
     >
       {/* HEADER */}
@@ -56,7 +72,7 @@ export default function DraggableDialog({
           p: 1.5
         }}
       >
-        <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography fontWeight={600}>{title}</Typography>
 
           <IconButton size="small" onClick={onClose}>
