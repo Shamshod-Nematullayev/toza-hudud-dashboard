@@ -23,7 +23,7 @@ import UpdateIcon from '@mui/icons-material/Update';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EditIcon from '@mui/icons-material/Edit';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { Debitor } from '..';
+import { Debitor, PHONE_CFG } from '..';
 import { formatPhoneNumber } from 'views/tools/formatters';
 
 type DebitorStatus = 'active' | 'blocked' | 'pendingBlock' | 'no_het';
@@ -34,14 +34,6 @@ const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'err
   blocked: { label: '🚫 Bloklangan', color: 'error' },
   pendingBlock: { label: '⏳ Kutilmoqda', color: 'warning' },
   no_het: { label: "⚠️ HET yo'q", color: 'default' }
-};
-
-const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
-  identified: { label: '📞 Aniqlangan', color: 'primary' },
-  pending_check: { label: '🔍 Tekshirilmoqda', color: 'warning' },
-  no_phone: { label: "❌ Yo'q", color: 'error' },
-  needs_het_update: { label: '🔄 HET kerak', color: 'secondary' },
-  het_updated: { label: '✔️ HET yangilangan', color: 'success' }
 };
 
 interface DebitorDetailDialogProps {

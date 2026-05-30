@@ -76,7 +76,7 @@ function EditDetails() {
   const [housePhone, setHousePhone] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState<0 | 1>(0);
   const [avatar, setAvatar] = useState<string>('');
 
   useEffect(() => {
@@ -244,10 +244,11 @@ function EditDetails() {
         <Grid container spacing={1}>
           {tabIndex === 0 && (
             <>
-              <Grid item xs={3}>
+              {/* Rasm qismi */}
+              <Grid size={{ xs: 3 }}>
                 <Avatar
                   variant="rounded"
-                  src={'data:image/png;base64,' + (avatar ? avatar : abonentDetails?.citizen.photo)} // Bu yerga rasm url keladi
+                  src={'data:image/png;base64,' + (avatar ? avatar : abonentDetails?.citizen.photo)}
                   sx={{
                     width: '100%',
                     height: 'auto',
@@ -257,30 +258,30 @@ function EditDetails() {
                   }}
                 />
               </Grid>
-              <Grid container item xs={9} spacing={1}>
-                <Grid item xs={6}>
+
+              {/* Ma'lumotlar input qismi */}
+              <Grid container size={{ xs: 9 }} spacing={1}>
+                <Grid size={{ xs: 6 }}>
                   <TextField
                     label={t('tableHeaders.pnfl')}
                     value={pnfl}
                     onChange={(e) => setPnfl(e.target.value)}
-                    inputProps={{ maxLength: 14 }}
+                    slotProps={{ htmlInput: { maxLength: 14 } }}
                     fullWidth
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField
                     label={t('tableHeaders.passport')}
                     value={passport}
-                    onChange={(e) => {
-                      setPassport(e.target.value.toUpperCase());
-                    }}
-                    inputProps={{ maxLength: 9 }}
+                    onChange={(e) => setPassport(e.target.value.toUpperCase())}
+                    slotProps={{ htmlInput: { maxLength: 9 } }}
                     fullWidth
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField
                     label={t('tableHeaders.lastName')}
                     value={lastName}
@@ -289,18 +290,16 @@ function EditDetails() {
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField
                     label={t('tableHeaders.firstName')}
                     value={firstName}
-                    onChange={(e) => {
-                      setFirstName(e.target.value);
-                    }}
+                    onChange={(e) => setFirstName(e.target.value)}
                     fullWidth
                     required
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField
                     label={t('tableHeaders.patronymic')}
                     value={patronymic}
@@ -308,11 +307,13 @@ function EditDetails() {
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <DatePicker value={birthDate} label={t('tableHeaders.birthDate')} format="DD.MM.YYYY" onChange={(e) => setBirthDate(e)} />
                 </Grid>
               </Grid>
-              <Grid item xs={6}>
+
+              {/* Qo'shimcha maydonlar */}
+              <Grid size={{ xs: 6 }}>
                 <TextField
                   label={t('tableHeaders.passportIssuer')}
                   value={passportIssuer}
@@ -320,13 +321,13 @@ function EditDetails() {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={6}>
-                <InputLabel>
+              <Grid size={{ xs: 6 }}>
+                <InputLabel sx={{ display: 'flex', alignItems: 'center' }}>
                   <Checkbox checked={foreignCitizen} onChange={(e) => setForeignCitizen(e.target.checked)} />
                   {t('tableHeaders.foreignCitizen')}
                 </InputLabel>
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   label={t('tableHeaders.cadastralNumber')}
                   value={cadastralNumber}
@@ -335,7 +336,7 @@ function EditDetails() {
                   required
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   label={t('tableHeaders.temporaryCadastralNumber')}
                   value={temporaryCadastralNumber}
@@ -343,10 +344,10 @@ function EditDetails() {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField label={t('tableHeaders.inn')} value={inn} onChange={(e) => setInn(e.target.value)} fullWidth />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <TextField
                   label={t('tableHeaders.electricityCoato')}
                   value={electricityCoato}
@@ -354,7 +355,7 @@ function EditDetails() {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <TextField
                   label={t('tableHeaders.electricityAccountNumber')}
                   value={electricityAccountNumber}
@@ -364,12 +365,13 @@ function EditDetails() {
               </Grid>
             </>
           )}
+
           {tabIndex === 1 && (
             <>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant="h4">{abonentDetails?.fullName}</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <MahallaSelection
                   selectedMahallaId={mahallaId}
                   setSelectedMahallaId={(v) => setMahallaId(v.toString())}
@@ -378,7 +380,7 @@ function EditDetails() {
                   required
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <StreetSelection
                   value={streetId}
                   onChange={(e) => setStreetId(e.target.value)}
@@ -387,11 +389,11 @@ function EditDetails() {
                   required
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <TextField
                   select
-                  value={active}
-                  onChange={(e) => setActive(e.target.value == 'true')}
+                  value={active ? 'true' : 'false'}
+                  onChange={(e) => setActive(e.target.value === 'true')}
                   label={t('tableHeaders.status')}
                   fullWidth
                   required
@@ -400,20 +402,20 @@ function EditDetails() {
                   <MenuItem value={'false'}>{t('abonentCardPage.inactive')}</MenuItem>
                 </TextField>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <TextField
                   label={t('tableHeaders.accountNumber')}
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
                   fullWidth
-                  InputProps={{ readOnly: true }}
+                  slotProps={{ htmlInput: { readOnly: true } }}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   select
                   value={homeType}
-                  onChange={(e) => setHomeType(e.target.value as '')}
+                  onChange={(e) => setHomeType(e.target.value as 'HOUSE' | 'APARTMENT')}
                   label={t('house.type')}
                   fullWidth
                   required
@@ -423,7 +425,7 @@ function EditDetails() {
                   <MenuItem value="APARTMENT">{t('house.APARTMENT')}</MenuItem>
                 </TextField>
               </Grid>
-              <Grid item xs={3}>
+              <Grid size={{ xs: 3 }}>
                 <TextField
                   label={t('tableHeaders.buildingId')}
                   value={buildingId}
@@ -432,15 +434,17 @@ function EditDetails() {
                   error={buildingId === ''}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid size={{ xs: 3 }}>
                 <TextField label={t('tableHeaders.homeIndex')} value={homeIndex} onChange={(e) => setHomeIndex(e.target.value)} fullWidth />
               </Grid>
+
               {homeType === 'APARTMENT' && (
-                <Grid item xs={2}>
+                <Grid size={{ xs: 2 }}>
                   <TextField label={t('tableHeaders.flatId')} value={flatId} onChange={(e) => setFlatId(e.target.value)} fullWidth />
                 </Grid>
               )}
-              <Grid item xs={4}>
+
+              <Grid size={{ xs: 4 }}>
                 <PhoneInput
                   label={t('tableHeaders.phone')}
                   value={phone}
@@ -448,18 +452,19 @@ function EditDetails() {
                   textFieldProps={{ error: !phone }}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <PhoneInput label={t('tableHeaders.homePhone')} value={housePhone} onChange={(value) => setHousePhone(value)} />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField label={t('tableHeaders.email')} value={email} onChange={(e) => setEmail(e.target.value)} fullWidth />
               </Grid>
-              <Grid item xs={12}>
-                <TextareaAutosize
+              <Grid size={{ xs: 12 }}>
+                <TextField
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={t('tableHeaders.description')}
-                  style={{ width: '100%' }}
+                  fullWidth
+                  multiline
                   minRows={3}
                 />
               </Grid>

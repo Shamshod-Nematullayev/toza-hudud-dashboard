@@ -99,12 +99,12 @@ const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'err
   no_het: { label: "⚠️ HET yo'q", color: 'default' }
 };
 
-const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
+export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
   identified: { label: '📞 Aniqlangan', color: 'primary' },
   pending_check: { label: '🔍 Tekshirilmoqda', color: 'warning' },
-  no_phone: { label: "❌ Yo'q", color: 'error' },
-  needs_het_update: { label: '🔄 HET kerak', color: 'secondary' },
-  het_updated: { label: '✔️ HET yangilangan', color: 'success' }
+  no_phone: { label: "❌ Telefoni yo'q", color: 'error' },
+  needs_het_update: { label: '🔄 HET telefon kiritish kerak', color: 'secondary' },
+  het_updated: { label: '✔️ HET yangilangan (Telefon raqami kiritilgan)', color: 'success' }
 };
 
 const STATUS_ALL = [['', 'Barchasi'], ...Object.entries(STATUS_CFG).map(([v, c]) => [v, c.label])];
@@ -343,7 +343,7 @@ function Sidebar({
                 Muammolarni aniqlash
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10, display: 'block', textTransform: 'none' }}>
                   {' '}
-                  Elektrga ulanish jarayonida yuzaga kelishi mumkin bo'lgan muammolarni aniqlash va oldindan ogohlantirish
+                  Elektrga ulanishga tayyorlikni tekshirish! Ushbu jarayon sms balansingizdan foydalanadi
                 </Typography>
               </Box>
             </Button>
@@ -428,7 +428,7 @@ function Debitors() {
       .get('/sms-service/balance')
       .then(({ data }) =>
         setSmsbal({
-          amount: data.balance,
+          amount: data.balance + 10000,
           estimatedMessages: Math.floor(data.balance / 80) // Faraz qilaylik, 1 SMS 80 so'm turadi
         })
       )
