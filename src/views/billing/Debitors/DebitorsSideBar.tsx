@@ -1,6 +1,10 @@
-import { Box, Button, Chip, Divider, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Divider, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { BoltOutlined, PlayArrowOutlined, Search, SyncOutlined, WarningAmberOutlined } from '@mui/icons-material';
 import { PHONE_CFG, STATUS_CFG } from '.';
+import { socket } from 'utils/socket';
+import api from 'utils/api';
+import React from 'react';
+import { CircularProgressWithLabel } from 'ui-component/loaders/CircularProgressWithLabel';
 
 // ─── Sidebar ─────────────────────────────────────────────────────
 
@@ -39,6 +43,27 @@ export function Sidebar({
 }: SidebarProps) {
   const STATUS_ALL = [['', 'Barchasi'], ...Object.entries(STATUS_CFG).map(([v, c]) => [v, c.label])];
   const PHONE_ALL = [['', 'Barchasi'], ...Object.entries(PHONE_CFG).map(([v, c]) => [v, c.label])];
+
+  const [progress, setProgress] = React.useState<Record<string, { progress: number; message: string }>>({});
+
+  React.useEffect(() => {
+    // Joriy holatdagi progresslarni olish
+    const fetchData = async () => {
+      const { data } = await api.get('/debitors/job-progress');
+      const progressData: Record<string, { progress: number; message: string }> = {};
+      data.data.forEach((job: { type: string; progress: number; message: string }) => {
+        progressData[job.type] = { progress: job.progress, message: job.message };
+      });
+      console.log('Initial progress data:', progressData);
+      setProgress(progressData);
+    };
+    fetchData();
+
+    // progress hisobotlariga ulanish
+    socket.on('job-progress', (data: { jobId: string; progress: number; message: string; type: string }) => {
+      setProgress((p) => ({ ...p, [data.type]: { progress: data.progress, message: data.message } }));
+    });
+  }, []);
   return (
     <Box
       sx={{
@@ -134,8 +159,15 @@ export function Sidebar({
           variant="outlined"
           fullWidth
           startIcon={<Search />}
-          endIcon={<PlayArrowOutlined />}
-          loading={jobLoading['detect']}
+          endIcon={
+            progress.CreateDebitorTargets ? (
+              <CircularProgressWithLabel value={progress.CreateDebitorTargets.progress} />
+            ) : (
+              <PlayArrowOutlined />
+            )
+          }
+          loading={!progress.CreateDebitorTargets && jobLoading['het']}
+          loadingPosition="end"
           onClick={() => onTrigger('detect', '/debitors/trigger-detection')}
           sx={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: 12 }}
         >
@@ -156,9 +188,16 @@ export function Sidebar({
               color={smsEmpty ? 'warning' : 'inherit'}
               fullWidth
               startIcon={smsEmpty ? <WarningAmberOutlined /> : <BoltOutlined />}
-              endIcon={<PlayArrowOutlined />}
               disabled={smsEmpty || smsLoading}
-              loading={jobLoading['forecast']}
+              endIcon={
+                progress.checkDebitorsReadyToConnectEtk ? (
+                  <CircularProgressWithLabel value={progress.checkDebitorsReadyToConnectEtk.progress} />
+                ) : (
+                  <PlayArrowOutlined />
+                )
+              }
+              loading={!progress.checkDebitorsReadyToConnectEtk && jobLoading['het']}
+              loadingPosition="end"
               onClick={() => onTrigger('forecast', '/debitors/trigger-forecast')}
               sx={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: 12 }}
             >
@@ -180,8 +219,15 @@ export function Sidebar({
           color="success"
           fullWidth
           startIcon={<SyncOutlined />}
-          endIcon={<PlayArrowOutlined />}
-          loading={jobLoading['het']}
+          endIcon={
+            progress.checkNeedsHetUpdate ? (
+              <CircularProgressWithLabel value={progress.checkNeedsHetUpdate.progress} />
+            ) : (
+              <PlayArrowOutlined />
+            )
+          }
+          loading={!progress.checkNeedsHetUpdate && jobLoading['het']}
+          loadingPosition="end"
           onClick={() => onTrigger('het', '/debitors/trigger-phone-sync')}
           sx={{ justifyContent: 'flex-start', textAlign: 'left', fontSize: 12 }}
         >

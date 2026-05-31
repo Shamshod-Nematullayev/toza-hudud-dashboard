@@ -169,8 +169,6 @@ function Debitors() {
   // Job trigger holati
   const [jobLoading, setJobLoading] = React.useState<Record<string, boolean>>({});
 
-  const [progress, setProgress] = React.useState<Record<string, { progress: number; message: string }>>({});
-
   // ─── So'rovlar ────────────────────────────────────────────────
 
   const { dataGridProps } = useServerDataGrid(
@@ -259,24 +257,6 @@ function Debitors() {
       })
       .catch(() => setStats(null));
   }, [refreshState]);
-
-  React.useEffect(() => {
-    // Joriy holatdagi progresslarni olish
-    const fetchData = async () => {
-      const { data } = await api.get('/debitors/job-progress');
-      const progressData: Record<string, { progress: number; message: string }> = {};
-      data.data.forEach((job: { type: string; progress: number; message: string }) => {
-        progressData[job.type] = { progress: job.progress, message: job.message };
-      });
-      setProgress(progressData);
-    };
-    fetchData();
-
-    // progress hisobotlariga ulanish
-    socket.on('job-progress', (data: { jobId: string; progress: number; message: string; type: string }) => {
-      setProgress((p) => ({ ...p, [data.type]: { progress: data.progress, message: data.message } }));
-    });
-  }, []);
 
   // ─── Amallar ──────────────────────────────────────────────────
 
