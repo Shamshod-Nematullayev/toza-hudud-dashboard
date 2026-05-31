@@ -86,12 +86,22 @@ const NotificationSection = () => {
 
   useEffect(() => {
     getNotifications();
-    // connect to notifications
-    socket.on('notification', (notification: INotification) => {
+
+    // Listener funksiyasini alohida o'zgaruvchiga olamiz
+    const handleNotification = (notification: INotification) => {
       addNotification(notification);
       console.log('New notification received:', notification);
-    });
-  }, []);
+    };
+
+    // Soketga ulaymiz
+    socket.on('notification', handleNotification);
+
+    // Klining (Cleanup) — Komponent unmount bo'lganda ishlaydi
+    return () => {
+      socket.off('notification', handleNotification);
+      console.log('Notification listener oʻchirildi.');
+    };
+  }, []); // Bo'sh massiv — faqat montaj va demontajda ishlaydi
 
   return (
     <>
