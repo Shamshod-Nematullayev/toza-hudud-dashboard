@@ -86,9 +86,9 @@ export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success'
 export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
   identified: { label: '📞 Aniqlangan', color: 'primary' },
   pending_check: { label: '🔍 Tekshirilmoqda', color: 'warning' },
-  no_phone: { label: "❌ Yo'q", color: 'error' },
-  needs_het_update: { label: '🔄 HET kerak', color: 'secondary' },
-  het_updated: { label: '✔️ HET yangilangan', color: 'success' }
+  no_phone: { label: "❌ Telefoni yo'q", color: 'error' },
+  needs_het_update: { label: '🔄 HET telefon kiritish kerak', color: 'secondary' },
+  het_updated: { label: '✔️ HET yangilangan (Telefon raqami kiritilgan)', color: 'success' }
 };
 
 const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(n);
@@ -201,7 +201,7 @@ function Debitors() {
       .get('/sms-service/balance')
       .then(({ data }) =>
         setSmsbal({
-          amount: data.balance,
+          amount: data.balance + 10000,
           estimatedMessages: Math.floor(data.balance / 80) // Faraz qilaylik, 1 SMS 80 so'm turadi
         })
       )
