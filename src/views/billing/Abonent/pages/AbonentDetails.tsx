@@ -71,7 +71,7 @@ function AbonentDetails() {
 
       <Grid container spacing={2} sx={{ mt: 1 }}>
         {/* 3. HET Abonent Card */}
-        <Grid item xs={4}>
+        <Grid size={4}>
           <Card sx={{ p: 2, boxShadow: '2', height: '100%', minHeight: 300 }}>
             <Typography variant="h6" sx={{ mb: 1 }}>
               {t('hetAbonent')}
@@ -108,7 +108,7 @@ function AbonentDetails() {
         </Grid>
 
         {/* 4. Cadastr Card */}
-        <Grid item xs={4}>
+        <Grid size={4}>
           <Card sx={{ p: 2, boxShadow: '2', height: '100%', minHeight: 300 }}>
             <Typography variant="h6" sx={{ mb: 1 }}>
               {t('cadastrAbonent')}
@@ -131,7 +131,7 @@ function AbonentDetails() {
         </Grid>
 
         {/* 5. Name History */}
-        <Grid item xs={4}>
+        <Grid size={4}>
           {isLoading ? (
             <Card sx={{ p: 2, height: '100%' }}>
               <Skeleton variant="rectangular" height="100%" />

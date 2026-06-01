@@ -23,12 +23,13 @@ const InfoChip = ({
 }) => {
   return (
     <Stack
-      direction="row"
-      alignItems="center"
       spacing={1.5}
       onClick={onClick}
       ref={containerRef}
       sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
         p: 1.5,
         borderRadius: '12px',
         border: '1px dashed #e0e0e0', // Dashed border - xohlasangiz 'solid' qiling
@@ -73,7 +74,7 @@ const InfoChip = ({
             value
           )}
         </Typography>
-        <Typography variant="caption" display="block" sx={{ color: 'text.secondary', fontWeight: 500, lineHeight: 1 }}>
+        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 500, lineHeight: 1 }}>
           {label}
         </Typography>
       </Box>

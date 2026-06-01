@@ -119,13 +119,13 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
     isSkeleton?: boolean;
   }) => (
     <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
-      <Grid item xs={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Grid size={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Icon sx={{ fontSize: 18, color: labelColor || 'text.secondary', opacity: 0.7 }} />
         <Typography variant="body2" sx={{ color: labelColor || 'text.secondary' }}>
           {label}:
         </Typography>
       </Grid>
-      <Grid item xs={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Grid size={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {isSkeleton ? (
           <Skeleton variant="text" width="80%" height={20} />
         ) : (
@@ -157,7 +157,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
       <CardContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
           {/* Avatar qismi */}
-          <Grid item xs={3} md={1.5} alignItems={'center'} justifyContent={'center'} display={'flex'} direction={'column'}>
+          <Grid size={{ xs: 3, md: 1.5 }} sx={{ alignItems: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column' }}>
             {isLoading ? (
               <Skeleton variant="rounded" sx={{ width: '100%', aspectRatio: '1/1.2', borderRadius: '12px', mb: 1 }} />
             ) : (
@@ -181,7 +181,12 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           </Grid>
 
           {/* Markaziy qism: F.I.O va asosiy ID ma'lumotlar */}
-          <Grid item xs={6} md={4.5}>
+          <Grid
+            size={{
+              xs: 6,
+              md: 4.5
+            }}
+          >
             <Box sx={{ mb: 2 }}>
               {!isLoading && ['BLOCK', 'ALREADY_BLOCK'].includes(blockReport?.blockStatus || '') && (
                 <Alert color="error" sx={{ mb: 1 }}>
@@ -190,7 +195,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                 </Alert>
               )}
 
-              <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+              <Stack sx={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }} spacing={1}>
                 {isLoading ? (
                   <Skeleton variant="text" width="70%" height={40} />
                 ) : (
@@ -228,13 +233,13 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
               <InfoRow icon={PassportIcon} label="Паспорт рақами" value={data?.citizen.passport} isSkeleton={isLoading} />
 
               <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
-                <Grid item xs={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Grid size={{ xs: 5 }} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <JshshirIcon sx={{ fontSize: 18, color: 'text.secondary', opacity: 0.7 }} />
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     ЖШШИР:
                   </Typography>
                 </Grid>
-                <Grid item xs={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Grid size={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {isLoading ? (
                     <Skeleton variant="text" width="80%" height={20} />
                   ) : (
@@ -283,7 +288,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           </Grid>
 
           {/* O'ng tomon: Qo'shimcha ma'lumotlar */}
-          <Grid item xs={6}>
+          <Grid size={6}>
             <Stack spacing={0.5}>
               <InfoRow icon={CompanyIcon} label="Корхона номи" value={data?.companyName} isSkeleton={isLoading} />
               <InfoRow
