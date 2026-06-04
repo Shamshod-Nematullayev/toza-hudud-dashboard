@@ -37,7 +37,6 @@ function MahallaSelection({
   const [mahallas, setMahallas] = useState<{ id: number; name: string }[]>([]);
   const { mahallalar, setMahallalar: setMahallalarStore, language } = useCustomizationStore();
   useEffect(() => {
-    console.log(mahallalar);
     if (mahallalar.length > 0) {
       setMahallas(mahallalar);
     } else {
@@ -63,7 +62,11 @@ function MahallaSelection({
           value={selectedMahallaId}
           onChange={(e) => setSelectedMahallaId(e.target.value)}
           fullWidth
-          SelectProps={{ native: true }}
+          slotProps={{
+            select: {
+              native: true
+            }
+          }}
           required={required}
         >
           <option disabled={defaultValueDisabled} value="">

@@ -34,7 +34,7 @@ export const theme = (customization) => {
   const themeOptions = {
     direction: 'ltr',
     palette: themePalette(themeOption),
-    colors: themeOption,
+    colors: themeOption.colors,
     mixins: {
       toolbar: {
         minHeight: '48px',

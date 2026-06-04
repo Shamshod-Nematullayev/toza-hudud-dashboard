@@ -16,16 +16,19 @@ import { PermamentsResponse } from '../types';
 import { styled } from '@mui/material/styles'; // MUI'nikidan olasiz
 
 // v9 dagi yozilish uslubi (ob'ekt ko'rinishida)
-const StyledTable = styled('table')(({ theme }) => ({
-  textAlign: 'center',
-  borderCollapse: 'collapse',
-  margin: '10px auto',
-  // Agar v9 dagi yangi CSS variables tizimidan foydalanayotgan bo'lsangiz, short-syntax ishlaydi:
-  borderColor: theme?.colors?.primary200 || theme.palette.primary.main,
-  '& th, & td': {
-    padding: '5px 10px'
-  }
-}));
+const StyledTable = styled('table')(({ theme }) => {
+  console.log({ theme });
+  return {
+    textAlign: 'center',
+    borderCollapse: 'collapse',
+    margin: '10px auto',
+
+    '& th, & td': {
+      padding: '5px 10px',
+      border: `1px solid ${theme.colors.primary200}`
+    }
+  };
+});
 
 function IIBInhabitants() {
   const {

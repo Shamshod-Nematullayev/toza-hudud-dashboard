@@ -20,7 +20,13 @@ import { drawerWidth } from 'store/constant';
 
 // ==============================|| SIDEBAR DRAWER ||============================== //
 
-const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
+interface Props {
+  drawerOpen: boolean;
+  drawerToggle: () => void;
+  window?: () => Window;
+}
+
+const Sidebar = ({ drawerOpen, drawerToggle, window }: Props) => {
   const theme = useTheme();
   const matchUpMd = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -41,22 +47,37 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
           }}
         >
           <MenuList />
-          <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
-            <Chip label={import.meta.env.VITE_APP_VERSION} disabled chipcolor="secondary" size="small" sx={{ cursor: 'pointer' }} />
+          <Stack direction="row" sx={{ mb: 2, justifyContent: 'center' }}>
+            <Chip
+              label={import.meta.env.VITE_APP_VERSION}
+              variant={'outlined'}
+              disabled
+              chipcolor="secondary"
+              size="small"
+              sx={{ cursor: 'pointer' }}
+            />
           </Stack>
         </PerfectScrollbar>
       </BrowserView>
       <MobileView>
         <Box sx={{ px: 2 }}>
           <MenuList />
-          <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
-            <Chip label={import.meta.env.VITE_APP_VERSION} disabled chipcolor="secondary" size="small" sx={{ cursor: 'pointer' }} />
+          <Stack direction="row" sx={{ mb: 2, justifyContent: 'center' }}>
+            <Chip
+              label={import.meta.env.VITE_APP_VERSION}
+              variant={'outlined'}
+              disabled
+              chipcolor="secondary"
+              size="small"
+              sx={{ cursor: 'pointer' }}
+            />
           </Stack>
         </Box>
       </MobileView>
     </>
   );
 
+  // @ts-ignore
   const container = window !== undefined ? () => window.document.body : undefined;
 
   return (

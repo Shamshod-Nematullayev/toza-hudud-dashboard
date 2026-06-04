@@ -12,8 +12,8 @@ export const AbonentCardView = forwardRef(
           {cardDetails.companyName}
         </Typography>
         <Divider sx={{ borderColor: 'success.main' }} />
-        <Grid container alignItems={'center'}>
-          <Grid item xs={10}>
+        <Grid container sx={{ alignItems: 'center' }}>
+          <Grid size={10}>
             <CompactKeyValue
               data={[
                 {
@@ -60,10 +60,10 @@ export const AbonentCardView = forwardRef(
               ]}
             />
           </Grid>
-          <Grid item xs={1.5}>
+          <Grid size={1.5}>
             <Avatar
               variant="rounded"
-              src={`data:image/png;base64,${abonentDetails?.citizen.photo}`}
+              src={abonentDetails?.citizen.photo ? `data:image/png;base64,${abonentDetails?.citizen.photo}` : ''}
               sx={{
                 width: '90%',
                 height: 'auto',
@@ -161,7 +161,7 @@ export const CompactKeyValue = ({ data, divider }: { data: { key: string; value:
             </Typography>
             <span>
               {typeof item.value === 'string' || typeof item.value === 'number' ? (
-                <Typography variant="body2" fontWeight={500} style={{ textOverflow: 'ellipsis' }}>
+                <Typography variant="body2" style={{ textOverflow: 'ellipsis', fontWeight: 500 }}>
                   {item.value}
                 </Typography>
               ) : (

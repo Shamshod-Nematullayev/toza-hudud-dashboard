@@ -82,12 +82,14 @@ export function AbonentToolsMobile() {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        PaperProps={{
-          sx: {
-            mt: 1,
-            borderRadius: '12px',
-            minWidth: 200,
-            boxShadow: '0px 10px 25px rgba(0,0,0,0.1)'
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              borderRadius: '12px',
+              minWidth: 200,
+              boxShadow: '0px 10px 25px rgba(0,0,0,0.1)'
+            }
           }
         }}
       >
@@ -166,14 +168,14 @@ function AbonentTools() {
       ) : (
         <Stack
           direction="row"
-          justifyContent={'space-between'}
           sx={{
             p: 1,
             bgcolor: 'background.paper',
             borderRadius: '16px',
             border: '1px solid #e2e8f0',
             display: 'flex',
-            marginBottom: 2
+            marginBottom: 2,
+            justifyContent: 'space-between'
           }}
         >
           <ButtonGroup
@@ -201,29 +203,37 @@ function AbonentTools() {
             <Button sx={btnStyle} startIcon={<PrintIcon />} ref={printSectionRef} onClick={() => setPrintSelectionOpen(true)}>
               {t('buttons.print')}
             </Button>
-            <MainPopper handleClose={() => setPrintSelectionOpen(false)} anchorEl={printSectionRef} open={printSelectionOpen}>
-              <List>
-                <MenuItem
-                  sx={{ display: 'flex', justifyContent: 'space-between', width: 180 }}
-                  onClick={() => {
-                    setOpenPrintAbonentcardState(true);
-                    setPrintSelectionOpen(false);
-                  }}
-                >
-                  <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
-                </MenuItem>
-                <Divider />
-                <MenuItem
-                  sx={{ display: 'flex', justifyContent: 'space-between', width: 180 }}
-                  onClick={() => {
-                    setOpenDebtCertificateDialog(true);
-                    setPrintSelectionOpen(false);
-                  }}
-                >
-                  <IconCertificate /> {t('abonentCardPage.certificate')}
-                </MenuItem>
-              </List>
-            </MainPopper>
+            <Menu
+              anchorEl={printSectionRef.current}
+              open={printSelectionOpen}
+              onClose={() => setPrintSelectionOpen(false)}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left'
+              }}
+            >
+              <MenuItem
+                sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
+                onClick={() => {
+                  setOpenPrintAbonentcardState(true);
+                  setPrintSelectionOpen(false);
+                }}
+              >
+                <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
+              </MenuItem>
+
+              <Divider />
+
+              <MenuItem
+                sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
+                onClick={() => {
+                  setOpenDebtCertificateDialog(true);
+                  setPrintSelectionOpen(false);
+                }}
+              >
+                <IconCertificate /> {t('abonentCardPage.certificate')}
+              </MenuItem>
+            </Menu>
 
             <Button sx={btnStyle} startIcon={<MultipleIcon />} color="primary" onClick={() => setOpenAddInhabitantsDialog(true)}>
               {t('buttons.addToMultipleLivings')}
