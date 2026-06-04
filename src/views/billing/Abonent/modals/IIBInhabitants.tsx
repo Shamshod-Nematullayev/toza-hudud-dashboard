@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../hooks/abonentStore';
 import { Backdrop, Button, CircularProgress, DialogActions, Typography } from '@mui/material';
-import styled from 'styled-components';
 import { t } from 'i18next';
 import dayjs from 'dayjs';
 import { red } from '@mui/material/colors';
@@ -13,16 +12,20 @@ import { useAbonentLogic } from '../hooks/useAbonentLogic';
 import { toast } from 'react-toastify';
 import { PermamentsResponse } from '../types';
 
-const StyledTable = styled.table`
-  text-align: center;
-  border-collapse: collapse;
-  margin: 10px auto;
-  border-color: ${({ theme }) => theme.colors.colors.primaryMain};
-  th,
-  td {
-    padding: 5px 10px;
+// Eski import: import styled from 'styled-components'; -> BUNI O'CHIRING
+import { styled } from '@mui/material/styles'; // MUI'nikidan olasiz
+
+// v9 dagi yozilish uslubi (ob'ekt ko'rinishida)
+const StyledTable = styled('table')(({ theme }) => ({
+  textAlign: 'center',
+  borderCollapse: 'collapse',
+  margin: '10px auto',
+  // Agar v9 dagi yangi CSS variables tizimidan foydalanayotgan bo'lsangiz, short-syntax ishlaydi:
+  borderColor: theme?.colors?.primary200 || theme.palette.primary.main,
+  '& th, & td': {
+    padding: '5px 10px'
   }
-`;
+}));
 
 function IIBInhabitants() {
   const {
