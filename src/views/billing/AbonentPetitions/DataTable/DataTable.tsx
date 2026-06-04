@@ -23,11 +23,11 @@ function DataTable() {
           }
         })
         .then(({ data }) => {
-          const rows = data.data.map((row, i) => ({
+          const rows = data.data.map((row: any, i: number) => ({
             _id: row._id,
             id: i,
             documentNumber: row.document_number,
-            documentType: t('documentTypes.' + row.document_type),
+            documentType: t(('documentTypes.' + row.document_type) as 'documentTypes.odam_soni'),
             accountNumber: row.licshet,
             aktSummasi: row.aktSummasi,
             status: row.status,
@@ -47,10 +47,10 @@ function DataTable() {
 
   return (
     <Grid container>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <ToolBar />
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <DataGrid
           columns={columns()}
           paginationMode="server"

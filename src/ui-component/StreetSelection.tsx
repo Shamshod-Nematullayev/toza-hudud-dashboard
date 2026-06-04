@@ -36,7 +36,7 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
   return (
     <>
       {native ? (
-        <TextField select value={value} onChange={onChange} fullWidth SelectProps={{ native: true }}>
+        <TextField select value={value ?? ''} onChange={onChange} fullWidth slotProps={{ select: { native: true } }}>
           <option value="" disabled={defaultValueDisabled}>
             {t('tableHeaders.street')}
           </option>
@@ -47,7 +47,7 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
           ))}
         </TextField>
       ) : (
-        <TextField select value={value} onChange={onChange} label={t('tableHeaders.street')} fullWidth>
+        <TextField select value={value ?? ''} onChange={onChange} label={t('tableHeaders.street')} fullWidth>
           <MenuItem value="" disabled={defaultValueDisabled}>
             {t('all')}
           </MenuItem>

@@ -1,7 +1,7 @@
 import { Button, Card, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import useStore from './useStore';
@@ -13,11 +13,11 @@ function SideBar() {
   const [arizaType, setArizaType] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [dublicatAccountNumber, setDublicatAccountNumber] = useState('');
-  const [createdFromDate, setCreatedFromDate] = useState(null);
-  const [createdToDate, setCreatedToDate] = useState(null);
-  const [actFromDate, setActFromDate] = useState(null);
-  const [actToDate, setActToDate] = useState(null);
-  const [actAmountFrom, setActAmountFrom] = useState();
+  const [createdFromDate, setCreatedFromDate] = useState<Dayjs | null>(null);
+  const [createdToDate, setCreatedToDate] = useState<Dayjs | null>(null);
+  const [actFromDate, setActFromDate] = useState<Dayjs | null>(null);
+  const [actToDate, setActToDate] = useState<Dayjs | null>(null);
+  const [actAmountFrom, setActAmountFrom] = useState('');
   const [actAmountTo, setActAmountTo] = useState('');
   const [arizaStatus, setArizaStatus] = useState('');
   const [actStatus, setActStatus] = useState('');
@@ -42,10 +42,10 @@ function SideBar() {
       document_type: arizaType,
       account_number: accountNumber,
       dublicat_account_number: dublicatAccountNumber,
-      created_from_date: createdFromDate ? createdFromDate.$d : null,
-      created_to_date: createdToDate ? createdToDate.$d : null,
-      act_from_date: actFromDate ? actFromDate.$d : null,
-      act_to_date: actToDate ? actToDate.$d : null,
+      created_from_date: createdFromDate,
+      created_to_date: createdToDate,
+      act_from_date: actFromDate,
+      act_to_date: actToDate,
       act_amount_from: actAmountFrom,
       act_amount_to: actAmountTo,
       ariza_status: arizaStatus,
@@ -56,12 +56,12 @@ function SideBar() {
   return (
     <Card sx={{ border: '1px solid #ccc', minHeight: 'calc(100vh - 200px)', padding: '5px 10px' }}>
       <Grid container spacing={1}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h3" sx={{ textAlign: 'center' }}>
             {t('filters')}
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormControl fullWidth>
             <InputLabel id="ariza-type-label">{t('tableHeaders.documentType')}</InputLabel>
             <Select label="Ariza turi" labelId="ariza-type-label" value={arizaType} onChange={(e) => setArizaType(e.target.value)}>
@@ -74,21 +74,30 @@ function SideBar() {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12}>
-          <AccountNumberInput label={t('tableHeaders.accountNumber')} value={accountNumber} setFunc={setAccountNumber} fullWidth />
+        <Grid size={12}>
+          <AccountNumberInput
+            label={t('tableHeaders.accountNumber')}
+            value={accountNumber}
+            setFunc={setAccountNumber}
+            sx={{ width: '100%' }}
+          />
         </Grid>
-        <Grid item xs={12} sx={{ display: arizaType === 'dvaynik' ? 'inline-block' : 'none' }}>
+        <Grid size={12} sx={{ display: arizaType === 'dvaynik' ? 'inline-block' : 'none' }}>
           <AccountNumberInput
             label={t('createAbonentPetitionPage.dublicateAccountNumber')}
             value={dublicatAccountNumber}
             setFunc={setDublicatAccountNumber}
-            fullWidth
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h5">{t('tableHeaders.createdDate')}</Typography>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6
+          }}
+        >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               views={['year', 'month', 'day']}
@@ -100,7 +109,7 @@ function SideBar() {
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               views={['year', 'month', 'day']}
@@ -112,10 +121,10 @@ function SideBar() {
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h5">{t('tableHeaders.actCreatedDate')}</Typography>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               views={['year', 'month', 'day']}
@@ -123,11 +132,11 @@ function SideBar() {
               maxDate={dayjs()}
               label={t('from')}
               value={actFromDate}
-              onChange={(e) => setActFromDate(dayjs(e))}
+              onChange={(e) => setActFromDate(e)}
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               views={['year', 'month', 'day']}
@@ -139,16 +148,16 @@ function SideBar() {
             />
           </LocalizationProvider>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h5">{t('tableHeaders.actAmount')}</Typography>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField label={t('from')} value={actAmountFrom} onChange={(e) => setActAmountFrom(e.target.value)} fullWidth />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField label={t('to')} value={actAmountTo} onChange={(e) => setActAmountTo(e.target.value)} fullWidth />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormControl fullWidth>
             <InputLabel id="ariza-status-label">{t('tableHeaders.status')}</InputLabel>
             <Select label="Ariza turi" labelId="ariza-status-label" value={arizaStatus} onChange={(e) => setArizaStatus(e.target.value)}>
@@ -162,7 +171,7 @@ function SideBar() {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormControl fullWidth>
             <InputLabel id="act-status-label">{t('tableHeaders.actStatus')}</InputLabel>
             <Select label="Ariza turi" labelId="act-status-label" value={actStatus} onChange={(e) => setActStatus(e.target.value)}>
@@ -176,12 +185,12 @@ function SideBar() {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <Button color="info" variant="outlined" onClick={handleClickClearButton} fullWidth>
             {t('buttons.clear')}
           </Button>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <Button color="primary" variant="contained" onClick={handleClickSeachButton} fullWidth>
             {t('search')}
           </Button>

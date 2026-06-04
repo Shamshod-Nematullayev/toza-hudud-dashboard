@@ -15,14 +15,29 @@ export const CompactKeyValue = ({
   return (
     <Grid container spacing={1}>
       {data.map((item, i) => (
-        <Grid item xs={xs} sm={sm} md={md} key={i}>
-          <Box display="flex" justifyContent="space-between" px={1} py={0.5} borderBottom="1px solid #eee">
+        <Grid
+          size={{
+            xs,
+            sm,
+            md
+          }}
+          key={i}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              px: 1,
+              py: 0.5,
+              borderBottom: '1px solid #eee'
+            }}
+          >
             <Typography variant="subtitle2" color="textSecondary">
               {item.key}:
             </Typography>
-            <Box textAlign="right">
+            <Box sx={{ textAlign: 'right' }}>
               {typeof item.value === 'string' || typeof item.value === 'number' ? (
-                <Typography variant="body2" fontWeight={500} style={{ textOverflow: 'ellipsis' }}>
+                <Typography variant="body2" sx={{ textOverflow: 'ellipsis', fontWeight: 500 }}>
                   {item.value}
                 </Typography>
               ) : (

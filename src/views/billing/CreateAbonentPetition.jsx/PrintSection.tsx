@@ -271,12 +271,12 @@ export default function PrintSection({
             borderRadius: '12px'
           }}
         >
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ p: 1.5, bgcolor: '#fff', borderRadius: '10px', border: '1px solid #e8e5dd', display: 'flex' }}>
               <DescriptionOutlined sx={{ color: '#888' }} />
             </Box>
             <Box>
-              <Typography variant="subtitle1" fontWeight="600" color="#1a1a1a">
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
                 {documentTitle}
               </Typography>
               <Typography variant="body2" color="textSecondary">
@@ -302,7 +302,7 @@ export default function PrintSection({
 
         {/* Form Selection Row */}
         <Grid container spacing={2}>
-          <Grid item xs={6}>
+          <Grid size={6}>
             <FormControl fullWidth size="medium">
               <InputLabel>Hujjat varianti</InputLabel>
               <Select
@@ -317,7 +317,7 @@ export default function PrintSection({
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={6}>
             <DatePicker
               label="Qayta hisob boshi"
               value={olderPeriod}
@@ -347,57 +347,63 @@ export default function PrintSection({
               paddingRight: '44px' // Tayoqcha matn bilan to'qnashib ketmasligi uchun joy ajratildi
             }
           }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment
-                position="end"
-                sx={{
-                  position: 'absolute',
-                  right: 15,
-                  top: 'calc(50% - 12px)',
-                  margin: 0
-                }}
-              >
-                <Tooltip title={autoComment ? 'Avto-matn yoqilgan' : "Avto-matn bilan to'ldirish"}>
-                  <IconButton
-                    size="medium"
-                    onClick={() => {
-                      const newVal = !autoComment;
-                      setAutoComment(newVal);
-                      if (newVal) {
-                        const sana = olderPeriod?.format('DD.MM.YYYY') ?? '';
-                        const cnt = abonentData?.house?.inhabitantCnt ?? '';
-                        setComment(
-                          `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
-                        );
-                      }
-                    }}
-                    sx={{ color: autoComment ? 'primary.main' : 'text.disabled' }}
-                  >
-                    <AutoFixHigh fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            )
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment
+                  position="end"
+                  sx={{
+                    position: 'absolute',
+                    right: 15,
+                    top: 'calc(50% - 12px)',
+                    margin: 0
+                  }}
+                >
+                  <Tooltip title={autoComment ? 'Avto-matn yoqilgan' : "Avto-matn bilan to'ldirish"}>
+                    <IconButton
+                      size="medium"
+                      onClick={() => {
+                        const newVal = !autoComment;
+                        setAutoComment(newVal);
+                        if (newVal) {
+                          const sana = olderPeriod?.format('DD.MM.YYYY') ?? '';
+                          const cnt = abonentData?.house?.inhabitantCnt ?? '';
+                          setComment(
+                            `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
+                          );
+                        }
+                      }}
+                      sx={{ color: autoComment ? 'primary.main' : 'text.disabled' }}
+                    >
+                      <AutoFixHigh fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </InputAdornment>
+              )
+            }
           }}
         />
 
         {/* Hujjatda ishtirok etuvchilar */}
         <Box>
-          <Typography variant="subtitle2" fontWeight="600" color="textSecondary" sx={{ mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, color: 'textSecondary', fontWeight: 600 }}>
             Hujjatda ishtirok etuvchilar
           </Typography>
           <Stack spacing={1}>
             <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="between"
-              sx={{ p: '10px 16px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: '10px 16px',
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px'
+              }}
             >
               <FormControlLabel
                 control={<Checkbox checked={boshliqIshtirok} onChange={(e) => setBoshliqIshtirok(e.target.checked)} color="primary" />}
                 label={
-                  <Typography variant="body2" fontWeight="500">
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Boshliq ishtirok etadimi?
                   </Typography>
                 }
@@ -406,15 +412,19 @@ export default function PrintSection({
             </Box>
 
             <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="between"
-              sx={{ p: '10px 16px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: '10px 16px',
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px'
+              }}
             >
               <FormControlLabel
                 control={<Checkbox checked={raisiIshtirok} onChange={(e) => setRaisiIshtirok(e.target.checked)} color="primary" />}
                 label={
-                  <Typography variant="body2" fontWeight="500">
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Mahalla raisi ishtirok etadimi?
                   </Typography>
                 }
@@ -425,9 +435,9 @@ export default function PrintSection({
         </Box>
 
         {/* UX Dizayn Bo'yicha Footer Qismi */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 2, pt: 2, borderTop: '1px solid #f0f0f0' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, pt: 2, borderTop: '1px solid #f0f0f0' }}>
           {/* Vakillik ma'lumotlari (Kim orqali va Vakil F.I.Sh) */}
-          <Box display="flex" gap={1.5} width="60%">
+          <Box sx={{ display: 'flex', gap: 1.5, width: '60%' }}>
             <FormControl size="medium" sx={{ width: '40%' }}>
               <Select value={relation} onChange={(e) => setRelation(e.target.value)} displayEmpty sx={{ borderRadius: '8px' }}>
                 <MenuItem value="">Kim orqali</MenuItem>

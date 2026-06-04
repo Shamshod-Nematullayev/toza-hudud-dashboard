@@ -27,10 +27,20 @@ function Recalculate() {
         mahalla2={mahallaDublicat}
       />
       <Grid container spacing={gridSpacing}>
-        <Grid item xs={12} sm={9}>
+        <Grid
+          size={{
+            xs: 12,
+            sm: 9
+          }}
+        >
           <DataTable />
         </Grid>
-        <Grid item xs={12} sm={3}>
+        <Grid
+          size={{
+            xs: 12,
+            sm: 3
+          }}
+        >
           <SideBar />
         </Grid>
       </Grid>
