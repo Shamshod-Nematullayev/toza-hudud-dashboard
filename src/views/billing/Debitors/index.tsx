@@ -42,6 +42,7 @@ interface DebitorStats {
   active: Stat;
   pendingBlock: Stat;
   no_het: Stat;
+  no_longer_debitor: Stat;
   // Phone Status
   no_phone: Stat;
   identified: Stat;
@@ -77,10 +78,11 @@ export interface Debitor {
 // ─── Config ───────────────────────────────────────────────────────
 
 export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'error' | 'warning' | 'default' }> = {
-  active: { label: '✅ Aktiv', color: 'success' },
+  active: { label: '❓ Aktiv', color: 'success' },
   blocked: { label: '🚫 Bloklangan', color: 'error' },
   pendingBlock: { label: '⏳ Kutilmoqda', color: 'warning' },
-  no_het: { label: "⚠️ HET yo'q", color: 'default' }
+  no_het: { label: "⚠️ HET yo'q", color: 'default' },
+  no_longer_debitor: { label: '✅ Qarz qoplandi', color: 'success' }
 };
 
 export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
@@ -251,6 +253,10 @@ function Debitors() {
           },
           no_phone: {
             count: s.phoneStatistics.find((x: any) => x._id === 'no_phone')?.count || 0,
+            summ: 0
+          },
+          no_longer_debitor: {
+            count: s.phoneStatistics.find((x: any) => x._id === 'no_longer_debitor')?.count || 0,
             summ: 0
           }
         });

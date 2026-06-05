@@ -115,7 +115,7 @@ function InputForm() {
   return (
     <Card sx={{ boxShadow: 5, padding: 2 }}>
       <Grid container spacing={1}>
-        <Grid item xs={3}>
+        <Grid size={3}>
           <Button
             variant="contained"
             color={'primary'}
@@ -127,19 +127,19 @@ function InputForm() {
             {t('buttons.create')}
           </Button>
         </Grid>
-        <Grid item xs={4}>
+        <Grid size={4}>
           <Button variant="outlined" color={'error'} onClick={handleClearButtonClick}>
             {t('buttons.clear')}
           </Button>
         </Grid>
         {aktType === 'gps' && (
-          // <Grid item xs={4}>
-          (<Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
+          // <Grid size={4}>
+          <Button color="success" variant="outlined" onClick={() => setPasteImageDialogOpen(true)}>
             {t('buttons.addImage')}
-          </Button>)
+          </Button>
           // </Grid>
         )}
-        <Grid item xs={6}>
+        <Grid size={6}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <TextField
               select
@@ -174,7 +174,7 @@ function InputForm() {
             />
           </div>
         </Grid>
-        <Grid item xs={6}>
+        <Grid size={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Stack sx={{ display: 'flex', flexDirection: 'column' }}>
               <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={accountNumber} setFunc={setAccountNumber} />
@@ -195,7 +195,7 @@ function InputForm() {
             )}
           </div>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           {aktType === 'gps' && (
             <FormControlLabel
               control={<Checkbox value={muzlatiladi} onChange={(e) => setMuzlatiladi(Boolean(e.target.value))} />}
@@ -210,7 +210,7 @@ function InputForm() {
           )}
         </Grid>
         {aktType === 'gps' && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="body2" sx={{ display: 'inline-block', margin: 1 }}>
               {autoMobile?.name}
             </Typography>

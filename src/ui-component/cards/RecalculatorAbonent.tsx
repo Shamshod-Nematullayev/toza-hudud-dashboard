@@ -173,9 +173,9 @@ function RecalculatorAbonent() {
           backgroundColor: 'background.paper'
         }}
       >
-        <Grid container spacing={1.5} alignItems="center">
+        <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
           {/* Boshlanish sanasi */}
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <DatePicker
               views={['year', 'month', 'day']}
               minDate={dayjs('2019-01-01')}
@@ -188,8 +188,9 @@ function RecalculatorAbonent() {
                 textField: {
                   size: 'small',
                   fullWidth: true,
-                  InputProps: {
-                    sx: { fontSize: '13px', borderRadius: 1.5 }
+                  sx: {
+                    fontSize: '13px',
+                    borderRadius: 1.5
                   }
                 },
                 openPickerIcon: { sx: { fontSize: '18px' } }
@@ -198,7 +199,7 @@ function RecalculatorAbonent() {
           </Grid>
 
           {/* Tugash sanasi */}
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <DatePicker
               views={['year', 'month', 'day']}
               minDate={dayjs('2019-01-01')}
@@ -212,8 +213,9 @@ function RecalculatorAbonent() {
                 textField: {
                   size: 'small',
                   fullWidth: true,
-                  InputProps: {
-                    sx: { fontSize: '13px', borderRadius: 1.5 }
+                  sx: {
+                    fontSize: '13px',
+                    borderRadius: 1.5
                   }
                 },
                 openPickerIcon: { sx: { fontSize: '18px' } }
@@ -222,7 +224,7 @@ function RecalculatorAbonent() {
           </Grid>
 
           {/* Debitor / Kreditor tugmalari */}
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <Stack direction="column" spacing={1}>
               <Tooltip title={t('recalculator.debitor')} arrow>
                 <Button
@@ -271,7 +273,7 @@ function RecalculatorAbonent() {
           </Grid>
 
           {/* Joriy va umumiy summalar */}
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <Paper
               elevation={0}
               sx={{
@@ -344,7 +346,7 @@ function RecalculatorAbonent() {
               flex: 1,
               sortable: false,
               renderCell: ({ value }) => (
-                <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                   <CalendarTodayIcon sx={{ fontSize: '12px', color: 'text.disabled' }} />
                   <Typography variant="body2" sx={{ fontSize: '13px' }}>
                     {value}
@@ -358,7 +360,7 @@ function RecalculatorAbonent() {
               flex: 1,
               sortable: false,
               renderCell: ({ value }) => (
-                <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                   <CalendarTodayIcon sx={{ fontSize: '12px', color: 'text.disabled' }} />
                   <Typography variant="body2" sx={{ fontSize: '13px' }}>
                     {value}
