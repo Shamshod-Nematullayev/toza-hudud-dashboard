@@ -9,10 +9,11 @@ import { IconButton, Tooltip } from '@mui/material';
 import { NavigateNext } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import useLoaderStore from 'store/loaderStore';
+import { GridColDef } from '@mui/x-data-grid';
 
 function ActPacks() {
   const { t } = useTranslation();
-  const columns = [
+  const columns: GridColDef[] = [
     {
       field: 'id',
       headerName: 'ID',
@@ -85,7 +86,7 @@ function ActPacks() {
           }
         })
         .then(({ data }) => {
-          setRows(data.map((row, i) => ({ ...row, i: i + 1 })));
+          setRows(data.map((row: any, i: number) => ({ ...row, i: i + 1 })));
           counter++;
           if (counter == 2) {
             setIsLoading(false);

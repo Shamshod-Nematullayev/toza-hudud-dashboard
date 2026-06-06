@@ -10,8 +10,18 @@ import api from 'utils/api';
 import useLoaderStore from 'store/loaderStore';
 import useActsStore from 'store/actsStore';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, refreshRows }) {
+interface Props {
+  selectedRows: any;
+  setSelectedRows: any;
+  filters: any;
+  setFilters: any;
+  rows: any;
+  refreshRows: any;
+}
+
+function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, refreshRows }: Props) {
   const { t } = useTranslation();
   const [openWarningPopper, setOpenWarningPopper] = useState(false);
   const [xatoTuri, setXatoTuri] = useState('Qayta hisob kitob xato');
@@ -27,8 +37,8 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
   const handleClickDoneButton = async () => {
     setIsLoading(true);
     try {
-      const promises = selectedRows.map(async (row) => {
-        const act = rows.find((r) => r.id === row);
+      const promises = selectedRows.map(async (row: any) => {
+        const act = rows.find((r: any) => r.id === row);
         const date = new Date(act.createdAt);
         const period = `${date.getMonth() + 1}.${date.getFullYear()}`;
         const { data } = await api.patch(`/acts/${act.id}/check`, {
@@ -42,7 +52,7 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
       const result = await Promise.all(promises);
       await refreshRows();
       setSelectedRows([]);
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.response?.data?.message || error.message);
       console.error(error);
     } finally {
@@ -114,7 +124,7 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
     }
   };
   const handleClickOpenButton = async () => {
-    const playlist = selectedRows.map((row) => rows.find((r) => r.id === row));
+    const playlist = selectedRows.map((row: any) => rows.find((r: any) => r.id === row));
     setPlaylist(playlist);
     navigate('/stm/actCheck/' + playlist[0].id);
   };

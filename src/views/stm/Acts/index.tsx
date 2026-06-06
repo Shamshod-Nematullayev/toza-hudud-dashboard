@@ -1,6 +1,6 @@
 import { NavigateNext } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
@@ -10,11 +10,11 @@ import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import Toolbar from './Toolbar';
 import './main.css';
-import { toast } from 'react-toastify';
+import { GridPaginationModel } from '@mui/x-data-grid';
 
 function Acts() {
   const { t } = useTranslation();
-  const columns = [
+  const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 50, renderCell: (row) => row.row.i },
     { field: 'accountNumber', headerName: t('tableHeaders.accountNumber'), flex: 1 },
     { field: 'residentFullName', headerName: t('tableHeaders.fullName'), flex: 2 },
@@ -22,7 +22,7 @@ function Acts() {
       field: 'actStatus',
       headerName: t('tableHeaders.status'),
       flex: 1,
-      renderCell: (row) => actStatusOptions.find((s) => s.value == row.row.actStatus).label
+      renderCell: (row) => actStatusOptions.find((s) => s.value == row.row.actStatus)?.label
     },
     { field: 'amount', headerName: t('tableHeaders.actAmount'), type: 'number', flex: 1 },
     { field: 'amountWithQQS', headerName: t('tableHeaders.amountWithQQS'), flex: 1 },
@@ -48,12 +48,12 @@ function Acts() {
       )
     }
   ];
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState<any[]>([]);
   const [pageSize, setPageSize] = useState(100);
   const [page, setPage] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
   const { isLoading, setIsLoading } = useLoaderStore();
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [filters, setFilters] = useState({
     status: '',
     checkStatus: ''
@@ -67,14 +67,14 @@ function Acts() {
     api
       .get('/acts', { params: { packId: params.packId, page, size: pageSize, companyId: 1144, ...filters } })
       .then(({ data }) => {
-        setRows(data.content.map((row, i) => ({ ...row, i: i + 1 })));
+        setRows(data.content.map((row: any, i: number) => ({ ...row, i: i + 1 })));
         setTotalRows(data.totalElements);
       })
       .finally(() => setIsLoading(false));
   }, [page, pageSize, filters, refreshState]);
 
   const refreshRows = () => setRefreshState(!refreshState);
-  const handlePaginationChange = (model) => {
+  const handlePaginationChange = (model: GridPaginationModel) => {
     if (model.page !== page) setPage(model.page);
     if (model.pageSize !== pageSize) setPageSize(model.pageSize);
   };
@@ -103,7 +103,9 @@ function Acts() {
         paginationModel={{ page, pageSize }}
         pageSizeOptions={[15, 30, 50, 100]}
         onPaginationModelChange={handlePaginationChange}
+        // @ts-ignore
         rowSelectionModel={selectedRows}
+        // @ts-ignore
         onRowSelectionModelChange={(ids) => setSelectedRows(ids)}
         disableColumnSorting
         disableColumnFilter

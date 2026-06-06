@@ -56,7 +56,7 @@ function SmsWarnings() {
     }
   };
   return (
-    <MainCard>
+    <MainCard contentSX={{ padding: '0 5px' }}>
       {loading && (
         <Backdrop
           sx={{
@@ -72,20 +72,16 @@ function SmsWarnings() {
         </Backdrop>
       )}
       <ImportSmsModal open={openImportModal} onClose={() => setOpenImportModal(false)} onSave={handleImport} />
+      <Toolbar sx={{ gap: 2 }}>
+        <Button startIcon={<Download />} onClick={() => setOpenImportModal(true)} variant="contained" color="success">
+          {t('buttons.import')}
+        </Button>
+        <Button startIcon={<GridOn />} onClick={handleClickExport} variant="outlined" color="primary">
+          {t('buttons.export')}
+        </Button>
+      </Toolbar>
       <DataGrid
         {...dataGridProps}
-        slots={{
-          toolbar: () => (
-            <Toolbar sx={{ gap: 2 }}>
-              <Button startIcon={<Download />} onClick={() => setOpenImportModal(true)} variant="contained" color="success">
-                {t('buttons.import')}
-              </Button>
-              <Button startIcon={<GridOn />} onClick={handleClickExport} variant="outlined" color="primary">
-                {t('buttons.export')}
-              </Button>
-            </Toolbar>
-          )
-        }}
         columns={[
           { field: 'id', headerName: 'ID', width: 50 },
           { field: 'accountNumber', headerName: t('tableHeaders.accountNumber'), flex: 1 },
