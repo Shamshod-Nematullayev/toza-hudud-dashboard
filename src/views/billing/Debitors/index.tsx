@@ -202,7 +202,7 @@ function Debitors() {
       .then(({ data }) =>
         setSmsbal({
           amount: data.balance,
-          estimatedMessages: Math.floor(data.balance / 240) // Faraz qilaylik, 1 SMS 80 so'm turadi
+          estimatedMessages: Math.floor(data.balance / 120) // Faraz qilaylik, 1 SMS 80 so'm turadi
         })
       )
       .catch(() => setSmsbal(null))
