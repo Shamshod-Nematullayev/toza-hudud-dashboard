@@ -154,7 +154,7 @@ function XatlovTable() {
             <GridToolbarContainer>
               <XatlovActionsToolbar />
               <Tooltip title="Filtrlash paneli">
-                <IconButton onClick={() => apiRef.current.showFilterPanel()} color="primary">
+                <IconButton onClick={() => apiRef.current?.showFilterPanel()} color="primary">
                   <FilterListOutlinedIcon />
                 </IconButton>
               </Tooltip>

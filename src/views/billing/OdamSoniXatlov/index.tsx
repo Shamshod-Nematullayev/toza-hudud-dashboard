@@ -27,10 +27,10 @@ function XatlovOdamSoni() {
         <CircularProgress color="inherit" />
       </Backdrop>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={5}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <XatlovTable />
         </Grid>
-        <Grid item xs={12} md={7}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <SidePanel />
         </Grid>
       </Grid>
