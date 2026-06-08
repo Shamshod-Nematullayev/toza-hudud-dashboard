@@ -77,22 +77,6 @@ export interface Debitor {
 }
 // ─── Config ───────────────────────────────────────────────────────
 
-export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'error' | 'warning' | 'default' }> = {
-  active: { label: '❓ Aktiv', color: 'success' },
-  blocked: { label: '🚫 Bloklangan', color: 'error' },
-  pendingBlock: { label: '⏳ Kutilmoqda', color: 'warning' },
-  no_het: { label: "⚠️ HET yo'q", color: 'default' },
-  no_longer_debitor: { label: '✅ Qarz qoplandi', color: 'success' }
-};
-
-export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
-  identified: { label: '📞 Aniqlangan', color: 'primary' },
-  pending_check: { label: '🔍 Tekshirilmoqda', color: 'warning' },
-  no_phone: { label: "❌ Telefoni yo'q", color: 'error' },
-  needs_het_update: { label: '🔄 HET telefon kiritish kerak', color: 'secondary' },
-  het_updated: { label: '✔️ HET yangilangan (Telefon raqami kiritilgan)', color: 'success' }
-};
-
 const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(n);
 const fmtMoney = (n: number) => fmt(n) + " so'm";
 
@@ -145,7 +129,7 @@ function StatCard({ label, value, valueColor }: { label: string; value: { count:
 }
 
 import { Sidebar } from './DebitorsSideBar';
-import { DebitorStatus, PhoneStatus } from './types';
+import { DebitorStatus, PHONE_CFG, PhoneStatus, STATUS_CFG } from './types';
 
 // ─── Asosiy komponent ─────────────────────────────────────────────
 

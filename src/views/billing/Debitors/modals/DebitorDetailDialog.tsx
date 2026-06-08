@@ -23,18 +23,9 @@ import UpdateIcon from '@mui/icons-material/Update';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EditIcon from '@mui/icons-material/Edit';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { Debitor, PHONE_CFG } from '..';
+import { Debitor } from '..';
 import { formatPhoneNumber } from 'views/tools/formatters';
-
-type DebitorStatus = 'active' | 'blocked' | 'pendingBlock' | 'no_het';
-type PhoneStatus = 'identified' | 'pending_check' | 'no_phone' | 'needs_het_update' | 'het_updated';
-
-const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'error' | 'warning' | 'default' }> = {
-  active: { label: '✅ Aktiv', color: 'success' },
-  blocked: { label: '🚫 Bloklangan', color: 'error' },
-  pendingBlock: { label: '⏳ Kutilmoqda', color: 'warning' },
-  no_het: { label: "⚠️ HET yo'q", color: 'default' }
-};
+import { PHONE_CFG, STATUS_CFG } from '../types';
 
 interface DebitorDetailDialogProps {
   open: boolean;

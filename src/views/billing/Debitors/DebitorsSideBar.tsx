@@ -1,10 +1,10 @@
 import { Box, Button, Chip, CircularProgress, Divider, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { BoltOutlined, PlayArrowOutlined, Search, SyncOutlined, WarningAmberOutlined } from '@mui/icons-material';
-import { PHONE_CFG, STATUS_CFG } from '.';
 import { socket } from 'utils/socket';
 import api from 'utils/api';
 import React from 'react';
 import { CircularProgressWithLabel } from 'ui-component/loaders/CircularProgressWithLabel';
+import { PHONE_CFG, STATUS_CFG } from './types';
 
 // ─── Sidebar ─────────────────────────────────────────────────────
 
