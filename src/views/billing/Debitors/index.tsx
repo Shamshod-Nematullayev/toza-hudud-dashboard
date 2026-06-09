@@ -38,6 +38,9 @@ interface Stat {
 interface DebitorStats {
   // Debitor Status
   totalDebtors: Stat;
+  debt_identified: Stat;
+  sms_sent: Stat;
+  blocked;
   blocked: Stat;
   active: Stat;
   pendingBlock: Stat;
@@ -440,6 +443,7 @@ function Debitors() {
           {stats ? (
             <Stack direction="row" spacing={1.5}>
               <StatCard label="Jami debitorlar" value={stats.totalDebtors} />
+              <StatCard label="Qarzli debitorlar" value={stats.debt_identified} valueColor="warning.main" />
               <StatCard label="🚫 Bloklangan" value={stats.blocked} valueColor="success.main" />
               <StatCard label="⏳ Bloklanishi Kutilmoqda" value={stats.pendingBlock} valueColor="warning.main" />
               <StatCard label="⚠️ Elektr kodi yo'q" value={stats.no_het} valueColor="error.main" />

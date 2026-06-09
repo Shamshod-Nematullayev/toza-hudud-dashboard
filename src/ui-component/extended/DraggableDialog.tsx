@@ -36,7 +36,6 @@ export default function DraggableDialog({
   fullWidth = true,
   sx,
   contentSX,
-  PaperProps,
   slotProps
 }: {
   open: boolean;
@@ -48,7 +47,6 @@ export default function DraggableDialog({
   fullWidth?: boolean;
   sx?: SxProps;
   contentSX?: SxProps;
-  PaperProps?: Partial<PaperProps<React.ElementType<any, keyof React.JSX.IntrinsicElements>>>;
   slotProps?: DialogSlotsAndSlotProps['slotProps'];
 }) {
   return (
@@ -61,7 +59,6 @@ export default function DraggableDialog({
       fullWidth={fullWidth}
       sx={sx}
       slotProps={slotProps}
-      PaperProps={PaperProps}
     >
       {/* HEADER */}
       <DialogTitle
@@ -73,7 +70,7 @@ export default function DraggableDialog({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography fontWeight={600}>{title}</Typography>
+          <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
 
           <IconButton size="small" onClick={onClose}>
             <CloseIcon fontSize="small" />
