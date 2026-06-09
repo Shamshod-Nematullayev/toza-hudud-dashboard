@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Grid, IconButton, TextField } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { DoneOutlineOutlined, Delete, DeleteOutlineOutlined, DoneAllOutlined, Refresh } from '@mui/icons-material';
+import {
+  DoneOutlineOutlined,
+  Delete,
+  DeleteOutlineOutlined,
+  DoneAllOutlined,
+  Refresh,
+  DeleteOutlined,
+  DoneOutlined
+} from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 
@@ -136,13 +144,13 @@ function SidePanel() {
   return (
     <Grid container style={{ height: '100%' }} spacing={2}>
       {!pdfFile ? (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FileInputDrop setFiles={(files) => setPdfFile(files ? files[0] : null)} clearTrigger={clearTrigger} />
         </Grid>
       ) : (
         <>
           {ui.loading && <Loader />}
-          <Grid item md={3}>
+          <Grid size={3}>
             <div style={{ position: 'relative', marginBottom: '10px' }}>
               <TextField
                 label={t('documentNumber')}
@@ -163,7 +171,7 @@ function SidePanel() {
             </Button>
 
             <Button variant="outlined" color="error" fullWidth sx={{ mb: 1 }} onClick={handleCancelAll}>
-              <DeleteOutline sx={{ mr: 1 }} /> {t('buttons.rejectAll')}
+              <DeleteOutlined sx={{ mr: 1 }} /> {t('buttons.rejectAll')}
             </Button>
 
             <Button
@@ -180,7 +188,7 @@ function SidePanel() {
             </Button>
           </Grid>
 
-          <Grid item md={9}>
+          <Grid size={9}>
             <DataGrid
               rows={uploadingRows}
               columns={[
@@ -200,7 +208,7 @@ function SidePanel() {
                         disabled={params.row.isCancel || !!params.row.actId}
                         onClick={() => handleConfirmRow(params.row._id)}
                       >
-                        <DoneOutline />
+                        <DoneOutlined />
                       </IconButton>
                       <IconButton color="error" disabled={params.row.isCancel} onClick={() => handleCancelRow(params.row._id)}>
                         <Delete />
