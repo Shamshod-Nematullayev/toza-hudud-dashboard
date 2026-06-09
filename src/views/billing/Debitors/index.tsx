@@ -39,19 +39,22 @@ interface DebitorStats {
   // Debitor Status
   totalDebtors: Stat;
   debt_identified: Stat;
+  no_het_account: Stat;
   sms_sent: Stat;
-  blocked;
+  awaiting_het_sync: Stat;
+  ready_to_block: Stat;
   blocked: Stat;
-  active: Stat;
-  pendingBlock: Stat;
-  no_het: Stat;
-  no_longer_debitor: Stat;
+  resolved: Stat;
   // Phone Status
-  no_phone: Stat;
-  identified: Stat;
-  pending_check: Stat;
-  needs_het_update: Stat;
-  null: Stat;
+  phoneStatus: {
+    new: Stat;
+    confirmed_previously: Stat;
+    checking: Stat;
+    confirmed_this_cycle: Stat;
+    needs_het_sync: Stat;
+    het_synced: Stat;
+    not_found: Stat;
+  };
 }
 
 export interface Debitor {
@@ -201,50 +204,40 @@ function Debitors() {
       .get('/debitors/stats')
       .then(({ data }) => {
         const s = data.data;
+
+        // 1. Massivlarni tezkor qidirish uchun Object Map ko'rinishiga o'tkazamiz
+        const statusMap = Object.fromEntries((s.statusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt }]));
+
+        const phoneMap = Object.fromEntries(
+          (s.phoneStatusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt }])
+        );
+
+        // 2. Yordamchi funksiya: Agar status topilmasa default qiymat qaytaradi
+        const getStat = (map: Record<string, any>, key: string) => map[key] || { count: 0, summ: 0 };
+
+        // 3. Statelarni bir marta toza konfiguratsiya bilan yangilaymiz
+        // prettier-ignore
         setStats({
           totalDebtors: {
-            count: s.summary.totalDebtors,
-            summ: s.summary.grandTotalDebt
+            count: s.summary?.totalDebtors || 0,
+            summ: s.summary?.grandTotalDebt || 0
           },
-          active: {
-            count: s.statusStatistics.find((x: any) => x._id === 'active')?.count || 0,
-            summ: s.statusStatistics.find((x: any) => x._id === 'active')?.totalDebt || 0
-          },
-          blocked: {
-            count: s.statusStatistics.find((x: any) => x._id === 'blocked')?.count || 0,
-            summ: s.statusStatistics.find((x: any) => x._id === 'blocked')?.totalDebt || 0
-          },
-          pendingBlock: {
-            count: s.statusStatistics.find((x: any) => x._id === 'pendingBlock')?.count || 0,
-            summ: s.statusStatistics.find((x: any) => x._id === 'pendingBlock')?.totalDebt || 0
-          },
-          no_het: {
-            count: s.statusStatistics.find((x: any) => x._id === 'no_het')?.count || 0,
-            summ: s.statusStatistics.find((x: any) => x._id === 'no_het')?.totalDebt || 0
-          },
-          identified: {
-            count: s.phoneStatistics.find((x: any) => x._id === 'identified')?.count || 0,
-            summ: 0
-          },
-          pending_check: {
-            count: s.phoneStatistics.find((x: any) => x._id === 'pending_check')?.count || 0,
-            summ: 0
-          },
-          needs_het_update: {
-            count: s.phoneStatistics.find((x: any) => x._id === 'needs_het_update')?.count || 0,
-            summ: 0
-          },
-          null: {
-            count: s.phoneStatistics.find((x: any) => x._id === null)?.count || 0,
-            summ: 0
-          },
-          no_phone: {
-            count: s.phoneStatistics.find((x: any) => x._id === 'no_phone')?.count || 0,
-            summ: 0
-          },
-          no_longer_debitor: {
-            count: s.phoneStatistics.find((x: any) => x._id === 'no_longer_debitor')?.count || 0,
-            summ: 0
+          debt_identified:      getStat(statusMap, 'debt_identified'),
+          awaiting_het_sync:    getStat(statusMap, 'awaiting_het_sync'),
+          no_het_account:       getStat(statusMap, 'no_het_account'),
+          sms_sent:             getStat(statusMap, 'sms_sent'),
+          ready_to_block:       getStat(statusMap, 'ready_to_block'),
+          blocked:              getStat(statusMap, 'blocked'),
+          resolved:             getStat(statusMap, 'resolved'),
+          
+          phoneStatus: {
+            checking:              getStat(phoneMap, 'checking'),
+            confirmed_previously:  getStat(phoneMap, 'confirmed_previously'),
+            confirmed_this_cycle:  getStat(phoneMap, 'confirmed_this_cycle'),
+            het_synced:            getStat(phoneMap, 'het_synced'),
+            needs_het_sync:        getStat(phoneMap, 'needs_het_sync'),
+            new:                   getStat(phoneMap, 'new'),
+            not_found:             getStat(phoneMap, 'not_found')
           }
         });
       })
@@ -443,11 +436,13 @@ function Debitors() {
           {stats ? (
             <Stack direction="row" spacing={1.5}>
               <StatCard label="Jami debitorlar" value={stats.totalDebtors} />
-              <StatCard label="Qarzli debitorlar" value={stats.debt_identified} valueColor="warning.main" />
-              <StatCard label="🚫 Bloklangan" value={stats.blocked} valueColor="success.main" />
-              <StatCard label="⏳ Bloklanishi Kutilmoqda" value={stats.pendingBlock} valueColor="warning.main" />
-              <StatCard label="⚠️ Elektr kodi yo'q" value={stats.no_het} valueColor="error.main" />
-              <StatCard label="❓ Noma'lum" value={stats.active} valueColor="error.main" />
+              <StatCard label="⏳ Yangi aniqlangan debitorlar" value={stats.debt_identified} />
+              <StatCard label="⚠️ Elektr kodi yo'q" value={stats.no_het_account} valueColor="error.dark" />
+              <StatCard label="🔍 Tekshirilmoqda (SMS)" value={stats.sms_sent} valueColor="warning.dark" />
+              <StatCard label="🔄 HET sinxronizatsiya qilinishi kerak" value={stats.awaiting_het_sync} valueColor="warning.dark" />
+              <StatCard label="☑️ Bloklanishi Kutilmoqda" value={stats.ready_to_block} valueColor="success.dark" />
+              <StatCard label="✔️ Bloklangan" value={stats.blocked} valueColor="success.dark" />
+              <StatCard label="✅ Yechilgan debitorlar" value={stats.resolved} valueColor="success.dark" />
             </Stack>
           ) : (
             <Stack direction="row" spacing={1.5}>
