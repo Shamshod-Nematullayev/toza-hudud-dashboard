@@ -45,6 +45,7 @@ interface DebitorStats {
   ready_to_block: Stat;
   blocked: Stat;
   resolved: Stat;
+  no_phone: Stat;
   // Phone Status
   phoneStatus: {
     new: Stat;
@@ -229,6 +230,7 @@ function Debitors() {
           ready_to_block:       getStat(statusMap, 'ready_to_block'),
           blocked:              getStat(statusMap, 'blocked'),
           resolved:             getStat(statusMap, 'resolved'),
+          no_phone:             getStat(statusMap, 'no_phone'),
           
           phoneStatus: {
             checking:              getStat(phoneMap, 'checking'),
@@ -435,14 +437,21 @@ function Debitors() {
           {/* 2. Statistika kartalari */}
           {stats ? (
             <Stack direction="row" spacing={1.5}>
-              <StatCard label="Jami debitorlar" value={stats.totalDebtors} />
+              <StatCard
+                label="Jami debitorlar"
+                value={{
+                  count: stats.totalDebtors.count - stats.resolved.count,
+                  summ: stats.totalDebtors.summ - stats.resolved.summ
+                }}
+              />
               <StatCard label="⏳ Yangi aniqlangan debitorlar" value={stats.debt_identified} />
               <StatCard label="⚠️ Elektr kodi yo'q" value={stats.no_het_account} valueColor="error.dark" />
+              <StatCard label="❌ Telefon raqami yo'q" value={stats.no_phone} valueColor="error.dark" />
               <StatCard label="🔍 Tekshirilmoqda (SMS)" value={stats.sms_sent} valueColor="warning.dark" />
               <StatCard label="🔄 HET sinxronizatsiya qilinishi kerak" value={stats.awaiting_het_sync} valueColor="warning.dark" />
               <StatCard label="☑️ Bloklanishi Kutilmoqda" value={stats.ready_to_block} valueColor="success.dark" />
               <StatCard label="✔️ Bloklangan" value={stats.blocked} valueColor="success.dark" />
-              <StatCard label="✅ Yechilgan debitorlar" value={stats.resolved} valueColor="success.dark" />
+              {/* <StatCard label="✅ Yechilgan debitorlar" value={stats.resolved} valueColor="success.dark" /> */}
             </Stack>
           ) : (
             <Stack direction="row" spacing={1.5}>

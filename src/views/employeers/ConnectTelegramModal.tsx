@@ -67,11 +67,13 @@ function ConnectTelegramModal({ setOpenConnectTelegramModal, inspectors }: any) 
           />
           <TextField
             variant="standard"
-            InputProps={{
-              readOnly: true
-            }}
-            InputLabelProps={{
-              shrink: user.first_name
+            slotProps={{
+              htmlInput: {
+                readOnly: true
+              },
+              inputLabel: {
+                shrink: user.first_name
+              }
             }}
             fullWidth
             label={t('inspectorsPage.userName')}

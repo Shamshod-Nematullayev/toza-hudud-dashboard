@@ -93,13 +93,6 @@ export function Sidebar({
 
       <Box sx={{ px: 2, pb: 1.5 }}>
         <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.75 }}>
-          TELEFON HOLATI
-        </Typography>
-        <ChipRow options={PHONE_ALL} value={phoneStatus} onChange={onPhoneChange} />
-      </Box>
-
-      <Box sx={{ px: 2, pb: 1.5 }}>
-        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.75 }}>
           QARZ DIAPAZONI (so'm)
         </Typography>
         <Stack spacing={1}>

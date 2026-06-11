@@ -7,7 +7,8 @@ export type DebitorStatus =
   | 'awaiting_het_sync'
   | 'ready_to_block'
   | 'blocked'
-  | 'resolved';
+  | 'resolved'
+  | 'no_phone';
 
 export type PhoneStatus =
   | 'new'
@@ -28,7 +29,8 @@ export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success'
   awaiting_het_sync: { label: '🔄 HET sinxronizatsiya kerak',      color: 'warning' },
   ready_to_block:    { label: '☑️ Bloklanishi Kutilmoqda',         color: 'success' },
   blocked:           { label: '✔️ Bloklangan',                     color: 'success' },
-  resolved:          { label: '✅ Yechilgan debitorlar',           color: 'success' }
+  resolved:          { label: '✅ Yechilgan debitorlar',           color: 'success' },
+  no_phone:          { label: '❌ Telefon raqami yo\'q',            color: 'error' }
 };
 
 // prettier-ignore
