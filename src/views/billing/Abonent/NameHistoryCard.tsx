@@ -1,5 +1,7 @@
 import { Card, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import { STATUS_CFG } from '../Debitors/types';
+import { useAbonentStore } from './hooks/abonentStore';
 
 export interface AbonentDetailsHistoryRow {
   accountNumber: number;
@@ -12,6 +14,7 @@ interface Props {
 }
 
 export const NameHistory = ({ data }: Props) => {
+  const { abonentDebitorStatus } = useAbonentStore();
   // eski -> yangi tartibni teskariga o‘giramiz
   const sorted = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -36,9 +39,9 @@ export const NameHistory = ({ data }: Props) => {
     <Card sx={{ p: 2, boxShadow: 2 }}>
       <Stack spacing={1.5}>
         {changes.map((c, i) => (
-          <Stack key={i} direction="row" alignItems="center" justifyContent="space-between">
+          <Stack key={i} direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
             {/* Chap: o‘zgarish */}
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mr: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ mr: 1, alignItems: 'center' }}>
               <Tooltip title={dayjs(c?.fromDate).format('DD.MM.YYYY')}>
                 <Chip
                   label={c?.from}
@@ -56,7 +59,7 @@ export const NameHistory = ({ data }: Props) => {
                   }}
                 />
               </Tooltip>
-              <Typography fontSize={14}>→</Typography>
+              <Typography sx={{ fontSize: 14 }}>→</Typography>
               <Chip
                 label={c?.to}
                 color="primary"
@@ -75,12 +78,19 @@ export const NameHistory = ({ data }: Props) => {
             </Stack>
 
             {/* O‘ng: sana */}
-            <Typography fontSize={12} color="text.secondary">
+            <Typography sx={{ fontSize: 12 }} color="text.secondary">
               {dayjs(c?.date).format('DD.MM.YYYY')}
             </Typography>
           </Stack>
         ))}
       </Stack>
+      {abonentDebitorStatus?.status && (
+        <Chip
+          label={STATUS_CFG[abonentDebitorStatus.status]?.label}
+          color={STATUS_CFG[abonentDebitorStatus.status]?.color}
+          variant="outlined"
+        />
+      )}
     </Card>
   );
 };

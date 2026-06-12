@@ -1,4 +1,4 @@
-import React, { ReactNode, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -46,6 +46,7 @@ import dayjs from 'dayjs';
 import { t } from 'i18next';
 import { formatPhoneNumber } from 'views/tools/formatters';
 import { Link } from 'react-router-dom';
+import { STATUS_CFG } from '../Debitors/types';
 
 interface Data extends AbonentDetails {
   photo?: string;
@@ -68,7 +69,6 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
   } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
 
-  console.log(similarAbonentsByElectricity);
   const isDublicateElectricity = similarAbonentsByElectricity.length > 1;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

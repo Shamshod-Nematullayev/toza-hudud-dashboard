@@ -208,3 +208,5 @@ export interface MvdAddress {
     dateTime: string; // ISO string
   };
 }
+
+interface DebitorStatus {}

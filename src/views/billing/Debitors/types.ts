@@ -70,3 +70,21 @@ export interface DebitorStats {
     not_found: Stat;
   };
 }
+
+export interface Debitor {
+  _id: string;
+  accountNumberEtk: string;
+  accountNumber: string;
+  residentId: number;
+  fullName: string;
+  debtAmount: number;
+  debtMonths: number;
+  status: DebitorStatus;
+  primaryPhone: string | null;
+  phoneStatus: PhoneStatus;
+  primaryPhoneSource: string | null;
+  companyId: number;
+  __v: 0;
+  createdAt: string;
+  updatedAt: string;
+}

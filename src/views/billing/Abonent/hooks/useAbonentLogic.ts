@@ -56,7 +56,7 @@ export function useAbonentDetailsSupplementaryData() {
   const setHetAbonent = useAbonentStore((s) => s.setHetAbonent);
   const fetchCadastrAbonent = useAbonentStore((s) => s.fetchCadastrAbonent);
   const fetchBlockReport = useAbonentStore((s) => s.fetchBlockReport);
-  const { getSimilarAbonentsByElectricity } = useAbonentStore();
+  const { getSimilarAbonentsByElectricity, getAbonentDebitorStatus } = useAbonentStore();
   useEffect(() => {
     if (Number.isNaN(residentId)) return;
 
@@ -108,6 +108,7 @@ export function useAbonentDetailsSupplementaryData() {
     }
 
     void fetchBlockReport(residentId);
+    void getAbonentDebitorStatus(residentId);
 
     return () => {
       cancelled = true;

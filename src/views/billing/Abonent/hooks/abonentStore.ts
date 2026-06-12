@@ -16,6 +16,7 @@ import {
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
 import { IAbonent, searchAbonentFromTozamakon } from 'services/searchAbonentFromTozamakon';
+import { Debitor } from 'views/billing/Debitors';
 
 const initialState: IAbonentPageDataStore = {
   abonentDetails: null,
@@ -53,7 +54,8 @@ const initialState: IAbonentPageDataStore = {
   documentLanguage: 'UZ',
   blockReport: undefined,
   similarAbonentsByElectricity: [],
-  abonentCadastrs: []
+  abonentCadastrs: [],
+  abonentDebitorStatus: null
 };
 
 interface IAbonentPageDataStore {
@@ -93,6 +95,7 @@ interface IAbonentPageDataStore {
   abonentSupplementaryRefreshNonce: number;
   blockReport?: BlockReport;
   similarAbonentsByElectricity: IAbonent[];
+  abonentDebitorStatus: null | Debitor;
 }
 
 export interface IAbonentPageActionsStore {
@@ -188,6 +191,7 @@ export interface IAbonentPageActionsStore {
   fetchBlockReport: (residentId: number) => void;
   resetStore: () => void;
   getSimilarAbonentsByElectricity: (electrycityAccountNumber: string) => Promise<any>;
+  getAbonentDebitorStatus: (residentId: number) => Promise<any>;
 }
 
 export type IAbonentPageStore = IAbonentPageDataStore & IAbonentPageActionsStore;
@@ -415,5 +419,10 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     const filtered = content.filter((a) => a.electricityAccountNumber == electricityAccountNumber);
     set({ similarAbonentsByElectricity: filtered });
     return filtered;
+  },
+  getAbonentDebitorStatus: async (residentId) => {
+    const { data } = await api.get('/debitors/resident/' + residentId);
+    set({ abonentDebitorStatus: data.data });
+    return data;
   }
 }));

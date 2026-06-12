@@ -3,7 +3,7 @@ import { JSX, lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
-import Inspectors from 'views/employeers/Inspectors';
+import Inspectors from 'views/employeers/Inspectors/Inspectors';
 import AbonentPetitions from 'views/billing/AbonentPetitions';
 import DeleteDublicate from 'views/billing/DeleteDublicate';
 import WarningLetters from 'views/jurist/WarningLetters/index';

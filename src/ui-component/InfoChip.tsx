@@ -23,7 +23,6 @@ const InfoChip = ({
 }) => {
   return (
     <Stack
-      spacing={1.5}
       onClick={onClick}
       ref={containerRef}
       sx={{
@@ -57,15 +56,20 @@ const InfoChip = ({
           bgcolor: 'primary.light',
           p: 0.8,
           borderRadius: '8px',
-          opacity: 0.9
+          opacity: 0.9,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: 32,
+          minHeight: 32
         }}
       >
         <Icon sx={{ fontSize: 24 }} />
       </Box>
 
       {/* Matn qismi */}
-      <Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: valueColor, mt: 0.5, fontSize: 18 }}>
+      <Box sx={{ ml: 1 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: valueColor, fontSize: 18 }}>
           {loading ? (
             <>
               <CircularProgress color="inherit" />
