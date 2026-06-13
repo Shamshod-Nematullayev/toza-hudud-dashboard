@@ -44,6 +44,7 @@ import SmsWarnings from 'views/billing/SmsWarnings/SmsWarnings';
 import { CallerWorkspace } from 'views/billing/CallerWorkspace/CallerWorkspace';
 import CallRequestAdmin from 'views/billing/CallRequestAdmin/CallRequestAdmin';
 import CallerStart from 'views/billing/CallerWorkspace/CallerStart';
+import Murojaatlar from 'views/jurist/Murojaatlar/Murojaatlar';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -249,6 +250,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'courtInvoices',
           element: <CourtInvoices />
+        },
+        {
+          path: 'murojaatlar',
+          element: <Murojaatlar />
         }
       ]
     },
