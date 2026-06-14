@@ -18,6 +18,7 @@ import LanguageSection from './LanguageSection';
 import { useEffect, useRef } from 'react';
 import { Tooltip } from '@mui/material';
 import SearchAbonentSection from './SearchAbonentSection/SearchAbonentSection';
+import MurojaatlarSection from './MurojaatlarSection';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -90,6 +91,7 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       <SearchAbonentSection />
       <LanguageSection />
       {/* notification & profile */}
+      <MurojaatlarSection />
       <NotificationSection />
       <ProfileSection />
     </>

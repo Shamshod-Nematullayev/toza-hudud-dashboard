@@ -3,6 +3,7 @@ import { MurojaatRow } from '../types';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { Box, Button, DialogActions, DialogContent, Stack, Typography } from '@mui/material';
 import api from 'utils/api';
+import FileInputDrop from 'ui-component/FileInputDrop';
 
 export function CloseMurojaatDialog({
   open,
@@ -28,12 +29,11 @@ export function CloseMurojaatDialog({
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography variant="body2">
-            Yopish hujjatini yuklang. Murojaat statusi <b>closed</b> bo‘ladi.
+            Yopish hujjatini yuklang. Murojaat statusi <b>🟢 Yopiq</b> bo‘ladi.
           </Typography>
 
           <Box>
-            {/* @ts-ignore */}
-            <FileInputDrop setFunc={setFile} />
+            <FileInputDrop setFiles={(files) => setFile(files![0])} fileType="pdf" clearTrigger={open} />
             {!file && (
               <Typography variant="caption" color="error">
                 Yopish hujjati majburiy
@@ -54,7 +54,7 @@ export function CloseMurojaatDialog({
             const formData = new FormData();
             formData.append('file', file);
 
-            await api.patch(`/murojaatlar/close/${row._id}`, formData);
+            await api.patch(`/murojaatlar/close/${row._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 
             onSuccess();
           }}

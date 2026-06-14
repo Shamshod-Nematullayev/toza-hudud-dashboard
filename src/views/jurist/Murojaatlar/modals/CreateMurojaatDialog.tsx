@@ -5,6 +5,9 @@ import { Formik } from 'formik';
 import api from 'utils/api';
 import { Box, Button, DialogActions, DialogContent, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import FileInputDrop from 'ui-component/FileInputDrop';
+import { DateTimePicker } from '@mui/x-date-pickers';
+import MahallaSelection from 'ui-component/MahallaSelection';
 
 const toDateTimeLocal = (value?: string | Date) => {
   const d = value ? dayjs(value) : dayjs();
@@ -47,7 +50,7 @@ export function CreateMurojaatDialog({
           const errors: Partial<Record<keyof MurojaatFormValues, string>> = {};
 
           if (!values.mahallaId) errors.mahallaId = 'Mahalla ID majburiy';
-          if (!values.residentId) errors.residentId = 'Resident ID majburiy';
+          // if (!values.residentId) errors.residentId = 'Resident ID majburiy';
           if (!values.dueDate) errors.dueDate = 'Muddat majburiy';
           if (!file) {
             errors.assignedTo = errors.assignedTo || '';
@@ -71,7 +74,11 @@ export function CreateMurojaatDialog({
               formData.append('file', file);
             }
 
-            await api.post('/murojaatlar', formData);
+            await api.post('/murojaatlar', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            });
             onSuccess();
           } finally {
             setSubmitting(false);
@@ -82,18 +89,16 @@ export function CreateMurojaatDialog({
           <form onSubmit={formik.handleSubmit}>
             <DialogContent>
               <Stack spacing={2}>
-                <TextField
+                <MahallaSelection
+                  selectedMahallaId={formik.values.mahallaId}
+                  setSelectedMahallaId={(e) => formik.setFieldValue('mahallaId', e)}
                   name="mahallaId"
-                  label="Mahalla ID"
-                  type="number"
+                  label="Mahalla"
                   fullWidth
-                  value={formik.values.mahallaId}
-                  onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   error={Boolean(formik.touched.mahallaId && formik.errors.mahallaId)}
                   helperText={formik.touched.mahallaId && formik.errors.mahallaId}
                 />
-
                 <TextField
                   name="residentId"
                   label="Resident ID"
@@ -123,34 +128,34 @@ export function CreateMurojaatDialog({
                   ))}
                 </TextField>
 
-                <TextField
-                  name="dueDate"
+                <DateTimePicker
                   label="Muddat"
-                  type="datetime-local"
-                  fullWidth
-                  value={formik.values.dueDate}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
+                  format="DD.MM.YYYY" // O'zingizga qulay formatni belgilaysiz
+                  value={dayjs(formik.values.dueDate)}
+                  onChange={(newValue) => {
+                    formik.setFieldValue('dueDate', newValue);
+                  }}
                   slotProps={{
-                    inputLabel: {
-                      shrink: true
+                    textField: {
+                      fullWidth: true,
+                      onBlur: formik.handleBlur,
+                      name: 'dueDate',
+                      error: Boolean(formik.touched.dueDate && formik.errors.dueDate),
+                      helperText: formik.touched.dueDate && formik.errors.dueDate
                     }
                   }}
-                  error={Boolean(formik.touched.dueDate && formik.errors.dueDate)}
-                  helperText={formik.touched.dueDate && formik.errors.dueDate}
                 />
 
                 <TextField select name="status" label="Status" fullWidth value={formik.values.status} onChange={formik.handleChange}>
-                  <MenuItem value="open">🟢 Ochiq</MenuItem>
-                  <MenuItem value="closed">🔴 Yopiq</MenuItem>
+                  <MenuItem value="open">🔴 Ochiq</MenuItem>
+                  <MenuItem value="closed">🟢 Yopilgan</MenuItem>
                 </TextField>
 
                 <Box>
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     PDF fayl
                   </Typography>
-                  {/* @ts-ignore */}
-                  <FileInputDrop setFunc={setFile} />
+                  <FileInputDrop setFiles={(files) => setFile(files![0])} fileType="pdf" clearTrigger={open} />
                   {!file && (
                     <Typography variant="caption" color="error">
                       Fayl majburiy

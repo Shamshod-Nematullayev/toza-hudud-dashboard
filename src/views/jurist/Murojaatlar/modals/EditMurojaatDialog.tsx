@@ -5,6 +5,8 @@ import { Stack } from '@mui/system';
 import api from 'utils/api';
 import { Formik } from 'formik';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
+import MahallaSelection from 'ui-component/MahallaSelection';
+import { DateTimePicker } from '@mui/x-date-pickers';
 
 const toDateTimeLocal = (value?: string | Date) => {
   const d = value ? dayjs(value) : dayjs();
@@ -68,13 +70,12 @@ export function EditMurojaatDialog({
           <form onSubmit={formik.handleSubmit}>
             <DialogContent>
               <Stack spacing={2}>
-                <TextField
+                <MahallaSelection
+                  selectedMahallaId={formik.values.mahallaId}
+                  setSelectedMahallaId={(e) => formik.setFieldValue('mahallaId', e)}
                   name="mahallaId"
-                  label="Mahalla ID"
-                  type="number"
+                  label="Mahalla"
                   fullWidth
-                  value={formik.values.mahallaId}
-                  onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   error={Boolean(formik.touched.mahallaId && formik.errors.mahallaId)}
                   helperText={formik.touched.mahallaId && formik.errors.mahallaId}
@@ -109,26 +110,27 @@ export function EditMurojaatDialog({
                   ))}
                 </TextField>
 
-                <TextField
-                  name="dueDate"
+                <DateTimePicker
                   label="Muddat"
-                  type="datetime-local"
-                  fullWidth
-                  value={formik.values.dueDate}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
+                  format="DD.MM.YYYY" // O'zingizga qulay formatni belgilaysiz
+                  value={dayjs(formik.values.dueDate)}
+                  onChange={(newValue) => {
+                    formik.setFieldValue('dueDate', newValue);
+                  }}
                   slotProps={{
-                    inputLabel: {
-                      shrink: true
+                    textField: {
+                      fullWidth: true,
+                      onBlur: formik.handleBlur,
+                      name: 'dueDate',
+                      error: Boolean(formik.touched.dueDate && formik.errors.dueDate),
+                      helperText: formik.touched.dueDate && formik.errors.dueDate
                     }
                   }}
-                  error={Boolean(formik.touched.dueDate && formik.errors.dueDate)}
-                  helperText={formik.touched.dueDate && formik.errors.dueDate}
                 />
 
                 <TextField select name="status" label="Status" fullWidth value={formik.values.status} onChange={formik.handleChange}>
-                  <MenuItem value="open">🟢 Ochiq</MenuItem>
-                  <MenuItem value="closed">🔴 Yopiq</MenuItem>
+                  <MenuItem value="open">🔴 Ochiq</MenuItem>
+                  <MenuItem value="closed">🟢 Yopilgan</MenuItem>
                 </TextField>
 
                 <Typography variant="caption" color="text.secondary">

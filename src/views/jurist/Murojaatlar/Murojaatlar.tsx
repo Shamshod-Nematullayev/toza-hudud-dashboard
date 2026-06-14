@@ -24,11 +24,11 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
-import FileInputDrop from 'ui-component/FileInputDrop';
 import { InspectorOption, MurojaatFormValues, MurojaatRow } from './types';
 import { CloseMurojaatDialog } from './modals/CloseMurojaatDialog';
 import { EditMurojaatDialog } from './modals/EditMurojaatDialog';
 import { CreateMurojaatDialog } from './modals/CreateMurojaatDialog';
+import useCustomizationStore from 'store/customizationStore';
 
 function Murojaatlar() {
   const [filters, setFilters] = useState<Record<string, any>>({});
@@ -43,6 +43,8 @@ function Murojaatlar() {
 
   const [createFile, setCreateFile] = useState<File | null>(null);
   const [closeFile, setCloseFile] = useState<File | null>(null);
+
+  const { mahallalar } = useCustomizationStore();
 
   useEffect(() => {
     const loadInspectors = async () => {
@@ -103,7 +105,8 @@ function Murojaatlar() {
       {
         field: 'mahallaId',
         headerName: 'Mahalla ID',
-        width: 120
+        width: 120,
+        valueFormatter: (value) => mahallalar.find((m) => m.id == value)?.name
       },
       {
         field: 'residentId',
@@ -139,12 +142,6 @@ function Murojaatlar() {
         headerName: 'Muddat',
         width: 150,
         renderCell: (params) => (params.value ? dayjs(params.value).format('DD.MM.YYYY') : '-')
-      },
-      {
-        field: 'createdAt',
-        headerName: 'Yaratilgan',
-        width: 170,
-        renderCell: (params) => (params.value ? dayjs(params.value).format('DD.MM.YYYY HH:mm') : '-')
       },
       {
         field: 'actions',
@@ -207,7 +204,7 @@ function Murojaatlar() {
 
       <Grid container spacing={1}>
         <Grid size={{ xs: 12, sm: 3 }}>
-          <SideBar setFilters={setFilters} />
+          <SideBar setFilters={setFilters} employees={inspectors.map((i) => ({ id: i._id, name: i.name }))} />
         </Grid>
 
         <Grid size={{ xs: 12, sm: 9 }}>
@@ -216,8 +213,8 @@ function Murojaatlar() {
             disableColumnMenu
             filterMode="server"
             sortingMode="server"
-            autoHeight
             getRowId={(row) => row._id}
+            sx={{ height: '100%' }}
             {...dataGridProps}
           />
         </Grid>
