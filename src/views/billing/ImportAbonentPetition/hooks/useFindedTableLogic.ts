@@ -53,7 +53,7 @@ function buildManualActDescription(periods: IRecalculationPeriod[]): string {
 const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: string, photos: string[]) => {
   const { abonentData: ad, recalculationPeriods, yashovchiSoniInput } = useRecalculatorStore.getState();
   const nextInhabitantRaw = Number(yashovchiSoniInput);
-  const next_inhabitant_count = !Number.isNaN(nextInhabitantRaw) ? nextInhabitantRaw : ad.house?.inhabitantCnt ?? 1;
+  const next_inhabitant_count = !Number.isNaN(nextInhabitantRaw) ? nextInhabitantRaw : (ad.house?.inhabitantCnt ?? 1);
   const withoutQQS = Math.floor(recalculationPeriods.reduce((s, p) => s + (Number(p.withoutQQSTotal) || 0), 0));
 
   const formData = new FormData();
@@ -199,7 +199,6 @@ export function useFindedTableLogic() {
     await useRecalculatorStore.getState().updateAbonentDataByAccNum(acc, 'main');
     const { abonentData: ad, setRowsDhjTable, setYashovchiSoniInput } = useRecalculatorStore.getState();
     if (!ad?.id) return;
-    setYashovchiSoniInput(String(rows[0].yashovchilar_soni ?? 1));
     try {
       const { data } = await api.get<{ ok: boolean; message?: string; rows: any[] }>('/billing/get-abonent-dxj-by-id', {
         params: { residentId: ad.id }
@@ -218,6 +217,7 @@ export function useFindedTableLogic() {
         yashovchilar_soni: row.inhabitantCount,
         allPaymentsSum: row.allPaymentsSum
       }));
+      setYashovchiSoniInput(String(mapped[0].yashovchilar_soni));
       setRowsDhjTable(mapped);
       toast.success('Abonent yuklandi');
     } catch {
