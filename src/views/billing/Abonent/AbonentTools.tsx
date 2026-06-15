@@ -100,7 +100,11 @@ function AbonentTools() {
           justifyContent: 'space-between'
         }}
       >
-        <BindingElectrAccountsModal open={openBoundingElectrAccountsModal} onClose={() => setOpenBindingElectrAccountsModal(false)} />
+        <BindingElectrAccountsModal
+          open={openBoundingElectrAccountsModal}
+          onClose={() => setOpenBindingElectrAccountsModal(false)}
+          accountNumber={abonentDetails?.accountNumber}
+        />
         <ButtonGroup
           variant="outlined"
           sx={{
@@ -137,7 +141,13 @@ function AbonentTools() {
               horizontal: 'left'
             }}
           >
-            <MenuItem sx={{ display: 'flex', width: 280, gap: 2 }}>
+            <MenuItem
+              sx={{ display: 'flex', width: 280, gap: 2 }}
+              onClick={() => {
+                setOpenBindingElectrAccountsModal(true);
+                setAnchorElActions(null);
+              }}
+            >
               <ElectricBolt /> Qo'shimcha elektr hisob raqamlari
             </MenuItem>
           </Menu>
