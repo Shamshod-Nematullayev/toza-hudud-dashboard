@@ -28,7 +28,7 @@ export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success'
   sms_sent:          { label: '🔍 Tekshirilmoqda (SMS)',           color: 'warning' },
   awaiting_het_sync: { label: '🔄 HET sinxronizatsiya kerak',      color: 'warning' },
   ready_to_block:    { label: '☑️ Bloklanishi Kutilmoqda',         color: 'success' },
-  blocked:           { label: '✔️ Bloklangan',                     color: 'success' },
+  blocked:           { label: '✅ Bloklangan',                     color: 'success' },
   resolved:          { label: '✅ Yechilgan debitorlar',           color: 'success' },
   no_phone:          { label: '❌ Telefon raqami yo\'q',            color: 'error' }
 };

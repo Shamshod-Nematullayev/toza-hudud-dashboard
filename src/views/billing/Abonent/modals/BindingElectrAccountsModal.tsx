@@ -20,6 +20,10 @@ import { useEffect, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import api from 'utils/api';
 import useCustomizationStore from 'store/customizationStore';
+import { useAbonentStore } from '../hooks/abonentStore';
+import { toast } from 'react-toastify';
+import { HETSuccessResponse } from '../types';
+import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
 
 interface Props {
   open: boolean;
@@ -39,6 +43,7 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [accountNumberEtk, setAccountNumberEtk] = useState('');
+  const [coato, setCoato] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const fetchData = async () => {
@@ -66,9 +71,7 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
 
   const handleDelete = async (electricAccountNumber: string) => {
     try {
-      await api.patch('/abonents/remove-electr-from-map', null, {
-        params: { electricityAccountNumber: electricAccountNumber }
-      });
+      await api.patch('/abonents/remove-electr-from-map', { electricityAccountNumber: electricAccountNumber });
       // Refresh list
       await fetchData();
     } catch (error) {
@@ -81,11 +84,9 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
     if (!accountNumber || !accountNumberEtk.trim()) return;
     setSubmitting(true);
     try {
-      await api.patch('/abonents/add-electr-to-map', null, {
-        params: {
-          accountNumber,
-          electricityAccountNumber: accountNumberEtk.trim()
-        }
+      await api.patch('/abonents/add-electr-to-map', {
+        accountNumber,
+        electricityAccountNumber: accountNumberEtk.trim()
       });
       setAccountNumberEtk('');
       setAdding(false);
@@ -97,6 +98,24 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
     }
   };
 
+  const [hetAbonent, setHetAbonent] = useState<HETSuccessResponse>();
+  useEffect(() => {
+    if (accountNumberEtk.length > 6 && coato.length == 5) {
+      useAbonentStore
+        .getState()
+        .getHetAbonent({ coato, personalAccount: accountNumberEtk })
+        .then((res) => {
+          if ('code' in res) {
+            toast.error(res.message);
+          } else {
+            setHetAbonent(res);
+          }
+        });
+    } else {
+      setHetAbonent(undefined);
+    }
+  }, [accountNumberEtk, coato]);
+
   return (
     <DraggableDialog title="Bog'langan elektr hisob raqamlari" onClose={onClose} open={open} maxWidth="xs" fullWidth>
       <DialogContent dividers sx={{ p: 2 }}>
@@ -106,9 +125,7 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
           </Box>
         ) : !accountNumber ? (
           <Box sx={{ py: 2 }}>
-            <Typography sx={{ color: 'error.main', textAlign: 'center' }}>
-              Abonent hisob raqami topilmadi.
-            </Typography>
+            <Typography sx={{ color: 'error.main', textAlign: 'center' }}>Abonent hisob raqami topilmadi.</Typography>
           </Box>
         ) : (
           <Box>
@@ -124,9 +141,7 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
                   mb: 2
                 }}
               >
-                <Typography sx={{ color: 'text.secondary' }}>
-                  Bog'langan elektr hisob raqamlari mavjud emas.
-                </Typography>
+                <Typography sx={{ color: 'text.secondary' }}>Bog'langan elektr hisob raqamlari mavjud emas.</Typography>
               </Box>
             ) : (
               <List sx={{ mb: 2, p: 0 }}>
@@ -150,15 +165,11 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
                       <ElectricBolt />
                     </Box>
                     <ListItemText
-                      primary={
-                        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                          {row.electricAccountNumber}
-                        </Typography>
-                      }
+                      primary={<Typography sx={{ fontWeight: 600, color: 'text.primary' }}>{row.electricAccountNumber}</Typography>}
                       secondary={`Abonent: ${row.accountNumber}`}
                     />
                     <ListItemSecondaryAction>
-                      <Tooltip title={t('buttons.delete') || 'O\'chirish'}>
+                      <Tooltip title={t('buttons.delete') || "O'chirish"}>
                         <IconButton edge="end" onClick={() => handleDelete(row.electricAccountNumber)} color="error" size="small">
                           <Delete />
                         </IconButton>
@@ -186,23 +197,35 @@ function BindingElectrAccountsModal({ open, onClose, accountNumber }: Props) {
                   Yangi elektr hisob raqamini biriktirish
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label={t('tableHeaders.electricityAccountNumber') || 'Elektr hisob raqami'}
-                    value={accountNumberEtk}
-                    onChange={(e) => setAccountNumberEtk(e.target.value)}
-                    required
-                    disabled={submitting}
-                    autoFocus
-                  />
-                  <Button type="submit" variant="contained" color="primary" disabled={submitting || !accountNumberEtk.trim()} startIcon={<Add />}>
-                    {submitting ? <CircularProgress size={20} color="inherit" /> : t('buttons.add') || 'Qo\'shish'}
+                  <Stack direction={'row'}>
+                    <TextField label={t('tableHeaders.electricityCoato')} value={coato} onChange={(e) => setCoato(e.target.value)} />
+                    <TextField
+                      label={t('tableHeaders.electricityAccountNumber')}
+                      value={accountNumberEtk}
+                      onChange={(e) => setAccountNumberEtk(e.target.value)}
+                    />
+                  </Stack>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={submitting || !accountNumberEtk.trim()}
+                    startIcon={<Add />}
+                  >
+                    {submitting ? <CircularProgress size={20} color="inherit" /> : t('buttons.add') || "Qo'shish"}
                   </Button>
                   <IconButton onClick={() => setAdding(false)} disabled={submitting} size="small">
                     <Close />
                   </IconButton>
                 </Stack>
+                <CompactKeyValue
+                  data={[
+                    { key: t('tableHeaders.fullName'), value: hetAbonent?.fullName },
+                    { key: t('tableHeaders.phone'), value: hetAbonent?.phone },
+                    { key: t('tableHeaders.cadastralNumber'), value: hetAbonent?.cadastralNumber },
+                    { key: t('tableHeaders.address'), value: hetAbonent?.address }
+                  ]}
+                />
               </Box>
             ) : (
               <Button color="primary" variant="outlined" onClick={() => setAdding(true)} startIcon={<Add />} fullWidth sx={{ py: 1 }}>

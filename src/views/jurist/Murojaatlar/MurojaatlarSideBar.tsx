@@ -16,7 +16,7 @@ interface MurojaatlarSideBarProps {
 
 function MurojaatlarSideBar({ setFilters, employees = [] }: MurojaatlarSideBarProps) {
   const [filters, setLocalFilters] = useState<Filters>({
-    status: undefined,
+    status: 'open',
     assignedTo: undefined,
     mahallaId: ''
   });

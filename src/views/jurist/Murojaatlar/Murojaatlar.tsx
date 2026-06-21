@@ -31,7 +31,9 @@ import { CreateMurojaatDialog } from './modals/CreateMurojaatDialog';
 import useCustomizationStore from 'store/customizationStore';
 
 function Murojaatlar() {
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, any>>({
+    status: 'open'
+  });
   const [inspectors, setInspectors] = useState<InspectorOption[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
