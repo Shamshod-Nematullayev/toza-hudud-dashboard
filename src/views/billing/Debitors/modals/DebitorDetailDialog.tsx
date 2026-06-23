@@ -173,6 +173,11 @@ export default function DebitorDetailDialog({ open, onClose, debitor, onEdit }: 
             value={<Typography variant="body2">{debitor.accountNumberEtk}</Typography>}
           />
           <InfoRow
+            icon={<PhoneIcon fontSize="small" />}
+            label="Telefon raqami"
+            value={<Typography variant="body2">{debitor.primaryPhone + ` (${debitor.primaryPhoneSource})` || '—'}</Typography>}
+          />
+          <InfoRow
             icon={<BadgeIcon fontSize="small" />}
             label="Kompaniya ID"
             value={<Typography variant="body2">{debitor.companyId}</Typography>}
@@ -187,37 +192,6 @@ export default function DebitorDetailDialog({ open, onClose, debitor, onEdit }: 
             label="Yangilangan"
             value={<Typography variant="body2">{formatDate(debitor.updatedAt)}</Typography>}
           />
-          {debitor.phones.length > 0 ? (
-            <Box>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}
-              >
-                <PhoneIcon sx={{ fontSize: 14 }} />
-                Telefon raqamlari
-              </Typography>
-              <Stack spacing={0.75}>
-                {debitor.phones.map((phone) => (
-                  <PhoneRow key={phone.number} phone={phone} isPrimary={phone.number === debitor.primaryPhone} />
-                ))}
-              </Stack>
-            </Box>
-          ) : (
-            <Box>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}
-              >
-                <PhoneIcon sx={{ fontSize: 14 }} />
-                Telefon raqamlari
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic' }}>
-                Telefon raqam mavjud emas
-              </Typography>
-            </Box>
-          )}
         </Box>
       </DialogContent>
 
