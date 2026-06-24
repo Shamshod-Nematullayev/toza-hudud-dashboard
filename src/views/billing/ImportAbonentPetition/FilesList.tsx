@@ -26,7 +26,7 @@ function FilesList() {
   const countText = t('countFiles', { cnt: filteredFiles.length });
 
   return (
-    <Box height="100%" display="flex" flexDirection="column">
+    <Box sx={{height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column'}}>
       <TextField
         placeholder={t('tableActions.search-file') + '...'}
         value={searchQuery}

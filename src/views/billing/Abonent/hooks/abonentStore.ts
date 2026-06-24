@@ -167,7 +167,7 @@ export interface IAbonentPageActionsStore {
 
   setOpenIIBInhabitantsDialog: (open: boolean) => void;
   getIIBInhabitants: (cadastralNumber: string, residentId?: number) => Promise<PermamentsResponse>;
-  addInhabitantsToAbonent: (residentId: number, inhabitantCount: number, file: File) => void;
+  addInhabitantsToAbonent: (residentId: number, inhabitantCount: number, file: File) => Promise<void>;
 
   setOpenAddInhabitantsDialog: (open: boolean) => void;
 
