@@ -9,6 +9,15 @@ import { useTranslation } from 'react-i18next';
 import useCustomizationStore from 'store/customizationStore';
 import { IconBolt, IconChartBar, IconShieldCheck, IconUsers } from '@tabler/icons-react';
 
+interface IStat {
+  allAbonentsCount?: number;
+  identifiedCount?: number;
+  // etkConfirmCount?: number;
+  newAbonentRequestCount?: number;
+  monthlyIncomePlanAccrual?: number;
+  monthlyIncomePlanTotalAmount?: number;
+}
+
 const Dashboard = () => {
   const { mahallalar } = useCustomizationStore();
   useEffect(() => {
@@ -20,21 +29,24 @@ const Dashboard = () => {
   }, []);
 
   const theme = useTheme();
-  const { t } = useTranslation();
   const [isLoading, setLoading] = useState(true);
-  const [identity, setIdentity] = useState({ confirmed: 0, allAbonentsCount: 1 });
-  const [etkIdentity, setEtkIdentity] = useState({ confirmed: 0, allAbonentsCount: 1 });
+  const [stats, setStats] = useState<IStat | null>(null);
 
-  const identityProcent = Math.floor((identity.confirmed / identity.allAbonentsCount) * 100) || 0;
-  const etkIdentityProcent = Math.floor((etkIdentity.confirmed / etkIdentity.allAbonentsCount) * 100) || 0;
+  const identityProcent = Math.floor(((stats?.identifiedCount || 0) / (stats?.allAbonentsCount || 1)) * 100) || 0;
 
   useEffect(() => {
     document.title = 'GreenZone - Command Center';
     const fetchData = async () => {
       try {
-        const [res1, res2] = await Promise.all([api.get('/statistics/identity'), api.get('/statistics/elektrConfirm')]);
-        setIdentity(res1.data);
-        setEtkIdentity(res2.data);
+        const [allAbonentsCount, identifiedCount, newAbonentRequestCount, totalIncome] = await Promise.all([api.get('/statistics/all-abonents-count'), api.get('/statistics/identified-count'), api.get('/statistics/new-abonent-request-count'), api.get("/statistics/monthly-income-percent")]);
+        
+        setStats({
+          allAbonentsCount: allAbonentsCount.data,
+          identifiedCount: identifiedCount.data,
+          newAbonentRequestCount: newAbonentRequestCount.data,
+          monthlyIncomePlanAccrual: totalIncome.data.sumAccrual,
+          monthlyIncomePlanTotalAmount: totalIncome.data.totalAmount,
+        });
       } catch (error: any) {
         toast.error(error.message);
       } finally {
@@ -51,21 +63,21 @@ const Dashboard = () => {
         <Grid container spacing={gridSpacing}>
           <StatCard
             title="Umumiy Iste'molchilar"
-            count={identity?.allAbonentsCount}
+            count={stats?.allAbonentsCount || 0}
             icon={<IconUsers size="2.2rem" />}
             color={theme.palette.primary.main}
             loading={isLoading}
           />
           <StatCard
-            title="Tasdiqlangan Shaxs"
-            count={identity?.confirmed}
+            title="Identifikatsiyadan o'tmagan"
+            count={(stats?.allAbonentsCount || 0) - (stats?.identifiedCount || 0)}
             icon={<IconShieldCheck size="2.2rem" />}
             color={theme.palette.success.main}
             loading={isLoading}
           />
           <StatCard
-            title="Elektr Tasdiq"
-            count={etkIdentity.confirmed}
+            title="Yangi abonent arizalari"
+            count={stats?.newAbonentRequestCount || 0}
             icon={<IconBolt size="2.2rem" />}
             color={theme.palette.warning.main}
             loading={isLoading}
@@ -91,7 +103,7 @@ const Dashboard = () => {
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(33, 150, 243, 0.04)', borderRadius: '15px' }}>
-                <RadialChart isLoading={isLoading} progress={identityProcent || 51} label="Identifikatsiya" />
+                <RadialChart isLoading={isLoading} progress={identityProcent} label="Identifikatsiya" />
                 <Typography variant="caption" color="textSecondary">
                   Umumiy bazaga nisbatan aniqlik darajasi
                 </Typography>
@@ -99,9 +111,9 @@ const Dashboard = () => {
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 193, 7, 0.04)', borderRadius: '15px' }}>
-                <RadialChart isLoading={isLoading} progress={etkIdentityProcent || 45} label="ETK Tasdiq" />
+                <RadialChart isLoading={isLoading} progress={Math.floor(((stats?.monthlyIncomePlanTotalAmount || 0) / (stats?. monthlyIncomePlanAccrual || 1)) * 100) || 0} label="Tushum reja bajarilishi" />
                 <Typography variant="caption" color="textSecondary">
-                  Elektr tarmoqlari bilan sinxronizatsiya
+                  Oylik rejaning bajarilishi
                 </Typography>
               </Box>
             </Grid>
