@@ -12,6 +12,7 @@ import MvdAddress from './modals/MvdAddress';
 import ArizaDocumentModal from './modals/ArizaDocumentModal';
 import { useAbonentStore } from './hooks/abonentStore';
 import ResidentCadastrs from './modals/ResidentCadastrs';
+import TozaMakonHistoryModal from './modals/TozaMakonHistoryModal';
 
 function Abonent() {
   usePrefetchAbonentPageData();
@@ -35,6 +36,7 @@ function Abonent() {
       <MvdAddress />
       <ArizaDocumentModal />
       <ResidentCadastrs />
+      <TozaMakonHistoryModal />
     </div>
   );
 }

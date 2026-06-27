@@ -1,7 +1,8 @@
-import { Card, Chip, Stack, Tooltip, Typography } from '@mui/material';
+import { Card, Chip, Stack, Tooltip, Typography, IconButton } from '@mui/material';
 import dayjs from 'dayjs';
 import { STATUS_CFG } from '../Debitors/types';
 import { useAbonentStore } from './hooks/abonentStore';
+import { History as HistoryIcon } from '@mui/icons-material';
 
 export interface AbonentDetailsHistoryRow {
   accountNumber: number;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export const NameHistory = ({ data }: Props) => {
-  const { abonentDebitorStatus } = useAbonentStore();
+  const { abonentDebitorStatus, setOpenTozaMakonHistoryDialog } = useAbonentStore();
   // eski -> yangi tartibni teskariga o‘giramiz
   const sorted = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -37,6 +38,16 @@ export const NameHistory = ({ data }: Props) => {
 
   return (
     <Card sx={{ p: 2, boxShadow: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+          Ism o'zgarishlari
+        </Typography>
+        <Tooltip title="Tizimdagi barcha amallar (TozaMakon)">
+          <IconButton size="small" color="primary" onClick={() => setOpenTozaMakonHistoryDialog(true)}>
+            <HistoryIcon />
+          </IconButton>
+        </Tooltip>
+      </Stack>
       <Stack spacing={1.5}>
         {changes.map((c, i) => (
           <Stack key={i} direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>

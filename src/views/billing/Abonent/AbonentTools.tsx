@@ -25,7 +25,8 @@ import {
   AddHomeWork as MultipleIcon,
   Tune as ActionsIcon,
   ElectricBolt,
-  Refresh
+  Refresh,
+  History as HistoryIcon
 } from '@mui/icons-material';
 import { t } from 'i18next';
 import { useAbonentStore } from './hooks/abonentStore';
@@ -48,7 +49,8 @@ function AbonentTools() {
     setOpenDebtCertificateDialog,
     setOpenAddInhabitantsDialog,
     setOpenEditElectricAccountState,
-    refreshAbonentDetailsPage
+    refreshAbonentDetailsPage,
+    setOpenTozaMakonHistoryDialog
   } = useAbonentStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -149,6 +151,15 @@ function AbonentTools() {
               }}
             >
               <ElectricBolt /> Qo'shimcha elektr hisob raqamlari
+            </MenuItem>
+            <MenuItem
+              sx={{ display: 'flex', width: 280, gap: 2 }}
+              onClick={() => {
+                setOpenTozaMakonHistoryDialog(true);
+                setAnchorElActions(null);
+              }}
+            >
+              <HistoryIcon /> Tizimdagi amallar tarixi
             </MenuItem>
           </Menu>
 

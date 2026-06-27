@@ -55,7 +55,10 @@ const initialState: IAbonentPageDataStore = {
   blockReport: undefined,
   similarAbonentsByElectricity: [],
   abonentCadastrs: [],
-  abonentDebitorStatus: null
+  abonentDebitorStatus: null,
+  tozaMakonHistory: [],
+  tozaMakonHistoryLoading: false,
+  openTozaMakonHistoryDialogState: false
 };
 
 interface IAbonentPageDataStore {
@@ -96,6 +99,9 @@ interface IAbonentPageDataStore {
   blockReport?: BlockReport;
   similarAbonentsByElectricity: IAbonent[];
   abonentDebitorStatus: null | Debitor;
+  tozaMakonHistory: any[];
+  tozaMakonHistoryLoading: boolean;
+  openTozaMakonHistoryDialogState: boolean;
 }
 
 export interface IAbonentPageActionsStore {
@@ -192,6 +198,8 @@ export interface IAbonentPageActionsStore {
   resetStore: () => void;
   getSimilarAbonentsByElectricity: (electrycityAccountNumber: string) => Promise<any>;
   getAbonentDebitorStatus: (residentId: number) => Promise<any>;
+  getTozaMakonHistory: (residentId: number) => Promise<void>;
+  setOpenTozaMakonHistoryDialog: (open: boolean) => void;
 }
 
 export type IAbonentPageStore = IAbonentPageDataStore & IAbonentPageActionsStore;
@@ -424,5 +432,20 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     const { data } = await api.get('/debitors/resident/' + residentId);
     set({ abonentDebitorStatus: data.data });
     return data;
-  }
+  },
+  getTozaMakonHistory: async (residentId) => {
+    set({ tozaMakonHistoryLoading: true });
+    try {
+      const { data } = await api.get('/abonents/history-tozamakon/' + residentId, {
+        params: { page: 0, size: 100 }
+      });
+      set({ tozaMakonHistory: data });
+    } catch (error) {
+      toast.error('Tizimdagi amallar tarixini yuklashda xatolik yuz berdi');
+      throw error;
+    } finally {
+      set({ tozaMakonHistoryLoading: false });
+    }
+  },
+  setOpenTozaMakonHistoryDialog: (open) => set({ openTozaMakonHistoryDialogState: open })
 }));
