@@ -439,9 +439,11 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       const { data } = await api.get('/abonents/history-tozamakon/' + residentId, {
         params: { page: 0, size: 100 }
       });
-      set({ tozaMakonHistory: data });
+      const historyList = Array.isArray(data) ? data : (data && Array.isArray(data.content) ? data.content : []);
+      set({ tozaMakonHistory: historyList });
     } catch (error) {
       toast.error('Tizimdagi amallar tarixini yuklashda xatolik yuz berdi');
+      set({ tozaMakonHistory: [] });
       throw error;
     } finally {
       set({ tozaMakonHistoryLoading: false });

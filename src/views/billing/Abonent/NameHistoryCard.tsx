@@ -38,7 +38,7 @@ export const NameHistory = ({ data }: Props) => {
 
   return (
     <Card sx={{ p: 2, boxShadow: 2 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
         <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
           Ism o'zgarishlari
         </Typography>

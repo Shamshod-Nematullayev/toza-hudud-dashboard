@@ -51,75 +51,257 @@ const fieldTranslations: Record<string, string> = {
   mahallaId: 'Mahalla ID',
   flatNumber: 'Xonadon raqami',
   homeNumber: 'Uy raqami',
-  homeIndex: 'Uy indeksi'
+  homeIndex: 'Uy indeksi',
+  identified: 'Shaxsi tasdiqlanganligi',
+  identifiedDate: 'Shaxsi tasdiqlangan sana',
+  ekt_kod_tasdiqlandi: 'Elektr kodi tasdiqlanishi',
+  energy_licshet: 'Elektr hisob raqami',
+  caotoNumber: 'COATO raqami',
+  licshet: 'Abonent hisob raqami',
+  fio: 'F.I.O.',
+  last_name: 'Familiya',
+  first_name: 'Ism',
+  middle_name: 'Sharif',
+  pinfl: 'PINFL',
+  passport_number: 'Pasport raqami',
+  streets_id: 'Ko\'cha ID',
+  mahallas_id: 'Mahalla ID'
+};
+
+
+const parseStringHistory = (str: string) => {
+  const changes: { field: string; newValue: string; oldValue: string | null }[] = [];
+  const regex = /\b(?!from\b)([a-zA-Z0-9_]+):\s*(.*?)(?=\s*,?\s*\b(?!from\b)[a-zA-Z0-9_]+:\s*|$)/g;
+  let match;
+  
+  while ((match = regex.exec(str)) !== null) {
+    const field = match[1];
+    let rawValue = match[2].trim();
+    
+    // Check if rawValue ends with a comma (due to separator)
+    if (rawValue.endsWith(',')) {
+      rawValue = rawValue.slice(0, -1).trim();
+    }
+    
+    // Now parse "newValue (from: oldValue)"
+    const fromRegex = /^(.*?)\s*\(from:\s*(.*?)\)$/;
+    const fromMatch = rawValue.match(fromRegex);
+    
+    if (fromMatch) {
+      changes.push({
+        field,
+        newValue: fromMatch[1].trim(),
+        oldValue: fromMatch[2].trim()
+      });
+    } else {
+      changes.push({
+        field,
+        newValue: rawValue,
+        oldValue: null
+      });
+    }
+  }
+  
+  return changes;
+};
+
+const isEmptyLike = (val: string | null | undefined) => {
+  if (val === null || val === undefined) return true;
+  const cleaned = val.trim().toLowerCase();
+  return cleaned === '' || cleaned === 'null' || cleaned === 'undefined' || cleaned === 'bo\'sh' || cleaned === 'empty';
+};
+
+const hasActualChanges = (valueStr: string): boolean => {
+  if (!valueStr) return false;
+  
+  let changesList: { field: string; newValue: string; oldValue: string | null }[] = [];
+  let isParsed = false;
+  
+  try {
+    const parsed = JSON.parse(valueStr);
+    if (Array.isArray(parsed)) {
+      changesList = parsed.map((item: any) => ({
+        field: item.fieldName || item.propertyName || item.field || '',
+        newValue: item.newValue !== undefined && item.newValue !== null ? String(item.newValue) : '',
+        oldValue: item.oldValue !== undefined && item.oldValue !== null ? String(item.oldValue) : null
+      }));
+      isParsed = true;
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      changesList = Object.entries(parsed).map(([key, val]: [string, any]) => ({
+        field: key,
+        newValue: typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val),
+        oldValue: null
+      }));
+      isParsed = true;
+    }
+  } catch (e) {}
+  
+  if (!isParsed) {
+    changesList = parseStringHistory(valueStr);
+  }
+  
+  return changesList.some(item => {
+    const oldVal = item.oldValue;
+    const newVal = item.newValue;
+    
+    if (oldVal === newVal) return false;
+    if (isEmptyLike(oldVal) && isEmptyLike(newVal)) return false;
+    
+    return true;
+  });
 };
 
 const renderChangedValue = (valueStr: string) => {
   if (!valueStr) return '—';
   
+  let changesList: { field: string; newValue: string; oldValue: string | null }[] = [];
+  let isParsedSuccess = false;
+
+  // Try JSON first
   try {
     const parsed = JSON.parse(valueStr);
-    
-    // Case 1: Array of changes: [{ fieldName, oldValue, newValue }, ...]
     if (Array.isArray(parsed)) {
-      return (
-        <Stack spacing={1} sx={{ mt: 1 }}>
-          {parsed.map((item: any, idx: number) => {
-            const field = item.fieldName || item.propertyName || item.field || '';
-            const fieldLabel = fieldTranslations[field] || field;
-            const oldValue = item.oldValue !== undefined && item.oldValue !== null ? String(item.oldValue) : '';
-            const newValue = item.newValue !== undefined && item.newValue !== null ? String(item.newValue) : '';
-            
-            return (
-              <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  {fieldLabel}:
-                </Typography>
-                {oldValue && (
-                  <>
-                    <Chip label={oldValue} size="small" variant="outlined" color="default" sx={{ borderRadius: 1 }} />
-                    <Typography variant="body2" color="text.secondary">→</Typography>
-                  </>
-                )}
-                <Chip label={newValue || 'bo\'sh'} size="small" color="primary" sx={{ borderRadius: 1 }} />
-              </Box>
-            );
-          })}
-        </Stack>
-      );
-    }
-    
-    // Case 2: Single flat object: { field1: val1, field2: val2 }
-    if (typeof parsed === 'object' && parsed !== null) {
-      return (
-        <Stack spacing={1} sx={{ mt: 1 }}>
-          {Object.entries(parsed).map(([key, val]: [string, any]) => {
-            const fieldLabel = fieldTranslations[key] || key;
-            let displayVal = '';
-            if (typeof val === 'object' && val !== null) {
-              displayVal = JSON.stringify(val);
-            } else {
-              displayVal = String(val);
-            }
-            
-            return (
-              <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  {fieldLabel}:
-                </Typography>
-                <Chip label={displayVal} size="small" color="secondary" variant="outlined" sx={{ borderRadius: 1 }} />
-              </Box>
-            );
-          })}
-        </Stack>
-      );
+      changesList = parsed.map((item: any) => ({
+        field: item.fieldName || item.propertyName || item.field || '',
+        newValue: item.newValue !== undefined && item.newValue !== null ? String(item.newValue) : '',
+        oldValue: item.oldValue !== undefined && item.oldValue !== null ? String(item.oldValue) : null
+      }));
+      isParsedSuccess = true;
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      changesList = Object.entries(parsed).map(([key, val]: [string, any]) => ({
+        field: key,
+        newValue: typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val),
+        oldValue: null
+      }));
+      isParsedSuccess = true;
     }
   } catch (e) {
-    // Not valid JSON, falls through to default string representation
+    // Ignore JSON error
   }
-  
+
+  // If JSON parsing failed, try parsing as formatted string
+  if (!isParsedSuccess) {
+    const parsedList = parseStringHistory(valueStr);
+    if (parsedList.length > 0) {
+      changesList = parsedList;
+      isParsedSuccess = true;
+    }
+  }
+
+  // If parsing was successful and we have structured changes
+  if (isParsedSuccess && changesList.length > 0) {
+    // Filter out changes where both old and new values are empty/null to clean up the UI
+    const actualChanges = changesList.filter(item => {
+      const isOldEmpty = isEmptyLike(item.oldValue);
+      const isNewEmpty = isEmptyLike(item.newValue);
+      
+      if (isOldEmpty && isNewEmpty) return false;
+      if (item.oldValue === item.newValue) return false;
+      
+      return true;
+    });
+
+    if (actualChanges.length === 0) return '—';
+
+    const listToRender = actualChanges;
+
+    return (
+      <Stack spacing={0.75} sx={{ mt: 0.5 }}>
+        {listToRender.map((item, idx) => {
+          const fieldLabel = fieldTranslations[item.field] || item.field;
+          const oldValue = item.oldValue;
+          const newValue = item.newValue;
+
+          return (
+            <Grid
+              container
+              key={idx}
+              sx={{
+                py: 1,
+                alignItems: 'center',
+                borderBottom: idx < listToRender.length - 1 ? '1px solid #f1f5f9' : 'none'
+              }}
+            >
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                  {fieldLabel}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 8 }}>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  {oldValue !== null && oldValue !== undefined && oldValue !== '' ? (
+                    <>
+                      <Chip
+                        label={oldValue}
+                        size="small"
+                        sx={{
+                          borderRadius: '6px',
+                          bgcolor: '#fee2e2',
+                          color: '#ef4444',
+                          textDecoration: 'line-through',
+                          fontSize: '0.75rem',
+                          height: 'auto',
+                          py: 0.5,
+                          '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', px: 1 }
+                        }}
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                        →
+                      </Typography>
+                      <Chip
+                        label={newValue || 'bo\'sh'}
+                        size="small"
+                        sx={{
+                          borderRadius: '6px',
+                          bgcolor: '#dcfce7',
+                          color: '#22c55e',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          height: 'auto',
+                          py: 0.5,
+                          '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', px: 1 }
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <Chip
+                      label={newValue || 'bo\'sh'}
+                      size="small"
+                      sx={{
+                        borderRadius: '6px',
+                        bgcolor: '#e0f2fe',
+                        color: '#0284c7',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        height: 'auto',
+                        py: 0.5,
+                        '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', px: 1 }
+                      }}
+                    />
+                  )}
+                </Stack>
+              </Grid>
+            </Grid>
+          );
+        })}
+      </Stack>
+    );
+  }
+
+  // Fallback to raw string
   return (
-    <Typography variant="body2" sx={{ color: 'text.secondary', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+    <Typography
+      variant="body2"
+      sx={{
+        color: 'text.secondary',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+        bgcolor: '#f8fafc',
+        p: 1.25,
+        borderRadius: 1.5,
+        border: '1px solid #f1f5f9'
+      }}
+    >
       {valueStr}
     </Typography>
   );
@@ -177,8 +359,12 @@ function TozaMakonHistoryModal() {
     setOpenTozaMakonHistoryDialog(false);
   };
 
+  const historyList = Array.isArray(tozaMakonHistory) ? tozaMakonHistory : [];
+
   // Filter history based on search query and entity filter
-  const filteredHistory = tozaMakonHistory.filter((item: any) => {
+  const filteredHistory = historyList.filter((item: any) => {
+    if (!hasActualChanges(item.changedValue)) return false;
+
     const operatorMatches = item.userFullName?.toLowerCase().includes(searchQuery.toLowerCase());
     const valMatches = item.changedValue?.toLowerCase().includes(searchQuery.toLowerCase());
     const entityMatches = selectedEntity === 'ALL' || item.entityName === selectedEntity;
@@ -197,7 +383,7 @@ function TozaMakonHistoryModal() {
   };
 
   // Unique entities for filter
-  const entities = ['ALL', ...Array.from(new Set(tozaMakonHistory.map((h: any) => h.entityName).filter(Boolean)))];
+  const entities = ['ALL', ...Array.from(new Set(historyList.map((h: any) => h.entityName).filter(Boolean)))];
 
   return (
     <DraggableDialog
@@ -209,8 +395,8 @@ function TozaMakonHistoryModal() {
     >
       <DialogContent dividers sx={{ p: 2, bgcolor: '#f8fafc' }}>
         <Box sx={{ mb: 2 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6}>
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 placeholder="Operator ismi yoki o'zgarish bo'yicha qidirish..."
                 fullWidth
@@ -220,12 +406,14 @@ function TozaMakonHistoryModal() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" fontSize="small" />
-                    </InputAdornment>
-                  )
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon color="action" fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }
                 }}
                 sx={{
                   bgcolor: 'background.paper',
@@ -236,7 +424,7 @@ function TozaMakonHistoryModal() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', py: 0.5 }}>
                 <FilterIcon sx={{ color: 'text.secondary', alignSelf: 'center' }} fontSize="small" />
                 {entities.map((ent: any) => (
@@ -281,65 +469,43 @@ function TozaMakonHistoryModal() {
               <Card
                 key={item.id}
                 sx={{
-                  p: 2,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 2,
-                  bgcolor: 'background.paper',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.06)'
-                  }
+                  p: 2.5,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                  border: '1px solid #eef2f6',
+                  borderRadius: '12px',
+                  bgcolor: 'background.paper'
                 }}
               >
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                {/* Clean Header Layout */}
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                     <Chip
                       label={item.operation || 'UPDATE'}
                       color={getOperationColor(item.operation)}
                       size="small"
-                      sx={{ fontWeight: 'bold', borderRadius: 1 }}
+                      sx={{ fontWeight: 'bold', borderRadius: '6px', height: 20, fontSize: '0.7rem' }}
                     />
                     <Chip
                       label={getEntityLabel(item.entityName)}
                       variant="outlined"
                       size="small"
-                      sx={{ borderRadius: 1 }}
+                      sx={{ borderRadius: '6px', height: 20, fontSize: '0.7rem', borderColor: '#eef2f6' }}
                     />
+                    <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>
+                      Operator: <span style={{ fontWeight: 600, color: '#1e293b' }}>{item.userFullName || 'Tizim (Tashqi)'}</span>
+                    </Typography>
                   </Stack>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                     {dayjs(item.changeDate).format('DD.MM.YYYY HH:mm:ss')}
                   </Typography>
                 </Stack>
 
-                <Divider sx={{ my: 1, borderColor: '#f1f5f9' }} />
+                <Divider sx={{ borderColor: '#f1f5f9', mb: 1.5 }} />
 
-                <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                  <Grid item xs={12} md={4}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Avatar sx={{ width: 24, height: 24, bgcolor: 'primary.light', color: 'primary.main' }}>
-                        <PersonIcon sx={{ fontSize: 16 }} />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          Bajaruvchi operator
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {item.userFullName || 'Tizim (Tashqi)'}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={8}>
-                    <Box sx={{ pl: { md: 2 }, borderLeft: { md: '1px solid #f1f5f9' } }}>
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
-                        O'zgartirilgan ma'lumotlar
-                      </Typography>
-                      {renderChangedValue(item.changedValue)}
-                    </Box>
-                  </Grid>
-                </Grid>
+                {/* Structured Changes */}
+                <Box>
+                  {renderChangedValue(item.changedValue)}
+                </Box>
               </Card>
             ))}
 
