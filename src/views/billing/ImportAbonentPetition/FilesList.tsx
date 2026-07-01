@@ -1,11 +1,12 @@
-import { Box, Divider, List, ListItem, ListItemButton, TextField, Typography } from '@mui/material';
+import { Box, Divider, IconButton, List, ListItem, ListItemButton, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import useStore from './hooks/useStore';
 import { useUiStore } from './hooks/useUiStore';
 import { t } from 'i18next';
+import { Delete } from '@mui/icons-material';
 
 function FilesList() {
-  const { pdfFiles, processFile } = useStore();
+  const { pdfFiles, processFile, removePdfFile } = useStore();
   const { setPdfFileLoading } = useUiStore();
 
   const handleListItemClick = async (file_name: string) => {
@@ -35,10 +36,25 @@ function FilesList() {
       </Typography>
       <List sx={{ overflowY: 'auto', flex: 1 }}>
         {filteredFiles.map((pdfFile, i) => (
-          <ListItem key={pdfFile.file.name}>
+          <ListItem
+            key={pdfFile.file.name}
+            secondaryAction={
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removePdfFile(pdfFile.file.name);
+                }}
+              >
+                <Delete />
+              </IconButton>
+            }
+            disablePadding
+          >
             <ListItemButton
               selected={pdfFile.active}
-              sx={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', paddingRight: '10px' }}
+              sx={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', paddingRight: '48px' }}
               onClick={() => handleListItemClick(pdfFile.file.name)}
             >
               {i + 1}. {pdfFile.file.name}
