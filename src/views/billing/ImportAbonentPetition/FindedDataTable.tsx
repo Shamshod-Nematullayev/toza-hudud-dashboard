@@ -24,16 +24,11 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import Visibility from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOff from '@mui/icons-material/VisibilityOffOutlined';
-import Cancel from '@mui/icons-material/CancelOutlined';
 import ChooseArizaPopper from './ChooseArizaPopper';
-import { useTranslation } from 'react-i18next';
 import { documentTypes } from 'store/constant';
 import { useStore as useRecalculatorStore } from '../CreateAbonentPetition.jsx/useStore';
-import { IAriza } from 'types/models';
-import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 import {
   Close,
-  CloudUpload,
   Delete,
   EditOutlined,
   Keyboard,
@@ -47,13 +42,13 @@ import { hasValidAriza, IRow, useFindedTableLogic } from './hooks/useFindedTable
 import { AnimatePresence, motion } from 'framer-motion';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
-import { NameHistory } from '../Abonent/NameHistoryCard';
 import useLoaderStore from 'store/loaderStore';
 import { useUiStore } from './hooks/useUiStore';
 import useCustomizationStore from 'store/customizationStore';
 import { t } from 'i18next';
 import api from 'utils/api';
 import PasteImageDialog from 'ui-component/PasteImageDialog';
+import { IAriza } from 'types/models';
 
 function FindedDataTable() {
   const theme = useTheme();
@@ -70,7 +65,6 @@ function FindedDataTable() {
     handlePrimaryButtonClick,
     handleTabChange,
     tabIndex,
-    inputDisabled,
     arizaNumberInput,
     setArizaNumberInput,
     setShowSpoiler,
@@ -78,15 +72,13 @@ function FindedDataTable() {
     rowAfterAkt,
     aktSumm,
     setAktSumm,
-    manualEditing,
     setManualEditing,
     rows,
-    rowsDublicate,
     manualAccountNumber,
     setManualAccountNumber,
     loadAbonentByAccountForManual,
     photos,
-    setPhotos
+    setPhotos,
   } = useFindedTableLogic();
   const { isLoading } = useLoaderStore();
   const { pdfFileLoading } = useUiStore();
@@ -721,10 +713,12 @@ function FindedDataTable() {
   }
 
   return (
-    <AnimatePresence>
-      <PasteImageDialog open={openPasteImageDialog} onClose={() => setOpenPasteImageDialog(false)} onAddButtonClick={handleAddPhoto} />
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>{page}</Box>
-    </AnimatePresence>
+    <>
+      <PasteImageDialog key="paste-image-dialog" open={openPasteImageDialog} onClose={() => setOpenPasteImageDialog(false)} onAddButtonClick={handleAddPhoto} />
+      <AnimatePresence>
+        <Box key="content-box" sx={{ display: 'flex', flexDirection: 'column' }}>{page}</Box>
+      </AnimatePresence>
+    </>
   );
 }
 

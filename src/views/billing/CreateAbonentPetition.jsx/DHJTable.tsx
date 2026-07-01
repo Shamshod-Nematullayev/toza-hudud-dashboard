@@ -216,7 +216,7 @@ function DHJTable({ abonentData }: { abonentData: AbonentDetails }) {
                         <div
                           key={index}
                           style={{
-                            backgroundColor: item,
+                            backgroundColor: item!,
                             // width: '100%',
                             height: '100%',
                             flex: 1

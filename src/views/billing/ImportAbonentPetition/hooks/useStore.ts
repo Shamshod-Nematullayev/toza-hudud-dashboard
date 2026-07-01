@@ -4,6 +4,7 @@ import { IAriza } from 'types/models';
 import api from 'utils/api';
 import { extractQRCodeFromPDF } from 'views/tools/extractQRCodeFromPDF';
 import { create } from 'zustand';
+import { defaultAbonentData, useStore as useRecalculatorStore } from '../../CreateAbonentPetition.jsx/useStore';
 
 function sortFilesByNumber(files: any[]) {
   return files.sort((a, b) => {
@@ -98,6 +99,7 @@ const useStore = create<State>((set, get) => ({
   processFile: async (fileName: string) => {
     const { pdfFiles } = get();
     set({ ariza: null });
+    useRecalculatorStore.setState({ abonentData: defaultAbonentData, abonentData2: defaultAbonentData, yashovchiSoniInput: '' });
     const target = pdfFiles.find((f) => f.file.name === fileName);
     if (!target?.file) return toast.error('Fayl topilmadi.');
 

@@ -220,7 +220,8 @@ export function useFindedTableLogic() {
       setYashovchiSoniInput(String(mapped[0].yashovchilar_soni));
       setRowsDhjTable(mapped);
       toast.success('Abonent yuklandi');
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast.error('DHJ maʼlumotini olishda xatolik');
     }
   }, [manualAccountNumber]);

@@ -1,15 +1,13 @@
-import { Box, Divider, Grid, List, ListItem, ListItemButton, TextField, Typography } from '@mui/material';
+import { Box, Divider, List, ListItem, ListItemButton, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import useStore from './hooks/useStore';
 import { useUiStore } from './hooks/useUiStore';
 import { t } from 'i18next';
-import FileInputDrop from 'ui-component/FileInputDrop';
 
 function FilesList() {
   const { pdfFiles, processFile } = useStore();
   const { setPdfFileLoading } = useUiStore();
 
-  // handlers
   const handleListItemClick = async (file_name: string) => {
     setPdfFileLoading(true);
     await processFile(file_name);
@@ -22,8 +20,6 @@ function FilesList() {
   }, [pdfFiles]);
 
   const filteredFiles = pdfFiles.filter(({ file }) => file?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  const countText = t('countFiles', { cnt: filteredFiles.length });
 
   return (
     <Box sx={{height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column'}}>
