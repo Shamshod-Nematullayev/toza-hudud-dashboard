@@ -12,6 +12,7 @@ import DvaynikBlank from './Documents/DvaynikBlank';
 import GpsBlank from './Documents/GpsBlank';
 import { Print } from '@mui/icons-material';
 import { useReactToPrint } from 'react-to-print';
+import useCustomizationStore from 'store/customizationStore';
 
 export interface Company {
   id: number;
@@ -24,7 +25,7 @@ export interface Company {
 
 function Blanks() {
   const [tabsValue, setTabsValue] = useState(documentTypes[0]);
-  const company: Company = JSON.parse(localStorage.getItem('company'));
+  const {company} = useCustomizationStore()
 
   const { t } = useTranslation();
 
@@ -44,7 +45,7 @@ function Blanks() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex' }}>
           <TabList onChange={handleTabsChange}>
             {documentTypes.map((item) => (
-              <Tab key={item} label={t(`documentTypes.${item}`)} value={item} />
+              <Tab key={item} label={t(`documentTypes.${item}` as 'documentTypes.odam_soni')} value={item} />
             ))}
           </TabList>
           <Button sx={{ ml: 'auto' }} variant="contained" color="primary" onClick={() => handlePrint()}>

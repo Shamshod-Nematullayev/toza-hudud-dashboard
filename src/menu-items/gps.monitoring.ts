@@ -13,15 +13,15 @@ const gpsMonitoring: MenuItem = {
   url: '/gpsMonitoring/gpsDalolatnomalar',
   breadcrumbs: false,
   children: [
-    {
-      id: 'gpsDalolatnomalar',
-      title: 'gpsDalolatnomalar',
-      type: 'item',
-      url: '/gpsMonitoring/gpsDalolatnomalar',
-      icon: icons.NoteAddOutlined,
-      breadcrumbs: false,
-      allowedRoles: ['admin', 'gps']
-    },
+    // {
+    //   id: 'gpsDalolatnomalar',
+    //   title: 'gpsDalolatnomalar',
+    //   type: 'item',
+    //   url: '/gpsMonitoring/gpsDalolatnomalar',
+    //   icon: icons.NoteAddOutlined,
+    //   breadcrumbs: false,
+    //   allowedRoles: ['admin', 'gps']
+    // },
     {
       id: 'visitsGraph',
       title: 'visitsGraph',

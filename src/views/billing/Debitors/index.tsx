@@ -140,7 +140,7 @@ import { DebitorStatus, PHONE_CFG, PhoneStatus, STATUS_CFG } from './types';
 
 // ─── Asosiy komponent ─────────────────────────────────────────────
 
-const INIT_FILTERS = { status: '', phoneStatus: '', debtFrom: '', debtTo: '' };
+const INIT_FILTERS = { status: [] as string[], phoneStatus: [] as string[], debtFrom: '', debtTo: '' };
 
 function Debitors() {
   const [refreshState, setRefreshState] = React.useState(false);
@@ -159,8 +159,7 @@ function Debitors() {
   // Statistika
   const [stats, setStats] = React.useState<DebitorStats | null>(null);
 
-  // Job trigger holati
-  const [jobLoading, setJobLoading] = React.useState<Record<string, boolean>>({});
+
 
   // ─── So'rovlar ────────────────────────────────────────────────
 
@@ -173,8 +172,8 @@ function Debitors() {
           sortField,
           sortDirection,
           search: appliedSearch || undefined,
-          status: applied.status || undefined,
-          phoneStatus: applied.phoneStatus || undefined,
+          status: applied.status.length > 0 ? applied.status.join(',') : undefined,
+          phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
           debtAmountFrom: applied.debtFrom || undefined,
           debtAmountTo: applied.debtTo || undefined
         }
@@ -262,15 +261,6 @@ function Debitors() {
     refresh();
   };
 
-  const triggerJob = async (key: string, endpoint: string) => {
-    setJobLoading((p) => ({ ...p, [key]: true }));
-    try {
-      await api.post(endpoint);
-      refresh();
-    } finally {
-      setJobLoading((p) => ({ ...p, [key]: false }));
-    }
-  };
 
   // Excel yuklash funksiyasi
   const fetchExcelFile = async () => {
@@ -281,8 +271,8 @@ function Debitors() {
         sortField: '',
         sortDirection: '',
         search: appliedSearch || undefined,
-        status: applied.status || undefined,
-        phoneStatus: applied.phoneStatus || undefined,
+        status: applied.status.length > 0 ? applied.status.join(',') : undefined,
+        phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
         debtAmountFrom: applied.debtFrom || undefined,
         debtAmountTo: applied.debtTo || undefined
       },
@@ -423,10 +413,6 @@ function Debitors() {
           onDebtToChange={(v) => setDraft((p) => ({ ...p, debtTo: v }))}
           onApply={applyFilters}
           onReset={resetFilters}
-          jobLoading={jobLoading}
-          onTrigger={triggerJob}
-          smsEmpty={!!smsEmpty}
-          smsLoading={smsLoad}
         />
 
         {/* O'ng panel: asosiy kontent */}

@@ -1,4 +1,3 @@
-import React from 'react';
 import ImzolashJoyiBlank from '../ImzolashJoyiBlank';
 import { Company } from '..';
 

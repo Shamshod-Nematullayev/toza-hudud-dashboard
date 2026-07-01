@@ -21,7 +21,7 @@ function CreateGpsDalolatnoma() {
   return (
     <MainCard>
       <Grid container spacing={2}>
-        <Grid item xs={9}>
+        <Grid size={9}>
           <PrintSection
             company={company}
             date={date}
@@ -32,7 +32,7 @@ function CreateGpsDalolatnoma() {
             contentRef={printSectionRef}
           />
         </Grid>
-        <Grid item xs={3}>
+        <Grid size={3}>
           <SideBarGpsCreateGpsDalolatnoma printFunc={() => printFunc()} />
         </Grid>
       </Grid>

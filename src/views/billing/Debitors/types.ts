@@ -17,6 +17,7 @@ export type PhoneStatus =
   | 'checking'
   | 'het_synced'
   | 'needs_het_sync'
+  | 'phone_changed'
   | 'not_found';
 
 // ─── Konfiguratsiyalar (Prettier buzmasligi uchun inline) ──────────
@@ -41,7 +42,8 @@ export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 
   checking:              { label: '🔍 Tekshirilmoqda',                color: 'warning' },
   het_synced:            { label: '🔄 HET sinxronizatsiya qilingan',  color: 'success' },
   needs_het_sync:        { label: '🔄 HET sinxronizatsiya kerak',     color: 'secondary' },
-  not_found:             { label: '❌ Topilmagan',                    color: 'error' }
+  not_found:             { label: '❌ Topilmagan',                    color: 'error' },
+  phone_changed:         { label: '📞 Telefon raqami o\'zgartirilgan',   color: 'primary' },
 };
 
 // ─── Interfeyslar ─────────────────────────────────────────────────
