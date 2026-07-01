@@ -4,7 +4,7 @@ import { gridSpacing } from 'store/constant';
 import RadialChart from './RadialChart';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
-import { Box, Card, LinearProgress, Stack, SvgIconProps, Typography, useTheme } from '@mui/material';
+import { Box, Card, LinearProgress, Stack, SvgIconProps, Typography, useTheme, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import useCustomizationStore from 'store/customizationStore';
 import { IconBolt, IconChartBar, IconShieldCheck, IconUsers } from '@tabler/icons-react';
@@ -18,8 +18,11 @@ interface IStat {
   monthlyIncomePlanTotalAmount?: number;
 }
 
+const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(n);
+const fmtMoney = (n: number) => fmt(n) + " so'm";
+
 const Dashboard = () => {
-  const { mahallalar } = useCustomizationStore();
+  const { mahallalar, user } = useCustomizationStore();
   useEffect(() => {
     if (mahallalar.length === 0) {
       api.get('/mahallas', { params: { isMinimalize: true, page: 1, limit: 1000 } }).then(({ data }) => {
@@ -31,8 +34,11 @@ const Dashboard = () => {
   const theme = useTheme();
   const [isLoading, setLoading] = useState(true);
   const [stats, setStats] = useState<IStat | null>(null);
+  const [debitorStats, setDebitorStats] = useState<any[]>([]);
+  const [debitorLoading, setDebitorLoading] = useState(true);
 
   const identityProcent = Math.floor(((stats?.identifiedCount || 0) / (stats?.allAbonentsCount || 1)) * 100) || 0;
+    const isProductAdmin = user?.roles?.includes('product_admin')
 
   useEffect(() => {
     document.title = 'GreenZone - Command Center';
@@ -54,6 +60,22 @@ const Dashboard = () => {
       }
     };
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchDebitorStats = async () => {
+      try {
+        const { data } = await api.get('/debitors/stats', { params: { byCompany: true } });
+        if (data && data.success) {
+          setDebitorStats(data.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to load debitor stats:', error);
+      } finally {
+        setDebitorLoading(false);
+      }
+    };
+    fetchDebitorStats();
   }, []);
 
   return (
@@ -85,7 +107,7 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      {/* 2. ASOSIY GRAFIK PANEL (Dahshatli qism) */}
+       {/* 2. ASOSIY GRAFIK PANEL (Dahshatli qism) */}
       <Grid size={{ xs: 12, lg: 8 }}>
         <Card
           sx={{
@@ -134,6 +156,116 @@ const Dashboard = () => {
           </Stack>
         </Card>
       </Grid>
+
+      {/* DEBITORLAR STATISTIKASI (Tashkilotlar kesimida) */}
+      {isProductAdmin  && (
+        <Grid size={{ xs: 12 }}>
+          <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}>
+            <Typography variant="h3" sx={{ mb: 3, fontWeight: 800, color: '#1a237e' }}>
+              Qarzdorlar statistikasi (Tashkilotlar kesimida)
+            </Typography>
+          {debitorLoading ? (
+            <Stack spacing={2}>
+              <Skeleton variant="rectangular" height={50} sx={{ borderRadius: '8px' }} />
+              <Skeleton variant="rectangular" height={50} sx={{ borderRadius: '8px' }} />
+              <Skeleton variant="rectangular" height={50} sx={{ borderRadius: '8px' }} />
+            </Stack>
+          ) : (
+            <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
+              <Table sx={{ minWidth: 1000 }}>
+                <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50' }}>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>Tashkilot nomi</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Faol qarzdorlar</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Yangi aniqlangan</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Elektr kodi yo'q</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Telefon raqami yo'q</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Tekshirilmoqda (SMS)</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>HET sinxronizatsiya kutilmoqda</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Bloklanishi kutilmoqda</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Bloklangan</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {debitorStats.map((row: any) => {
+                    const resolved = getStatusData(row.statuses, 'resolved');
+                    const activeCount = row.totalCount - resolved.count;
+                    const activeDebt = row.totalDebt - resolved.totalDebt;
+
+                    const identified = getStatusData(row.statuses, 'debt_identified');
+                    const noHet = getStatusData(row.statuses, 'no_het_account');
+                    const noPhone = getStatusData(row.statuses, 'no_phone');
+                    const smsSent = getStatusData(row.statuses, 'sms_sent');
+                    const awaitingHet = getStatusData(row.statuses, 'awaiting_het_sync');
+                    const readyBlock = getStatusData(row.statuses, 'ready_to_block');
+                    const blocked = getStatusData(row.statuses, 'blocked');
+
+                    return (
+                      <TableRow key={row.companyId} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{row.companyName || 'Noma\'lum'}</Typography>
+                          <Typography variant="caption" color="text.secondary">{row.locationName || ''}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>{fmt(activeCount)} ta</Typography>
+                            <Typography variant="caption" sx={{ fontWeight: 500 }}>{fmtMoney(activeDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2">{fmt(identified.count)} ta</Typography>
+                            <Typography variant="caption" color="text.secondary">{fmtMoney(identified.totalDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2" color="error.main" sx={{ fontWeight: 600 }}>{fmt(noHet.count)} ta</Typography>
+                            <Typography variant="caption" color="text.secondary">{fmtMoney(noHet.totalDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2" color="error.main" sx={{ fontWeight: 600 }}>{fmt(noPhone.count)} ta</Typography>
+                            <Typography variant="caption" color="text.secondary">{fmtMoney(noPhone.totalDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2" color="warning.main">{fmt(smsSent.count)} ta</Typography>
+                            <Typography variant="caption" color="text.secondary">{fmtMoney(smsSent.totalDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2" color="warning.main">{fmt(awaitingHet.count)} ta</Typography>
+                            <Typography variant="caption" color="text.secondary">{fmtMoney(awaitingHet.totalDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2" color="success.main" sx={{ fontWeight: 600 }}>{fmt(readyBlock.count)} ta</Typography>
+                            <Typography variant="caption" color="text.secondary">{fmtMoney(readyBlock.totalDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack>
+                            <Typography variant="body2" color="success.main" sx={{ fontWeight: 600 }}>{fmt(blocked.count)} ta</Typography>
+                            <Typography variant="caption" color="text.secondary">{fmtMoney(blocked.totalDebt)}</Typography>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Card>
+      </Grid>
+      )}
+
+     
     </Grid>
   );
 };
@@ -169,6 +301,11 @@ const StatCard = ({ title, count, icon, color, loading }: PropsStatCard) => (
     </Card>
   </Grid>
 );
+
+const getStatusData = (statuses: any[], statusKey: string) => {
+  const match = (statuses || []).find((s: any) => s.status === statusKey);
+  return match ? { count: match.count, totalDebt: match.totalDebt } : { count: 0, totalDebt: 0 };
+};
 
 const ProgressBlock = ({ label, value, color }: { label: string; value: number; color: 'primary' | 'secondary' | 'success' }) => (
   <Box>

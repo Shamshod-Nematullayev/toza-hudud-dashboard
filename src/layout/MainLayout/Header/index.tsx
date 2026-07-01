@@ -19,12 +19,16 @@ import { useEffect, useRef } from 'react';
 import { Tooltip } from '@mui/material';
 import SearchAbonentSection from './SearchAbonentSection/SearchAbonentSection';
 import MurojaatlarSection from './MurojaatlarSection';
+import useCustomizationStore from 'store/customizationStore';
+import CompanySelector from './CompanySelector';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
 const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void }) => {
   const theme = useTheme();
   const menuButtonRef = useRef<HTMLDivElement>(null);
+  const { user } = useCustomizationStore();
+  const isProductAdmin = user?.roles?.includes('product_admin');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -87,6 +91,7 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       {/* header search */}
       <SearchSection />
       <Box sx={{ flexGrow: 1 }} />
+      {isProductAdmin && <CompanySelector />}
       <Box sx={{ flexGrow: 1 }} />
       <SearchAbonentSection />
       <LanguageSection />
