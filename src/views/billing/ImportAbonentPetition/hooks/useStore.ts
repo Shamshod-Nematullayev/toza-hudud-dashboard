@@ -100,6 +100,7 @@ const useStore = create<State>((set, get) => ({
     const { pdfFiles } = get();
     set({ ariza: null });
     useRecalculatorStore.setState({ abonentData: defaultAbonentData, abonentData2: defaultAbonentData, yashovchiSoniInput: '' });
+    set({enteringMode: 'ariza'})
     const target = pdfFiles.find((f) => f.file.name === fileName);
     if (!target?.file) return toast.error('Fayl topilmadi.');
 
