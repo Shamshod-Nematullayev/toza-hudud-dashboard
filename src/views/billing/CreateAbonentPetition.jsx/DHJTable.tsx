@@ -10,6 +10,7 @@ import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 import { AbonentDetails, IRowDhj } from 'types/billing';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 import { useLocation } from 'react-router-dom';
+import { getTarifElement } from 'ui-component/cards/RecalculatorAbonent';
 
 interface IRow {
   id: number;
@@ -36,6 +37,28 @@ function DHJTable({ abonentData }: { abonentData: AbonentDetails }) {
   useEffect(() => {
     if (dhjRows) {
       setRowsDhjTable(dhjRows);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (store.hisoblandiJadval.length === 0) {
+      api.get('/billing/get-tariffs').then((res) => {
+        const tariffs = res.data.tariffs;
+        let result = [
+          {
+            month: 1,
+            year: 2019,
+            hisoblandi: 2000,
+            withQQS: 2000
+          }
+        ];
+        for (let tariff of tariffs) {
+          result.push(
+            ...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined)
+          );
+        }
+        store.setHisoblandiJadval(result.sort((r1, r2) => r1.year - r2.year || r1.month - r2.month));
+      });
     }
   }, []);
 
@@ -87,9 +110,13 @@ function DHJTable({ abonentData }: { abonentData: AbonentDetails }) {
   useEffect(() => {
     if (show && rowsDhjTable.length) {
       const now = new Date();
-      const currentTariff = store.hisoblandiJadval.find((t) => t.year === now.getFullYear() && t.month === now.getMonth() + 1);
+      let currentTariff = store.hisoblandiJadval.find((t) => t.year === now.getFullYear() && t.month === now.getMonth() + 1);
+      if (!currentTariff && store.hisoblandiJadval.length > 0) {
+        currentTariff = store.hisoblandiJadval[store.hisoblandiJadval.length - 1];
+      }
+      const hisoblandi = currentTariff?.hisoblandi ?? 0;
       const kSaldo =
-        Number(store.yashovchiSoniInput) * currentTariff.hisoblandi +
+        Number(store.yashovchiSoniInput) * hisoblandi +
         rowsDhjTable[0].saldo_n -
         rowsDhjTable[0].allPaymentsSum -
         rowsDhjTable[0].akt -
@@ -100,7 +127,7 @@ function DHJTable({ abonentData }: { abonentData: AbonentDetails }) {
           davr: rowsDhjTable[0].davr,
           saldo_n: rowsDhjTable[0].saldo_n,
           nachis: !isNaN(Number(store.yashovchiSoniInput))
-            ? Number(store.yashovchiSoniInput) * currentTariff.hisoblandi
+            ? Number(store.yashovchiSoniInput) * hisoblandi
             : rowsDhjTable[0].nachis,
           saldo_k: kSaldo,
           akt: -(rowsDhjTable[0].akt + store.aktSumma.total),
@@ -114,7 +141,7 @@ function DHJTable({ abonentData }: { abonentData: AbonentDetails }) {
     } else {
       setRowsPreviewTable(rowsDhjTable);
     }
-  }, [show, rowsDhjTable, store.yashovchiSoniInput, store.aktSumma.total]);
+  }, [show, rowsDhjTable, store.yashovchiSoniInput, store.aktSumma.total, store.hisoblandiJadval]);
 
   return (
     <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
