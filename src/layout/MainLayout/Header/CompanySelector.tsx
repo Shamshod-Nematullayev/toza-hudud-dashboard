@@ -16,9 +16,7 @@ const CompanySelector = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const selectedValue = localStorage.getItem('targetCompanyId')
-    ? Number(localStorage.getItem('targetCompanyId'))
-    : company?.id || '';
+  const selectedValue = localStorage.getItem('targetCompanyId') ? Number(localStorage.getItem('targetCompanyId')) : company?.id || '';
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -88,7 +86,7 @@ const CompanySelector = () => {
         >
           {companies.map((item) => (
             <MenuItem key={item.id} value={item.id}>
-              {item.name} {item.locationName ? `(${item.locationName})` : ''}
+              {item.name} {item.locationName ? `(${item.locationName})` : ''} {item.id}
             </MenuItem>
           ))}
         </Select>
