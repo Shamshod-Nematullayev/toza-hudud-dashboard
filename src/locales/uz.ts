@@ -94,7 +94,10 @@ const uz = {
     'sms-warnings': 'SMS ogohlantirishlar',
     caller: 'Telefonchi',
     'call-warnings': 'Telefon ogohlantirishlar',
-    'call-warnings-workspace': 'Telefonchi ishmaydoni'
+    'call-warnings-workspace': 'Telefonchi ishmaydoni',
+    productAdmin: 'Tizim boshqaruvi',
+    manageCompanies: 'Tashkilotlarni boshqarish',
+    manageUsers: 'Foydalanuvchilarni boshqarish'
   },
   priority: {
     '1': 'Past',

@@ -125,7 +125,10 @@ const uzKirill: typeof uz = {
     gpsMonitoring: 'GPS мониторинг',
     importActs: 'Актларни импорт қилиш',
     visitsGraph: 'Кўчиш графиклари',
-    tasks: 'Топшириқлар'
+    tasks: 'Топшириқлар',
+    productAdmin: 'Тизим бошқаруви',
+    manageCompanies: 'Ташкилотларни бошқариш',
+    manageUsers: 'Фойдаланувчиларни бошқариш'
   },
   dashboard: {
     identified: 'Шахси тасдиқланган',

@@ -45,6 +45,8 @@ import { CallerWorkspace } from 'views/billing/CallerWorkspace/CallerWorkspace';
 import CallRequestAdmin from 'views/billing/CallRequestAdmin/CallRequestAdmin';
 import CallerStart from 'views/billing/CallerWorkspace/CallerStart';
 import Murojaatlar from 'views/jurist/Murojaatlar/Murojaatlar';
+import Companies from 'views/productAdmin/Companies';
+import Users from 'views/productAdmin/Users';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -310,6 +312,19 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'acts',
           element: <AbonentActs />
+        }
+      ]
+    },
+    {
+      path: 'product-admin',
+      children: [
+        {
+          path: 'companies',
+          element: <Companies />
+        },
+        {
+          path: 'users',
+          element: <Users />
         }
       ]
     },

@@ -64,7 +64,10 @@ const ru: typeof uz = {
     'Sud harajatlari': 'Судебные расходы',
     gpsDalolatnomalar: 'GPS далолатномалар',
     gpsMonitoring: 'GPS мониторинг',
-    importActs: 'Импортировать акты'
+    importActs: 'Импортировать акты',
+    productAdmin: 'Управление системой',
+    manageCompanies: 'Управление организациями',
+    manageUsers: 'Управление пользователями'
   },
   dashboard: {
     identified: 'Идентифицирован',

@@ -3,6 +3,7 @@ import employeers from './employeers';
 import workspace from './workspace';
 import gpsMonitoring from './gps.monitoring';
 import { caller } from './caller';
+import productAdmin from './productAdmin';
 
 // ==============================|| MENU ITEMS ||============================== //
 
@@ -14,12 +15,12 @@ export interface MenuItem {
   icon?: any;
   breadcrumbs?: boolean;
   children?: MenuItem[];
-  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps')[];
+  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps' | 'product_admin')[];
   caption?: string;
 }
 
 const menuItems = {
-  items: [employeers, workspace, gpsMonitoring, caller]
+  items: [employeers, workspace, gpsMonitoring, caller, productAdmin]
 };
 
 export default menuItems;
