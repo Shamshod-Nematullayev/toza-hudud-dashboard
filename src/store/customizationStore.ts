@@ -85,7 +85,13 @@ const useCustomizationStore = create<CustomizationState>()(
       language: 'ru',
       setLanguage: (language) => set({ language }),
       resetCustomization: () => set({ customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' } }),
-      setCompany: (company) => set({ company }),
+      setCompany: (company) =>
+        set((state) => {
+          if (state.company?.id !== company?.id) {
+            return { company, mahallalar: [] };
+          }
+          return { company };
+        }),
       setMahallalar: (mahallalar) => set({ mahallalar }),
       setUser: (user) => set({ user }),
       logOut: () =>
