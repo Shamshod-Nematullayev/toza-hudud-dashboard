@@ -7,6 +7,7 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
   Tab,
@@ -38,7 +39,7 @@ import {
   UploadFileOutlined
 } from '@mui/icons-material';
 import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
-import { hasValidAriza, IRow, useFindedTableLogic } from './hooks/useFindedTableLogic';
+import { hasValidAriza, IRow, parseAktSumExpression, useFindedTableLogic } from './hooks/useFindedTableLogic';
 import { AnimatePresence, motion } from 'framer-motion';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import DHJTable from '../CreateAbonentPetition.jsx/DHJTable';
@@ -82,6 +83,63 @@ function FindedDataTable() {
   } = useFindedTableLogic();
   const { isLoading } = useLoaderStore();
   const { pdfFileLoading } = useUiStore();
+
+  const [adjustmentData, setAdjustmentData] = useState<any>(null);
+
+  useEffect(() => {
+    let active = true;
+    const residentId = ariza?.abonentId || abonentData?.id;
+    if (!residentId) {
+      setAdjustmentData(null);
+      return;
+    }
+
+    const nextInhabitantCount =
+      enteringMode === 'manual'
+        ? Number(yashovchiSoniInput || 0)
+        : Number(ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? 0);
+
+    const originalActSum = parseAktSumExpression(aktSumm);
+
+    const controller = new AbortController();
+
+    const runCalculate = async () => {
+      try {
+        const { data } = await api.get('/billing/calculate-adjustment', {
+          params: {
+            arizaId: ariza?._id,
+            residentId,
+            nextInhabitantCount,
+            actAmount: originalActSum,
+          },
+          signal: controller.signal,
+        });
+        if (active && data.ok) {
+          setAdjustmentData(data);
+        }
+      } catch (err) {
+        if (active) console.error('Error calculating adjustment:', err);
+      }
+    };
+
+    const delay = setTimeout(() => {
+      runCalculate();
+    }, 300);
+
+    return () => {
+      active = false;
+      controller.abort();
+      clearTimeout(delay);
+    };
+  }, [
+    ariza?._id,
+    ariza?.next_prescribed_cnt,
+    abonentData?.id,
+    aktSumm,
+    yashovchiSoniInput,
+    enteringMode,
+    rows[0]?.yashovchilar_soni,
+  ]);
 
   const btnRef = useRef(null);
 
@@ -506,6 +564,102 @@ function FindedDataTable() {
               </Box>
             </Stack>
           </Box>
+          {adjustmentData && adjustmentData.adjustment !== 0 && (
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 2,
+                p: 2,
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'primary.light',
+                bgcolor: 'primary.lighter',
+              }}
+            >
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark' }}>
+                  ⚠️ Eslatma: O'tgan oylar uchun qo'shimcha hisob aniqlandi
+                </Typography>
+                
+                <Divider sx={{ my: 0.5 }} />
+                
+                <Grid container spacing={1}>
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Asl akt summasi:</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {Math.abs(parseAktSumExpression(aktSumm)).toLocaleString()} UZS
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Akt hisoblangan:</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{adjustmentData.actMonth}</Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Tizimga kiritilmoqda:</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{adjustmentData.currentMonth}</Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Odam soni:</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {adjustmentData.currentInhabitantCount} → {adjustmentData.nextInhabitantCount}
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Tarif:</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {adjustmentData.tariffRate.toLocaleString()} UZS
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Qo'shimcha hisob:</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: 'error.main' }}>
+                      {adjustmentData.adjustment < 0 ? '+' : '-'}{Math.abs(adjustmentData.adjustment).toLocaleString()} UZS
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <Divider sx={{ my: 0.5 }} />
+                  </Grid>
+
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>Tavsiya etilgan yakuniy summa:</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1rem' }}>
+                      {Math.abs(adjustmentData.recommendedSum).toLocaleString()} UZS
+                    </Typography>
+                  </Grid>
+                </Grid>
+
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  onClick={() => setAktSumm(String(adjustmentData.recommendedSum))}
+                  sx={{ mt: 1, textTransform: 'none', fontWeight: 600, width: 'fit-content' }}
+                >
+                  Tavsiya etilgan summani qo'llash
+                </Button>
+              </Stack>
+            </Paper>
+          )}
           <Box
             sx={{
               mt: 2,
@@ -663,6 +817,102 @@ function FindedDataTable() {
             </Typography>
           </Stack>
         </Box>
+        {adjustmentData && adjustmentData.adjustment !== 0 && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mx: 1,
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'primary.light',
+              bgcolor: 'primary.lighter',
+            }}
+          >
+            <Stack spacing={1}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark' }}>
+                ⚠️ Eslatma: O'tgan oylar uchun qo'shimcha hisob aniqlandi
+              </Typography>
+              
+              <Divider sx={{ my: 0.5 }} />
+              
+              <Grid container spacing={1}>
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body2" color="text.secondary">Asl akt summasi:</Typography>
+                </Grid>
+                <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {Math.abs(parseAktSumExpression(aktSumm)).toLocaleString()} UZS
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body2" color="text.secondary">Akt hisoblangan:</Typography>
+                </Grid>
+                <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{adjustmentData.actMonth}</Typography>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body2" color="text.secondary">Tizimga kiritilmoqda:</Typography>
+                </Grid>
+                <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{adjustmentData.currentMonth}</Typography>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body2" color="text.secondary">Odam soni:</Typography>
+                </Grid>
+                <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {adjustmentData.currentInhabitantCount} → {adjustmentData.nextInhabitantCount}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body2" color="text.secondary">Tarif:</Typography>
+                </Grid>
+                <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {adjustmentData.tariffRate.toLocaleString()} UZS
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body2" color="text.secondary">Qo'shimcha hisob:</Typography>
+                </Grid>
+                <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'error.main' }}>
+                    {adjustmentData.adjustment < 0 ? '+' : '-'}{Math.abs(adjustmentData.adjustment).toLocaleString()} UZS
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Divider sx={{ my: 0.5 }} />
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>Tavsiya etilgan yakuniy summa:</Typography>
+                </Grid>
+                <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1rem' }}>
+                    {Math.abs(adjustmentData.recommendedSum).toLocaleString()} UZS
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              <Button
+                variant="contained"
+                size="small"
+                color="primary"
+                onClick={() => setAktSumm(String(adjustmentData.recommendedSum))}
+                sx={{ mt: 1, textTransform: 'none', fontWeight: 600, width: 'fit-content' }}
+              >
+                Tavsiya etilgan summani qo'llash
+              </Button>
+            </Stack>
+          </Paper>
+        )}
 
         {/* 3. Jadval */}
 

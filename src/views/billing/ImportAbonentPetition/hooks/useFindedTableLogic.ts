@@ -27,7 +27,7 @@ export function hasValidAriza(ariza: IAriza | null): ariza is IAriza {
   return Boolean(ariza && typeof (ariza as IAriza)._id === 'string' && Number((ariza as IAriza).abonentId) > 0);
 }
 
-function parseAktSumExpression(raw: string): number {
+export function parseAktSumExpression(raw: string): number {
   try {
     // eslint-disable-next-line no-eval
     return Math.floor(Number(eval(raw)));
