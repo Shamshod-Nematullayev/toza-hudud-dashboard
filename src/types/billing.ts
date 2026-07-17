@@ -298,6 +298,12 @@ export interface IMultiplyRequest {
   companyId: number;
 }
 
+export interface EmployeeMahalla {
+  fullName: string;
+  phoneNumber?: string;
+  position: string;
+}
+
 export interface IMahalla {
   id: number;
   name: string;
@@ -312,14 +318,7 @@ export interface IMahalla {
   sektor?: string;
   mfy_rais_name: string;
   mfy_rais_phone?: string;
-  hokim_yordamchi_name?: string;
-  hokim_yordamchi_phone?: string;
-  yoshlar_yetakchi_name?: string;
-  yoshlar_yetakchi_phone?: string;
-  xotinqizlar_name?: string;
-  xotinqizlar_phone?: string;
-  uchastkavoy_name?: string;
-  uchastkavoy_phone?: string;
+  employees?: EmployeeMahalla[];
   shaxsi_tasdiqlandi_reja?: number;
   abarotka_berildi?: boolean;
   publicOfferFileId?: string;
@@ -328,6 +327,8 @@ export interface IMahalla {
   publicOfferFileUpdatedAt?: Date;
   geoZoneBiriktirilganKochalar?: any[];
   created_at: Date;
+  readyToBlock: boolean;
+  mfyPrimaryName: string;
 }
 
 export interface IRowDhj {

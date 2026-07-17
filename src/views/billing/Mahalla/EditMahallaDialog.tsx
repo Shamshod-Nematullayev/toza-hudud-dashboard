@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Stack, Typography, IconButton, Divider, Grid } from '@mui/material';
+import { TextField, Button, Stack, Typography, IconButton, Divider, Grid, FormControlLabel, Checkbox } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 
@@ -16,6 +16,8 @@ export interface MahallaData {
   mfy_rais_name?: string;
   mfy_rais_phone?: string;
   employees?: Employee[];
+  readyToBlock?: boolean;
+  mfyPrimaryName?: string;
 }
 
 interface Props {
@@ -30,14 +32,18 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
     name: '',
     mfy_rais_name: '',
     mfy_rais_phone: '',
-    employees: []
+    employees: [],
+    readyToBlock: false,
+    mfyPrimaryName: ''
   });
 
   useEffect(() => {
     if (initialData) {
       setFormData({
         ...initialData,
-        employees: initialData.employees || []
+        employees: initialData.employees || [],
+        readyToBlock: !!initialData.readyToBlock,
+        mfyPrimaryName: initialData.mfyPrimaryName || ''
       });
     }
   }, [initialData, open]);
@@ -75,7 +81,7 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
         <TextField fullWidth label="Mahalla nomi" value={formData.name} onChange={(e) => handleFieldChange('name', e.target.value)} />
 
         <Grid container spacing={2}>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <TextField
               fullWidth
               label="MFY Raisi ismi"
@@ -83,7 +89,7 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
               onChange={(e) => handleFieldChange('mfy_rais_name', e.target.value)}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <TextField
               fullWidth
               label="MFY Raisi telefoni"
@@ -93,9 +99,32 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
           </Grid>
         </Grid>
 
+        <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Grid size={{ xs: 6 }}>
+            <TextField
+              fullWidth
+              label="Birlamchi MFY nomi"
+              value={formData.mfyPrimaryName}
+              onChange={(e) => handleFieldChange('mfyPrimaryName', e.target.value)}
+            />
+          </Grid>
+          <Grid size={{ xs: 6 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={!!formData.readyToBlock}
+                  onChange={(e) => handleFieldChange('readyToBlock', e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Bloklashga tayyor"
+            />
+          </Grid>
+        </Grid>
+
         <Divider />
 
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack direction="row" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1">Xodimlar</Typography>
           <Button startIcon={<Add />} onClick={addEmployee} size="small" variant="outlined">
             Xodim qo'shish
@@ -116,7 +145,7 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
               onChange={(e) => handleEmployeeChange(index, 'fullName', e.target.value)}
             />
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -125,7 +154,7 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
                   onChange={(e) => handleEmployeeChange(index, 'position', e.target.value)}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -138,7 +167,7 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
           </Stack>
         ))}
 
-        <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+        <Stack direction="row" spacing={2} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
           <Button onClick={onClose} color="inherit">
             Bekor qilish
           </Button>
