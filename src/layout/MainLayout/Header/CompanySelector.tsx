@@ -51,7 +51,7 @@ const CompanySelector = () => {
           managerName: data.company.manager?.fullName
         });
       }
-      window.location.reload();
+      window.location.replace('/dashboard/default');
     } catch (error) {
       console.error('Failed to switch company:', error);
       setLoading(false);
