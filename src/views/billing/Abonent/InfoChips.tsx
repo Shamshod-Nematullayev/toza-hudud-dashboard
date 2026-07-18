@@ -1,4 +1,4 @@
-import { ClickAwayListener, Divider, List, ListItem, Menu, MenuItem, Paper, Popper, Stack, Tooltip } from '@mui/material';
+import { ClickAwayListener, Divider, List, ListItem, Menu, MenuItem, Paper, Popper, Stack, TextField, Tooltip } from '@mui/material';
 import { t } from 'i18next';
 import InfoChip from 'ui-component/InfoChip';
 import {
@@ -16,7 +16,7 @@ import Transitions from 'ui-component/extended/Transitions';
 import MainCard from 'ui-component/cards/MainCard';
 import { useAbonentStore } from './hooks/abonentStore';
 import dayjs, { Dayjs } from 'dayjs';
-import { DatePicker } from '@mui/x-date-pickers';
+
 import { useAbonentLogic } from './hooks/useAbonentLogic';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
@@ -42,6 +42,48 @@ function InfoChips(props: InfoChipsProps) {
 
   const [toDate, setToDate] = useState<Dayjs | null>(dayjs().endOf('year'));
   const [toDateBalance, setToDateBalance] = useState(0);
+
+  const currentYear = dayjs().year();
+  const years = Array.from({ length: 6 }, (_, i) => currentYear + i);
+  const months = [
+    { value: 0, label: 'Yanvar' },
+    { value: 1, label: 'Fevral' },
+    { value: 2, label: 'Mart' },
+    { value: 3, label: 'Aprel' },
+    { value: 4, label: 'May' },
+    { value: 5, label: 'Iyun' },
+    { value: 6, label: 'Iyul' },
+    { value: 7, label: 'Avgust' },
+    { value: 8, label: 'Sentabr' },
+    { value: 9, label: 'Oktabr' },
+    { value: 10, label: 'Noyabr' },
+    { value: 11, label: 'Dekabr' }
+  ];
+
+  const selectedYear = toDate ? toDate.year() : dayjs().year();
+  const selectedMonth = toDate ? toDate.month() : dayjs().month();
+
+  const handleYearChange = (newYear: number) => {
+    const today = dayjs();
+    let nextMonth = selectedMonth;
+    if (newYear === today.year() && selectedMonth <= today.month()) {
+      nextMonth = today.month() + 1;
+    }
+    setToDate(dayjs().year(newYear).month(nextMonth).startOf('month'));
+  };
+
+  const handleMonthChange = (newMonth: number) => {
+    setToDate(dayjs().year(selectedYear).month(newMonth).startOf('month'));
+  };
+
+  const today = dayjs();
+  const validMonths = months.filter((m) => {
+    if (selectedYear === today.year()) {
+      return m.value > today.month();
+    }
+    return true;
+  });
+
   const handleCloseCalculator = () => {
     setOpenCalc(false);
   };
@@ -120,12 +162,6 @@ function InfoChips(props: InfoChipsProps) {
         label={t('tableHeaders.balance')}
         value={props.balance.toLocaleString('uz-Latn')}
         valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
-      />
-      <InfoChip
-        icon={YearEndIcon}
-        label={t('tableHeaders.balanceToYearEnd')}
-        value={Number(props.balanceToYearEnd).toLocaleString('uz-Latn')}
-        valueColor={Number(props.balanceToYearEnd) < 0 ? 'error.main' : 'success.main'}
         onClick={() => setOpenCalc(true)}
         containerSX={{
           cursor: 'pointer'
@@ -185,15 +221,46 @@ function InfoChips(props: InfoChipsProps) {
                       </span>
                     </ListItem>
                     <Divider />
-                    <DatePicker
-                      views={['month']}
-                      label={t('tableHeaders.period')}
-                      value={toDate}
-                      onChange={(newValue) => setToDate(newValue)}
-                      sx={{ mt: 2, width: '100%' }}
-                      format={'MM.YYYY'}
-                      minDate={dayjs().add(1, 'month').startOf('month')}
-                    />
+                    <Stack direction="row" spacing={1} sx={{ mt: 2, width: '100%' }}>
+                      <TextField
+                        select
+                        size="small"
+                        label="Yil"
+                        value={selectedYear}
+                        onChange={(e) => handleYearChange(Number(e.target.value))}
+                        sx={{ flex: 1 }}
+                        slotProps={{
+                          select: {
+                            native: true
+                          }
+                        }}
+                      >
+                        {years.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </TextField>
+                      <TextField
+                        select
+                        size="small"
+                        label="Oy"
+                        value={selectedMonth}
+                        onChange={(e) => handleMonthChange(Number(e.target.value))}
+                        sx={{ flex: 1.2 }}
+                        slotProps={{
+                          select: {
+                            native: true
+                          }
+                        }}
+                      >
+                        {validMonths.map((m) => (
+                          <option key={m.value} value={m.value}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </TextField>
+                    </Stack>
                   </List>
                 </MainCard>
               </ClickAwayListener>
