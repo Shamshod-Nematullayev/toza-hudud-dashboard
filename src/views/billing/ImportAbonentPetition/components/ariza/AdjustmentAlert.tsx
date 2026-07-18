@@ -10,6 +10,8 @@ interface AdjustmentAlertProps {
 export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum }: AdjustmentAlertProps) {
   if (!adjustmentData || adjustmentData.adjustment === 0) return null;
 
+  const isApplied = parseAktSumExpression(aktSumm) === adjustmentData.recommendedSum;
+
   return (
     <Paper
       elevation={0}
@@ -97,11 +99,12 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
         <Button
           variant="contained"
           size="small"
-          color="primary"
+          color={isApplied ? "success" : "primary"}
+          disabled={isApplied}
           onClick={() => onApplyRecommendedSum(String(adjustmentData.recommendedSum))}
           sx={{ mt: 1, textTransform: 'none', fontWeight: 600, width: 'fit-content' }}
         >
-          Tavsiya etilgan summani qo'llash
+          {isApplied ? "Tavsiya etilgan summa qo'llangan" : "Tavsiya etilgan summani qo'llash"}
         </Button>
       </Stack>
     </Paper>
