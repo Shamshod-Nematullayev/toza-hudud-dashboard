@@ -219,7 +219,8 @@ const renderChangedValue = (valueStr: string) => {
               sx={{
                 py: 1,
                 alignItems: 'center',
-                borderBottom: idx < listToRender.length - 1 ? '1px solid #f1f5f9' : 'none'
+                borderBottom: idx < listToRender.length - 1 ? '1px solid' : 'none',
+                borderColor: 'divider'
               }}
             >
               <Grid size={{ xs: 12, sm: 4 }}>
@@ -236,8 +237,8 @@ const renderChangedValue = (valueStr: string) => {
                         size="small"
                         sx={{
                           borderRadius: '6px',
-                          bgcolor: '#fee2e2',
-                          color: '#ef4444',
+                          bgcolor: 'error.lighter',
+                          color: 'error.dark',
                           textDecoration: 'line-through',
                           fontSize: '0.75rem',
                           height: 'auto',
@@ -253,8 +254,8 @@ const renderChangedValue = (valueStr: string) => {
                         size="small"
                         sx={{
                           borderRadius: '6px',
-                          bgcolor: '#dcfce7',
-                          color: '#22c55e',
+                          bgcolor: 'success.lighter',
+                          color: 'success.dark',
                           fontWeight: 600,
                           fontSize: '0.75rem',
                           height: 'auto',
@@ -269,8 +270,8 @@ const renderChangedValue = (valueStr: string) => {
                       size="small"
                       sx={{
                         borderRadius: '6px',
-                        bgcolor: '#e0f2fe',
-                        color: '#0284c7',
+                        bgcolor: 'primary.lighter',
+                        color: 'primary.dark',
                         fontWeight: 600,
                         fontSize: '0.75rem',
                         height: 'auto',
@@ -296,10 +297,11 @@ const renderChangedValue = (valueStr: string) => {
         color: 'text.secondary',
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
-        bgcolor: '#f8fafc',
+        bgcolor: 'action.hover',
         p: 1.25,
         borderRadius: 1.5,
-        border: '1px solid #f1f5f9'
+        border: '1px solid',
+        borderColor: 'divider'
       }}
     >
       {valueStr}
@@ -393,7 +395,7 @@ function TozaMakonHistoryModal() {
       maxWidth="md"
       fullWidth
     >
-      <DialogContent dividers sx={{ p: 2, bgcolor: '#f8fafc' }}>
+      <DialogContent dividers sx={{ p: 2, bgcolor: 'background.default' }}>
         <Box sx={{ mb: 2 }}>
           <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -419,7 +421,7 @@ function TozaMakonHistoryModal() {
                   bgcolor: 'background.paper',
                   borderRadius: 1,
                   '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#e2e8f0' }
+                    '& fieldset': { borderColor: 'divider' }
                   }
                 }}
               />
@@ -471,7 +473,8 @@ function TozaMakonHistoryModal() {
                 sx={{
                   p: 2.5,
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                  border: '1px solid #eef2f6',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   borderRadius: '12px',
                   bgcolor: 'background.paper'
                 }}
@@ -489,10 +492,10 @@ function TozaMakonHistoryModal() {
                       label={getEntityLabel(item.entityName)}
                       variant="outlined"
                       size="small"
-                      sx={{ borderRadius: '6px', height: 20, fontSize: '0.7rem', borderColor: '#eef2f6' }}
+                      sx={{ borderRadius: '6px', height: 20, fontSize: '0.7rem', borderColor: 'divider' }}
                     />
                     <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>
-                      Operator: <span style={{ fontWeight: 600, color: '#1e293b' }}>{item.userFullName || 'Tizim (Tashqi)'}</span>
+                      Operator: <span style={{ fontWeight: 600, color: 'text.primary' }}>{item.userFullName || 'Tizim (Tashqi)'}</span>
                     </Typography>
                   </Stack>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
@@ -500,7 +503,7 @@ function TozaMakonHistoryModal() {
                   </Typography>
                 </Stack>
 
-                <Divider sx={{ borderColor: '#f1f5f9', mb: 1.5 }} />
+                <Divider sx={{ borderColor: 'divider', mb: 1.5 }} />
 
                 {/* Structured Changes */}
                 <Box>

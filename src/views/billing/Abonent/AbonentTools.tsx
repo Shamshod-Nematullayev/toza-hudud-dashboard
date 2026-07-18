@@ -58,10 +58,12 @@ function AbonentTools() {
   const [printSelectionOpen, setPrintSelectionOpen] = useState(false);
   const { residentId, periodEndYear } = useAbonentLogic();
   const currentTab = location.pathname.split('/').pop();
-  const [tab, setTab] = useState<TabType>(currentTab as TabType);
+  const [tab, setTab] = useState<TabType>((currentTab as TabType) || 'details');
   useEffect(() => {
-    setTab('details');
-  }, [residentId]);
+    if (currentTab && ['details', 'dhj', 'ariza', 'acts'].includes(currentTab)) {
+      setTab(currentTab as TabType);
+    }
+  }, [currentTab]);
 
   const handleTabsChange = (e: React.SyntheticEvent, newValue: TabType) => {
     setTab(newValue);
