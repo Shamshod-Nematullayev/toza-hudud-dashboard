@@ -100,7 +100,7 @@ function AbonentTools() {
           borderRadius: '16px',
           border: '1px solid #e2e8f0',
           display: 'flex',
-          marginBottom: 2,
+          marginBottom: 1,
           justifyContent: 'space-between'
         }}
       >
