@@ -91,7 +91,30 @@ export function CreateMurojaatDialog({
               <Stack spacing={2}>
                 <MahallaSelection
                   selectedMahallaId={formik.values.mahallaId}
-                  setSelectedMahallaId={(e) => formik.setFieldValue('mahallaId', e)}
+                  setSelectedMahallaId={async (e) => {
+                    formik.setFieldValue('mahallaId', e);
+                    if (e) {
+                      try {
+                        const { data } = await api.get('/mahallas', { params: { id: e } });
+                        if (data.ok && data.data && data.data.length > 0) {
+                          const mahallaDoc = data.data[0];
+                          if (mahallaDoc.biriktirilganNazoratchi?.inspactor_id) {
+                            const inspectorId = mahallaDoc.biriktirilganNazoratchi.inspactor_id;
+                            const matched = inspectors.find(
+                              (ins) =>
+                                String(ins.id) === String(inspectorId) ||
+                                String(ins._id) === String(inspectorId)
+                            );
+                            if (matched) {
+                              formik.setFieldValue('assignedTo', matched._id);
+                            }
+                          }
+                        }
+                      } catch (err) {
+                        console.error('Nazoratchini yuklashda xatolik:', err);
+                      }
+                    }
+                  }}
                   name="mahallaId"
                   label="Mahalla"
                   fullWidth

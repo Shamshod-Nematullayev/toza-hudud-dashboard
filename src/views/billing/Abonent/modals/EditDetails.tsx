@@ -25,6 +25,7 @@ import { ArrowBack, ArrowForward, Save } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { isNumberValue } from 'utils/isNumberValue';
 import PhoneInput from 'ui-component/PhoneInput';
+import { PatternFormat } from 'react-number-format';
 
 export function extractBirthDateString(jshshir: string) {
   if (!/^\d{14}$/.test(jshshir)) {
@@ -80,7 +81,7 @@ function EditDetails() {
   const [avatar, setAvatar] = useState<string>('');
 
   useEffect(() => {
-    if (abonentDetails?.id) {
+    if (editDialogOpenState && abonentDetails?.id) {
       setPnfl(abonentDetails.citizen.pnfl);
       setPassport(abonentDetails.citizen.passport);
       setFirstName(abonentDetails.citizen.firstName);
@@ -108,8 +109,9 @@ function EditDetails() {
       setHousePhone(abonentDetails.homePhone || '');
       setEmail(abonentDetails.citizen.email || '');
       setDescription(abonentDetails.description || '');
+      setAvatar(abonentDetails.citizen.photo || '');
     }
-  }, [abonentDetails]);
+  }, [abonentDetails, editDialogOpenState]);
 
   useEffect(() => {
     if (pnfl.length === 14 && pnfl !== abonentDetails?.citizen.pnfl) {
@@ -248,7 +250,7 @@ function EditDetails() {
               <Grid size={{ xs: 3 }}>
                 <Avatar
                   variant="rounded"
-                  src={'data:image/png;base64,' + (avatar ? avatar : abonentDetails?.citizen.photo)}
+                  src={avatar ? 'data:image/png;base64,' + avatar : ''}
                   sx={{
                     width: '100%',
                     height: 'auto',
@@ -327,14 +329,41 @@ function EditDetails() {
                   {t('tableHeaders.foreignCitizen')}
                 </InputLabel>
               </Grid>
+              <Grid size={{ xs: 6 }}>
+                <DatePicker
+                  value={passportGivenDate}
+                  label={t('tableHeaders.passportGivenDate') || 'Pasport berilgan sana'}
+                  format="DD.MM.YYYY"
+                  onChange={(e) => setPassportGivenDate(e)}
+                />
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <DatePicker
+                  value={passportExpireDate}
+                  label={t('tableHeaders.passportExpireDate') || 'Pasport amal qilish muddati'}
+                  format="DD.MM.YYYY"
+                  onChange={(e) => setPassportExpireDate(e)}
+                />
+              </Grid>
               <Grid size={{ xs: 4 }}>
-                <TextField
+                <PatternFormat
+                  customInput={TextField} // MUI TextField bilan integratsiya
+                  format={homeType == 'APARTMENT' ? '##:##:##:##:####:####:####:###' : '##:##:##:##:##:####'} // Format shabloni
+                  mask="_" // To'ldirilmagan joylar uchun belgi
+                  onValueChange={(values) => {
+                    setCadastralNumber(values.formattedValue);
+                  }}
+                  fullWidth
+                  label={t('tableHeaders.cadastralNumber')}
+                  value={cadastralNumber}
+                />
+                {/* <TextField
                   label={t('tableHeaders.cadastralNumber')}
                   value={cadastralNumber}
                   onChange={(e) => setCadastralNumber(e.target.value)}
                   fullWidth
                   required
-                />
+                /> */}
               </Grid>
               <Grid size={{ xs: 4 }}>
                 <TextField

@@ -204,6 +204,8 @@ const uz = {
     inn: 'INN',
     pnfl: 'PNFL',
     passport: 'Passport raqami',
+    passportGivenDate: 'Passport berilgan sana',
+    passportExpireDate: 'Passport amal qilish muddati',
     street: "Ko'cha",
     buildingId: 'Uy',
     flatId: 'Kvartira',

@@ -28,6 +28,7 @@ export function CloseMurojaatDialog({
   const [accountNumber, setAccountNumber] = useState('');
   const [noAbonent, setNoAbonent] = useState(false);
   const [pasteTarget, setPasteTarget] = useState<'gps' | 'additional'>('gps');
+  const [submitting, setSubmitting] = useState(false);
 
   const [gpsPhotoFileId, setGpsPhotoFileId] = useState<string | null>(null);
   const [gpsPreview, setGpsPreview] = useState<string | null>(null);
@@ -233,6 +234,7 @@ export function CloseMurojaatDialog({
       setAdditionalPhotos([]);
       setNoAbonent(false);
       setPasteTarget('gps');
+      setSubmitting(false);
     } else {
       setFile(null);
     }
@@ -250,9 +252,10 @@ export function CloseMurojaatDialog({
   };
 
   const handleSubmit = async () => {
-    if (!row || !file || !gpsPhotoFileId) return;
+    if (!row || !file || !gpsPhotoFileId || submitting) return;
 
     try {
+      setSubmitting(true);
       const formData = new FormData();
       formData.append('file', file);
       formData.append('gpsPhotoFileId', gpsPhotoFileId);
@@ -276,6 +279,8 @@ export function CloseMurojaatDialog({
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || 'Murojaatni yopishda xatolik yuz berdi');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -593,13 +598,14 @@ export function CloseMurojaatDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose}>Bekor qilish</Button>
+        <Button onClick={handleClose} disabled={submitting}>Bekor qilish</Button>
         <Button
           variant="contained"
-          disabled={!file || !gpsPhotoFileId || gpsUploading || additionalUploading || (!residentId && !noAbonent)}
+          disabled={!file || !gpsPhotoFileId || gpsUploading || additionalUploading || (!residentId && !noAbonent) || submitting}
           onClick={handleSubmit}
+          startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
         >
-          Yopish
+          {submitting ? 'Yopilmoqda...' : 'Yopish'}
         </Button>
       </DialogActions>
     </DraggableDialog>
