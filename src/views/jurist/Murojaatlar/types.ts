@@ -29,6 +29,19 @@ export type MurojaatRow = {
         phone?: string;
         nowUser?: string;
       };
+      
+  hujjatKodi?: string;
+  hujjatRaqami?: string;
+  ijroMuddati?: string;
+  murojaatRaqami?: string;
+  operator?: string;
+  murojaatVaqti?: string;
+  muallif?: string;
+  manzil?: string;
+  demografiya?: string;
+  telefon?: string;
+  qoshimchaTelefon?: string;
+  mazmuni?: string;
 };
 
 export type MurojaatFormValues = {
@@ -37,4 +50,17 @@ export type MurojaatFormValues = {
   dueDate: string;
   assignedTo: string;
   status: MurojaatStatus;
+  
+  hujjatKodi?: string | null;
+  hujjatRaqami?: string | null;
+  ijroMuddati?: string | null;
+  murojaatRaqami?: string | null;
+  operator?: string | null;
+  murojaatVaqti?: string | null;
+  muallif?: string | null;
+  manzil?: string | null;
+  demografiya?: string | null;
+  telefon?: string | null;
+  qoshimchaTelefon?: string | null;
+  mazmuni?: string | null;
 };
