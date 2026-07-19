@@ -33,11 +33,12 @@ function MurojaatlarSection() {
             // @ts-ignore
             ...theme.typography.mediumAvatar,
             transition: 'all .2s ease-in-out',
-            background: theme.palette.secondary.light,
-            color: theme.palette.secondary.dark,
+            background: theme.palette.mode === 'dark' ? '#16204A' : theme.palette.secondary.light,
+            color: theme.palette.mode === 'dark' ? '#EDEFFA' : theme.palette.secondary.dark,
+            border: theme.palette.mode === 'dark' ? '1px solid #29346B' : 'none',
             '&[aria-controls="menu-list-grow"],&:hover': {
-              background: theme.palette.secondary.dark,
-              color: theme.palette.secondary.light
+              background: theme.palette.mode === 'dark' ? '#1B2554' : theme.palette.secondary.dark,
+              color: theme.palette.mode === 'dark' ? '#EDEFFA' : theme.palette.secondary.light
             }
           }}
           onClick={handleClick}

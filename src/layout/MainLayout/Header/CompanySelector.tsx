@@ -67,7 +67,7 @@ const CompanySelector = () => {
   }
 
   return (
-    <Box sx={{ minWidth: 220, mx: 2 }}>
+    <Box sx={{ minWidth: { xs: 90, sm: 180, md: 220 }, maxWidth: { xs: 130, sm: 200, md: 300 }, mx: { xs: 0.5, md: 2 } }}>
       <FormControl fullWidth size="small">
         <Select
           value={selectedValue}
@@ -78,8 +78,8 @@ const CompanySelector = () => {
             borderRadius: '8px',
             bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50',
             '& .MuiSelect-select': {
-              py: '8px',
-              fontSize: '0.875rem',
+              py: { xs: '6px', md: '8px' },
+              fontSize: { xs: '0.75rem', md: '0.875rem' },
               fontWeight: 500
             }
           }}

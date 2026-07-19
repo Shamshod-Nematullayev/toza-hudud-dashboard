@@ -89,16 +89,22 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       </Box>
 
       {/* header search */}
-      <SearchSection />
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        <SearchSection />
+      </Box>
       <Box sx={{ flexGrow: 1 }} />
       {isProductAdmin && <CompanySelector />}
       <Box sx={{ flexGrow: 1 }} />
-      <SearchAbonentSection />
-      <LanguageSection />
-      {/* notification & profile */}
-      <MurojaatlarSection />
-      <NotificationSection />
-      <ProfileSection />
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        <SearchAbonentSection />
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1, md: 1.5 }, ml: 'auto' }}>
+        <LanguageSection />
+        {/* notification & profile */}
+        <MurojaatlarSection />
+        <NotificationSection />
+        <ProfileSection />
+      </Box>
     </>
   );
 };

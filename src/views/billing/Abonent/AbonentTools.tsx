@@ -13,7 +13,11 @@ import {
   Badge,
   List,
   ListItem,
-  Divider
+  Divider,
+  Box,
+  Typography,
+  Paper,
+  useTheme
 } from '@mui/material';
 import {
   Print as PrintIcon,
@@ -88,174 +92,402 @@ function AbonentTools() {
     void refreshAbonentDetailsPage(residentId, periodEndYear);
   };
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [anchorElMore, setAnchorElMore] = useState<null | HTMLElement>(null);
   const [anchorElActions, setAnchorElActions] = useState<null | HTMLElement>(null);
-  const [openBoundingElectrAccountsModal, setOpenBindingElectrAccountsModal] = useState(false);
+  const [openBindingElectrAccountsModal, setOpenBindingElectrAccountsModal] = useState(false);
   return (
     <>
-      <Stack
-        direction="row"
-        sx={{
-          p: 1,
-          bgcolor: 'background.paper',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          display: 'flex',
-          marginBottom: 1,
-          justifyContent: 'space-between'
-        }}
-      >
-        <BindingElectrAccountsModal
-          open={openBoundingElectrAccountsModal}
-          onClose={() => setOpenBindingElectrAccountsModal(false)}
-          accountNumber={abonentDetails?.accountNumber}
-        />
-        <ButtonGroup
-          variant="outlined"
+      <BindingElectrAccountsModal
+        open={openBindingElectrAccountsModal}
+        onClose={() => setOpenBindingElectrAccountsModal(false)}
+        accountNumber={abonentDetails?.accountNumber}
+      />
+
+      {isMobile ? (
+        <>
+          {/* Top Scrollable Tabs Strip */}
+          <Box sx={{ mb: 2, borderBottom: '1px solid', borderColor: '#29346B', pb: 1 }}>
+            <Tabs
+              value={tab}
+              onChange={handleTabsChange}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{
+                '& .MuiTabs-flexContainer': { gap: 1 },
+                '& .MuiTab-root': {
+                  minHeight: 'auto',
+                  py: 1,
+                  px: 2.25,
+                  borderRadius: '20px',
+                  border: '1px solid',
+                  borderColor: '#29346B',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  bgcolor: '#16204A',
+                  color: '#9AA3C7',
+                  '&.Mui-selected': {
+                    bgcolor: 'rgba(52, 199, 123, 0.14)',
+                    color: '#34C77B',
+                    borderColor: 'rgba(52, 199, 123, 0.4)'
+                  }
+                },
+                '& .MuiTabs-indicator': { display: 'none' }
+              }}
+            >
+              <Tab label="Ma'lumotlar" value="details" />
+              <Tab label="DHJ" value="dhj" />
+              <Tab
+                label={
+                  <Badge badgeContent={abonentPetitions.filter((a) => a.status === 'yangi').length} color="primary" variant="dot">
+                    Arizalar
+                  </Badge>
+                }
+                value="ariza"
+              />
+              <Tab label="Aktlar" value="acts" />
+            </Tabs>
+          </Box>
+
+          {/* Sticky Bottom Bar */}
+          <Paper
+            elevation={4}
+            sx={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              display: 'flex',
+              justifyContent: 'space-around',
+              bgcolor: '#121B42',
+              borderTop: '1px solid',
+              borderColor: '#29346B',
+              pb: 'env(safe-area-inset-bottom, 10px)',
+              pt: 1
+            }}
+          >
+            {/* Item 1: Amallar */}
+            <IconButton
+              onClick={(e) => setAnchorElActions(e.currentTarget)}
+              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+            >
+              <ActionsIcon sx={{ fontSize: 20, color: '#FFB648' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#34C77B' }}>
+                Amallar
+              </Typography>
+            </IconButton>
+            <Menu
+              anchorEl={anchorElActions}
+              open={Boolean(anchorElActions)}
+              onClose={() => setAnchorElActions(null)}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <MenuItem
+                sx={{ display: 'flex', width: 280, gap: 2 }}
+                onClick={() => {
+                  setOpenBindingElectrAccountsModal(true);
+                  setAnchorElActions(null);
+                }}
+              >
+                <ElectricBolt /> Qo'shimcha elektr hisob raqamlari
+              </MenuItem>
+              <MenuItem
+                sx={{ display: 'flex', width: 280, gap: 2 }}
+                onClick={() => {
+                  setOpenTozaMakonHistoryDialog(true);
+                  setAnchorElActions(null);
+                }}
+              >
+                <HistoryIcon /> Tizimdagi amallar tarixi
+              </MenuItem>
+            </Menu>
+
+            {/* Item 2: Chop etish */}
+            <IconButton
+              onClick={(e) => {
+                setPrintSelectionOpen(true);
+              }}
+              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+            >
+              <PrintIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+                Chop etish
+              </Typography>
+            </IconButton>
+            <Menu
+              anchorEl={printSectionRef.current || anchorElActions}
+              open={printSelectionOpen}
+              onClose={() => setPrintSelectionOpen(false)}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <MenuItem
+                sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
+                onClick={() => {
+                  setOpenPrintAbonentcardState(true);
+                  setPrintSelectionOpen(false);
+                }}
+              >
+                <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
+              </MenuItem>
+              <Divider />
+              <MenuItem
+                sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
+                onClick={() => {
+                  setOpenDebtCertificateDialog(true);
+                  setPrintSelectionOpen(false);
+                }}
+              >
+                <IconCertificate /> {t('abonentCardPage.certificate')}
+              </MenuItem>
+            </Menu>
+
+            {/* Item 3: Yashovchi */}
+            <IconButton
+              onClick={() => setOpenAddInhabitantsDialog(true)}
+              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+            >
+              <MultipleIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+                Yashovchi
+              </Typography>
+            </IconButton>
+
+            {/* Item 4: Telefon */}
+            <IconButton
+              onClick={() => setOpenChangePhoneDialog(true)}
+              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+            >
+              <PhoneIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+                Telefon
+              </Typography>
+            </IconButton>
+
+            {/* Item 5: Yana */}
+            <IconButton
+              onClick={(e) => setAnchorElMore(e.currentTarget)}
+              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+            >
+              <MoreIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+                Yana
+              </Typography>
+            </IconButton>
+            <Menu
+              anchorEl={anchorElMore}
+              open={Boolean(anchorElMore)}
+              onClose={() => setAnchorElMore(null)}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <MenuItem
+                onClick={() => {
+                  setEditDialogOpenState(true);
+                  setAnchorElMore(null);
+                }}
+              >
+                <EditIcon sx={{ mr: 1 }} /> {t('buttons.edit')}
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setOpenEditElectricAccountState(true);
+                  setAnchorElMore(null);
+                }}
+              >
+                <ElectricBolt sx={{ mr: 1 }} /> {t('tableHeaders.electricityAccountNumber')}
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  navigate('/billing/createAbonentAriza', {
+                    state: {
+                      abonentData: {
+                        ...abonentDetails,
+                        dhjRows: dhjRows
+                      }
+                    }
+                  });
+                  setAnchorElMore(null);
+                }}
+              >
+                <PetitionIcon sx={{ mr: 1 }} /> {t('buttons.createAbonentPetition')}
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleRefreshDetails();
+                  setAnchorElMore(null);
+                }}
+              >
+                <Refresh sx={{ mr: 1 }} /> {t('buttons.refresh')}
+              </MenuItem>
+            </Menu>
+          </Paper>
+        </>
+      ) : (
+        <Stack
+          direction="row"
           sx={{
-            '& .MuiButton-root': {
-              borderColor: '#cbd5e1',
-              color: 'text.primary',
-              bgcolor: 'background.default',
-              '&:hover': {
-                bgcolor: '#f1f5f9',
-                borderColor: '#94a3b8',
-                color: '#475569'
-              }
-            }
+            p: 1,
+            bgcolor: 'background.paper',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            marginBottom: 1,
+            justifyContent: 'space-between'
           }}
         >
-          {/* Asosiy amallar guruhi */}
-          <Tooltip title={t('tableHeaders.actions')}>
-            <Button
-              sx={btnStyle}
-              startIcon={<ActionsIcon color="primary" />}
-              onClick={(e) => {
-                setAnchorElActions(anchorElActions ? null : e.currentTarget);
-              }}
-            >
-              {t('tableHeaders.actions')}
-            </Button>
-          </Tooltip>
-          <Menu
-            anchorEl={anchorElActions}
-            open={Boolean(anchorElActions)}
-            onClose={() => setAnchorElActions(null)}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left'
-            }}
-          >
-            <MenuItem
-              sx={{ display: 'flex', width: 280, gap: 2 }}
-              onClick={() => {
-                setOpenBindingElectrAccountsModal(true);
-                setAnchorElActions(null);
-              }}
-            >
-              <ElectricBolt /> Qo'shimcha elektr hisob raqamlari
-            </MenuItem>
-            <MenuItem
-              sx={{ display: 'flex', width: 280, gap: 2 }}
-              onClick={() => {
-                setOpenTozaMakonHistoryDialog(true);
-                setAnchorElActions(null);
-              }}
-            >
-              <HistoryIcon /> Tizimdagi amallar tarixi
-            </MenuItem>
-          </Menu>
-
-          <Button sx={btnStyle} startIcon={<PrintIcon />} ref={printSectionRef} onClick={() => setPrintSelectionOpen(true)}>
-            {t('buttons.print')}
-          </Button>
-          <Menu
-            anchorEl={printSectionRef.current}
-            open={printSelectionOpen}
-            onClose={() => setPrintSelectionOpen(false)}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left'
-            }}
-          >
-            <MenuItem
-              sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
-              onClick={() => {
-                setOpenPrintAbonentcardState(true);
-                setPrintSelectionOpen(false);
-              }}
-            >
-              <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
-            </MenuItem>
-
-            <Divider />
-
-            <MenuItem
-              sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
-              onClick={() => {
-                setOpenDebtCertificateDialog(true);
-                setPrintSelectionOpen(false);
-              }}
-            >
-              <IconCertificate /> {t('abonentCardPage.certificate')}
-            </MenuItem>
-          </Menu>
-
-          <Button sx={btnStyle} startIcon={<MultipleIcon />} color="primary" onClick={() => setOpenAddInhabitantsDialog(true)}>
-            {t('buttons.addToMultipleLivings')}
-          </Button>
-
-          {/* Tahrirlash guruhi - ajratilgan rangda */}
-          <Button sx={btnStyle} startIcon={<EditIcon />} color="primary" onClick={() => setEditDialogOpenState(true)}>
-            {t('buttons.edit')}
-          </Button>
-
-          <Button sx={btnStyle} startIcon={<PhoneIcon />} onClick={() => setOpenChangePhoneDialog(true)}>
-            {t('tableHeaders.phone')}
-          </Button>
-          <Button sx={btnStyle} startIcon={<ElectricBolt />} onClick={() => setOpenEditElectricAccountState(true)}>
-            {t('tableHeaders.electricityAccountNumber')}
-          </Button>
-          <Button
-            startIcon={<PetitionIcon />}
-            onClick={() =>
-              navigate('/billing/createAbonentAriza', {
-                state: {
-                  abonentData: {
-                    ...abonentDetails
-                  },
-                  dhjRows: dhjRows
-                }
-              })
-            }
+          <ButtonGroup
+            variant="outlined"
             sx={{
-              ...btnStyle,
-              borderTopRightRadius: '12px !important',
-              borderBottomRightRadius: '12px !important'
+              '& .MuiButton-root': {
+                borderColor: '#cbd5e1',
+                color: 'text.primary',
+                bgcolor: 'background.default',
+                '&:hover': {
+                  bgcolor: '#f1f5f9',
+                  borderColor: '#94a3b8',
+                  color: '#475569'
+                }
+              }
             }}
           >
-            {t('buttons.createAbonentPetition')}
-          </Button>
-        </ButtonGroup>
-        <Tooltip title={t('buttons.refresh')}>
-          <IconButton onClick={handleRefreshDetails} sx={{ p: 1 }} aria-label={t('buttons.refresh')}>
-            <Refresh />
-          </IconButton>
-        </Tooltip>
-        <Tabs value={tab} onChange={handleTabsChange}>
-          <Tab label={"Ma'lumotlar"} value={'details'} />
-          <Tab label={'DHJ'} value={'dhj'} />
-          <Tab
-            label={
-              <Badge badgeContent={abonentPetitions.filter((a) => a.status === 'yangi').length} color="primary" variant="dot">
-                Arizalar
-              </Badge>
-            }
-            value={'ariza'}
-          />
+            {/* Asosiy amallar guruhi */}
+            <Tooltip title={t('tableHeaders.actions')}>
+              <Button
+                sx={btnStyle}
+                startIcon={<ActionsIcon color="primary" />}
+                onClick={(e) => {
+                  setAnchorElActions(anchorElActions ? null : e.currentTarget);
+                }}
+              >
+                {t('tableHeaders.actions')}
+              </Button>
+            </Tooltip>
+            <Menu
+              anchorEl={anchorElActions}
+              open={Boolean(anchorElActions)}
+              onClose={() => setAnchorElActions(null)}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left'
+              }}
+            >
+              <MenuItem
+                sx={{ display: 'flex', width: 280, gap: 2 }}
+                onClick={() => {
+                  setOpenBindingElectrAccountsModal(true);
+                  setAnchorElActions(null);
+                }}
+              >
+                <ElectricBolt /> Qo'shimcha elektr hisob raqamlari
+              </MenuItem>
+              <MenuItem
+                sx={{ display: 'flex', width: 280, gap: 2 }}
+                onClick={() => {
+                  setOpenTozaMakonHistoryDialog(true);
+                  setAnchorElActions(null);
+                }}
+              >
+                <HistoryIcon /> Tizimdagi amallar tarixi
+              </MenuItem>
+            </Menu>
 
-          <Tab label={'Aktlar'} value={'acts'} />
-        </Tabs>
-      </Stack>
+            <Button sx={btnStyle} startIcon={<PrintIcon />} ref={printSectionRef} onClick={() => setPrintSelectionOpen(true)}>
+              {t('buttons.print')}
+            </Button>
+            <Menu
+              anchorEl={printSectionRef.current}
+              open={printSelectionOpen}
+              onClose={() => setPrintSelectionOpen(false)}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left'
+              }}
+            >
+              <MenuItem
+                sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
+                onClick={() => {
+                  setOpenPrintAbonentcardState(true);
+                  setPrintSelectionOpen(false);
+                }}
+              >
+                <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
+              </MenuItem>
+
+              <Divider />
+
+              <MenuItem
+                sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
+                onClick={() => {
+                  setOpenDebtCertificateDialog(true);
+                  setPrintSelectionOpen(false);
+                }}
+              >
+                <IconCertificate /> {t('abonentCardPage.certificate')}
+              </MenuItem>
+            </Menu>
+
+            <Button sx={btnStyle} startIcon={<MultipleIcon />} color="primary" onClick={() => setOpenAddInhabitantsDialog(true)}>
+              {t('buttons.addToMultipleLivings')}
+            </Button>
+
+            {/* Tahrirlash guruhi - ajratilgan rangda */}
+            <Button sx={btnStyle} startIcon={<EditIcon />} color="primary" onClick={() => setEditDialogOpenState(true)}>
+              {t('buttons.edit')}
+            </Button>
+
+            <Button sx={btnStyle} startIcon={<PhoneIcon />} onClick={() => setOpenChangePhoneDialog(true)}>
+              {t('tableHeaders.phone')}
+            </Button>
+            <Button sx={btnStyle} startIcon={<ElectricBolt />} onClick={() => setOpenEditElectricAccountState(true)}>
+              {t('tableHeaders.electricityAccountNumber')}
+            </Button>
+            <Button
+              startIcon={<PetitionIcon />}
+              onClick={() =>
+                navigate('/billing/createAbonentAriza', {
+                  state: {
+                    abonentData: {
+                      ...abonentDetails
+                    },
+                    dhjRows: dhjRows
+                  }
+                })
+              }
+              sx={{
+                ...btnStyle,
+                borderTopRightRadius: '12px !important',
+                borderBottomRightRadius: '12px !important'
+              }}
+            >
+              {t('buttons.createAbonentPetition')}
+            </Button>
+          </ButtonGroup>
+          <Tooltip title={t('buttons.refresh')}>
+            <IconButton onClick={handleRefreshDetails} sx={{ p: 1 }} aria-label={t('buttons.refresh')}>
+              <Refresh />
+            </IconButton>
+          </Tooltip>
+          <Tabs value={tab} onChange={handleTabsChange}>
+            <Tab label={"Ma'lumotlar"} value={'details'} />
+            <Tab label={'DHJ'} value={'dhj'} />
+            <Tab
+              label={
+                <Badge badgeContent={abonentPetitions.filter((a) => a.status === 'yangi').length} color="primary" variant="dot">
+                  Arizalar
+                </Badge>
+              }
+              value={'ariza'}
+            />
+
+            <Tab label={'Aktlar'} value={'acts'} />
+          </Tabs>
+        </Stack>
+      )}
     </>
   );
 }

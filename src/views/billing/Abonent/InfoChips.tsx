@@ -1,4 +1,22 @@
-import { ClickAwayListener, Divider, List, ListItem, Menu, MenuItem, Paper, Popper, Stack, TextField, Tooltip } from '@mui/material';
+import {
+  ClickAwayListener,
+  Divider,
+  List,
+  ListItem,
+  Menu,
+  MenuItem,
+  Paper,
+  Popper,
+  Stack,
+  TextField,
+  Tooltip,
+  useMediaQuery,
+  useTheme,
+  Grid,
+  Card,
+  Box,
+  Typography
+} from '@mui/material';
 import { t } from 'i18next';
 import InfoChip from 'ui-component/InfoChip';
 import {
@@ -34,6 +52,8 @@ interface InfoChipsProps {
 }
 
 function InfoChips(props: InfoChipsProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { residentId } = useAbonentLogic();
   const { balancePredicts, getIncomePredicts, setOpenIIBInhabitantsDialog, getCardDetails, abonentDetails, cardDetails } =
     useAbonentStore();
@@ -122,52 +142,180 @@ function InfoChips(props: InfoChipsProps) {
   };
 
   return (
-    <Stack direction="row" spacing={1}>
+    <>
       <div style={{ display: 'none' }}>
         {cardDetails && <AbonentCardView abonentDetails={abonentDetails} cardDetails={cardDetails} t={t} ref={printSectionRef} />}
       </div>
-      {/* Vaqt va Tarif guruhi */}
-      <InfoChip icon={PeriodIcon} label={t('tableHeaders.period')} value={props.period} />
-      <InfoChip icon={TariffIcon} label={t('tableHeaders.tariff')} value={props.tariff} />
 
-      {/* Aholi guruhi */}
-      <InfoChip icon={InhabitantsIcon} label={t('tableHeaders.inhabitantCount')} value={props.inhabitantCount} />
-      <InfoChip
-        icon={RegisteredIcon}
-        label={t('tableHeaders.registeredInhabitants')}
-        value={props.registeredInhabitants}
-        containerSX={{
-          cursor: 'pointer'
-        }}
-        onClick={() => setOpenIIBInhabitantsDialog(true)}
-      />
+      {isMobile ? (
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              color: '#9AA3C7',
+              display: 'block',
+              mb: 1
+            }}
+          >
+            Davr bo'yicha holat
+          </Typography>
+          <Grid container spacing={1.5}>
+            {/* Wide Balance Card */}
+            <Grid size={12}>
+              <Card
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  borderRadius: '14px',
+                  border: '1px solid #29346B',
+                  bgcolor: '#16204A',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setOpenCalc(true)}
+                ref={calculatorRef}
+              >
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box>
+                    <Typography variant="h3" color={props.balance < 0 ? 'error.main' : 'success.main'} sx={{ fontWeight: 800 }}>
+                      {props.balance.toLocaleString('uz-Latn')}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      💳 Balans (so'm)
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography
+                      variant="h4"
+                      color={Number(props.balanceToYearEnd) < 0 ? 'error.main' : 'success.main'}
+                      sx={{ fontWeight: 800 }}
+                    >
+                      {props.balanceToYearEnd !== null ? Number(props.balanceToYearEnd).toLocaleString('uz-Latn') : '—'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      📉 Yil oxiriga balans
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Card>
+            </Grid>
 
-      {/* Moliyaviy hisob-kitoblar */}
-      <InfoChip icon={CalculatedIcon} label={t('tableHeaders.calculated')} value={props.calculated.toLocaleString('uz-Latn')} />
-      <Tooltip title={'Joriy davrni chop etish'}>
-        <InfoChip
-          icon={IncomeIcon}
-          label={t('tableHeaders.income')}
-          value={props.payments.toLocaleString('uz-Latn')}
-          onClick={handleClickIncomeChip}
-          containerSX={{
-            cursor: 'pointer'
-          }}
-        />
-      </Tooltip>
+            {/* Stats Grid Items */}
+            {[
+              { icon: '📅', val: props.period, label: t('tableHeaders.period') },
+              { icon: '💸', val: props.tariff.toLocaleString(), label: t('tableHeaders.tariff') },
+              { icon: '👥', val: props.inhabitantCount, label: t('tableHeaders.inhabitantCount') },
+              {
+                icon: '👮',
+                val: props.registeredInhabitants,
+                label: t('tableHeaders.registeredInhabitants'),
+                onClick: () => setOpenIIBInhabitantsDialog(true),
+                clickable: true
+              },
+              { icon: '📊', val: props.calculated.toLocaleString('uz-Latn'), label: t('tableHeaders.calculated') },
+              {
+                icon: '💰',
+                val: props.payments.toLocaleString('uz-Latn'),
+                label: t('tableHeaders.income'),
+                onClick: handleClickIncomeChip,
+                clickable: true,
+                valColor: 'success.main'
+              }
+            ].map((item, idx) => (
+              <Grid key={idx} size={6}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1.5,
+                    height: '100%',
+                    borderRadius: '14px',
+                    border: '1px solid #29346B',
+                    bgcolor: '#16204A',
+                    color: '#EDEFFA',
+                    cursor: item.clickable ? 'pointer' : 'default',
+                    '&:hover': item.clickable
+                      ? {
+                          bgcolor: '#1B2554'
+                        }
+                      : {}
+                  }}
+                  onClick={item.onClick}
+                >
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '8px',
+                      bgcolor: '#1B2554',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 1,
+                      fontSize: '18px'
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
+                  <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1, color: item.valColor || '#EDEFFA' }}>
+                    {item.val}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#9AA3C7', display: 'block', mt: 0.5, lineHeight: 1.2 }}>
+                    {item.label}
+                  </Typography>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      ) : (
+        <Stack direction="row" spacing={1}>
+          {/* Vaqt va Tarif guruhi */}
+          <InfoChip icon={PeriodIcon} label={t('tableHeaders.period')} value={props.period} />
+          <InfoChip icon={TariffIcon} label={t('tableHeaders.tariff')} value={props.tariff} />
 
-      {/* Yakuniy holat */}
-      <InfoChip
-        icon={BalanceIcon}
-        label={t('tableHeaders.balance')}
-        value={props.balance.toLocaleString('uz-Latn')}
-        valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
-        onClick={() => setOpenCalc(true)}
-        containerSX={{
-          cursor: 'pointer'
-        }}
-        containerRef={calculatorRef}
-      />
+          {/* Aholi guruhi */}
+          <InfoChip icon={InhabitantsIcon} label={t('tableHeaders.inhabitantCount')} value={props.inhabitantCount} />
+          <InfoChip
+            icon={RegisteredIcon}
+            label={t('tableHeaders.registeredInhabitants')}
+            value={props.registeredInhabitants}
+            containerSX={{
+              cursor: 'pointer'
+            }}
+            onClick={() => setOpenIIBInhabitantsDialog(true)}
+          />
+
+          {/* Moliyaviy hisob-kitoblar */}
+          <InfoChip icon={CalculatedIcon} label={t('tableHeaders.calculated')} value={props.calculated.toLocaleString('uz-Latn')} />
+          <Tooltip title={'Joriy davrni chop etish'}>
+            <InfoChip
+              icon={IncomeIcon}
+              label={t('tableHeaders.income')}
+              value={props.payments.toLocaleString('uz-Latn')}
+              onClick={handleClickIncomeChip}
+              containerSX={{
+                cursor: 'pointer'
+              }}
+            />
+          </Tooltip>
+
+          {/* Yakuniy holat */}
+          <InfoChip
+            icon={BalanceIcon}
+            label={t('tableHeaders.balance')}
+            value={props.balance.toLocaleString('uz-Latn')}
+            valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
+            onClick={() => setOpenCalc(true)}
+            containerSX={{
+              cursor: 'pointer'
+            }}
+            containerRef={calculatorRef}
+          />
+        </Stack>
+      )}
+
       <Popper
         placement={'bottom-start'}
         open={openCalc}
@@ -268,7 +416,7 @@ function InfoChips(props: InfoChipsProps) {
           </Transitions>
         )}
       </Popper>
-    </Stack>
+    </>
   );
 }
 

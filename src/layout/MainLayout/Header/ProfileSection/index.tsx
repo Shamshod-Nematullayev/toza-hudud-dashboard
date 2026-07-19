@@ -34,6 +34,7 @@ import useCustomizationStore from 'store/customizationStore';
 import Cookies from 'js-cookie';
 import { useUserStore } from 'store/userStore';
 import api from 'utils/api';
+import { useMediaQuery } from '@mui/material';
 
 // ==============================|| PROFILE MENU ||============================== //
 
@@ -79,50 +80,70 @@ const ProfileSection = () => {
     prevOpen.current = open;
   }, [open]);
 
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
     <>
-      <Chip
-        sx={{
-          height: '48px',
-          alignItems: 'center',
-          borderRadius: '27px',
-          transition: 'all .2s ease-in-out',
-          borderColor: theme.palette.primary.light,
-          backgroundColor: theme.palette.primary.light,
-          '&[aria-controls="menu-list-grow"], &:hover': {
-            borderColor: theme.palette.primary.main,
-            background: `${theme.palette.primary.main}!important`,
-            color: theme.palette.primary.light,
-            '& svg': {
-              stroke: theme.palette.primary.light
+      {isMobile ? (
+        <Avatar
+          src={user?.avatar}
+          sx={{
+            cursor: 'pointer',
+            bgcolor: '#4C8DFF',
+            color: '#121B42',
+            width: 32,
+            height: 32,
+            border: 'none'
+          }}
+          ref={anchorRef}
+          aria-controls={open ? 'menu-list-grow' : undefined}
+          aria-haspopup="true"
+          onClick={handleToggle}
+        />
+      ) : (
+        <Chip
+          sx={{
+            height: '48px',
+            alignItems: 'center',
+            borderRadius: '27px',
+            transition: 'all .2s ease-in-out',
+            borderColor: theme.palette.primary.light,
+            backgroundColor: theme.palette.primary.light,
+            '&[aria-controls="menu-list-grow"], &:hover': {
+              borderColor: theme.palette.primary.main,
+              background: `${theme.palette.primary.main}!important`,
+              color: theme.palette.primary.light,
+              '& svg': {
+                stroke: theme.palette.primary.light
+              }
+            },
+            '& .MuiChip-label': {
+              lineHeight: 0
             }
-          },
-          '& .MuiChip-label': {
-            lineHeight: 0
+          }}
+          icon={
+            <Avatar
+              src={user?.avatar}
+              sx={{
+                ...(theme.typography as any).mediumAvatar,
+                margin: '8px 0 8px 8px !important',
+                cursor: 'pointer'
+              }}
+              ref={anchorRef}
+              aria-controls={open ? 'menu-list-grow' : undefined}
+              aria-haspopup="true"
+              color="inherit"
+            />
           }
-        }}
-        icon={
-          <Avatar
-            src={user?.avatar}
-            sx={{
-              ...(theme.typography as any).mediumAvatar,
-              margin: '8px 0 8px 8px !important',
-              cursor: 'pointer'
-            }}
-            ref={anchorRef}
-            aria-controls={open ? 'menu-list-grow' : undefined}
-            aria-haspopup="true"
-            color="inherit"
-          />
-        }
-        label={<IconSettings stroke={1.5} size="1.5rem" color={theme.palette.primary.main} />}
-        variant="outlined"
-        ref={anchorRef}
-        aria-controls={open ? 'menu-list-grow' : undefined}
-        aria-haspopup="true"
-        onClick={handleToggle}
-        color="primary"
-      />
+          label={<IconSettings stroke={1.5} size="1.5rem" color={theme.palette.primary.main} />}
+          variant="outlined"
+          ref={anchorRef}
+          aria-controls={open ? 'menu-list-grow' : undefined}
+          aria-haspopup="true"
+          onClick={handleToggle}
+          color="primary"
+        />
+      )}
       <Popper
         placement="bottom-end"
         open={open}
@@ -148,7 +169,7 @@ const ProfileSection = () => {
                 <MainCard border={false} content={false} boxShadow shadow={theme.shadows[16]}>
                   <Box sx={{ p: 2, pb: 0 }}>
                     <Stack>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                         <Typography variant="h4">Assalomu alaykum, {user?.fullName}</Typography>
                         <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
                           {}
