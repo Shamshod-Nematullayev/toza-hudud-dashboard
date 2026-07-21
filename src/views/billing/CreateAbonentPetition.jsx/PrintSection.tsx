@@ -20,6 +20,7 @@ import {
   Chip,
   DialogActions
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useReactToPrint } from 'react-to-print';
 import { useTranslation } from 'react-i18next';
 import { DatePicker } from '@mui/x-date-pickers';
@@ -164,6 +165,7 @@ export default function PrintSection({
   mahalla2,
   recalculationPeriods
 }: any) {
+  const theme = useTheme();
   const componentRef = useRef(null);
   const { customization, setCustomization } = useCustomizationStore();
 
@@ -232,6 +234,7 @@ export default function PrintSection({
               width: '100%',
               maxWidth: '210mm', // A4 standart eni
               minHeight: '297mm', // A4 standart bo'yi
+              bgcolor: '#fff',
               color: '#000'
             }}
           >
@@ -266,17 +269,27 @@ export default function PrintSection({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            bgcolor: '#f9f8f6',
-            border: '1px solid #f0ede7',
+            bgcolor: theme.palette.mode === 'dark' ? 'background.default' : '#f9f8f6',
+            border: '1px solid',
+            borderColor: theme.palette.mode === 'dark' ? 'divider' : '#f0ede7',
             borderRadius: '12px'
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ p: 1.5, bgcolor: '#fff', borderRadius: '10px', border: '1px solid #e8e5dd', display: 'flex' }}>
-              <DescriptionOutlined sx={{ color: '#888' }} />
+            <Box
+              sx={{
+                p: 1.5,
+                bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#fff',
+                borderRadius: '10px',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e8e5dd',
+                display: 'flex'
+              }}
+            >
+              <DescriptionOutlined sx={{ color: theme.palette.mode === 'dark' ? 'text.secondary' : '#888' }} />
             </Box>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.mode === 'dark' ? 'text.primary' : '#1a1a1a' }}>
                 {documentTitle}
               </Typography>
               <Typography variant="body2" color="textSecondary">
@@ -291,8 +304,8 @@ export default function PrintSection({
             sx={{
               borderRadius: '8px',
               textTransform: 'none',
-              borderColor: '#dcd8cf',
-              bgcolor: '#fff'
+              borderColor: theme.palette.mode === 'dark' ? 'divider' : '#dcd8cf',
+              bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#fff'
             }}
             onClick={() => setShowPreview(true)}
           >
@@ -396,7 +409,8 @@ export default function PrintSection({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 p: '10px 16px',
-                border: '1px solid #e0e0e0',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e0e0e0',
                 borderRadius: '8px'
               }}
             >
@@ -408,7 +422,15 @@ export default function PrintSection({
                   </Typography>
                 }
               />
-              <Chip label="Qo'shiladi" size="small" sx={{ bgcolor: '#eedffd', color: '#7b1fa2', fontWeight: '500' }} />
+              <Chip
+                label="Qo'shiladi"
+                size="small"
+                sx={{
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(123, 31, 162, 0.15)' : '#eedffd',
+                  color: theme.palette.mode === 'dark' ? '#d1c4e9' : '#7b1fa2',
+                  fontWeight: '500'
+                }}
+              />
             </Box>
 
             <Box
@@ -417,7 +439,8 @@ export default function PrintSection({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 p: '10px 16px',
-                border: '1px solid #e0e0e0',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e0e0e0',
                 borderRadius: '8px'
               }}
             >
@@ -429,13 +452,31 @@ export default function PrintSection({
                   </Typography>
                 }
               />
-              <Chip label="Qo'shiladi" size="small" sx={{ bgcolor: '#eedffd', color: '#7b1fa2', fontWeight: '500' }} />
+              <Chip
+                label="Qo'shiladi"
+                size="small"
+                sx={{
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(123, 31, 162, 0.15)' : '#eedffd',
+                  color: theme.palette.mode === 'dark' ? '#d1c4e9' : '#7b1fa2',
+                  fontWeight: '500'
+                }}
+              />
             </Box>
           </Stack>
         </Box>
 
         {/* UX Dizayn Bo'yicha Footer Qismi */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, pt: 2, borderTop: '1px solid #f0f0f0' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 2,
+            pt: 2,
+            borderTop: '1px solid',
+            borderColor: theme.palette.mode === 'dark' ? 'divider' : '#f0f0f0'
+          }}
+        >
           {/* Vakillik ma'lumotlari (Kim orqali va Vakil F.I.Sh) */}
           <Box sx={{ display: 'flex', gap: 1.5, width: '60%' }}>
             <FormControl size="medium" sx={{ width: '40%' }}>
