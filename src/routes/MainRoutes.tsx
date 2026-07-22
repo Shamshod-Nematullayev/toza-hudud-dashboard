@@ -4,6 +4,7 @@ import { JSX, lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import Inspectors from 'views/employeers/Inspectors/Inspectors';
+import Inspector360 from 'views/employeers/Inspectors/Inspector360';
 import AbonentPetitions from 'views/billing/AbonentPetitions';
 import DeleteDublicate from 'views/billing/DeleteDublicate';
 import WarningLetters from 'views/jurist/WarningLetters/index';
@@ -117,6 +118,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'inspectors',
           element: <Inspectors />
+        },
+        {
+          path: 'inspectors/:inspectorId/360',
+          element: <Inspector360 />
         },
         {
           path: 'mahallas',

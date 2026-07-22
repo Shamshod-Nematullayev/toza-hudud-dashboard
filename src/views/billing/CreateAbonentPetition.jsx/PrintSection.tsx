@@ -22,7 +22,6 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useReactToPrint } from 'react-to-print';
-import { useTranslation } from 'react-i18next';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
 
