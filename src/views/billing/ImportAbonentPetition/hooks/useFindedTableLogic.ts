@@ -112,7 +112,10 @@ export function useFindedTableLogic() {
   const abonentData = useRecalculatorStore((s) => s.abonentData);
   const yashovchiSoniInput = useRecalculatorStore((s) => s.yashovchiSoniInput);
 
-  const manualResidentIdForDh = manualEditing && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0 ? abonentData.id : null;
+  const manualResidentIdForDh =
+    (manualEditing || enteringMode === 'manual') && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0
+      ? abonentData.id
+      : null;
 
   const {
     rows,
@@ -242,7 +245,7 @@ export function useFindedTableLogic() {
       let formData: FormData;
       let url: string;
 
-      if (manualEditing && !validAriza) {
+      if ((manualEditing || enteringMode === 'manual') && !validAriza) {
         const { abonentData: ad, aktType } = useRecalculatorStore.getState();
 
         if (!ad?.id) throw new Error("Avval hisob raqam bo'yicha abonentni yuklang");

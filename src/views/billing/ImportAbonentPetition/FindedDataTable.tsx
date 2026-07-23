@@ -105,18 +105,6 @@ function FindedDataTable() {
 
   if (!currentFile?.blob) {
     page = <NoFileSelectedState />;
-  } else if (currentFile && !ariza && !pdfFileLoading) {
-    page = (
-      <DocumentNotFoundState
-        arizaNumberInput={arizaNumberInput}
-        setArizaNumberInput={setArizaNumberInput}
-        handleClickRefreshButton={handleClickRefreshButton}
-        isLoading={isLoading}
-        ui={ui}
-        setManualEditing={setManualEditing}
-        setEnteringMode={setEnteringMode}
-      />
-    );
   } else if (enteringMode === 'manual') {
     page = (
       <ManualEntryMode
@@ -141,6 +129,18 @@ function FindedDataTable() {
         isLoading={isLoading}
         manualActDocumentTypes={manualActDocumentTypes}
         enteringMode={enteringMode}
+      />
+    );
+  } else if (!ariza && !pdfFileLoading) {
+    page = (
+      <DocumentNotFoundState
+        arizaNumberInput={arizaNumberInput}
+        setArizaNumberInput={setArizaNumberInput}
+        handleClickRefreshButton={handleClickRefreshButton}
+        isLoading={isLoading}
+        ui={ui}
+        setManualEditing={setManualEditing}
+        setEnteringMode={setEnteringMode}
       />
     );
   } else if (enteringMode === 'ariza' && ariza) {
