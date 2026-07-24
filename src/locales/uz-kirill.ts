@@ -120,7 +120,6 @@ const uzKirill: typeof uz = {
     moneyTransfer: 'Пул кўчириш',
     'Sud harajatlari': 'Суд харајатлари',
     etkKodRequests: 'Этк код талаблари',
-    folders: 'Папкалар',
     gpsDalolatnomalar: 'GPS далолатномалар',
     gpsMonitoring: 'GPS мониторинг',
     importActs: 'Актларни импорт қилиш',

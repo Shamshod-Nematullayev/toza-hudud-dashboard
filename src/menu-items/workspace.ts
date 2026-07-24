@@ -15,7 +15,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, FolderOutlined, ElectricBolt, MessageOutlined } from '@mui/icons-material';
+import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, ElectricBolt, MessageOutlined } from '@mui/icons-material';
 import { MenuItem } from 'menu-items';
 
 //contans
@@ -38,7 +38,6 @@ const icons = {
   TrendingDownIcon,
   DocumentScannerOutlined,
   ReceiptOutlined,
-  FolderOutlined,
   ElectricBolt,
   MessageOutlined
 };
@@ -71,15 +70,6 @@ const billing: MenuItem = {
       type: 'item',
       url: '/billing/importAbonentPetition',
       icon: icons.UploadFileOutlinedIcon,
-      breadcrumbs: false,
-      allowedRoles: ['admin', 'billing']
-    },
-    {
-      id: 'folders',
-      title: 'folders',
-      type: 'item',
-      url: '/billing/folders',
-      icon: icons.FolderOutlined,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
     },

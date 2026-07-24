@@ -31,7 +31,6 @@ import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
-import Folders from 'views/billing/Folders';
 import Debitors from 'views/billing/Debitors';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
@@ -159,10 +158,6 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'importAbonentPetition',
           element: <ImportAbonentPetition />
-        },
-        {
-          path: 'folders',
-          element: <Folders />
         },
         {
           path: 'sms-warnings',
