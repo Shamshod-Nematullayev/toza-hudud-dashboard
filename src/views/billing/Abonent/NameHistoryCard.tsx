@@ -15,9 +15,20 @@ interface Props {
 }
 
 export const NameHistory = ({ data }: Props) => {
-  const { abonentDebitorStatus, setOpenTozaMakonHistoryDialog } = useAbonentStore();
+  const { abonentDebitorStatus, setOpenTozaMakonHistoryDialog, abonentDetails } = useAbonentStore();
+
+  const contractDateObj = abonentDetails?.contractDate ? dayjs(abonentDetails.contractDate) : null;
+
+  // Filter out any history records dated before the account contract creation date
+  const filteredData = data.filter((item) => {
+    if (!contractDateObj || !contractDateObj.isValid() || !item.date) return true;
+    const itemDate = dayjs(item.date);
+    if (!itemDate.isValid()) return true;
+    return !itemDate.isBefore(contractDateObj.startOf('day'));
+  });
+
   // eski -> yangi tartibni teskariga o‘giramiz
-  const sorted = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sorted = [...filteredData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const changes = sorted
     .map((item, i) => {
