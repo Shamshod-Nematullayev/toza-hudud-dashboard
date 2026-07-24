@@ -514,7 +514,7 @@ function SpecialTasksReport() {
                               cursor: 'pointer',
                               '&:hover': { textDecoration: 'underline' }
                             }}
-                            onClick={() => navigate(`/employeers/inspectors/${row.inspectorId}`)}
+                            onClick={() => navigate(`/employeers/inspectors/${row.inspectorId}/360`)}
                           >
                             {row.inspectorName}
                           </Typography>
