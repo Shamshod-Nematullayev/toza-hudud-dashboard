@@ -872,68 +872,68 @@ function Inspector360() {
                       </Card>
                     </Grid>
                   </Grid>
-                </Box>
-              </Grid>
-            </Grid>
 
-            {/* Neighborhood Summary */}
-            <Typography variant="h4" sx={{ fontWeight: 600, mt: 2, mb: 1 }}>
-              Mahalla kesimida qisqacha
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <Card
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: '14px',
-                    p: 2,
-                    backgroundColor: theme.palette.background.paper
-                  }}
-                >
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    Eng yaxshi natija
+                  {/* Neighborhood Summary */}
+                  <Typography variant="h4" sx={{ fontWeight: 600, mt: 2, mb: 1 }}>
+                    Mahalla kesimida qisqacha
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.main' }}>
-                    {bestNeighborhood}
-                  </Typography>
-                </Card>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <Card
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: '14px',
-                    p: 2,
-                    backgroundColor: theme.palette.background.paper
-                  }}
-                >
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    E'tibor talab qiladi
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'error.main' }}>
-                    {worstNeighborhood}
-                  </Typography>
-                </Card>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <Card
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: '14px',
-                    p: 2,
-                    backgroundColor: theme.palette.background.paper
-                  }}
-                >
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    Jami abonentlar
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    {totalSubscribers.toLocaleString()} ta
-                  </Typography>
-                </Card>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Card
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: '14px',
+                          p: 2,
+                          backgroundColor: theme.palette.background.paper
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                          Eng yaxshi natija
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.main' }}>
+                          {bestNeighborhood}
+                        </Typography>
+                      </Card>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Card
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: '14px',
+                          p: 2,
+                          backgroundColor: theme.palette.background.paper
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                          E'tibor talab qiladi
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'error.main' }}>
+                          {worstNeighborhood}
+                        </Typography>
+                      </Card>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Card
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: '14px',
+                          p: 2,
+                          backgroundColor: theme.palette.background.paper
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                          Jami abonentlar
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                          {totalSubscribers.toLocaleString()} ta
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </Box>
               </Grid>
             </Grid>
           </Box>

@@ -7,7 +7,8 @@ import { Link } from 'react-router-dom';
 const reportTypes = [
   { id: 1, name: "Nazoratchilar: Abonent ma'lumotlari", path: 'xatlov-inspectors' },
   { id: 2, name: 'Arizalar hisoboti', path: 'report-petitions' },
-  { id: 3, name: 'Identifikatsiya mahalla kesimida ', path: 'report-identifikatsiya' }
+  { id: 3, name: 'Identifikatsiya mahalla kesimida ', path: 'report-identifikatsiya' },
+  { id: 4, name: 'Maxsus topshiriqlar (Nazoratchilar)', path: 'report-special-tasks' }
 ];
 
 function Reports() {

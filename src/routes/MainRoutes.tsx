@@ -27,6 +27,7 @@ import ActCheck from 'views/stm/ActCheck';
 import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
 import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetitions';
 import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
+import SpecialTasksReport from 'views/billing/Reports/SpecialTasksReport';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
@@ -190,6 +191,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'report-identifikatsiya',
           element: <IdentifikatsiyaMahallaKesim />
+        },
+        {
+          path: 'report-special-tasks',
+          element: <SpecialTasksReport />
         },
         {
           path: 'pendingNewAbonents',
