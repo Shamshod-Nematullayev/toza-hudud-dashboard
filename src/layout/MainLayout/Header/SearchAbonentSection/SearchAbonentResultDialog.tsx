@@ -38,7 +38,7 @@ import { IAbonent } from 'types/billing';
 export default function SearchAbonentResultDialog() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { searchResults, clearResults } = useSearchAbonentSectionStore();
+  const { searchResults, clearResults, setOpenState } = useSearchAbonentSectionStore();
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
@@ -96,6 +96,7 @@ export default function SearchAbonentResultDialog() {
     } else {
       navigate(`/abonent/${id}/details`);
       clearResults();
+      setOpenState(false);
     }
   };
 
