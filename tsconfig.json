@@ -6,6 +6,9 @@
     "jsx": "react-jsx",
     "moduleResolution": "Node",
     "baseUrl": "src",
+    "paths": {
+      "*": ["*"]
+    },
     "allowJs": true,
     "checkJs": false,
     "isolatedModules": true,
