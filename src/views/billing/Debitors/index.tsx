@@ -12,7 +12,10 @@ import {
   Stack,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  Tabs,
+  Tab,
+  Badge
 } from '@mui/material';
 
 import { DownloadOutlined, EditOutlined, RefreshOutlined, SearchOutlined, SmsOutlined, VisibilityOutlined } from '@mui/icons-material';
@@ -58,6 +61,8 @@ interface DebitorStats {
   };
 }
 
+export type OperationalQueue = 'DATA_NEEDS_ATTENTION' | 'SMS_PENDING_WAIT' | 'READY_TO_BLOCK' | 'CURRENTLY_BLOCKED';
+
 export interface Debitor {
   _id: string;
   accountNumberEtk: string;
@@ -66,6 +71,8 @@ export interface Debitor {
   debtAmount: number;
   debtMonths: number;
   status: DebitorStatus;
+  operationalQueue?: OperationalQueue;
+  subStatus?: string;
   phones: {
     number: string;
     source: string;
@@ -82,7 +89,34 @@ export interface Debitor {
   accountNumber: string;
   id: string; // DataGrid uchun tartib raqami id
 }
+
 // ─── Config ───────────────────────────────────────────────────────
+
+export const QUEUE_CFG: Record<OperationalQueue, { label: string; color: 'error' | 'warning' | 'info' | 'secondary' }> = {
+  DATA_NEEDS_ATTENTION: { label: 'Diqqat talab', color: 'error' },
+  SMS_PENDING_WAIT: { label: 'SMS Kutilmoqda', color: 'warning' },
+  READY_TO_BLOCK: { label: 'Uzishga tayyor', color: 'info' },
+  CURRENTLY_BLOCKED: { label: 'Bloklanganlar', color: 'secondary' }
+};
+
+export const SUBSTATUS_MAP: Record<string, string> = {
+  phone_missing: 'Raqam topilmadi',
+  no_het_account: "HET kodi yo'q",
+  account_not_found: 'Hisob topilmadi',
+  invalid_account_number: "Noto'g'ri hisob kodi",
+  smsc_not_found: 'SMS markaz xatosi',
+  sms_queued_in_flight: 'SMS navbatda',
+  sms_newly_sent: 'SMS yuborildi',
+  sms_pending_delivery: 'SMS yetkazilmoqda',
+  sms_delivered_ready: 'SMS yetkazildi (Tayyor)',
+  previously_blocked: "Ilgari o'chirilgan",
+  tozamakon_phone_needs_het_sync: 'HET ga sinxronlash kerak',
+  actively_blocked_in_het: 'HET da bloklangan',
+  actively_blocked: 'Blokda',
+  resolved: 'Hal etildi',
+  ready_to_block: 'Tayyor',
+  needs_het_sync: 'HET kutilmoqda'
+};
 
 const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(n);
 const fmtMoney = (n: number) => fmt(n) + " so'm";
@@ -146,6 +180,9 @@ function Debitors() {
   const [refreshState, setRefreshState] = React.useState(false);
   const refresh = () => setRefreshState((p) => !p);
 
+  // 4-Stage Operational Queue Tab Filter State
+  const [selectedQueueTab, setSelectedQueueTab] = React.useState<string>('ALL');
+
   // Filtrlar — draft (sidebar) va applied (so'rovga yuborilgan)
   const [draft, setDraft] = React.useState(INIT_FILTERS);
   const [applied, setApplied] = React.useState(INIT_FILTERS);
@@ -171,6 +208,7 @@ function Debitors() {
           limit,
           sortField,
           sortDirection,
+          operationalQueue: selectedQueueTab !== 'ALL' ? selectedQueueTab : undefined,
           search: appliedSearch || undefined,
           status: applied.status.length > 0 ? applied.status.join(',') : undefined,
           phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
@@ -180,7 +218,7 @@ function Debitors() {
       });
       return { data: data.data, meta: data.meta };
     },
-    [],
+    [selectedQueueTab],
     25,
     { refreshState }
   );
@@ -189,12 +227,14 @@ function Debitors() {
     setSmsLoad(true);
     api
       .get('/sms-service/balance')
-      .then(({ data }) =>
-        setSmsbal({
-          amount: data.balance,
-          estimatedMessages: Math.floor(data.balance / 120) // Faraz qilaylik, 1 SMS 80 so'm turadi
-        })
-      )
+      .then(({ data }) => {
+        if (data && typeof data.balance === 'number') {
+          setSmsbal({
+            amount: data.balance,
+            estimatedMessages: Math.floor(data.balance / 120)
+          });
+        }
+      })
       .catch(() => setSmsbal(null))
       .finally(() => setSmsLoad(false));
   }, [refreshState]);
@@ -270,6 +310,7 @@ function Debitors() {
         limit: 0,
         sortField: '',
         sortDirection: '',
+        operationalQueue: selectedQueueTab !== 'ALL' ? selectedQueueTab : undefined,
         search: appliedSearch || undefined,
         status: applied.status.length > 0 ? applied.status.join(',') : undefined,
         phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
@@ -373,6 +414,28 @@ function Debitors() {
       }
     },
     {
+      field: 'operationalQueue',
+      headerName: 'Operatsion Navbat',
+      width: 175,
+      renderCell: ({ value }) => {
+        const cfg = QUEUE_CFG[value as OperationalQueue];
+        return cfg ? (
+          <Chip label={cfg.label} color={cfg.color} size="small" sx={{ fontWeight: 700 }} />
+        ) : (
+          <Typography variant="caption" color="text.secondary">—</Typography>
+        );
+      }
+    },
+    {
+      field: 'subStatus',
+      headerName: 'Tafsilot (Sabab)',
+      width: 180,
+      renderCell: ({ value }) => {
+        const label = value ? (SUBSTATUS_MAP[value] || value) : '—';
+        return <Chip label={label} size="small" variant="outlined" sx={{ fontSize: 11 }} />;
+      }
+    },
+    {
       field: 'actions',
       headerName: '',
       width: 88,
@@ -446,6 +509,51 @@ function Debitors() {
               ))}
             </Stack>
           )}
+
+          {/* 2.1. 4-Stage Operational Work Queue Tabs */}
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0.5 }}>
+            <Tabs
+              value={selectedQueueTab}
+              onChange={(e, val) => {
+                setSelectedQueueTab(val);
+                refresh();
+              }}
+              variant="scrollable"
+              scrollButtons="auto"
+              textColor="secondary"
+              indicatorColor="secondary"
+            >
+              <Tab label="Barchasi" value="ALL" sx={{ fontWeight: 700 }} />
+              <Tab
+                label="Diqqat talab"
+                value="DATA_NEEDS_ATTENTION"
+                icon={<Chip label="1-Bosqich" size="small" color="error" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+              <Tab
+                label="SMS Kutilmoqda"
+                value="SMS_PENDING_WAIT"
+                icon={<Chip label="2-Bosqich" size="small" color="warning" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+              <Tab
+                label="Uzishga tayyor"
+                value="READY_TO_BLOCK"
+                icon={<Chip label="3-Bosqich" size="small" color="info" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+              <Tab
+                label="Bloklanganlar"
+                value="CURRENTLY_BLOCKED"
+                icon={<Chip label="4-Bosqich" size="small" color="secondary" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+            </Tabs>
+          </Box>
 
           {/* 3. Qidiruv qatori */}
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

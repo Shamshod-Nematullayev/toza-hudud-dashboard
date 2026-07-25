@@ -33,6 +33,8 @@ import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
 import Debitors from 'views/billing/Debitors';
+import DebtCollectionOverview from 'views/billing/DebtCollectionCenter/DebtCollectionOverview';
+import WorkQueueDetail from 'views/billing/DebtCollectionCenter/WorkQueueDetail';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
 import Abonent from 'views/billing/Abonent/Abonent';
@@ -203,6 +205,14 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'debitors',
           element: <Debitors />
+        },
+        {
+          path: 'debt-collection-center',
+          element: <DebtCollectionOverview />
+        },
+        {
+          path: 'debt-collection-center/queue/:queueId',
+          element: <WorkQueueDetail />
         },
         {
           path: 'blanks',

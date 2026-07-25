@@ -87,6 +87,7 @@ const uz = {
     gpsMonitoring: 'GPS monitoring',
     gpsDalolatnomalar: 'GPS dalolatnomalar',
     importActs: 'Aktlarni import qilish',
+    debtCollectionCenter: 'Debitor undirish markazi',
     debitors: 'Debitorlar',
     visitsGraph: 'Tashriflar grafiki',
     mahallas: 'Mahallalar',

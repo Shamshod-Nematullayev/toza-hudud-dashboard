@@ -106,6 +106,8 @@ const uzKirill: typeof uz = {
     createInventory: 'Хатлов яратиш/киритиш',
     invertoreDocuments: 'Хатлов ҳужжатлари',
     newAbonentRequirements: 'Янги абонент очиш талаблари',
+    debtCollectionCenter: 'Дебитор ундириш маркази',
+    debitors: 'Дебиторлар',
     Blankalar: 'Бланкалар',
     Yurist: 'Юрист',
     Ogohlantirish: 'Огоҳлантириш хатлари',
@@ -355,7 +357,8 @@ const uzKirill: typeof uz = {
   recalculator: {
     from: 'дан',
     to: 'гача',
-    debitor: 'Дебитор',
+    debtCollectionCenter: 'Дебитор ундириш маркази',
+    debitors: 'Дебиторлар',
     kreditor: 'Кредитор',
     total: 'Жами',
     actions: 'Ҳаракатлар',
