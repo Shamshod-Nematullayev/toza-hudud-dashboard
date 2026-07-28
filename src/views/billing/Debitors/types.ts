@@ -1,52 +1,44 @@
 // ─── Tiplar ───────────────────────────────────────────────────────
 
-export type DebitorStatus =
-  | 'debt_identified'
-  | 'no_het_account'
-  | 'sms_sent'
-  | 'awaiting_het_sync'
-  | 'ready_to_block'
-  | 'blocked'
-  | 'resolved'
-  | 'no_phone';
+export type DebitorStatus = 'data_needs_attention' | 'ready_to_block' | 'blocked' | 'resolved';
 
+// prettier-ignore
 export type PhoneStatus =
-  | 'new'
-  | 'confirmed_previously'
-  | 'confirmed_this_cycle'
-  | 'checking'
-  | 'het_synced'
-  | 'needs_het_sync'
-  | 'phone_changed'
-  | 'not_found';
+  | 'new'                 // Hali hech narsa qilinmagan
+  | 'changed'             // Telefon raqami o'zgargan
+  | 'confirmed'           // primaryPhone tasdiqlangan ishonchli
+  | 'checking'            // SMS orqali tekshirilmoqda
+  | 'needs_het_sync'      // Chiqindi bazasida bor HET ga kiritish kerak
+  | 'not_found' // Hech qayerda yo'q — xatlov kerak
 
 // ─── Konfiguratsiyalar (Prettier buzmasligi uchun inline) ──────────
 
 // prettier-ignore
 export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'error' | 'warning' | 'default' }> = {
-  debt_identified:   { label: '⏳ Yangi aniqlangan debitorlar',    color: 'warning' },
-  no_het_account:    { label: "⚠️ Elektr kodi yo'q",               color: 'error' },
-  sms_sent:          { label: '🔍 Tekshirilmoqda (SMS)',           color: 'warning' },
-  awaiting_het_sync: { label: '🔄 HET sinxronizatsiya kerak',      color: 'warning' },
+  data_needs_attention: { label: '⏳ Ma\'lumotlarni tekshirish kerak', color: 'error' },
   ready_to_block:    { label: '☑️ Bloklanishi Kutilmoqda',         color: 'success' },
   blocked:           { label: '✅ Bloklangan',                     color: 'success' },
   resolved:          { label: '✅ Yechilgan debitorlar',           color: 'success' },
-  no_phone:          { label: '❌ Telefon raqami yo\'q',            color: 'error' }
 };
 
 // prettier-ignore
 export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
   new:                   { label: '📱 Yangi',                         color: 'primary' },
-  confirmed_previously:  { label: '📞 Oldingi tasdiqlangan',          color: 'success' },
-  confirmed_this_cycle:  { label: '📞 Shu davrda tasdiqlangan',       color: 'success' },
   checking:              { label: '🔍 Tekshirilmoqda',                color: 'warning' },
-  het_synced:            { label: '🔄 HET sinxronizatsiya qilingan',  color: 'success' },
   needs_het_sync:        { label: '🔄 HET sinxronizatsiya kerak',     color: 'secondary' },
   not_found:             { label: '❌ Topilmagan',                    color: 'error' },
-  phone_changed:         { label: '📞 Telefon raqami o\'zgartirilgan',   color: 'primary' },
+  changed:         { label: '📞 Telefon raqami o\'zgartirilgan',   color: 'primary' },
+  confirmed:             { label: '✅ Tasdiqlangan',                    color: 'success' }
 };
 
-// ─── Interfeyslar ─────────────────────────────────────────────────
+export type HetAccountStatus = 'new' | 'changed' | 'confirmed' | 'not_found';
+
+export const HET_ACCOUNT_CFG: Record<HetAccountStatus, { label: string; color: 'success' | 'error' | 'warning' | 'primary' }> = {
+  confirmed: { label: '⚡ Tasdiqlangan', color: 'success' },
+  not_found: { label: '⚠️ Topilmadi', color: 'error' },
+  new: { label: '🆕 Yangi', color: 'primary' },
+  changed: { label: "🔄 O'zgargan", color: 'warning' },
+};
 
 export interface Stat {
   count: number;
@@ -82,6 +74,7 @@ export interface Debitor {
   debtAmount: number;
   debtMonths: number;
   status: DebitorStatus;
+  hetAccountStatus: HetAccountStatus;
   primaryPhone: string | null;
   phoneStatus: PhoneStatus;
   primaryPhoneSource: string | null;
