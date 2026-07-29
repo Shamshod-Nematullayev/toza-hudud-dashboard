@@ -28,6 +28,7 @@ import { useMutation } from '@tanstack/react-query';
 import DebitorDetailDialog from './modals/DebitorDetailDialog';
 import { HelpModal } from './modals/HelpModal';
 import { socket } from 'utils/socket';
+import { toast } from 'react-toastify';
 
 interface SmsBalance {
   amount: number;
@@ -201,6 +202,30 @@ function Debitors() {
 
   // Help Modal State
   const [helpOpen, setHelpOpen] = React.useState(false);
+
+  // Job tugaganda va real-time socket xabari kelganda ma'lumotlarni avto-yangilash
+  React.useEffect(() => {
+    const handleJobProgress = (data: any) => {
+      if (data && data.progress === 100) {
+        toast.success("Job jarayoni yakunlandi. Ma'lumotlar va statistika yangilandi.");
+        refresh();
+      }
+    };
+
+    const handleNotification = (data: any) => {
+      if (data && data.message && (data.message.includes('debitor') || data.message.includes('monitoring'))) {
+        refresh();
+      }
+    };
+
+    socket.on('job-progress', handleJobProgress);
+    socket.on('notification', handleNotification);
+
+    return () => {
+      socket.off('job-progress', handleJobProgress);
+      socket.off('notification', handleNotification);
+    };
+  }, []);
 
   // ─── So'rovlar ────────────────────────────────────────────────
 
@@ -504,6 +529,7 @@ function Debitors() {
           onDebtToChange={(v) => setDraft((p) => ({ ...p, debtTo: v }))}
           onApply={applyFilters}
           onReset={resetFilters}
+          onJobFinish={refresh}
         />
 
         {/* O'ng panel: asosiy kontent */}

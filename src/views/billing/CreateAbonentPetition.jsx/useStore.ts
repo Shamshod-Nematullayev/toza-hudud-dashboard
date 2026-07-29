@@ -271,6 +271,7 @@ export const useStore = create<StoreState>((set, get) => ({
       recalculationPeriods,
       images,
       muzlatiladi,
+      shouldBeMoneyTransfer,
       setAriza,
       setMahalla,
       setMahallaDublicat,
@@ -297,7 +298,8 @@ export const useStore = create<StoreState>((set, get) => ({
           comment: generateSummary(recalculationPeriods as IPeriod[]),
           photos: images.map((img) => img.document_id),
           recalculationPeriods,
-          muzlatiladi
+          muzlatiladi,
+          shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false
         })
       ).data;
 

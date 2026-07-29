@@ -45,6 +45,7 @@ interface SidebarProps {
   onDebtToChange: (v: string) => void;
   onApply: () => void;
   onReset: () => void;
+  onJobFinish?: () => void;
 }
 
 interface ActiveJobInfo {
@@ -66,7 +67,8 @@ export function Sidebar({
   onDebtFromChange,
   onDebtToChange,
   onApply,
-  onReset
+  onReset,
+  onJobFinish
 }: SidebarProps) {
   const STATUS_ALL = [['', 'Barchasi'], ...Object.entries(STATUS_CFG).map(([v, c]) => [v, c.label])];
   const HET_ALL = [['', 'Barchasi'], ...Object.entries(HET_ACCOUNT_CFG).map(([v, c]) => [v, c.label])];
@@ -75,6 +77,7 @@ export function Sidebar({
   // Active Job State & Monitoring
   const [activeJob, setActiveJob] = React.useState<ActiveJobInfo | null>(null);
   const [triggerLoading, setTriggerLoading] = React.useState<string | null>(null);
+  const wasJobRunningRef = React.useRef<boolean>(false);
 
   // SMS Confirmation Dialog State
   const [smsConfirmOpen, setSmsConfirmOpen] = React.useState(false);
@@ -88,6 +91,7 @@ export function Sidebar({
       if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
         const runningJob = data.data.find((j: any) => j.progress && j.progress > 0 && j.progress < 100);
         if (runningJob) {
+          wasJobRunningRef.current = true;
           setActiveJob({
             jobName: runningJob.name || 'Job Process',
             progress: runningJob.progress,
@@ -95,15 +99,23 @@ export function Sidebar({
             status: 'in-progress'
           });
         } else {
+          if (wasJobRunningRef.current) {
+            wasJobRunningRef.current = false;
+            onJobFinish?.();
+          }
           setActiveJob(null);
         }
       } else {
+        if (wasJobRunningRef.current) {
+          wasJobRunningRef.current = false;
+          onJobFinish?.();
+        }
         setActiveJob(null);
       }
     } catch (err) {
       // Ignore poll error
     }
-  }, []);
+  }, [onJobFinish]);
 
   React.useEffect(() => {
     fetchJobProgress();
@@ -117,7 +129,12 @@ export function Sidebar({
     try {
       const { data } = await api.post(endpoint, payload || {});
       toast.success(data.message || 'Job muvaffaqiyatli ishga tushirildi!', { autoClose: 4000 });
-      fetchJobProgress();
+      wasJobRunningRef.current = true;
+      if (jobKey === 'unlock') {
+        onJobFinish?.();
+      } else {
+        fetchJobProgress();
+      }
     } catch (err: any) {
       const errMsg = err.response?.data?.message || 'Job ishga tushirishda xatolik yuz berdi.';
       toast.error(errMsg, { autoClose: 5000 });

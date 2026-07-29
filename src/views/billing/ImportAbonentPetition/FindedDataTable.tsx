@@ -17,6 +17,7 @@ import { ManualEntryMode } from './components/manual/ManualEntryMode';
 import { ArizaMode } from './components/ariza/ArizaMode';
 import { useAdjustmentCalculation } from './hooks/useAdjustmentCalculation';
 import { GridColDef } from '@mui/x-data-grid';
+import { MoneyTransferConfirmDialog } from './MoneyTransferConfirmDialog';
 
 function FindedDataTable() {
   const { ariza, setAriza, setShowDialog, ui, pdfFiles, currentFile, enteringMode, setEnteringMode } = useStore();
@@ -45,7 +46,11 @@ function FindedDataTable() {
     setManualAccountNumber,
     loadAbonentByAccountForManual,
     photos,
-    setPhotos
+    setPhotos,
+    allPaymentsSumOnDublicate,
+    moneyTransferDialogOpen,
+    setMoneyTransferDialogOpen,
+    handleMoneyTransferConfirm
   } = useFindedTableLogic();
   const { isLoading } = useLoaderStore();
   const { pdfFileLoading } = useUiStore();
@@ -172,6 +177,13 @@ function FindedDataTable() {
 
   return (
     <>
+      <MoneyTransferConfirmDialog
+        open={moneyTransferDialogOpen}
+        onClose={() => setMoneyTransferDialogOpen(false)}
+        onConfirm={handleMoneyTransferConfirm}
+        totalAmount={allPaymentsSumOnDublicate}
+        arizaChoice={ariza?.shouldBeMoneyTransfer}
+      />
       <PasteImageDialog
         key="paste-image-dialog"
         open={openPasteImageDialog}
