@@ -102,9 +102,19 @@ export default function SearchAbonentResultDialog() {
 
   const handleOpenSelectedInNewTabs = () => {
     const targets = selectedIds.length > 0 ? selectedIds : abonents[focusedIndex] ? [abonents[focusedIndex].id] : [];
-    targets.forEach((id) => {
-      window.open(`/abonent/${id}/details`, '_blank');
+    if (targets.length === 0) return;
+
+    // Open index 1..N in new tabs
+    targets.slice(1).forEach((id, index) => {
+      setTimeout(() => {
+        window.open(`/abonent/${id}/details`, `_blank_${id}`);
+      }, index * 100);
     });
+
+    // Navigate to the 1st item in the current tab and close dialog
+    navigate(`/abonent/${targets[0]}/details`);
+    clearResults();
+    setOpenState(false);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -193,7 +203,7 @@ export default function SearchAbonentResultDialog() {
           >
             <SearchIcon fontSize="small" />
           </Box>
-          <Typography variant="h4" fontWeight={700} sx={{ color: theme.palette.text.primary, fontSize: '1.15rem' }}>
+          <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontSize: '1.15rem', fontWeight: 700 }}>
             Qidiruv natijalari
           </Typography>
           <Chip
@@ -278,7 +288,11 @@ export default function SearchAbonentResultDialog() {
                     indeterminate={isSomeSelected}
                     checked={isAllSelected}
                     onChange={handleToggleSelectAll}
-                    inputProps={{ 'aria-label': 'Select all subscribers' }}
+                    slotProps={{
+                      input: {
+                        'aria-label': 'Select all subscribers'
+                      }
+                    }}
                   />
                 </TableCell>
                 <TableCell
@@ -369,7 +383,7 @@ export default function SearchAbonentResultDialog() {
 
                 // Format Debt / Balance color & text
                 let balanceColor: 'error' | 'success' | 'default' = 'default';
-                let balanceText = '0 so\'m';
+                let balanceText = "0 so'm";
                 if (ksaldo > 0) {
                   balanceColor = 'error';
                   balanceText = `${Math.floor(ksaldo).toLocaleString()} so'm (Qarz)`;
@@ -394,8 +408,8 @@ export default function SearchAbonentResultDialog() {
                       backgroundColor: isFocused
                         ? alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.25 : 0.12)
                         : isSelected
-                        ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
-                        : 'inherit',
+                          ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
+                          : 'inherit',
                       outline: isFocused ? `2px solid ${theme.palette.secondary.main}` : 'none',
                       outlineOffset: '-2px',
                       '&:hover': {
@@ -410,8 +424,13 @@ export default function SearchAbonentResultDialog() {
                       <Checkbox
                         color="secondary"
                         checked={isSelected}
+                        // @ts-ignore
                         onChange={(e) => handleToggleSelectOne(abonent.id, e)}
-                        inputProps={{ 'aria-label': `Select ${abonent.fullName}` }}
+                        slotProps={{
+                          input: {
+                            'aria-label': `Select ${abonent.fullName}`
+                          }
+                        }}
                       />
                     </TableCell>
 
@@ -438,16 +457,14 @@ export default function SearchAbonentResultDialog() {
                     <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
                       {abonent.fullName}
                       {abonent.phone && (
-                        <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.25 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25, display: 'block' }}>
                           Tel: {abonent.phone}
                         </Typography>
                       )}
                     </TableCell>
 
                     {/* ADDRESS */}
-                    <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.85rem' }}>
-                      {formattedAddress}
-                    </TableCell>
+                    <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.85rem' }}>{formattedAddress}</TableCell>
 
                     {/* DEBT / BALANCE */}
                     <TableCell align="right">
@@ -519,13 +536,13 @@ export default function SearchAbonentResultDialog() {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
             {selectedIds.length > 0 ? (
               <>
                 <b>{selectedIds.length}</b> ta abonent tanlandi
               </>
             ) : (
-              `Fokusda: ${abonents[focusedIndex]?.fullName || 'Yo\'q'}`
+              `Fokusda: ${abonents[focusedIndex]?.fullName || "Yo'q"}`
             )}
           </Typography>
         </Box>
@@ -546,9 +563,7 @@ export default function SearchAbonentResultDialog() {
               boxShadow: theme.shadows[2]
             }}
           >
-            {selectedIds.length > 0
-              ? `Tanlanganlarni ochish (${selectedIds.length})`
-              : `Yangi oynada ochish (_blank)`}
+            {selectedIds.length > 0 ? `Tanlanganlarni ochish (${selectedIds.length})` : `Yangi oynada ochish (_blank)`}
           </Button>
         </Box>
       </DialogActions>
