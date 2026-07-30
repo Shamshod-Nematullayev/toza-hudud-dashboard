@@ -1,62 +1,86 @@
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useTasksStore } from './useTasksStore';
-import { t } from 'i18next';
-import api from 'utils/api';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
 import { Edit } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
+import { Chip, IconButton, Typography } from '@mui/material';
 
 function TasksTable() {
-  const { fetchMahallas, fetchTasks, filters, openEditTaskDialog, handleOpenEditTaskDialog } = useTasksStore();
+  const { fetchMahallas, fetchTasks, filters, handleOpenEditTaskDialog } = useTasksStore();
   const { dataGridProps, rows, setPaginationModel } = useServerDataGrid(fetchTasks, [], 100, filters);
 
   const columns: readonly GridColDef<any>[] = [
     {
       field: 'id',
       headerName: '№',
-      width: 50,
+      width: 60,
       renderCell: (row) => row.row.index + 1
     },
     {
       field: 'accountNumber',
-      headerName: t('tableHeaders.accountNumber'),
-      flex: 1
+      headerName: 'Hisob raqami',
+      width: 140,
+      renderCell: ({ value }) => <Typography variant="body2" sx={{ fontWeight: 600 }}>{value || '—'}</Typography>
     },
     {
       field: 'fullName',
-      headerName: t('tableHeaders.fullName'),
-      flex: 1
+      headerName: 'F.I.O. Abonent',
+      minWidth: 200,
+      flex: 1.5,
+      renderCell: ({ value }) => <Typography variant="body2">{value || '—'}</Typography>
     },
     {
       field: 'mahallaId',
-      headerName: t('tableHeaders.mfy'),
+      headerName: 'MFY / Mahalla',
+      minWidth: 160,
       flex: 1
     },
     {
       field: 'nazoratchiName',
-      headerName: t('tableHeaders.inspector'),
-      flex: 1
-    },
-    {
-      field: 'status',
-      headerName: t('tableHeaders.status'),
+      headerName: 'Inspektor',
+      minWidth: 160,
       flex: 1
     },
     {
       field: 'type',
-      headerName: t('taskTypes.type'),
-      flex: 1,
-      renderCell: (row) => t(('taskTypes.' + row.row.type) as 'taskTypes.type')
+      headerName: 'Topshiriq Turi',
+      width: 160,
+      renderCell: ({ value }) => {
+        if (value === 'electricity') {
+          return <Chip label="⚡ Elektr Hisob" color="warning" variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
+        }
+        if (value === 'phone') {
+          return <Chip label="📱 Telefon Raqam" color="info" variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
+        }
+        return <Typography variant="caption">{value || '—'}</Typography>;
+      }
+    },
+    {
+      field: 'status',
+      headerName: 'Holati',
+      width: 160,
+      renderCell: ({ value }) => {
+        if (value === 'completed' || value === 'Bajarilgan') {
+          return <Chip label="✅ Bajarilgan" color="success" size="small" sx={{ fontWeight: 600 }} />;
+        }
+        if (value === 'in-progress' || value === 'Jarayonda') {
+          return <Chip label="⏳ Jarayonda" color="warning" size="small" sx={{ fontWeight: 600 }} />;
+        }
+        if (value === 'rejected' || value === 'Muvaffaqqiyatsiz yakunlangan') {
+          return <Chip label="❌ Muvaffaqiyatsiz" color="error" size="small" sx={{ fontWeight: 600 }} />;
+        }
+        return <Chip label={value || '—'} size="small" variant="outlined" />;
+      }
     },
     {
       type: 'actions',
       field: 'actions',
-      headerName: t('tableHeaders.actions'),
-      flex: 1,
+      headerName: 'Amallar',
+      width: 80,
+      align: 'center',
       renderCell: (row) => (
-        <IconButton color="primary" onClick={() => handleOpenEditTaskDialog(row.row._id)}>
-          <Edit />
+        <IconButton color="primary" size="small" onClick={() => handleOpenEditTaskDialog(row.row._id)}>
+          <Edit fontSize="small" />
         </IconButton>
       )
     }
@@ -74,6 +98,8 @@ function TasksTable() {
       onPaginationModelChange={setPaginationModel}
       disableColumnFilter
       disableColumnMenu
+      rowHeight={52}
+      sx={{ minHeight: 480, border: 'none' }}
     />
   );
 }

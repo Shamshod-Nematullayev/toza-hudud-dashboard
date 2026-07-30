@@ -248,9 +248,9 @@ function Debitors() {
       });
       return { data: data.data, meta: data.meta };
     },
-    [selectedQueueTab],
+    [],
     25,
-    { refreshState }
+    { refreshState, selectedQueueTab, applied, appliedSearch }
   );
 
   React.useEffect(() => {
