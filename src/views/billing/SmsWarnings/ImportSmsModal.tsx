@@ -1,5 +1,5 @@
 import { DownloadOutlined, FileDownloadOutlined } from '@mui/icons-material';
-import { Button, DialogActions, DialogContent, DialogTitle, Typography, Box, Stack } from '@mui/material';
+import { Button, DialogActions, DialogContent, Typography, Box } from '@mui/material';
 import React from 'react';
 import { toast } from 'react-toastify';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
@@ -8,35 +8,53 @@ import api from 'utils/api';
 
 interface Props {
   open: boolean;
+  mode?: 'individual' | 'organization';
   onClose: () => void;
   onSave: (excelFile: File) => void;
 }
 
-function ImportSmsModal({ open, onClose, onSave }: Props) {
+function ImportSmsModal({ open, mode = 'individual', onClose, onSave }: Props) {
   const [excelFile, setExcelFile] = React.useState<File | null>(null);
 
   const handleSubmit = () => {
-    if (!excelFile) return toast.error("Iltimos, Excel faylini tanlang!");
+    if (!excelFile) return toast.error('Iltimos, Excel faylini tanlang!');
     onSave(excelFile);
     onClose();
   };
 
   const handleClickDownloadTemplate = () => {
-    api.get('/download-templates/send-warning-sms', { responseType: 'blob' }).then((response) => {
-      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const endpoint =
+      mode === 'organization'
+        ? '/sms-service/warnings/organizations/template'
+        : '/sms-service/warnings/individual/template';
+
+    const filename = mode === 'organization' ? 'tashkilot_sms_shablon.xlsx' : 'aholi_sms_shablon.xlsx';
+
+    api.get(endpoint, { responseType: 'blob' }).then((response) => {
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'sms_ogohlantirishlar_template.xlsx';
+      link.download = filename;
       link.click();
     });
   };
 
+  const isOrg = mode === 'organization';
+
   return (
-    <DraggableDialog open={open} onClose={onClose} title="📥 Excel Orqali SMS Yuborish">
+    <DraggableDialog
+      open={open}
+      onClose={onClose}
+      title={isOrg ? '🏢 Tashkilotlarga Excel Orqali SMS Yuborish' : '👨‍👩‍👧‍👦 Aholiga Excel Orqali SMS Yuborish'}
+    >
       <DialogContent>
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary" paragraph>
-            Debitorlar ro'yxatini Excel fayli ko'rinishida yuklang. Faylda Hisob raqam, Telefon va Qarz summasi bo'lishi lozim.
+            {isOrg
+              ? "Tashkilot qarzdorlar ro'yxatini Excel fayli ko'rinishida yuklang. Faylda accountNumber, organizationId, phone va debtAmount bo'lishi lozim (Maksimal 1000 ta)."
+              : "Aholi qarzdorlar ro'yxatini Excel fayli ko'rinishida yuklang. Faylda accountNumber, residentId, phone va debtAmount bo'lishi lozim (Maksimal 1000 ta)."}
           </Typography>
           <Button
             size="small"
@@ -46,7 +64,7 @@ function ImportSmsModal({ open, onClose, onSave }: Props) {
             onClick={handleClickDownloadTemplate}
             sx={{ textTransform: 'none', fontSize: 12 }}
           >
-            📄 Namuna Excel (Template) Faylini Yuklab Olish
+            📄 Namuna Excel ({isOrg ? 'Tashkilot' : 'Aholi'} Shablon) Faylini Yuklab Olish
           </Button>
         </Box>
 

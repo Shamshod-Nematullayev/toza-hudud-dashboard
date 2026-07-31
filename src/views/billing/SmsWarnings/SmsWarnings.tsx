@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -16,6 +16,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   UploadFileOutlined,
@@ -27,6 +29,8 @@ import {
   CheckCircleOutlined,
   ErrorOutlineOutlined,
   HourglassEmptyOutlined,
+  PeopleAltOutlined,
+  BusinessOutlined,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
@@ -55,6 +59,9 @@ function SmsWarnings() {
   const [openImportModal, setOpenImportModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Tab state: 'INDIVIDUAL_DEBT' (Aholi) vs 'ORGANIZATION_DEBT' (Tashkilot)
+  const [activeTab, setActiveTab] = useState<'INDIVIDUAL_DEBT' | 'ORGANIZATION_DEBT'>('INDIVIDUAL_DEBT');
+
   // Filter state
   const [draftFilters, setDraftFilters] = useState(INIT_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState(INIT_FILTERS);
@@ -66,6 +73,14 @@ function SmsWarnings() {
 
   const refreshData = () => setReloadState((prev) => !prev);
 
+  // Tab almashganda filtrlarni va ma'lumotlarni yangilash
+  const handleTabChange = (event: React.SyntheticEvent, newValue: 'INDIVIDUAL_DEBT' | 'ORGANIZATION_DEBT') => {
+    setActiveTab(newValue);
+    setDraftFilters(INIT_FILTERS);
+    setAppliedFilters(INIT_FILTERS);
+    refreshData();
+  };
+
   // ─── DataGrid Server Query ──────────────────────────────────
   const { dataGridProps } = useServerDataGrid(
     async ({ page, limit, sortDirection, sortField }) => {
@@ -75,6 +90,7 @@ function SmsWarnings() {
           limit,
           sortField,
           sortDirection,
+          type: activeTab,
           search: appliedFilters.search || undefined,
           phone: appliedFilters.phone || undefined,
           accountNumber: appliedFilters.accountNumber || undefined,
@@ -88,9 +104,9 @@ function SmsWarnings() {
         data: data.content,
       };
     },
-    [appliedFilters],
+    [],
     25,
-    { reloadState }
+    { reloadState, activeTab, appliedFilters }
   );
 
   // ─── Poll Job Progress ──────────────────────────────────────
@@ -145,8 +161,14 @@ function SmsWarnings() {
     const formData = new FormData();
     formData.append('file', excelFile);
     setLoading(true);
+
+    const endpoint =
+      activeTab === 'ORGANIZATION_DEBT'
+        ? '/sms-service/warnings/organizations/send'
+        : '/sms-service/warnings';
+
     try {
-      const { data } = await api.post('/sms-service/warnings', formData, {
+      const { data } = await api.post(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success(data.message || 'SMS yuborish muvaffaqiyatli yakunlandi!');
@@ -163,6 +185,7 @@ function SmsWarnings() {
     try {
       const response = await api.get('/sms-service/warnings/export', {
         params: {
+          type: activeTab,
           search: appliedFilters.search || undefined,
           phone: appliedFilters.phone || undefined,
           accountNumber: appliedFilters.accountNumber || undefined,
@@ -175,7 +198,8 @@ function SmsWarnings() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `sms_warnings_${Date.now()}.xlsx`);
+      const filePrefix = activeTab === 'ORGANIZATION_DEBT' ? 'tashkilot_sms' : 'aholi_sms';
+      link.setAttribute('download', `${filePrefix}_warnings_${Date.now()}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
@@ -225,130 +249,158 @@ function SmsWarnings() {
   };
 
   const formatCurrency = (val: number) => {
-    if (val === undefined || val === null) return '0 so\'m';
+    if (val === undefined || val === null) return "0 so'm";
     return new Intl.NumberFormat('uz-UZ').format(val) + " so'm";
   };
 
-  // ─── Columns Definition ─────────────────────────────────────
-  const columns: GridColDef[] = [
-    {
-      field: 'order_number',
-      headerName: '№',
-      width: 50,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: (params) => {
-        const page = dataGridProps.paginationModel?.page || 0;
-        const pageSize = dataGridProps.paginationModel?.pageSize || 25;
-        const rowIx = dataGridProps.rows.findIndex((r) => r._id === params.row._id);
-        return page * pageSize + (rowIx >= 0 ? rowIx + 1 : 1);
+  const isOrg = activeTab === 'ORGANIZATION_DEBT';
+
+  // ─── Columns Definition (Dynamic per Tab) ───────────────────
+  const columns: GridColDef[] = useMemo(() => {
+    return [
+      {
+        field: 'order_number',
+        headerName: '№',
+        width: 50,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: (params) => {
+          const page = dataGridProps.paginationModel?.page || 0;
+          const pageSize = dataGridProps.paginationModel?.pageSize || 25;
+          const rowIx = dataGridProps.rows.findIndex((r) => r._id === params.row._id);
+          return page * pageSize + (rowIx >= 0 ? rowIx + 1 : 1);
+        },
       },
-    },
-    {
-      field: 'accountNumber',
-      headerName: 'Hisob raqam',
-      width: 160,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => <Typography variant="body2" sx={{ fontWeight: 600 }}>{value || '—'}</Typography>,
-    },
-    {
-      field: 'phone',
-      headerName: 'Telefon raqami',
-      width: 170,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => <Typography variant="body2">{formatPhone(value)}</Typography>,
-    },
-    {
-      field: 'debtAmount',
-      headerName: "Qarzdorlik (so'm)",
-      width: 160,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => (
-        <Typography variant="body2" sx={{ fontWeight: 600, color: 'error.main' }}>
-          {formatCurrency(value)}
-        </Typography>
-      ),
-    },
-    {
-      field: 'status',
-      headerName: 'SMS Holati',
-      width: 160,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => {
-        if (value === 'sent') {
-          return <Chip label="✅ Yetkazildi" color="success" size="small" variant="filled" sx={{ fontWeight: 600 }} />;
-        }
-        if (value === 'failed') {
-          return <Chip label="❌ Xatolik" color="error" size="small" variant="filled" sx={{ fontWeight: 600 }} />;
-        }
-        return <Chip label="⏳ Kutilmoqda" color="warning" size="small" variant="outlined" sx={{ fontWeight: 600 }} />;
+      {
+        field: isOrg ? 'organizationId' : 'residentId',
+        headerName: isOrg ? 'Tashkilot ID' : 'Resident ID',
+        width: 140,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value }) => (
+          <Typography variant="body2" sx={{ fontWeight: 700, color: isOrg ? 'warning.main' : 'primary.main' }}>
+            {value || '—'}
+          </Typography>
+        ),
       },
-    },
-    {
-      field: 'createdAt',
-      headerName: 'Yaratilgan sana',
-      width: 160,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => (
-        <Typography variant="caption" color="text.secondary">
-          {value ? new Date(value).toLocaleString('uz-UZ') : '—'}
-        </Typography>
-      ),
-    },
-    {
-      field: 'message',
-      headerName: 'Xabarnoma matni / Tafsilot',
-      flex: 1,
-      minWidth: 200,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value, row }) => (
-        <Typography variant="caption" color={row.status === 'failed' ? 'error.main' : 'text.secondary'} noWrap>
-          {value || row.errorMessage || '—'}
-        </Typography>
-      ),
-    },
-    {
-      field: 'actions',
-      headerName: 'Amallar',
-      width: 100,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: ({ row }) => (
-        <Tooltip title="Eskiz provayderidan holatni yakka tartibda yangilash">
-          <span>
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={() => handleRefreshSingleSms(row._id)}
-              disabled={rowRefreshLoading === row._id}
-            >
-              {rowRefreshLoading === row._id ? <CircularProgress size={16} /> : <RefreshOutlined fontSize="small" />}
-            </IconButton>
-          </span>
-        </Tooltip>
-      ),
-    },
-  ];
+      {
+        field: 'accountNumber',
+        headerName: isOrg ? 'Tashkilot Hisob Raqami' : 'Chiqindi Hisob Raqami',
+        width: 180,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value }) => <Typography variant="body2" sx={{ fontWeight: 600 }}>{value || '—'}</Typography>,
+      },
+      {
+        field: 'phone',
+        headerName: 'Telefon raqami',
+        width: 170,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value }) => <Typography variant="body2">{formatPhone(value)}</Typography>,
+      },
+      {
+        field: 'debtAmount',
+        headerName: "Qarzdorlik (so'm)",
+        width: 160,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value }) => (
+          <Typography variant="body2" sx={{ fontWeight: 600, color: 'error.main' }}>
+            {formatCurrency(value)}
+          </Typography>
+        ),
+      },
+      {
+        field: 'status',
+        headerName: 'SMS Holati',
+        width: 160,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value }) => {
+          if (value === 'sent') {
+            return <Chip label="✅ Yetkazildi" color="success" size="small" variant="filled" sx={{ fontWeight: 600 }} />;
+          }
+          if (value === 'failed') {
+            return <Chip label="❌ Xatolik" color="error" size="small" variant="filled" sx={{ fontWeight: 600 }} />;
+          }
+          return <Chip label="⏳ Kutilmoqda" color="warning" size="small" variant="outlined" sx={{ fontWeight: 600 }} />;
+        },
+      },
+      {
+        field: 'createdAt',
+        headerName: 'Yaratilgan sana',
+        width: 160,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value }) => (
+          <Typography variant="caption" color="text.secondary">
+            {value ? new Date(value).toLocaleString('uz-UZ') : '—'}
+          </Typography>
+        ),
+      },
+      {
+        field: 'message',
+        headerName: 'Xabarnoma matni / Tafsilot',
+        flex: 1,
+        minWidth: 220,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value, row }) => (
+          <Typography variant="caption" color={row.status === 'failed' ? 'error.main' : 'text.secondary'} noWrap>
+            {value || row.errorMessage || '—'}
+          </Typography>
+        ),
+      },
+      {
+        field: 'actions',
+        headerName: 'Amallar',
+        width: 100,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: ({ row }) => (
+          <Tooltip title="Eskiz provayderidan holatni yakka tartibda yangilash">
+            <span>
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => handleRefreshSingleSms(row._id)}
+                disabled={rowRefreshLoading === row._id}
+              >
+                {rowRefreshLoading === row._id ? <CircularProgress size={16} /> : <RefreshOutlined fontSize="small" />}
+              </IconButton>
+            </span>
+          </Tooltip>
+        ),
+      },
+    ];
+  }, [
+    isOrg,
+    dataGridProps.paginationModel?.page,
+    dataGridProps.paginationModel?.pageSize,
+    dataGridProps.rows,
+    rowRefreshLoading,
+  ]);
 
   return (
     <MainCard contentSX={{ padding: 0 }}>
-      <ImportSmsModal open={openImportModal} onClose={() => setOpenImportModal(false)} onSave={handleImport} />
+      <ImportSmsModal
+        open={openImportModal}
+        mode={isOrg ? 'organization' : 'individual'}
+        onClose={() => setOpenImportModal(false)}
+        onSave={handleImport}
+      />
 
       <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* 1. SAHIFA HEADER BO'LIMI VA ASOSIY AMALLAR */}
@@ -358,12 +410,12 @@ function SmsWarnings() {
               📩 SMS Ogohlantirishlar Boshqaruvi
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Debitorlarga yuborilgan va kutilayotgan SMS xabarnomalar monitoringi hamda holatlarini boshqarish
+              Aholi va Tashkilot debitorlariga yuborilgan SMS xabarnomalar monitoringi hamda holatlarini boshqarish
             </Typography>
           </Box>
 
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-            <Tooltip title="Excel faylidan yangi debitorlar ro'yxatini yuklash va SMS yuborish">
+            <Tooltip title={`Excel faylidan yangi ${isOrg ? 'tashkilotlar' : 'aholi'} ro'yxatini yuklash va SMS yuborish`}>
               <Button
                 variant="contained"
                 color="primary"
@@ -371,11 +423,11 @@ function SmsWarnings() {
                 onClick={() => setOpenImportModal(true)}
                 disabled={loading}
               >
-                Excel Orqali SMS Yuborish
+                Excel Orqali SMS Yuborish ({isOrg ? 'Tashkilot' : 'Aholi'})
               </Button>
             </Tooltip>
 
-            <Tooltip title="Joriy filtrdagi barcha SMS ogohlantirishlar ro'yxatini Excel fayliga yuklab olish">
+            <Tooltip title={`Joriy ${isOrg ? 'tashkilotlar' : 'aholi'} SMS ogohlantirishlar ro'yxatini Excel fayliga yuklab olish`}>
               <Button
                 variant="outlined"
                 color="success"
@@ -402,6 +454,30 @@ function SmsWarnings() {
           </Stack>
         </Stack>
 
+        {/* 2. TABLAR BO'LIMI (AHOLI VA TASHKILOTLARNI AJRATISH) */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            textColor="primary"
+            indicatorColor="primary"
+            sx={{ '& .MuiTab-root': { fontWeight: 700, fontSize: '0.9rem' } }}
+          >
+            <Tab
+              icon={<PeopleAltOutlined />}
+              iconPosition="start"
+              label="👨‍👩‍👧‍👦 Aholi SMS Ogohlantirishlari"
+              value="INDIVIDUAL_DEBT"
+            />
+            <Tab
+              icon={<BusinessOutlined />}
+              iconPosition="start"
+              label="🏢 Tashkilot SMS Ogohlantirishlari"
+              value="ORGANIZATION_DEBT"
+            />
+          </Tabs>
+        </Box>
+
         {/* Live Progress Widget */}
         {activeJob && (
           <Paper elevation={0} sx={{ p: 1.5, bgcolor: 'secondary.light', border: '1px solid', borderColor: 'secondary.main', borderRadius: 2 }}>
@@ -419,16 +495,16 @@ function SmsWarnings() {
           </Paper>
         )}
 
-        {/* 2. FILTRLAR TOOLBAR BO'LIMI */}
+        {/* 3. FILTRLAR TOOLBAR BO'LIMI */}
         <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
           <Typography variant="overline" color="primary" sx={{ fontWeight: 700, letterSpacing: 1, display: 'block', mb: 1.5 }}>
-            🔍 FILTRLAR VA QIDIRUV
+            🔍 {isOrg ? 'TASHKILOTLAR' : 'AHOLI'} FILTRLARI VA QIDIRUV
           </Typography>
 
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <TextField
               size="small"
-              placeholder="F.I.O, Hisob raqam yoki Telefon..."
+              placeholder="Hisob raqam yoki Telefon..."
               value={draftFilters.search}
               onChange={(e) => setDraftFilters((p) => ({ ...p, search: e.target.value }))}
               sx={{ minWidth: 220, flex: 1 }}
@@ -500,7 +576,7 @@ function SmsWarnings() {
           </Stack>
         </Paper>
 
-        {/* 3. DATAGRID JADVALI */}
+        {/* 4. DATAGRID JADVALI */}
         <DataGrid
           {...dataGridProps}
           columns={columns}
