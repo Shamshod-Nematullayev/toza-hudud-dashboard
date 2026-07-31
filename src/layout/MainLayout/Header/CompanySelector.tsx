@@ -67,27 +67,28 @@ const CompanySelector = () => {
   }
 
   return (
-    <Box sx={{ minWidth: { xs: 90, sm: 180, md: 220 }, maxWidth: { xs: 130, sm: 200, md: 300 }, mx: { xs: 0.5, md: 2 } }}>
+    <Box sx={{ width: '100%' }}>
       <FormControl fullWidth size="small">
         <Select
+          native
           value={selectedValue}
           onChange={handleChange}
-          displayEmpty
           disabled={loading}
           sx={{
             borderRadius: '8px',
             bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50',
-            '& .MuiSelect-select': {
-              py: { xs: '6px', md: '8px' },
-              fontSize: { xs: '0.75rem', md: '0.875rem' },
+            '& .MuiNativeSelect-select': {
+              py: '8px',
+              px: '12px',
+              fontSize: '0.875rem',
               fontWeight: 500
             }
           }}
         >
           {companies.map((item) => (
-            <MenuItem key={item.id} value={item.id}>
-              {item.name} {item.locationName ? `(${item.locationName})` : ''} {item.id}
-            </MenuItem>
+            <option key={item.id} value={item.id} style={{ background: theme.palette.background.paper, color: theme.palette.text.primary }}>
+              {item.name} {item.locationName ? `(${item.locationName})` : ''} ({item.id})
+            </option>
           ))}
         </Select>
       </FormControl>

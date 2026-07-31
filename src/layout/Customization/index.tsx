@@ -28,7 +28,7 @@ import useCustomizationStore, { FontFamily } from 'store/customizationStore';
 import { useLocation } from 'react-router-dom';
 
 // concat 'px'
-function valueText(value) {
+function valueText(value: number) {
   return `${value}px`;
 }
 
@@ -50,7 +50,7 @@ const Customization = () => {
 
   // state - border radius
   const [borderRadius, setBorderRadius] = useState(customization.borderRadius);
-  const handleBorderRadius = (event, newValue) => {
+  const handleBorderRadius = (event: any, newValue: number) => {
     setBorderRadius(newValue);
   };
 
@@ -76,7 +76,7 @@ const Customization = () => {
   }
 
   // state - font family
-  const [fontFamily, setFontFamily] = useState(initialFont);
+  const [fontFamily, setFontFamily] = useState<FontFamily>(initialFont);
   useEffect(() => {
     let newFont;
     switch (fontFamily) {
@@ -135,15 +135,17 @@ const Customization = () => {
         anchor="right"
         onClose={handleToggle}
         open={open}
-        PaperProps={{
-          sx: {
-            width: 280
+        slotProps={{
+          paper: {
+            sx: {
+              width: 280
+            }
           }
         }}
       >
         <PerfectScrollbar component="div">
           <Grid container spacing={gridSpacing} sx={{ p: 3 }}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <SubCard title="Mode">
                 <FormControl>
                   <RadioGroup aria-label="mode" value={mode} onChange={(e) => setMode(e.target.value)} name="mode-radio-buttons">
@@ -169,14 +171,14 @@ const Customization = () => {
                 </FormControl>
               </SubCard>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               {/* font family */}
               <SubCard title="Font Family">
                 <FormControl>
                   <RadioGroup
                     aria-label="font-family"
                     value={fontFamily}
-                    onChange={(e) => setFontFamily(e.target.value)}
+                    onChange={(e) => setFontFamily(e.target.value as FontFamily)}
                     name="row-radio-buttons-group"
                   >
                     <FormControlLabel
@@ -219,18 +221,18 @@ const Customization = () => {
                 </FormControl>
               </SubCard>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               {/* border radius */}
               {React.createElement(
                 SubCard as any,
                 { title: 'Border Radius' },
-                <Grid item xs={12} container spacing={2} alignItems="center" sx={{ mt: 2.5 }}>
-                  <Grid item>
+                <Grid size={12} container spacing={2} sx={{ mt: 2.5, alignItems: 'center' }}>
+                  <Grid>
                     <Typography variant="h6" color="secondary">
                       4px
                     </Typography>
                   </Grid>
-                  <Grid item xs>
+                  <Grid size={12}>
                     <Slider
                       size="small"
                       value={borderRadius}
@@ -250,7 +252,7 @@ const Customization = () => {
                       }}
                     />
                   </Grid>
-                  <Grid item>
+                  <Grid>
                     <Typography variant="h6" color="secondary">
                       24px
                     </Typography>
