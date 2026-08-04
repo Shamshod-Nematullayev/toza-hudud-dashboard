@@ -1673,6 +1673,7 @@ function Inspector360() {
                   >
                     <MenuItem value="all">Barchasi</MenuItem>
                     <MenuItem value="in-progress">Jarayonda</MenuItem>
+                    <MenuItem value="checking">Tekshirilmoqda</MenuItem>
                     <MenuItem value="completed">Bajarilgan</MenuItem>
                     <MenuItem value="rejected">Rad etilgan</MenuItem>
                   </Select>
@@ -1726,11 +1727,14 @@ function Inspector360() {
                     })
                     .map((s) => {
                       let statusLabel = 'Jarayonda';
-                      let statusColor: 'warning' | 'success' | 'error' = 'warning';
+                      let statusColor: 'warning' | 'success' | 'error' | 'info' = 'warning';
 
                       if (s.status === 'completed') {
                         statusLabel = 'Bajarilgan';
                         statusColor = 'success';
+                      } else if (s.status === 'checking') {
+                        statusLabel = 'Tekshirilmoqda';
+                        statusColor = 'info';
                       } else if (s.status === 'rejected') {
                         statusLabel = 'Rad etilgan';
                         statusColor = 'error';
@@ -1894,6 +1898,7 @@ function Inspector360() {
                   onChange={(e) => setEditingSpecial({ ...editingSpecial, status: e.target.value as any })}
                 >
                   <MenuItem value="in-progress">Jarayonda</MenuItem>
+                  <MenuItem value="checking">Tekshirilmoqda</MenuItem>
                   <MenuItem value="completed">Bajarilgan</MenuItem>
                   <MenuItem value="rejected">Rad etilgan</MenuItem>
                 </Select>

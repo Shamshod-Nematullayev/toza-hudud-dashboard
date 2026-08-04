@@ -18,7 +18,7 @@ export interface IFilters {
   mahallaId?: number;
   type?: 'electricity' | 'phone';
   nazoratchi_id?: number;
-  status?: 'completed' | 'in-progress' | 'rejected';
+  status?: 'completed' | 'in-progress' | 'rejected' | 'checking';
 }
 
 export interface ITask {
@@ -30,7 +30,7 @@ export interface ITask {
   type: 'phone' | 'electricity';
   nazoratchi_id: number;
   nazoratchiName: string;
-  status: 'completed' | 'in-progress' | 'rejected';
+  status: 'completed' | 'in-progress' | 'rejected' | 'checking';
   purpose: string;
   _id?: string;
 }
@@ -38,6 +38,7 @@ export interface ITask {
 export interface ITaskStats {
   totalTasks: number;
   completedTasks: number;
+  checkingTasks?: number;
   inProgressTasks: number;
   rejectedTasks: number;
   phoneTasks: number;
@@ -72,13 +73,13 @@ interface ITasksStore {
   mahallaId: string;
   type: '' | 'electricity' | 'phone';
   nazoratchi_id: number | '';
-  status: '' | 'completed' | 'in-progress' | 'rejected';
+  status: '' | 'completed' | 'in-progress' | 'rejected' | 'checking';
   setAccountNumber: (accountNumber: string) => void;
   setFullName: (fullName: string) => void;
   setMahallaId: (mahallaId: string) => void;
   setType: (type: '' | 'electricity' | 'phone') => void;
   setNazoratchiId: (nazoratchi_id: number | '') => void;
-  setStatus: (status: '' | 'completed' | 'in-progress' | 'rejected') => void;
+  setStatus: (status: '' | 'completed' | 'in-progress' | 'rejected' | 'checking') => void;
   openEditTaskDialog: boolean;
   handleOpenEditTaskDialog: (taskId: string) => void;
   handleCloseEditTaskDialog: () => void;
@@ -239,7 +240,7 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
   setMahallaId: (mahallaId: string) => set({ mahallaId: mahallaId }),
   setType: (type: '' | 'electricity' | 'phone') => set({ type: type }),
   setNazoratchiId: (nazoratchi_id: number | '') => set({ nazoratchi_id: nazoratchi_id }),
-  setStatus: (status: '' | 'completed' | 'in-progress' | 'rejected') => set({ status: status }),
+  setStatus: (status: '' | 'completed' | 'in-progress' | 'rejected' | 'checking') => set({ status: status }),
   openEditTaskDialog: false,
   handleOpenEditTaskDialog: async (taskId) => {
     useLoaderStore.setState({ isLoading: true });

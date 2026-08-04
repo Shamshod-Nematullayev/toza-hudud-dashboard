@@ -69,9 +69,10 @@ function EditTaskDialog() {
                 label={t('tableHeaders.status')}
                 defaultValue=""
                 value={task.status}
-                onChange={(e) => setTask({ ...task, status: e.target.value as 'completed' | 'in-progress' | 'rejected' })}
+                onChange={(e) => setTask({ ...task, status: e.target.value as 'completed' | 'in-progress' | 'rejected' | 'checking' })}
               >
                 <MenuItem value={'completed'}>{t('tasksStatus.completed')}</MenuItem>
+                <MenuItem value={'checking'}>{t('tasksStatus.checking')}</MenuItem>
                 <MenuItem value={'in-progress'}>{t('tasksStatus.in-progress')}</MenuItem>
                 <MenuItem value={'rejected'}>{t('tasksStatus.rejected')}</MenuItem>
               </Select>

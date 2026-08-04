@@ -129,10 +129,11 @@ function FiltersBar() {
               labelId={statusLabelId}
               label={t('tableHeaders.status')}
               value={status}
-              onChange={(e) => setStatus(e.target.value as '' | 'completed' | 'in-progress' | 'rejected')}
+              onChange={(e) => setStatus(e.target.value as '' | 'completed' | 'in-progress' | 'rejected' | 'checking')}
             >
               <MenuItem value="">{t('all')}</MenuItem>
               <MenuItem value="completed">{t('tasksStatus.completed')}</MenuItem>
+              <MenuItem value="checking">{t('tasksStatus.checking')}</MenuItem>
               <MenuItem value="in-progress">{t('tasksStatus.in-progress')}</MenuItem>
               <MenuItem value="rejected">{t('tasksStatus.rejected')}</MenuItem>
             </Select>
