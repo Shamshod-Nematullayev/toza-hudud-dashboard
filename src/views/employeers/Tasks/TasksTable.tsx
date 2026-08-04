@@ -63,6 +63,9 @@ function TasksTable() {
         if (value === 'completed' || value === 'Bajarilgan') {
           return <Chip label="✅ Bajarilgan" color="success" size="small" sx={{ fontWeight: 600 }} />;
         }
+        if (value === 'checking' || value === 'Tekshirilmoqda') {
+          return <Chip label="🔍 Tekshirilmoqda" color="info" size="small" sx={{ fontWeight: 600 }} />;
+        }
         if (value === 'in-progress' || value === 'Jarayonda') {
           return <Chip label="⏳ Jarayonda" color="warning" size="small" sx={{ fontWeight: 600 }} />;
         }

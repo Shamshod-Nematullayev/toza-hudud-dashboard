@@ -48,6 +48,7 @@ const uzKirill: typeof uz = {
   },
   tasksStatus: {
     'in-progress': 'Жараёнда',
+    checking: 'Текширилмоқда',
     completed: 'Тугалланган',
     rejected: 'Муваффақиятсиз бажарилди'
   },

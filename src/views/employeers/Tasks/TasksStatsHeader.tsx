@@ -6,6 +6,7 @@ import {
   FlashOnOutlined,
   HourglassEmptyOutlined,
   CheckCircleOutlined,
+  FactCheckOutlined,
 } from '@mui/icons-material';
 import { useTasksStore } from './useTasksStore';
 
@@ -48,6 +49,13 @@ function TasksStatsHeader() {
       subText: 'Ijro etilishi kutilmoqda',
     },
     {
+      title: 'Tekshirilmoqda',
+      value: stats?.checkingTasks ?? 0,
+      icon: <FactCheckOutlined sx={{ fontSize: 24, color: 'info.main' }} />,
+      color: theme.palette.info.main,
+      subText: "Ma'lumot kiritilgan, tekshiruvda",
+    },
+    {
       title: 'Bajarilgan Topshiriqlar',
       value: stats?.completedTasks ?? 0,
       icon: <CheckCircleOutlined sx={{ fontSize: 24, color: 'success.main' }} />,
@@ -60,7 +68,7 @@ function TasksStatsHeader() {
   return (
     <Grid container spacing={2} sx={{ width: '100%', m: 0 }}>
       {cardsData.map((card, index) => (
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }} key={index}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }} key={index}>
           <Card
             elevation={0}
             sx={{

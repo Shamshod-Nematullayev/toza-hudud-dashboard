@@ -287,7 +287,7 @@ function SpecialTasksReport() {
 
       {/* KPI SUMMARY CARDS */}
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card
             sx={{
               p: 2.5,
@@ -310,7 +310,7 @@ function SpecialTasksReport() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card
             sx={{
               p: 2.5,
@@ -333,7 +333,7 @@ function SpecialTasksReport() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card
             sx={{
               p: 2.5,
@@ -356,7 +356,30 @@ function SpecialTasksReport() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+          <Card
+            sx={{
+              p: 2.5,
+              borderRadius: 3,
+              border: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.background.paper
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                Tekshirilmoqda
+              </Typography>
+              <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.info.main, 0.1), color: 'info.main' }}>
+                <CheckCircleOutlined fontSize="small" />
+              </Box>
+            </Box>
+            <Typography variant="h3" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'info.main' }}>
+              {summary ? (summary.totalChecking || 0).toLocaleString() : 0}
+            </Typography>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card
             sx={{
               p: 2.5,
@@ -379,7 +402,7 @@ function SpecialTasksReport() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card
             sx={{
               p: 2.5,
@@ -471,6 +494,9 @@ function SpecialTasksReport() {
                     Bajarilgan
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                    Tekshirilmoqda
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
                     Jarayonda
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
@@ -536,6 +562,9 @@ function SpecialTasksReport() {
                         </TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'success.main' }}>
                           {row.completedTotal}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'info.main' }}>
+                          {row.checkingTotal || 0}
                         </TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'warning.main' }}>
                           {row.inProgressTotal}

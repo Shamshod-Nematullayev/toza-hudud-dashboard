@@ -433,6 +433,7 @@ const uz = {
   'Nomidagi uylar': 'Nomidagi uylar',
   tasksStatus: {
     completed: 'Tugallangan',
+    checking: 'Tekshirilmoqda',
     'in-progress': 'Jarayonda',
     rejected: 'Muvaffaqqiyatsiz bajarildi'
   },
