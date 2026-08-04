@@ -1,36 +1,33 @@
-import { Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import TasksToolbar from './TasksToolbar';
 import TasksTable from './TasksTable';
 import FiltersBar from './FiltersBar';
 import EditTaskDialog from './EditTaskDialog';
 import SendExcelToTelegramGroupDialog from './SendExcelToTelegramGroupDialog';
+import TasksStatsHeader from './TasksStatsHeader';
 
 function Tasks() {
   return (
-    <MainCard>
-      {/* MUI v9 Grid Konteyneri */}
-      <Grid container spacing={2}>
-        {/* Toolbar to'liq eniga (12 ustun) */}
-        <Grid size={{ xs: 12 }}>
-          <TasksToolbar />
-        </Grid>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* 1. Top 5 KPI Statistics Cards (Theme-aware & high contrast) */}
+      <TasksStatsHeader />
 
-        {/* Jadval qismi (Katta ekranlarda 10 ustun) */}
-        <Grid size={{ xs: 12, sm: 10 }}>
-          <TasksTable />
-        </Grid>
+      <MainCard>
+        {/* 2. Page Header & Action Buttons */}
+        <TasksToolbar />
 
-        {/* Filtrlar paneli (Katta ekranlarda 2 ustun) */}
-        <Grid size={{ xs: 12, sm: 2 }}>
-          <FiltersBar />
-        </Grid>
-      </Grid>
+        {/* 3. Horizontal Filter Toolbar */}
+        <FiltersBar />
 
-      {/* Modallar */}
-      <EditTaskDialog />
-      <SendExcelToTelegramGroupDialog />
-    </MainCard>
+        {/* 4. Full-width DataGrid Table */}
+        <TasksTable />
+
+        {/* Modallar */}
+        <EditTaskDialog />
+        <SendExcelToTelegramGroupDialog />
+      </MainCard>
+    </Box>
   );
 }
 

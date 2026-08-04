@@ -1,9 +1,10 @@
-import { Avatar, ButtonBase, ClickAwayListener, Paper, Popper, Tooltip, useTheme } from '@mui/material';
+import { Avatar, ButtonBase, ClickAwayListener, Paper, Popper, Tooltip, useTheme, Tabs, Tab } from '@mui/material';
 import { Box, useMediaQuery } from '@mui/system';
 import { IconSearch } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import Transitions from 'ui-component/extended/Transitions';
 import SearchAbonentForm from './SearchAbonentForm';
+import SearchInspectorForm from './SearchInspectorForm';
 import MainCard from 'ui-component/cards/MainCard';
 import { useSearchAbonentSectionStore } from './useSearchAbonentSectionStore';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +15,7 @@ function SearchAbonentSection() {
   const anchorRef = useRef<any>(null);
   const { openState: open, setOpenState: setOpen, setNavigate } = useSearchAbonentSectionStore();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'subscribers' | 'inspectors'>('subscribers');
 
   useEffect(() => {
     setNavigate(navigate);
@@ -26,10 +28,10 @@ function SearchAbonentSection() {
 
   const accountNumberInput = useRef<any>(null);
   useEffect(() => {
-    if (accountNumberInput.current) {
+    if (accountNumberInput.current && activeTab === 'subscribers') {
       accountNumberInput.current.focus();
     }
-  }, [open]);
+  }, [open, activeTab]);
 
   const handleClose = (event: any) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
@@ -40,17 +42,14 @@ function SearchAbonentSection() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Mac uchun metaKey ham tekshiramiz
       if ((e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
         e.preventDefault();
 
-        // Agar input ichida yozayotgan bo‘lsa qaytarmaymiz
         const active = document.activeElement;
         const isTyping =
           active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.getAttribute('contenteditable') === 'true';
 
         if (!isTyping) {
-          // Qachondir kerak bo'lsa shu coment o'rniga searchRef.current?.focus(); qo'yiladi
         }
         anchorRef.current?.click();
       }
@@ -122,7 +121,6 @@ function SearchAbonentSection() {
             <Paper>
               <div onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}>
                 <MainCard
-                  title={'Abonentni izlash'}
                   border={false}
                   content={false}
                   boxShadow
@@ -135,7 +133,22 @@ function SearchAbonentSection() {
                     }
                   }}
                 >
-                  <SearchAbonentForm onClose={() => setOpen(false)} accountNumberInputRef={accountNumberInput} />
+                  <Tabs
+                    value={activeTab}
+                    onChange={(e, val) => setActiveTab(val)}
+                    sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+                    textColor="secondary"
+                    indicatorColor="secondary"
+                  >
+                    <Tab label="Abonentlar" value="subscribers" />
+                    <Tab label="Nazoratchilar (360°)" value="inspectors" />
+                  </Tabs>
+
+                  {activeTab === 'subscribers' ? (
+                    <SearchAbonentForm onClose={() => setOpen(false)} accountNumberInputRef={accountNumberInput} />
+                  ) : (
+                    <SearchInspectorForm onClose={() => setOpen(false)} />
+                  )}
                 </MainCard>
               </div>
             </Paper>

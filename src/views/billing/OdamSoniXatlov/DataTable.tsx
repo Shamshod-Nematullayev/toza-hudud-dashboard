@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid, GridToolbarContainer, useGridApiRef } from '@mui/x-data-grid';
-import { FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip } from '@mui/material';
+import { FormControl, IconButton, InputLabel, MenuItem, Select, Toolbar, Tooltip } from '@mui/material';
 import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 
 import useOdamSoniXatlovStore from './odamSoniXatlovStore'; // Store importi
@@ -129,6 +129,14 @@ function XatlovTable() {
 
   return (
     <div style={{ height: '80vh', width: '100%' }}>
+      <Toolbar>
+        <XatlovActionsToolbar />
+        <Tooltip title="Filtrlash paneli">
+          <IconButton onClick={() => apiRef.current?.showFilterPanel()} color="primary">
+            <FilterListOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      </Toolbar>
       <DataGrid
         rows={rows}
         columns={columns}
@@ -149,18 +157,6 @@ function XatlovTable() {
         }}
         onFilterModelChange={handleChangeFilterModel}
         apiRef={apiRef}
-        slots={{
-          toolbar: () => (
-            <GridToolbarContainer>
-              <XatlovActionsToolbar />
-              <Tooltip title="Filtrlash paneli">
-                <IconButton onClick={() => apiRef.current?.showFilterPanel()} color="primary">
-                  <FilterListOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-            </GridToolbarContainer>
-          )
-        }}
         sx={{
           '& .MuiDataGrid-filterFormOperatorInput': { display: 'none' },
           border: 'none',

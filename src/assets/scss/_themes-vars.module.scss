@@ -55,12 +55,12 @@ $grey900: #121926;
 // ==============================|| DARK THEME VARIANTS ||============================== //
 
 // paper & background
-$darkBackground: #1a223f; // level 3
-$darkPaper: #111936; // level 4
+$darkBackground: #0B1330; // matches --bg
+$darkPaper: #121B42; // matches --bg-elevated
 
 // dark 800 & 900
-$darkLevel1: #29314f; // level 1
-$darkLevel2: #212946; // level 2
+$darkLevel1: #16204A; // matches --card
+$darkLevel2: #1B2554; // matches --card-2
 
 // primary dark
 $darkPrimaryLight: #eef2f6;
@@ -77,9 +77,9 @@ $darkSecondary200: #b39ddb;
 $darkSecondary800: #6200ea;
 
 // text variants
-$darkTextTitle: #d7dcec;
-$darkTextPrimary: #bdc8f0;
-$darkTextSecondary: #8492c4;
+$darkTextTitle: #EDEFFA;
+$darkTextPrimary: #EDEFFA;
+$darkTextSecondary: #9AA3C7;
 
 // ==============================|| JAVASCRIPT ||============================== //
 

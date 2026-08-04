@@ -35,8 +35,22 @@ export interface ITask {
   _id?: string;
 }
 
+export interface ITaskStats {
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  rejectedTasks: number;
+  phoneTasks: number;
+  electricityTasks: number;
+  completionRate: number;
+}
+
 interface ITasksStore {
   tasks: any[];
+  stats: ITaskStats | null;
+  statsLoading: boolean;
+  fetchStats: () => Promise<void>;
+  triggerUpdateStatus: () => Promise<void>;
   openSETTDialogDate: boolean;
   setOpenSETTDialogDate: (open: boolean) => void;
   openInfoDialog: boolean;
@@ -75,6 +89,31 @@ interface ITasksStore {
 
 export const useTasksStore = create<ITasksStore>((set, get) => ({
   tasks: [],
+  stats: null,
+  statsLoading: false,
+  fetchStats: async () => {
+    try {
+      set({ statsLoading: true });
+      const { data } = await api.get('/tasks/stats');
+      set({ stats: data.data });
+    } catch (err) {
+      console.error('Task stats loading error:', err);
+    } finally {
+      set({ statsLoading: false });
+    }
+  },
+  triggerUpdateStatus: async () => {
+    try {
+      useLoaderStore.setState({ isLoading: true });
+      const { data } = await api.post('/tasks/trigger-update-status');
+      toast.success(data.message || "Topshiriqlar holati yangilandi!");
+      await get().fetchStats();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Topshiriqlar holatini yangilashda xatolik");
+    } finally {
+      useLoaderStore.setState({ isLoading: false });
+    }
+  },
   openSETTDialogDate: false,
   setOpenSETTDialogDate: (open: boolean) => set({ openSETTDialogDate: open }),
   openInfoDialog: false,
@@ -135,7 +174,7 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
         data.data.map((row: any, index: number) => ({
           ...row,
           mahallaId: get().mahallalar.find((m: IMahalla) => m.id == row.mahallaId)?.name || '',
-          status: t(('tasksStatus.' + row.status) as 'tasksStatus.completed' | 'tasksStatus.in-progress' | 'tasksStatus.rejected'),
+          status: row.status,
           index: index
         })) || [];
 

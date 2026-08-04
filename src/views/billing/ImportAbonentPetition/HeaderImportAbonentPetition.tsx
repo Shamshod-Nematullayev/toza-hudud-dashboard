@@ -28,21 +28,24 @@ function HeaderImportAbonentPetition() {
         >
           Arizalar kiritish
         </Button>
-        {enteringMode === 'ariza' ? (
-          // PDF rejimi QR kod orqali olish
-          (<Chip label="Ariza rejimi" color="primary" />)
-        ) : (
-          <Chip label="Qo'lda kiritish rejimi" color="secondary" />
-        )}
+        <Chip
+          label={enteringMode === 'ariza' ? "Ariza rejimi" : "Qo'lda kiritish rejimi"}
+          color={enteringMode === 'ariza' ? 'primary' : 'secondary'}
+          onClick={handleClickManualButton}
+          clickable
+          sx={{ cursor: 'pointer' }}
+        />
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        {/* <TextField label="Ariza №" variant="outlined" size="small" />
-        <Button variant="outlined" startIcon={<CachedOutlined />} sx={{ width: 200, borderRadius: 3 }}>
-          {t('buttons.refresh')}
+        <Button
+          variant={enteringMode === 'manual' ? 'contained' : 'outlined'}
+          color="secondary"
+          startIcon={<KeyboardOutlined />}
+          onClick={handleClickManualButton}
+          sx={{ borderRadius: 3 }}
+        >
+          {enteringMode === 'manual' ? "Ariza rejimiga o‘tish" : t('buttons.manualEntry')}
         </Button>
-        <Button variant="outlined" startIcon={<KeyboardOutlined />} sx={{ width: 200, borderRadius: 3 }} onClick={handleClickManualButton}>
-          {t('buttons.manualEntry')}
-        </Button> */}
       </Box>
     </div>
   );

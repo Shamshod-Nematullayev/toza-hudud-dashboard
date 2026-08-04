@@ -69,7 +69,7 @@ export const useSearchAbonentSectionStore = create<StoreState>((set, get) => ({
     totalPages: 0,
     totalElements: 0
   },
-  clearResults: () => set({ searchResults: { content: [], totalPages: 0, totalElements: 0 } }),
+  clearResults: () => set({ searchResults: { content: [], totalPages: 0, totalElements: 0 }, openState: false }),
   setSearchResults: (results) => set({ searchResults: results }),
   searchAbonent: async (filters) => {
     const { data } = await api.get('/abonents/tozamakon', { params: filters });

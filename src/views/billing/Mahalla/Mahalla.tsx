@@ -6,6 +6,7 @@ import React from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import EditMahallaDialog, { MahallaData } from './EditMahallaDialog';
+import { IMahalla } from 'types/billing';
 
 function Mahalla() {
   const [refreshState, setRefreshState] = React.useState(false);
@@ -34,8 +35,8 @@ function Mahalla() {
   const [selectedMahalla, setSelectedMahalla] = React.useState<MahallaData>();
 
   const handleEditClick = (id: number | string) => {
-    const mfy = (rows as MahallaData[]).find((row) => row.id == id);
-    setSelectedMahalla(mfy);
+    const mfy = (rows as IMahalla[]).find((row) => row.id == id);
+    setSelectedMahalla(mfy as any);
     setOpenEditDialog(true);
   };
   const handleSave = async (data: MahallaData) => {
@@ -53,6 +54,22 @@ function Mahalla() {
           { field: 'name', headerName: 'Name', width: 150 },
           { field: 'mfy_rais_name', headerName: 'Mahalla raisi', width: 300 },
           { field: 'mfy_rais_phone', headerName: 'Rais telefoni', width: 150 },
+          {
+            field: 'readyToBlock',
+            headerName: 'Bloklashga tayyor',
+            width: 160,
+            renderCell: (params) => {
+              const ready = !!params.value;
+              return (
+                <Chip
+                  label={ready ? 'Tayyor' : 'Tayyor emas'}
+                  color={ready ? 'success' : 'default'}
+                  variant={ready ? 'filled' : 'outlined'}
+                  size="small"
+                />
+              );
+            }
+          },
           {
             field: 'employees',
             headerName: 'Xodimlar',

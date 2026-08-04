@@ -32,16 +32,18 @@ function ImportAkt() {
   const fileInputRef = useRef(null);
   const [infoModal, setInfoModal] = useState(false);
 
-  const [pdfFileUrl, setPdfFileUrl] = useState<Uint8Array | ''>('');
+  const [pdfFileUrl, setPdfFileUrl] = useState<string>('');
   useEffect(() => {
-    async function fileToBase64() {
+    let url = '';
+    async function uploadAndSetUrl() {
       try {
         setIsLoading(true);
         if (pdfFile) {
           await uploadFileToBilling();
-          const arrayBuffer = await pdfFile.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          setPdfFileUrl(uint8Array);
+          url = URL.createObjectURL(pdfFile);
+          setPdfFileUrl(url);
+        } else {
+          setPdfFileUrl('');
         }
       } catch (error) {
         console.error(error);
@@ -49,17 +51,24 @@ function ImportAkt() {
         setIsLoading(false);
       }
     }
-    fileToBase64();
+    uploadAndSetUrl();
+    return () => {
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    };
   }, [pdfFile]);
   useEffect(() => {
     getActPacks();
   }, []);
 
   return (
-    <MainCard>
-      <Grid container spacing={2}>
+    <MainCard contentSX={{
+      height: 'calc(100vh - 160px)'
+    }}>
+      <Grid container spacing={2} sx={{height: '100%'}}>
         {/* Creating form */}
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }} sx={{height: '100%'}}>
           <FormControl fullWidth>
             <InputLabel id="select-label">{t('importAktsPage.actPack')}</InputLabel>
             <Select
@@ -95,8 +104,10 @@ function ImportAkt() {
           <TextField
             inputRef={fileInputRef}
             type="file"
-            inputProps={{
-              accept: '.xls, .xlsx, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            slotProps={{
+              htmlInput: {
+                accept: '.xls, .xlsx, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              }
             }}
             onChange={(e) => setExcelFile((e.target as HTMLInputElement).files![0])}
             fullWidth
@@ -131,8 +142,8 @@ function ImportAkt() {
           </ButtonGroup>
         </Grid>
         {/* PDF preview */}
-        <Grid item xs={12} md={6}>
-          {pdfFile === null ? <FileInputDrop setFiles={setPdfFile} clearTrigger={false} /> : <PdfViewer base64String={pdfFileUrl} />}
+        <Grid size={{ xs: 12, md: 6 }}>
+          {pdfFile === null ? <FileInputDrop setFiles={(files) => { if (files) setPdfFile(Array.from(files)); }} clearTrigger={false} /> : <PdfViewer base64String={pdfFileUrl} />}
         </Grid>
       </Grid>
       <ImportAktInfo handleClose={() => setInfoModal(false)} open={infoModal} />

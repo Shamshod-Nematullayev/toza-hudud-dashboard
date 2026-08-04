@@ -87,14 +87,17 @@ const uz = {
     gpsMonitoring: 'GPS monitoring',
     gpsDalolatnomalar: 'GPS dalolatnomalar',
     importActs: 'Aktlarni import qilish',
-    folders: 'Papkalar',
+    debtCollectionCenter: 'Debitor undirish markazi',
     debitors: 'Debitorlar',
     visitsGraph: 'Tashriflar grafiki',
     mahallas: 'Mahallalar',
     'sms-warnings': 'SMS ogohlantirishlar',
     caller: 'Telefonchi',
     'call-warnings': 'Telefon ogohlantirishlar',
-    'call-warnings-workspace': 'Telefonchi ishmaydoni'
+    'call-warnings-workspace': 'Telefonchi ishmaydoni',
+    productAdmin: 'Tizim boshqaruvi',
+    manageCompanies: 'Tashkilotlarni boshqarish',
+    manageUsers: 'Foydalanuvchilarni boshqarish'
   },
   priority: {
     '1': 'Past',
@@ -201,6 +204,8 @@ const uz = {
     inn: 'INN',
     pnfl: 'PNFL',
     passport: 'Passport raqami',
+    passportGivenDate: 'Passport berilgan sana',
+    passportExpireDate: 'Passport amal qilish muddati',
     street: "Ko'cha",
     buildingId: 'Uy',
     flatId: 'Kvartira',

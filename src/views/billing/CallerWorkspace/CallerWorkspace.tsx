@@ -20,7 +20,8 @@ import {
   Backdrop,
   CircularProgress,
   Menu,
-  MenuItem
+  MenuItem,
+  Avatar
 } from '@mui/material';
 import {
   CheckCircle as SuccessIcon,
@@ -50,7 +51,16 @@ export const CallerWorkspace: React.FC = () => {
   const [note, setNote] = useState('');
   const callerService = createCallWarningsService(api);
   const [balanceYearEnd, setBalanceYearEnd] = useState(0);
-  const { getDetails, abonentDetails, getIncomePredicts, balancePredicts } = useAbonentStore();
+  const {
+    getDetails,
+    abonentDetails,
+    getIncomePredicts,
+    balancePredicts,
+    fetchBlockReport,
+    blockReport,
+    getCitizensDetails,
+    setResidentPhoto
+  } = useAbonentStore();
   const { language } = useCustomizationStore();
   const [todayStats, setTodayStats] = useState<ICallStats>({
     summary: {
@@ -74,7 +84,30 @@ export const CallerWorkspace: React.FC = () => {
     await getDetails(residentId);
     const periodYearEnd = dayjs().endOf('year').format('MM.YYYY');
 
-    await getIncomePredicts(residentId, periodYearEnd);
+    const details = useAbonentStore.getState().abonentDetails;
+    const promises: any[] = [
+      getIncomePredicts(residentId, periodYearEnd),
+      fetchBlockReport(residentId)
+    ];
+
+    if (details?.citizen && !details.citizen.photo && details.citizen.pnfl && details.citizen.passport) {
+      promises.push(
+        getCitizensDetails({
+          birthDate: dayjs(details.citizen.birthDate).format('YYYY-MM-DD'),
+          pnfl: details.citizen.pnfl,
+          passport: details.citizen.passport,
+          photoStatus: 'WITH_PHOTO'
+        }).then((citizenData) => {
+          if (citizenData && typeof citizenData.photo === 'string') {
+            setResidentPhoto(citizenData.photo);
+          }
+        }).catch((err) => {
+          console.error("Fuqaro rasmini yuklashda xatolik:", err);
+        })
+      );
+    }
+
+    await Promise.all(promises);
 
     const balanceYearEnd = useAbonentStore.getState().balancePredicts?.balancePredictItems.find((b) => b.period === periodYearEnd);
     setBalanceYearEnd(balanceYearEnd?.balanceAmount || 0);
@@ -243,38 +276,66 @@ export const CallerWorkspace: React.FC = () => {
         <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3, borderRadius: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box>
-                  <Typography variant="caption" color="secondary" sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
-                    ID: #{abonentDetails?.id} — HISOB RAQAM:{' '}
-                    <Typography
-                      sx={{ fontSize: '1.2rem', display: 'inline', color: 'text.primary', fontWeight: 'bold', textDecoration: 'underline' }}
-                    >
-                      {abonentDetails?.accountNumber.replace(/(\d{3})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4')}
-                    </Typography>
-                  </Typography>
+              {['BLOCK', 'ALREADY_BLOCK'].includes(blockReport?.blockStatus || '') && (
+                <Alert color="error" severity="error" sx={{ mb: 1, width: '100%' }}>
+                  {t('abonentCardPage.blockedByHet')}: {dayjs(blockReport?.blockDate).format('DD.MM.YYYY')}{' '}
+                  {blockReport?.blockDebt?.toLocaleString()} {t('uzs')}
+                </Alert>
+              )}
 
-                  <Typography variant="h3" sx={{ mt: 0.5, fontWeight: 700, color: 'text.primary' }}>
-                    {abonentDetails?.fullName}
-                  </Typography>
-
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    <b>Tug'ilgan yili:</b> {dayjs(abonentDetails?.citizen.birthDate).get('year')} | <b>Tel:</b> {abonentDetails?.phone}
-                  </Typography>
-
-                  <Typography variant="body2" sx={{ color: 'text.primary', mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <strong>Manzil:</strong>{' '}
-                    {[
-                      abonentDetails?.mahallaName + ' MFY',
-                      abonentDetails?.streetName + " ko'chasi",
-                      abonentDetails?.house.homeNumber + ' uy'
-                    ].join(', ')}
+              <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px', width: '100px' }}>
+                  <Avatar
+                    variant="rounded"
+                    src={abonentDetails?.citizen?.photo ? 'data:image/png;base64,' + abonentDetails.citizen.photo : undefined}
+                    sx={{
+                      width: '100px',
+                      height: '120px',
+                      borderRadius: '8px',
+                      bgcolor: '#f0f2f5',
+                      border: '1px solid #eef2f6'
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                    {abonentDetails?.citizen?.birthDate ? dayjs(abonentDetails.citizen.birthDate).format('DD.MM.YYYY') : ''}
                   </Typography>
                 </Box>
 
-                {(abonentDetails?.balance.kSaldo || 0) > 0 && (
-                  <Chip label="Qarzdor" color="error" variant="filled" sx={{ fontWeight: 'bold' }} />
-                )}
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Box>
+                      <Typography variant="caption" color="secondary" sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
+                        ID: #{abonentDetails?.id} — HISOB RAQAM:{' '}
+                        <Typography
+                          sx={{ fontSize: '1.2rem', display: 'inline', color: 'text.primary', fontWeight: 'bold', textDecoration: 'underline' }}
+                        >
+                          {abonentDetails?.accountNumber?.replace(/(\d{3})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4')}
+                        </Typography>
+                      </Typography>
+
+                      <Typography variant="h3" sx={{ mt: 0.5, fontWeight: 700, color: 'text.primary' }}>
+                        {abonentDetails?.fullName}
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        <b>Tug'ilgan yili:</b> {dayjs(abonentDetails?.citizen?.birthDate).get('year')} | <b>Tel:</b> {abonentDetails?.phone}
+                      </Typography>
+
+                      <Typography variant="body2" sx={{ color: 'text.primary', mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <strong>Manzil:</strong>{' '}
+                        {[
+                          abonentDetails?.mahallaName + ' MFY',
+                          abonentDetails?.streetName + " ko'chasi",
+                          abonentDetails?.house?.homeNumber + ' uy'
+                        ].join(', ')}
+                      </Typography>
+                    </Box>
+
+                    {(abonentDetails?.balance?.kSaldo || 0) > 0 && (
+                      <Chip label="Qarzdor" color="error" variant="filled" sx={{ fontWeight: 'bold' }} />
+                    )}
+                  </Box>
+                </Box>
               </Box>
 
               <Grid container spacing={1}>

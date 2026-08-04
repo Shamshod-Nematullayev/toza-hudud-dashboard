@@ -27,7 +27,7 @@ export function hasValidAriza(ariza: IAriza | null): ariza is IAriza {
   return Boolean(ariza && typeof (ariza as IAriza)._id === 'string' && Number((ariza as IAriza).abonentId) > 0);
 }
 
-function parseAktSumExpression(raw: string): number {
+export function parseAktSumExpression(raw: string): number {
   try {
     // eslint-disable-next-line no-eval
     return Math.floor(Number(eval(raw)));
@@ -75,7 +75,7 @@ const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: strin
   return formData;
 };
 
-const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, rows: IRow[]) => {
+const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, rows: IRow[], customShouldTransferMoney?: boolean) => {
   const formData = new FormData();
   formData.append('file', currentFile.blob, currentFile.file.name);
   formData.append('document_type', a.document_type);
@@ -92,7 +92,10 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
   a.tempPhotos?.forEach((photo, index) => {
     formData.append(`photos[${index}]`, photo);
   });
-  if (a.document_type === 'dvaynik') formData.append('shouldTransferMoney', a.shouldBeMoneyTransfer ? '1' : '0');
+  if (a.document_type === 'dvaynik') {
+    const shouldTransfer = customShouldTransferMoney !== undefined ? customShouldTransferMoney : a.shouldBeMoneyTransfer;
+    formData.append('shouldTransferMoney', shouldTransfer ? '1' : '0');
+  }
   return formData;
 };
 
@@ -104,6 +107,7 @@ export function useFindedTableLogic() {
   const [aktSumm, setAktSumm] = useState('0');
   const [manualAccountNumber, setManualAccountNumber] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [moneyTransferDialogOpen, setMoneyTransferDialogOpen] = useState(false);
 
   const { setIsLoading } = useLoaderStore();
   const { refetch: refetchTariffs, currentTariff, loading: tariffsLoading } = useTariff();
@@ -112,7 +116,10 @@ export function useFindedTableLogic() {
   const abonentData = useRecalculatorStore((s) => s.abonentData);
   const yashovchiSoniInput = useRecalculatorStore((s) => s.yashovchiSoniInput);
 
-  const manualResidentIdForDh = manualEditing && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0 ? abonentData.id : null;
+  const manualResidentIdForDh =
+    (manualEditing || enteringMode === 'manual') && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0
+      ? abonentData.id
+      : null;
 
   const {
     rows,
@@ -220,19 +227,16 @@ export function useFindedTableLogic() {
       setYashovchiSoniInput(String(mapped[0].yashovchilar_soni));
       setRowsDhjTable(mapped);
       toast.success('Abonent yuklandi');
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast.error('DHJ maʼlumotini olishda xatolik');
     }
   }, [manualAccountNumber]);
 
-  const handlePrimaryButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-
-    // 1. Dastlabki bloklovchi tekshiruvlar (Guard Clauses)
+  const executeSubmit = async (overrideShouldTransferMoney?: boolean) => {
     if (!currentFile?.blob) return toast.error('Fayl tanlanmadi');
 
     const validAriza = hasValidAriza(ariza as IAriza | null);
-    // Agar ariza tanlanmasa, faqat qo'lda kiritish rejimi uchun tekshirishlarni o'tkazamiz
     if (enteringMode !== 'manual' && !validAriza) return toast.error('Ariza tanlanmadi');
 
     try {
@@ -241,7 +245,7 @@ export function useFindedTableLogic() {
       let formData: FormData;
       let url: string;
 
-      if (manualEditing && !validAriza) {
+      if ((manualEditing || enteringMode === 'manual') && !validAriza) {
         const { abonentData: ad, aktType } = useRecalculatorStore.getState();
 
         if (!ad?.id) throw new Error("Avval hisob raqam bo'yicha abonentni yuklang");
@@ -249,7 +253,6 @@ export function useFindedTableLogic() {
         if (aktType === 'dvaynik') throw new Error('Ikkilamchi kod akti uchun ariza talab qilinadi');
 
         formData = prepareManualFormData(currentFile, aktSumm, aktType, photos);
-        // URL Map orqali switch-caseni yanada qisqartirish mumkin
         const urlMap: Record<string, string> = {
           dvaynik: '/billing/create-dvaynik-akt',
           cancelContract: '/billing/create-cancelcontract-act'
@@ -257,9 +260,8 @@ export function useFindedTableLogic() {
         url = urlMap[aktType] || CREATE_RESIDENT_ACT_URL;
       } else {
         if (!ariza) throw new Error('Ariza maʼlumotlari mavjud emas');
-        formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows);
+        formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows, overrideShouldTransferMoney);
 
-        // URL Map orqali switch-caseni yanada qisqartirish mumkin
         const urlMap: Record<string, string> = {
           dvaynik: '/billing/create-dvaynik-akt-by-ariza',
           cancelContract: '/billing/create-cancelcontract-act'
@@ -267,14 +269,12 @@ export function useFindedTableLogic() {
         url = urlMap[ariza.document_type] || CREATE_RESIDENT_ACT_URL;
       }
 
-      // 3. Yagona API chaqiruvi (Markazlashgan execution)
       const { data } = await api.post(url, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       if (!data.ok) throw new Error(data.message);
 
-      // 4. Muvaffaqiyatli yakun (Cleanup)
       handleDeleteButtonClick();
       toast.success(data.message || 'Muvaffaqiyatli bajarildi');
     } catch (err) {
@@ -285,6 +285,27 @@ export function useFindedTableLogic() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePrimaryButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    if (!currentFile?.blob) return toast.error('Fayl tanlanmadi');
+
+    const validAriza = hasValidAriza(ariza as IAriza | null);
+    if (enteringMode !== 'manual' && !validAriza) return toast.error('Ariza tanlanmadi');
+
+    if (enteringMode !== 'manual' && validAriza && ariza?.document_type === 'dvaynik') {
+      setMoneyTransferDialogOpen(true);
+      return;
+    }
+
+    await executeSubmit();
+  };
+
+  const handleMoneyTransferConfirm = async (shouldTransfer: boolean) => {
+    setMoneyTransferDialogOpen(false);
+    await executeSubmit(shouldTransfer);
   };
 
   const handleDeleteButtonClick = async () => {
@@ -341,6 +362,10 @@ export function useFindedTableLogic() {
     setManualAccountNumber,
     loadAbonentByAccountForManual,
     photos,
-    setPhotos
+    setPhotos,
+    allPaymentsSumOnDublicate,
+    moneyTransferDialogOpen,
+    setMoneyTransferDialogOpen,
+    handleMoneyTransferConfirm
   };
 }

@@ -12,7 +12,10 @@ import {
   Stack,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  Tabs,
+  Tab,
+  Badge
 } from '@mui/material';
 
 import api from 'utils/api';
@@ -20,11 +23,22 @@ import { useMutation } from '@tanstack/react-query';
 import DebitorDetailDialog from './modals/DebitorDetailDialog';
 import HetSyncScriptDialog from './modals/HetSyncScriptDialog';
 import useCustomizationStore from 'store/customizationStore';
-import { DownloadOutlined, EditOutlined, RefreshOutlined, SearchOutlined, SmsOutlined, VisibilityOutlined, BoltOutlined } from '@mui/icons-material';
+import {
+  DownloadOutlined,
+  EditOutlined,
+  RefreshOutlined,
+  SearchOutlined,
+  SmsOutlined,
+  VisibilityOutlined,
+  BoltOutlined,
+  HelpOutlineOutlined
+} from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
 import MainCard from 'ui-component/cards/MainCard';
+import { HelpModal } from './modals/HelpModal';
 import { socket } from 'utils/socket';
+import { toast } from 'react-toastify';
 
 interface SmsBalance {
   amount: number;
@@ -59,6 +73,8 @@ interface DebitorStats {
   };
 }
 
+export type OperationalQueue = 'DATA_NEEDS_ATTENTION' | 'SMS_PENDING_WAIT' | 'READY_TO_BLOCK' | 'CURRENTLY_BLOCKED';
+
 export interface Debitor {
   _id: string;
   accountNumberEtk: string;
@@ -67,6 +83,8 @@ export interface Debitor {
   debtAmount: number;
   debtMonths: number;
   status: DebitorStatus;
+  operationalQueue?: OperationalQueue;
+  subStatus?: string;
   phones: {
     number: string;
     source: string;
@@ -83,7 +101,34 @@ export interface Debitor {
   accountNumber: string;
   id: string; // DataGrid uchun tartib raqami id
 }
+
 // ─── Config ───────────────────────────────────────────────────────
+
+export const QUEUE_CFG: Record<OperationalQueue, { label: string; color: 'error' | 'warning' | 'info' | 'secondary' }> = {
+  DATA_NEEDS_ATTENTION: { label: 'Diqqat talab', color: 'error' },
+  SMS_PENDING_WAIT: { label: 'SMS Kutilmoqda', color: 'warning' },
+  READY_TO_BLOCK: { label: 'Uzishga tayyor', color: 'info' },
+  CURRENTLY_BLOCKED: { label: 'Bloklanganlar', color: 'secondary' }
+};
+
+export const SUBSTATUS_MAP: Record<string, string> = {
+  phone_missing: 'Raqam topilmadi',
+  no_het_account: "HET kodi yo'q",
+  account_not_found: 'Hisob topilmadi',
+  invalid_account_number: "Noto'g'ri hisob kodi",
+  smsc_not_found: 'SMS markaz xatosi',
+  sms_queued_in_flight: 'SMS navbatda',
+  sms_newly_sent: 'SMS yuborildi',
+  sms_pending_delivery: 'SMS yetkazilmoqda',
+  sms_delivered_ready: 'SMS yetkazildi (Tayyor)',
+  previously_blocked: "Ilgari o'chirilgan",
+  tozamakon_phone_needs_het_sync: 'HET ga sinxronlash kerak',
+  actively_blocked_in_het: 'HET da bloklangan',
+  actively_blocked: 'Blokda',
+  resolved: 'Hal etildi',
+  ready_to_block: 'Tayyor',
+  needs_het_sync: 'HET kutilmoqda'
+};
 
 const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(n);
 const fmtMoney = (n: number) => fmt(n) + " so'm";
@@ -137,11 +182,11 @@ function StatCard({ label, value, valueColor }: { label: string; value: { count:
 }
 
 import { Sidebar } from './DebitorsSideBar';
-import { DebitorStatus, PHONE_CFG, PhoneStatus, STATUS_CFG } from './types';
+import { DebitorStatus, PHONE_CFG, PhoneStatus, STATUS_CFG, HET_ACCOUNT_CFG, HetAccountStatus } from './types';
 
 // ─── Asosiy komponent ─────────────────────────────────────────────
 
-const INIT_FILTERS = { status: '', phoneStatus: '', debtFrom: '', debtTo: '' };
+const INIT_FILTERS = { status: [] as string[], hetAccountStatus: [] as string[], phoneStatus: [] as string[], debtFrom: '', debtTo: '' };
 
 function Debitors() {
   const [refreshState, setRefreshState] = React.useState(false);
@@ -150,6 +195,8 @@ function Debitors() {
   const [openSyncDialog, setOpenSyncDialog] = React.useState(false);
   const { user } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
+  // 4-Stage Operational Queue Tab Filter State
+  const [selectedQueueTab, setSelectedQueueTab] = React.useState<string>('ALL');
 
   // Filtrlar — draft (sidebar) va applied (so'rovga yuborilgan)
   const [draft, setDraft] = React.useState(INIT_FILTERS);
@@ -164,8 +211,32 @@ function Debitors() {
   // Statistika
   const [stats, setStats] = React.useState<DebitorStats | null>(null);
 
-  // Job trigger holati
-  const [jobLoading, setJobLoading] = React.useState<Record<string, boolean>>({});
+  // Help Modal State
+  const [helpOpen, setHelpOpen] = React.useState(false);
+
+  // Job tugaganda va real-time socket xabari kelganda ma'lumotlarni avto-yangilash
+  React.useEffect(() => {
+    const handleJobProgress = (data: any) => {
+      if (data && data.progress === 100) {
+        toast.success("Job jarayoni yakunlandi. Ma'lumotlar va statistika yangilandi.");
+        refresh();
+      }
+    };
+
+    const handleNotification = (data: any) => {
+      if (data && data.message && (data.message.includes('debitor') || data.message.includes('monitoring'))) {
+        refresh();
+      }
+    };
+
+    socket.on('job-progress', handleJobProgress);
+    socket.on('notification', handleNotification);
+
+    return () => {
+      socket.off('job-progress', handleJobProgress);
+      socket.off('notification', handleNotification);
+    };
+  }, []);
 
   // ─── So'rovlar ────────────────────────────────────────────────
 
@@ -177,9 +248,11 @@ function Debitors() {
           limit,
           sortField,
           sortDirection,
+          operationalQueue: selectedQueueTab !== 'ALL' ? selectedQueueTab : undefined,
           search: appliedSearch || undefined,
-          status: applied.status || undefined,
-          phoneStatus: applied.phoneStatus || undefined,
+          status: applied.status.length > 0 ? applied.status.join(',') : undefined,
+          hetAccountStatus: applied.hetAccountStatus.length > 0 ? applied.hetAccountStatus.join(',') : undefined,
+          phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
           debtAmountFrom: applied.debtFrom || undefined,
           debtAmountTo: applied.debtTo || undefined
         }
@@ -188,19 +261,21 @@ function Debitors() {
     },
     [],
     25,
-    { refreshState }
+    { refreshState, selectedQueueTab, applied, appliedSearch }
   );
 
   React.useEffect(() => {
     setSmsLoad(true);
     api
       .get('/sms-service/balance')
-      .then(({ data }) =>
-        setSmsbal({
-          amount: data.balance,
-          estimatedMessages: Math.floor(data.balance / 120) // Faraz qilaylik, 1 SMS 80 so'm turadi
-        })
-      )
+      .then(({ data }) => {
+        if (data && typeof data.balance === 'number') {
+          setSmsbal({
+            amount: data.balance,
+            estimatedMessages: Math.floor(data.balance / 120)
+          });
+        }
+      })
       .catch(() => setSmsbal(null))
       .finally(() => setSmsLoad(false));
   }, [refreshState]);
@@ -212,39 +287,42 @@ function Debitors() {
         const s = data.data;
 
         // 1. Massivlarni tezkor qidirish uchun Object Map ko'rinishiga o'tkazamiz
-        const statusMap = Object.fromEntries((s.statusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt }]));
-
+        const statusMap = Object.fromEntries(
+          (s.statusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt || 0 }])
+        );
+        const hetMap = Object.fromEntries(
+          (s.hetAccountStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt || 0 }])
+        );
         const phoneMap = Object.fromEntries(
-          (s.phoneStatusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt }])
+          (s.phoneStatistics || s.phoneStatusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt || 0 }])
         );
 
         // 2. Yordamchi funksiya: Agar status topilmasa default qiymat qaytaradi
         const getStat = (map: Record<string, any>, key: string) => map[key] || { count: 0, summ: 0 };
 
         // 3. Statelarni bir marta toza konfiguratsiya bilan yangilaymiz
-        // prettier-ignore
         setStats({
           totalDebtors: {
             count: s.summary?.totalDebtors || 0,
             summ: s.summary?.grandTotalDebt || 0
           },
-          debt_identified:      getStat(statusMap, 'debt_identified'),
-          awaiting_het_sync:    getStat(statusMap, 'awaiting_het_sync'),
-          no_het_account:       getStat(statusMap, 'no_het_account'),
-          sms_sent:             getStat(statusMap, 'sms_sent'),
-          ready_to_block:       getStat(statusMap, 'ready_to_block'),
-          blocked:              getStat(statusMap, 'blocked'),
-          resolved:             getStat(statusMap, 'resolved'),
-          no_phone:             getStat(statusMap, 'no_phone'),
-          
+          debt_identified: getStat(statusMap, 'data_needs_attention'),
+          awaiting_het_sync: getStat(phoneMap, 'needs_het_sync'),
+          no_het_account: getStat(hetMap, 'not_found'),
+          sms_sent: getStat(phoneMap, 'checking'),
+          ready_to_block: getStat(statusMap, 'ready_to_block'),
+          blocked: getStat(statusMap, 'blocked'),
+          resolved: getStat(statusMap, 'resolved'),
+          no_phone: getStat(phoneMap, 'not_found'),
+
           phoneStatus: {
-            checking:              getStat(phoneMap, 'checking'),
-            confirmed_previously:  getStat(phoneMap, 'confirmed_previously'),
-            confirmed_this_cycle:  getStat(phoneMap, 'confirmed_this_cycle'),
-            het_synced:            getStat(phoneMap, 'het_synced'),
-            needs_het_sync:        getStat(phoneMap, 'needs_het_sync'),
-            new:                   getStat(phoneMap, 'new'),
-            not_found:             getStat(phoneMap, 'not_found')
+            checking: getStat(phoneMap, 'checking'),
+            confirmed_previously: getStat(phoneMap, 'confirmed_previously'),
+            confirmed_this_cycle: getStat(phoneMap, 'confirmed_this_cycle'),
+            het_synced: getStat(phoneMap, 'het_synced'),
+            needs_het_sync: getStat(phoneMap, 'needs_het_sync'),
+            new: getStat(phoneMap, 'new'),
+            not_found: getStat(phoneMap, 'not_found')
           }
         });
       })
@@ -267,16 +345,6 @@ function Debitors() {
     refresh();
   };
 
-  const triggerJob = async (key: string, endpoint: string) => {
-    setJobLoading((p) => ({ ...p, [key]: true }));
-    try {
-      await api.post(endpoint);
-      refresh();
-    } finally {
-      setJobLoading((p) => ({ ...p, [key]: false }));
-    }
-  };
-
   // Excel yuklash funksiyasi
   const fetchExcelFile = async () => {
     const response = await api.get('/debitors/excel', {
@@ -285,9 +353,10 @@ function Debitors() {
         limit: 0,
         sortField: '',
         sortDirection: '',
+        operationalQueue: selectedQueueTab !== 'ALL' ? selectedQueueTab : undefined,
         search: appliedSearch || undefined,
-        status: applied.status || undefined,
-        phoneStatus: applied.phoneStatus || undefined,
+        status: applied.status.length > 0 ? applied.status.join(',') : undefined,
+        phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
         debtAmountFrom: applied.debtFrom || undefined,
         debtAmountTo: applied.debtTo || undefined
       },
@@ -335,12 +404,18 @@ function Debitors() {
       field: 'fullName',
       headerName: 'F.I.O',
       flex: 1.5,
-      minWidth: 180
+      minWidth: 180,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true
     },
     {
       field: 'accountNumber',
       headerName: 'Hisob raqam',
       width: 160,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: ({ value, row }) => (
         <Stack>
           <Typography variant="body2">{value}</Typography>
@@ -355,7 +430,10 @@ function Debitors() {
     {
       field: 'debtAmount',
       headerName: "Qarz (so'm)",
-      width: 155,
+      width: 145,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: ({ value }) => (
         <Typography variant="body2" sx={{ fontWeight: 500 }} color={value > 1_000_000 ? 'error.main' : 'text.primary'}>
           {fmt(value)}
@@ -365,33 +443,68 @@ function Debitors() {
     {
       field: 'debtMonths',
       headerName: 'Oy',
-      width: 70,
+      width: 60,
       align: 'center',
-      headerAlign: 'center'
+      headerAlign: 'center',
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 160,
+      width: 170,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: ({ value }) => {
         const c = STATUS_CFG[value as DebitorStatus];
         return c ? <Chip label={c.label} color={c.color} size="small" /> : value;
       }
     },
     {
+      field: 'hetAccountStatus',
+      headerName: 'Elektr kodi (ETK)',
+      width: 155,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: ({ value }) => {
+        const c = HET_ACCOUNT_CFG[value as HetAccountStatus];
+        return c ? <Chip label={c.label} color={c.color} size="small" variant="outlined" /> : value || '—';
+      }
+    },
+    {
       field: 'phoneStatus',
       headerName: 'Telefon',
-      width: 185,
+      width: 175,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: ({ value }) => {
         const c = PHONE_CFG[value as PhoneStatus];
         return c ? <Chip label={c.label} color={c.color} size="small" variant="outlined" /> : value;
       }
     },
     {
+      field: 'subStatus',
+      headerName: 'Tafsilot (Sabab)',
+      width: 170,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: ({ value }) => {
+        const label = value ? SUBSTATUS_MAP[value] || value : '—';
+        return <Chip label={label} size="small" variant="outlined" sx={{ fontSize: 11 }} />;
+      }
+    },
+    {
       field: 'actions',
       headerName: '',
-      width: 88,
+      width: 80,
       sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.5}>
           <Tooltip title="Ko'rish">
@@ -419,19 +532,18 @@ function Debitors() {
         {/* Sol panel: filtrlar + triggerlar */}
         <Sidebar
           status={draft.status}
+          hetAccountStatus={draft.hetAccountStatus}
           phoneStatus={draft.phoneStatus}
           debtFrom={draft.debtFrom}
           debtTo={draft.debtTo}
           onStatusChange={(v) => setDraft((p) => ({ ...p, status: v }))}
+          onHetAccountChange={(v) => setDraft((p) => ({ ...p, hetAccountStatus: v }))}
           onPhoneChange={(v) => setDraft((p) => ({ ...p, phoneStatus: v }))}
           onDebtFromChange={(v) => setDraft((p) => ({ ...p, debtFrom: v }))}
           onDebtToChange={(v) => setDraft((p) => ({ ...p, debtTo: v }))}
           onApply={applyFilters}
           onReset={resetFilters}
-          jobLoading={jobLoading}
-          onTrigger={triggerJob}
-          smsEmpty={!!smsEmpty}
-          smsLoading={smsLoad}
+          onJobFinish={refresh}
         />
 
         {/* O'ng panel: asosiy kontent */}
@@ -449,22 +561,81 @@ function Debitors() {
                   summ: stats.totalDebtors.summ - stats.resolved.summ
                 }}
               />
-              <StatCard label="⏳ Yangi aniqlangan debitorlar" value={stats.debt_identified} />
-              <StatCard label="⚠️ Elektr kodi yo'q" value={stats.no_het_account} valueColor="error.dark" />
               <StatCard label="❌ Telefon raqami yo'q" value={stats.no_phone} valueColor="error.dark" />
-              <StatCard label="🔍 Tekshirilmoqda (SMS)" value={stats.sms_sent} valueColor="warning.dark" />
-              <StatCard label="🔄 HET sinxronizatsiya qilinishi kerak" value={stats.awaiting_het_sync} valueColor="warning.dark" />
-              <StatCard label="☑️ Bloklanishi Kutilmoqda" value={stats.ready_to_block} valueColor="success.dark" />
-              <StatCard label="✔️ Bloklangan" value={stats.blocked} valueColor="success.dark" />
-              {/* <StatCard label="✅ Yechilgan debitorlar" value={stats.resolved} valueColor="success.dark" /> */}
+              <StatCard label="⚡ Elektr kodi yo'q" value={stats.no_het_account} valueColor="error.dark" />
+              <StatCard
+                label="🔄 HET sinxronlash kerak"
+                value={stats.phoneStatus.needs_het_sync || stats.awaiting_het_sync}
+                valueColor="warning.dark"
+              />
+              <StatCard
+                label="🔒 Bloklashga 100% tayyor"
+                value={{
+                  count: Math.max(
+                    0,
+                    stats.ready_to_block.count - (stats.phoneStatus.needs_het_sync?.count || stats.awaiting_het_sync?.count || 0)
+                  ),
+                  summ: Math.max(
+                    0,
+                    stats.ready_to_block.summ - (stats.phoneStatus.needs_het_sync?.summ || stats.awaiting_het_sync?.summ || 0)
+                  )
+                }}
+                valueColor="success.dark"
+              />
+              <StatCard label="✔️ Bloklangan" value={stats.blocked} valueColor="secondary.dark" />
             </Stack>
           ) : (
             <Stack direction="row" spacing={1.5}>
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} variant="rounded" height={64} sx={{ flex: 1 }} />
               ))}
             </Stack>
           )}
+
+          {/* 2.1. 4-Stage Operational Work Queue Tabs */}
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0.5 }}>
+            <Tabs
+              value={selectedQueueTab}
+              onChange={(e, val) => {
+                setSelectedQueueTab(val);
+                refresh();
+              }}
+              variant="scrollable"
+              scrollButtons="auto"
+              textColor="secondary"
+              indicatorColor="secondary"
+            >
+              <Tab label="Barchasi" value="ALL" sx={{ fontWeight: 700 }} />
+              <Tab
+                label="Diqqat talab"
+                value="DATA_NEEDS_ATTENTION"
+                icon={<Chip label="1-Bosqich" size="small" color="error" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+              <Tab
+                label="SMS Kutilmoqda"
+                value="SMS_PENDING_WAIT"
+                icon={<Chip label="2-Bosqich" size="small" color="warning" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+              <Tab
+                label="Uzishga tayyor"
+                value="READY_TO_BLOCK"
+                icon={<Chip label="3-Bosqich" size="small" color="info" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+              <Tab
+                label="Bloklanganlar"
+                value="CURRENTLY_BLOCKED"
+                icon={<Chip label="4-Bosqich" size="small" color="secondary" sx={{ height: 18, fontSize: 10 }} />}
+                iconPosition="end"
+                sx={{ fontWeight: 700, gap: 1 }}
+              />
+            </Tabs>
+          </Box>
 
           {/* 3. Qidiruv qatori */}
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -505,6 +676,16 @@ function Debitors() {
                 HET Sync Script
               </Button>
             )}
+            <Tooltip title="Qo'llanma va Shartlar">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => setHelpOpen(true)}
+                sx={{ border: '1px solid', borderColor: 'primary.main' }}
+              >
+                <HelpOutlineOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Button
               variant="contained"
               color="success"
@@ -528,6 +709,10 @@ function Debitors() {
           />
         </Box>
       </Box>
+
+      {/* Qo'llanma Modal */}
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+
       {selectedDebitor && (
         <DebitorDetailDialog
           open={selectedDebitor !== null}
@@ -536,12 +721,7 @@ function Debitors() {
           onEdit={() => 'todo'}
         />
       )}
-      {openSyncDialog && (
-        <HetSyncScriptDialog
-          open={openSyncDialog}
-          onClose={() => setOpenSyncDialog(false)}
-        />
-      )}
+      {openSyncDialog && <HetSyncScriptDialog open={openSyncDialog} onClose={() => setOpenSyncDialog(false)} />}
     </MainCard>
   );
 }

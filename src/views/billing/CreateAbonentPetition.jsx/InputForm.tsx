@@ -198,13 +198,13 @@ function InputForm() {
         <Grid size={12}>
           {aktType === 'gps' && (
             <FormControlLabel
-              control={<Checkbox value={muzlatiladi} onChange={(e) => setMuzlatiladi(Boolean(e.target.value))} />}
+              control={<Checkbox checked={muzlatiladi} onChange={(e) => setMuzlatiladi(e.target.checked)} />}
               label="Muzlatish (Hozirda ham xizmat ko'rsatilmaydi)"
             />
           )}
           {aktType === 'dvaynik' && (
             <FormControlLabel
-              control={<Checkbox value={shouldBeMoneyTransfer} onChange={(e) => setShouldBeMoneyTransfer(Boolean(e.target.value))} />}
+              control={<Checkbox checked={shouldBeMoneyTransfer} onChange={(e) => setShouldBeMoneyTransfer(e.target.checked)} />}
               label="Asosiy hisob raqamga ikkilamchidagi to'lovlarni ko'chirish"
             />
           )}

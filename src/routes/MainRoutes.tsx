@@ -4,6 +4,7 @@ import { JSX, lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import Inspectors from 'views/employeers/Inspectors/Inspectors';
+import Inspector360 from 'views/employeers/Inspectors/Inspector360';
 import AbonentPetitions from 'views/billing/AbonentPetitions';
 import DeleteDublicate from 'views/billing/DeleteDublicate';
 import WarningLetters from 'views/jurist/WarningLetters/index';
@@ -26,12 +27,14 @@ import ActCheck from 'views/stm/ActCheck';
 import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
 import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetitions';
 import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
+import SpecialTasksReport from 'views/billing/Reports/SpecialTasksReport';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
-import Folders from 'views/billing/Folders';
 import Debitors from 'views/billing/Debitors';
+import DebtCollectionOverview from 'views/billing/DebtCollectionCenter/DebtCollectionOverview';
+import WorkQueueDetail from 'views/billing/DebtCollectionCenter/WorkQueueDetail';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
 import Abonent from 'views/billing/Abonent/Abonent';
@@ -45,6 +48,8 @@ import { CallerWorkspace } from 'views/billing/CallerWorkspace/CallerWorkspace';
 import CallRequestAdmin from 'views/billing/CallRequestAdmin/CallRequestAdmin';
 import CallerStart from 'views/billing/CallerWorkspace/CallerStart';
 import Murojaatlar from 'views/jurist/Murojaatlar/Murojaatlar';
+import Companies from 'views/productAdmin/Companies';
+import Users from 'views/productAdmin/Users';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -117,6 +122,10 @@ const MainRoutes: MainRoutesProps = {
           element: <Inspectors />
         },
         {
+          path: 'inspectors/:inspectorId/360',
+          element: <Inspector360 />
+        },
+        {
           path: 'mahallas',
           element: <Mahalla />
         },
@@ -154,10 +163,6 @@ const MainRoutes: MainRoutesProps = {
           element: <ImportAbonentPetition />
         },
         {
-          path: 'folders',
-          element: <Folders />
-        },
-        {
           path: 'sms-warnings',
           element: <SmsWarnings />
         },
@@ -190,12 +195,24 @@ const MainRoutes: MainRoutesProps = {
           element: <IdentifikatsiyaMahallaKesim />
         },
         {
+          path: 'report-special-tasks',
+          element: <SpecialTasksReport />
+        },
+        {
           path: 'pendingNewAbonents',
           element: <PendingNewAbonents />
         },
         {
           path: 'debitors',
           element: <Debitors />
+        },
+        {
+          path: 'debt-collection-center',
+          element: <DebtCollectionOverview />
+        },
+        {
+          path: 'debt-collection-center/queue/:queueId',
+          element: <WorkQueueDetail />
         },
         {
           path: 'blanks',
@@ -310,6 +327,19 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'acts',
           element: <AbonentActs />
+        }
+      ]
+    },
+    {
+      path: 'product-admin',
+      children: [
+        {
+          path: 'companies',
+          element: <Companies />
+        },
+        {
+          path: 'users',
+          element: <Users />
         }
       ]
     },

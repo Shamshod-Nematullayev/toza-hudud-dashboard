@@ -19,12 +19,17 @@ import { useEffect, useRef } from 'react';
 import { Tooltip } from '@mui/material';
 import SearchAbonentSection from './SearchAbonentSection/SearchAbonentSection';
 import MurojaatlarSection from './MurojaatlarSection';
+import useCustomizationStore from 'store/customizationStore';
+import CompanySelector from './CompanySelector';
+import ExtraMenuSection from './ExtraMenuSection';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
 const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void }) => {
   const theme = useTheme();
   const menuButtonRef = useRef<HTMLDivElement>(null);
+  const { user } = useCustomizationStore();
+  const isProductAdmin = user?.roles?.includes('product_admin');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,15 +90,30 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       </Box>
 
       {/* header search */}
-      <SearchSection />
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        <SearchSection />
+      </Box>
       <Box sx={{ flexGrow: 1 }} />
+      {isProductAdmin && (
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <CompanySelector />
+        </Box>
+      )}
       <Box sx={{ flexGrow: 1 }} />
-      <SearchAbonentSection />
-      <LanguageSection />
-      {/* notification & profile */}
-      <MurojaatlarSection />
-      <NotificationSection />
-      <ProfileSection />
+
+      {/* Abonent Izlash - Mobile va Desktop ekranlarda ko'rinadi */}
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <SearchAbonentSection />
+      </Box>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1, md: 1.5 }, ml: 'auto' }}>
+        <LanguageSection />
+        {/* notification, profile va qo'shimcha 3-Dot menyu */}
+        <MurojaatlarSection />
+        <NotificationSection />
+        <ProfileSection />
+        <ExtraMenuSection />
+      </Box>
     </>
   );
 };

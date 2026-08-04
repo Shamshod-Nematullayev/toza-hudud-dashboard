@@ -24,6 +24,11 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
 
+  const targetCompanyId = localStorage.getItem('targetCompanyId');
+  if (targetCompanyId) {
+    config.headers['x-target-company-id'] = targetCompanyId;
+  }
+
   return config;
 });
 

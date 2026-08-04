@@ -55,10 +55,10 @@ const LanguageSection = () => {
     <>
       <Box
         sx={{
-          ml: 2,
-          mr: 3,
+          ml: { xs: 0, md: 2 },
+          mr: { xs: 0, md: 3 },
           [theme.breakpoints.down('md')]: {
-            mr: 2
+            mr: { xs: 0, md: 2 }
           }
         }}
       >
@@ -69,11 +69,12 @@ const LanguageSection = () => {
               ...theme.typography.commonAvatar,
               ...theme.typography.mediumAvatar,
               transition: 'all .2s ease-in-out',
-              background: theme.palette.secondary.light,
-              color: theme.palette.secondary.dark,
+              background: theme.palette.mode === 'dark' ? '#16204A' : theme.palette.secondary.light,
+              color: theme.palette.mode === 'dark' ? '#EDEFFA' : theme.palette.secondary.dark,
+              border: theme.palette.mode === 'dark' ? '1px solid #29346B' : 'none',
               '&[aria-controls="menu-list-grow"],&:hover': {
-                background: theme.palette.secondary.dark,
-                color: theme.palette.secondary.light
+                background: theme.palette.mode === 'dark' ? '#1B2554' : theme.palette.secondary.dark,
+                color: theme.palette.mode === 'dark' ? '#EDEFFA' : theme.palette.secondary.light
               }
             }}
             ref={anchorRef}

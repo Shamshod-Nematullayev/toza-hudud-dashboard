@@ -25,6 +25,7 @@ export const useSearchAbonent = () => {
         setOpenState(false);
       } else {
         setSearchResults(data); // Bir nechta natija bo'lsa ro'yxatga yozamiz
+        setOpenState(false); // Popover/filter oynasini yopish
       }
     },
     // 3. Xatolik bo'lganda (Error)

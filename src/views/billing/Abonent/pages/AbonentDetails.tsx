@@ -2,7 +2,7 @@ import InfoChips from '../InfoChips';
 import AbonentProfileCard from '../AbonentProfileCard';
 import { useAbonentStore } from '../hooks/abonentStore';
 import { useAbonentLogic } from '../hooks/useAbonentLogic';
-import { Box, Card, Chip, CircularProgress, Grid, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
+import { Box, Card, Chip, CircularProgress, Grid, IconButton, Skeleton, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
 import { t } from 'i18next';
 import { TimelineItem, Timeline, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
@@ -11,6 +11,8 @@ import { Add, DownloadForOffline, Link, SaveAlt } from '@mui/icons-material';
 import { formatPhoneNumber } from 'views/tools/formatters';
 
 function AbonentDetails() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const {
     abonentDetails,
     incomeStats,
@@ -71,8 +73,8 @@ function AbonentDetails() {
 
       <Grid container spacing={2} sx={{ mt: 1 }}>
         {/* 3. HET Abonent Card */}
-        <Grid size={4}>
-          <Card sx={{ p: 2, boxShadow: '2', height: '100%', minHeight: 300 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card sx={{ p: 2, boxShadow: '2', height: '100%', minHeight: isMobile ? 'auto' : 300 }}>
             <Typography variant="h6" sx={{ mb: 1 }}>
               {t('hetAbonent')}
             </Typography>
@@ -108,8 +110,8 @@ function AbonentDetails() {
         </Grid>
 
         {/* 4. Cadastr Card */}
-        <Grid size={4}>
-          <Card sx={{ p: 2, boxShadow: '2', height: '100%', minHeight: 300 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card sx={{ p: 2, boxShadow: '2', height: '100%', minHeight: isMobile ? 'auto' : 300 }}>
             <Typography variant="h6" sx={{ mb: 1 }}>
               {t('cadastrAbonent')}
             </Typography>
@@ -131,7 +133,7 @@ function AbonentDetails() {
         </Grid>
 
         {/* 5. Name History */}
-        <Grid size={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           {isLoading ? (
             <Card sx={{ p: 2, height: '100%' }}>
               <Skeleton variant="rectangular" height="100%" />

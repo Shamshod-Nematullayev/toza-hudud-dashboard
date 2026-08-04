@@ -5,10 +5,12 @@ import { useAbonentStore } from '../hooks/abonentStore';
 import {
   alertTitleClasses,
   Avatar,
+  Box,
   Button,
   Checkbox,
   DialogActions,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Tab,
@@ -21,10 +23,11 @@ import { DatePicker } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
-import { ArrowBack, ArrowForward, Save } from '@mui/icons-material';
+import { ArrowBack, ArrowForward, AutoFixHigh, Save } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { isNumberValue } from 'utils/isNumberValue';
 import PhoneInput from 'ui-component/PhoneInput';
+import { PatternFormat, patternFormatter } from 'react-number-format';
 
 export function extractBirthDateString(jshshir: string) {
   if (!/^\d{14}$/.test(jshshir)) {
@@ -79,8 +82,10 @@ function EditDetails() {
   const [tabIndex, setTabIndex] = useState<0 | 1>(0);
   const [avatar, setAvatar] = useState<string>('');
 
+  const [isAutoCadastr, setIsAutoCadastr] = useState(false);
+
   useEffect(() => {
-    if (abonentDetails?.id) {
+    if (editDialogOpenState && abonentDetails?.id) {
       setPnfl(abonentDetails.citizen.pnfl);
       setPassport(abonentDetails.citizen.passport);
       setFirstName(abonentDetails.citizen.firstName);
@@ -108,8 +113,9 @@ function EditDetails() {
       setHousePhone(abonentDetails.homePhone || '');
       setEmail(abonentDetails.citizen.email || '');
       setDescription(abonentDetails.description || '');
+      setAvatar(abonentDetails.citizen.photo || '');
     }
-  }, [abonentDetails]);
+  }, [abonentDetails, editDialogOpenState]);
 
   useEffect(() => {
     if (pnfl.length === 14 && pnfl !== abonentDetails?.citizen.pnfl) {
@@ -248,7 +254,7 @@ function EditDetails() {
               <Grid size={{ xs: 3 }}>
                 <Avatar
                   variant="rounded"
-                  src={'data:image/png;base64,' + (avatar ? avatar : abonentDetails?.citizen.photo)}
+                  src={avatar ? 'data:image/png;base64,' + avatar : ''}
                   sx={{
                     width: '100%',
                     height: 'auto',
@@ -327,24 +333,57 @@ function EditDetails() {
                   {t('tableHeaders.foreignCitizen')}
                 </InputLabel>
               </Grid>
-              <Grid size={{ xs: 4 }}>
-                <TextField
-                  label={t('tableHeaders.cadastralNumber')}
-                  value={cadastralNumber}
-                  onChange={(e) => setCadastralNumber(e.target.value)}
-                  fullWidth
-                  required
+              <Grid size={{ xs: 6 }}>
+                <DatePicker
+                  value={passportGivenDate}
+                  label={t('tableHeaders.passportGivenDate') || 'Pasport berilgan sana'}
+                  format="DD.MM.YYYY"
+                  onChange={(e) => setPassportGivenDate(e)}
                 />
               </Grid>
-              <Grid size={{ xs: 4 }}>
-                <TextField
-                  label={t('tableHeaders.temporaryCadastralNumber')}
-                  value={temporaryCadastralNumber}
-                  onChange={(e) => setTemporaryCadastralNumber(e.target.value)}
-                  fullWidth
+              <Grid size={{ xs: 6 }}>
+                <DatePicker
+                  value={passportExpireDate}
+                  label={t('tableHeaders.passportExpireDate') || 'Pasport amal qilish muddati'}
+                  format="DD.MM.YYYY"
+                  onChange={(e) => setPassportExpireDate(e)}
                 />
               </Grid>
-              <Grid size={{ xs: 4 }}>
+              <Grid size={{ xs: 6 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
+                  <PatternFormat
+                    customInput={TextField} // MUI TextField bilan integratsiya
+                    format={homeType == 'APARTMENT' ? '##:##:##:##:####:####:####:###' : '##:##:##:##:##:####:####'} // Format shabloni
+                    mask="_" // To'ldirilmagan joylar uchun belgi
+                    onValueChange={(values, sourceInfo) => {
+                      setCadastralNumber(values.formattedValue);
+                      if (sourceInfo.source === 'event') {
+                        setIsAutoCadastr(false);
+                      }
+                    }}
+                    fullWidth
+                    label={t('tableHeaders.cadastralNumber')}
+                    value={cadastralNumber}
+                  />
+                  <IconButton
+                    color={isAutoCadastr ? 'primary' : 'default'}
+                    onClick={() => {
+                      const formatPattern = homeType == 'APARTMENT' ? '##:##:##:##:####:####:####:###' : '##:##:##:##:##:####:####';
+                      const cad = patternFormatter(String(1405 + (accountNumber || '')), {
+                        format: formatPattern,
+                        mask: '_'
+                      });
+
+                      setIsAutoCadastr(true);
+                      setCadastralNumber(cad);
+                    }}
+                    sx={{ position: 'absolute', right: 0 }}
+                  >
+                    <AutoFixHigh />
+                  </IconButton>
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 6 }}>
                 <TextField label={t('tableHeaders.inn')} value={inn} onChange={(e) => setInn(e.target.value)} fullWidth />
               </Grid>
               <Grid size={{ xs: 6 }}>

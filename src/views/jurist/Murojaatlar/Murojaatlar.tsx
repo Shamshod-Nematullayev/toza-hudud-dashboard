@@ -24,10 +24,12 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
+import PrintIcon from '@mui/icons-material/Print';
 import { InspectorOption, MurojaatFormValues, MurojaatRow } from './types';
 import { CloseMurojaatDialog } from './modals/CloseMurojaatDialog';
 import { EditMurojaatDialog } from './modals/EditMurojaatDialog';
 import { CreateMurojaatDialog } from './modals/CreateMurojaatDialog';
+import { PrintMurojaatDalolatnomaDialog } from './modals/PrintMurojaatDalolatnomaDialog';
 import useCustomizationStore from 'store/customizationStore';
 
 function Murojaatlar() {
@@ -40,6 +42,7 @@ function Murojaatlar() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
 
   const [selectedRow, setSelectedRow] = useState<MurojaatRow | null>(null);
 
@@ -148,7 +151,7 @@ function Murojaatlar() {
       {
         field: 'actions',
         headerName: 'Amallar',
-        width: 160,
+        width: 190,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -166,6 +169,17 @@ function Murojaatlar() {
                   <CloseIcon fontSize="small" />
                 </IconButton>
               )}
+
+              <IconButton
+                size="small"
+                title="O'rganish dalolatnomasini chop etish"
+                onClick={() => {
+                  setSelectedRow(row);
+                  setPrintOpen(true);
+                }}
+              >
+                <PrintIcon fontSize="small" />
+              </IconButton>
 
               <IconButton
                 size="small"
@@ -265,6 +279,16 @@ function Murojaatlar() {
         }}
         file={closeFile}
         setFile={setCloseFile}
+      />
+
+      <PrintMurojaatDalolatnomaDialog
+        open={printOpen}
+        row={selectedRow}
+        inspectors={inspectors}
+        onClose={() => {
+          setPrintOpen(false);
+          setSelectedRow(null);
+        }}
       />
     </MainCard>
   );
