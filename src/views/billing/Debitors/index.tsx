@@ -15,14 +15,15 @@ import {
   Typography
 } from '@mui/material';
 
-import { DownloadOutlined, EditOutlined, RefreshOutlined, SearchOutlined, SmsOutlined, VisibilityOutlined } from '@mui/icons-material';
-
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useServerDataGrid } from 'hooks/useServerDataGrid';
-import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import { useMutation } from '@tanstack/react-query';
 import DebitorDetailDialog from './modals/DebitorDetailDialog';
+import HetSyncScriptDialog from './modals/HetSyncScriptDialog';
+import useCustomizationStore from 'store/customizationStore';
+import { DownloadOutlined, EditOutlined, RefreshOutlined, SearchOutlined, SmsOutlined, VisibilityOutlined, BoltOutlined } from '@mui/icons-material';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useServerDataGrid } from 'hooks/useServerDataGrid';
+import MainCard from 'ui-component/cards/MainCard';
 import { socket } from 'utils/socket';
 
 interface SmsBalance {
@@ -145,6 +146,10 @@ const INIT_FILTERS = { status: '', phoneStatus: '', debtFrom: '', debtTo: '' };
 function Debitors() {
   const [refreshState, setRefreshState] = React.useState(false);
   const refresh = () => setRefreshState((p) => !p);
+
+  const [openSyncDialog, setOpenSyncDialog] = React.useState(false);
+  const { user } = useCustomizationStore();
+  const isProductAdmin = user?.roles?.includes('product_admin');
 
   // Filtrlar — draft (sidebar) va applied (so'rovga yuborilgan)
   const [draft, setDraft] = React.useState(INIT_FILTERS);
@@ -489,6 +494,17 @@ function Debitors() {
                 <RefreshOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
+            {isProductAdmin && (
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => setOpenSyncDialog(true)}
+                startIcon={<BoltOutlined fontSize="small" />}
+              >
+                HET Sync Script
+              </Button>
+            )}
             <Button
               variant="contained"
               color="success"
@@ -518,6 +534,12 @@ function Debitors() {
           onClose={() => setSelectedDebitor(null)}
           debitor={selectedDebitor}
           onEdit={() => 'todo'}
+        />
+      )}
+      {openSyncDialog && (
+        <HetSyncScriptDialog
+          open={openSyncDialog}
+          onClose={() => setOpenSyncDialog(false)}
         />
       )}
     </MainCard>
