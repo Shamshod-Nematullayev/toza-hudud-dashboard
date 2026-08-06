@@ -58,6 +58,7 @@ interface CompanyProfileData {
   GROUP_ID_MANAGERS?: string;
   GROUP_ID_MUROJAATLAR?: string;
   ekopayParentId?: string;
+  murojaatTelegramIds?: string[];
 }
 
 interface VerificationStatus {
@@ -73,6 +74,7 @@ export default function CompanyProfile() {
 
   const [company, setCompany] = useState<CompanyProfileData | null>(null);
   const [form, setForm] = useState<Partial<CompanyProfileData>>({});
+  const [newTelegramIdInput, setNewTelegramIdInput] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -92,7 +94,8 @@ export default function CompanyProfile() {
           GROUP_ID_NAZORATCHILAR: data.company.GROUP_ID_NAZORATCHILAR || '',
           GROUP_ID_XATLOVCHILAR: data.company.GROUP_ID_XATLOVCHILAR || '',
           GROUP_ID_MANAGERS: data.company.GROUP_ID_MANAGERS || '',
-          GROUP_ID_MUROJAATLAR: data.company.GROUP_ID_MUROJAATLAR || ''
+          GROUP_ID_MUROJAATLAR: data.company.GROUP_ID_MUROJAATLAR || '',
+          murojaatTelegramIds: data.company.murojaatTelegramIds || []
         });
       }
     } catch (err: any) {
@@ -370,6 +373,103 @@ export default function CompanyProfile() {
                         }
                       }}
                     />
+                  </Grid>
+
+                  {/* Murojaat Xodimlari Telegram ID lari (Array) */}
+                  <Grid item xs={12}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                      Murojaat bo'yicha viloyat xodimlari Telegram ID lari (massiv)
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Telegram User ID qo'shish"
+                        placeholder="Masalan: 12345678, 87654321"
+                        value={newTelegramIdInput}
+                        onChange={(e) => setNewTelegramIdInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (newTelegramIdInput.trim()) {
+                              const added = newTelegramIdInput
+                                .split(',')
+                                .map((i) => i.trim())
+                                .filter((i) => i && !(form.murojaatTelegramIds || []).includes(i));
+                              if (added.length > 0) {
+                                setForm({
+                                  ...form,
+                                  murojaatTelegramIds: [...(form.murojaatTelegramIds || []), ...added]
+                                });
+                                setNewTelegramIdInput('');
+                              }
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outlined"
+                        onClick={() => {
+                          if (newTelegramIdInput.trim()) {
+                            const added = newTelegramIdInput
+                              .split(',')
+                              .map((i) => i.trim())
+                              .filter((i) => i && !(form.murojaatTelegramIds || []).includes(i));
+                            if (added.length > 0) {
+                              setForm({
+                                ...form,
+                                murojaatTelegramIds: [...(form.murojaatTelegramIds || []), ...added]
+                              });
+                              setNewTelegramIdInput('');
+                            }
+                          }
+                        }}
+                        sx={{ borderRadius: '10px', px: 3, fontWeight: 600, textTransform: 'none' }}
+                      >
+                        Qo'shish
+                      </Button>
+                    </Stack>
+
+                    {/* Chips rendering */}
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        borderRadius: '12px',
+                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'grey.50',
+                        border: '1px solid rgba(0,0,0,0.06)',
+                        minHeight: 48,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 0.8,
+                        alignItems: 'center'
+                      }}
+                    >
+                      {(form.murojaatTelegramIds || []).length === 0 ? (
+                        <Typography variant="caption" color="text.secondary">
+                          Hozircha hech qanday Telegram ID qo'shilmagan
+                        </Typography>
+                      ) : (
+                        (form.murojaatTelegramIds || []).map((id) => (
+                          <Chip
+                            key={id}
+                            label={id}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            onDelete={() => {
+                              setForm({
+                                ...form,
+                                murojaatTelegramIds: (form.murojaatTelegramIds || []).filter((i) => i !== id)
+                              });
+                            }}
+                            sx={{ fontWeight: 600 }}
+                          />
+                        ))
+                      )}
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.8 }}>
+                      💡 Ushbu Telegram ID lar kelgusida murojaatlar guruhidan muhim xabarlarni ajratib olish va saralash uchun ishlatiladi.
+                    </Typography>
                   </Grid>
                 </Grid>
               </CardContent>

@@ -322,47 +322,6 @@ export function CreateMurojaatDialog({
                         </Grid>
                       </Grid>
 
-                      <Divider />
-
-                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() => {
-                            // User accepts: keeps form values populated
-                          }}
-                          sx={{ textTransform: 'none', fontWeight: 600 }}
-                        >
-                          Qabul qilish
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          onClick={() => {
-                            // User rejects: clear PDF file and parsed state
-                            setFile(null);
-                            setParsedData(null);
-                            // Clear formik values
-                            formik.setFieldValue('hujjatKodi', '');
-                            formik.setFieldValue('hujjatRaqami', '');
-                            formik.setFieldValue('ijroMuddati', '');
-                            formik.setFieldValue('murojaatRaqami', '');
-                            formik.setFieldValue('operator', '');
-                            formik.setFieldValue('murojaatVaqti', '');
-                            formik.setFieldValue('muallif', '');
-                            formik.setFieldValue('manzil', '');
-                            formik.setFieldValue('demografiya', '');
-                            formik.setFieldValue('telefon', '');
-                            formik.setFieldValue('qoshimchaTelefon', '');
-                            formik.setFieldValue('mazmuni', '');
-                          }}
-                          sx={{ textTransform: 'none', fontWeight: 600 }}
-                        >
-                          Rad etish / Tozalash
-                        </Button>
-                      </Stack>
                     </Stack>
                   </Paper>
                 )}
