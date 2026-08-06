@@ -15,7 +15,15 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { DocumentScannerOutlined, MoveDown, ReceiptOutlined, ElectricBolt, MessageOutlined, Speed } from '@mui/icons-material';
+import {
+  DocumentScannerOutlined,
+  MoveDown,
+  ReceiptOutlined,
+  ElectricBolt,
+  MessageOutlined,
+  Speed,
+  BusinessOutlined
+} from '@mui/icons-material';
 import { MenuItem } from 'menu-items';
 
 //contans
@@ -40,7 +48,8 @@ const icons = {
   ReceiptOutlined,
   ElectricBolt,
   MessageOutlined,
-  Speed
+  Speed,
+  BusinessOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -48,7 +57,7 @@ const billing: MenuItem = {
   id: 'workspace',
   title: 'workspace',
   type: 'group',
-  allowedRoles: ['admin', 'billing', 'stm'],
+  allowedRoles: ['admin', 'billing', 'stm', 'rahbar', 'product_admin'],
   children: [
     // {
     //   id: 'billing',
@@ -289,6 +298,16 @@ const billing: MenuItem = {
           allowedRoles: ['admin', 'stm']
         }
       ]
+    },
+
+    {
+      id: 'companyProfile',
+      title: 'companyProfile',
+      type: 'item',
+      url: '/company-profile',
+      icon: icons.BusinessOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['rahbar', 'product_admin']
     }
   ]
 };

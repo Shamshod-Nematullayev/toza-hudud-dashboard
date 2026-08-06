@@ -130,7 +130,8 @@ const uzKirill: typeof uz = {
     tasks: 'Топшириқлар',
     productAdmin: 'Тизим бошқаруви',
     manageCompanies: 'Ташкилотларни бошқариш',
-    manageUsers: 'Фойдаланувчиларни бошқариш'
+    manageUsers: 'Фойдаланувчиларни бошқариш',
+    companyProfile: 'Ташкилот профили'
   },
   dashboard: {
     identified: 'Шахси тасдиқланган',
@@ -336,7 +337,8 @@ const uzKirill: typeof uz = {
     actReentered: 'Қайта акт кирилтилган',
     cancelled: 'Бекор қилинган',
     confirmed: 'Тасдиқланган',
-    new: 'Янги'
+    new: 'Янги',
+    actLater: 'Кейинроқ киритиладиган'
   },
   qarzdorAbonentlarPage: {
     "Sudga o'tgan": 'Судга ўтган',

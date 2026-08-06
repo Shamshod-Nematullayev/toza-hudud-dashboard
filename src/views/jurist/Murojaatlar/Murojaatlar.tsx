@@ -31,6 +31,12 @@ import { EditMurojaatDialog } from './modals/EditMurojaatDialog';
 import { CreateMurojaatDialog } from './modals/CreateMurojaatDialog';
 import { PrintMurojaatDalolatnomaDialog } from './modals/PrintMurojaatDalolatnomaDialog';
 import useCustomizationStore from 'store/customizationStore';
+import useLoaderStore from 'store/loaderStore';
+import PDFViewerModal from 'ui-component/PDFViewerModal';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { toast } from 'react-toastify';
+import { Buffer } from 'buffer';
 
 function Murojaatlar() {
   const [filters, setFilters] = useState<Record<string, any>>({
@@ -49,7 +55,32 @@ function Murojaatlar() {
   const [createFile, setCreateFile] = useState<File | null>(null);
   const [closeFile, setCloseFile] = useState<File | null>(null);
 
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
+
+  const { setIsLoading } = useLoaderStore();
   const { mahallalar } = useCustomizationStore();
+
+  const handleOpenPdf = async (fileId?: string) => {
+    if (!fileId) {
+      toast.error('Fayl ID topilmadi');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/fetchTelegram/file/${fileId}`, {
+        responseType: 'arraybuffer'
+      });
+      const base64 = Buffer.from(response.data, 'binary').toString('base64');
+      setPdfBase64(base64);
+      setPdfModalOpen(true);
+    } catch (error) {
+      console.error('PDF faylni yuklashda xatolik:', error);
+      toast.error('PDF faylni yuklashda xatolik yuz berdi');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadInspectors = async () => {
@@ -123,7 +154,31 @@ function Murojaatlar() {
         field: 'fileName',
         headerName: 'Fayl nomi',
         flex: 1,
-        minWidth: 220
+        minWidth: 220,
+        renderCell: (params) => {
+          const row = params.row as MurojaatRow;
+          const fileName = row.fileName || 'Murojaat fayli';
+          const fileId = row.murojaatFileId;
+
+          return (
+            <Stack direction="row" spacing={1} sx={{ height: '100%', alignItems: 'center', overflow: 'hidden' }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  cursor: fileId ? 'pointer' : 'default',
+                  color: fileId ? 'primary.main' : 'inherit',
+                  textDecoration: fileId ? 'underline' : 'none',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => fileId && handleOpenPdf(fileId)}
+              >
+                {fileName}
+              </Typography>
+            </Stack>
+          );
+        }
       },
       {
         field: 'assignedTo',
@@ -151,7 +206,7 @@ function Murojaatlar() {
       {
         field: 'actions',
         headerName: 'Amallar',
-        width: 190,
+        width: 220,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -160,6 +215,28 @@ function Murojaatlar() {
 
           return (
             <Stack direction="row" spacing={0.5}>
+              {row.murojaatFileId && (
+                <IconButton
+                  size="small"
+                  title="Murojaat faylini ko'rish"
+                  onClick={() => handleOpenPdf(row.murojaatFileId)}
+                  color="primary"
+                >
+                  <PictureAsPdfIcon fontSize="small" />
+                </IconButton>
+              )}
+
+              {row.yopishXujjatiFileId && (
+                <IconButton
+                  size="small"
+                  title="Yopish hujjatini ko'rish"
+                  onClick={() => handleOpenPdf(row.yopishXujjatiFileId)}
+                  color="secondary"
+                >
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+              )}
+
               <IconButton size="small" onClick={() => openEdit(row)}>
                 <EditIcon fontSize="small" />
               </IconButton>
@@ -198,7 +275,7 @@ function Murojaatlar() {
         }
       }
     ],
-    []
+    [mahallalar]
   );
 
   return (
@@ -290,6 +367,16 @@ function Murojaatlar() {
           setSelectedRow(null);
         }}
       />
+
+      {pdfModalOpen && pdfBase64 && (
+        <PDFViewerModal
+          base64={pdfBase64}
+          handleClose={() => {
+            setPdfModalOpen(false);
+            setPdfBase64(null);
+          }}
+        />
+      )}
     </MainCard>
   );
 }

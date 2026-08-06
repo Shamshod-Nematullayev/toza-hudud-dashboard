@@ -15,7 +15,7 @@ export interface MenuItem {
   icon?: any;
   breadcrumbs?: boolean;
   children?: MenuItem[];
-  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps' | 'product_admin')[];
+  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps' | 'product_admin' | 'rahbar')[];
   caption?: string;
 }
 

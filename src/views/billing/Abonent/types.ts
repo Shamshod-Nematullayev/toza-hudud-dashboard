@@ -15,7 +15,7 @@ export interface IAbonentPetition {
   muzlatiladi: boolean;
   next_prescribed_cnt: number;
   sana: string;
-  status: 'yangi' | 'qabul qilindi' | 'tasdiqlangan' | 'bekor qilindi' | 'akt_kiritilgan' | 'qayta_akt_kiritilgan';
+  status: 'yangi' | 'qabul qilindi' | 'tasdiqlangan' | 'bekor qilindi' | 'akt_kiritilgan' | 'qayta_akt_kiritilgan' | 'keyinroq_kiritiladigan';
 }
 
 export type AbonentCard = {

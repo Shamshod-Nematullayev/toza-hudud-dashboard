@@ -58,7 +58,7 @@ interface CompanyItem {
   name: string;
 }
 
-const AVAILABLE_ROLES = ['admin', 'stm', 'billing', 'yurist', 'gps', 'product_admin'];
+const AVAILABLE_ROLES = ['admin', 'stm', 'billing', 'yurist', 'gps', 'product_admin', 'rahbar'];
 
 const initialUserState: UserData = {
   login: '',

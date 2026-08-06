@@ -28,7 +28,7 @@ export interface IAriza {
   };
   current_prescribed_cnt: number;
   next_prescribed_cnt: number;
-  status: 'yangi' | 'qabul qilindi' | 'tasdiqlangan' | 'bekor qilindi' | 'akt_kiritilgan' | 'qayta_akt_kiritilgan';
+  status: 'yangi' | 'qabul qilindi' | 'tasdiqlangan' | 'bekor qilindi' | 'akt_kiritilgan' | 'qayta_akt_kiritilgan' | 'keyinroq_kiritiladigan';
   // photos: string[];
   recalculationPeriods: any[];
   muzlatiladi: boolean;

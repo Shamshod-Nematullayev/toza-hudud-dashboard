@@ -168,6 +168,7 @@ function SideBar() {
               <MenuItem value="bekor qilindi">{t('petitionStatus.cancelled')}</MenuItem>
               <MenuItem value="akt_kiritilgan">{t('petitionStatus.actEntered')}</MenuItem>
               <MenuItem value="qayta_akt_kiritilgan">{t('petitionStatus.actReentered')}</MenuItem>
+              <MenuItem value="keyinroq_kiritiladigan">{t('petitionStatus.actLater')}</MenuItem>
             </Select>
           </FormControl>
         </Grid>

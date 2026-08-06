@@ -50,6 +50,7 @@ import CallerStart from 'views/billing/CallerWorkspace/CallerStart';
 import Murojaatlar from 'views/jurist/Murojaatlar/Murojaatlar';
 import Companies from 'views/productAdmin/Companies';
 import Users from 'views/productAdmin/Users';
+import CompanyProfile from 'views/companyProfile/CompanyProfile';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -342,6 +343,10 @@ const MainRoutes: MainRoutesProps = {
           element: <Users />
         }
       ]
+    },
+    {
+      path: 'company-profile',
+      element: <CompanyProfile />
     },
     {
       path: 'sample-page',
