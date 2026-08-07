@@ -31,10 +31,11 @@ import { EditMurojaatDialog } from './modals/EditMurojaatDialog';
 import { CreateMurojaatDialog } from './modals/CreateMurojaatDialog';
 import { PrintMurojaatDalolatnomaDialog } from './modals/PrintMurojaatDalolatnomaDialog';
 import useCustomizationStore from 'store/customizationStore';
-import useLoaderStore from 'store/loaderStore';
 import DownloadIcon from '@mui/icons-material/Download';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import { toast } from 'react-toastify';
+import useLoaderStore from 'store/loaderStore';
 
 function Murojaatlar() {
   const [filters, setFilters] = useState<Record<string, any>>({
@@ -231,7 +232,7 @@ function Murojaatlar() {
       {
         field: 'actions',
         headerName: 'Amallar',
-        width: 220,
+        width: 260,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -240,6 +241,31 @@ function Murojaatlar() {
 
           return (
             <Stack direction="row" spacing={0.5}>
+              <IconButton
+                size="small"
+                color="warning"
+                title="Mas'ul xodimga bildirishnoma va eslatma yuborish"
+                onClick={async () => {
+                  const ok = window.confirm("Mas'ul xodimga Telegram orqali topshiriq bildirishnomasi va eslatma qayta yuborilsinmi?");
+                  if (!ok) return;
+
+                  try {
+                    setIsLoading(true);
+                    const res = await api.post(`/murojaatlar/send-notification/${row._id}`);
+                    if (res.data.ok) {
+                      toast.success(res.data.message || 'Bildirishnoma va eslatma muvaffaqiyatli yuborildi');
+                      refreshTable();
+                    }
+                  } catch (err: any) {
+                    toast.error(err?.response?.data?.message || err.message || 'Bildirishnoma yuborishda xatolik');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+              >
+                <NotificationsActiveIcon fontSize="small" />
+              </IconButton>
+
               {row.murojaatFileId && (
                 <IconButton
                   size="small"
