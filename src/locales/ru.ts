@@ -67,7 +67,8 @@ const ru: typeof uz = {
     importActs: 'Импортировать акты',
     productAdmin: 'Управление системой',
     manageCompanies: 'Управление организациями',
-    manageUsers: 'Управление пользователями'
+    manageUsers: 'Управление пользователями',
+    companyProfile: 'Профиль организации'
   },
   dashboard: {
     identified: 'Идентифицирован',
@@ -150,7 +151,8 @@ const ru: typeof uz = {
     confirmed: 'Подтверждено',
     cancelled: 'Отменено',
     actEntered: 'Акт введён',
-    actReentered: 'Акт введён повторно'
+    actReentered: 'Акт введён повторно',
+    actLater: 'Будет внесен позже'
   },
   actStatus: {
     NEW: 'Новое',

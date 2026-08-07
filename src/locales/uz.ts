@@ -97,7 +97,8 @@ const uz = {
     'call-warnings-workspace': 'Telefonchi ishmaydoni',
     productAdmin: 'Tizim boshqaruvi',
     manageCompanies: 'Tashkilotlarni boshqarish',
-    manageUsers: 'Foydalanuvchilarni boshqarish'
+    manageUsers: 'Foydalanuvchilarni boshqarish',
+    companyProfile: 'Tashkilot profili'
   },
   priority: {
     '1': 'Past',
@@ -272,7 +273,8 @@ const uz = {
     confirmed: 'Tasdiqlangan',
     cancelled: 'Bekor qilingan',
     actEntered: 'Akt kiritilgan',
-    actReentered: 'Qayta akt kiritilgan'
+    actReentered: 'Qayta akt kiritilgan',
+    actLater: 'Keyinroq kiritiladigan'
   },
   actStatus: {
     NEW: 'Yangi',

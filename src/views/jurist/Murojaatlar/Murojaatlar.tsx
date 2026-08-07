@@ -31,6 +31,10 @@ import { EditMurojaatDialog } from './modals/EditMurojaatDialog';
 import { CreateMurojaatDialog } from './modals/CreateMurojaatDialog';
 import { PrintMurojaatDalolatnomaDialog } from './modals/PrintMurojaatDalolatnomaDialog';
 import useCustomizationStore from 'store/customizationStore';
+import useLoaderStore from 'store/loaderStore';
+import DownloadIcon from '@mui/icons-material/Download';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { toast } from 'react-toastify';
 
 function Murojaatlar() {
   const [filters, setFilters] = useState<Record<string, any>>({
@@ -49,7 +53,59 @@ function Murojaatlar() {
   const [createFile, setCreateFile] = useState<File | null>(null);
   const [closeFile, setCloseFile] = useState<File | null>(null);
 
+  const { setIsLoading } = useLoaderStore();
   const { mahallalar } = useCustomizationStore();
+
+  const handleDownloadFile = async (fileId?: string, defaultFileName?: string) => {
+    if (!fileId) {
+      toast.error('Fayl ID topilmadi');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/fetchTelegram/${fileId}`, {
+        responseType: 'blob'
+      });
+
+      const mimeType = response.headers['content-type'] || 'application/octet-stream';
+      let fileName = defaultFileName || 'fayl';
+
+      const contentDisposition = response.headers['content-disposition'];
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = decodeURIComponent(fileNameMatch[1]);
+        }
+      }
+
+      const blob = new Blob([response.data], { type: mimeType });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      toast.success('Fayl yuklab olindi');
+    } catch (error: any) {
+      console.error('Faylni yuklab olishda xatolik:', error);
+      let errorMsg = 'Faylni yuklab olishda xatolik yuz berdi';
+      if (error?.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const parsed = JSON.parse(text);
+          if (parsed?.message) errorMsg = parsed.message;
+        } catch (e) {
+          // ignore blob text parse failure
+        }
+      } else if (error?.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      }
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadInspectors = async () => {
@@ -123,7 +179,31 @@ function Murojaatlar() {
         field: 'fileName',
         headerName: 'Fayl nomi',
         flex: 1,
-        minWidth: 220
+        minWidth: 220,
+        renderCell: (params) => {
+          const row = params.row as MurojaatRow;
+          const fileName = row.fileName || 'Murojaat fayli';
+          const fileId = row.murojaatFileId;
+
+          return (
+            <Stack direction="row" spacing={1} sx={{ height: '100%', alignItems: 'center', overflow: 'hidden' }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  cursor: fileId ? 'pointer' : 'default',
+                  color: fileId ? 'primary.main' : 'inherit',
+                  textDecoration: fileId ? 'underline' : 'none',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => fileId && handleDownloadFile(fileId, fileName)}
+              >
+                {fileName}
+              </Typography>
+            </Stack>
+          );
+        }
       },
       {
         field: 'assignedTo',
@@ -151,7 +231,7 @@ function Murojaatlar() {
       {
         field: 'actions',
         headerName: 'Amallar',
-        width: 190,
+        width: 220,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -160,6 +240,28 @@ function Murojaatlar() {
 
           return (
             <Stack direction="row" spacing={0.5}>
+              {row.murojaatFileId && (
+                <IconButton
+                  size="small"
+                  title="Murojaat faylini yuklab olish"
+                  onClick={() => handleDownloadFile(row.murojaatFileId, row.fileName)}
+                  color="primary"
+                >
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              )}
+
+              {row.yopishXujjatiFileId && (
+                <IconButton
+                  size="small"
+                  title="Yopish hujjatini yuklab olish"
+                  onClick={() => handleDownloadFile(row.yopishXujjatiFileId, 'yopish_xujjati.pdf')}
+                  color="secondary"
+                >
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+              )}
+
               <IconButton size="small" onClick={() => openEdit(row)}>
                 <EditIcon fontSize="small" />
               </IconButton>
@@ -198,7 +300,7 @@ function Murojaatlar() {
         }
       }
     ],
-    []
+    [mahallalar]
   );
 
   return (

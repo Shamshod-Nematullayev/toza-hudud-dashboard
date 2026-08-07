@@ -31,6 +31,8 @@ import api from 'utils/api';
 import React from 'react';
 import { HET_ACCOUNT_CFG, PHONE_CFG, STATUS_CFG } from './types';
 import { toast } from 'react-toastify';
+import useCustomizationStore from 'store/customizationStore';
+import SelectSyncLogDialog from './modals/SelectSyncLogDialog';
 
 interface SidebarProps {
   status: string[];
@@ -78,6 +80,9 @@ export function Sidebar({
   const [activeJob, setActiveJob] = React.useState<ActiveJobInfo | null>(null);
   const [triggerLoading, setTriggerLoading] = React.useState<string | null>(null);
   const wasJobRunningRef = React.useRef<boolean>(false);
+  const [syncLogDialogOpen, setSyncLogDialogOpen] = React.useState(false);
+  const { user } = useCustomizationStore();
+  const isProductAdmin = user?.roles?.includes('product_admin');
 
   // SMS Confirmation Dialog State
   const [smsConfirmOpen, setSmsConfirmOpen] = React.useState(false);
@@ -252,6 +257,25 @@ export function Sidebar({
             </span>
           </Tooltip>
 
+          {isProductAdmin && (
+            <Tooltip title="HET bazasiga kiritilgan raqamlar sinxronizatsiyasini tekshirish">
+              <span>
+                <Button
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  color="success"
+                  startIcon={triggerLoading === 'het' ? <CircularProgress size={14} /> : <SyncOutlined fontSize="small" />}
+                  onClick={() => setSyncLogDialogOpen(true)}
+                  disabled={isAnyJobRunning || Boolean(triggerLoading)}
+                  sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
+                >
+                  HET Telefon Sinxronizatsiyasi
+                </Button>
+              </span>
+            </Tooltip>
+          )}
+
           <Tooltip title="Barcha Joblarni ketma-ket to'liq ishga tushirish (Faqat Premium)">
             <span>
               <Button
@@ -419,6 +443,13 @@ export function Sidebar({
           Tozala
         </Button>
       </Stack>
+      {syncLogDialogOpen && (
+        <SelectSyncLogDialog
+          open={syncLogDialogOpen}
+          onClose={() => setSyncLogDialogOpen(false)}
+          onJobStarted={fetchJobProgress}
+        />
+      )}
     </Box>
   );
 }
