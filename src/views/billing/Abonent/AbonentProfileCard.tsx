@@ -48,7 +48,7 @@ import dayjs from 'dayjs';
 import { t } from 'i18next';
 import { formatPhoneNumber } from 'views/tools/formatters';
 import { Link } from 'react-router-dom';
-import { STATUS_CFG } from '../Debitors/types';
+import { STATUS_CFG, PHONE_CFG, HET_ACCOUNT_CFG } from '../Debitors/types';
 
 interface Data extends AbonentDetails {
   photo?: string;
@@ -69,7 +69,8 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
     fetchAbonentMvdAddress,
     ui,
     similarAbonentsByElectricity,
-    getResidentCadastrs
+    getResidentCadastrs,
+    abonentDebitorStatus
   } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
 
@@ -248,9 +249,23 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                 <InfoRow
                   icon="📱"
                   label="Телефон raqami"
-                  value={data ? formatPhoneNumber(data.phone || '') : undefined}
+                  value={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: isMobile ? (data?.phone ? '#EDEFFA' : '#FF4D4F') : (data?.phone ? 'text.primary' : 'error.main') }}>
+                        {data ? formatPhoneNumber(data.phone || '') : '—'}
+                      </Typography>
+                      {abonentDebitorStatus?.phoneStatus && PHONE_CFG[abonentDebitorStatus.phoneStatus] && (
+                        <Chip
+                          label={PHONE_CFG[abonentDebitorStatus.phoneStatus].label}
+                          color={(PHONE_CFG[abonentDebitorStatus.phoneStatus].color as any) || 'default'}
+                          size="small"
+                          variant="outlined"
+                          sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
+                      )}
+                    </Box>
+                  }
                   labelColor={data && !data.phone ? 'error.main' : undefined}
-                  color={data && !data.phone ? 'error.main' : undefined}
                   isSkeleton={isLoading}
                 />
                 <InfoRow icon="☎️" label="Уй telefoni" value={formatPhoneNumber(data?.homePhone || '')} isSkeleton={isLoading} />
@@ -261,8 +276,17 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                     label="Электр raqami"
                     labelColor={isDublicateElectricity ? 'error.main' : undefined}
                     value={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
-                        <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                        <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber || '—'}</Typography>
+                        {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
+                          <Chip
+                            label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
+                            color={(HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].color as any) || 'default'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ height: 20, fontSize: '0.7rem' }}
+                          />
+                        )}
 
                         {isDublicateElectricity && (
                           <>
@@ -478,9 +502,23 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                   <InfoRow
                     icon={PhoneIcon}
                     label="Телефон рақами"
-                    value={data ? formatPhoneNumber(data.phone || '') : undefined}
+                    value={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: data?.phone ? 'text.primary' : 'error.main' }}>
+                          {data ? formatPhoneNumber(data.phone || '') : '—'}
+                        </Typography>
+                        {abonentDebitorStatus?.phoneStatus && PHONE_CFG[abonentDebitorStatus.phoneStatus] && (
+                          <Chip
+                            label={PHONE_CFG[abonentDebitorStatus.phoneStatus].label}
+                            color={(PHONE_CFG[abonentDebitorStatus.phoneStatus].color as any) || 'default'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ height: 20, fontSize: '0.7rem' }}
+                          />
+                        )}
+                      </Box>
+                    }
                     labelColor={data && !data.phone ? 'error.main' : undefined}
-                    color={data && !data.phone ? 'error.main' : undefined}
                     isSkeleton={isLoading}
                   />
                   <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={formatPhoneNumber(data?.homePhone || '')} isSkeleton={isLoading} />
@@ -491,8 +529,17 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                       label="Электр рақами"
                       labelColor={isDublicateElectricity ? 'error.main' : undefined}
                       value={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
-                          <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                          <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber || '—'}</Typography>
+                          {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
+                            <Chip
+                              label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
+                              color={(HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].color as any) || 'default'}
+                              size="small"
+                              variant="outlined"
+                              sx={{ height: 20, fontSize: '0.7rem' }}
+                            />
+                          )}
 
                           {isDublicateElectricity && (
                             <>

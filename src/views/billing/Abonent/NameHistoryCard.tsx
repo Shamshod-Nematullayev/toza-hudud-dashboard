@@ -1,6 +1,6 @@
 import { Card, Chip, Stack, Tooltip, Typography, IconButton } from '@mui/material';
 import dayjs from 'dayjs';
-import { STATUS_CFG } from '../Debitors/types';
+import { STATUS_CFG, PHONE_CFG, HET_ACCOUNT_CFG } from '../Debitors/types';
 import { useAbonentStore } from './hooks/abonentStore';
 import { History as HistoryIcon } from '@mui/icons-material';
 
@@ -43,9 +43,6 @@ export const NameHistory = ({ data }: Props) => {
       };
     })
     .filter(Boolean);
-
-  console.log(data);
-  console.log(changes);
 
   return (
     <Card sx={{ p: 2, boxShadow: 2 }}>
@@ -106,12 +103,54 @@ export const NameHistory = ({ data }: Props) => {
           </Stack>
         ))}
       </Stack>
-      {abonentDebitorStatus?.status && (
-        <Chip
-          label={STATUS_CFG[abonentDebitorStatus.status]?.label}
-          color={STATUS_CFG[abonentDebitorStatus.status]?.color}
-          variant="outlined"
-        />
+
+      {abonentDebitorStatus && (
+        <Stack spacing={1} sx={{ mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+            Debitor statuslari:
+          </Typography>
+          <Stack spacing={1}>
+            {abonentDebitorStatus.status && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                  Debitor statusi:
+                </Typography>
+                <Chip
+                  label={STATUS_CFG[abonentDebitorStatus.status]?.label || abonentDebitorStatus.status}
+                  color={(STATUS_CFG[abonentDebitorStatus.status]?.color as any) || 'default'}
+                  size="small"
+                  variant="outlined"
+                />
+              </Stack>
+            )}
+            {abonentDebitorStatus.phoneStatus && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                  Telefon statusi:
+                </Typography>
+                <Chip
+                  label={PHONE_CFG[abonentDebitorStatus.phoneStatus]?.label || abonentDebitorStatus.phoneStatus}
+                  color={(PHONE_CFG[abonentDebitorStatus.phoneStatus]?.color as any) || 'default'}
+                  size="small"
+                  variant="outlined"
+                />
+              </Stack>
+            )}
+            {abonentDebitorStatus.hetAccountStatus && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                  Elektr kodi statusi:
+                </Typography>
+                <Chip
+                  label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus]?.label || abonentDebitorStatus.hetAccountStatus}
+                  color={(HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus]?.color as any) || 'default'}
+                  size="small"
+                  variant="outlined"
+                />
+              </Stack>
+            )}
+          </Stack>
+        </Stack>
       )}
     </Card>
   );
