@@ -55,6 +55,10 @@ const uz = {
     successSave: 'Muvaffaqiyatli saqlandi',
     allDocumentConfirmed: 'Barcha hujjatlar tasdiqlandi'
   },
+  messages: {
+    successSend: 'Excel muvaffaqiyatli yuborildi!',
+    templateDownloaded: 'Shablon yuklab olindi'
+  },
   documentNumber: 'Xujjat raqami',
   menuItems: {
     employeers: 'Xodimlar',
@@ -376,7 +380,8 @@ const uz = {
     editPhone: 'Telefon raqamini tahrirlash',
     uploadFile: 'Faylni yuklash',
     manualEntry: "Qo'lda kiritish",
-    importPhone: 'Telefon raqamini import qilish'
+    importPhone: 'Telefon raqamini import qilish',
+    sending: 'Yuborilmoqda'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Rokirovka qilish (tavsiya qilinmaydi 🙅‍♂️)',
@@ -429,6 +434,7 @@ const uz = {
   yoki: 'yoki',
   'Qo‘lda kiritish rejimiga o‘tish': 'Qo‘lda kiritish rejimiga o‘tish',
   'Davom etish uchun PDF fayl(lar)ni tizimga kiriting': 'Davom etish uchun PDF fayl(lar)ni tizimga kiriting',
+  'Davom etish uchun Excel faylni tizimga kiriting': 'Davom etish uchun Excel faylni tizimga kiriting',
   'Hujjat topilmadi': 'Hujjat topilmadi',
   'QR kodni o‘qib bo‘lmadi yoki ma’lumot bazada mavjud emas. Iltimos, raqamni o‘zingiz kiriting.':
     'QR kodni o‘qib bo‘lmadi yoki ma’lumot bazada mavjud emas. Iltimos, raqamni o‘zingiz kiriting.',

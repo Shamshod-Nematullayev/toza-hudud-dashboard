@@ -1,15 +1,13 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-// styled-components o'rniga MUI o'ziniki import qilindi
 import { styled, Stack, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import { CloudUpload } from '@mui/icons-material';
 
-// MUIning o'z dynamic styled komponenti - theme xavfsiz va kafolatlangan!
 const StyledDropZone = styled('label')(({ theme }) => ({
   width: '100%',
   height: '100%',
-  padding: '48px',
+  padding: '32px 24px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -18,9 +16,9 @@ const StyledDropZone = styled('label')(({ theme }) => ({
   textAlign: 'center',
   fontFamily: '"Inter", sans-serif',
   fontWeight: 500,
-  fontSize: '18px',
+  fontSize: '16px',
   cursor: 'pointer',
-  borderRadius: '20px',
+  borderRadius: '16px',
   color: theme.palette.text.secondary,
   background:
     theme.palette.mode === 'dark'
@@ -30,9 +28,9 @@ const StyledDropZone = styled('label')(({ theme }) => ({
   transition: 'all 0.3s ease',
 
   '&:hover': {
-    transform: 'translateY(-3px)',
+    transform: 'translateY(-2px)',
     background: theme.palette.action.hover,
-    boxShadow: `0 12px 30px ${theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.1)'}`
+    boxShadow: `0 8px 24px ${theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)'}`
   },
 
   '&.drop-zone--over': {
@@ -46,19 +44,23 @@ const StyledDropZone = styled('label')(({ theme }) => ({
   }
 }));
 
-function FileInputDrop({
-  setFiles,
-  clearTrigger,
-  fileType = 'pdf'
-}: {
+export interface FileInputDropProps {
   setFiles: (files: FileList | null) => void;
-  clearTrigger: boolean;
+  clearTrigger?: boolean;
   fileType?: 'pdf' | 'excel';
-}) {
+  accept?: string;
+}
+
+function FileInputDrop({ setFiles, clearTrigger = false, fileType = 'pdf', accept }: FileInputDropProps) {
   const dropZoneRef = useRef<HTMLLabelElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
-  const [label, setLabel] = useState(fileType === 'pdf' ? 'PDF ' + t('Drop your files') : 'Excel ' + t('Drop your files'));
+
+  const getDefaultLabel = useCallback(() => {
+    return fileType === 'pdf' ? 'PDF ' + t('Drop your files') : 'Excel ' + t('Drop your files');
+  }, [fileType, t]);
+
+  const [label, setLabel] = useState<string>(getDefaultLabel());
 
   useEffect(() => {
     if (clearTrigger) {
@@ -70,7 +72,8 @@ function FileInputDrop({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    setLabel(fileType === 'pdf' ? 'PDF ' + t('Drop your files') : 'Excel ' + t('Drop your files'));
+    setLabel(getDefaultLabel());
+    setFiles(null);
   };
 
   const updateThumbnail = useCallback((file: File) => {
@@ -118,28 +121,35 @@ function FileInputDrop({
     };
   }, [handleDrop]);
 
+  const defaultAccept =
+    fileType === 'pdf'
+      ? '.pdf'
+      : '.xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel';
+
   return (
     <StyledDropZone ref={dropZoneRef}>
       <input
         type="file"
         className="drop-zone__input"
         ref={fileInputRef}
-        accept={fileType === 'pdf' ? '.pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
+        accept={accept || defaultAccept}
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
             updateThumbnail(e.target.files[0]);
+            setFiles(e.target.files);
+          } else {
+            setFiles(null);
           }
-          setFiles(e.target.files);
         }}
       />
 
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-        <Stack sx={{ alignItems: 'center', direction: 'column' }} spacing={2}>
-          <CloudUpload sx={{ fontSize: 80, color: 'primary.main', opacity: 0.5 }} />
-          <Typography variant="h4" color="text.secondary">
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+        <Stack sx={{ alignItems: 'center' }} spacing={1.5}>
+          <CloudUpload sx={{ fontSize: 56, color: 'primary.main', opacity: 0.7 }} />
+          <Typography variant="h5" color="text.primary" sx={{ fontWeight: 600 }}>
             {label}
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body2" color="text.secondary">
             {fileType === 'pdf'
               ? t('Davom etish uchun PDF fayl(lar)ni tizimga kiriting')
               : t('Davom etish uchun Excel faylni tizimga kiriting')}

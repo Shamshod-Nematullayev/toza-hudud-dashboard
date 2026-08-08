@@ -30,10 +30,12 @@ import { CloseMurojaatDialog } from './modals/CloseMurojaatDialog';
 import { EditMurojaatDialog } from './modals/EditMurojaatDialog';
 import { CreateMurojaatDialog } from './modals/CreateMurojaatDialog';
 import { PrintMurojaatDalolatnomaDialog } from './modals/PrintMurojaatDalolatnomaDialog';
+import { MurojaatReportDialog } from './modals/MurojaatReportDialog';
 import useCustomizationStore from 'store/customizationStore';
 import DownloadIcon from '@mui/icons-material/Download';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import { toast } from 'react-toastify';
 import useLoaderStore from 'store/loaderStore';
 
@@ -48,6 +50,7 @@ function Murojaatlar() {
   const [editOpen, setEditOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const [selectedRow, setSelectedRow] = useState<MurojaatRow | null>(null);
 
@@ -341,9 +344,15 @@ function Murojaatlar() {
       >
         <Typography variant="h5">Murojaatlar</Typography>
 
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-          Yangi murojaat
-        </Button>
+        <Stack direction="row" spacing={1.5}>
+          <Button variant="outlined" color="primary" startIcon={<AssessmentIcon />} onClick={() => setReportOpen(true)}>
+            Hisobot
+          </Button>
+
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
+            Yangi murojaat
+          </Button>
+        </Stack>
       </Box>
 
       <Grid container spacing={1}>
@@ -417,6 +426,11 @@ function Murojaatlar() {
           setPrintOpen(false);
           setSelectedRow(null);
         }}
+      />
+
+      <MurojaatReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
       />
     </MainCard>
   );
