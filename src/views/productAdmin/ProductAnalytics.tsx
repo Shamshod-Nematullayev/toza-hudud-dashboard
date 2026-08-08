@@ -52,6 +52,13 @@ interface UserData {
   requests: number;
 }
 
+interface TelegramData {
+  kpi: { activeUsersToday: number; activeUsers7d: number; activeUsers30d: number; totalActivity7d: number };
+  mostUsedCommands: Array<{ command: string; uses: number; uniqueUsers: number }>;
+  mostUsedButtons: Array<{ button: string; clicks: number; uniqueUsers: number }>;
+  features: Array<{ feature: string; started: number; completed: number; completionRate: number }>;
+}
+
 function TabPanel(props: { children?: React.ReactNode; index: number; value: number }) {
   const { children, value, index, ...other } = props;
   return (
@@ -70,6 +77,7 @@ export default function ProductAnalytics() {
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [endpoints, setEndpoints] = useState<EndpointData | null>(null);
   const [users, setUsers] = useState<UserData[]>([]);
+  const [telegram, setTelegram] = useState<TelegramData | null>(null);
   
   // Pagination for users tab
   const [page, setPage] = useState(0);
@@ -106,10 +114,19 @@ export default function ProductAnalytics() {
     }
   };
 
+  const fetchTelegram = async () => {
+    try {
+      const res = await api.get(`/product-admin/analytics/telegram?period=${period}`);
+      if (res.data?.success) setTelegram(res.data.data);
+    } catch (err: any) {
+      toast.error("Telegram data xatoligi");
+    }
+  };
+
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
-      await Promise.all([fetchOverview(), fetchEndpoints(), fetchUsers()]);
+      await Promise.all([fetchOverview(), fetchEndpoints(), fetchUsers(), fetchTelegram()]);
       setLoading(false);
     };
     loadAll();
@@ -178,10 +195,11 @@ export default function ProductAnalytics() {
 
       <Paper sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} aria-label="analytics tabs">
+          <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} aria-label="analytics tabs" variant="scrollable" scrollButtons="auto">
             <Tab label="Umumiy (Overview)" />
             <Tab label="API Statistikasi (Endpoints)" />
             <Tab label="Foydalanuvchilar (Users)" />
+            <Tab label="Telegram (V1.1)" />
           </Tabs>
         </Box>
 
@@ -343,6 +361,123 @@ export default function ProductAnalytics() {
               setPage(0);
             }}
           />
+        </TabPanel>
+
+        {/* TAB 3: TELEGRAM */}
+        <TabPanel value={tabValue} index={3}>
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'primary.dark' : 'primary.light', color: 'primary.main' }}>
+                <Typography variant="subtitle2" gutterBottom>Telegram Faol (Bugun)</Typography>
+                <Typography variant="h3" color="inherit">{telegram?.kpi?.activeUsersToday || 0}</Typography>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ p: 2 }}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>Telegram Faol (7 kun)</Typography>
+                <Typography variant="h3">{telegram?.kpi?.activeUsers7d || 0}</Typography>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ p: 2 }}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>Telegram Faol (30 kun)</Typography>
+                <Typography variant="h3">{telegram?.kpi?.activeUsers30d || 0}</Typography>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card sx={{ p: 2 }}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>Jami Faollik (7 kun)</Typography>
+                <Typography variant="h3">{telegram?.kpi?.totalActivity7d || 0}</Typography>
+              </Card>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h4" sx={{ px: 2, mb: 2 }}>Eng ko'p ishlatilgan Commandlar</Typography>
+              <TableContainer component={Paper} variant="outlined" sx={{ mb: 4 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Command</TableCell>
+                      <TableCell>Ishlatildi (Uses)</TableCell>
+                      <TableCell>Unique Users</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {telegram?.mostUsedCommands?.map((cmd, i) => (
+                      <TableRow key={i} hover>
+                        <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{cmd.command}</TableCell>
+                        <TableCell>{cmd.uses}</TableCell>
+                        <TableCell>{cmd.uniqueUsers}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!telegram?.mostUsedCommands?.length && (
+                      <TableRow><TableCell colSpan={3} align="center">Ma'lumot yo'q</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Typography variant="h4" sx={{ px: 2, mb: 2 }}>Eng ko'p bosilgan Tugmalar (Buttons)</Typography>
+              <TableContainer component={Paper} variant="outlined" sx={{ mb: 4 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Button</TableCell>
+                      <TableCell>Bosildi (Clicks)</TableCell>
+                      <TableCell>Unique Users</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {telegram?.mostUsedButtons?.map((btn, i) => (
+                      <TableRow key={i} hover>
+                        <TableCell>{btn.button}</TableCell>
+                        <TableCell>{btn.clicks}</TableCell>
+                        <TableCell>{btn.uniqueUsers}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!telegram?.mostUsedButtons?.length && (
+                      <TableRow><TableCell colSpan={3} align="center">Ma'lumot yo'q</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+          </Grid>
+
+          <Typography variant="h4" sx={{ px: 2, mb: 2, mt: 2 }}>Funksiyalar (Features Completion)</Typography>
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Feature</TableCell>
+                  <TableCell>Boshlandi (Started)</TableCell>
+                  <TableCell>Tugadi (Completed)</TableCell>
+                  <TableCell>To'liqlik (Completion Rate)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {telegram?.features?.map((f, i) => (
+                  <TableRow key={i} hover>
+                    <TableCell sx={{ fontWeight: 500 }}>{f.feature}</TableCell>
+                    <TableCell>{f.started}</TableCell>
+                    <TableCell>{f.completed}</TableCell>
+                    <TableCell>
+                      <Typography color={f.completionRate < 50 ? 'error' : (f.completionRate > 80 ? 'success.main' : 'warning.main')}>
+                        {f.completionRate}%
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {!telegram?.features?.length && (
+                  <TableRow><TableCell colSpan={4} align="center">Ma'lumot yo'q</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </TabPanel>
       </Paper>
     </Box>
