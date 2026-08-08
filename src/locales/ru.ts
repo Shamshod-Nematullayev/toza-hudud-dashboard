@@ -67,6 +67,7 @@ const ru: typeof uz = {
     importActs: 'Импортировать акты',
     productAdmin: 'Управление системой',
     manageCompanies: 'Управление организациями',
+    productAnalytics: 'Аналитика продукта',
     manageUsers: 'Управление пользователями',
     companyProfile: 'Профиль организации'
   },

@@ -101,6 +101,7 @@ const uz = {
     'call-warnings-workspace': 'Telefonchi ishmaydoni',
     productAdmin: 'Tizim boshqaruvi',
     manageCompanies: 'Tashkilotlarni boshqarish',
+    productAnalytics: 'Mahsulot Analitikasi',
     manageUsers: 'Foydalanuvchilarni boshqarish',
     companyProfile: 'Tashkilot profili'
   },

@@ -130,6 +130,7 @@ const uzKirill: typeof uz = {
     tasks: 'Топшириқлар',
     productAdmin: 'Тизим бошқаруви',
     manageCompanies: 'Ташкилотларни бошқариш',
+    productAnalytics: 'Маҳсулот Аналитикаси',
     manageUsers: 'Фойдаланувчиларни бошқариш',
     companyProfile: 'Ташкилот профили'
   },

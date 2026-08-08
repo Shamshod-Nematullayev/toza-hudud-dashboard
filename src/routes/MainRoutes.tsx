@@ -50,6 +50,7 @@ import CallerStart from 'views/billing/CallerWorkspace/CallerStart';
 import Murojaatlar from 'views/jurist/Murojaatlar/Murojaatlar';
 import Companies from 'views/productAdmin/Companies';
 import Users from 'views/productAdmin/Users';
+import ProductAnalytics from 'views/productAdmin/ProductAnalytics';
 import CompanyProfile from 'views/companyProfile/CompanyProfile';
 
 // dashboard routing
@@ -341,6 +342,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'users',
           element: <Users />
+        },
+        {
+          path: 'analytics',
+          element: <ProductAnalytics />
         }
       ]
     },
