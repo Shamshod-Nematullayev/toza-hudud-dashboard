@@ -14,37 +14,30 @@ export type PhoneStatus =
 // ─── Konfiguratsiyalar (Prettier buzmasligi uchun inline) ──────────
 
 // prettier-ignore
-export const STATUS_CFG: Record<string, { label: string; color: 'success' | 'error' | 'warning' | 'default' | 'info' | 'primary' }> = {
+export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success' | 'error' | 'warning' | 'default' }> = {
   data_needs_attention: { label: '⏳ Ma\'lumotlarni tekshirish kerak', color: 'error' },
-  ready_to_block:    { label: '☑️ Bloklanishi kutilmoqda',         color: 'warning' },
-  blocked:           { label: '⛔ Bloklangan',                     color: 'error' },
+  ready_to_block:    { label: '☑️ Bloklanishi Kutilmoqda',         color: 'success' },
+  blocked:           { label: '✅ Bloklangan',                     color: 'success' },
   resolved:          { label: '✅ Yechilgan debitorlar',           color: 'success' },
-  active:            { label: '🟢 Faol',                           color: 'success' },
-  pendingBlock:      { label: '⏳ Bloklash kutilmoqda',           color: 'warning' },
-  no_het:            { label: '❌ HET bazasida yo\'q',             color: 'error' },
 };
 
-export const PHONE_CFG: Record<string, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' | 'info' }> = {
-  new:                  { label: '📱 Yangi',                         color: 'primary' },
-  checking:             { label: '🔍 SMS tekshirilmoqda',            color: 'warning' },
-  needs_het_sync:       { label: '🔄 HETga kiritish kerak',           color: 'secondary' },
-  not_found:            { label: '❌ Topilmagan',                    color: 'error' },
-  no_phone:             { label: '❌ Raqam topilmadi',               color: 'error' },
-  changed:              { label: '📞 Telefon raqami o\'zgargan',       color: 'primary' },
-  confirmed:            { label: '✅ Tasdiqlangan',                  color: 'success' },
-  confirmed_previously: { label: '✅ Avval tasdiqlangan',             color: 'success' },
-  confirmed_this_cycle: { label: '✅ Ushbu tsiklda tasdiqlangan',     color: 'success' },
-  het_synced:           { label: '✅ HETga kiritildi',                color: 'success' },
-  identified:           { label: '✅ Aniqlangan',                     color: 'success' },
-  pending_check:        { label: '🔍 SMS tekshirilmoqda',            color: 'warning' }
+// prettier-ignore
+export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
+  new:                   { label: '📱 Yangi',                         color: 'primary' },
+  checking:              { label: '🔍 Tekshirilmoqda',                color: 'warning' },
+  needs_het_sync:        { label: '🔄 HET sinxronizatsiya kerak',     color: 'secondary' },
+  not_found:             { label: '❌ Topilmagan',                    color: 'error' },
+  changed:         { label: '📞 Telefon raqami o\'zgartirilgan',   color: 'primary' },
+  confirmed:             { label: '✅ Tasdiqlangan',                    color: 'success' }
 };
 
-export const HET_ACCOUNT_CFG: Record<string, { label: string; color: 'success' | 'error' | 'warning' | 'primary' | 'info' }> = {
+export type HetAccountStatus = 'new' | 'changed' | 'confirmed' | 'not_found';
+
+export const HET_ACCOUNT_CFG: Record<HetAccountStatus, { label: string; color: 'success' | 'error' | 'warning' | 'primary' }> = {
   confirmed: { label: '⚡ Tasdiqlangan', color: 'success' },
   not_found: { label: '⚠️ Topilmadi', color: 'error' },
-  new:       { label: '🆕 Yangi', color: 'primary' },
-  changed:   { label: "🔄 O'zgargan", color: 'warning' },
-  checking:  { label: '🔍 Tekshirilmoqda', color: 'info' }
+  new: { label: '🆕 Yangi', color: 'primary' },
+  changed: { label: "🔄 O'zgargan", color: 'warning' }
 };
 
 export interface Stat {
