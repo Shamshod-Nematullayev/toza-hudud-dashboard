@@ -221,7 +221,7 @@ function EditDetails() {
         ...abonentDetails?.house,
         id: abonentDetails?.house.id || 0,
         inhabitantCnt: abonentDetails?.house.inhabitantCnt || 0,
-        cadastralNumber,
+        cadastralNumber: cadastralNumber ? cadastralNumber.replace(/[_:]+$/, '').replace(/_/g, '') : '',
         temporaryCadastralNumber,
         type: homeType,
         homeNumber: buildingId,
