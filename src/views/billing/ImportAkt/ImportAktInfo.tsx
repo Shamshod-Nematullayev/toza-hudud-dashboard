@@ -1,54 +1,92 @@
-import { Dialog, DialogTitle } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import { t } from 'i18next';
 import React from 'react';
 
 function ImportAktInfo({ handleClose, open }: { handleClose: () => void; open: boolean }) {
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{t('importAktsPage.infoTitle')}</DialogTitle>
-      <p>Ushbu qo‘llanma orqali tizimga aktlarni import qilish jarayoni batafsil tushuntiriladi.</p>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ fontWeight: 700 }}>{t('importAktsPage.infoTitle')}</DialogTitle>
+      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Typography variant="body1" color="text.secondary">
+          Ushbu qo‘llanma orqali tizimga aktlarni import qilish jarayoni batafsil tushuntiriladi.
+        </Typography>
 
-      <h2>1. Sahifa elementlari va ularning vazifalari</h2>
-      <p>Saytda aktlarni import qilish uchun 4 ta input mavjud:</p>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
+            1. Sahifa elementlari va ularning vazifalari
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Saytda aktlarni import qilish uchun 4 ta asosiy qadam mavjud:
+          </Typography>
 
-      <h3>1.1. Akt pachkalarini tanlash (Selection Input)</h3>
-      <ul>
-        <li>Bu input orqali aktlar joylashtiriladigan pachka tanlanadi.</li>
-        <li>Tanlash ro‘yxatida mavjud pachka nomlari va ularning yaratilgan sanalari ko‘rsatilgan.</li>
-        <li>Agar akt pachkasi allaqachon tanlangan bo‘lsa, 2-input avtomatik yashiriladi.</li>
-      </ul>
+          <Box sx={{ pl: 2, mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              1.1. Akt pachkalarini tanlash (Selection Input)
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Bu input orqali aktlar joylashtiriladigan mavjud pachka tanlanadi.
+              <br />
+              • Tanlash ro‘yxatida mavjud pachka nomlari va ularning yaratilgan sanalari ko‘rsatilgan.
+              <br />• Agar akt pachkasi allaqachon tanlangan bo‘lsa, yangi pachka turi inputi yashiriladi.
+            </Typography>
+          </Box>
 
-      <h3>1.2. Akt pachka turini tanlash (Selection Input)</h3>
-      <ul>
-        <li>Bu input faqat 1-inputda yangi pachka tanlanganda ko‘rinadi.</li>
-        <li>Pachka turi tanlangan holda, tizim avtomatik ushbu turdagi yangi pachkani yaratadi va aktlar shu pachkaga joylanadi.</li>
-        <li>Agar 1-inputda mavjud pachka tanlangan bo‘lsa, bu input avtomatik yashiriladi.</li>
-      </ul>
+          <Box sx={{ pl: 2, mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              1.2. Akt pachka turini tanlash (Selection Input)
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Bu input mavjud pachka tanlanmagan taqdirda yangi pachka yaratish uchun ko‘rinadi.
+              <br />• Pachka turi tanlansa, tizim avtomatik ushbu turdagi yangi pachkani yaratib, aktlarni shu pachkaga biriktiradi.
+            </Typography>
+          </Box>
 
-      <h3>1.3. PDF faylni yuklash (File Input)</h3>
-      <ul>
-        <li>Ushbu inputga asoslantiruvchi hujjat sifatida PDF fayl yuklanadi.</li>
-        <li>Har bir aktga PDF fayl avtomatik biriktiriladi.</li>
-      </ul>
+          <Box sx={{ pl: 2, mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              1.3. PDF faylni yuklash (File Input)
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Ushbu bo‘limga asoslantiruvchi hujjat sifatida PDF fayl yuklanadi.
+              <br />• Har bir import qilingan aktga ushbu PDF fayl biriktiriladi.
+            </Typography>
+          </Box>
 
-      <h3>1.4. Excel faylni yuklash (File Input)</h3>
-      <ul>
-        <li>Bu inputga import qilinadigan aktlarning ma’lumotlari joylashtirilgan Excel fayl yuklanadi.</li>
-        <li>Excel fayl shabloni sahifada joylashgan “Shablonni yuklash” tugmasi orqali olinishi mumkin.</li>
-        <li className="note">Shablonning birinchi qatori o‘zgartirilmasligi kerak. Ma’lumotlar ikkinchi qatordan boshlab kiritiladi.</li>
-        <li className="warning">
-          Bir import jarayonida tavsiya etilgan maksimal aktlar soni: <strong>300 tadan ortiq bo‘lmasligi kerak</strong>.
-        </li>
-      </ul>
+          <Box sx={{ pl: 2, mb: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              1.4. Excel faylni yuklash (File Input)
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Bu bo‘limga import qilinadigan aktlarning ma’lumotlari joylashtirilgan Excel fayl yuklanadi.
+              <br />
+              • Excel fayl shabloni sahifadagi “Shablonni yuklash” tugmasi orqali olinishi mumkin.
+              <br />
+              • <strong>Diqqat:</strong> Shablonning birinchi qatori o‘zgartirilmasligi kerak. Ma’lumotlar 2-qatordan boshlab
+              kiritiladi.
+              <br />• Bir import jarayonida tavsiya etilgan maksimal aktlar soni: <strong>300 tadan ortiq bo‘lmasligi kerak</strong>.
+            </Typography>
+          </Box>
+        </Box>
 
-      <h2>2. Import qilish tartibi</h2>
-      <ol>
-        <li>1-input orqali akt pachkasini tanlash yoki yangi pachka yaratish.</li>
-        <li>Agar kerak bo‘lsa, 2-input orqali pachka turini tanlash.</li>
-        <li>3-input orqali asoslantiruvchi PDF faylni yuklash.</li>
-        <li>4-input orqali Excel faylni yuklash.</li>
-        <li>“Import” tugmasini bosib jarayonni yakunlash.</li>
-      </ol>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
+            2. Import qilish tartibi
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            1. Akt pachkasini tanlash yoki yangi pachka turini tanlash.
+            <br />
+            2. Asoslantiruvchi PDF faylni tizimga kiritish va serverga yuklanishini kutish.
+            <br />
+            3. Shablon asosida tayyorlangan Excel faylini tanlash.
+            <br />
+            4. “Aktlarni kiritish” tugmasini bosib jarayonni yakunlash.
+          </Typography>
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ p: 2 }}>
+        <Button variant="contained" onClick={handleClose}>
+          Tushundim
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }
