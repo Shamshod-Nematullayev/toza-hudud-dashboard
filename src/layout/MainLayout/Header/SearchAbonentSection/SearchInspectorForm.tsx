@@ -6,7 +6,17 @@ import api from 'utils/api';
 function SearchInspectorForm({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<
+    {
+      _id: string;
+      id: number;
+      name: string;
+      phone: string;
+      status: string;
+      photo: string;
+      assignedNeighborhoodsCount: number;
+    }[]
+  >([]);
   const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -95,19 +105,19 @@ function SearchInspectorForm({ onClose }: { onClose: () => void }) {
                           borderRadius: '50%',
                           animation: inspector.status === 'active' ? 'ripple 1.2s infinite ease-in-out' : 'none',
                           border: '1px solid currentColor',
-                          content: '""',
-                        },
+                          content: '""'
+                        }
                       },
                       '@keyframes ripple': {
                         '0%': {
                           transform: 'scale(.8)',
-                          opacity: 1,
+                          opacity: 1
                         },
                         '100%': {
                           transform: 'scale(2.4)',
-                          opacity: 0,
-                        },
-                      },
+                          opacity: 0
+                        }
+                      }
                     }}
                   >
                     <Avatar src={inspector.photo} alt={inspector.name} sx={{ width: 45, height: 45 }}>
@@ -119,46 +129,11 @@ function SearchInspectorForm({ onClose }: { onClose: () => void }) {
                     <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
                       {inspector.name}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                       Tel: {inspector.phone || '—'}
                     </Typography>
                   </Box>
                 </Box>
-
-                <Grid container spacing={1} sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-                  <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Bugungi tushum:
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
-                      {inspector.todayRevenue.toLocaleString()} UZS ({inspector.todayTargetCompletion}%)
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Mahallalar soni:
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {inspector.assignedNeighborhoodsCount} ta MFY
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Kutilayotgan vazifalar:
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: inspector.openTasksCount > 0 ? 'warning.main' : 'text.primary' }}>
-                      {inspector.openTasksCount} ta ochiq
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Ochiq murojaatlar:
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: inspector.openComplaintsCount > 0 ? 'error.main' : 'text.primary' }}>
-                      {inspector.openComplaintsCount} ta
-                    </Typography>
-                  </Grid>
-                </Grid>
               </CardContent>
             </Card>
           ))}

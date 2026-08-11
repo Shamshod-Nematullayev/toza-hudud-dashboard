@@ -1,7 +1,22 @@
 import { useEffect, useState, useRef } from 'react';
 import { MurojaatRow } from '../types';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
-import { Box, Button, DialogActions, DialogContent, Stack, Typography, TextField, CircularProgress, IconButton, Checkbox, FormControlLabel, RadioGroup, Radio, Alert } from '@mui/material';
+import {
+  Box,
+  Button,
+  DialogActions,
+  DialogContent,
+  Stack,
+  Typography,
+  TextField,
+  CircularProgress,
+  IconButton,
+  Checkbox,
+  FormControlLabel,
+  RadioGroup,
+  Radio,
+  Alert
+} from '@mui/material';
 import api from 'utils/api';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import { toast } from 'react-toastify';
@@ -128,10 +143,7 @@ export function CloseMurojaatDialog({
         throw new Error(data.message || 'Error uploading file');
       }
 
-      setAdditionalPhotos((prev) => [
-        ...prev,
-        { file: imageFile, id: data.document_id, preview: previewUrl }
-      ]);
+      setAdditionalPhotos((prev) => [...prev, { file: imageFile, id: data.document_id, preview: previewUrl }]);
       toast.success("Qo'shimcha rasm yuklandi");
     } catch (err: any) {
       console.error(err);
@@ -293,7 +305,7 @@ export function CloseMurojaatDialog({
           </Typography>
 
           <Box>
-            <FileInputDrop setFiles={(files) => setFile(files![0])} fileType="pdf" clearTrigger={open} />
+            <FileInputDrop setFiles={(files) => setFile(files && files.length > 0 ? files[0] : null)} fileType="pdf" clearTrigger={open} />
             {!file && (
               <Typography variant="caption" color="error">
                 Yopish hujjati majburiy
@@ -388,12 +400,7 @@ export function CloseMurojaatDialog({
             <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5, color: 'text.secondary' }}>
               Rasm buferidan joylash (Ctrl+V) nishonini tanlang:
             </Typography>
-            <RadioGroup
-              row
-              value={pasteTarget}
-              onChange={(e) => setPasteTarget(e.target.value as 'gps' | 'additional')}
-              sx={{ gap: 2 }}
-            >
+            <RadioGroup row value={pasteTarget} onChange={(e) => setPasteTarget(e.target.value as 'gps' | 'additional')} sx={{ gap: 2 }}>
               <FormControlLabel
                 value="gps"
                 control={<Radio size="small" />}
@@ -419,13 +426,7 @@ export function CloseMurojaatDialog({
                 </Typography>
               )}
             </Box>
-            <input
-              type="file"
-              accept="image/*"
-              ref={gpsInputRef}
-              style={{ display: 'none' }}
-              onChange={handleGpsInputChange}
-            />
+            <input type="file" accept="image/*" ref={gpsInputRef} style={{ display: 'none' }} onChange={handleGpsInputChange} />
             <Box
               onClick={handleGpsClick}
               onDragOver={(e) => handleDragOver(e, setDragOverGps)}
@@ -435,7 +436,7 @@ export function CloseMurojaatDialog({
               sx={{
                 border: '2px dashed',
                 borderColor: dragOverGps || pasteTarget === 'gps' ? 'primary.main' : 'divider',
-                bgcolor: dragOverGps ? 'action.hover' : (pasteTarget === 'gps' ? 'action.hover' : 'background.paper'),
+                bgcolor: dragOverGps ? 'action.hover' : pasteTarget === 'gps' ? 'action.hover' : 'background.paper',
                 borderRadius: 2,
                 p: gpsPreview ? 1 : 3,
                 textAlign: 'center',
@@ -521,7 +522,7 @@ export function CloseMurojaatDialog({
               sx={{
                 border: '2px dashed',
                 borderColor: dragOverAdditional || pasteTarget === 'additional' ? 'primary.main' : 'divider',
-                bgcolor: dragOverAdditional ? 'action.hover' : (pasteTarget === 'additional' ? 'action.hover' : 'background.paper'),
+                bgcolor: dragOverAdditional ? 'action.hover' : pasteTarget === 'additional' ? 'action.hover' : 'background.paper',
                 borderRadius: 2,
                 p: 3,
                 textAlign: 'center',
@@ -593,12 +594,13 @@ export function CloseMurojaatDialog({
               )}
             </Box>
           </Box>
-
         </Stack>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={submitting}>Bekor qilish</Button>
+        <Button onClick={handleClose} disabled={submitting}>
+          Bekor qilish
+        </Button>
         <Button
           variant="contained"
           disabled={!file || !gpsPhotoFileId || gpsUploading || additionalUploading || (!residentId && !noAbonent) || submitting}
