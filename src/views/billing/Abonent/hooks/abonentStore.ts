@@ -16,7 +16,7 @@ import {
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
 import { IAbonent, searchAbonentFromTozamakon } from 'services/searchAbonentFromTozamakon';
-import { Debitor } from 'views/billing/Debitors';
+import { Debitor } from 'views/billing/Debitors/types';
 
 const initialState: IAbonentPageDataStore = {
   abonentDetails: null,

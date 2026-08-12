@@ -175,9 +175,7 @@ export function CreateMurojaatDialog({
                           if (mahallaDoc.biriktirilganNazoratchi?.inspactor_id) {
                             const inspectorId = mahallaDoc.biriktirilganNazoratchi.inspactor_id;
                             const matched = inspectors.find(
-                              (ins) =>
-                                String(ins.id) === String(inspectorId) ||
-                                String(ins._id) === String(inspectorId)
+                              (ins) => String(ins.id) === String(inspectorId) || String(ins._id) === String(inspectorId)
                             );
                             if (matched) {
                               formik.setFieldValue('assignedTo', matched._id);
@@ -252,7 +250,7 @@ export function CreateMurojaatDialog({
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     PDF fayl
                   </Typography>
-                  <FileInputDrop setFiles={(files) => setFile(files![0])} fileType="pdf" clearTrigger={open} />
+                  <FileInputDrop setFiles={(files) => setFile(files?.[0] || null)} fileType="pdf" clearTrigger={open} />
                   {!file && (
                     <Typography variant="caption" color="error">
                       Fayl majburiy
@@ -283,45 +281,64 @@ export function CreateMurojaatDialog({
                       <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'primary.dark' }}>
                         📋 PDF dan aniqlangan ma'lumotlar
                       </Typography>
-                      
+
                       <Divider />
 
                       <Grid container spacing={1}>
                         <Grid size={{ xs: 6 }}>
-                          <Typography variant="caption" color="text.secondary">Hujjat kodi / raqami:</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Hujjat kodi / raqami:
+                          </Typography>
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>
                             {parsedData.hujjatKodi || '—'} / {parsedData.hujjatRaqami || '—'}
                           </Typography>
                         </Grid>
 
                         <Grid size={{ xs: 6 }}>
-                          <Typography variant="caption" color="text.secondary">Murojaat raqami:</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{parsedData.murojaatRaqami || '—'}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Murojaat raqami:
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {parsedData.murojaatRaqami || '—'}
+                          </Typography>
                         </Grid>
 
                         <Grid size={{ xs: 6 }}>
-                          <Typography variant="caption" color="text.secondary">Murojaat muallifi (F.I.O):</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{parsedData.muallif || '—'}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Murojaat muallifi (F.I.O):
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {parsedData.muallif || '—'}
+                          </Typography>
                         </Grid>
 
                         <Grid size={{ xs: 6 }}>
-                          <Typography variant="caption" color="text.secondary">Telefon:</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Telefon:
+                          </Typography>
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>
                             {parsedData.telefon || '—'} {parsedData.qoshimchaTelefon ? `(${parsedData.qoshimchaTelefon})` : ''}
                           </Typography>
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="caption" color="text.secondary">Manzil:</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{parsedData.manzil || '—'}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Manzil:
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {parsedData.manzil || '—'}
+                          </Typography>
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="caption" color="text.secondary">Murojaat qisqacha mazmuni:</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{parsedData.mazmuni || '—'}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Murojaat qisqacha mazmuni:
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {parsedData.mazmuni || '—'}
+                          </Typography>
                         </Grid>
                       </Grid>
-
                     </Stack>
                   </Paper>
                 )}

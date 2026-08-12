@@ -2,18 +2,19 @@ import { Avatar, Badge, ButtonBase, useTheme } from '@mui/material';
 import { IconMessageReport } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useCustomizationStore from 'store/customizationStore';
 import api from 'utils/api';
 
 function MurojaatlarSection() {
   const theme = useTheme();
-  const [count, setCount] = useState(0);
+  const { openMurojaatCount, setOpenMurojaatCount } = useCustomizationStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data } = await api.get('/murojaatlar/open-count');
+      const { data } = await api.get<number>('/murojaatlar/open-count');
 
-      setCount(data);
+      setOpenMurojaatCount(data);
     };
     fetchData();
   }, []);
@@ -24,7 +25,7 @@ function MurojaatlarSection() {
 
   return (
     <ButtonBase sx={{ borderRadius: '12px' }}>
-      <Badge color="warning" variant="standard" badgeContent={count} max={20}>
+      <Badge color="warning" variant="standard" badgeContent={openMurojaatCount} max={20}>
         <Avatar
           variant="rounded"
           sx={{

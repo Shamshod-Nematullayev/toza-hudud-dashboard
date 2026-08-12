@@ -82,7 +82,7 @@ function Murojaatlar() {
         }
       }
 
-      const blob = new Blob([response.data], { type: mimeType });
+      const blob = new Blob([response.data], { type: mimeType as string });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
@@ -428,10 +428,7 @@ function Murojaatlar() {
         }}
       />
 
-      <MurojaatReportDialog
-        open={reportOpen}
-        onClose={() => setReportOpen(false)}
-      />
+      <MurojaatReportDialog open={reportOpen} onClose={() => setReportOpen(false)} />
     </MainCard>
   );
 }

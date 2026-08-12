@@ -322,7 +322,6 @@ function InfoChips(props: InfoChipsProps) {
         anchorEl={calculatorRef.current}
         role={undefined}
         transition
-        disablePortal
         popperOptions={{
           modifiers: [
             {

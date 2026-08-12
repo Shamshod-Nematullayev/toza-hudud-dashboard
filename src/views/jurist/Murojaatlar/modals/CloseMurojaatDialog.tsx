@@ -21,6 +21,7 @@ import api from 'utils/api';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import { toast } from 'react-toastify';
 import { Delete, CloudUpload, CheckCircle, Close } from '@mui/icons-material';
+import useCustomizationStore from 'store/customizationStore';
 
 export function CloseMurojaatDialog({
   open,
@@ -263,6 +264,7 @@ export function CloseMurojaatDialog({
     onClose();
   };
 
+  const { setOpenMurojaatCount } = useCustomizationStore();
   const handleSubmit = async () => {
     if (!row || !file || !gpsPhotoFileId || submitting) return;
 
@@ -287,6 +289,7 @@ export function CloseMurojaatDialog({
       });
 
       toast.success('Murojaat muvaffaqiyatli yopildi');
+      setOpenMurojaatCount(useCustomizationStore.getState().openMurojaatCount - 1);
       onSuccess();
     } catch (err: any) {
       console.error(err);

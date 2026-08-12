@@ -45,6 +45,8 @@ interface CustomizationState {
   setCompany: (company: CustomizationState['company']) => void;
   mahallalar: { id: number; name: string }[];
   setMahallalar: (mahallalar: CustomizationState['mahallalar']) => void;
+  openMurojaatCount: number;
+  setOpenMurojaatCount: (count: number) => void;
   logOut: () => void;
 }
 
@@ -70,7 +72,8 @@ const initialState = {
     name: '',
     phone: ''
   },
-  mahallalar: []
+  mahallalar: [],
+  openMurojaatCount: 0
 };
 
 const useCustomizationStore = create<CustomizationState>()(
@@ -99,7 +102,8 @@ const useCustomizationStore = create<CustomizationState>()(
           user: null,
           company: { billingAdminName: '', gpsOperatorName: '', id: 0, locationName: '', managerName: '', name: '', phone: '' },
           mahallalar: []
-        })
+        }),
+      setOpenMurojaatCount: (count: number) => set({ openMurojaatCount: count })
     }),
     {
       name: 'customization-store',
