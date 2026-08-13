@@ -1,41 +1,8 @@
 import React from 'react';
-import MainCard from 'ui-component/cards/MainCard';
-import XatlovActionsToolbar from './XatlovActionsToolbar';
-import XatlovTable from './DataTable';
-import SidePanel from './SidePanel';
-import { Backdrop, CircularProgress, Grid } from '@mui/material';
-import odamSoniXatlovStore from './odamSoniXatlovStore';
-import PrintSection from './PrintSection';
+import XatlovWorkspace from './XatlovWorkspace';
 
 function XatlovOdamSoni() {
-  const {
-    ui: { loading }
-  } = odamSoniXatlovStore();
-  return (
-    <MainCard contentSX={{ position: 'relative' }}>
-      <PrintSection />
-      <Backdrop
-        sx={{
-          color: '#fff',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: (theme) => theme.zIndex.drawer + 1
-        }}
-        open={loading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 5 }}>
-          <XatlovTable />
-        </Grid>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <SidePanel />
-        </Grid>
-      </Grid>
-    </MainCard>
-  );
+  return <XatlovWorkspace defaultTab={0} />;
 }
 
 export default XatlovOdamSoni;

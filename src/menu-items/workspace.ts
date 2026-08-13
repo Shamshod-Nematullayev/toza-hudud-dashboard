@@ -149,29 +149,11 @@ const billing: MenuItem = {
     {
       id: 'inventory',
       title: 'inventory',
-      type: 'collapse',
+      type: 'item',
       icon: icons.ChecklistIcon,
       allowedRoles: ['admin', 'billing'],
-      children: [
-        {
-          id: 'createInventory',
-          title: 'createInventory',
-          type: 'item',
-          url: '/billing/xatlovOdamSoni',
-          icon: icons.PersonAddAltIcon,
-          breadcrumbs: false,
-          allowedRoles: ['admin', 'billing']
-        },
-        {
-          id: 'invertoreDocuments',
-          title: 'invertoreDocuments',
-          type: 'item',
-          url: '/billing/xatlovDalolatnomalar',
-          icon: icons.InsertDriveFileOutlinedIcon,
-          breadcrumbs: false,
-          allowedRoles: ['admin', 'billing']
-        }
-      ]
+      url: '/billing/xatlovOdamSoni',
+      breadcrumbs: false
     },
     {
       id: 'reports',
