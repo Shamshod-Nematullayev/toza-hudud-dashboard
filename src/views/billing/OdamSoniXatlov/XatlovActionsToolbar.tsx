@@ -3,17 +3,23 @@ import { IconButton, Tooltip } from '@mui/material';
 import SimCardDownloadOutlinedIcon from '@mui/icons-material/SimCardDownloadOutlined';
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
+import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { CSVDownload } from 'react-csv';
 import { toast } from 'react-toastify';
 
 import api from 'utils/api';
 import useOdamSoniXatlovStore from './odamSoniXatlovStore';
+import AddSingleXatlovModal from './modals/AddSingleXatlovModal';
+import ImportXatlovExcelModal from './modals/ImportXatlovExcelModal';
 
 function XatlovActionsToolbar() {
   const { rows, pagination, setLoading, toggleRefresh, setPrintModal, setRows } = useOdamSoniXatlovStore();
 
   const [readyToDownload, setReadyToDownload] = useState(false);
   const [csvData, setCsvData] = useState([]);
+  const [openSingleModal, setOpenSingleModal] = useState(false);
+  const [openExcelModal, setOpenExcelModal] = useState(false);
 
   // 1. Dalolatnoma yaratish
   const handleCreateButtonClick = async () => {
@@ -30,8 +36,6 @@ function XatlovActionsToolbar() {
         mahallaId: pagination.filter.mahallaId
       });
 
-      // Store'dagi dalolatnoma ma'lumotlarini yangilash (agar store'da setter bo'lsa)
-      // Bu yerda bevosita set() ishlatish yoki store'ga yangi action qo'shish mumkin
       useOdamSoniXatlovStore.setState((state) => ({
         dalolatnoma: {
           ...state.dalolatnoma,
@@ -106,6 +110,18 @@ function XatlovActionsToolbar() {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <Tooltip title="Bittalab xatlovga qo'shish">
+        <IconButton color="primary" onClick={() => setOpenSingleModal(true)}>
+          <PersonAddOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Excel orqali ommaviy import">
+        <IconButton color="secondary" onClick={() => setOpenExcelModal(true)}>
+          <FileUploadOutlinedIcon />
+        </IconButton>
+      </Tooltip>
+
       <Tooltip title="Dalolatnoma yaratish">
         <span>
           <IconButton color="primary" disabled={!pagination.filter.mahallaId} onClick={handleCreateButtonClick}>
@@ -127,6 +143,9 @@ function XatlovActionsToolbar() {
       </Tooltip>
 
       {readyToDownload && <CSVDownload data={csvData} filename={`xatlov_${new Date().toLocaleDateString()}.csv`} target="_blank" />}
+
+      <AddSingleXatlovModal open={openSingleModal} onClose={() => setOpenSingleModal(false)} />
+      <ImportXatlovExcelModal open={openExcelModal} onClose={() => setOpenExcelModal(false)} />
     </div>
   );
 }
