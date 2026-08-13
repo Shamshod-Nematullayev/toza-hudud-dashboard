@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   Box,
@@ -18,6 +18,8 @@ import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import ClearIcon from '@mui/icons-material/Clear';
 import { toast } from 'react-toastify';
+
+import FileInputDrop from 'ui-component/FileInputDrop';
 import api from 'utils/api';
 import useOdamSoniXatlovStore from '../odamSoniXatlovStore';
 
@@ -28,8 +30,8 @@ interface ImportXatlovExcelModalProps {
 
 export default function ImportXatlovExcelModal({ open, onClose }: ImportXatlovExcelModalProps) {
   const { toggleRefresh } = useOdamSoniXatlovStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [clearTrigger, setClearTrigger] = useState(false);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resultSummary, setResultSummary] = useState<any>(null);
@@ -38,7 +40,7 @@ export default function ImportXatlovExcelModal({ open, onClose }: ImportXatlovEx
     setFile(null);
     setResultSummary(null);
     setSubmitting(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setClearTrigger((prev) => !prev);
   };
 
   const handleCloseModal = () => {
@@ -124,8 +126,8 @@ export default function ImportXatlovExcelModal({ open, onClose }: ImportXatlovEx
             </Box>
 
             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                Excel faylini yuklang (.xlsx, .xls):
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
+                Excel faylini surib kelib tashlang yoki tanlang (.xlsx, .xls):
               </Typography>
               {file ? (
                 <Stack
@@ -155,35 +157,24 @@ export default function ImportXatlovExcelModal({ open, onClose }: ImportXatlovEx
                     disabled={submitting}
                     onClick={() => {
                       setFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = '';
+                      setClearTrigger((prev) => !prev);
                     }}
                   >
                     <ClearIcon fontSize="small" />
                   </IconButton>
                 </Stack>
               ) : (
-                <Button
-                  component="label"
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                  disabled={submitting}
-                  startIcon={<FileUploadOutlinedIcon />}
-                  sx={{ py: 1.5, borderStyle: 'dashed' }}
-                >
-                  Excel faylini tanlash...
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    hidden
-                    accept=".xls, .xlsx, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        setFile(e.target.files[0]);
-                      }
-                    }}
-                  />
-                </Button>
+                <FileInputDrop
+                  fileType="excel"
+                  setFiles={(files) => {
+                    if (files && files.length > 0) {
+                      setFile(files[0]);
+                    } else {
+                      setFile(null);
+                    }
+                  }}
+                  clearTrigger={clearTrigger}
+                />
               )}
             </Paper>
 

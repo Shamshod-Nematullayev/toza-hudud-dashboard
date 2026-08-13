@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Avatar,
+  Badge,
   Box,
   Button,
   Card,
@@ -120,9 +121,29 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   const [uploadingRows, setUploadingRows] = useState<any[]>([]);
   const [clearTrigger, setClearTrigger] = useState(false);
 
+  // Backend Stats State
+  const [stats, setStats] = useState({
+    totalRequests: 0,
+    newRequests: 0,
+    totalDocuments: 0,
+    activeDocuments: 0
+  });
+
+  const fetchStats = async () => {
+    try {
+      const { data } = await api.get('/yashovchi-soni-xatlov/stats');
+      if (data && data.data) {
+        setStats(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // 1. Initial Load & Options
   useEffect(() => {
     fetchRows();
+    fetchStats();
   }, [pagination.page, pagination.limit, pagination.filter, ui.refreshToggle]);
 
   useEffect(() => {
@@ -161,13 +182,14 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
   // Tab 0 Handlers: Dalolatnoma Yaratish
   const handleCreateDalolatnoma = async () => {
+    if (!pagination.filter.mahallaId) {
+      return toast.error('Iltimos, avval mahallani tanlang');
+    }
+
     const request_ids = rows.filter((row) => row.status === 'yangi').map((row) => row._id);
 
     if (request_ids.length < 1) {
-      return toast.error('Yangi holatdagi qatorlar topilmadi');
-    }
-    if (!pagination.filter.mahallaId) {
-      return toast.error('Iltimos, avval filtrdan Mahallani tanlang');
+      return toast.warning("Tanlangan mahalla bo'yicha yangi (rasmiylashtirilmagan) xatlov yozuvlari topilmadi");
     }
 
     try {
@@ -176,6 +198,8 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
         request_ids,
         mahallaId: pagination.filter.mahallaId
       });
+
+      toast.success(`Dalolatnoma muvaffaqiyatli yaratildi! (№ ${responseData.data.documentNumber})`);
 
       useOdamSoniXatlovStore.setState((state) => ({
         dalolatnoma: {
@@ -190,8 +214,8 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
       setPrintModal(true);
       toggleRefresh();
-    } catch (error) {
-      toast.error('Hujjat yaratishda xatolik yuz berdi');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Hujjat yaratishda xatolik yuz berdi');
     } finally {
       setLoading(false);
     }
@@ -248,7 +272,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
   // Tab 1 Handlers: Cancel / View / Print Dalolatnoma
   const handleClickCancelDalolatnoma = async (doc: IXatlovDocument) => {
-    const reason = prompt(`Siz haqiqatan ham ushbu (${doc.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing:`);
+    const reason = prompt(
+      `Siz haqiqatan ham ushbu (${doc.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing:`
+    );
     if (reason) {
       try {
         await api.put('/yashovchi-soni-xatlov/cancel-document/' + doc._id, {
@@ -393,7 +419,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   }, [dalolatnoma.documentNumber]);
 
   return (
-    <MainCard contentSX={{ position: 'relative', p: 2 }}>
+    <MainCard contentSX={{ position: 'relative', padding: 2 }}>
       <PrintSection />
 
       {/* Modern KPI Stats Bar */}
@@ -406,7 +432,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </Avatar>
               <Box>
                 <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {total}
+                  {stats.totalRequests}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Jami xatlov yozuvlari
@@ -424,7 +450,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </Avatar>
               <Box>
                 <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {rows.filter((r) => r.status === 'yangi').length}
+                  {stats.newRequests}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Yangi (dalolatnomasiz)
@@ -442,7 +468,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </Avatar>
               <Box>
                 <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {dalolatnomaMeta.rowCount || dalolatnomaRows.length}
+                  {stats.totalDocuments}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Shakllantirilgan Dalolatnomalar
@@ -460,7 +486,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </Avatar>
               <Box>
                 <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {dalolatnomaRows.filter((r) => !r.isCancel).length}
+                  {stats.activeDocuments}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Aktiv Dalolatnomalar
@@ -505,43 +531,75 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       {/* TAB 0: ABONENTLAR XATLOVI */}
       {activeTab === 0 && (
         <Stack spacing={2}>
-          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center', justifyContent: 'space-between' }}>
-            {/* Quick Actions */}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<PersonAddOutlinedIcon />}
-                onClick={() => setOpenSingleModal(true)}
-              >
-                Bittalab qo'shish
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<FileUploadOutlinedIcon />}
-                onClick={() => setOpenExcelModal(true)}
-              >
-                Excel Import
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                disabled={!pagination.filter.mahallaId}
-                startIcon={<NoteAddOutlinedIcon />}
-                onClick={handleCreateDalolatnoma}
-              >
-                Dalolatnoma yaratish
-              </Button>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1.5,
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            {/* Mahalla Filter & Dalolatnoma Creation */}
+            <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+              <FormControl size="small" sx={{ minWidth: 240 }}>
+                <InputLabel id="mahalla-select-label">Mahallani tanlang</InputLabel>
+                <Select
+                  labelId="mahalla-select-label"
+                  label="Mahallani tanlang"
+                  value={pagination.filter.mahallaId || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updatePagination({
+                      filter: val ? { mahallaId: val } : {},
+                      page: 1
+                    });
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Barcha mahallalar</em>
+                  </MenuItem>
+                  {mahallaOptions.map((opt: any) => (
+                    <MenuItem key={opt.mahallaId} value={opt.mahallaId}>
+                      {opt.mahallaName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Badge badgeContent={rows.filter((r) => r.status === 'yangi').length} color="secondary" max={999}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  disabled={!pagination.filter.mahallaId || rows.filter((r) => r.status === 'yangi').length === 0}
+                  startIcon={<NoteAddOutlinedIcon />}
+                  onClick={handleCreateDalolatnoma}
+                  sx={{ fontWeight: 700 }}
+                >
+                  Dalolatnoma yaratish
+                </Button>
+              </Badge>
             </Stack>
 
-            {/* Additional Tools */}
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            {/* Quick Import & Add Actions */}
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+              <Button variant="contained" color="primary" startIcon={<PersonAddOutlinedIcon />} onClick={() => setOpenSingleModal(true)}>
+                Bittalab qo'shish
+              </Button>
+
+              <Button variant="outlined" color="primary" startIcon={<FileUploadOutlinedIcon />} onClick={() => setOpenExcelModal(true)}>
+                Excel Import
+              </Button>
+
               <Tooltip title="TozaMakondan yangilash">
                 <IconButton color="info" onClick={handleClickRefresh}>
                   <RefreshIcon />
                 </IconButton>
               </Tooltip>
+
               <Tooltip title="Excelga yuklab olish">
                 <IconButton color="success" onClick={handleDownloadExcel}>
                   <SimCardDownloadOutlinedIcon />
@@ -674,11 +732,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                 headerName: 'Holati',
                 width: 160,
                 renderCell: ({ row }) => (
-                  <Chip
-                    label={row.isCancel ? 'Bekor qilingan' : 'Aktiv'}
-                    color={row.isCancel ? 'error' : 'success'}
-                    size="small"
-                  />
+                  <Chip label={row.isCancel ? 'Bekor qilingan' : 'Aktiv'} color={row.isCancel ? 'error' : 'success'} size="small" />
                 )
               },
               {
@@ -689,12 +743,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   <Stack direction="row" spacing={0.5}>
                     <Tooltip title="Bekor qilish">
                       <span>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleClickCancelDalolatnoma(row)}
-                          disabled={row.isCancel}
-                        >
+                        <IconButton size="small" color="error" onClick={() => handleClickCancelDalolatnoma(row)} disabled={row.isCancel}>
                           <DoDisturbAltOutlinedIcon fontSize="small" />
                         </IconButton>
                       </span>
@@ -803,7 +852,12 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                             >
                               <DoneOutlinedIcon fontSize="small" />
                             </IconButton>
-                            <IconButton size="small" color="error" disabled={params.row.isCancel} onClick={() => handleCancelRow(params.row._id)}>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              disabled={params.row.isCancel}
+                              onClick={() => handleCancelRow(params.row._id)}
+                            >
                               <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Stack>
@@ -826,9 +880,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       {/* Shared Modals */}
       <AddSingleXatlovModal open={openSingleModal} onClose={() => setOpenSingleModal(false)} />
       <ImportXatlovExcelModal open={openExcelModal} onClose={() => setOpenExcelModal(false)} />
-      {openPreviewDialog && (
-        <PreviewDialog document={currentDocument} requestDocuments={requestDocuments} setOpen={setOpenPreviewDialog} />
-      )}
+      {openPreviewDialog && <PreviewDialog document={currentDocument} requestDocuments={requestDocuments} setOpen={setOpenPreviewDialog} />}
     </MainCard>
   );
 }
