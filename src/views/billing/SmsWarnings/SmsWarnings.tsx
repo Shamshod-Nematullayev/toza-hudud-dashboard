@@ -11,13 +11,12 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Alert,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
   Tabs,
-  Tab,
+  Tab
 } from '@mui/material';
 import {
   UploadFileOutlined,
@@ -30,7 +29,7 @@ import {
   ErrorOutlineOutlined,
   HourglassEmptyOutlined,
   PeopleAltOutlined,
-  BusinessOutlined,
+  BusinessOutlined
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
@@ -51,7 +50,7 @@ const INIT_FILTERS = {
   accountNumber: '',
   status: '',
   startDate: '',
-  endDate: '',
+  endDate: ''
 };
 
 function SmsWarnings() {
@@ -65,6 +64,9 @@ function SmsWarnings() {
   // Filter state
   const [draftFilters, setDraftFilters] = useState(INIT_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState(INIT_FILTERS);
+
+  // Stats state (Yetkazildi, Kutilmoqda, Yetkazilmadi)
+  const [stats, setStats] = useState({ sent: 0, pending: 0, failed: 0 });
 
   // Job progress state & loading
   const [activeJob, setActiveJob] = useState<ActiveJobInfo | null>(null);
@@ -96,12 +98,17 @@ function SmsWarnings() {
           accountNumber: appliedFilters.accountNumber || undefined,
           status: appliedFilters.status || undefined,
           startDate: appliedFilters.startDate || undefined,
-          endDate: appliedFilters.endDate || undefined,
-        },
+          endDate: appliedFilters.endDate || undefined
+        }
       });
+
+      if (data.meta?.stats) {
+        setStats(data.meta.stats);
+      }
+
       return {
         meta: data.meta,
-        data: data.content,
+        data: data.content
       };
     },
     [],
@@ -119,7 +126,7 @@ function SmsWarnings() {
           setActiveJob({
             name: runningJob.name || 'SMS Holatlarini Yangilash',
             progress: runningJob.progress,
-            message: runningJob.message || 'Tekshirilmoqda...',
+            message: runningJob.message || 'Tekshirilmoqda...'
           });
           if (runningJob.progress === 100) {
             setTimeout(() => {
@@ -162,14 +169,11 @@ function SmsWarnings() {
     formData.append('file', excelFile);
     setLoading(true);
 
-    const endpoint =
-      activeTab === 'ORGANIZATION_DEBT'
-        ? '/sms-service/warnings/organizations/send'
-        : '/sms-service/warnings';
+    const endpoint = activeTab === 'ORGANIZATION_DEBT' ? '/sms-service/warnings/organizations/send' : '/sms-service/warnings';
 
     try {
       const { data } = await api.post(endpoint, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success(data.message || 'SMS yuborish muvaffaqiyatli yakunlandi!');
       refreshData();
@@ -191,9 +195,9 @@ function SmsWarnings() {
           accountNumber: appliedFilters.accountNumber || undefined,
           status: appliedFilters.status || undefined,
           startDate: appliedFilters.startDate || undefined,
-          endDate: appliedFilters.endDate || undefined,
+          endDate: appliedFilters.endDate || undefined
         },
-        responseType: 'blob',
+        responseType: 'blob'
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -268,14 +272,14 @@ function SmsWarnings() {
         renderCell: (params) => {
           const page = dataGridProps.paginationModel?.page || 0;
           const pageSize = dataGridProps.paginationModel?.pageSize || 25;
-          const rowIx = dataGridProps.rows.findIndex((r) => r._id === params.row._id);
+          const rowIx = (dataGridProps.rows || []).findIndex((r: any) => r._id === params.row._id);
           return page * pageSize + (rowIx >= 0 ? rowIx + 1 : 1);
-        },
+        }
       },
       {
         field: isOrg ? 'organizationId' : 'residentId',
         headerName: isOrg ? 'Tashkilot ID' : 'Resident ID',
-        width: 140,
+        width: 130,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -283,30 +287,34 @@ function SmsWarnings() {
           <Typography variant="body2" sx={{ fontWeight: 700, color: isOrg ? 'warning.main' : 'primary.main' }}>
             {value || '—'}
           </Typography>
-        ),
+        )
       },
       {
         field: 'accountNumber',
         headerName: isOrg ? 'Tashkilot Hisob Raqami' : 'Chiqindi Hisob Raqami',
-        width: 180,
-        sortable: false,
-        filterable: false,
-        disableColumnMenu: true,
-        renderCell: ({ value }) => <Typography variant="body2" sx={{ fontWeight: 600 }}>{value || '—'}</Typography>,
-      },
-      {
-        field: 'phone',
-        headerName: 'Telefon raqami',
         width: 170,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
-        renderCell: ({ value }) => <Typography variant="body2">{formatPhone(value)}</Typography>,
+        renderCell: ({ value }) => (
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {value || '—'}
+          </Typography>
+        )
+      },
+      {
+        field: 'phone',
+        headerName: 'Telefon raqami',
+        width: 160,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ value }) => <Typography variant="body2">{formatPhone(value)}</Typography>
       },
       {
         field: 'debtAmount',
         headerName: "Qarzdorlik (so'm)",
-        width: 160,
+        width: 150,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -314,12 +322,12 @@ function SmsWarnings() {
           <Typography variant="body2" sx={{ fontWeight: 600, color: 'error.main' }}>
             {formatCurrency(value)}
           </Typography>
-        ),
+        )
       },
       {
         field: 'status',
         headerName: 'SMS Holati',
-        width: 160,
+        width: 150,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -331,12 +339,12 @@ function SmsWarnings() {
             return <Chip label="❌ Xatolik" color="error" size="small" variant="filled" sx={{ fontWeight: 600 }} />;
           }
           return <Chip label="⏳ Kutilmoqda" color="warning" size="small" variant="outlined" sx={{ fontWeight: 600 }} />;
-        },
+        }
       },
       {
         field: 'createdAt',
         headerName: 'Yaratilgan sana',
-        width: 160,
+        width: 150,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -344,13 +352,13 @@ function SmsWarnings() {
           <Typography variant="caption" color="text.secondary">
             {value ? new Date(value).toLocaleString('uz-UZ') : '—'}
           </Typography>
-        ),
+        )
       },
       {
         field: 'message',
         headerName: 'Xabarnoma matni / Tafsilot',
         flex: 1,
-        minWidth: 220,
+        minWidth: 200,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -358,12 +366,12 @@ function SmsWarnings() {
           <Typography variant="caption" color={row.status === 'failed' ? 'error.main' : 'text.secondary'} noWrap>
             {value || row.errorMessage || '—'}
           </Typography>
-        ),
+        )
       },
       {
         field: 'actions',
         headerName: 'Amallar',
-        width: 100,
+        width: 90,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -382,19 +390,13 @@ function SmsWarnings() {
               </IconButton>
             </span>
           </Tooltip>
-        ),
-      },
+        )
+      }
     ];
-  }, [
-    isOrg,
-    dataGridProps.paginationModel?.page,
-    dataGridProps.paginationModel?.pageSize,
-    dataGridProps.rows,
-    rowRefreshLoading,
-  ]);
+  }, [isOrg, dataGridProps.paginationModel?.page, dataGridProps.paginationModel?.pageSize, dataGridProps.rows, rowRefreshLoading]);
 
   return (
-    <MainCard contentSX={{ padding: 0 }}>
+    <MainCard contentSX={{ padding: 1.5 }}>
       <ImportSmsModal
         open={openImportModal}
         mode={isOrg ? 'organization' : 'individual'}
@@ -402,116 +404,152 @@ function SmsWarnings() {
         onSave={handleImport}
       />
 
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* 1. SAHIFA HEADER BO'LIMI VA ASOSIY AMALLAR */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' }, gap: 2 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-              📩 SMS Ogohlantirishlar Boshqaruvi
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Aholi va Tashkilot debitorlariga yuborilgan SMS xabarnomalar monitoringi hamda holatlarini boshqarish
-            </Typography>
-          </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        {/* 1. COMPACT TOP HEADER & STATS BAR */}
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: { md: 'center' },
+            gap: 1.5,
+            pb: 1,
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          {/* Tab Selector */}
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            textColor="primary"
+            indicatorColor="primary"
+            sx={{
+              minHeight: 38,
+              '& .MuiTab-root': { fontWeight: 700, fontSize: '0.875rem', py: 0.5, minHeight: 38 }
+            }}
+          >
+            <Tab icon={<PeopleAltOutlined sx={{ fontSize: 18 }} />} iconPosition="start" label="👨‍👩‍👧‍👦 Aholi" value="INDIVIDUAL_DEBT" />
+            <Tab icon={<BusinessOutlined sx={{ fontSize: 18 }} />} iconPosition="start" label="🏢 Tashkilotlar" value="ORGANIZATION_DEBT" />
+          </Tabs>
 
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+          {/* Mini Statistics Badges & Main Action Buttons */}
+          <Stack direction="row" spacing={0.75} sx={{ mr: 1, alignItems: 'center' }}>
+            <Chip
+              icon={<CheckCircleOutlined sx={{ fontSize: '16px !important' }} />}
+              label={`Yetkazildi: ${stats.sent.toLocaleString()}`}
+              color="success"
+              size="small"
+              variant="filled"
+              sx={{ fontWeight: 700, fontSize: '0.75rem', height: 26 }}
+            />
+            <Chip
+              icon={<HourglassEmptyOutlined sx={{ fontSize: '16px !important' }} />}
+              label={`Kutilmoqda: ${stats.pending.toLocaleString()}`}
+              color="warning"
+              size="small"
+              variant="filled"
+              sx={{ fontWeight: 700, fontSize: '0.75rem', height: 26 }}
+            />
+            <Chip
+              icon={<ErrorOutlineOutlined sx={{ fontSize: '16px !important' }} />}
+              label={`Yetkazilmadi: ${stats.failed.toLocaleString()}`}
+              color="error"
+              size="small"
+              variant="filled"
+              sx={{ fontWeight: 700, fontSize: '0.75rem', height: 26 }}
+            />
+          </Stack>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
             <Tooltip title={`Excel faylidan yangi ${isOrg ? 'tashkilotlar' : 'aholi'} ro'yxatini yuklash va SMS yuborish`}>
               <Button
                 variant="contained"
                 color="primary"
-                startIcon={<UploadFileOutlined />}
+                size="small"
+                startIcon={<UploadFileOutlined fontSize="small" />}
                 onClick={() => setOpenImportModal(true)}
                 disabled={loading}
+                sx={{ textTransform: 'none', fontWeight: 600, px: 1.5 }}
               >
-                Excel Orqali SMS Yuborish ({isOrg ? 'Tashkilot' : 'Aholi'})
+                Excel Yuborish
               </Button>
             </Tooltip>
 
-            <Tooltip title={`Joriy ${isOrg ? 'tashkilotlar' : 'aholi'} SMS ogohlantirishlar ro'yxatini Excel fayliga yuklab olish`}>
+            <Tooltip title={`Joriy ${isOrg ? 'tashkilotlar' : 'aholi'} SMS ogohlantirishlar ro'yxatini Excelga yuklab olish`}>
               <Button
                 variant="outlined"
                 color="success"
-                startIcon={<DownloadOutlined />}
+                size="small"
+                startIcon={<DownloadOutlined fontSize="small" />}
                 onClick={handleClickExport}
+                sx={{ textTransform: 'none', fontWeight: 600, px: 1.5 }}
               >
                 Excelga Yuklash
               </Button>
             </Tooltip>
 
-            <Tooltip title="Fondagi kutilayotgan barcha SMSlar holatini Eskiz orqali avtomatik tekshirish jobini ishga tushirish">
+            <Tooltip title="Fondagi kutilayotgan SMSlar holatini Eskiz orqali avtomatik tekshirish jobini ishga tushirish">
               <span>
                 <Button
                   variant="outlined"
                   color="secondary"
-                  startIcon={jobTriggerLoading ? <CircularProgress size={16} color="inherit" /> : <SyncOutlined />}
+                  size="small"
+                  startIcon={jobTriggerLoading ? <CircularProgress size={14} color="inherit" /> : <SyncOutlined fontSize="small" />}
                   onClick={handleTriggerJob}
                   disabled={Boolean(activeJob) || jobTriggerLoading}
+                  sx={{ textTransform: 'none', fontWeight: 600, px: 1.5 }}
                 >
-                  SMS Holatlarini Yangilash (Job)
+                  Yangilash (Job)
                 </Button>
               </span>
             </Tooltip>
           </Stack>
         </Stack>
 
-        {/* 2. TABLAR BO'LIMI (AHOLI VA TASHKILOTLARNI AJRATISH) */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            textColor="primary"
-            indicatorColor="primary"
-            sx={{ '& .MuiTab-root': { fontWeight: 700, fontSize: '0.9rem' } }}
-          >
-            <Tab
-              icon={<PeopleAltOutlined />}
-              iconPosition="start"
-              label="👨‍👩‍👧‍👦 Aholi SMS Ogohlantirishlari"
-              value="INDIVIDUAL_DEBT"
-            />
-            <Tab
-              icon={<BusinessOutlined />}
-              iconPosition="start"
-              label="🏢 Tashkilot SMS Ogohlantirishlari"
-              value="ORGANIZATION_DEBT"
-            />
-          </Tabs>
-        </Box>
-
         {/* Live Progress Widget */}
         {activeJob && (
-          <Paper elevation={0} sx={{ p: 1.5, bgcolor: 'secondary.light', border: '1px solid', borderColor: 'secondary.main', borderRadius: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{ p: 1.25, bgcolor: 'secondary.light', border: '1px solid', borderColor: 'secondary.main', borderRadius: 1.5 }}
+          >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'secondary.dark' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'secondary.dark', fontSize: '0.8rem' }}>
                 ⚙️ {activeJob.name}
               </Typography>
-
-              <Chip label={`${activeJob.progress}%`} size="small" color="secondary" sx={{ fontWeight: 700, height: 20 }} />
+              <Chip
+                label={`${activeJob.progress}%`}
+                size="small"
+                color="secondary"
+                sx={{ fontWeight: 700, height: 18, fontSize: '0.7rem' }}
+              />
             </Stack>
-            <LinearProgress variant="determinate" value={activeJob.progress} color="secondary" sx={{ height: 6, borderRadius: 3, my: 1 }} />
-            <Typography variant="caption" color="text.secondary">
+            <LinearProgress
+              variant="determinate"
+              value={activeJob.progress}
+              color="secondary"
+              sx={{ height: 5, borderRadius: 2.5, my: 0.5 }}
+            />
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
               {activeJob.message}
             </Typography>
           </Paper>
         )}
 
-        {/* 3. FILTRLAR TOOLBAR BO'LIMI */}
-        <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-          <Typography variant="overline" color="primary" sx={{ fontWeight: 700, letterSpacing: 1, display: 'block', mb: 1.5 }}>
-            🔍 {isOrg ? 'TASHKILOTLAR' : 'AHOLI'} FILTRLARI VA QIDIRUV
-          </Typography>
-
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* 2. COMPACT INLINE FILTERS TOOLBAR */}
+        <Paper
+          elevation={0}
+          sx={{ p: 1.25, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+        >
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <TextField
               size="small"
               placeholder="Hisob raqam yoki Telefon..."
               value={draftFilters.search}
               onChange={(e) => setDraftFilters((p) => ({ ...p, search: e.target.value }))}
-              sx={{ minWidth: 220, flex: 1 }}
+              sx={{ minWidth: 200, flex: 1, '& .MuiInputBase-input': { fontSize: '0.85rem' } }}
               slotProps={{
                 input: {
-                  startAdornment: <SearchOutlined fontSize="small" sx={{ color: 'text.secondary', mr: 0.5 }} />,
-                },
+                  startAdornment: <SearchOutlined fontSize="small" sx={{ color: 'text.secondary', mr: 0.5 }} />
+                }
               }}
             />
 
@@ -520,7 +558,7 @@ function SmsWarnings() {
               placeholder="Telefon (masalan: 901234567)"
               value={draftFilters.phone}
               onChange={(e) => setDraftFilters((p) => ({ ...p, phone: e.target.value }))}
-              sx={{ minWidth: 160 }}
+              sx={{ minWidth: 150, '& .MuiInputBase-input': { fontSize: '0.85rem' } }}
             />
 
             <TextField
@@ -528,15 +566,16 @@ function SmsWarnings() {
               placeholder="Hisob raqam"
               value={draftFilters.accountNumber}
               onChange={(e) => setDraftFilters((p) => ({ ...p, accountNumber: e.target.value }))}
-              sx={{ minWidth: 140 }}
+              sx={{ minWidth: 130, '& .MuiInputBase-input': { fontSize: '0.85rem' } }}
             />
 
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>SMS Holati</InputLabel>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel sx={{ fontSize: '0.85rem' }}>SMS Holati</InputLabel>
               <Select
                 value={draftFilters.status}
                 label="SMS Holati"
                 onChange={(e) => setDraftFilters((p) => ({ ...p, status: e.target.value }))}
+                sx={{ fontSize: '0.85rem' }}
               >
                 <MenuItem value="">Barchasi</MenuItem>
                 <MenuItem value="pending">⏳ Kutilmoqda</MenuItem>
@@ -548,42 +587,55 @@ function SmsWarnings() {
             <TextField
               size="small"
               type="date"
-              label="Dan (Sana)"
+              label="Dan"
               value={draftFilters.startDate}
               onChange={(e) => setDraftFilters((p) => ({ ...p, startDate: e.target.value }))}
               slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ minWidth: 145 }}
+              sx={{ minWidth: 135, '& .MuiInputBase-input': { fontSize: '0.85rem' } }}
             />
 
             <TextField
               size="small"
               type="date"
-              label="Gacha (Sana)"
+              label="Gacha"
               value={draftFilters.endDate}
               onChange={(e) => setDraftFilters((p) => ({ ...p, endDate: e.target.value }))}
               slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ minWidth: 145 }}
+              sx={{ minWidth: 135, '& .MuiInputBase-input': { fontSize: '0.85rem' } }}
             />
 
-            <Stack direction="row" spacing={1}>
-              <Button variant="contained" color="primary" size="small" onClick={handleApplyFilters}>
+            <Stack direction="row" spacing={0.75}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={handleApplyFilters}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
                 Qo'llash
               </Button>
-              <Button variant="outlined" color="inherit" size="small" onClick={handleResetFilters} startIcon={<ClearOutlined />}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                size="small"
+                onClick={handleResetFilters}
+                startIcon={<ClearOutlined fontSize="small" />}
+                sx={{ textTransform: 'none' }}
+              >
                 Tozala
               </Button>
             </Stack>
           </Stack>
         </Paper>
 
-        {/* 4. DATAGRID JADVALI */}
+        {/* 3. DATAGRID JADVALI */}
         <DataGrid
           {...dataGridProps}
           columns={columns}
           getRowId={(row) => row._id || row.id}
-          rowHeight={52}
+          rowHeight={48}
           loading={loading}
-          sx={{ flex: 1, minHeight: 450, border: 'none' }}
+          sx={{ flex: 1, minHeight: 480, border: 'none' }}
         />
       </Box>
     </MainCard>
