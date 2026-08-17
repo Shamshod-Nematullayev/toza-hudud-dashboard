@@ -187,8 +187,6 @@ export const useImportAktStore = create<StoreState>((set, get) => ({
     }
   },
 
-  selectedActPackId: '',
   setSelectedActPackId: (id: number | '') => set({ selectedActPackId: id }),
-  packType: '',
   setPackType: (packType: string) => set({ packType })
 }));
