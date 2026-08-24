@@ -88,6 +88,7 @@ export function Sidebar({
   const [smsConfirmOpen, setSmsConfirmOpen] = React.useState(false);
   const [pendingJobAction, setPendingJobAction] = React.useState<{ endpoint: string; jobKey: string } | null>(null);
   const [skipSmsValue, setSkipSmsValue] = React.useState<boolean>(false);
+  const [limitValue, setLimitValue] = React.useState<string>('');
 
   // Poll Active Job Progress
   const fetchJobProgress = React.useCallback(async () => {
@@ -152,12 +153,17 @@ export function Sidebar({
   const openSmsDialog = (endpoint: string, jobKey: string) => {
     setPendingJobAction({ endpoint, jobKey });
     setSkipSmsValue(false);
+    setLimitValue('');
     setSmsConfirmOpen(true);
   };
 
   const confirmAndStartJob = () => {
     if (pendingJobAction) {
-      handleTriggerJob(pendingJobAction.endpoint, pendingJobAction.jobKey, { skipSms: skipSmsValue });
+      const parsedLimit = limitValue ? Number(limitValue) : undefined;
+      handleTriggerJob(pendingJobAction.endpoint, pendingJobAction.jobKey, {
+        skipSms: skipSmsValue,
+        limit: parsedLimit && parsedLimit > 0 ? parsedLimit : undefined
+      });
     }
     setSmsConfirmOpen(false);
     setPendingJobAction(null);
@@ -325,7 +331,7 @@ export function Sidebar({
           >
             Debitorlar telefon raqamlarini tekshirish jarayonida Eskiz orqali SMS ogohlantirishlar yuborilsinmi?
           </Typography>
-          <FormControl component="fieldset">
+          <FormControl component="fieldset" fullWidth>
             <RadioGroup value={skipSmsValue ? 'skip' : 'send'} onChange={(e) => setSkipSmsValue(e.target.value === 'skip')}>
               <FormControlLabel
                 value="send"
@@ -358,6 +364,41 @@ export function Sidebar({
               />
             </RadioGroup>
           </FormControl>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+            📊 Debitorlar soni cheklovi (Limit):
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            placeholder="Masalan: 1000 (barchasi uchun bo'sh qoldiring)"
+            value={limitValue}
+            onChange={(e) => setLimitValue(e.target.value)}
+            helperText="Bo'sh qoldirilsa barcha mos debitorlar ko'rib chiqiladi."
+            sx={{ mb: 1.5 }}
+          />
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            {[
+              { label: 'Barchasi', val: '' },
+              { label: '500 ta', val: '500' },
+              { label: '1000 ta', val: '1000' },
+              { label: '2000 ta', val: '2000' },
+              { label: '5000 ta', val: '5000' }
+            ].map((opt) => (
+              <Chip
+                key={opt.label}
+                label={opt.label}
+                size="small"
+                clickable
+                color={limitValue === opt.val ? 'primary' : 'default'}
+                variant={limitValue === opt.val ? 'filled' : 'outlined'}
+                onClick={() => setLimitValue(opt.val)}
+              />
+            ))}
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSmsConfirmOpen(false)} variant="outlined" color="inherit">
