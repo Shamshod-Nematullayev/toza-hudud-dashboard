@@ -557,8 +557,8 @@ function Debitors() {
               <StatCard
                 label="Jami debitorlar"
                 value={{
-                  count: stats.totalDebtors.count - stats.resolved.count,
-                  summ: stats.totalDebtors.summ - stats.resolved.summ
+                  count: stats.totalDebtors.count,
+                  summ: stats.totalDebtors.summ
                 }}
               />
               <StatCard label="❌ Telefon raqami yo'q" value={stats.no_phone} valueColor="error.dark" />
