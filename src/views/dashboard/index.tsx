@@ -188,17 +188,26 @@ const Dashboard = () => {
                 </TableHead>
                 <TableBody>
                   {debitorStats.map((row: any) => {
-                    const resolved = getStatusData(row.statuses, 'resolved');
-                    const activeCount = row.totalCount - resolved.count;
-                    const activeDebt = row.totalDebt - resolved.totalDebt;
+                    const resolved = row.resolved || getStatusData(row.statuses, 'resolved');
+                    const activeCount = row.activeCount !== undefined ? row.activeCount : row.totalCount - resolved.count;
+                    const activeDebt = row.activeDebt !== undefined ? row.activeDebt : row.totalDebt - resolved.totalDebt;
 
-                    const identified = getStatusData(row.statuses, 'debt_identified');
-                    const noHet = getStatusData(row.statuses, 'no_het_account');
-                    const noPhone = getStatusData(row.statuses, 'no_phone');
-                    const smsSent = getStatusData(row.statuses, 'sms_sent');
-                    const awaitingHet = getStatusData(row.statuses, 'awaiting_het_sync');
-                    const readyBlock = getStatusData(row.statuses, 'ready_to_block');
-                    const blocked = getStatusData(row.statuses, 'blocked');
+                    const identified =
+                      row.dataNeedsAttention ||
+                      getStatusData(row.statuses, 'data_needs_attention') ||
+                      getStatusData(row.statuses, 'debt_identified');
+                    const noHet = row.noHetAccount || getStatusData(row.statuses, 'no_het_account');
+                    const noPhone = row.noPhone || getStatusData(row.statuses, 'no_phone');
+                    const smsSent =
+                      row.smsChecking ||
+                      getStatusData(row.statuses, 'sms_sent') ||
+                      getStatusData(row.statuses, 'checking');
+                    const awaitingHet =
+                      row.needsHetSync ||
+                      getStatusData(row.statuses, 'awaiting_het_sync') ||
+                      getStatusData(row.statuses, 'needs_het_sync');
+                    const readyBlock = row.readyToBlock || getStatusData(row.statuses, 'ready_to_block');
+                    const blocked = row.blocked || getStatusData(row.statuses, 'blocked');
 
                     return (
                       <TableRow key={row.companyId} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>

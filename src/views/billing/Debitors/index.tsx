@@ -71,6 +71,10 @@ interface DebitorStats {
     het_synced: Stat;
     not_found: Stat;
   };
+  needsHetSyncBreakdown: {
+    confirmed: Stat;
+    unconfirmed: Stat;
+  };
 }
 
 export type OperationalQueue = 'DATA_NEEDS_ATTENTION' | 'SMS_PENDING_WAIT' | 'READY_TO_BLOCK' | 'CURRENTLY_BLOCKED';
@@ -135,8 +139,8 @@ const fmtMoney = (n: number) => fmt(n) + " so'm";
 
 // ─── Kichik komponentlar ──────────────────────────────────────────
 
-function SmsBanner({ bal, loading }: { bal: SmsBalance | null; loading: boolean }) {
-  if (loading) return <Skeleton variant="rounded" height={36} />;
+function SmsBanner({ bal, loading, onRefresh }: { bal: SmsBalance | null; loading: boolean; onRefresh: () => void }) {
+  if (!bal && loading) return <Skeleton variant="rounded" height={36} />;
   if (!bal) return null;
 
   const isEmpty = bal.amount <= 10000;
@@ -144,7 +148,18 @@ function SmsBanner({ bal, loading }: { bal: SmsBalance | null; loading: boolean 
   const sev = isEmpty ? 'error' : isLow ? 'warning' : 'success';
 
   return (
-    <Alert severity={sev} icon={<SmsOutlined fontSize="small" />} sx={{ py: 0.5 }}>
+    <Alert
+      severity={sev}
+      icon={<SmsOutlined fontSize="small" />}
+      action={
+        <Tooltip title="SMS balansini yangilash">
+          <IconButton size="small" onClick={onRefresh} disabled={loading} color="inherit" sx={{ mr: 0.5 }}>
+            <RefreshOutlined fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      }
+      sx={{ py: 0.5, alignItems: 'center' }}
+    >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <span>
           SMS balans: <strong>{fmtMoney(bal.amount)}</strong>
@@ -167,16 +182,313 @@ function SmsBanner({ bal, loading }: { bal: SmsBalance | null; loading: boolean 
   );
 }
 
-function StatCard({ label, value, valueColor }: { label: string; value: { count: number; summ: number }; valueColor?: string }) {
+function StatCard({
+  label,
+  value,
+  valueColor,
+  onClick
+}: {
+  label: string;
+  value: { count: number; summ: number };
+  valueColor?: string | ((theme: any) => string);
+  onClick?: () => void;
+}) {
   return (
-    <Box sx={{ flex: 1, bgcolor: 'background.default', borderRadius: 2, px: 2, py: 1.5, minWidth: 110 }}>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }} gutterBottom noWrap>
+    <Box
+      onClick={onClick}
+      sx={{
+        flex: 1,
+        bgcolor: 'background.default',
+        borderRadius: 2,
+        p: 1.5,
+        minWidth: 120,
+        minHeight: 112,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        cursor: onClick ? 'pointer' : 'default',
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: 'all 0.2s',
+        '&:hover': onClick
+          ? {
+              borderColor: 'primary.main',
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+              transform: 'translateY(-1px)'
+            }
+          : {}
+      }}
+    >
+      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }} noWrap>
         {label}
       </Typography>
-      <Typography variant="h5" sx={{ fontWeight: 600, color: valueColor || 'text.primary' }}>
-        {fmt(value.count)} ta <br />
-        {fmtMoney(value.summ)}
-      </Typography>
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: valueColor || 'text.primary', lineHeight: 1.2 }}>
+          {fmt(value.count)} ta
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11, mt: 0.3, display: 'block' }}>
+          {fmtMoney(value.summ)}
+        </Typography>
+      </Box>
+    </Box>
+  );
+}
+
+function PhoneStatCard({
+  notFound,
+  checking,
+  onFilter
+}: {
+  notFound: { count: number; summ: number };
+  checking: { count: number; summ: number };
+  onFilter: (phoneStatusList?: string[]) => void;
+}) {
+  const totalCount = (notFound?.count || 0) + (checking?.count || 0);
+  const totalSumm = (notFound?.summ || 0) + (checking?.summ || 0);
+
+  return (
+    <Box
+      sx={{
+        flex: 1.35,
+        bgcolor: 'background.default',
+        borderRadius: 2,
+        p: 1.5,
+        minWidth: 190,
+        minHeight: 112,
+        border: '1px solid',
+        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.4)' : 'rgba(220, 38, 38, 0.35)'),
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        transition: 'all 0.2s'
+      }}
+    >
+      <Box sx={{ cursor: 'pointer' }} onClick={() => onFilter(['not_found', 'checking'])}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }} noWrap>
+          📞 Telefon topilmadi / kutilmoqda
+        </Typography>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: 'baseline', mt: 0.2 }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#F87171' : '#B91C1C'),
+              lineHeight: 1.2
+            }}
+          >
+            {fmt(totalCount)} ta
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
+            ({fmtMoney(totalSumm)})
+          </Typography>
+        </Stack>
+      </Box>
+
+      {/* Ichki 2 ta alohida sub-bo'lim */}
+      <Stack spacing={0.5} sx={{ mt: 0.8 }}>
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            onFilter(['checking']);
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.12)' : 'rgba(245, 158, 11, 0.12)'),
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.35)' : 'rgba(217, 119, 6, 0.4)'),
+            px: 0.8,
+            py: 0.3,
+            borderRadius: 1,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': {
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.22)' : 'rgba(245, 158, 11, 0.22)')
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: 'text.primary' }}>
+            🔍 Tekshirilmoqda (SMS):
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#FBBF24' : '#B45309')
+            }}
+          >
+            {fmt(checking?.count || 0)} ta
+          </Typography>
+        </Box>
+
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            onFilter(['not_found']);
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.12)' : 'rgba(239, 68, 68, 0.1)'),
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.35)' : 'rgba(220, 38, 38, 0.35)'),
+            px: 0.8,
+            py: 0.3,
+            borderRadius: 1,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': {
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.22)' : 'rgba(239, 68, 68, 0.2)')
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: 'text.primary' }}>
+            ❌ Raqam aniq yo'q:
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#F87171' : '#B91C1C')
+            }}
+          >
+            {fmt(notFound?.count || 0)} ta
+          </Typography>
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
+
+function HetSyncStatCard({
+  total,
+  confirmed,
+  unconfirmed,
+  onFilter
+}: {
+  total: { count: number; summ: number };
+  confirmed: { count: number; summ: number };
+  unconfirmed: { count: number; summ: number };
+  onFilter: (hetAccountStatus?: string[]) => void;
+}) {
+  return (
+    <Box
+      sx={{
+        flex: 1.35,
+        bgcolor: 'background.default',
+        borderRadius: 2,
+        p: 1.5,
+        minWidth: 190,
+        minHeight: 112,
+        border: '1px solid',
+        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.4)' : 'rgba(217, 119, 6, 0.35)'),
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        transition: 'all 0.2s'
+      }}
+    >
+      <Box sx={{ cursor: 'pointer' }} onClick={() => onFilter()}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }} noWrap>
+          🔄 HET sinxronlash kerak
+        </Typography>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: 'baseline', mt: 0.2 }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#FBBF24' : '#B45309'),
+              lineHeight: 1.2
+            }}
+          >
+            {fmt(total.count)} ta
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
+            ({fmtMoney(total.summ)})
+          </Typography>
+        </Stack>
+      </Box>
+
+      {/* Ichki 2 ta alohida sub-bo'lim */}
+      <Stack spacing={0.5} sx={{ mt: 0.8 }}>
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            onFilter(['confirmed']);
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.12)' : 'rgba(16, 185, 129, 0.12)'),
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.35)' : 'rgba(5, 150, 105, 0.35)'),
+            px: 0.8,
+            py: 0.3,
+            borderRadius: 1,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': {
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.22)' : 'rgba(16, 185, 129, 0.22)')
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: 'text.primary' }}>
+            ✅ ETK tasdiqlangan:
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#34D399' : '#047857')
+            }}
+          >
+            {fmt(confirmed.count)} ta
+          </Typography>
+        </Box>
+
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            onFilter(['not_found', 'new']);
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.12)' : 'rgba(239, 68, 68, 0.1)'),
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.35)' : 'rgba(220, 38, 38, 0.35)'),
+            px: 0.8,
+            py: 0.3,
+            borderRadius: 1,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': {
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.22)' : 'rgba(239, 68, 68, 0.2)')
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: 'text.primary' }}>
+            ⚠️ ETK noma'lum / yo'q:
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#F87171' : '#B91C1C')
+            }}
+          >
+            {fmt(unconfirmed.count)} ta
+          </Typography>
+        </Box>
+      </Stack>
     </Box>
   );
 }
@@ -206,7 +518,29 @@ function Debitors() {
 
   // SMS balans
   const [smsbal, setSmsbal] = React.useState<SmsBalance | null>(null);
-  const [smsLoad, setSmsLoad] = React.useState(true);
+  const [smsLoad, setSmsLoad] = React.useState(false);
+
+  const fetchSmsBalance = React.useCallback(async () => {
+    setSmsLoad(true);
+    try {
+      const { data } = await api.get('/sms-service/balance');
+      if (data && typeof data.balance === 'number') {
+        setSmsbal({
+          amount: data.balance,
+          estimatedMessages: Math.floor(data.balance / 120)
+        });
+      }
+    } catch {
+      setSmsbal(null);
+    } finally {
+      setSmsLoad(false);
+    }
+  }, []);
+
+  // Faqat 1-marta sahifa ochilganda yuklanadi (har bir so'rovda qayta yuklanmaydi)
+  React.useEffect(() => {
+    fetchSmsBalance();
+  }, [fetchSmsBalance]);
 
   // Statistika
   const [stats, setStats] = React.useState<DebitorStats | null>(null);
@@ -220,6 +554,14 @@ function Debitors() {
       if (data && data.progress === 100) {
         toast.success("Job jarayoni yakunlandi. Ma'lumotlar va statistika yangilandi.");
         refresh();
+        // Telefon / SMS va Blocking workflow joblari tugaganda SMS balans avtomatik yangilanadi
+        if (
+          data.type === 'processDebitorsPhoneAndSms' ||
+          data.type === 'processDebitorsBlockingWorkflow' ||
+          data.type?.toLowerCase().includes('sms')
+        ) {
+          fetchSmsBalance();
+        }
       }
     };
 
@@ -236,7 +578,7 @@ function Debitors() {
       socket.off('job-progress', handleJobProgress);
       socket.off('notification', handleNotification);
     };
-  }, []);
+  }, [fetchSmsBalance]);
 
   // ─── So'rovlar ────────────────────────────────────────────────
 
@@ -265,28 +607,11 @@ function Debitors() {
   );
 
   React.useEffect(() => {
-    setSmsLoad(true);
-    api
-      .get('/sms-service/balance')
-      .then(({ data }) => {
-        if (data && typeof data.balance === 'number') {
-          setSmsbal({
-            amount: data.balance,
-            estimatedMessages: Math.floor(data.balance / 120)
-          });
-        }
-      })
-      .catch(() => setSmsbal(null))
-      .finally(() => setSmsLoad(false));
-  }, [refreshState]);
-
-  React.useEffect(() => {
     api
       .get('/debitors/stats')
       .then(({ data }) => {
         const s = data.data;
 
-        // 1. Massivlarni tezkor qidirish uchun Object Map ko'rinishiga o'tkazamiz
         const statusMap = Object.fromEntries(
           (s.statusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt || 0 }])
         );
@@ -296,6 +621,10 @@ function Debitors() {
         const phoneMap = Object.fromEntries(
           (s.phoneStatistics || s.phoneStatusStatistics || []).map((x: any) => [x._id, { count: x.count, summ: x.totalDebt || 0 }])
         );
+
+        const needsHetSyncConfirmed = s.needsHetSyncStatistics?.confirmed || { count: 0, summ: 0 };
+        const needsHetSyncNotFound = s.needsHetSyncStatistics?.not_found || { count: 0, summ: 0 };
+        const needsHetSyncNew = s.needsHetSyncStatistics?.new || { count: 0, summ: 0 };
 
         // 2. Yordamchi funksiya: Agar status topilmasa default qiymat qaytaradi
         const getStat = (map: Record<string, any>, key: string) => map[key] || { count: 0, summ: 0 };
@@ -323,6 +652,14 @@ function Debitors() {
             needs_het_sync: getStat(phoneMap, 'needs_het_sync'),
             new: getStat(phoneMap, 'new'),
             not_found: getStat(phoneMap, 'not_found')
+          },
+
+          needsHetSyncBreakdown: {
+            confirmed: needsHetSyncConfirmed,
+            unconfirmed: {
+              count: (needsHetSyncNotFound.count || 0) + (needsHetSyncNew.count || 0),
+              summ: (needsHetSyncNotFound.summ || 0) + (needsHetSyncNew.summ || 0)
+            }
           }
         });
       })
@@ -330,6 +667,20 @@ function Debitors() {
   }, [refreshState]);
 
   // ─── Amallar ──────────────────────────────────────────────────
+
+  const handleQuickFilter = (newFilters: { status?: string[]; hetAccountStatus?: string[]; phoneStatus?: string[] }) => {
+    const updated = {
+      status: newFilters.status || [],
+      hetAccountStatus: newFilters.hetAccountStatus || [],
+      phoneStatus: newFilters.phoneStatus || [],
+      debtFrom: applied.debtFrom,
+      debtTo: applied.debtTo
+    };
+    setSelectedQueueTab('ALL'); // Bosqichlarda qolib ketmasdan to'g'ridan-to'g'ri 'Barchasi' (ALL) ga o'tadi
+    setDraft(updated);
+    setApplied(updated);
+    refresh();
+  };
 
   const applyFilters = () => {
     setApplied(draft);
@@ -401,101 +752,135 @@ function Debitors() {
 
   const columns: GridColDef[] = [
     {
-      field: 'fullName',
-      headerName: 'F.I.O',
-      flex: 1.5,
-      minWidth: 180,
+      field: 'orderNumber',
+      headerName: '№',
+      width: 55,
       sortable: false,
       filterable: false,
-      disableColumnMenu: true
+      renderCell: (params) => {
+        const page = (dataGridProps.paginationModel?.page || 0) + 1;
+        const pageSize = dataGridProps.paginationModel?.pageSize || 25;
+        const index = dataGridProps.rows?.findIndex((r: any) => r._id === params.row._id);
+        return (page - 1) * pageSize + (index >= 0 ? index + 1 : 1);
+      }
     },
     {
-      field: 'accountNumber',
-      headerName: 'Hisob raqam',
-      width: 160,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value, row }) => (
-        <Stack>
-          <Typography variant="body2">{value}</Typography>
-          {row.accountNumberEtk && (
-            <Typography variant="caption" color="text.secondary">
-              {row.accountNumberEtk}
-            </Typography>
-          )}
+      field: 'fullName',
+      headerName: 'F.I.SH',
+      flex: 1.5,
+      minWidth: 200,
+      renderCell: ({ row }) => (
+        <Stack spacing={0.3} sx={{ py: 0.5 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary', lineHeight: 1.2 }}>
+            {row.fullName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
+            Hisob: <strong>{row.accountNumber || '-'}</strong>
+          </Typography>
         </Stack>
       )
     },
     {
       field: 'debtAmount',
-      headerName: "Qarz (so'm)",
-      width: 145,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => (
-        <Typography variant="body2" sx={{ fontWeight: 500 }} color={value > 1_000_000 ? 'error.main' : 'text.primary'}>
-          {fmt(value)}
-        </Typography>
+      headerName: 'Qarzdorlik',
+      flex: 1,
+      minWidth: 140,
+      renderCell: ({ row }) => (
+        <Stack spacing={0.2} sx={{ py: 0.5 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'error.main' }}>
+            {fmtMoney(row.debtAmount)}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
+            {row.debtMonths > 0 ? `${row.debtMonths} oylik qarz` : 'Yangi'}
+          </Typography>
+        </Stack>
       )
     },
     {
-      field: 'debtMonths',
-      headerName: 'Oy',
-      width: 60,
-      align: 'center',
-      headerAlign: 'center',
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 170,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => {
-        const c = STATUS_CFG[value as DebitorStatus];
-        return c ? <Chip label={c.label} color={c.color} size="small" /> : value;
+      field: 'accountNumberEtk',
+      headerName: 'Elektr hisob (ETK)',
+      flex: 1,
+      minWidth: 150,
+      renderCell: ({ row }) => {
+        const hetStatus = row.hetAccountStatus || 'new';
+        const cfg = HET_ACCOUNT_CFG[hetStatus as HetAccountStatus] || HET_ACCOUNT_CFG.new;
+        return (
+          <Stack spacing={0.3} sx={{ py: 0.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace' }}>
+              {row.accountNumberEtk || '-'}
+            </Typography>
+            <Chip
+              label={cfg.label}
+              size="small"
+              color={cfg.color as any}
+              variant="outlined"
+              sx={{ height: 18, fontSize: 10, alignSelf: 'flex-start' }}
+            />
+          </Stack>
+        );
       }
     },
     {
-      field: 'hetAccountStatus',
-      headerName: 'Elektr kodi (ETK)',
-      width: 155,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => {
-        const c = HET_ACCOUNT_CFG[value as HetAccountStatus];
-        return c ? <Chip label={c.label} color={c.color} size="small" variant="outlined" /> : value || '—';
+      field: 'primaryPhone',
+      headerName: 'Telefon raqam',
+      flex: 1,
+      minWidth: 150,
+      renderCell: ({ row }) => {
+        const pStatus = row.phoneStatus || 'new';
+        const cfg = PHONE_CFG[pStatus as PhoneStatus] || PHONE_CFG.new;
+        return (
+          <Stack spacing={0.3} sx={{ py: 0.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {row.primaryPhone ? `+998 ${row.primaryPhone}` : "Raqam yo'q"}
+            </Typography>
+            <Chip
+              label={cfg.label}
+              size="small"
+              color={cfg.color as any}
+              variant="outlined"
+              sx={{ height: 18, fontSize: 10, alignSelf: 'flex-start' }}
+            />
+          </Stack>
+        );
       }
     },
     {
-      field: 'phoneStatus',
-      headerName: 'Telefon',
-      width: 175,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => {
-        const c = PHONE_CFG[value as PhoneStatus];
-        return c ? <Chip label={c.label} color={c.color} size="small" variant="outlined" /> : value;
-      }
-    },
-    {
-      field: 'subStatus',
-      headerName: 'Tafsilot (Sabab)',
-      width: 170,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ value }) => {
-        const label = value ? SUBSTATUS_MAP[value] || value : '—';
-        return <Chip label={label} size="small" variant="outlined" sx={{ fontSize: 11 }} />;
+      field: 'operationalQueue',
+      headerName: 'Operatsion holat',
+      flex: 1.1,
+      minWidth: 160,
+      renderCell: ({ row }) => {
+        const qKey = row.operationalQueue as OperationalQueue;
+        const qCfg = qKey && QUEUE_CFG[qKey] ? QUEUE_CFG[qKey] : null;
+        const sKey = row.status as DebitorStatus;
+        const sCfg = STATUS_CFG[sKey] || STATUS_CFG.data_needs_attention;
+        const subLabel = row.subStatus ? SUBSTATUS_MAP[row.subStatus] || row.subStatus : null;
+
+        return (
+          <Stack spacing={0.3} sx={{ py: 0.5 }}>
+            {qCfg ? (
+              <Chip
+                label={qCfg.label}
+                size="small"
+                color={qCfg.color as any}
+                sx={{ height: 20, fontSize: 11, fontWeight: 700, alignSelf: 'flex-start' }}
+              />
+            ) : (
+              <Chip
+                label={sCfg.label}
+                size="small"
+                color={sCfg.color as any}
+                variant="outlined"
+                sx={{ height: 20, fontSize: 11, alignSelf: 'flex-start' }}
+              />
+            )}
+            {subLabel && (
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10.5 }}>
+                {subLabel}
+              </Typography>
+            )}
+          </Stack>
+        );
       }
     },
     {
@@ -543,46 +928,66 @@ function Debitors() {
           onDebtToChange={(v) => setDraft((p) => ({ ...p, debtTo: v }))}
           onApply={applyFilters}
           onReset={resetFilters}
-          onJobFinish={refresh}
+          onJobFinish={() => {
+            refresh();
+            fetchSmsBalance();
+          }}
         />
 
         {/* O'ng panel: asosiy kontent */}
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, p: 2, gap: 1.5 }}>
           {/* 1. SMS Balans banneri */}
-          <SmsBanner bal={smsbal} loading={smsLoad} />
+          <SmsBanner bal={smsbal} loading={smsLoad} onRefresh={fetchSmsBalance} />
 
           {/* 2. Statistika kartalari */}
           {stats ? (
-            <Stack direction="row" spacing={1.5}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'stretch' }}>
               <StatCard
                 label="Jami debitorlar"
                 value={{
                   count: stats.totalDebtors.count,
                   summ: stats.totalDebtors.summ
                 }}
+                onClick={() => handleQuickFilter({})}
               />
-              <StatCard label="❌ Telefon raqami yo'q" value={stats.no_phone} valueColor="error.dark" />
-              <StatCard label="⚡ Elektr kodi yo'q" value={stats.no_het_account} valueColor="error.dark" />
+              <PhoneStatCard
+                notFound={stats.phoneStatus.not_found || stats.no_phone}
+                checking={stats.phoneStatus.checking || stats.sms_sent}
+                onFilter={(phoneStatusList) =>
+                  handleQuickFilter({
+                    phoneStatus: phoneStatusList
+                  })
+                }
+              />
               <StatCard
-                label="🔄 HET sinxronlash kerak"
-                value={stats.phoneStatus.needs_het_sync || stats.awaiting_het_sync}
-                valueColor="warning.dark"
+                label="⚡ Elektr kodi yo'q"
+                value={stats.no_het_account}
+                valueColor="error.main"
+                onClick={() => handleQuickFilter({ hetAccountStatus: ['not_found'] })}
+              />
+              <HetSyncStatCard
+                total={stats.phoneStatus.needs_het_sync || stats.awaiting_het_sync}
+                confirmed={stats.needsHetSyncBreakdown.confirmed}
+                unconfirmed={stats.needsHetSyncBreakdown.unconfirmed}
+                onFilter={(hetStatusList) =>
+                  handleQuickFilter({
+                    phoneStatus: ['needs_het_sync'],
+                    hetAccountStatus: hetStatusList
+                  })
+                }
               />
               <StatCard
                 label="🔒 Bloklashga 100% tayyor"
-                value={{
-                  count: Math.max(
-                    0,
-                    stats.ready_to_block.count - (stats.phoneStatus.needs_het_sync?.count || stats.awaiting_het_sync?.count || 0)
-                  ),
-                  summ: Math.max(
-                    0,
-                    stats.ready_to_block.summ - (stats.phoneStatus.needs_het_sync?.summ || stats.awaiting_het_sync?.summ || 0)
-                  )
-                }}
-                valueColor="success.dark"
+                value={stats.ready_to_block}
+                valueColor="success.main"
+                onClick={() => handleQuickFilter({ status: ['ready_to_block'] })}
               />
-              <StatCard label="✔️ Bloklangan" value={stats.blocked} valueColor="secondary.dark" />
+              <StatCard
+                label="✔️ Bloklangan"
+                value={stats.blocked}
+                valueColor={(t) => (t.palette.mode === 'dark' ? '#34D399' : '#047857') as string}
+                onClick={() => handleQuickFilter({ status: ['blocked'] })}
+              />
             </Stack>
           ) : (
             <Stack direction="row" spacing={1.5}>
