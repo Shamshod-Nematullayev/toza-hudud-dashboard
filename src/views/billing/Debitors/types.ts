@@ -4,8 +4,7 @@ export type DebitorStatus = 'data_needs_attention' | 'ready_to_block' | 'blocked
 
 // prettier-ignore
 export type PhoneStatus =
-  | 'new'                 // Hali hech narsa qilinmagan
-  | 'changed'             // Telefon raqami o'zgargan
+  | 'new'                 // Yangi yoki o'zgargan (hali tekshirilmagan)
   | 'confirmed'           // primaryPhone tasdiqlangan ishonchli
   | 'checking'            // SMS orqali tekshirilmoqda
   | 'needs_het_sync'      // Chiqindi bazasida bor HET ga kiritish kerak
@@ -23,11 +22,10 @@ export const STATUS_CFG: Record<DebitorStatus, { label: string; color: 'success'
 
 // prettier-ignore
 export const PHONE_CFG: Record<PhoneStatus, { label: string; color: 'primary' | 'error' | 'warning' | 'success' | 'secondary' }> = {
-  new:                   { label: '📱 Yangi',                         color: 'primary' },
+  new:                   { label: '📱 Yangi / Tekshirilmagan',        color: 'primary' },
   checking:              { label: '🔍 Tekshirilmoqda',                color: 'warning' },
   needs_het_sync:        { label: '🔄 HET sinxronizatsiya kerak',     color: 'secondary' },
   not_found:             { label: '❌ Topilmagan',                    color: 'error' },
-  changed:         { label: '📞 Telefon raqami o\'zgartirilgan',   color: 'primary' },
   confirmed:             { label: '✅ Tasdiqlangan',                    color: 'success' }
 };
 

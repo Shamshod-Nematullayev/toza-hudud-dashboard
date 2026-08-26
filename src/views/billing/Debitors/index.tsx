@@ -13,8 +13,6 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Tabs,
-  Tab,
   Badge
 } from '@mui/material';
 
@@ -74,6 +72,10 @@ interface DebitorStats {
   needsHetSyncBreakdown: {
     confirmed: Stat;
     unconfirmed: Stat;
+  };
+  readyToBlockBreakdown: {
+    confirmed: Stat;
+    needs_het_sync: Stat;
   };
 }
 
@@ -237,14 +239,16 @@ function StatCard({
 function PhoneStatCard({
   notFound,
   checking,
+  newPhones,
   onFilter
 }: {
   notFound: { count: number; summ: number };
   checking: { count: number; summ: number };
+  newPhones: { count: number; summ: number };
   onFilter: (phoneStatusList?: string[]) => void;
 }) {
-  const totalCount = (notFound?.count || 0) + (checking?.count || 0);
-  const totalSumm = (notFound?.summ || 0) + (checking?.summ || 0);
+  const totalCount = (notFound?.count || 0) + (checking?.count || 0) + (newPhones?.count || 0);
+  const totalSumm = (notFound?.summ || 0) + (checking?.summ || 0) + (newPhones?.summ || 0);
 
   return (
     <Box
@@ -263,7 +267,7 @@ function PhoneStatCard({
         transition: 'all 0.2s'
       }}
     >
-      <Box sx={{ cursor: 'pointer' }} onClick={() => onFilter(['not_found', 'checking'])}>
+      <Box sx={{ cursor: 'pointer' }} onClick={() => onFilter(['not_found', 'checking', 'new'])}>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }} noWrap>
           📞 Telefon topilmadi / kutilmoqda
         </Typography>
@@ -284,8 +288,8 @@ function PhoneStatCard({
         </Stack>
       </Box>
 
-      {/* Ichki 2 ta alohida sub-bo'lim */}
-      <Stack spacing={0.5} sx={{ mt: 0.8 }}>
+      {/* Ichki 3 ta alohida sub-bo'lim */}
+      <Stack spacing={0.4} sx={{ mt: 0.8 }}>
         <Box
           onClick={(e) => {
             e.stopPropagation();
@@ -299,7 +303,7 @@ function PhoneStatCard({
             border: '1px solid',
             borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.35)' : 'rgba(217, 119, 6, 0.4)'),
             px: 0.8,
-            py: 0.3,
+            py: 0.25,
             borderRadius: 1,
             cursor: 'pointer',
             transition: 'all 0.15s',
@@ -326,6 +330,43 @@ function PhoneStatCard({
         <Box
           onClick={(e) => {
             e.stopPropagation();
+            onFilter(['new']);
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(129, 140, 248, 0.12)' : 'rgba(79, 70, 229, 0.08)'),
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(129, 140, 248, 0.35)' : 'rgba(79, 70, 229, 0.3)'),
+            px: 0.8,
+            py: 0.25,
+            borderRadius: 1,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': {
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(129, 140, 248, 0.22)' : 'rgba(79, 70, 229, 0.16)')
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: 'text.primary' }}>
+            📱 Yangi (tekshirilmagan):
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#818CF8' : '#4F46E5')
+            }}
+          >
+            {fmt(newPhones?.count || 0)} ta
+          </Typography>
+        </Box>
+
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
             onFilter(['not_found']);
           }}
           sx={{
@@ -336,7 +377,7 @@ function PhoneStatCard({
             border: '1px solid',
             borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.35)' : 'rgba(220, 38, 38, 0.35)'),
             px: 0.8,
-            py: 0.3,
+            py: 0.25,
             borderRadius: 1,
             cursor: 'pointer',
             transition: 'all 0.15s',
@@ -493,6 +534,135 @@ function HetSyncStatCard({
   );
 }
 
+function ReadyToBlockStatCard({
+  total,
+  fullyConfirmed,
+  needsHetSync,
+  onFilter
+}: {
+  total: { count: number; summ: number };
+  fullyConfirmed: { count: number; summ: number };
+  needsHetSync: { count: number; summ: number };
+  onFilter: (params?: { status?: string[]; phoneStatus?: string[]; hetAccountStatus?: string[] }) => void;
+}) {
+  return (
+    <Box
+      sx={{
+        flex: 1.35,
+        bgcolor: 'background.default',
+        borderRadius: 2,
+        p: 1.5,
+        minWidth: 190,
+        minHeight: 112,
+        border: '1px solid',
+        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.4)' : 'rgba(5, 150, 105, 0.35)'),
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        transition: 'all 0.2s'
+      }}
+    >
+      <Box sx={{ cursor: 'pointer' }} onClick={() => onFilter({ status: ['ready_to_block'] })}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }} noWrap>
+          🔒 Bloklashga tayyor
+        </Typography>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: 'baseline', mt: 0.2 }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#34D399' : '#047857'),
+              lineHeight: 1.2
+            }}
+          >
+            {fmt(total.count)} ta
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
+            ({fmtMoney(total.summ)})
+          </Typography>
+        </Stack>
+      </Box>
+
+      {/* Ichki 2 ta alohida sub-bo'lim */}
+      <Stack spacing={0.5} sx={{ mt: 0.8 }}>
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            onFilter({ status: ['ready_to_block'], phoneStatus: ['confirmed'] });
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.12)' : 'rgba(16, 185, 129, 0.12)'),
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.35)' : 'rgba(5, 150, 105, 0.35)'),
+            px: 0.8,
+            py: 0.3,
+            borderRadius: 1,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': {
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.22)' : 'rgba(16, 185, 129, 0.22)')
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: 'text.primary' }}>
+            ⚡ 100% tasdiqlangan:
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#34D399' : '#047857')
+            }}
+          >
+            {fmt(fullyConfirmed.count)} ta
+          </Typography>
+        </Box>
+
+        <Box
+          onClick={(e) => {
+            e.stopPropagation();
+            onFilter({ status: ['ready_to_block'], phoneStatus: ['needs_het_sync'] });
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.12)' : 'rgba(245, 158, 11, 0.12)'),
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.35)' : 'rgba(217, 119, 6, 0.4)'),
+            px: 0.8,
+            py: 0.3,
+            borderRadius: 1,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            '&:hover': {
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.22)' : 'rgba(245, 158, 11, 0.22)')
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: 'text.primary' }}>
+            🔄 HET tel sinxron:
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: (t) => (t.palette.mode === 'dark' ? '#FBBF24' : '#B45309')
+            }}
+          >
+            {fmt(needsHetSync.count)} ta
+          </Typography>
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
+
 import { Sidebar } from './DebitorsSideBar';
 import { DebitorStatus, PHONE_CFG, PhoneStatus, STATUS_CFG, HET_ACCOUNT_CFG, HetAccountStatus } from './types';
 
@@ -507,8 +677,6 @@ function Debitors() {
   const [openSyncDialog, setOpenSyncDialog] = React.useState(false);
   const { user } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
-  // 4-Stage Operational Queue Tab Filter State
-  const [selectedQueueTab, setSelectedQueueTab] = React.useState<string>('ALL');
 
   // Filtrlar — draft (sidebar) va applied (so'rovga yuborilgan)
   const [draft, setDraft] = React.useState(INIT_FILTERS);
@@ -590,7 +758,6 @@ function Debitors() {
           limit,
           sortField,
           sortDirection,
-          operationalQueue: selectedQueueTab !== 'ALL' ? selectedQueueTab : undefined,
           search: appliedSearch || undefined,
           status: applied.status.length > 0 ? applied.status.join(',') : undefined,
           hetAccountStatus: applied.hetAccountStatus.length > 0 ? applied.hetAccountStatus.join(',') : undefined,
@@ -603,7 +770,7 @@ function Debitors() {
     },
     [],
     25,
-    { refreshState, selectedQueueTab, applied, appliedSearch }
+    { refreshState, applied, appliedSearch }
   );
 
   React.useEffect(() => {
@@ -625,6 +792,9 @@ function Debitors() {
         const needsHetSyncConfirmed = s.needsHetSyncStatistics?.confirmed || { count: 0, summ: 0 };
         const needsHetSyncNotFound = s.needsHetSyncStatistics?.not_found || { count: 0, summ: 0 };
         const needsHetSyncNew = s.needsHetSyncStatistics?.new || { count: 0, summ: 0 };
+
+        const readyToBlockConfirmed = s.readyToBlockStatistics?.confirmed || { count: 0, summ: 0 };
+        const readyToBlockNeedsHetSync = s.readyToBlockStatistics?.needs_het_sync || { count: 0, summ: 0 };
 
         // 2. Yordamchi funksiya: Agar status topilmasa default qiymat qaytaradi
         const getStat = (map: Record<string, any>, key: string) => map[key] || { count: 0, summ: 0 };
@@ -660,6 +830,11 @@ function Debitors() {
               count: (needsHetSyncNotFound.count || 0) + (needsHetSyncNew.count || 0),
               summ: (needsHetSyncNotFound.summ || 0) + (needsHetSyncNew.summ || 0)
             }
+          },
+
+          readyToBlockBreakdown: {
+            confirmed: readyToBlockConfirmed,
+            needs_het_sync: readyToBlockNeedsHetSync
           }
         });
       })
@@ -676,7 +851,6 @@ function Debitors() {
       debtFrom: applied.debtFrom,
       debtTo: applied.debtTo
     };
-    setSelectedQueueTab('ALL'); // Bosqichlarda qolib ketmasdan to'g'ridan-to'g'ri 'Barchasi' (ALL) ga o'tadi
     setDraft(updated);
     setApplied(updated);
     refresh();
@@ -704,7 +878,6 @@ function Debitors() {
         limit: 0,
         sortField: '',
         sortDirection: '',
-        operationalQueue: selectedQueueTab !== 'ALL' ? selectedQueueTab : undefined,
         search: appliedSearch || undefined,
         status: applied.status.length > 0 ? applied.status.join(',') : undefined,
         phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
@@ -953,6 +1126,7 @@ function Debitors() {
               <PhoneStatCard
                 notFound={stats.phoneStatus.not_found || stats.no_phone}
                 checking={stats.phoneStatus.checking || stats.sms_sent}
+                newPhones={stats.phoneStatus.new}
                 onFilter={(phoneStatusList) =>
                   handleQuickFilter({
                     phoneStatus: phoneStatusList
@@ -976,16 +1150,16 @@ function Debitors() {
                   })
                 }
               />
-              <StatCard
-                label="🔒 Bloklashga 100% tayyor"
-                value={stats.ready_to_block}
-                valueColor="success.main"
-                onClick={() => handleQuickFilter({ status: ['ready_to_block'] })}
+              <ReadyToBlockStatCard
+                total={stats.ready_to_block}
+                fullyConfirmed={stats.readyToBlockBreakdown.confirmed}
+                needsHetSync={stats.readyToBlockBreakdown.needs_het_sync}
+                onFilter={(filterParams) => handleQuickFilter(filterParams || { status: ['ready_to_block'] })}
               />
               <StatCard
                 label="✔️ Bloklangan"
                 value={stats.blocked}
-                valueColor={(t) => (t.palette.mode === 'dark' ? '#34D399' : '#047857') as string}
+                valueColor="secondary.main"
                 onClick={() => handleQuickFilter({ status: ['blocked'] })}
               />
             </Stack>
@@ -997,50 +1171,7 @@ function Debitors() {
             </Stack>
           )}
 
-          {/* 2.1. 4-Stage Operational Work Queue Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0.5 }}>
-            <Tabs
-              value={selectedQueueTab}
-              onChange={(e, val) => {
-                setSelectedQueueTab(val);
-                refresh();
-              }}
-              variant="scrollable"
-              scrollButtons="auto"
-              textColor="secondary"
-              indicatorColor="secondary"
-            >
-              <Tab label="Barchasi" value="ALL" sx={{ fontWeight: 700 }} />
-              <Tab
-                label="Diqqat talab"
-                value="DATA_NEEDS_ATTENTION"
-                icon={<Chip label="1-Bosqich" size="small" color="error" sx={{ height: 18, fontSize: 10 }} />}
-                iconPosition="end"
-                sx={{ fontWeight: 700, gap: 1 }}
-              />
-              <Tab
-                label="SMS Kutilmoqda"
-                value="SMS_PENDING_WAIT"
-                icon={<Chip label="2-Bosqich" size="small" color="warning" sx={{ height: 18, fontSize: 10 }} />}
-                iconPosition="end"
-                sx={{ fontWeight: 700, gap: 1 }}
-              />
-              <Tab
-                label="Uzishga tayyor"
-                value="READY_TO_BLOCK"
-                icon={<Chip label="3-Bosqich" size="small" color="info" sx={{ height: 18, fontSize: 10 }} />}
-                iconPosition="end"
-                sx={{ fontWeight: 700, gap: 1 }}
-              />
-              <Tab
-                label="Bloklanganlar"
-                value="CURRENTLY_BLOCKED"
-                icon={<Chip label="4-Bosqich" size="small" color="secondary" sx={{ height: 18, fontSize: 10 }} />}
-                iconPosition="end"
-                sx={{ fontWeight: 700, gap: 1 }}
-              />
-            </Tabs>
-          </Box>
+
 
           {/* 3. Qidiruv qatori */}
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

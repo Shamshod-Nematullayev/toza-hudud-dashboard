@@ -17,7 +17,8 @@ import {
   FormControl,
   RadioGroup,
   FormControlLabel,
-  Radio
+  Radio,
+  Switch
 } from '@mui/material';
 import {
   SyncOutlined,
@@ -54,7 +55,7 @@ interface ActiveJobInfo {
   jobName: string;
   progress: number;
   message: string;
-  status: string;
+  status: 'in-progress' | 'finished';
 }
 
 export function Sidebar({
@@ -83,6 +84,10 @@ export function Sidebar({
   const [syncLogDialogOpen, setSyncLogDialogOpen] = React.useState(false);
   const { user } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
+
+  // Job 0 (TozaMakon Sync) Confirmation Dialog State
+  const [syncConfirmOpen, setSyncConfirmOpen] = React.useState(false);
+  const [updateExtraInfoValue, setUpdateExtraInfoValue] = React.useState<boolean>(true);
 
   // SMS Confirmation Dialog State
   const [smsConfirmOpen, setSmsConfirmOpen] = React.useState(false);
@@ -147,6 +152,19 @@ export function Sidebar({
     } finally {
       setTriggerLoading(null);
     }
+  };
+
+  // Open Sync Dialog for Job 0
+  const openSyncDialog = () => {
+    setUpdateExtraInfoValue(true);
+    setSyncConfirmOpen(true);
+  };
+
+  const confirmAndStartSyncJob = () => {
+    handleTriggerJob('/debitors/jobs/trigger-sync', 'job0', {
+      updateExtraInfo: updateExtraInfoValue
+    });
+    setSyncConfirmOpen(false);
   };
 
   // Open SMS Dialog for Job 2 & Workflow
@@ -220,7 +238,7 @@ export function Sidebar({
                 variant="outlined"
                 color="info"
                 startIcon={triggerLoading === 'job0' ? <CircularProgress size={14} /> : <SyncOutlined fontSize="small" />}
-                onClick={() => handleTriggerJob('/debitors/jobs/trigger-sync', 'job0')}
+                onClick={openSyncDialog}
                 disabled={isAnyJobRunning || Boolean(triggerLoading)}
                 sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
               >
@@ -241,30 +259,30 @@ export function Sidebar({
                 disabled={isAnyJobRunning || Boolean(triggerLoading)}
                 sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
               >
-                Job 1: ETK & Block Tekshiruvi
+                Job 1: ETK & Blok Tekshirish
               </Button>
             </span>
           </Tooltip>
 
-          <Tooltip title="Job 2: Telefon raqamlari va SMS ogohlantirish yuborish (Faqat Premium)">
+          <Tooltip title="Job 2: Telefon raqamlarni solishtirish va SMS ogohlantirish (Faqat Premium)">
             <span>
               <Button
                 fullWidth
                 size="small"
                 variant="outlined"
-                color="secondary"
+                color="success"
                 startIcon={triggerLoading === 'job2' ? <CircularProgress size={14} /> : <PhoneAndroidOutlined fontSize="small" />}
                 onClick={() => openSmsDialog('/debitors/jobs/trigger-phone-sms', 'job2')}
                 disabled={isAnyJobRunning || Boolean(triggerLoading)}
                 sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
               >
-                Job 2: Telefon & SMS Ishlovi...
+                Job 2: Telefon & SMS Ishlovi
               </Button>
             </span>
           </Tooltip>
 
           {isProductAdmin && (
-            <Tooltip title="HET bazasiga kiritilgan raqamlar sinxronizatsiyasini tekshirish">
+            <Tooltip title="Chiqindi korxona bazasidagi telefonlarni yangilash">
               <span>
                 <Button
                   fullWidth
@@ -276,13 +294,15 @@ export function Sidebar({
                   disabled={isAnyJobRunning || Boolean(triggerLoading)}
                   sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
                 >
-                  HET Telefon Sinxronizatsiyasi
+                  Telefonlarni yangilash
                 </Button>
               </span>
             </Tooltip>
           )}
 
-          <Tooltip title="Barcha Joblarni ketma-ket to'liq ishga tushirish (Faqat Premium)">
+          <Divider sx={{ my: 0.5 }} />
+
+          <Tooltip title="To'liq avtomatlashtirilgan blocking pipeline ishga tushirish (Faqat Premium)">
             <span>
               <Button
                 fullWidth
@@ -296,7 +316,7 @@ export function Sidebar({
                 disabled={isAnyJobRunning || Boolean(triggerLoading)}
                 sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 700 }}
               >
-                🚀 Barcha Joblarni Ishga Tushirish...
+                ▶️ To'liq Jarayonni Boshlash
               </Button>
             </span>
           </Tooltip>
@@ -308,12 +328,63 @@ export function Sidebar({
             color="error"
             onClick={() => handleTriggerJob('/debitors/jobs/unlock', 'unlock')}
             disabled={Boolean(triggerLoading)}
-            sx={{ fontSize: 10, mt: 0.5, textTransform: 'none' }}
+            sx={{ fontSize: 10, mt: 0.5, opacity: 0.7, '&:hover': { opacity: 1 } }}
           >
             🧹 Qotib qolgan jobni majburiy tozalash (Unlock)
           </Button>
         </Stack>
       </Box>
+
+      {/* JOB 0: TOZAMAKON SINXRONLASH SOZLAMALARI DIALOGI */}
+      <Dialog open={syncConfirmOpen} onClose={() => setSyncConfirmOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <SyncOutlined color="info" />
+          <Typography variant="h5">TozaMakon Sinxronlash (Job 0)</Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            TozaMakon tizimidan qarzdorlar ro'yxati (Excel) yuklanib, debitorlar bazasi yangilanadi.
+          </Typography>
+
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
+              border: '1px solid',
+              borderColor: 'divider'
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={updateExtraInfoValue}
+                  onChange={(e) => setUpdateExtraInfoValue(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    🏘️ Mahalla va F.I.SH yangilansinmi?
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.3 }}>
+                    Mavjud debitorlarning Mahalla ID, Mahalla nomi, F.I.SH va hisob raqamlari TozaMakon ma'lumotlari asosida to'liq yangilanadi.
+                  </Typography>
+                </Box>
+              }
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 2, py: 1.5 }}>
+          <Button onClick={() => setSyncConfirmOpen(false)} color="inherit" size="small">
+            Bekor qilish
+          </Button>
+          <Button onClick={confirmAndStartSyncJob} variant="contained" color="info" size="small">
+            Sinxronlashni boshlash
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* SMS YUBORISH REJIMINI TANLASH DIALOGI */}
       <Dialog open={smsConfirmOpen} onClose={() => setSmsConfirmOpen(false)} maxWidth="xs" fullWidth>
