@@ -1,4 +1,5 @@
 const uz = {
+  'AI Data Intelligence': 'AI Data Intelligence',
   'tizimga kirish': 'Tizimga kirish',
   username: 'Foydalanuvchi nomi',
   password: 'Parol',

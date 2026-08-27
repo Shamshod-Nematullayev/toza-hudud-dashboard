@@ -52,6 +52,7 @@ import Companies from 'views/productAdmin/Companies';
 import Users from 'views/productAdmin/Users';
 import ProductAnalytics from 'views/productAdmin/ProductAnalytics';
 import CompanyProfile from 'views/companyProfile/CompanyProfile';
+import DataIntelligencePage from 'views/billing/DataIntelligence';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -223,6 +224,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'importAkt',
           element: <ImportAkt />
+        },
+        {
+          path: 'data-intelligence',
+          element: <DataIntelligencePage />
         }
       ]
     },

@@ -22,7 +22,8 @@ import {
   ElectricBolt,
   MessageOutlined,
   Speed,
-  BusinessOutlined
+  BusinessOutlined,
+  PsychologyOutlined
 } from '@mui/icons-material';
 import { MenuItem } from 'menu-items';
 
@@ -49,7 +50,8 @@ const icons = {
   ElectricBolt,
   MessageOutlined,
   Speed,
-  BusinessOutlined
+  BusinessOutlined,
+  PsychologyOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -59,12 +61,15 @@ const billing: MenuItem = {
   type: 'group',
   allowedRoles: ['admin', 'billing', 'stm', 'rahbar', 'product_admin'],
   children: [
-    // {
-    //   id: 'billing',
-    //   title: 'billing',
-    //   type: 'collapse',
-    //   icon: icons.ImportantDevicesOutlinedIcon,
-    //   children: [
+    {
+      id: 'dataIntelligence',
+      title: 'AI Data Intelligence',
+      type: 'item',
+      url: '/billing/data-intelligence',
+      icon: icons.PsychologyOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing', 'rahbar', 'product_admin']
+    },
     {
       id: 'createAbonentPetition',
       title: 'createAbonentPetition',
