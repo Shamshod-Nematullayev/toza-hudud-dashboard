@@ -52,6 +52,21 @@ function Mahalla() {
         columns={[
           { field: 'id', headerName: 'ID', width: 90 },
           { field: 'name', headerName: 'Name', width: 150 },
+          {
+            field: 'sektor',
+            headerName: 'Sektor',
+            width: 120,
+            renderCell: (params) => {
+              const val = params.value;
+              if (!val)
+                return (
+                  <Typography variant="caption" color="textSecondary">
+                    —
+                  </Typography>
+                );
+              return <Chip label={`${val}-sektor`} size="small" color="secondary" variant="outlined" />;
+            }
+          },
           { field: 'mfy_rais_name', headerName: 'Mahalla raisi', width: 300 },
           { field: 'mfy_rais_phone', headerName: 'Rais telefoni', width: 150 },
           {

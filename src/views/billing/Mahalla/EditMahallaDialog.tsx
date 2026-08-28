@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Stack, Typography, IconButton, Divider, Grid, FormControlLabel, Checkbox } from '@mui/material';
+import { TextField, Button, Stack, Typography, IconButton, Divider, Grid, FormControlLabel, Checkbox, MenuItem } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 
@@ -18,6 +18,7 @@ export interface MahallaData {
   employees?: Employee[];
   readyToBlock?: boolean;
   mfyPrimaryName?: string;
+  sektor?: string;
 }
 
 interface Props {
@@ -34,7 +35,8 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
     mfy_rais_phone: '',
     employees: [],
     readyToBlock: false,
-    mfyPrimaryName: ''
+    mfyPrimaryName: '',
+    sektor: ''
   });
 
   useEffect(() => {
@@ -43,7 +45,8 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
         ...initialData,
         employees: initialData.employees || [],
         readyToBlock: !!initialData.readyToBlock,
-        mfyPrimaryName: initialData.mfyPrimaryName || ''
+        mfyPrimaryName: initialData.mfyPrimaryName || '',
+        sektor: initialData.sektor ? String(initialData.sektor) : ''
       });
     }
   }, [initialData, open]);
@@ -78,7 +81,28 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
   return (
     <DraggableDialog title="Mahallani tahrirlash" open={open} onClose={onClose}>
       <Stack spacing={3} sx={{ mt: 1, minWidth: 500 }}>
-        <TextField fullWidth label="Mahalla nomi" value={formData.name} onChange={(e) => handleFieldChange('name', e.target.value)} />
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 8 }}>
+            <TextField fullWidth label="Mahalla nomi" value={formData.name} onChange={(e) => handleFieldChange('name', e.target.value)} />
+          </Grid>
+          <Grid size={{ xs: 4 }}>
+            <TextField
+              fullWidth
+              select
+              label="Sektor"
+              value={formData.sektor || ''}
+              onChange={(e) => handleFieldChange('sektor', e.target.value)}
+            >
+              <MenuItem value="">
+                <em>Tanlanmagan</em>
+              </MenuItem>
+              <MenuItem value="1">1-sektor</MenuItem>
+              <MenuItem value="2">2-sektor</MenuItem>
+              <MenuItem value="3">3-sektor</MenuItem>
+              <MenuItem value="4">4-sektor</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
