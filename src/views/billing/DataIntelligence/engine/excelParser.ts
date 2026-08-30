@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import { RecordSource } from './matchingEngine';
 import { StagingRecord, ValidationIssue } from '../mock/mockData';
 
@@ -29,45 +30,40 @@ export interface ParseResult {
 }
 
 /**
- * Faylni to'g'ri kodlash (UTF-8, Windows-1251 / CP1251, UTF-16) bilan o'qish.
- * Rus/Kirill harflari buzilib (diamond ?) chiqishining oldini oladi.
+ * Matnni to'g'ri kodlash (UTF-8, Windows-1251 / CP1251, UTF-16) bilan o'qish.
  */
 export async function readTextWithProperEncoding(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);
 
-  // 1. UTF-8 BOM tekshirish (0xEF, 0xBB, 0xBF)
+  // 1. UTF-8 BOM tekshirish
   if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
     return new TextDecoder('utf-8').decode(bytes.slice(3));
   }
 
-  // 2. UTF-16LE BOM tekshirish (0xFF, 0xFE)
+  // 2. UTF-16LE BOM
   if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
     return new TextDecoder('utf-16le').decode(bytes.slice(2));
   }
 
-  // 3. UTF-16BE BOM tekshirish (0xFE, 0xFF)
+  // 3. UTF-16BE BOM
   if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
     return new TextDecoder('utf-16be').decode(bytes.slice(2));
   }
 
-  // 4. Strict UTF-8 dekodlashni tekshirish
+  // 4. Strict UTF-8
   try {
     const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
     const text = utf8Decoder.decode(bytes);
-
     if (!text.includes('\uFFFD')) {
       return text;
     }
-  } catch (e) {
-    // Agar UTF-8 xatolik bersa (masalan Windows-1251 kirill baytlari bo'lsa)
-  }
+  } catch (e) {}
 
-  // 5. Windows-1251 (Rus/O'zbek Kirill standart kodirovkasi) orqali o'qish
+  // 5. Windows-1251 (Rus/O'zbek Kirill)
   try {
     const win1251Decoder = new TextDecoder('windows-1251');
-    const text1251 = win1251Decoder.decode(bytes);
-    return text1251;
+    return win1251Decoder.decode(bytes);
   } catch (e2) {
     return new TextDecoder('utf-8').decode(bytes);
   }
@@ -75,7 +71,6 @@ export async function readTextWithProperEncoding(file: File): Promise<string> {
 
 /**
  * Ustun nomlarini avtomatik aniqlash (Heuristic Column Detection)
- * Kirill (ў, ғ, қ, ҳ, ё) va Lotin harflarini to'liq qo'llab-quvvatlaydi.
  */
 export function detectColumnMapping(headers: string[]): ColumnMapping {
   const mapping: ColumnMapping = {
@@ -138,14 +133,16 @@ export function detectColumnMapping(headers: string[]): ColumnMapping {
         h.includes('фамилия') ||
         h.includes('name') ||
         h.includes('fullname') ||
+        h.includes('fuqaro') ||
+        h.includes('фуқаро') ||
         h.includes('abonent') ||
         h.includes('абонент') ||
-        h.includes('гражданин') ||
-        (h.includes('fargona') === false && (h.includes('shaxs') || h.includes('шахс'))))
+        h.includes('mijoz') ||
+        h.includes('мижоз'))
     ) {
       mapping.fullName = header;
     }
-    // Mahalla / Маҳалла / Махалла / МФЙ
+    // Mahalla / MFY / Маҳалла / МФЙ
     else if (
       !mapping.mahalla &&
       (h.includes('mahalla') ||
@@ -154,44 +151,50 @@ export function detectColumnMapping(headers: string[]): ColumnMapping {
         h.includes('mfy') ||
         h.includes('мфй') ||
         h.includes('hudud') ||
+        h.includes('худуд') ||
         h.includes('ҳудуд') ||
-        h.includes('квартал'))
+        h.includes('qfy') ||
+        h.includes('қфй'))
     ) {
       mapping.mahalla = header;
     }
-    // Ko'cha / Кўча / Куча / Улица / Manzil / Манзил / Адрес / Uy / Уй
+    // Ko'cha / Manzil / Кўча / Манзил / Адрес / Uy
     else if (
       !mapping.street &&
       (h.includes('kocha') ||
-        h.includes('куча') ||
         h.includes('кўча') ||
-        h.includes('улица') ||
-        h.includes('street') ||
+        h.includes('куча') ||
         h.includes('manzil') ||
         h.includes('манзил') ||
+        h.includes('adres') ||
         h.includes('адрес') ||
         h.includes('address') ||
+        h.includes('street') ||
         h.includes('uy') ||
         h.includes('уй') ||
-        h.includes('dom') ||
-        h.includes('дом'))
+        h.includes('xonadon') ||
+        h.includes('хонадон'))
     ) {
       mapping.street = header;
     }
-    // Obyekt turi / Объект тури
+    // Obyekt turi / Aholi / Tashkilot / Категория
     else if (
       !mapping.objectType &&
-      (h.includes('obyekt') ||
-        h.includes('объект') ||
-        h.includes('turi') ||
-        h.includes('тури') ||
+      (h.includes('tur') ||
+        h.includes('тур') ||
+        h.includes('toifa') ||
+        h.includes('тоифа') ||
         h.includes('type') ||
         h.includes('kategoriya') ||
-        h.includes('категория'))
+        h.includes('категория') ||
+        h.includes('obekt') ||
+        h.includes('объект') ||
+        h.includes('tarifi') ||
+        h.includes('тариф'))
     ) {
       mapping.objectType = header;
     }
-    // Telefon / Телефон
+    // Telefon / Tel / Тел / Номер
     else if (
       !mapping.phone &&
       (h.includes('telefon') ||
@@ -221,47 +224,72 @@ export function detectColumnMapping(headers: string[]): ColumnMapping {
 }
 
 /**
- * CSV / TSV matnini parserlash
+ * Excel (.xlsx, .xls) va CSV faylni o'qish (SheetJS XLSX)
  */
-export function parseCsvText(text: string): ParsedSheetData {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
-  if (lines.length === 0) {
-    return { headers: [], rawRows: [], suggestedMapping: detectColumnMapping([]), totalRows: 0 };
+export async function parseUploadedFile(file: File): Promise<ParsedSheetData> {
+  const arrayBuffer = await file.arrayBuffer();
+
+  let workbook: XLSX.WorkBook;
+  try {
+    workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
+  } catch (err) {
+    const text = await readTextWithProperEncoding(file);
+    workbook = XLSX.read(text, { type: 'string', cellDates: true });
   }
 
-  // Delimiter detection (vergul yoki nuqta-vergul yoki tab)
-  const firstLine = lines[0];
-  let delimiter = ',';
-  if (firstLine.includes('\t')) delimiter = '\t';
-  else if (firstLine.includes(';') && (firstLine.match(/;/g)?.length || 0) > (firstLine.match(/,/g)?.length || 0)) {
-    delimiter = ';';
+  if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+    throw new Error("Faylda varaqlar (sheets) yoki ma'lumotlar topilmadi.");
   }
 
-  const parseLine = (line: string): string[] => {
-    const regex = new RegExp(`(?:^|${delimiter})(?:"([^"]*(?:""[^"]*)*)"|([^"${delimiter}]*))`, 'g');
-    const result: string[] = [];
-    let match;
-    while ((match = regex.exec(line)) !== null) {
-      let val = match[1] !== undefined ? match[1].replace(/""/g, '"') : match[2];
-      result.push(val ? val.trim() : '');
-      if (regex.lastIndex === line.length && line.endsWith(delimiter)) {
-        result.push('');
-      }
+  // Birinchi to'liq varaqni tanlash
+  let targetSheetName = workbook.SheetNames[0];
+  let worksheet = workbook.Sheets[targetSheetName];
+
+  for (const name of workbook.SheetNames) {
+    const ws = workbook.Sheets[name];
+    if (ws && ws['!ref']) {
+      targetSheetName = name;
+      worksheet = ws;
+      break;
     }
-    return result;
-  };
-
-  const headers = parseLine(lines[0]).map((h, idx) => (h ? h.trim() : `Ustun_${idx + 1}`));
-  const rawRows: Record<string, string>[] = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseLine(lines[i]);
-    const rowObj: Record<string, string> = {};
-    headers.forEach((header, idx) => {
-      rowObj[header] = values[idx] || '';
-    });
-    rawRows.push(rowObj);
   }
+
+  // Qatorlarni JSON massiviga aylantirish
+  const rows = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet, {
+    defval: '',
+    raw: false,
+    dateNF: 'yyyy-mm-dd'
+  });
+
+  if (rows.length === 0) {
+    return {
+      headers: [],
+      rawRows: [],
+      suggestedMapping: detectColumnMapping([]),
+      totalRows: 0
+    };
+  }
+
+  // Barcha sarlavhalarni tartib bilan olish
+  const headerSet = new Set<string>();
+  rows.forEach((r) => {
+    Object.keys(r).forEach((k) => {
+      const cleanKey = String(k).trim();
+      if (cleanKey && !cleanKey.startsWith('__EMPTY')) {
+        headerSet.add(cleanKey);
+      }
+    });
+  });
+
+  const headers = Array.from(headerSet);
+
+  const rawRows: Record<string, string>[] = rows.map((r) => {
+    const rowObj: Record<string, string> = {};
+    headers.forEach((h) => {
+      rowObj[h] = r[h] !== undefined && r[h] !== null ? String(r[h]).trim() : '';
+    });
+    return rowObj;
+  });
 
   const suggestedMapping = detectColumnMapping(headers);
 
@@ -271,14 +299,6 @@ export function parseCsvText(text: string): ParsedSheetData {
     suggestedMapping,
     totalRows: rawRows.length
   };
-}
-
-/**
- * Excel / CSV faylni o'qish (To'g'ri kodirovkali Browser File Reader)
- */
-export async function parseUploadedFile(file: File): Promise<ParsedSheetData> {
-  const text = await readTextWithProperEncoding(file);
-  return parseCsvText(text);
 }
 
 /**
@@ -334,7 +354,7 @@ export function validateAndTransformRows(
         issues.push({
           field: 'pnfl',
           severity: 'warning',
-          message: `Faylda takrorlangan (dublikat) JShShIR: ${cleanPnfl}`
+          message: `Ushbu JShShIR (${cleanPnfl}) fayl ichida takrorlangan`
         });
       } else {
         seenPnfls.add(cleanPnfl);
@@ -343,51 +363,37 @@ export function validateAndTransformRows(
       issues.push({
         field: 'pnfl',
         severity: 'warning',
-        message: "JShShIR (PNFL) ko'rsatilmagan"
+        message: "JShShIR kiritilmagan"
       });
     }
 
-    // Kadastr raqami formati tekshiruvi
+    // Kadastr raqami tekshiruvi
     if (rawCadastre) {
-      const cadastreRegex = /^\d{2}:\d{2}:\d{2}:\d{2}:\d{2}:\d{4}$/;
-      if (!cadastreRegex.test(rawCadastre) && !rawCadastre.includes(':')) {
-        issues.push({
-          field: 'cadastreNumber',
-          severity: 'info',
-          message: "Kadastr raqami formati nostandart (masalan: 10:01:05:04:02:0142 bo'lishi kerak)"
-        });
-      }
       if (seenCadastres.has(rawCadastre)) {
         issues.push({
           field: 'cadastreNumber',
-          severity: 'info',
-          message: `Faylda bitta kadastr bir necha bor uchradi (ko'p xonadonli bino): ${rawCadastre}`
+          severity: 'warning',
+          message: `Kadastr raqami (${rawCadastre}) fayl ichida takrorlangan`
         });
       } else {
         seenCadastres.add(rawCadastre);
       }
     }
 
-    // F.I.Sh tekshiruvi
-    if (!rawFullName) {
-      issues.push({
-        field: 'fullName',
-        severity: 'warning',
-        message: "F.I.Sh (ism-sharif) ko'rsatilmagan"
-      });
-    }
-
-    // Holatni aniqlash
+    // Status aniqlash
     const hasError = issues.some((i) => i.severity === 'error');
     const hasWarning = issues.some((i) => i.severity === 'warning');
-    const status = hasError ? 'error' : hasWarning ? 'warning' : 'valid';
+    const rowStatus: StagingRecord['status'] = hasError ? 'error' : hasWarning ? 'warning' : 'valid';
 
-    if (status === 'error') errorCount++;
-    else if (status === 'warning') warningCount++;
-    else validCount++;
+    if (rowStatus === 'valid') validCount++;
+    else if (rowStatus === 'warning') warningCount++;
+    else errorCount++;
 
-    const record: StagingRecord = {
-      id: `staging-${Date.now()}-${rowNumber}`,
+    const stagingItem: StagingRecord = {
+      id: `soliq_staging_${Date.now()}_${rowNumber}`,
+      rowNumber,
+      sourceFile: fileName,
+      importedAt: new Date().toISOString(),
       fullName: rawFullName,
       pnfl: cleanPnfl || rawPnfl,
       cadastreNumber: rawCadastre,
@@ -396,15 +402,12 @@ export function validateAndTransformRows(
       objectType: rawObjectType,
       phone: rawPhone,
       tin: rawTin,
-      source: 'soliq',
-      importedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      sourceFile: fileName,
+      status: rowStatus,
       validationIssues: issues,
-      status,
-      rowNumber
+      rawPayload: row
     };
 
-    stagingRecords.push(record);
+    stagingRecords.push(stagingItem);
   });
 
   return {
@@ -418,11 +421,15 @@ export function validateAndTransformRows(
 }
 
 /**
- * Namuna CSV shablonini generatsiya qilish (UTF-8 BOM bilan)
+ * Namuna test CSV fayl generatsiya qilish
  */
 export function generateSampleCsvContent(): string {
-  return `F.I.Sh,JShShIR,Kadastr raqami,Mahalla,Ko'cha va uy,Obyekt turi,Telefon
-Алиев Сардор Бахтиёрович,31205851230045,14:05:01:01:01:0013,Истиқлол МФЙ,Амир Темур кўчаси 9-уй,Аҳоли,+998901234567
-Каримова Нигора Рустамовна,41610684070014,14:05:01:01:01:0107,Гулзор МФЙ,Навоий кўчаси 52-уй,Аҳоли,+998935552211
-Раҳимов Жавлон Анварович,30403826180025,14:05:01:01:01:0123,Чилонзор МФЙ,Муқимий 14-уй,Аҳоли,+998971002030`;
+  const headers = ['ФИО', 'ПИНФЛ', 'Кадастр рақами', 'Маҳалла', 'Кўча ва уй', 'Тариф / Объект тури', 'Телефон'];
+  const sampleRows = [
+    ['БОЛТАЕВ ХАЙРУЛЛА ЮЛДАШЕВИЧ', '30501573920137', '14:05:01:01:01:0013', 'Истиқлол МФЙ', 'Навоий кўчаси 12-уй', 'Аҳоли', '+998901234567'],
+    ['САМАНДАРОВ ШЕРАЛИ', '31612863920098', '14:05:01:01:01:0183', 'Омонбойкўприк МФЙ', 'Хайвар 1-уй', 'Аҳоли', '+998914567890'],
+    ['КАРИМОВА ШАХНОЗА АКМАЛОВНА', '41208933920054', '14:05:02:03:01:0245', 'Дўстлик МФЙ', 'Гулистон кўчаси 4-уй', 'Аҳоли', '+998937778899']
+  ];
+
+  return [headers.join(','), ...sampleRows.map((r) => r.map((cell) => `"${cell}"`).join(','))].join('\n');
 }

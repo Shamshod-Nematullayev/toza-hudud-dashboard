@@ -24,7 +24,7 @@ import {
   FiberNew as NewIcon,
   ArrowForward as ArrowForwardIcon,
   RefreshOutlined as RefreshIcon,
-  CheckCircleOutline,
+  CheckCircleOutlineOutlined,
   AssignmentTurnedInOutlined,
   FilterList as FilterListIcon
 } from '@mui/icons-material';
@@ -143,12 +143,7 @@ function DebtCollectionOverview() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={fetchOperationsSummary}
-            sx={{ borderRadius: 2.5, px: 2.5 }}
-          >
+          <Button variant="outlined" startIcon={<RefreshIcon />} onClick={fetchOperationsSummary} sx={{ borderRadius: 2.5, px: 2.5 }}>
             Yangilash
           </Button>
           <Button
@@ -283,12 +278,12 @@ function DebtCollectionOverview() {
             queue.color === 'error'
               ? theme.palette.error
               : queue.color === 'warning'
-              ? theme.palette.warning
-              : queue.color === 'info'
-              ? theme.palette.info
-              : queue.color === 'secondary'
-              ? theme.palette.secondary
-              : theme.palette.primary;
+                ? theme.palette.warning
+                : queue.color === 'info'
+                  ? theme.palette.info
+                  : queue.color === 'secondary'
+                    ? theme.palette.secondary
+                    : theme.palette.primary;
 
           const pctOfTotal = overview.activeCount > 0 ? Math.round((queue.count / overview.activeCount) * 100) : 0;
 

@@ -45,4 +45,12 @@ export interface IAriza {
   companyId: number;
   version: number;
   shouldBeMoneyTransfer: boolean;
+  transferReason?: 'ortiqcha_tulov' | 'yanglish_tulov';
+  applicantInfo?: {
+    residentId?: number;
+    accountNumber?: string;
+    fullName?: string;
+    phone?: string;
+    mahallaName?: string;
+  };
 }

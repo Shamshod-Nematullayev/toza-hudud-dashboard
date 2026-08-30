@@ -26,6 +26,8 @@ export interface IRow {
   id: number;
   accountNumber: string;
   kSaldo: number;
+  phone?: string;
+  mahallaName?: string;
 }
 
 function MonayTransfer() {
@@ -38,12 +40,19 @@ function MonayTransfer() {
   const [ariza, setAriza] = useState<IAriza | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
 
+  // Yanglishib to'langan to'lov yoki ortiqcha to'lov rejimi
+  const [transferReason, setTransferReason] = useState<'ortiqcha_tulov' | 'yanglish_tulov'>('ortiqcha_tulov');
+  const [selectedApplicantId, setSelectedApplicantId] = useState<number | ''>('');
+
   const printComponentRef = useRef(null);
 
   const { t } = useTranslation();
 
   const openPrintSection = (data: IAriza) => {
     setAriza(data);
+    if (data.transferReason) {
+      setTransferReason(data.transferReason);
+    }
     setOpenDialog(true);
   };
 
@@ -52,7 +61,7 @@ function MonayTransfer() {
     contentRef: printComponentRef
   });
 
-  const handleClickDeleteButton = (id) => {
+  const handleClickDeleteButton = (id: number) => {
     setRows(rows.filter((r) => r.id !== id));
   };
 
@@ -61,7 +70,11 @@ function MonayTransfer() {
   useEffect(() => {
     if (accountNumber.length === 12) {
       api.get('/billing/get-abonent-data-by-licshet/' + accountNumber).then(({ data }) => {
-        setCurrentAbonentData({ ...data.abonentData, kSaldo: data.abonentData.balance.kSaldo, residentId: data.abonentData.id });
+        setCurrentAbonentData({
+          ...data.abonentData,
+          kSaldo: data.abonentData.balance.kSaldo,
+          residentId: data.abonentData.id
+        });
       });
     } else {
       setCurrentAbonentData(null);
@@ -84,7 +97,15 @@ function MonayTransfer() {
         }
         if (ariza.document_type !== 'pul_kuchirish')
           return toast.info("Bu turdagi arizalar: Import arizalar bo'limidan kiritiladi.", { autoClose: 10000 });
-        setAriza(ariza); // ariza ma'lumotini saqlash
+
+        setAriza(ariza);
+        if (ariza.transferReason) {
+          setTransferReason(ariza.transferReason);
+        }
+        if (ariza.applicantInfo?.residentId) {
+          setSelectedApplicantId(ariza.applicantInfo.residentId);
+        }
+
         const abonentData = await getAbonentData(ariza.licshet);
         let creditors = await Promise.all(
           ariza.needMonayTransferActs.map(async (a, i) => {
@@ -95,7 +116,9 @@ function MonayTransfer() {
               residentId: abonentData.id,
               id: i + 2,
               kSaldo: abonentData.balance.kSaldo,
-              fullName: a.fullName
+              fullName: a.fullName,
+              phone: abonentData.phone,
+              mahallaName: abonentData.mahallaName
             };
           })
         );
@@ -106,13 +129,36 @@ function MonayTransfer() {
             residentId: abonentData.id,
             id: 1,
             kSaldo: abonentData.balance.kSaldo,
-            fullName: `${abonentData.citizen.firstName} ${abonentData.citizen.lastName} ${abonentData.citizen.patronymic}`
+            fullName: `${abonentData.citizen.firstName} ${abonentData.citizen.lastName} ${abonentData.citizen.patronymic}`,
+            phone: abonentData.phone,
+            mahallaName: abonentData.mahallaName
           },
           ...creditors
         ]);
       }
     })();
   }, [pdfFile]);
+
+  // Ariza yozuvchi va debitor ma'lumotlarini aniqlash
+  const getApplicantDetails = (): any => {
+    if (ariza?.applicantInfo?.fullName) {
+      return {
+        ...ariza.applicantInfo,
+        id: ariza.applicantInfo.residentId
+      };
+    }
+    if (transferReason === 'yanglish_tulov') {
+      const found = rows.find((r) => r.residentId === selectedApplicantId);
+      if (found) return found;
+      if (rows.length > 1) return rows[1];
+    }
+    return rows[0] || abonentData;
+  };
+
+  const getDebitorDetails = (): any => {
+    return rows[0] || abonentData;
+  };
+
   return (
     <MainCard contentSX={{ height: 'calc( 100vh  - 130px )' }}>
       <Grid container spacing={1} height={'100%'}>
@@ -131,24 +177,26 @@ function MonayTransfer() {
             setAbonentData={setAbonentData}
             ariza={ariza}
             setAriza={setAriza}
+            transferReason={transferReason}
+            setTransferReason={setTransferReason}
+            selectedApplicantId={selectedApplicantId}
+            setSelectedApplicantId={setSelectedApplicantId}
           />
           <DataGrid
             columns={[
               { field: 'id', headerName: 'ID', width: 50 },
               { field: 'accountNumber', headerName: 'Hisob raqami', flex: 1 },
-              { field: 'fullName', headerName: 'FIO', flex: 1 },
-              { field: 'kSaldo', headerName: 'Saldo', flex: 1, type: 'number' },
+              { field: 'fullName', headerName: 'FIO', flex: 1.2 },
+              { field: 'kSaldo', headerName: 'Saldo', flex: 0.9, type: 'number' },
               { field: 'amount', headerName: "Ko'chiriladigan summa", flex: 1, type: 'number' },
               {
                 field: 'actions',
                 headerName: 'Amallar',
-                flex: 1,
+                width: 70,
                 renderCell: (row) => (
-                  <>
-                    <IconButton color="error" onClick={() => handleClickDeleteButton(row.row.id)} disabled={Boolean(ariza?._id)}>
-                      <Delete />
-                    </IconButton>
-                  </>
+                  <IconButton color="error" onClick={() => handleClickDeleteButton(row.row.id)} disabled={Boolean(ariza?._id)}>
+                    <Delete />
+                  </IconButton>
                 )
               }
             ]}
@@ -162,7 +210,7 @@ function MonayTransfer() {
               )
             }}
             sx={{
-              maxHeight: 'calc(100vh - 260px)'
+              maxHeight: 'calc(100vh - 270px)'
             }}
           />
         </Grid>
@@ -170,10 +218,16 @@ function MonayTransfer() {
           {!pdfFile.url ? <FileInputDrop setFunc={setPdfFile} /> : <PdfViewer base64String={pdfFile.url} />}
         </Grid>
       </Grid>
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
         <DialogContent>
           {ariza?._id ? (
-            <PrintSectionMonayTransferAriza ariza={ariza} printComponentRef={printComponentRef} abonentDetails={abonentData} />
+            <PrintSectionMonayTransferAriza
+              ariza={ariza}
+              printComponentRef={printComponentRef}
+              abonentDetails={getApplicantDetails()}
+              debitorDetails={getDebitorDetails()}
+              transferReason={ariza?.transferReason || transferReason}
+            />
           ) : (
             ''
           )}

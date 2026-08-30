@@ -65,7 +65,8 @@ export const CandidateFinderBlock: React.FC = () => {
       setOfficialMahallas(storeMahallas);
     } else {
       api.get('/mahallas', { params: { limit: 1000 } }).then(({ data }) => {
-        const list = (data?.data || []).map((m: any) => ({
+        const rawList = Array.isArray(data) ? data : data?.data || data?.docs || [];
+        const list = rawList.map((m: any) => ({
           id: m.id,
           name: m.name,
           sektor: m.sektor,

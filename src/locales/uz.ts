@@ -104,7 +104,8 @@ const uz = {
     manageCompanies: 'Tashkilotlarni boshqarish',
     productAnalytics: 'Mahsulot Analitikasi',
     manageUsers: 'Foydalanuvchilarni boshqarish',
-    companyProfile: 'Tashkilot profili'
+    companyProfile: 'Tashkilot profili',
+    'AI Data Intelligence': 'AI Data Intelligence'
   },
   priority: {
     '1': 'Past',

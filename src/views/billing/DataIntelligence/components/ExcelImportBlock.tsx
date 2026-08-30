@@ -19,7 +19,8 @@ import {
   Tooltip,
   Divider,
   useTheme,
-  alpha
+  alpha,
+  CircularProgress
 } from '@mui/material';
 import {
   CloudUploadOutlined,
@@ -45,6 +46,7 @@ import {
 } from '../engine/excelParser';
 import { ColumnMappingDialog } from './ColumnMappingDialog';
 import { ImportBatch } from '../mock/mockData';
+import api from 'utils/api';
 
 export const ExcelImportBlock: React.FC = () => {
   const theme = useTheme();
@@ -132,8 +134,8 @@ export const ExcelImportBlock: React.FC = () => {
     }
   };
 
-  // Staging'ga saqlash
-  const handleSaveToStaging = () => {
+  // Staging va MongoDB'ga saqlash
+  const handleSaveToStaging = async () => {
     if (!parseResult || !selectedFile) return;
 
     const newBatch: ImportBatch = {
@@ -141,7 +143,7 @@ export const ExcelImportBlock: React.FC = () => {
       fileName: selectedFile.name,
       fileSize: `${(selectedFile.size / 1024).toFixed(1)} KB`,
       importedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      importedBy: 'Operator (Sh. Nematullayev)',
+      importedBy: 'Operator',
       rowCount: parseResult.totalCount,
       validCount: parseResult.validCount,
       warningCount: parseResult.warningCount,
@@ -149,13 +151,37 @@ export const ExcelImportBlock: React.FC = () => {
       version: `v1.${importBatches.length + 1}`
     };
 
-    addStagingBatch(newBatch, parseResult.records);
-    toast.success(`${parseResult.totalCount} ta yozuv Staging xotirasiga muvaffaqiyatli saqlandi!`);
+    setIsProcessing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      if (currentMapping) {
+        formData.append('mapping', JSON.stringify(currentMapping));
+      }
 
-    // Reset current file preview
-    setSelectedFile(null);
-    setParsedSheet(null);
-    setParseResult(null);
+      const res = await api.post('/data-intelligence/upload-excel', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (res.data?.ok) {
+        toast.success(
+          res.data.message ||
+          `${parseResult.totalCount} ta Soliq yozuvi MongoDB bazasiga muvaffaqiyatli saqlandi!`
+        );
+        addStagingBatch(newBatch, parseResult.records);
+
+        // Reset current file preview
+        setSelectedFile(null);
+        setParsedSheet(null);
+        setParseResult(null);
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'MongoDB bazasiga saqlashda xatolik yuz berdi');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -168,7 +194,8 @@ export const ExcelImportBlock: React.FC = () => {
               Soliq Bazasi Excel Import Kanali
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-              Soliq qo'mitasi yoki boshqa tashqi manbadan olingan faylni yuklang. Ma'lumotlar alohida <strong>Staging</strong> holatida saqlanadi.
+              Soliq qo'mitasi yoki boshqa tashqi manbadan olingan faylni yuklang. Ma'lumotlar alohida <strong>Staging</strong> holatida
+              saqlanadi.
             </Typography>
 
             {/* Drag & Drop Zone */}
@@ -184,8 +211,8 @@ export const ExcelImportBlock: React.FC = () => {
                 bgcolor: isDragging
                   ? alpha(theme.palette.primary.main, 0.08)
                   : theme.palette.mode === 'dark'
-                  ? alpha(theme.palette.background.paper, 0.4)
-                  : '#f8fafc',
+                    ? alpha(theme.palette.background.paper, 0.4)
+                    : '#f8fafc',
                 cursor: 'pointer',
                 textAlign: 'center',
                 transition: 'all 0.25s ease',
@@ -203,16 +230,31 @@ export const ExcelImportBlock: React.FC = () => {
                 onChange={(e) => {
                   if (e.target.files && e.target.files.length > 0) {
                     handleFileChange(e.target.files[0]);
+                    e.target.value = '';
                   }
                 }}
               />
-              <CloudUploadOutlined sx={{ fontSize: 52, color: 'primary.main', mb: 1, opacity: 0.85 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-                {selectedFile ? selectedFile.name : 'Excel yoki CSV faylni shu yerga tashlang'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                yoki kompyuterdan tanlash uchun bosing (.xlsx, .xls, .csv)
-              </Typography>
+              {isProcessing ? (
+                <Box sx={{ py: 2 }}>
+                  <CircularProgress size={36} sx={{ mb: 1 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    Fayl o'qilmoqda va tahlil qilinmoqda...
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {selectedFile?.name}
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  <CloudUploadOutlined sx={{ fontSize: 52, color: 'primary.main', mb: 1, opacity: 0.85 }} />
+                  <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    {selectedFile ? selectedFile.name : 'Excel yoki CSV faylni shu yerga tashlang'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    yoki kompyuterdan tanlash uchun bosing (.xlsx, .xls, .csv)
+                  </Typography>
+                </>
+              )}
             </Box>
 
             {/* Quick Actions / Templates */}
@@ -230,7 +272,15 @@ export const ExcelImportBlock: React.FC = () => {
 
             {/* Uploaded File Summary & Mapping Button */}
             {parseResult && (
-              <Box sx={{ mt: 3, p: 2, bgcolor: alpha(theme.palette.success.main, 0.06), borderRadius: 2, border: `1px solid ${alpha(theme.palette.success.main, 0.2)}` }}>
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 2,
+                  bgcolor: alpha(theme.palette.success.main, 0.06),
+                  borderRadius: 2,
+                  border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`
+                }}
+              >
                 <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'success.dark' }}>
                     Yuklangan fayl tahlili
@@ -281,11 +331,12 @@ export const ExcelImportBlock: React.FC = () => {
                   fullWidth
                   variant="contained"
                   color="primary"
-                  startIcon={<SaveOutlined />}
+                  disabled={isProcessing}
+                  startIcon={isProcessing ? <CircularProgress size={18} color="inherit" /> : <SaveOutlined />}
                   onClick={handleSaveToStaging}
-                  sx={{ mt: 1, py: 1, fontWeight: 700, borderRadius: 2 }}
+                  sx={{ mt: 1, py: 1.2, fontWeight: 700, borderRadius: 2 }}
                 >
-                  Staging Bazasiga Saqlash (Vaqtinchalik)
+                  {isProcessing ? 'MongoDB Bazasiga Saqlanmoqda...' : 'MongoDB Bazasiga Saqlash va Yangilash (Upsert)'}
                 </Button>
               </Box>
             )}
@@ -319,7 +370,8 @@ export const ExcelImportBlock: React.FC = () => {
             {parseResult ? (
               <>
                 <Alert severity="info" sx={{ mb: 2, fontSize: '0.85rem' }}>
-                  ℹ️ <strong>Validatsiya eslatmasi:</strong> Xatolar yuklashni bloklamaydi — barcha qatorlar Staging'ga qabul qilinadi, ogohlantirishlar esa operatorga tekshirish uchun ko'rsatiladi.
+                  ℹ️ <strong>Validatsiya eslatmasi:</strong> Xatolar yuklashni bloklamaydi — barcha qatorlar Staging'ga qabul qilinadi,
+                  ogohlantirishlar esa operatorga tekshirish uchun ko'rsatiladi.
                 </Alert>
 
                 <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 380 }}>
@@ -360,13 +412,13 @@ export const ExcelImportBlock: React.FC = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            {row.validationIssues.length === 0 ? (
+                            {(!row.validationIssues || row.validationIssues.length === 0) ? (
                               <Chip label="To'g'ri" size="small" color="success" sx={{ height: 22, fontSize: '0.7rem' }} />
                             ) : (
                               <Tooltip
                                 title={
                                   <Box>
-                                    {row.validationIssues.map((iss, i) => (
+                                    {(row.validationIssues || []).map((iss, i) => (
                                       <Typography key={i} variant="caption" sx={{ display: 'block' }}>
                                         • {iss.message}
                                       </Typography>
