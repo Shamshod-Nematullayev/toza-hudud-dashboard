@@ -49,7 +49,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { aktType, defaultAbonentData, useStore } from './useStore';
+import { aktType, defaultAbonentData, dublicateRelations, useStore } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import { documentTypes } from 'store/constant';
 
@@ -78,6 +78,10 @@ export default function InputForm() {
     autoMobile,
     shouldBeMoneyTransfer,
     setShouldBeMoneyTransfer,
+    dublicateRelation,
+    setDublicateRelation,
+    moneyTransferAmount,
+    setMoneyTransferAmount,
     setAbonentCardOpenState,
     setGlobalAbonentAccountNumber
   } = useStore();
@@ -395,20 +399,66 @@ export default function InputForm() {
                   </Paper>
                 )}
 
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={shouldBeMoneyTransfer}
-                      onChange={(e) => setShouldBeMoneyTransfer(e.target.checked)}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Typography variant="body2" fontWeight={500}>
-                      {t("Ikkilamchi hisobdagi to'lovlarni asosiyga ko'chirish")}
-                    </Typography>
-                  }
-                />
+                {/* 1-Qoida: Familiyalar har xil bo'lsa qarindoshlik / aloqadorlikni tanlash */}
+                {abonentData2.accountNumber && (
+                  <Box sx={{ mt: 0.5 }}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="dublicate-relation-label">{t("Abonentlar o'rtasidagi qarindoshlik / aloqa")}</InputLabel>
+                      <Select
+                        labelId="dublicate-relation-label"
+                        value={dublicateRelation || ''}
+                        label={t("Abonentlar o'rtasidagi qarindoshlik / aloqa")}
+                        onChange={(e) => setDublicateRelation(e.target.value)}
+                        sx={{ borderRadius: 1.5, bgcolor: 'background.paper' }}
+                      >
+                        {dublicateRelations.map((rel) => (
+                          <MenuItem key={rel} value={rel}>
+                            {rel}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    {abonentData.fullName && abonentData2.fullName && abonentData.fullName !== abonentData2.fullName && !dublicateRelation && (
+                      <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5, fontSize: '11px', fontWeight: 600 }}>
+                        ⚠️ Ism-familiyalar turlicha. Qonuniy dalolatnoma uchun aloqadorlikni tanlash tavsiya etiladi.
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+
+                {/* 2-Qoida: To'lovlarni ko'chirish va summa kiritish */}
+                <Box sx={{ p: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1.5, bgcolor: 'background.paper' }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={shouldBeMoneyTransfer}
+                        onChange={(e) => setShouldBeMoneyTransfer(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" fontWeight={600}>
+                        {t("Ikkilamchi hisobdagi to'lovlarni asosiyga ko'chirish")}
+                      </Typography>
+                    }
+                  />
+
+                  {shouldBeMoneyTransfer && (
+                    <Box sx={{ mt: 1.5 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        type="number"
+                        label={t("Ko'chiriladigan to'lovlar summasi (so'm)")}
+                        value={moneyTransferAmount}
+                        onChange={(e) => setMoneyTransferAmount(e.target.value)}
+                        placeholder="0"
+                        helperText={t("Ikkilamchi hisob raqamiga to'langan barcha to'lovlarning umumiy yig'indisi")}
+                        sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
+                      />
+                    </Box>
+                  )}
+                </Box>
               </Stack>
             )}
 

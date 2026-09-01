@@ -46,7 +46,10 @@ function CreateAbonentPetition() {
     setPasteImageDialogOpen,
     setAbonentData,
     ui,
-    setAbonentCardOpenState
+    setAbonentCardOpenState,
+    dublicateRelation,
+    moneyTransferAmount,
+    shouldBeMoneyTransfer
   } = useStore();
 
   const theme = useTheme();
@@ -79,6 +82,9 @@ function CreateAbonentPetition() {
         setShowPrintSection={setShowPrintSection}
         muzlatiladi={muzlatiladi}
         recalculationPeriods={recalculationPeriods}
+        dublicateRelation={dublicateRelation}
+        moneyTransferAmount={moneyTransferAmount}
+        shouldBeMoneyTransfer={shouldBeMoneyTransfer}
       />
 
       <PrintAbonentCard
@@ -92,12 +98,12 @@ function CreateAbonentPetition() {
       {/* 3 ta yonma-yon ustunli Tartib */}
       <Grid container spacing={1.5} sx={{ height: { xs: 'auto', md: 'calc(100vh - 130px)' } }}>
         {/* 1-Ustun (Chapda): Ariza shakllantirish formasi */}
-        <Grid size={{ xs: 12, md: 3, lg: 2 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
+        <Grid size={{ xs: 12, md: 3, lg: 2.5 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
           <InputForm />
         </Grid>
 
         {/* 2-Ustun (Markazda): DHJ jadvali va uning tepasida Qayta hisoblash vositasi */}
-        <Grid size={{ xs: 12, md: 7.4, lg: 8 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
+        <Grid size={{ xs: 12, md: 7, lg: 7.5 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
           <Card
             elevation={2}
             sx={{

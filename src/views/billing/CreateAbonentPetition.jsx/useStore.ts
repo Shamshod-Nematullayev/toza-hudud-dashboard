@@ -174,6 +174,8 @@ interface StoreActionsState {
   setAbonentCardOpenState: (abonentCardOpenState: boolean) => void;
   setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) => void;
   setShouldBeMoneyTransfer: (shouldBeMoneyTransfer: boolean) => void;
+  setDublicateRelation: (dublicateRelation: string) => void;
+  setMoneyTransferAmount: (moneyTransferAmount: number | string) => void;
 }
 
 interface UIState {
@@ -184,6 +186,8 @@ interface UIState {
 interface StoreDataState {
   ui: UIState;
   shouldBeMoneyTransfer: boolean;
+  dublicateRelation: string;
+  moneyTransferAmount: number | string;
   aktType: aktType;
   showPrintSection: boolean;
   rowsDhjTable: dhjRow[];
@@ -204,6 +208,8 @@ interface StoreDataState {
 
 const initialStoreDataState: StoreDataState = {
   shouldBeMoneyTransfer: true,
+  dublicateRelation: '',
+  moneyTransferAmount: 0,
   aktType: null,
   abonentData: defaultAbonentData,
   abonentData2: defaultAbonentData,
@@ -239,6 +245,8 @@ type StoreState = StoreDataState & StoreActionsState;
 export const useStore = create<StoreState>((set, get) => ({
   ...initialStoreDataState,
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' },
+  setDublicateRelation: (dublicateRelation: string) => set({ dublicateRelation }),
+  setMoneyTransferAmount: (moneyTransferAmount: number | string) => set({ moneyTransferAmount }),
   setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) =>
     set({ ui: { ...get().ui, globalAbonentAccountNumber: globalAbonentAccountNumber } }),
   setAbonentCardOpenState: (abonentCardOpenState: boolean) => {
@@ -272,6 +280,8 @@ export const useStore = create<StoreState>((set, get) => ({
       images,
       muzlatiladi,
       shouldBeMoneyTransfer,
+      dublicateRelation,
+      moneyTransferAmount,
       setAriza,
       setMahalla,
       setMahallaDublicat,
@@ -299,13 +309,20 @@ export const useStore = create<StoreState>((set, get) => ({
           photos: images.map((img) => img.document_id),
           recalculationPeriods,
           muzlatiladi,
-          shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false
+          shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false,
+          dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
+          moneyTransferAmount: aktType === 'dvaynik' && shouldBeMoneyTransfer ? Number(moneyTransferAmount) : 0
         })
       ).data;
 
       if (!newArizaData.ok) return toast.error(newArizaData.message);
 
-      setAriza(newArizaData.ariza);
+      setAriza({
+        ...newArizaData.ariza,
+        dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
+        moneyTransferAmount: aktType === 'dvaynik' && shouldBeMoneyTransfer ? Number(moneyTransferAmount) : 0,
+        shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false
+      });
 
       const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
       setMahalla(mahallaData);
@@ -337,6 +354,24 @@ export const useStore = create<StoreState>((set, get) => ({
       updateObj = {
         abonentData2: data.abonentData
       };
+
+      // Ikkilamchi hisobga to'langan to'lovlarning umumiy yig'indisini hisoblash (Saldo oxiri emas!)
+      if (data.abonentData?.id) {
+        try {
+          const dxjRes = await api.get('/billing/get-abonent-dxj-by-id', {
+            params: { residentId: data.abonentData.id }
+          });
+          if (dxjRes.data?.ok && Array.isArray(dxjRes.data.rows)) {
+            const totalPaymentsSum = dxjRes.data.rows.reduce(
+              (acc: number, r: any) => acc + (Number(r.allPaymentsSum) || 0),
+              0
+            );
+            set({ moneyTransferAmount: totalPaymentsSum });
+          }
+        } catch (e) {
+          console.error('Error fetching dublicate payments sum:', e);
+        }
+      }
     }
     set(updateObj);
   },
@@ -401,4 +436,20 @@ export const familyRelations = [
   'Yordamchi',
   'Qarindoshi',
   'Mehmon'
+] as const;
+
+export const dublicateRelations = [
+  'Er-xotin',
+  'Ota-bola',
+  'Ona-bola',
+  'Aka-uka',
+  'Opa-singil',
+  'Kelin-qaynona',
+  'Kuyov-qaynota',
+  'Bobo-nabira',
+  'Buvi-nabira',
+  "Bir oila a'zosi",
+  'Bir xonadon egasi',
+  'Ijarachi va uy egasi',
+  'Boshqa qarindosh'
 ] as const;

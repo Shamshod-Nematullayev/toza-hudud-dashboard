@@ -136,6 +136,9 @@ const DocumentRenderer = ({
           currentPrescribedCnt={abonentData.house.inhabitantCnt}
           nextPrescribedCnt={aniqlanganYashovchiSoni}
           documentType="dvaynik"
+          dublicateRelation={ariza.dublicateRelation}
+          moneyTransferAmount={ariza.moneyTransferAmount}
+          shouldBeMoneyTransfer={ariza.shouldBeMoneyTransfer}
         />
       );
     case 'viza':
@@ -162,7 +165,10 @@ export default function PrintSection({
   muzlatiladi,
   mahalla,
   mahalla2,
-  recalculationPeriods
+  recalculationPeriods,
+  dublicateRelation,
+  moneyTransferAmount,
+  shouldBeMoneyTransfer
 }: any) {
   const theme = useTheme();
   const componentRef = useRef(null);
@@ -196,6 +202,10 @@ export default function PrintSection({
   };
 
   const vakilData = useMemo(() => ({ relation, fullName: relationFullName }), [relation, relationFullName]);
+
+  const dvaynikRelationProp = dublicateRelation || ariza.dublicateRelation;
+  const dvaynikTransferAmountProp = moneyTransferAmount !== undefined ? moneyTransferAmount : ariza.moneyTransferAmount;
+  const dvaynikShouldTransferProp = shouldBeMoneyTransfer !== undefined ? shouldBeMoneyTransfer : ariza.shouldBeMoneyTransfer;
 
   // Hujjat turi sarlavhasini chiroyli formatlash
   const documentTitle = useMemo(() => {
@@ -261,6 +271,9 @@ export default function PrintSection({
               olderPeriod={olderPeriod}
               setOlderPeriod={setOlderPeriod}
               vakil={vakilData}
+              dublicateRelation={dvaynikRelationProp}
+              moneyTransferAmount={dvaynikTransferAmountProp}
+              shouldBeMoneyTransfer={dvaynikShouldTransferProp}
             />
           </Box>
         </DialogContent>
@@ -571,6 +584,9 @@ export default function PrintSection({
               olderPeriod={olderPeriod}
               setOlderPeriod={setOlderPeriod}
               vakil={vakilData}
+              dublicateRelation={dvaynikRelationProp}
+              moneyTransferAmount={dvaynikTransferAmountProp}
+              shouldBeMoneyTransfer={dvaynikShouldTransferProp}
             />
           </div>
         </Box>
