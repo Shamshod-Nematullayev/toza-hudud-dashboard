@@ -1,8 +1,7 @@
-import { Box, Stack } from '@mui/system';
 import React from 'react';
 import { useStepperLogic } from './useStepperLogic';
 import { aktType, useStore } from '../useStore';
-import { FormControl, FormControlLabel, FormLabel, Grid, Radio, RadioGroup, TextField, Typography } from '@mui/material';
+import { Box, FormControl, FormControlLabel, FormLabel, Grid, Radio, RadioGroup, Stack, TextField, Typography } from '@mui/material';
 import { t } from 'i18next';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -24,9 +23,9 @@ function RecalculateForm() {
   } = useStepperLogic();
   const { aktType, yashovchiSoniInput, setYashovchiSoniInput, abonentData } = useStore();
   return (
-    <Grid container spacing={2} height={'100%'}>
-      <Grid item xs={12} md={6} height={'100%'}>
-        <Box height={'100%'}>
+    <Grid container spacing={2} sx={{ height: '100%' }}>
+      <Grid size={{ xs: 12, md: 6 }} sx={{ height: '100%' }}>
+        <Box sx={{ height: '100%' }}>
           {actsCanChangeInhabitants.includes(aktType) ? (
             // Yashovchi soni o'zgaratigan aktlar uchun
             (<>
@@ -54,7 +53,7 @@ function RecalculateForm() {
                 <Box>
                   {recalculateType === 'general' && (
                     <FormControl sx={{ my: 2 }}>
-                      <Stack direction={'row'} alignItems={'center'} spacing={2}>
+                      <Stack direction={'row'} spacing={2} sx={{ alignItems: 'center' }}>
                         <DatePicker
                           views={['year', 'month']}
                           minDate={dayjs('2019-01-01')}
@@ -84,7 +83,7 @@ function RecalculateForm() {
                   <FormControl sx={{ my: 2 }}>
                     {recalculateType === 'single' &&
                       singleFromDates.map((_, index) => (
-                        <Stack direction={'row'} alignItems={'center'} spacing={2} key={index}>
+                        <Stack direction={'row'} spacing={2} sx={{ alignItems: 'center' }} key={index}>
                           <DatePicker
                             key={index}
                             views={['year', 'month']}
@@ -128,7 +127,7 @@ function RecalculateForm() {
           )}
         </Box>
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         {/* <DHJTable abonentData={abonentData} /> */}
       </Grid>
     </Grid>

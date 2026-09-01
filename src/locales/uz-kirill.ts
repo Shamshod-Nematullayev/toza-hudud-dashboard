@@ -1,5 +1,5 @@
 import uz from './uz.js';
-const uzKirill: typeof uz = {
+const uzKirill = {
   actStatus: {
     NEW: 'Янги',
     CONFIRMED: 'Тасдиқланган',
@@ -376,8 +376,17 @@ const uzKirill: typeof uz = {
     noRowsLabel: 'Ҳеч нарса йўқ',
     footerRowSelected: '{{count}} та танланди',
     labelRowsPerPage: 'Саҳифадаги қаторлар:',
-    labelDisplayedRows: ({ from, to, count }) => `${count} та жами ${from} дан ${to} гача`
-  }
+    labelDisplayedRows: '{{count}} та жами {{from}} дан {{to}} гача'
+  },
+  'Asosiy DHJ': 'Асосий ДҲЖ',
+  'Ikkilamchi DHJ': 'Иккиламчи ДҲЖ',
+  'Ikkalasini solishtirish': 'Иккаласини солиштириш',
+  'Asosiy hisob': 'Асосий ҳисоб',
+  'Ikkilamchi hisob': 'Иккиламчи ҳисоб',
+  'Qo‘shilgan davrlar': 'Қўшилган даврлар',
+  'Jami hisoblangan summa': 'Жами ҳисобланган сумма',
+  'Hozircha davrlar qo‘shilmagan': 'Ҳозирча даврлар қўшилмаган',
+  'Sanalarni tanlab, Debitor yoki Kreditor tugmasini bosing': 'Саналарни танлаб, Дебитор ёки Кредитор тугмасини босинг'
 };
 
 export default uzKirill;

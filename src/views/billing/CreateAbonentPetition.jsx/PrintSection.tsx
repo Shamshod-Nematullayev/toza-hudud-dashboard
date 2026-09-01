@@ -199,9 +199,20 @@ export default function PrintSection({
 
   // Hujjat turi sarlavhasini chiroyli formatlash
   const documentTitle = useMemo(() => {
-    if (ariza.document_type === 'viza') return 'Pasport viza arizasi';
-    if (ariza.document_type === 'odam_soni') return 'Yashovchilar soni arizasi';
-    return 'Hujjat arizasi';
+    switch (ariza.document_type) {
+      case 'viza':
+        return 'Pasport viza arizasi';
+      case 'odam_soni':
+        return 'Yashovchilar soni arizasi';
+      case 'death':
+        return "O'lim guvohnomasi arizasi";
+      case 'gps':
+        return 'GPS monitoring dalolatnomasi';
+      case 'dvaynik':
+        return 'Ikkilamchi kodni bekor qilish arizasi';
+      default:
+        return 'Hujjat arizasi';
+    }
   }, [ariza.document_type]);
 
   return (
@@ -380,9 +391,35 @@ export default function PrintSection({
                         if (newVal) {
                           const sana = olderPeriod?.format('DD.MM.YYYY') ?? '';
                           const cnt = abonentData?.house?.inhabitantCnt ?? '';
-                          setComment(
-                            `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
-                          );
+                          switch (ariza.document_type) {
+                            case 'odam_soni':
+                              setComment(
+                                `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
+                              );
+                              break;
+                            case 'viza':
+                              setComment(
+                                `Abonent yoki oila a'zosi chet elda bo'lganligi munosabati bilan taqdim etilgan pasport viza ma'lumotlari asosida qayta hisob-kitob qilish to'g'risida.`
+                              );
+                              break;
+                            case 'death':
+                              setComment(
+                                `Taqdim etilgan o'lim haqidagi guvohnoma asosida yashovchilar soni tarkibidan chiqarish va hisob-kitoblarni to'g'rilash to'g'risida.`
+                              );
+                              break;
+                            case 'gps':
+                              setComment(
+                                `Maxsus texnika xizmat ko'rsatmaganligi / GPS monitoring natijalari asosida to'xtatilgan davrlar uchun qayta hisob-kitob qilish to'g'risida.`
+                              );
+                              break;
+                            case 'dvaynik':
+                              setComment(
+                                `Mavjud ikkilamchi (dublikat) hisob raqamni bekor qilish va qoldiq to'lovlarni asosiy hisob raqamiga o'tkazish to'g'risida.`
+                              );
+                              break;
+                            default:
+                              setComment(`${sana} holatiga qayta hisob-kitob qilish to'g'risida.`);
+                          }
                         }
                       }}
                       sx={{ color: autoComment ? 'primary.main' : 'text.disabled' }}

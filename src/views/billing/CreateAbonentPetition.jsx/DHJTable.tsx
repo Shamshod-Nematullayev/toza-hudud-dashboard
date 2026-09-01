@@ -2,11 +2,12 @@ import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useId, useState } from 'react';
 import { useStore } from './useStore';
 import api from 'utils/api';
-import { Box, IconButton, Stack, Table, Toolbar, Tooltip, Typography } from '@mui/material';
+import { Box, Chip, IconButton, Stack, Table, Toolbar, Tooltip, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { colors } from 'store/constant';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
+import { TableChartOutlined } from '@mui/icons-material';
 import { AbonentDetails, IRowDhj } from 'types/billing';
 import { CompactKeyValue } from 'ui-component/CompactKeyValue';
 import { useLocation } from 'react-router-dom';
@@ -23,7 +24,12 @@ interface IRow {
   allPaymentsSum: number;
 }
 
-function DHJTable({ abonentData }: { abonentData: AbonentDetails }) {
+interface DHJTableProps {
+  abonentData: AbonentDetails;
+  label?: string;
+}
+
+function DHJTable({ abonentData, label }: DHJTableProps) {
   const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
   const [rowsPreviewTable, setRowsPreviewTable] = useState<IRow[]>([]);
   const store = useStore();
@@ -143,20 +149,96 @@ function DHJTable({ abonentData }: { abonentData: AbonentDetails }) {
     }
   }, [show, rowsDhjTable, store.yashovchiSoniInput, store.aktSumma.total, store.hisoblandiJadval]);
 
+  if (!abonentData?.accountNumber) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          minHeight: '280px',
+          color: 'text.secondary',
+          gap: 1.5,
+          p: 3
+        }}
+      >
+        <Box
+          sx={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            bgcolor: 'action.hover',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <TableChartOutlined sx={{ fontSize: 32, color: 'text.disabled' }} />
+        </Box>
+        <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
+          {t("DHJ ma'lumotlari mavjud emas")}
+        </Typography>
+        <Typography variant="caption" color="text.disabled" textAlign="center">
+          {t("DHJ tarixini ko'rish uchun abonent hisob raqamini kiriting")}
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Stack sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <CompactKeyValue
-          data={[
-            { key: t('tableHeaders.accountNumber'), value: abonentData.accountNumber },
-            { key: t('tableHeaders.fullName'), value: abonentData.fullName }
-          ]}
-          xs={6}
-          md={6}
-        />
-        <Tooltip title="Oldindan ko'rsatish">
-          <IconButton color="primary" onClick={handleClickShow}>
-            {show ? <IconEye /> : <IconEyeClosed />}
+      {/* Soddalashtirilgan va toza Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, px: 0.5 }}>
+        <Box sx={{ minWidth: 0, flex: 1, mr: 1 }}>
+          {label && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: label.includes('Ikkilamchi') ? 'warning.main' : 'primary.main',
+                fontWeight: 700,
+                fontSize: '11px',
+                display: 'block',
+                mb: 0.2
+              }}
+            >
+              {label}
+            </Typography>
+          )}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ overflow: 'hidden' }}>
+            <Typography
+              variant="subtitle2"
+              fontWeight={700}
+              noWrap
+              sx={{ maxWidth: { xs: '160px', sm: '240px', md: '300px' } }}
+              title={abonentData.fullName}
+            >
+              {abonentData.fullName || '—'}
+            </Typography>
+            <Chip
+              label={abonentData.accountNumber}
+              size="small"
+              variant="outlined"
+              color={label?.includes('Ikkilamchi') ? 'warning' : 'primary'}
+              sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
+            />
+          </Stack>
+        </Box>
+
+        <Tooltip title={show ? t("Asl holatga qaytish") : t("Kiritilgan o'zgarishlar bilan oldindan ko'rish")} arrow>
+          <IconButton
+            size="small"
+            color={show ? 'secondary' : 'primary'}
+            onClick={handleClickShow}
+            sx={{
+              border: '1px solid',
+              borderColor: show ? 'secondary.main' : 'divider',
+              bgcolor: show ? 'secondary.50' : 'background.paper',
+              p: 0.6
+            }}
+          >
+            {show ? <IconEye size={18} /> : <IconEyeClosed size={18} />}
           </IconButton>
         </Tooltip>
       </Box>

@@ -11,6 +11,8 @@ const uz = {
   to: 'gacha',
   'Drop your files': 'Fayllaringizni tashlang',
   optional: 'Ixtiyoriy',
+  'Asosiy hisob': 'Asosiy hisob',
+  'Ikkilamchi hisob': 'Ikkilamchi hisob',
   weekDays: {
     'day-1': 'Dushanba',
     'day-2': 'Seshanba',
@@ -480,7 +482,14 @@ const uz = {
     currentYear: 'Joriy yil',
     allPeriods: 'Barcha davrlar',
     other: 'Boshqa'
-  }
+  },
+  'Asosiy DHJ': 'Asosiy DHJ',
+  'Ikkilamchi DHJ': 'Ikkilamchi DHJ',
+  'Ikkalasini solishtirish': 'Ikkalasini solishtirish',
+  'Qo‘shilgan davrlar': 'Qo‘shilgan davrlar',
+  'Jami hisoblangan summa': 'Jami hisoblangan summa',
+  'Hozircha davrlar qo‘shilmagan': 'Hozircha davrlar qo‘shilmagan',
+  'Sanalarni tanlab, Debitor yoki Kreditor tugmasini bosing': 'Sanalarni tanlab, Debitor yoki Kreditor tugmasini bosing'
 };
 
 export default uz;

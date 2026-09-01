@@ -1,5 +1,5 @@
 import uz from './uz.js';
-const ru: typeof uz = {
+const ru = {
   'tizimga kirish': 'Вход в систему',
   username: 'Имя пользователя',
   password: 'Пароль',
@@ -258,8 +258,17 @@ const ru: typeof uz = {
     noRowsLabel: 'Нет данных',
     footerRowSelected: '{{count}} выбрано',
     labelRowsPerPage: 'Строк на странице:',
-    labelDisplayedRows: ({ from, to, count }) => `${count} всего с ${from} по ${to}`
-  }
+    labelDisplayedRows: '{{count}} всего с {{from}} по {{to}}'
+  },
+  'Asosiy DHJ': 'Основной ДХЖ',
+  'Ikkilamchi DHJ': 'Вторичный ДХЖ',
+  'Ikkalasini solishtirish': 'Сравнить оба',
+  'Asosiy hisob': 'Основной счёт',
+  'Ikkilamchi hisob': 'Вторичный счёт',
+  'Qo‘shilgan davrlar': 'Добавленные периоды',
+  'Jami hisoblangan summa': 'Общая рассчитанная сумма',
+  'Hozircha davrlar qo‘shilmagan': 'Периоды пока не добавлены',
+  'Sanalarni tanlab, Debitor yoki Kreditor tugmasini bosing': 'Выберите даты и нажмите кнопку Дебитор или Кредитор'
 };
 
 export default ru;
