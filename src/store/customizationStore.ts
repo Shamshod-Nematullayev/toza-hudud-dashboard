@@ -8,6 +8,30 @@ export enum FontFamily {
   Inter = 'Inter, sans-serif',
   TimesNewRoman = 'Times New Roman, serif'
 }
+
+export interface ITableVisibleColumns {
+  orderNum: boolean;
+  accountNumber: boolean;
+  fullName: boolean;
+  streetName: boolean;
+  homeNumber: boolean;
+  homeIndex: boolean;
+  flatNumber: boolean;
+  inhabitantCnt: boolean;
+  ksaldo: boolean;
+  lastPayment: boolean;
+  electricityAccountNumber: boolean;
+  phone: boolean;
+}
+
+export interface IPrintTableCustomization {
+  fontSize: number;
+  alphabet: 'latin' | 'cyrillic';
+  colorMode: 'color' | 'monochrome';
+  lineDensity: 'compact' | 'normal';
+  visibleColumns: ITableVisibleColumns;
+}
+
 interface CustomizationState {
   customization: {
     isOpen: string[];
@@ -20,6 +44,8 @@ interface CustomizationState {
     boshliqIshtirokida: boolean;
     mfyRaisiIshtirok: boolean;
   };
+  printTableSettings: IPrintTableCustomization;
+  setPrintTableSettings: (settings: Partial<IPrintTableCustomization>) => void;
   user: {
     fullName: string;
     avatar: string;
@@ -50,6 +76,29 @@ interface CustomizationState {
   logOut: () => void;
 }
 
+export const defaultVisibleColumns: ITableVisibleColumns = {
+  orderNum: true,
+  accountNumber: true,
+  fullName: true,
+  streetName: true,
+  homeNumber: true,
+  homeIndex: true,
+  flatNumber: true,
+  inhabitantCnt: true,
+  ksaldo: true,
+  lastPayment: true,
+  electricityAccountNumber: true,
+  phone: true
+};
+
+const defaultPrintTableSettings: IPrintTableCustomization = {
+  fontSize: 12,
+  alphabet: 'latin',
+  colorMode: 'color',
+  lineDensity: 'normal',
+  visibleColumns: defaultVisibleColumns
+};
+
 const initialState = {
   customization: {
     isOpen: [],
@@ -62,6 +111,7 @@ const initialState = {
     boshliqIshtirokida: false,
     mfyRaisiIshtirok: true
   },
+  printTableSettings: defaultPrintTableSettings,
   user: null,
   company: {
     billingAdminName: '',
@@ -84,6 +134,10 @@ const useCustomizationStore = create<CustomizationState>()(
       setCustomization: (customization) =>
         set((state) => ({
           customization: { ...state.customization, ...customization }
+        })),
+      setPrintTableSettings: (settings) =>
+        set((state) => ({
+          printTableSettings: { ...state.printTableSettings, ...settings }
         })),
       language: 'ru',
       setLanguage: (language) => set({ language }),
