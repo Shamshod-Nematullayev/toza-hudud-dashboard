@@ -4,6 +4,7 @@ import workspace from './workspace';
 import gpsMonitoring from './gps.monitoring';
 import { caller } from './caller';
 import productAdmin from './productAdmin';
+import dispatcher from './dispatcher';
 
 // ==============================|| MENU ITEMS ||============================== //
 
@@ -15,12 +16,12 @@ export interface MenuItem {
   icon?: any;
   breadcrumbs?: boolean;
   children?: MenuItem[];
-  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps' | 'product_admin' | 'rahbar')[];
+  allowedRoles?: ('admin' | 'billing' | 'stm' | 'jurist' | 'gps' | 'product_admin' | 'rahbar' | 'dispatcher' | 'murojaat_nazoratchi')[];
   caption?: string;
 }
 
 const menuItems = {
-  items: [employeers, workspace, gpsMonitoring, caller, productAdmin]
+  items: [dispatcher, employeers, workspace, gpsMonitoring, caller, productAdmin]
 };
 
 export default menuItems;

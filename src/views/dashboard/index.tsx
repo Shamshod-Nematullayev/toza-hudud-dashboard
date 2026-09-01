@@ -8,6 +8,7 @@ import { Box, Card, LinearProgress, Stack, SvgIconProps, Typography, useTheme, S
 import { useTranslation } from 'react-i18next';
 import useCustomizationStore from 'store/customizationStore';
 import { IconBolt, IconChartBar, IconShieldCheck, IconUsers } from '@tabler/icons-react';
+import DispatcherDashboard from 'views/dispatcher/Dashboard';
 
 interface IStat {
   allAbonentsCount?: number;
@@ -329,4 +330,13 @@ const ProgressBlock = ({ label, value, color }: { label: string; value: number; 
     <LinearProgress variant="determinate" value={value} color={color} sx={{ height: 8, borderRadius: 5 }} />
   </Box>
 );
-export default Dashboard;
+
+const DashboardWrapper = () => {
+  const { user } = useCustomizationStore();
+  if (user?.roles?.includes('dispatcher') && !user?.roles?.includes('admin')) {
+    return <DispatcherDashboard />;
+  }
+  return <Dashboard />;
+};
+
+export default DashboardWrapper;

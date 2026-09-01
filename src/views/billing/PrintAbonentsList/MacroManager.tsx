@@ -36,8 +36,6 @@ import Stop from '@mui/icons-material/Stop';
 import SmartToyOutlined from '@mui/icons-material/SmartToyOutlined';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import GridOn from '@mui/icons-material/GridOn';
-import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
-import ErrorOutline from '@mui/icons-material/ErrorOutline';
 import Close from '@mui/icons-material/Close';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
@@ -241,12 +239,12 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
         onClose={() => setDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+        slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
       >
         <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <SmartToyOutlined color="secondary" />
-            <Typography variant="h4" fontWeight={700}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
               {t('Abonentlar Makrosi')}
             </Typography>
           </Stack>
@@ -268,7 +266,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
                 borderColor: 'divider'
               }}
             >
-              <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 700 }}>
                 {t('Oxirgi makros hisoboti')}:
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -288,7 +286,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
 
           {/* 1. Bajariladigan Amal */}
           <Box>
-            <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 700 }}>
               1. {t('Bajariladigan amalni tanlang')}
             </Typography>
             <RadioGroup row value={macroAction} onChange={(e) => setMacroAction(e.target.value as 'excel' | 'telegram')}>
@@ -296,7 +294,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
                 value="excel"
                 control={<Radio size="small" color="success" />}
                 label={
-                  <Stack direction="row" spacing={0.5} alignItems="center">
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                     <GridOn fontSize="small" color="success" />
                     <span>{t("Excel faylga yuklash")}</span>
                   </Stack>
@@ -306,7 +304,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
                 value="telegram"
                 control={<Radio size="small" color="secondary" />}
                 label={
-                  <Stack direction="row" spacing={0.5} alignItems="center">
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                     <TelegramIcon fontSize="small" color="secondary" />
                     <span>{t('Telegramga rasm qilib yuborish')}</span>
                   </Stack>
@@ -317,11 +315,11 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
 
           {/* 2. Filtr parametrlari */}
           <Box>
-            <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 700 }}>
               2. {t('Filtr parametrlari')}
             </Typography>
             <Grid container spacing={1.5}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   fullWidth
                   size="small"
@@ -332,7 +330,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
                   onChange={(e) => setMacroMinSaldo(e.target.value)}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   fullWidth
                   size="small"
@@ -343,7 +341,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
                   onChange={(e) => setMacroMaxSaldo(e.target.value)}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel id="macro-ident-label">{t('Identifikatsiya')}</InputLabel>
                   <Select
@@ -358,7 +356,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel id="macro-etk-label">{t('Elektr holati')}</InputLabel>
                   <Select
@@ -380,8 +378,8 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
 
           {/* 3. Mahallalar tanlovi */}
           <Box>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-              <Typography variant="subtitle2" fontWeight={700}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 3. {t('Mahallalar ro‘yxati')} ({selectedMahallaIds.length} / {mahallas.length})
               </Typography>
               <Button size="small" onClick={handleSelectAllMahallas} sx={{ textTransform: 'none' }}>
@@ -408,7 +406,7 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
                           <Checkbox edge="start" checked={isChecked} tabIndex={-1} disableRipple size="small" />
                         </ListItemIcon>
                         <ListItemText
-                          primary={<Typography variant="body2" fontWeight={isChecked ? 600 : 400}>{mfy.name}</Typography>}
+                          primary={<Typography variant="body2" sx={{ fontWeight: isChecked ? 600 : 400 }}>{mfy.name}</Typography>}
                           secondary={mfy.inspectorName ? <Typography variant="caption" color="text.secondary">{mfy.inspectorName}</Typography> : null}
                         />
                       </ListItemButton>
@@ -457,14 +455,14 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
         >
           <Stack spacing={1.5}>
             {/* Header */}
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <SmartToyOutlined color="secondary" sx={{ fontSize: 22 }} />
-                <Typography variant="subtitle2" fontWeight={700}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                   {t('Makros bajarilmoqda...')}
                 </Typography>
               </Stack>
-              <Typography variant="caption" fontWeight={700} color="secondary.main">
+              <Typography variant="caption" color="secondary.main" sx={{ fontWeight: 700 }}>
                 {progressPercent}%
               </Typography>
             </Stack>
@@ -479,16 +477,16 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
 
             {/* Joriy mahalla */}
             <Box>
-              <Typography variant="caption" color="text.secondary" display="block">
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                 {t('Jarayon')}: <b>{currentIndex} / {totalSelected}</b> mahalla
               </Typography>
-              <Typography variant="body2" fontWeight={700} noWrap sx={{ color: 'text.primary', mt: 0.2 }}>
+              <Typography variant="body2" noWrap sx={{ color: 'text.primary', mt: 0.2, fontWeight: 700 }}>
                 📍 {currentMahallaName || t('Yuklanmoqda...')}
               </Typography>
             </Box>
 
             {/* Boshqaruv tugmalari (Play / Pause, Stop) */}
-            <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
               <Tooltip title={isPaused ? t('Davom ettirish') : t('Pauza')} arrow>
                 <IconButton
                   size="small"

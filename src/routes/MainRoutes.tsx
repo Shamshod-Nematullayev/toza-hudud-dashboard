@@ -53,6 +53,11 @@ import Users from 'views/productAdmin/Users';
 import ProductAnalytics from 'views/productAdmin/ProductAnalytics';
 import CompanyProfile from 'views/companyProfile/CompanyProfile';
 import DataIntelligencePage from 'views/billing/DataIntelligence';
+import DispatcherDashboard from 'views/dispatcher/Dashboard';
+import OrdersPage from 'views/dispatcher/Orders';
+import SchedulePage from 'views/dispatcher/Schedule';
+import DriversPage from 'views/dispatcher/Drivers';
+import TelegramPage from 'views/dispatcher/Telegram';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -357,6 +362,31 @@ const MainRoutes: MainRoutesProps = {
     {
       path: 'company-profile',
       element: <CompanyProfile />
+    },
+    {
+      path: 'dispatcher',
+      children: [
+        {
+          path: '',
+          element: <DispatcherDashboard />
+        },
+        {
+          path: 'orders',
+          element: <OrdersPage />
+        },
+        {
+          path: 'schedule',
+          element: <SchedulePage />
+        },
+        {
+          path: 'drivers',
+          element: <DriversPage />
+        },
+        {
+          path: 'telegram',
+          element: <TelegramPage />
+        }
+      ]
     },
     {
       path: 'sample-page',

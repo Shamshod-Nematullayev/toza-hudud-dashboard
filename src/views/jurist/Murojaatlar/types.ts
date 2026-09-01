@@ -14,7 +14,13 @@ export type MurojaatRow = {
   residentId?: number;
   fileName?: string;
   murojaatFileId?: string;
+  murojaatFileType?: 'photo' | 'document';
   yopishXujjatiFileId?: string;
+  yopishXujjatiFileType?: 'photo' | 'document';
+  gpsPhotoFileId?: string;
+  gpsPhotoFileType?: 'photo' | 'document';
+  additionalPhotoFileIds?: string[];
+  additionalPhotoFileTypes?: Array<'photo' | 'document'>;
   dueDate: string | Date;
   status: MurojaatStatus;
   companyId: number;

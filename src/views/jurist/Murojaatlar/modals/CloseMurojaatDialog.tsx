@@ -273,6 +273,7 @@ export function CloseMurojaatDialog({
       const formData = new FormData();
       formData.append('file', file);
       formData.append('gpsPhotoFileId', gpsPhotoFileId);
+      formData.append('gpsPhotoFileType', 'photo');
 
       if (residentId) {
         formData.append('residentId', String(residentId));
@@ -281,6 +282,7 @@ export function CloseMurojaatDialog({
       if (additionalPhotos.length > 0) {
         additionalPhotos.forEach((photo, index) => {
           formData.append(`additionalPhotoFileIds[${index}]`, photo.id);
+          formData.append(`additionalPhotoFileTypes[${index}]`, 'photo');
         });
       }
 
