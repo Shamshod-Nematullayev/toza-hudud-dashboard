@@ -29,6 +29,7 @@ export interface IPrintTableCustomization {
   alphabet: 'latin' | 'cyrillic';
   colorMode: 'color' | 'monochrome';
   lineDensity: 'compact' | 'normal';
+  orientation?: 'portrait' | 'landscape';
   visibleColumns: ITableVisibleColumns;
 }
 
@@ -96,6 +97,7 @@ const defaultPrintTableSettings: IPrintTableCustomization = {
   alphabet: 'latin',
   colorMode: 'color',
   lineDensity: 'normal',
+  orientation: 'portrait',
   visibleColumns: defaultVisibleColumns
 };
 

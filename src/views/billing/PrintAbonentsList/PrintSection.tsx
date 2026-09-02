@@ -19,13 +19,14 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
   const { t } = useTranslation();
 
   // Customization parametrlari
-  const fontSize = printTableSettings?.fontSize || 12;
+  const fontSize = printTableSettings?.fontSize || 13;
   const isCyrillic = printTableSettings?.alphabet === 'cyrillic';
   const isMonochrome = printTableSettings?.colorMode === 'monochrome';
   const isCompact = printTableSettings?.lineDensity === 'compact';
   const visibleCols: ITableVisibleColumns = printTableSettings?.visibleColumns || defaultVisibleColumns;
 
-  const cellPadding = isCompact ? '2px 3px' : '4px 6px';
+  const cellPadding = isCompact ? '3px 4px' : '5px 6px';
+  const lineHeight = isCompact ? 1.25 : 1.45;
 
   // Matnni alifboga moslash funksiyasi
   const convertText = (text: string | number | undefined | null) => {
@@ -186,7 +187,8 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
             style={{
               width: '100%',
               borderCollapse: 'collapse',
-              fontSize: `${fontSize}px`
+              fontSize: `${fontSize}px`,
+              tableLayout: 'auto'
             }}
           >
             <thead>
@@ -196,58 +198,64 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                   backgroundColor: '#f0f0f0',
                   border: '1px solid #000',
                   textAlign: 'center',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  fontSize: `${fontSize}px`
                 }}
               >
                 {visibleCols.orderNum !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '35px' }}>№</th>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '28px' }}>№</th>
                 )}
                 {visibleCols.accountNumber !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '115px' }}>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
                     {isCyrillic ? 'Ҳисоб рақам' : 'Hisob raqam'}
                   </th>
                 )}
                 {visibleCols.fullName !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', minWidth: '180px' }}>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', maxWidth: '230px' }}>
                     {isCyrillic ? 'Ф.И.Ш' : 'F.I.Sh'}
                   </th>
                 )}
                 {visibleCols.streetName !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', minWidth: '120px' }}>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', maxWidth: '85px' }}>
                     {isCyrillic ? 'Кўча' : 'Ko‘cha'}
                   </th>
                 )}
                 {visibleCols.homeNumber !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000' }}>{isCyrillic ? 'Уй' : 'Uy'}</th>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '30px' }}>{isCyrillic ? 'Уй' : 'Uy'}</th>
                 )}
                 {visibleCols.homeIndex !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000' }}>{isCyrillic ? 'Индекс' : 'Indeks'}</th>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '30px' }}>{isCyrillic ? 'Индекс' : 'Indeks'}</th>
                 )}
                 {visibleCols.flatNumber !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000' }}>{isCyrillic ? 'Хонадон' : 'Xonadon'}</th>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '32px' }}>{isCyrillic ? 'Хонадон' : 'Xonadon'}</th>
                 )}
                 {visibleCols.inhabitantCnt !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '45px' }}>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '32px' }}>
                     {isCyrillic ? 'Я/С' : 'Y/S'}
                   </th>
                 )}
                 {visibleCols.ksaldo !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '90px' }}>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
                     {isCyrillic ? 'Қарздорлик' : 'Qarzdorlik'}
                   </th>
                 )}
                 {visibleCols.lastPayment !== false && (
-                  <th colSpan={2} style={{ padding: cellPadding, border: '1px solid #000', width: '150px' }}>
-                    {isCyrillic ? 'Охирги тўлов (Сумма / Сана)' : 'Oxirgi to‘lov (Summa / Sana)'}
-                  </th>
+                  <>
+                    <th style={{ padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
+                      {isCyrillic ? 'Охирги тўлов' : 'Oxirgi to‘lov'}
+                    </th>
+                    <th style={{ padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
+                      {isCyrillic ? 'Сана' : 'Sana'}
+                    </th>
+                  </>
                 )}
                 {visibleCols.electricityAccountNumber !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '90px' }}>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
                     {isCyrillic ? 'ЭТК' : 'ETK'}
                   </th>
                 )}
                 {visibleCols.phone !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '110px' }}>
+                  <th style={{ padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
                     {isCyrillic ? 'Телефон' : 'Telefon'}
                   </th>
                 )}
@@ -269,7 +277,9 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                     className="abonent_rows"
                     style={{
                       border: '1px solid #000',
-                      backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa'
+                      backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa',
+                      fontSize: `${fontSize}px`,
+                      lineHeight: lineHeight
                     }}
                     key={abonent.id || i}
                   >
@@ -277,12 +287,12 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                       <td style={{ textAlign: 'center', padding: cellPadding, border: '1px solid #000' }}>{i + 1}</td>
                     )}
                     {visibleCols.accountNumber !== false && (
-                      <td style={{ textAlign: 'center', padding: cellPadding, border: '1px solid #000' }}>
+                      <td style={{ textAlign: 'center', padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
                         {renderFormattedAccountNumber(abonent.accountNumber)}
                       </td>
                     )}
                     {visibleCols.fullName !== false && (
-                      <td style={{ padding: cellPadding, border: '1px solid #000', fontWeight: 500 }}>
+                      <td style={{ padding: cellPadding, border: '1px solid #000', fontWeight: 500, maxWidth: '230px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
                           <span
                             style={{
@@ -294,7 +304,7 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                           >
                             {convertText(
                               formatName(
-                                abonent.fullName ? (abonent.fullName.length < 35 ? abonent.fullName : abonent.fullName.slice(0, 35) + '..') : '—'
+                                abonent.fullName ? (abonent.fullName.length < 30 ? abonent.fullName : abonent.fullName.slice(0, 30) + '..') : '—'
                               )
                             )}
                           </span>
@@ -303,7 +313,7 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                               title={isCyrillic ? 'Шахси тасдиқланмаган' : 'Shaxsi tasdiqlanmagan'}
                               style={{
                                 flexShrink: 0,
-                                fontSize: '12px',
+                                fontSize: `${Math.max(10, fontSize - 1)}px`,
                                 fontWeight: 'bold',
                                 lineHeight: 1
                               }}
@@ -315,7 +325,19 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                       </td>
                     )}
                     {visibleCols.streetName !== false && (
-                      <td style={{ padding: cellPadding, border: '1px solid #000' }}>{convertText(abonent.streetName || '—')}</td>
+                      <td
+                        style={{
+                          padding: cellPadding,
+                          border: '1px solid #000',
+                          maxWidth: '85px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title={convertText(abonent.streetName || '—')}
+                      >
+                        {convertText(abonent.streetName || '—')}
+                      </td>
                     )}
                     {visibleCols.homeNumber !== false && (
                       <td style={{ textAlign: 'center', padding: cellPadding, border: '1px solid #000' }}>{abonent.homeNumber || ''}</td>
@@ -339,7 +361,8 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                           padding: cellPadding,
                           border: '1px solid #000',
                           fontWeight: 'bold',
-                          color: debtColor
+                          color: debtColor,
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         {Math.floor(ksaldoNum).toLocaleString()}
@@ -347,10 +370,10 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                     )}
                     {visibleCols.lastPayment !== false && (
                       <>
-                        <td style={{ textAlign: 'right', padding: cellPadding, border: '1px solid #000' }}>
+                        <td style={{ textAlign: 'right', padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
                           {abonent.lastPaymentAmount ? Number(abonent.lastPaymentAmount).toLocaleString() : '—'}
                         </td>
-                        <td style={{ textAlign: 'center', padding: cellPadding, border: '1px solid #000', fontSize: `${fontSize - 1}px` }}>
+                        <td style={{ textAlign: 'center', padding: cellPadding, border: '1px solid #000', whiteSpace: 'nowrap' }}>
                           {abonent.lastPayDate ? String(abonent.lastPayDate).split('T')[0] : '—'}
                         </td>
                       </>
@@ -362,7 +385,8 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                           textAlign: 'center',
                           padding: cellPadding,
                           border: '1px solid #000',
-                          color: '#000'
+                          color: '#000',
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         {abonent.electricityAccountNumber || '—'}
@@ -375,7 +399,6 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                           textAlign: 'center',
                           padding: cellPadding,
                           border: '1px solid #000',
-                          fontSize: `${fontSize - 1}px`,
                           whiteSpace: 'nowrap'
                         }}
                       >

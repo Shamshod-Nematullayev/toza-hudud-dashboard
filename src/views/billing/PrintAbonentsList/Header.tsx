@@ -102,17 +102,63 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
     return { totalAbonents, totalDebt, totalInhabitants, confirmedEtkCount };
   }, [abonents]);
 
+  const fontSize = printTableSettings?.fontSize || 13;
+  const orientation = printTableSettings?.orientation || 'portrait';
+  const isCompact = printTableSettings?.lineDensity === 'compact';
+  const cellPadding = isCompact ? '3px 4px' : '5px 6px';
+  const lineHeight = isCompact ? '1.25' : '1.45';
+
   const printFunc = useReactToPrint({
     pageStyle: `@media print {
       @page {
         margin: 5mm 5mm 5mm 5mm !important;
-        size: A4;
+        size: A4 ${orientation};
       }
-      .page {
-        page-break-after: always;
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: ${fontSize}px !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      tbody {
+        display: table-row-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th, td {
+        font-size: ${fontSize}px !important;
+        padding: ${cellPadding} !important;
+        line-height: ${lineHeight} !important;
+        border: 1px solid #000 !important;
+      }
+      .abonent_rows_head th {
+        font-size: ${fontSize}px !important;
+        font-weight: bold !important;
+        background-color: #f0f0f0 !important;
+        padding: ${cellPadding} !important;
+        line-height: ${lineHeight} !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .abonent_rows td {
+        font-size: ${fontSize}px !important;
+        padding: ${cellPadding} !important;
+        line-height: ${lineHeight} !important;
       }
       * {
         color: #000;
+        font-size: ${fontSize}px !important;
       }
     }`,
     documentTitle: (abonents[0]?.mahallaName || 'Abonentlar') + '_' + new Date().getTime(),
@@ -311,15 +357,18 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
                   theme.palette.mode === 'dark'
                     ? 'background.default'
                     : stats.totalDebt > 0
-                    ? 'error.50'
-                    : stats.totalDebt < 0
-                    ? 'success.50'
-                    : 'grey.50',
+                      ? 'error.50'
+                      : stats.totalDebt < 0
+                        ? 'success.50'
+                        : 'grey.50',
                 border: '1px solid',
                 borderColor: stats.totalDebt > 0 ? 'error.light' : stats.totalDebt < 0 ? 'success.light' : 'divider'
               }}
             >
-              <AccountBalanceWalletOutlined color={stats.totalDebt > 0 ? 'error' : stats.totalDebt < 0 ? 'success' : 'action'} sx={{ fontSize: 20 }} />
+              <AccountBalanceWalletOutlined
+                color={stats.totalDebt > 0 ? 'error' : stats.totalDebt < 0 ? 'success' : 'action'}
+                sx={{ fontSize: 20 }}
+              />
               <Box>
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1 }}>
                   {t('Jami saldo')}
@@ -493,12 +542,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
           {/* Tugmalar guruhi */}
           <Stack direction="row" spacing={1}>
             <Tooltip title={t('Filtrlarni tozalash')} arrow>
-              <Button
-                variant="outlined"
-                color="inherit"
-                onClick={handleResetFilters}
-                sx={{ minWidth: 40, px: 1, borderRadius: 2 }}
-              >
+              <Button variant="outlined" color="inherit" onClick={handleResetFilters} sx={{ minWidth: 40, px: 1, borderRadius: 2 }}>
                 <RestartAlt fontSize="small" />
               </Button>
             </Tooltip>
@@ -524,25 +568,44 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
         fullWidth
         PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>{t('Jadval ko\'rinishi sozlamalari')}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>{t("Jadval ko'rinishi sozlamalari")}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
           {/* Shrift o'lchami */}
           <Box>
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-              {t('Shrift o\'lchami')}: <b>{printTableSettings?.fontSize || 12}px</b>
+              {t("Shrift o'lchami")}: <b>{printTableSettings?.fontSize || 12}px</b>
             </Typography>
             <Slider
               value={printTableSettings?.fontSize || 12}
-              min={10}
-              max={15}
+              min={8}
+              max={20}
               step={1}
               marks={[
+                { value: 8, label: '8px' },
                 { value: 10, label: '10px' },
                 { value: 12, label: '12px' },
-                { value: 14, label: '14px' }
+                { value: 14, label: '14px' },
+                { value: 16, label: '16px' },
+                { value: 18, label: '18px' },
+                { value: 20, label: '20px' }
               ]}
               onChange={(_, val) => setPrintTableSettings({ fontSize: val as number })}
             />
+          </Box>
+
+          {/* Qog'oz formati / Yo'nalishi */}
+          <Box>
+            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+              {t('Qog‘oz formati / Yo‘nalishi')}
+            </Typography>
+            <RadioGroup
+              row
+              value={printTableSettings?.orientation || 'portrait'}
+              onChange={(e) => setPrintTableSettings({ orientation: e.target.value as 'portrait' | 'landscape' })}
+            >
+              <FormControlLabel value="portrait" control={<Radio size="small" />} label={t('Kitobcha (Portrait - A4 vertikal)')} />
+              <FormControlLabel value="landscape" control={<Radio size="small" />} label={t('Albom (Landscape - A4 gorizontal)')} />
+            </RadioGroup>
           </Box>
 
           {/* Alifbo tanlovi */}
@@ -555,7 +618,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
               value={printTableSettings?.alphabet || 'latin'}
               onChange={(e) => setPrintTableSettings({ alphabet: e.target.value as 'latin' | 'cyrillic' })}
             >
-              <FormControlLabel value="latin" control={<Radio size="small" />} label={t('Lotincha (O\'zbek)')} />
+              <FormControlLabel value="latin" control={<Radio size="small" />} label={t("Lotincha (O'zbek)")} />
               <FormControlLabel value="cyrillic" control={<Radio size="small" />} label={t('Кириллча (Ўзбек)')} />
             </RadioGroup>
           </Box>
@@ -585,7 +648,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
               value={printTableSettings?.lineDensity || 'normal'}
               onChange={(e) => setPrintTableSettings({ lineDensity: e.target.value as 'compact' | 'normal' })}
             >
-              <FormControlLabel value="compact" control={<Radio size="small" />} label={t('Ixcham (Ko\'proq qator)')} />
+              <FormControlLabel value="compact" control={<Radio size="small" />} label={t("Ixcham (Ko'proq qator)")} />
               <FormControlLabel value="normal" control={<Radio size="small" />} label={t('Oddiy')} />
             </RadioGroup>
           </Box>
@@ -605,14 +668,12 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
               {columnsList.map((col) => (
                 <FormControlLabel
                   key={col.key}
-                  control={
-                    <Checkbox
-                      size="small"
-                      checked={visibleCols[col.key] !== false}
-                      onChange={() => handleToggleColumn(col.key)}
-                    />
+                  control={<Checkbox size="small" checked={visibleCols[col.key] !== false} onChange={() => handleToggleColumn(col.key)} />}
+                  label={
+                    <Typography variant="body2" sx={{ fontSize: '13px' }}>
+                      {col.label}
+                    </Typography>
                   }
-                  label={<Typography variant="body2" sx={{ fontSize: '13px' }}>{col.label}</Typography>}
                 />
               ))}
             </FormGroup>

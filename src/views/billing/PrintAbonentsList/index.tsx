@@ -20,16 +20,6 @@ table {
 .abonent_rows_head th,
 .abonent_rows td {
   border: 1px solid #000;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.abonent_rows > td:nth-child(3) {
-  text-overflow: ellipsis;
-  max-width: 300px;
-}
-.abonent_rows > td:nth-child(4) {
-  text-overflow: ellipsis;
-  max-width: 70px;
 }
 `;
 
