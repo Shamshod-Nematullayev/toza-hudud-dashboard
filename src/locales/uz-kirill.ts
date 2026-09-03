@@ -1,13 +1,7 @@
-import uz from './uz.js';
-const uzKirill = {
-  actStatus: {
-    NEW: 'Янги',
-    CONFIRMED: 'Тасдиқланган',
-    CANCELLED: 'Бекор қилинган',
-    CONFIRMED_CANCELLED: 'Тасдиқланган бекор қилинган',
-    WARNED: 'Огоҳлантирилган',
-    WARNED_CANCELLED: 'Огоҳлантирилган бекор қилинган'
-  },
+import uz from './uz';
+
+const uzKirill: typeof uz = {
+  'AI Data Intelligence': 'AI Data Intelligence',
   'tizimga kirish': 'Тизимга кириш',
   username: 'Фойдаланувчи номи',
   password: 'Парол',
@@ -17,85 +11,64 @@ const uzKirill = {
   filters: 'Филтрлар',
   from: 'дан',
   to: 'гача',
-  abonentCardPage: {
-    abonentDetails: 'Абонент маълумотлари',
-    active: 'Фаол',
-    inactive: 'Нофаол',
-    noDataForPnfl: 'Паспорт маълумотлари топилмади',
-    personalDetails: 'Шахси маълумотлар'
-  },
-  createAbonentPetitionSteps: {
-    finally: 'Якун',
-    mainInfo: 'Асосий маълумотлар',
-    qaytaHisobKitob: 'Қайта хисоб китоб'
-  },
-  createAbonentPetitionStepsPage: {
-    general: 'Умумий',
-    recalculateType: 'Ҳисоб китоб тури',
-    single: 'Алоҳида'
-  },
-  house: {
-    APARTMENT: 'Кўп қаватли уй',
-    HOUSE: 'Участка',
-    type: 'Уй тури'
-  },
-  optional: 'Ихтиёрий',
-  petitionType: 'Ариза тури',
-  successMessages: {
-    success: 'Муваффақиятли амалга оширилди',
-    successDelete: 'Муваффақиятли ўчирилди',
-    successSave: 'Муваффақиятли сақланди'
-  },
-  tasksStatus: {
-    'in-progress': 'Жараёнда',
-    checking: 'Текширилмоқда',
-    completed: 'Тугалланган',
-    rejected: 'Муваффақиятсиз бажарилди'
-  },
-  taskTypes: {
-    type: 'Тури',
-    electricity: 'Электр',
-    phone: 'Телефон'
-  },
-  uzs: 'сўм',
   'Drop your files': 'Файлларингизни ташланг',
-  documentNumber: 'Ҳужжат рақами',
+  optional: 'Ихтиёрий',
+  'Asosiy hisob': 'Асосий ҳисоб',
+  'Ikkilamchi hisob': 'Иккиламчи ҳисоб',
   weekDays: {
     'day-1': 'Душанба',
     'day-2': 'Сешанба',
     'day-3': 'Чоршанба',
-    'day-4': 'Пайшанба',
+    'day-4': 'Пайшанба',
     'day-5': 'Жума',
     'day-6': 'Шанба',
     'day-7': 'Якшанба'
   },
-  invoiceStatus: {
-    CREATED: 'Янги',
-    PAID: 'Тасдиқланган'
-  },
-  ACT_PACK_TYPES: {
-    SIMPLE: 'Тўлов келиб тушмаган',
-    SERVICE_NOT_PROVIDED: 'Хизмат кўбрсатилмаган',
-    SPECIAL: 'Макссус',
-    CANCEL_CONTRACT: 'Шартнома бекор қилиш',
-    INVENTORY: 'Одам сонини ўзгартириш',
-    MIB: 'Миб томонидан',
-    ECO_PAY_INVENTORY: 'EcoPay инвентаризация учун',
-    FROZEN: 'Музлатилган қарздорлик'
+  "MVD Doimiy Ro'yxat": 'ИИВ Доимий Рўйхат',
+  "Yashash manzili ma'lumotlari": 'Яшаш манзили маълумотлари',
+  hetAbonent: 'Электр энергиясига уланган абонент',
+  cadastrAbonent: 'Кадастр абонент',
+  uzs: 'сўм',
+  'Abonent karta olish': 'Абонент карта олиш',
+  callResults: {
+    warned: 'Рози',
+    wrongNumber: 'Телефон рақами нотўғри',
+    unanswered: 'Жавобсиз',
+    badNumber: 'Телефон рақами нотўғри'
   },
   errors: {
-    missingRequiredFields: 'Керакли мақлумотлар тўлдирилмаган'
+    // Umumiy xatolar
+    somethingWentWrong: 'Хатолик кузатилди',
+    notFoundData: 'Маълумот топилмади',
+
+    // Maydonlar uchun xatolar
+    homeTypeRequired: 'Уй тури танланмаган',
+    birthDateRequired: 'Туғилган сана киритилмаган',
+    passportGivenDateRequired: 'Паспорт берилган сана киритилмаган',
+    passportExpireDateRequired: 'Паспорт амал қилиш муддати киритилмаган',
+    abonentDetailsRequired: 'Абонент маълумотлари етарли эмас',
+
+    // Maxsus xatolar
+    invalidHomeIndex: 'Уй рақами (индекси) нотўғри',
+    pdfFileRequired: 'Илтимос, PDF файлни юкланг',
+    noDocumentsToConfirm: 'Тасдиқлаш учун ҳужжатлар йўқ',
+    missingRequiredFields: 'Керакли майдонлар тўлдирилмаган'
   },
-  importAktsPage: {
-    actPack: 'Актлар пачкаси',
-    actPackType: 'Актлар пачкаси тури',
-    info: 'Батафсил маълумот',
-    downloadTemplate: 'Шаблонни юклаш',
-    infoTitle: 'Актлар пачкаси'
+  successMessages: {
+    success: 'Муваффақиятли амалга оширилди',
+    successDelete: 'Муваффақиятли ўчирилди',
+    successSave: 'Муваффақиятли сақланди',
+    allDocumentConfirmed: 'Барча ҳужжатлар тасдиқланди'
   },
+  messages: {
+    successSend: 'Excel муваффақиятли юборилди!',
+    templateDownloaded: 'Шаблон юклаб олинди'
+  },
+  documentNumber: 'Ҳужжат рақами',
   menuItems: {
     employeers: 'Ходимлар',
     inspectors: 'Назоратчилар',
+    tasks: 'Топшириқлар',
     workspace: 'Иш майдони',
     billing: 'Биллинг',
     createAbonentPetition: 'Ариза яратиш',
@@ -107,8 +80,6 @@ const uzKirill = {
     createInventory: 'Абонентлар хатлови',
     invertoreDocuments: 'Хатлов далолатномалари',
     newAbonentRequirements: 'Янги абонент очиш талаблари',
-    debtCollectionCenter: 'Дебитор ундириш маркази',
-    debitors: 'Дебиторлар',
     Blankalar: 'Бланкалар',
     Yurist: 'Юрист',
     Ogohlantirish: 'Огоҳлантириш хатлари',
@@ -121,22 +92,54 @@ const uzKirill = {
     Acts: 'Актлар',
     specialActs: 'Махсус актлар',
     moneyTransfer: 'Пул кўчириш',
-    'Sud harajatlari': 'Суд харајатлари',
-    etkKodRequests: 'Этк код талаблари',
-    gpsDalolatnomalar: 'GPS далолатномалар',
+    'Sud harajatlari': 'Суд харажатлари',
     gpsMonitoring: 'GPS мониторинг',
+    gpsDalolatnomalar: 'GPS далолатномалар',
     importActs: 'Актларни импорт қилиш',
-    visitsGraph: 'Кўчиш графиклари',
-    tasks: 'Топшириқлар',
+    debtCollectionCenter: 'Дебитор ундириш маркази',
+    debitors: 'Дебиторлар',
+    visitsGraph: 'Ташрифлар графиги',
+    mahallas: 'Маҳаллалар',
+    'sms-warnings': 'SMS огоҳлантиришлар',
+    caller: 'Телефончи',
+    'call-warnings': 'Телефон огоҳлантиришлар',
+    'call-warnings-workspace': 'Телефончи иш майдони',
     productAdmin: 'Тизим бошқаруви',
     manageCompanies: 'Ташкилотларни бошқариш',
     productAnalytics: 'Маҳсулот Аналитикаси',
     manageUsers: 'Фойдаланувчиларни бошқариш',
-    companyProfile: 'Ташкилот профили'
+    companyProfile: 'Ташкилот профили',
+    'AI Data Intelligence': 'AI Data Intelligence',
+    dispatcher: 'Диспетчер панели',
+    dispatcherHome: 'Бош саҳифа',
+    orders: 'Буюртмалар',
+    dispatchSchedule: 'Жадвал',
+    drivers: 'Ҳайдовчилар',
+    dispatchTelegram: 'Telegram'
+  },
+  priority: {
+    '1': 'Паст',
+    '2': 'Ўрта',
+    '3': 'Юқори'
+  },
+  smsWarningStatus: {
+    pending: 'Жараёнда',
+    sent: 'Юборилди',
+    failed: 'Муваффақиятсиз'
   },
   dashboard: {
     identified: 'Шахси тасдиқланган',
     electacityContirmed: 'Электр коди тасдиқланган'
+  },
+  ACT_PACK_TYPES: {
+    SIMPLE: 'Тўлов келиб тушмаган',
+    SERVICE_NOT_PROVIDED: 'Хизмат кўрсатилмаган',
+    SPECIAL: 'Махсус',
+    CANCEL_CONTRACT: 'Шартнома бекор қилиш',
+    INVENTORY: 'Одам сонини ўзгартириш',
+    MIB: 'МИБ томонидан',
+    ECO_PAY_INVENTORY: 'EcoPay Инвентаризация учун',
+    FROZEN: 'Музлатилган қарздорлик'
   },
   tableHeaders: {
     fullName: 'Ф.И.Ш',
@@ -166,6 +169,7 @@ const uzKirill = {
     act: 'Акт',
     allPaymentsSum: 'Тўловлар суммаси',
     inhabitantCount: 'Яшовчилар сони',
+    nextInhabitantCount: 'Аниқланган яшовчилар сони',
     documentType: 'Ҳужжат тури',
     actsCount: 'Актлар сони',
     checkedCount: 'Текширилганлар сони',
@@ -175,68 +179,86 @@ const uzKirill = {
     amountWithoutQQS: 'ҚҚС билан эмас',
     checkStatus: 'Текшириш ҳолати',
     createdDate: 'Яратилган санаси',
-    expiresDate: 'Амал қилиш санаси',
+    startingAt: 'Бошланган санаси',
+    endingAt: 'Тугатилган санаси',
+    expiresDate: 'Амал қилиш муддати',
     actCreatedDate: 'Акт қилинган санаси',
     actStatus: 'Акт ҳолати',
-    cashAmount: 'Наличные',
-    cashCount: 'Количество наличных',
-    content: 'Содержание',
-    court: 'Суд',
-    elementsCount: 'Элементлар сони',
-    endingAt: 'Амал қилиш санаси',
-    forAccount: 'Ҳисобга',
-    mustPayAmount: 'Қарздорлик суммаси',
-    payer: 'Тўловчи',
-    startingAt: 'Яратилган санаси',
-    abonentId: 'Абонент ID',
-    actPackName: 'Акт пакети номи',
-    balance: 'Баланс',
-    balanceToYearEnd: 'Йил охирига баланс',
-    birthDate: 'Туғилган санаси',
-    buildingId: 'Уй ID',
-    cadastralNumber: 'Кадастр рақами',
-    cadastrNumber: 'Кадастр рақами',
-    calculated: 'Ҳисобланди',
-    canceledAt: 'Бекор қилинган санаси',
-    canceledByFullName: 'Бекор қилувчи',
-    cashIncome: 'Наличные тушум',
-    choosedPeriodDebitor: 'Танланган вақтдаги қарздорлик',
-    confirmedAt: 'Тасдиқланган санаси',
-    contractNumber: 'Контракт рақами',
-    createdAt: 'Яратилган санаси',
-    currentDebitor: 'Жорий қарздорлик',
-    currentInhabitantCount: 'Жорий яшовчилар сони',
-    currentTariff: 'Жорий тариф',
-    description: 'Тавсиф',
-    dublicateAccountNumber: 'Иккиламчи ҳисоб рақами',
-    electricityAccountNumber: 'Электрик ҳисоб рақами',
-    electricityCoato: 'Электрик каото',
-    email: 'Электрон почта',
-    eMoneyAmount: 'Электрон тушум',
-    file: 'Файл',
-    firstName: 'Исм',
-    flatId: 'Квартира ID',
-    foreignCitizen: 'Чет эл фуқароси',
-    homeIndex: 'Уй индекси',
-    homePhone: 'Домашний телефон',
-    inn: 'ИНН',
-    lastName: 'Фамилия',
+    cashAmount: 'Квитанция суммаси',
+    cashIncome: 'Нақд тушум',
+    eMoneyAmount: 'Электрон тушумлар',
     munisAmount: 'Мунис',
-    nextInhabitantCount: 'Аниқланди яшовчилар сони',
-    oldInhabitantCount: 'Олдин яшовчилар сони',
-    passport: 'Паспорт',
-    passportIssuer: 'Паспорт ким томонидан берилган',
-    patronymic: 'Отасининг исми',
+    q1031Amount: 'МИБ ва 1031 тушумлари',
     penaltyFee: 'Пеня',
-    pnfl: 'ЖШШИР',
+    cashCount: 'Квитанция сони',
+    mustPayAmount: 'Тўланиши керак бўлган сумма',
+    court: 'Суд',
+    payer: 'Тўловчи',
+    forAccount: 'Ҳисобга',
+    content: 'Мазмуни',
+    elementsCount: 'Элементлар сони',
     purpose: 'Асос',
-    q1031Amount: 'МИБ ва 1031 суммаси',
-    registeredInhabitants: 'ИИБ базада рўйхатдан ўтган яшовчилар сони',
-    street: 'Улица',
+    registeredInhabitants: 'ИИБ базада рўйхатдан ўтган яшовчилар сони',
+    balance: 'Баланс',
+    balanceToYearEnd: 'Йил охирига баланс',
     tariff: 'Тариф',
+    calculated: 'Ҳисобланди',
+    oldInhabitantCount: 'Олдинги яшовчилар сони',
+    currentInhabitantCount: 'Янги яшовчилар сони',
+    actPackName: 'Акт пакети номи',
+    description: 'Тавсиф',
+    file: 'Файл',
+    createdAt: 'Яратилган вақти',
+    confirmedAt: 'Тасдиқланган вақти',
+    warnedAt: 'Огоҳлантирилган вақти',
+    warnedByFullName: 'Огоҳлантирувчи',
+    canceledAt: 'Бекор қилинган вақти',
+    canceledByFullName: 'Бекор қилувчи',
+    dublicateAccountNumber: 'Иккиламчи ҳисоб рақами',
+    abonentId: 'Абонент ID',
+    contractNumber: 'Шартнома рақами',
+    electricityAccountNumber: 'Электр ҳисоб рақами',
+    cadastrNumber: 'Кадастр рақами',
+    inn: 'ИНН',
+    pnfl: 'ЖШШИР',
+    passport: 'Паспорт рақами',
+    passportGivenDate: 'Паспорт берилган сана',
+    passportExpireDate: 'Паспорт амал қилиш муддати',
+    street: 'Кўча',
+    buildingId: 'Уй',
+    flatId: 'Квартира',
+    homeIndex: 'Индекс',
+    homePhone: 'Уй телефон рақами',
+    firstName: 'Исм',
+    lastName: 'Фамилия',
+    patronymic: 'Отасининг исми',
+    birthDate: 'Туғилган санаси',
+    passportIssuer: 'Паспорт ким томонидан берилган',
+    foreignCitizen: 'Чет эл фуқароси',
+    cadastralNumber: 'Кадастр рақами',
     temporaryCadastralNumber: 'Нотурар кадастр рақами',
-    warnedAt: 'Огоҳлантирилган санаси',
-    warnedByFullName: 'Огоҳлантирувчи'
+    electricityCoato: 'Электр Caoto',
+    email: 'Email',
+    currentTariff: 'Жорий тариф',
+    currentDebitor: 'Жорий давр ҳолатига кўра қарздорлик',
+    choosedPeriodDebitor: 'Танланган давргача бўлган қарздорлик',
+    address: 'Манзил',
+    contractDate: 'Шартнома санаси',
+    company: 'Ташкилот',
+    director: 'Директор',
+    bankName: 'Банк номи',
+    STIR: 'СТИР',
+    bankCredentials: 'Банк реквизити',
+    registeredAt: 'Рўйхатдан ўтган вақти',
+    unregisteredAt: 'Рўйхатдан чиқарилган вақти',
+    sex: 'Жинси',
+    actDate: 'Акт санаси',
+    familyRelation: 'Алоқаси',
+    debtAmount: 'Қарздорлик суммаси',
+    errorMessage: 'Хатолик хабари',
+    Viloyat: 'Вилоят',
+    Tuman: 'Туман',
+    acceptedDate: 'Қабул қилинган вақти'
   },
   tableActions: {
     edit: 'Таҳрирлаш',
@@ -259,7 +281,29 @@ const uzKirill = {
     acceptAll: 'Барчасини қабул қилиш',
     refresh: 'Янгилаш',
     export: 'Экспорт',
-    continue: 'Давом этиш'
+    continue: 'Давом этиш',
+    'search-file': 'Файлни қидириш'
+  },
+  petitionStatus: {
+    new: 'Янги',
+    accepted: 'Қабул қилинди',
+    confirmed: 'Тасдиқланган',
+    cancelled: 'Бекор қилинган',
+    actEntered: 'Акт киритилган',
+    actReentered: 'Қайта акт киритилган',
+    actLater: 'Кейинроқ киритиладиган'
+  },
+  actStatus: {
+    NEW: 'Янги',
+    WARNED: 'Огоҳлантирилган',
+    CONFIRMED: 'Тасдиқланган',
+    CANCELLED: 'Бекор қилинди',
+    CONFIRMED_CANCELLED: 'Тасдиқланган бекор қилинди',
+    WARNED_CANCELLED: 'Огоҳлантирилган бекор қилинди'
+  },
+  invoiceStatus: {
+    CREATED: 'Яратилган',
+    PAID: 'Тўланди'
   },
   inspectorsPage: {
     freeMahallas: 'Бўш маҳаллалар',
@@ -280,18 +324,38 @@ const uzKirill = {
     dublicateAccountNumber: 'Иккиламчи ҳисоб рақам',
     freeze: 'Музлатилади',
     notFreeze: 'Ҳозирда хизмат кўрсатилмоқда',
-    actAmount: 'Акт сумма',
+    actAmount: 'Акт суммаси',
     'DHJ jadval': 'ДҲЖ жадвал',
     Ikkilamchi: 'Иккиламчи',
     pictureNotPicked: 'Расм танланмаган',
     'Qoʻshimcha izohlar uchun': 'Қўшимча изоҳлар учун'
   },
+  createAbonentPetitionSteps: {
+    mainInfo: 'Асосий маълумотлар',
+    qaytaHisobKitob: 'Қайта ҳисоб-китоб',
+    finally: 'Якун'
+  },
+  createAbonentPetitionStepsPage: {
+    recalculateType: 'Қайта ҳисоб-китоб тури',
+    general: 'Умумий',
+    single: 'Якка тартибда'
+  },
+  importAktsPage: {
+    actPack: 'Актлар пачкаси',
+    actPackType: 'Актлар пачкаси тури',
+    info: 'Батафсил маълумот',
+    downloadTemplate: 'Шаблонни юклаш',
+    infoTitle: 'Актларни Импорт Қилиш Бўйича Қўлланма'
+  },
+  petitionType: 'Ариза тури',
   documentTypes: {
     odam_soni: 'Яшовчи сони ўзгартириш',
     viza: 'Паспорт виза кирди-чиқди',
     death: 'Ўлим гувоҳномаси',
     dvaynik: 'Иккиламчи код',
-    gps: 'Техника хизмат кўрсатмаган'
+    gps: 'Техника хизмат кўрсатмаган',
+    cancelContract: 'Шартнома бекор қилиш',
+    pul_kuchirish: 'Пул кўчириш'
   },
   buttons: {
     create: 'Яратиш',
@@ -317,29 +381,24 @@ const uzKirill = {
     continue: 'Давом этиш',
     swap: 'Ўрин алмаштириш',
     submitEntry: 'Киритиш',
-    addToMultipleLivings: 'Яшовчилар сонини қўшиш',
-    back: 'Орқага',
-    createAbonentPetition: 'Ариза яратиш',
-    editPhone: 'Телефонни таҳрирлаш',
+    sendExcelToTelegramGroup: 'Excel файлни Telegram гуруҳига юбориш',
     import: 'Импорт қилиш',
-    next: 'Кейинги',
-    sendExcelToTelegramGroup: 'Excel файли Telegram гуруҳига юбориш',
-    skip: 'Ўтказиш',
     update: 'Янгилаш',
-    updateFromTozamakon: 'Тозамакондан янгилаш'
+    updateFromTozamakon: 'Тозамакондан янгилаш',
+    back: 'Орқага қайтиш',
+    next: 'Кейинги',
+    skip: 'Ташлаб кетиш',
+    createAbonentPetition: 'Абонент аризаси яратиш',
+    addToMultipleLivings: 'Яшовчилар сони ўзгартириш',
+    editPhone: 'Телефон рақамини таҳрирлаш',
+    uploadFile: 'Файлни юклаш',
+    manualEntry: 'Қўлда киритиш',
+    importPhone: 'Телефон рақамини импорт қилиш',
+    sending: 'Юборилмоқда'
   },
   pendingAbonentsPage: {
     'Rokirovka qilish': 'Рокировка қилиш (тавсия қилинмайди 🙅‍♂️)',
     Rokirovka: 'Рокировка'
-  },
-  petitionStatus: {
-    accepted: 'Қабул қилинган',
-    actEntered: 'Акт кирилтиган',
-    actReentered: 'Қайта акт кирилтилган',
-    cancelled: 'Бекор қилинган',
-    confirmed: 'Тасдиқланган',
-    new: 'Янги',
-    actLater: 'Кейинроқ киритиладиган'
   },
   qarzdorAbonentlarPage: {
     "Sudga o'tgan": 'Судга ўтган',
@@ -349,7 +408,7 @@ const uzKirill = {
     'Oxirgi yangilanish vaqti': 'Охирги янгиланиш вақти'
   },
   checkActPage: {
-    'Qayta hisob kitob xato': 'Қайта ҳисоб китоб хато',
+    'Qayta hisob kitob xato': 'Қайта ҳисоб-китоб хато',
     "Noto'g'ri fayl biriktirilgan": 'Нотўғри файл бириктирилган',
     Boshqa: 'Бошқа',
     Xatolik: 'Хатолик',
@@ -361,8 +420,7 @@ const uzKirill = {
   recalculator: {
     from: 'дан',
     to: 'гача',
-    debtCollectionCenter: 'Дебитор ундириш маркази',
-    debitors: 'Дебиторлар',
+    debitor: 'Дебитор',
     kreditor: 'Кредитор',
     total: 'Жами',
     actions: 'Ҳаракатлар',
@@ -370,23 +428,110 @@ const uzKirill = {
     periodFrom: 'қачондан',
     periodTo: 'қачонгача',
     sum: 'Жами',
-    'so`m': 'сўм'
+    'so`m': 'сўм',
+    periodSum: 'Давр суммаси'
   },
   dataGrid: {
     noRowsLabel: 'Ҳеч нарса йўқ',
     footerRowSelected: '{{count}} та танланди',
     labelRowsPerPage: 'Саҳифадаги қаторлар:',
-    labelDisplayedRows: '{{count}} та жами {{from}} дан {{to}} гача'
+    labelDisplayedRows: `{{count}} тадан {{from}} дан {{to}} гача`
+  },
+  countFiles: `{{cnt}} та файл`,
+  'Hech qanday PDF yuklanmagan': 'Ҳеч қандай PDF юкланмаган',
+  'Fayl tanlanmagan': 'Файл танланмаган',
+  'Davom etish uchun chap tomondagi ro‘yxatdan kerakli faylni tanlang':
+    'Давом этиш учун чап томондаги рўйхатдан керакли файлни танланг',
+  Kutilmoqda: 'Кутилмоқда',
+  'Raqam bo‘yicha qidirish': 'Рақам бўйича қидириш',
+  yoki: 'ёки',
+  'Qo‘lda kiritish rejimiga o‘tish': 'Қўлда киритиш режимига ўтиш',
+  'Davom etish uchun PDF fayl(lar)ni tizimga kiriting': 'Давом этиш учун PDF файл(лар)ни тизимга киритинг',
+  'Davom etish uchun Excel faylni tizimga kiriting': 'Давом этиш учун Excel файлни тизимга киритинг',
+  'Hujjat topilmadi': 'Ҳужжат топилмади',
+  'QR kodni o‘qib bo‘lmadi yoki ma’lumot bazada mavjud emas. Iltimos, raqamni o‘zingiz kiriting.':
+    'QR кодни ўқиб бўлмади ёки маълумот базада мавжуд эмас. Илтимос, рақамни ўзингиз киритинг.',
+  'Nomidagi uylar': 'Номидаги уйлар',
+  tasksStatus: {
+    completed: 'Тугалланган',
+    checking: 'Текширилмоқда',
+    'in-progress': 'Жараёнда',
+    rejected: 'Муваффақиятсиз бажарилди'
+  },
+  taskTypes: {
+    type: 'Тури',
+    electricity: 'Электр',
+    phone: 'Телефон'
+  },
+  abonentCardPage: {
+    personalDetails: 'Шахсий маълумотлар',
+    abonentDetails: 'Абонент маълумотлари',
+    active: 'Фаол',
+    inactive: 'Нофаол',
+    noDataForPnfl: 'Паспорт маълумотлари топилмади',
+    abonentCard: 'Абонент карта',
+    certificate: 'Маълумотнома',
+    calculationsOfAbonent: 'Абонентнинг ҳисоб-китоби',
+    blockedByHet: 'Электр тўлови чекланган'
+  },
+  house: {
+    type: 'Уй тури',
+    APARTMENT: 'Кўп қаватли уй',
+    HOUSE: 'Участка'
+  },
+  language: {
+    lang: 'Тил',
+    uz: 'Ўзбекча',
+    ru: 'Русча',
+    'uz-cyrl': 'Ўзбекча'
+  },
+  periodSelection: {
+    current: 'Жорий давр',
+    currentYear: 'Жорий йил',
+    allPeriods: 'Барча даврлар',
+    other: 'Бошқа'
   },
   'Asosiy DHJ': 'Асосий ДҲЖ',
   'Ikkilamchi DHJ': 'Иккиламчи ДҲЖ',
   'Ikkalasini solishtirish': 'Иккаласини солиштириш',
-  'Asosiy hisob': 'Асосий ҳисоб',
-  'Ikkilamchi hisob': 'Иккиламчи ҳисоб',
   'Qo‘shilgan davrlar': 'Қўшилган даврлар',
   'Jami hisoblangan summa': 'Жами ҳисобланган сумма',
   'Hozircha davrlar qo‘shilmagan': 'Ҳозирча даврлар қўшилмаган',
-  'Sanalarni tanlab, Debitor yoki Kreditor tugmasini bosing': 'Саналарни танлаб, Дебитор ёки Кредитор тугмасини босинг'
+  'Sanalarni tanlab, Debitor yoki Kreditor tugmasini bosing': 'Саналарни танлаб, Дебитор ёки Кредитор тугмасини босинг',
+  'Oxirgi makros hisoboti': 'Охирги макрос ҳисоботи',
+  'Jami qayta ishlangan': 'Жами қайта ишланган',
+  muvaffaqiyatli: 'муваффақиятли',
+  xatolik: 'хатолик',
+  'Bajariladigan amalni tanlang': 'Бажариладиган амални танланг',
+  'Excel faylga yuklash': 'Excel файлга юклаш',
+  'Telegramga rasm qilib yuborish': 'Telegramга расм қилиб юбориш',
+  'Filtr parametrlari': 'Филтр параметрлари',
+  'Mahallalar ro‘yxati': 'Маҳаллалар рўйхати',
+  'Abonentlar Makrosi': 'Абонентлар Макроси',
+  'Avtomatlashtirilgan Makros (Batch Automation)': 'Автоматлаштирилган Макрос (Batch Automation)',
+  Makros: 'Макрос',
+  'Hech bo‘lmaganda 1 ta mahalla tanlang': 'Ҳеч бўлмаганда 1 та маҳалла танланг',
+  'Makros amali yakunlandi!': 'Макрос амали якунланди!',
+  'Makros to‘xtatildi': 'Макрос тўхтатилди',
+  'Makros bajarilmoqda...': 'Макрос бажарилмоқда...',
+  Jarayon: 'Жараён',
+  'Yuklanmoqda...': 'Юкланмоқда...',
+  'Davom ettirish': 'Давом эттириш',
+  Pauza: 'Пауза',
+  'To‘xtatish': 'Тўхтатиш',
+  'Barchasini bekor qilish': 'Барчасини бекор қилиш',
+  'Barchasini tanlash': 'Барчасини танлаш',
+  'Bekor qilish': 'Бекор қилиш',
+  'Makrosni ishga tushirish': 'Макросни ишга тушириш',
+  'Saldo dan': 'Салдо дан',
+  'Saldo gacha': 'Салдо гача',
+  Identifikatsiya: 'Идентификация',
+  Hammasi: 'Ҳаммаси',
+  Identifikatsiyalangan: 'Идентификацияланган',
+  Identifikatsiyalanmagan: 'Идентификацияланмаган',
+  'Elektr holati': 'Электр ҳолати',
+  Tasdiqlangan: 'Тасдиқланган',
+  Tasdiqlanmagan: 'Тасдиқланмаган'
 };
 
 export default uzKirill;
