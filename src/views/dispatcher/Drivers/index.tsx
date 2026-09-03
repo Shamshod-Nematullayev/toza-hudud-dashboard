@@ -11,12 +11,13 @@ import {
   IconButton,
   Tooltip,
   Divider,
-  CircularProgress,
+  CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import LinkIcon from '@mui/icons-material/Link';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import { DriverRow } from '../types';
 import CreateDriverDialog from './dialogs/CreateDriverDialog';
@@ -25,6 +26,7 @@ import { toast } from 'react-toastify';
 import useCustomizationStore from 'store/customizationStore';
 
 export default function DriversPage() {
+  const { t } = useTranslation();
   const user = useCustomizationStore((state) => state.user);
   const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
 
@@ -49,13 +51,13 @@ export default function DriversPage() {
   }, [fetchDrivers]);
 
   const handleDeleteDriver = async (driver: DriverRow) => {
-    if (!window.confirm(`${driver.name} haydovchisini tizimdan o'chirmoqchimisiz?`)) return;
+    if (!window.confirm(t('dispatcherPages.drivers.deleteConfirm', { name: driver.name }))) return;
     try {
       await api.delete(`/drivers/${driver._id}`);
-      toast.success("Haydovchi muvaffaqiyatli o'chirildi");
+      toast.success(t('dispatcherPages.drivers.driverDeleted'));
       fetchDrivers();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "O'chirishda xatolik yuz berdi");
+      toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
     }
   };
 
@@ -63,9 +65,9 @@ export default function DriversPage() {
     try {
       const { data } = await api.get(`/drivers/${driver._id}/link-token`);
       await navigator.clipboard.writeText(data.linkUrl);
-      toast.success('Havola nusxalandi! Shofyorga yuboring.');
+      toast.success(t('dispatcherPages.drivers.linkCopied'));
     } catch (err) {
-      toast.error('Havolani olishda xatolik');
+      toast.error(t('dispatcherPages.drivers.linkError'));
     }
   };
 
@@ -90,10 +92,10 @@ export default function DriversPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h3" sx={{ fontWeight: 700 }}>
-            Haydovchilar
+            {t('dispatcherPages.drivers.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Haydovchilar, ularning holati va yuklamasi
+            {t('dispatcherPages.drivers.subtitle')}
           </Typography>
         </Box>
         <Button
@@ -107,7 +109,7 @@ export default function DriversPage() {
             '&:hover': { bgcolor: 'warning.dark', color: '#000' }
           }}
         >
-          Haydovchi qo'shish
+          {t('dispatcherPages.drivers.addDriver')}
         </Button>
       </Box>
 
@@ -120,7 +122,7 @@ export default function DriversPage() {
                 height: '100%',
                 border: '1px solid',
                 borderColor: 'divider',
-                borderRadius: 2,
+                borderRadius: 2
               }}
             >
               {/* Header */}
@@ -131,7 +133,7 @@ export default function DriversPage() {
                       bgcolor: driver.status === 'busy' ? 'warning.main' : 'success.main',
                       width: 44,
                       height: 44,
-                      fontWeight: 700,
+                      fontWeight: 700
                     }}
                   >
                     {getInitials(driver.name)}
@@ -144,7 +146,7 @@ export default function DriversPage() {
                   </Box>
                 </Stack>
                 <Chip
-                  label={driver.status === 'busy' ? '● Band' : "● Bo'sh"}
+                  label={driver.status === 'busy' ? `● ${t('driverStatus.busy')}` : `● ${t('driverStatus.free')}`}
                   color={driver.status === 'busy' ? 'warning' : 'success'}
                   size="small"
                   variant="outlined"
@@ -157,7 +159,7 @@ export default function DriversPage() {
               <Stack spacing={1} sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">
-                    Telefon
+                    {t('dispatcherPages.common.phone')}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {driver.phone}
@@ -177,8 +179,8 @@ export default function DriversPage() {
                     {driver.telegramUsername
                       ? `@${driver.telegramUsername}`
                       : driver.telegramId
-                      ? '✅ Ulangan'
-                      : '⚠️ Ulanmagan'}
+                      ? `✅ ${t('driverStatus.linked')}`
+                      : `⚠️ ${t('driverStatus.notLinked')}`}
                   </Typography>
                 </Box>
               </Stack>
@@ -188,8 +190,8 @@ export default function DriversPage() {
                 <Tooltip
                   title={
                     driver.telegramId
-                      ? 'Telegram havolasi (yangilash)'
-                      : 'Telegram ulash havolasini olish'
+                      ? t('dispatcherPages.drivers.copyLinkTooltipLinked')
+                      : t('dispatcherPages.drivers.copyLinkTooltipUnlinked')
                   }
                 >
                   <Button
@@ -200,14 +202,14 @@ export default function DriversPage() {
                     fullWidth
                     color={driver.telegramId ? 'success' : 'warning'}
                   >
-                    {driver.telegramId ? 'Havola olish' : 'Telegram ulash'}
+                    {driver.telegramId ? t('dispatcherPages.drivers.getLink') : t('dispatcherPages.drivers.connectTelegram')}
                   </Button>
                 </Tooltip>
                 <IconButton size="small" onClick={() => setEditRow(driver)}>
                   <EditOutlinedIcon fontSize="small" />
                 </IconButton>
                 {isAdmin && (
-                  <Tooltip title="Haydovchini o'chirish">
+                  <Tooltip title={t('dispatcherPages.drivers.deleteDriverTooltip')}>
                     <IconButton size="small" color="error" onClick={() => handleDeleteDriver(driver)}>
                       <DeleteOutlinedIcon fontSize="small" />
                     </IconButton>
@@ -222,7 +224,7 @@ export default function DriversPage() {
           <Grid size={{ xs: 12 }}>
             <Box sx={{ textAlign: 'center', py: 6 }}>
               <Typography color="text.secondary">
-                Haydovchilar ro'yxati bo'sh. Yangi haydovchi qo'shing.
+                {t('dispatcherPages.drivers.emptyList')}
               </Typography>
             </Box>
           </Grid>

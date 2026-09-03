@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography, Button, Paper, Stack, IconButton, Tooltip } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AddIcon from '@mui/icons-material/Add';
+import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import api from 'utils/api';
 import { OrderRow, DriverRow } from '../types';
@@ -23,11 +24,21 @@ const STATUS_BG: Record<string, string> = {
 };
 
 export default function SchedulePage() {
+  const { t } = useTranslation();
   const [date, setDate] = useState(dayjs());
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [detailRow, setDetailRow] = useState<OrderRow | null>(null);
+
+  const legendItems = useMemo(
+    () => [
+      [t('orderStatus.ASSIGNED'), '#5c6bc0'],
+      [t('orderStatus.IN_PROGRESS'), '#f57c00'],
+      [t('orderStatus.COMPLETED'), '#388e3c']
+    ],
+    [t]
+  );
 
   const fetchData = useCallback(async () => {
     try {
@@ -71,10 +82,10 @@ export default function SchedulePage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h3" sx={{ fontWeight: 700 }}>
-            Jadval
+            {t('dispatcherPages.schedule.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Haydovchilarning bugungi band va bo'sh vaqtlari
+            {t('dispatcherPages.schedule.subtitle')}
           </Typography>
         </Box>
         <Button
@@ -88,7 +99,7 @@ export default function SchedulePage() {
             '&:hover': { bgcolor: 'warning.dark', color: '#000' }
           }}
         >
-          Yangi buyurtma
+          {t('dispatcherPages.common.newOrder')}
         </Button>
       </Box>
 
@@ -99,7 +110,7 @@ export default function SchedulePage() {
             <ChevronLeftIcon />
           </IconButton>
           <Typography sx={{ fontWeight: 600 }}>
-            {date.isSame(dayjs(), 'day') ? 'Bugun, ' : ''}
+            {date.isSame(dayjs(), 'day') ? `${t('dispatcherPages.schedule.today')}, ` : ''}
             {date.format('D-MMMM')}
           </Typography>
           <IconButton onClick={() => setDate((d) => d.add(1, 'day'))}>
@@ -107,11 +118,7 @@ export default function SchedulePage() {
           </IconButton>
         </Stack>
         <Stack direction="row" spacing={2}>
-          {[
-            ['Tayinlangan', '#5c6bc0'],
-            ['Bajarilmoqda', '#f57c00'],
-            ['Bajarildi', '#388e3c']
-          ].map(([label, color]) => (
+          {legendItems.map(([label, color]) => (
             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }} key={label}>
               <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: color }} />
               <Typography variant="caption">{label}</Typography>
@@ -228,7 +235,7 @@ export default function SchedulePage() {
 
         {drivers.length === 0 && (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="text.secondary">Haydovchilar topilmadi. Avval haydovchi qo'shing.</Typography>
+            <Typography color="text.secondary">{t('dispatcherPages.schedule.noDrivers')}</Typography>
           </Box>
         )}
       </Paper>

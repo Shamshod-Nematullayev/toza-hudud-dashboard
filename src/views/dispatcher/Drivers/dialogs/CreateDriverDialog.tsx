@@ -2,6 +2,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { DialogContent, DialogActions, Button, Stack, TextField } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 
@@ -12,33 +13,35 @@ interface Props {
 }
 
 export default function CreateDriverDialog({ open, onClose, onSuccess }: Props) {
+  const { t } = useTranslation();
+
   const formik = useFormik({
     initialValues: { name: '', phone: '', specialization: '' },
     validationSchema: Yup.object({
-      name: Yup.string().required('Ism kiritilishi shart'),
-      phone: Yup.string().required('Telefon kiritilishi shart'),
+      name: Yup.string().required(t('dispatcherPages.drivers.nameRequired')),
+      phone: Yup.string().required(t('dispatcherPages.drivers.phoneRequired'))
     }),
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         await api.post('/drivers', values);
-        toast.success("Haydovchi qo'shildi");
+        toast.success(t('dispatcherPages.drivers.driverAdded'));
         resetForm();
         onSuccess();
       } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Xatolik');
+        toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
       } finally {
         setSubmitting(false);
       }
-    },
+    }
   });
 
   return (
-    <DraggableDialog title="Yangi haydovchi qo'shish" open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <DraggableDialog title={t('dispatcherPages.drivers.addDriver')} open={open} onClose={onClose} fullWidth maxWidth="sm">
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField
-              label="To'liq ism"
+              label={t('dispatcherPages.drivers.fullName')}
               name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
@@ -48,7 +51,7 @@ export default function CreateDriverDialog({ open, onClose, onSuccess }: Props) 
               size="small"
             />
             <TextField
-              label="Telefon"
+              label={t('dispatcherPages.common.phone')}
               name="phone"
               value={formik.values.phone}
               onChange={formik.handleChange}
@@ -58,20 +61,20 @@ export default function CreateDriverDialog({ open, onClose, onSuccess }: Props) 
               size="small"
             />
             <TextField
-              label="Maxsus texnika / Rusumi (ixtiyoriy)"
+              label={t('dispatcherPages.drivers.specialization')}
               name="specialization"
               value={formik.values.specialization}
               onChange={formik.handleChange}
               fullWidth
               size="small"
-              placeholder="Masalan: Chiqindi tashuvchi (Isuzu), Kamaz 5320..."
+              placeholder={t('dispatcherPages.drivers.specializationPlaceholder')}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Bekor qilish</Button>
+          <Button onClick={onClose}>{t('dispatcherPages.common.cancel')}</Button>
           <Button type="submit" variant="contained" disabled={formik.isSubmitting}>
-            Saqlash
+            {t('dispatcherPages.common.save')}
           </Button>
         </DialogActions>
       </form>

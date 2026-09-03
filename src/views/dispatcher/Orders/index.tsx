@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Box, Typography, Button, Chip, Stack, TextField, InputAdornment, IconButton, Tooltip } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -6,24 +6,18 @@ import SearchIcon from '@mui/icons-material/Search';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import MainCard from 'ui-component/cards/MainCard';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import useCustomizationStore from 'store/customizationStore';
-import { OrderRow, STATUS_LABELS, STATUS_COLORS, isOverdue } from '../types';
+import { OrderRow, STATUS_COLORS, isOverdue } from '../types';
 import CreateOrderDialog from './dialogs/CreateOrderDialog';
 import AssignOrderDialog from './dialogs/AssignOrderDialog';
 import OrderDetailDrawer from './dialogs/OrderDetailDrawer';
 
-const STATUS_FILTERS = [
-  { label: 'Barchasi', value: null },
-  { label: 'Yangi', value: 'NEW' },
-  { label: 'Tayinlangan', value: 'ASSIGNED' },
-  { label: 'Bajarilmoqda', value: 'IN_PROGRESS' },
-  { label: 'Bajarildi', value: 'COMPLETED' }
-];
-
 export default function OrdersPage() {
+  const { t } = useTranslation();
   const user = useCustomizationStore((state) => state.user);
   const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
 
@@ -40,22 +34,34 @@ export default function OrdersPage() {
   const [assignRow, setAssignRow] = useState<OrderRow | null>(null);
   const [detailRow, setDetailRow] = useState<OrderRow | null>(null);
 
+  const statusFilters = useMemo(
+    () => [
+      { label: t('dispatcherPages.orders.all'), value: null },
+      { label: t('orderStatus.NEW'), value: 'NEW' },
+      { label: t('orderStatus.ASSIGNED'), value: 'ASSIGNED' },
+      { label: t('orderStatus.IN_PROGRESS'), value: 'IN_PROGRESS' },
+      { label: t('orderStatus.COMPLETED'), value: 'COMPLETED' }
+    ],
+    [t]
+  );
+
   const refresh = () => setRefreshKey((k) => k + 1);
 
   const handleDeleteOrder = async (order: OrderRow) => {
+    const statusText = t(`orderStatus.${order.status}`) || order.status;
     const confirmText =
       order.status === 'NEW'
-        ? `Buyurtma #${order._id?.slice(-6).toUpperCase()} ni o'chirmoqchimisiz?`
-        : `DIQQAT! Buyurtma holati: "${STATUS_LABELS[order.status]}". Haqiqatan ham ushbu buyurtmani o'chirib tashlamoqchimisiz?`;
+        ? t('dispatcherPages.orders.deleteConfirmSimple', { id: order._id?.slice(-6).toUpperCase() })
+        : t('dispatcherPages.orders.deleteConfirmWarning', { status: statusText });
 
     if (!window.confirm(confirmText)) return;
 
     try {
       await api.delete(`/orders/${order._id}`);
-      toast.success("Buyurtma muvaffaqiyatli o'chirildi");
+      toast.success(t('dispatcherPages.orders.orderDeleted'));
       refresh();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "O'chirishda xatolik yuz berdi");
+      toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
     }
   };
 
@@ -92,7 +98,7 @@ export default function OrdersPage() {
     },
     {
       field: 'customer',
-      headerName: 'Mijoz',
+      headerName: t('dispatcherPages.common.customer'),
       width: 160,
       renderCell: ({ row }) => (
         <Box>
@@ -105,29 +111,29 @@ export default function OrdersPage() {
         </Box>
       )
     },
-    { field: 'address', headerName: 'Manzil', width: 180 },
+    { field: 'address', headerName: t('dispatcherPages.common.address'), width: 180 },
     {
       field: 'description',
-      headerName: 'Xizmat',
+      headerName: t('dispatcherPages.common.service'),
       width: 160,
       renderCell: ({ row }) => <Typography variant="body2">{row.description?.slice(0, 40) || '—'}</Typography>
     },
     {
       field: 'scheduledAt',
-      headerName: 'Sana / Vaqt',
+      headerName: t('dispatcherPages.common.time'),
       width: 140,
       renderCell: ({ row }) =>
         row.scheduledAt ? (
           <Typography variant="body2">{dayjs(row.scheduledAt).format('D-MMM, HH:mm')}</Typography>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            Vaqt belgilanmagan
+            {t('dispatcherPages.orders.timeNotSet')}
           </Typography>
         )
     },
     {
       field: 'assignedTo',
-      headerName: 'Haydovchi',
+      headerName: t('dispatcherPages.common.driver'),
       width: 130,
       renderCell: ({ row }) => {
         const driver = row.assignedTo as any;
@@ -136,14 +142,14 @@ export default function OrdersPage() {
     },
     {
       field: 'status',
-      headerName: 'Holat',
+      headerName: t('dispatcherPages.common.status'),
       width: 140,
       renderCell: ({ row }) => {
         const overdue = isOverdue(row);
-        if (overdue) return <Chip label="🔴 Kechikmoqda" color="error" size="small" />;
+        if (overdue) return <Chip label={`🔴 ${t('orderStatus.overdue')}`} color="error" size="small" />;
         return (
           <Chip
-            label={STATUS_LABELS[row.status as keyof typeof STATUS_LABELS] || row.status}
+            label={t(`orderStatus.${row.status}`) || row.status}
             color={STATUS_COLORS[row.status as keyof typeof STATUS_COLORS] || 'default'}
             size="small"
           />
@@ -152,7 +158,7 @@ export default function OrdersPage() {
     },
     {
       field: 'actions',
-      headerName: 'Amal',
+      headerName: t('dispatcherPages.common.actions'),
       width: 155,
       sortable: false,
       renderCell: ({ row }) => {
@@ -161,11 +167,11 @@ export default function OrdersPage() {
           <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
             {(row.status === 'NEW' || row.status === 'SCHEDULED' || row.status === 'POSTPONED') && (
               <Button size="small" variant="contained" onClick={() => setAssignRow(row)}>
-                Tayinlash
+                {t('dispatcherPages.common.assign')}
               </Button>
             )}
             {(row.status === 'ASSIGNED' || row.status === 'IN_PROGRESS') && (
-              <Tooltip title="Telegram orqali yuborilgan">
+              <Tooltip title={t('dispatcherPages.common.sentViaTelegram')}>
                 <IconButton size="small" color="primary" onClick={() => setDetailRow(row)}>
                   <SendIcon fontSize="small" />
                 </IconButton>
@@ -173,11 +179,11 @@ export default function OrdersPage() {
             )}
             {row.status === 'COMPLETED' && (
               <Button size="small" variant="outlined" color="success" disabled>
-                Bajarildi
+                {t('orderStatus.COMPLETED')}
               </Button>
             )}
             {canDelete && (
-              <Tooltip title={row.status === 'NEW' ? "Buyurtmani o'chirish" : "Admin: Buyurtmani o'chirish"}>
+              <Tooltip title={row.status === 'NEW' ? t('dispatcherPages.orders.deleteTooltip') : t('dispatcherPages.orders.deleteAdminTooltip')}>
                 <IconButton
                   size="small"
                   color="error"
@@ -202,10 +208,10 @@ export default function OrdersPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Box>
             <Typography variant="h3" sx={{ fontWeight: 700 }}>
-              Buyurtmalar
+              {t('dispatcherPages.orders.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Barcha zayavkalar ro'yxati va ularning holati
+              {t('dispatcherPages.orders.subtitle')}
             </Typography>
           </Box>
           <Button
@@ -219,13 +225,13 @@ export default function OrdersPage() {
               '&:hover': { bgcolor: 'warning.dark', color: '#000' }
             }}
           >
-            Yangi buyurtma
+            {t('dispatcherPages.common.newOrder')}
           </Button>
         </Box>
       }
     >
       <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-        {STATUS_FILTERS.map((f) => (
+        {statusFilters.map((f) => (
           <Chip
             key={f.value ?? 'all'}
             label={`${f.label}${f.value === null ? ` · ${total}` : ''}`}
@@ -241,7 +247,7 @@ export default function OrdersPage() {
         ))}
         <TextField
           size="small"
-          placeholder="Mijoz, manzil yoki ID bo'yicha qidirish"
+          placeholder={t('dispatcherPages.orders.searchPlaceholder')}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);

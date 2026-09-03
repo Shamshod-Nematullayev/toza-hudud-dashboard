@@ -11,12 +11,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Typography,
+  Typography
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { OrderRow, DriverRow } from '../../types';
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function AssignOrderDialog({ open, row, onClose, onSuccess }: Props) {
+  const { t } = useTranslation();
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
 
   useEffect(() => {
@@ -40,32 +42,32 @@ export default function AssignOrderDialog({ open, row, onClose, onSuccess }: Pro
   const formik = useFormik({
     initialValues: {
       driverId: '',
-      scheduledAt: row.scheduledAt ? dayjs(row.scheduledAt) : dayjs().add(1, 'hour'),
+      scheduledAt: row.scheduledAt ? dayjs(row.scheduledAt) : dayjs().add(1, 'hour')
     },
     validationSchema: Yup.object({
-      driverId: Yup.string().required('Haydovchini tanlang'),
-      scheduledAt: Yup.mixed().required('Vaqtni kiriting'),
+      driverId: Yup.string().required(t('dispatcherPages.orders.selectDriverRequired')),
+      scheduledAt: Yup.mixed().required(t('dispatcherPages.orders.timeRequired'))
     }),
     onSubmit: async (values, { setSubmitting }) => {
       try {
         await api.patch(`/orders/${row._id}/assign`, {
           driverId: values.driverId,
-          scheduledAt: (values.scheduledAt as any)?.toISOString(),
+          scheduledAt: (values.scheduledAt as any)?.toISOString()
         });
-        toast.success('Buyurtma tayinlandi va Telegram orqali yuborildi');
+        toast.success(t('dispatcherPages.orders.assignedSuccess'));
         onSuccess();
       } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Xatolik yuz berdi');
+        toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
       } finally {
         setSubmitting(false);
       }
-    },
+    }
   });
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DraggableDialog
-        title={`Buyurtma #${row._id?.slice(-6).toUpperCase()} tayinlash`}
+        title={t('dispatcherPages.orders.assignTitle', { id: row._id?.slice(-6).toUpperCase() })}
         open={open}
         onClose={onClose}
         fullWidth
@@ -75,41 +77,41 @@ export default function AssignOrderDialog({ open, row, onClose, onSuccess }: Pro
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                Mijoz: <strong>{row.customer}</strong> | Manzil: {row.address}
+                {t('dispatcherPages.common.customer')}: <strong>{row.customer}</strong> | {t('dispatcherPages.common.address')}: {row.address}
               </Typography>
               <FormControl size="small" fullWidth error={formik.touched.driverId && !!formik.errors.driverId}>
-                <InputLabel>Haydovchini tanlang</InputLabel>
+                <InputLabel>{t('dispatcherPages.orders.selectDriver')}</InputLabel>
                 <Select
                   name="driverId"
                   value={formik.values.driverId}
                   onChange={formik.handleChange}
-                  label="Haydovchini tanlang"
+                  label={t('dispatcherPages.orders.selectDriver')}
                 >
                   {drivers.map((d) => (
                     <MenuItem key={d._id} value={d._id}>
                       {d.name} {d.specialization ? `· ${d.specialization}` : ''}
-                      {d.status === 'busy' ? ' 🟠 Band' : " 🟢 Bo'sh"}
-                      {!d.telegramId && ' ⚠️ Telegram ulanmagan'}
+                      {d.status === 'busy' ? ` 🟠 ${t('driverStatus.busy')}` : ` 🟢 ${t('driverStatus.free')}`}
+                      {!d.telegramId && ` ⚠️ ${t('driverStatus.notLinked')}`}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
               <DateTimePicker
-                label="Bajarish vaqti"
+                label={t('dispatcherPages.orders.executionTime')}
                 value={formik.values.scheduledAt}
                 onChange={(val) => formik.setFieldValue('scheduledAt', val)}
                 slotProps={{
                   textField: {
                     size: 'small',
                     fullWidth: true,
-                    error: formik.touched.scheduledAt && !!formik.errors.scheduledAt,
-                  },
+                    error: formik.touched.scheduledAt && !!formik.errors.scheduledAt
+                  }
                 }}
               />
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={onClose}>Bekor qilish</Button>
+            <Button onClick={onClose}>{t('dispatcherPages.common.cancel')}</Button>
             <Button
               type="submit"
               variant="contained"
@@ -121,7 +123,7 @@ export default function AssignOrderDialog({ open, row, onClose, onSuccess }: Pro
                 '&:hover': { bgcolor: 'warning.dark', color: '#000' }
               }}
             >
-              📨 Tayinlash va Yuborish
+              📨 {t('dispatcherPages.common.assignAndSend')}
             </Button>
           </DialogActions>
         </form>

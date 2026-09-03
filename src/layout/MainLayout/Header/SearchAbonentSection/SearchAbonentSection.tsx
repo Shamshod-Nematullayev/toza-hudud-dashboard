@@ -9,9 +9,16 @@ import MainCard from 'ui-component/cards/MainCard';
 import { useSearchAbonentSectionStore } from './useSearchAbonentSectionStore';
 import { useNavigate } from 'react-router-dom';
 import SearchAbonentResultDialog from './SearchAbonentResultDialog';
+import useCustomizationStore from 'store/customizationStore';
 
 function SearchAbonentSection() {
   const theme = useTheme();
+  const { user } = useCustomizationStore();
+  const roles = user?.roles || [];
+  const canSearchAbonents =
+    roles.some((role) => ['admin', 'billing', 'stm', 'yurist', 'gps', 'rahbar', 'product_admin'].includes(role)) &&
+    !roles.every((role) => role === 'dispatcher');
+
   const anchorRef = useRef<any>(null);
   const { openState: open, setOpenState: setOpen, setNavigate } = useSearchAbonentSectionStore();
   const navigate = useNavigate();
@@ -57,7 +64,11 @@ function SearchAbonentSection() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [canSearchAbonents]);
+
+  if (!canSearchAbonents) {
+    return null;
+  }
 
   return (
     <>

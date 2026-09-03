@@ -7,17 +7,31 @@ import api from 'utils/api';
 
 function MurojaatlarSection() {
   const theme = useTheme();
-  const { openMurojaatCount, setOpenMurojaatCount } = useCustomizationStore();
+  const { openMurojaatCount, setOpenMurojaatCount, user } = useCustomizationStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data } = await api.get<number>('/murojaatlar/open-count');
+  const roles = user?.roles || [];
+  const hasMurojaatAccess =
+    roles.some((role) => ['admin', 'jurist', 'rahbar', 'murojaat_nazoratchi', 'product_admin'].includes(role)) &&
+    !roles.every((role) => role === 'dispatcher');
 
-      setOpenMurojaatCount(data);
+  useEffect(() => {
+    if (!hasMurojaatAccess) return;
+
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get<number>('/murojaatlar/open-count');
+        setOpenMurojaatCount(data);
+      } catch (err) {
+        console.error(err);
+      }
     };
     fetchData();
-  }, []);
+  }, [hasMurojaatAccess]);
+
+  if (!hasMurojaatAccess) {
+    return null;
+  }
 
   const handleClick = () => {
     navigate('/jurist/murojaatlar');

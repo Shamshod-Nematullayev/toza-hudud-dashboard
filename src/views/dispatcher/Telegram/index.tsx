@@ -8,15 +8,17 @@ import {
   Button,
   Alert,
   CircularProgress,
-  Chip,
+  Chip
 } from '@mui/material';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 
 export default function TelegramSettingsPage() {
+  const { t } = useTranslation();
   const [groupId, setGroupId] = useState('');
   const [botUsername, setBotUsername] = useState('');
   const [saving, setSaving] = useState(false);
@@ -50,7 +52,7 @@ export default function TelegramSettingsPage() {
 
   const handleVerify = async () => {
     if (!groupId.trim()) {
-      toast.error("Guruh ID'sini kiriting");
+      toast.error(t('dispatcherPages.telegram.enterGroupId'));
       return;
     }
     setVerifying(true);
@@ -60,13 +62,13 @@ export default function TelegramSettingsPage() {
       const { data } = await api.post('/auth/company/verify-telegram-chat', { chatId: groupId.trim() });
       if (data.ok && data.chat) {
         setVerifiedChatTitle(data.chat.title);
-        toast.success(`Guruh topildi: ${data.chat.title}`);
+        toast.success(t('dispatcherPages.telegram.groupFound', { title: data.chat.title }));
       } else {
-        setVerifyError(data.message || "Guruh topilmadi");
-        toast.error(data.message || "Guruh topilmadi");
+        setVerifyError(data.message || t('dispatcherPages.telegram.groupNotFound'));
+        toast.error(data.message || t('dispatcherPages.telegram.groupNotFound'));
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || "Bot guruhda admin emas yoki ID noto'g'ri";
+      const msg = err.response?.data?.message || t('dispatcherPages.telegram.botNotAdminError');
       setVerifyError(msg);
       toast.error(msg);
     } finally {
@@ -78,9 +80,9 @@ export default function TelegramSettingsPage() {
     setSaving(true);
     try {
       await api.patch('/auth/company', { GROUP_ID_DISPETCHER: groupId.trim() });
-      toast.success('Dispetcher guruhi muvaffaqiyatli saqlandi');
+      toast.success(t('dispatcherPages.telegram.savedSuccess'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Xatolik yuz berdi');
+      toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
     } finally {
       setSaving(false);
     }
@@ -90,10 +92,10 @@ export default function TelegramSettingsPage() {
     <Box sx={{ maxWidth: 650 }}>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h3" sx={{ fontWeight: 700 }}>
-          Telegram sozlamalari
+          {t('dispatcherPages.telegram.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Dispetcher guruhini ulang va haydovchilarni ro'yxatdan o'tkazing
+          {t('dispatcherPages.telegram.subtitle')}
         </Typography>
       </Box>
 
@@ -102,24 +104,24 @@ export default function TelegramSettingsPage() {
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
           <TelegramIcon color="primary" />
           <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            Dispetcher Telegram guruhi
+            {t('dispatcherPages.telegram.groupCardTitle')}
           </Typography>
         </Stack>
 
         <Alert severity="info" sx={{ mb: 2 }}>
           {botUsername ? (
             <>
-              <strong>@{botUsername}</strong> botini dispetcherlar guruhiga qo'shing va unga <strong>admin</strong> huquqini bering.
+              <strong>@{botUsername}</strong> {t('dispatcherPages.telegram.botAdminNoticeWithBot')}
             </>
           ) : (
-            'Botni dispetcherlar guruhiga qo\'shing va unga admin huquqini bering.'
+            t('dispatcherPages.telegram.botAdminNoticeSimple')
           )}{' '}
-          So'ngra guruh ID'sini kiriting (masalan: <code>-1001234567890</code>). Guruh ID'sini olish uchun <code>@userinfobot</code> ga guruhdan biror xabarni forward qiling.
+          {t('dispatcherPages.telegram.groupNoticeTail')}
         </Alert>
 
         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
           <TextField
-            label="Guruh ID (masalan: -1001234567890)"
+            label={t('dispatcherPages.telegram.groupIdLabel')}
             value={groupId}
             onChange={(e) => {
               setGroupId(e.target.value);
@@ -136,7 +138,7 @@ export default function TelegramSettingsPage() {
             disabled={verifying || !groupId.trim()}
             sx={{ minWidth: 110 }}
           >
-            {verifying ? <CircularProgress size={20} /> : 'Tekshirish'}
+            {verifying ? <CircularProgress size={20} /> : t('dispatcherPages.telegram.check')}
           </Button>
           <Button
             variant="contained"
@@ -144,14 +146,14 @@ export default function TelegramSettingsPage() {
             disabled={saving || !groupId.trim()}
             sx={{ minWidth: 100 }}
           >
-            {saving ? <CircularProgress size={20} /> : 'Saqlash'}
+            {saving ? <CircularProgress size={20} /> : t('dispatcherPages.common.save')}
           </Button>
         </Stack>
 
         {verifiedChatTitle && (
           <Chip
             icon={<CheckCircleOutlinedIcon />}
-            label={`Ulangan guruh: ${verifiedChatTitle}`}
+            label={t('dispatcherPages.telegram.linkedGroup', { title: verifiedChatTitle })}
             color="success"
             variant="outlined"
             sx={{ fontWeight: 500 }}
@@ -171,15 +173,13 @@ export default function TelegramSettingsPage() {
       {/* Bot Info */}
       <Paper sx={{ p: 3, borderRadius: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-          Haydovchilarni ulash
+          {t('dispatcherPages.telegram.driverConnectTitle')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Haydovchilarni ro'yxatdan o'tkazish uchun <strong>"Haydovchilar"</strong> sahifasiga o'ting,
-          har bir haydovchi kartasida <strong>"Telegram ulash"</strong> tugmasini bosing — ulash havolasi nusxalanadi.
-          Shu havolani haydovchiga yuboring.
+          {t('dispatcherPages.telegram.driverConnectStep1')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Haydovchi havolani bosib {botUsername ? <strong>@{botUsername}</strong> : 'bot'}ni ochsa va <strong>Start</strong> tugmasini bossa — uning Telegram hisobi tizimga avtomatik bog'lanadi.
+          {t('dispatcherPages.telegram.driverConnectStep2')}
         </Typography>
       </Paper>
     </Box>

@@ -58,7 +58,22 @@ function Murojaatlar() {
   const [closeFile, setCloseFile] = useState<File | null>(null);
 
   const { setIsLoading } = useLoaderStore();
-  const { mahallalar } = useCustomizationStore();
+  const { mahallalar, user } = useCustomizationStore();
+
+  const roles = user?.roles || [];
+  const hasMurojaatAccess =
+    roles.some((role) => ['admin', 'jurist', 'rahbar', 'murojaat_nazoratchi', 'product_admin'].includes(role)) &&
+    !roles.every((role) => role === 'dispatcher');
+
+  if (!hasMurojaatAccess && roles.includes('dispatcher')) {
+    return (
+      <MainCard title="Ruxsat etilmagan">
+        <Typography variant="body1" color="error.main" sx={{ p: 2 }}>
+          Ushbu bo'limga faqat mas'ul mutaxassislar (yurist, nazoratchi, admin) kirishi mumkin. Dispetcher uchun ushbu bo'lim yopiq.
+        </Typography>
+      </MainCard>
+    );
+  }
 
   const handleDownloadFile = async (fileId?: string, defaultFileName?: string) => {
     if (!fileId) {

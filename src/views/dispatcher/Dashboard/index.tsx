@@ -12,19 +12,20 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  CircularProgress,
+  CircularProgress
 } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AddIcon from '@mui/icons-material/Add';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import dayjs from 'dayjs';
-import { OrderRow, OrderStats, STATUS_COLORS, STATUS_LABELS, isOverdue } from '../types';
+import { OrderRow, OrderStats, STATUS_COLORS, isOverdue } from '../types';
 import CreateOrderDialog from '../Orders/dialogs/CreateOrderDialog';
 
 const StatCard = ({
   value,
   label,
-  color,
+  color
 }: {
   value: React.ReactNode;
   label: string;
@@ -41,6 +42,7 @@ const StatCard = ({
 );
 
 export default function DispatcherDashboard() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<OrderStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<OrderRow[]>([]);
   const [upcomingOrders, setUpcomingOrders] = useState<OrderRow[]>([]);
@@ -48,7 +50,7 @@ export default function DispatcherDashboard() {
   const [driverStats, setDriverStats] = useState<{ total: number; busy: number; free: number }>({
     total: 0,
     busy: 0,
-    free: 0,
+    free: 0
   });
   const [createOpen, setCreateOpen] = useState(false);
   const now = dayjs();
@@ -59,7 +61,7 @@ export default function DispatcherDashboard() {
         api.get('/orders/stats'),
         api.get('/orders', { params: { size: 10 } }),
         api.get('/orders/upcoming'),
-        api.get('/drivers'),
+        api.get('/drivers')
       ]);
       setStats(statsRes.data);
       setRecentOrders(recentRes.data.data || []);
@@ -68,7 +70,7 @@ export default function DispatcherDashboard() {
       setDriverStats({
         total: drivers.length,
         busy: drivers.filter((d: any) => d.status === 'busy').length,
-        free: drivers.filter((d: any) => d.status === 'free').length,
+        free: drivers.filter((d: any) => d.status === 'free').length
       });
     } catch (err) {
       console.error(err);
@@ -83,10 +85,10 @@ export default function DispatcherDashboard() {
 
   const getStatusChip = (order: OrderRow) => {
     const overdue = isOverdue(order);
-    if (overdue) return <Chip label="🔴 Kechikmoqda" color="error" size="small" />;
+    if (overdue) return <Chip label={`🔴 ${t('orderStatus.overdue')}`} color="error" size="small" />;
     return (
       <Chip
-        label={STATUS_LABELS[order.status] || order.status}
+        label={t(`orderStatus.${order.status}`) || order.status}
         color={STATUS_COLORS[order.status] || 'default'}
         size="small"
       />
@@ -107,10 +109,10 @@ export default function DispatcherDashboard() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h3" sx={{ fontWeight: 700 }}>
-            Bosh sahifa
+            {t('dispatcherPages.dashboard.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Bugungi holat — barcha buyurtmalar va haydovchilar bir joyda
+            {t('dispatcherPages.dashboard.subtitle')}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -133,7 +135,7 @@ export default function DispatcherDashboard() {
               '&:hover': { bgcolor: 'warning.dark', color: '#000' }
             }}
           >
-            Yangi buyurtma
+            {t('dispatcherPages.common.newOrder')}
           </Button>
         </Box>
       </Box>
@@ -141,20 +143,20 @@ export default function DispatcherDashboard() {
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard value={stats?.total ?? 0} label="Bugungi buyurtmalar" />
+          <StatCard value={stats?.total ?? 0} label={t('dispatcherPages.dashboard.todayOrders')} />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
             value={`${driverStats.busy}/${driverStats.total}`}
-            label="Band haydovchilar"
+            label={t('dispatcherPages.dashboard.busyDrivers')}
             color="warning.main"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard value={driverStats.free} label="Bo'sh haydovchilar" />
+          <StatCard value={driverStats.free} label={t('dispatcherPages.dashboard.freeDrivers')} />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard value={stats?.todayCompleted ?? 0} label="Bugun bajarilgan" color="success.main" />
+          <StatCard value={stats?.todayCompleted ?? 0} label={t('dispatcherPages.dashboard.todayCompleted')} color="success.main" />
         </Grid>
       </Grid>
 
@@ -166,14 +168,14 @@ export default function DispatcherDashboard() {
             mb: 3,
             border: '1px solid',
             borderColor: 'warning.main',
-            borderRadius: 2,
+            borderRadius: 2
           }}
         >
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
             <WarningAmberIcon color="warning" />
-            <Typography sx={{ fontWeight: 600 }}>Vaqti yaqinlashayotgan buyurtmalar</Typography>
+            <Typography sx={{ fontWeight: 600 }}>{t('dispatcherPages.dashboard.upcomingOrders')}</Typography>
             <Typography variant="body2" color="text.secondary">
-              — boshlanishiga 2 soatdan kam qoldi
+              {t('dispatcherPages.dashboard.upcomingNotice')}
             </Typography>
           </Stack>
           {upcomingOrders.map((order) => {
@@ -181,8 +183,8 @@ export default function DispatcherDashboard() {
             const minLeft = dayjs(order.scheduledAt).diff(now, 'minute');
             const timeLabel =
               minLeft < 60
-                ? `${minLeft} daqiqa qoldi`
-                : `${Math.floor(minLeft / 60)} soat ${minLeft % 60} daqiqa qoldi`;
+                ? t('dispatcherPages.dashboard.minLeft', { count: minLeft })
+                : t('dispatcherPages.dashboard.hourMinLeft', { hours: Math.floor(minLeft / 60), minutes: minLeft % 60 });
             return (
               <Box
                 key={order._id}
@@ -217,7 +219,7 @@ export default function DispatcherDashboard() {
                   size="small"
                   variant="outlined"
                 />
-                <Chip label="Yuborilgan" color="success" size="small" variant="outlined" />
+                <Chip label={t('dispatcherPages.dashboard.sent')} color="success" size="small" variant="outlined" />
               </Box>
             );
           })}
@@ -227,18 +229,18 @@ export default function DispatcherDashboard() {
       {/* Recent Orders Table */}
       <Paper sx={{ p: 2.5, borderRadius: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-          So'nggi buyurtmalar
+          {t('dispatcherPages.dashboard.recentOrders')}
         </Typography>
         <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Mijoz</TableCell>
-              <TableCell>Manzil</TableCell>
-              <TableCell>Xizmat</TableCell>
-              <TableCell>Haydovchi</TableCell>
-              <TableCell>Vaqt</TableCell>
-              <TableCell>Holat</TableCell>
+              <TableCell>{t('dispatcherPages.common.customer')}</TableCell>
+              <TableCell>{t('dispatcherPages.common.address')}</TableCell>
+              <TableCell>{t('dispatcherPages.common.service')}</TableCell>
+              <TableCell>{t('dispatcherPages.common.driver')}</TableCell>
+              <TableCell>{t('dispatcherPages.common.time')}</TableCell>
+              <TableCell>{t('dispatcherPages.common.status')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

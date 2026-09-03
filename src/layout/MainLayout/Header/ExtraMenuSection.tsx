@@ -29,11 +29,20 @@ function ExtraMenuSection() {
 
   const { user } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
+  const roles = user?.roles || [];
+  const canSearchAbonents =
+    roles.some((role) => ['admin', 'billing', 'stm', 'yurist', 'gps', 'rahbar', 'product_admin'].includes(role)) &&
+    !roles.every((role) => role === 'dispatcher');
+
   const { setOpenState: setOpenSearch } = useSearchAbonentSectionStore();
 
   const handleToggle = () => {
     setOpen((prev) => !prev);
   };
+
+  if (!canSearchAbonents && !isProductAdmin) {
+    return null;
+  }
 
   const handleClose = (event: MouseEvent | TouchEvent) => {
     if (anchorRef.current && anchorRef.current.contains(event.target as Node)) {

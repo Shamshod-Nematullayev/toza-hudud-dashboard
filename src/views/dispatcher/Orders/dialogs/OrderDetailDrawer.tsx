@@ -7,10 +7,11 @@ import {
   Divider,
   Stack,
   Button,
-  TextField,
+  TextField
 } from '@mui/material';
 import dayjs from 'dayjs';
-import { OrderRow, STATUS_LABELS, STATUS_COLORS, PRIORITY_LABELS, isOverdue } from '../../types';
+import { useTranslation } from 'react-i18next';
+import { OrderRow, STATUS_COLORS, isOverdue } from '../../types';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import useCustomizationStore from 'store/customizationStore';
@@ -34,6 +35,7 @@ const InfoRow = ({ label, value }: { label: string; value?: React.ReactNode }) =
 );
 
 export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Props) {
+  const { t } = useTranslation();
   const user = useCustomizationStore((state) => state.user);
   const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
   const canDelete = isAdmin || row.status === 'NEW';
@@ -46,34 +48,35 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
   const overdue = isOverdue(row);
 
   const handleDelete = async () => {
+    const statusText = t(`orderStatus.${row.status}`) || row.status;
     const confirmText =
       row.status === 'NEW'
-        ? `Buyurtma #${row._id?.slice(-6).toUpperCase()} ni o'chirmoqchimisiz?`
-        : `DIQQAT! Buyurtma holati: "${STATUS_LABELS[row.status]}". Haqiqatan ham ushbu buyurtmani butunlay o'chirmoqchimisiz?`;
+        ? t('dispatcherPages.orders.deleteConfirmSimple', { id: row._id?.slice(-6).toUpperCase() })
+        : t('dispatcherPages.orders.deleteConfirmDrawer', { status: statusText });
 
     if (!window.confirm(confirmText)) return;
 
     setLoading(true);
     try {
       await api.delete(`/orders/${row._id}`);
-      toast.success("Buyurtma muvaffaqiyatli o'chirildi");
+      toast.success(t('dispatcherPages.orders.orderDeleted'));
       onSuccess();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "O'chirishda xatolik yuz berdi");
+      toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = async () => {
-    if (!cancelReason.trim()) return toast.error('Bekor qilish sababini kiriting');
+    if (!cancelReason.trim()) return toast.error(t('dispatcherPages.orders.enterCancelReason'));
     setLoading(true);
     try {
       await api.post(`/orders/${row._id}/cancel`, { cancelReason });
-      toast.success('Buyurtma bekor qilindi');
+      toast.success(t('dispatcherPages.orders.orderCancelled'));
       onSuccess();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Xatolik');
+      toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
     } finally {
       setLoading(false);
     }
@@ -84,13 +87,13 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
       <Box sx={{ width: 400, p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            ORDER #{row._id?.slice(-6).toUpperCase()}
+            {t('dispatcherPages.orders.orderDetailsTitle', { id: row._id?.slice(-6).toUpperCase() })}
           </Typography>
           {overdue ? (
-            <Chip label="🔴 Kechikmoqda" color="error" />
+            <Chip label={`🔴 ${t('orderStatus.overdue')}`} color="error" />
           ) : (
             <Chip
-              label={STATUS_LABELS[row.status]}
+              label={t(`orderStatus.${row.status}`) || row.status}
               color={STATUS_COLORS[row.status]}
             />
           )}
@@ -99,41 +102,41 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
         <Divider sx={{ mb: 2 }} />
 
         <Stack spacing={2} sx={{ flex: 1, overflowY: 'auto' }}>
-          <InfoRow label="👤 Mijoz" value={row.customer} />
-          <InfoRow label="📞 Telefon" value={row.phone} />
-          <InfoRow label="📍 Manzil" value={row.address} />
-          {row.location && <InfoRow label="🗺 Lokatsiya" value={row.location} />}
-          <InfoRow label="📝 Vazifa" value={row.description} />
+          <InfoRow label={`👤 ${t('dispatcherPages.common.customer')}`} value={row.customer} />
+          <InfoRow label={`📞 ${t('dispatcherPages.common.phone')}`} value={row.phone} />
+          <InfoRow label={`📍 ${t('dispatcherPages.common.address')}`} value={row.address} />
+          {row.location && <InfoRow label={`🗺 ${t('dispatcherPages.common.location')}`} value={row.location} />}
+          <InfoRow label={`📝 ${t('dispatcherPages.common.service')}`} value={row.description} />
           <Divider />
           <InfoRow
-            label="🕐 Buyurtma qabul qilingan vaqt"
+            label={`🕐 ${t('dispatcherPages.orders.requestedAt')}`}
             value={row.requestedAt ? dayjs(row.requestedAt).format('DD.MM.YYYY HH:mm') : '—'}
           />
           <InfoRow
-            label="🕐 Rejalashtirilgan vaqt"
-            value={row.scheduledAt ? dayjs(row.scheduledAt).format('DD.MM.YYYY HH:mm') : 'Belgilanmagan'}
+            label={`🕐 ${t('dispatcherPages.orders.scheduledAt')}`}
+            value={row.scheduledAt ? dayjs(row.scheduledAt).format('DD.MM.YYYY HH:mm') : t('dispatcherPages.common.notSpecified')}
           />
           <InfoRow
-            label="🚛 Biriktirilgan haydovchi"
-            value={driver ? `${driver.name}${driver.specialization ? ` · ${driver.specialization}` : ''}` : 'Tayinlanmagan'}
+            label={`🚛 ${t('dispatcherPages.orders.assignedDriver')}`}
+            value={driver ? `${driver.name}${driver.specialization ? ` · ${driver.specialization}` : ''}` : t('dispatcherPages.common.notAssigned')}
           />
-          <InfoRow label="⭐ Prioritet" value={PRIORITY_LABELS[row.priority] || '—'} />
+          <InfoRow label={`⭐ ${t('dispatcherPages.common.priority')}`} value={t(`priority.${row.priority}`) || '—'} />
 
           {row.acknowledgedAt && (
-            <InfoRow label="✅ Tushungan vaqti" value={dayjs(row.acknowledgedAt).format('DD.MM.YYYY HH:mm')} />
+            <InfoRow label={`✅ ${t('dispatcherPages.orders.acknowledgedAt')}`} value={dayjs(row.acknowledgedAt).format('DD.MM.YYYY HH:mm')} />
           )}
           {row.completedAt && (
-            <InfoRow label="✅ Bajarilgan vaqti" value={dayjs(row.completedAt).format('DD.MM.YYYY HH:mm')} />
+            <InfoRow label={`✅ ${t('dispatcherPages.orders.completedAt')}`} value={dayjs(row.completedAt).format('DD.MM.YYYY HH:mm')} />
           )}
           {row.cancelledAt && (
-            <InfoRow label="❌ Bekor qilingan vaqti" value={dayjs(row.cancelledAt).format('DD.MM.YYYY HH:mm')} />
+            <InfoRow label={`❌ ${t('dispatcherPages.orders.cancelledAt')}`} value={dayjs(row.cancelledAt).format('DD.MM.YYYY HH:mm')} />
           )}
-          {row.cancelReason && <InfoRow label="Bekor qilish sababi" value={row.cancelReason} />}
+          {row.cancelReason && <InfoRow label={t('dispatcherPages.orders.cancelReason')} value={row.cancelReason} />}
 
           {showCancel && (
             <Box sx={{ mt: 1 }}>
               <TextField
-                label="Bekor qilish sababi"
+                label={t('dispatcherPages.orders.cancelReason')}
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 fullWidth
@@ -143,7 +146,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
               />
               <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                 <Button size="small" onClick={() => setShowCancel(false)}>
-                  Orqaga
+                  {t('dispatcherPages.common.back')}
                 </Button>
                 <Button
                   size="small"
@@ -152,7 +155,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
                   onClick={handleCancel}
                   disabled={loading}
                 >
-                  Bekor qilish
+                  {t('dispatcherPages.common.cancel')}
                 </Button>
               </Stack>
             </Box>
@@ -164,18 +167,18 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
           <Box>
             {canDelete && !showCancel && (
               <Button color="error" variant="contained" size="small" onClick={handleDelete} disabled={loading}>
-                O'chirish
+                {t('dispatcherPages.common.delete')}
               </Button>
             )}
           </Box>
           <Stack direction="row" spacing={1}>
             {!['COMPLETED', 'CANCELLED'].includes(row.status) && !showCancel && (
               <Button color="error" variant="outlined" size="small" onClick={() => setShowCancel(true)}>
-                Bekor qilish
+                {t('dispatcherPages.common.cancel')}
               </Button>
             )}
             <Button onClick={onClose} variant="outlined" size="small">
-              Yopish
+              {t('dispatcherPages.common.close')}
             </Button>
           </Stack>
         </Stack>

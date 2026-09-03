@@ -2,6 +2,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { DialogContent, DialogActions, Button, Stack, TextField, Typography, Box, Divider } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { DriverRow } from '../../types';
@@ -14,43 +15,45 @@ interface Props {
 }
 
 export default function EditDriverDialog({ open, driver, onClose, onSuccess }: Props) {
+  const { t } = useTranslation();
+
   const formik = useFormik({
     initialValues: { name: driver.name, phone: driver.phone, specialization: driver.specialization || '' },
     validationSchema: Yup.object({
-      name: Yup.string().required('Ism kiritilishi shart'),
-      phone: Yup.string().required('Telefon kiritilishi shart'),
+      name: Yup.string().required(t('dispatcherPages.drivers.nameRequired')),
+      phone: Yup.string().required(t('dispatcherPages.drivers.phoneRequired'))
     }),
     onSubmit: async (values, { setSubmitting }) => {
       try {
         await api.put(`/drivers/${driver._id}`, values);
-        toast.success('Haydovchi yangilandi');
+        toast.success(t('dispatcherPages.drivers.driverUpdated'));
         onSuccess();
       } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Xatolik');
+        toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
       } finally {
         setSubmitting(false);
       }
     },
-    enableReinitialize: true,
+    enableReinitialize: true
   });
 
   const handleUnlink = async () => {
     try {
       await api.patch(`/drivers/${driver._id}/unlink`);
-      toast.success('Telegram ulanishi uzildi');
+      toast.success(t('dispatcherPages.drivers.unlinkSuccess'));
       onSuccess();
     } catch (err) {
-      toast.error('Xatolik');
+      toast.error(t('dispatcherPages.common.errorOccurred'));
     }
   };
 
   return (
-    <DraggableDialog title={`Tahrirlash: ${driver.name}`} open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <DraggableDialog title={t('dispatcherPages.drivers.editDriver', { name: driver.name })} open={open} onClose={onClose} fullWidth maxWidth="sm">
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField
-              label="To'liq ism"
+              label={t('dispatcherPages.drivers.fullName')}
               name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
@@ -60,7 +63,7 @@ export default function EditDriverDialog({ open, driver, onClose, onSuccess }: P
               size="small"
             />
             <TextField
-              label="Telefon"
+              label={t('dispatcherPages.common.phone')}
               name="phone"
               value={formik.values.phone}
               onChange={formik.handleChange}
@@ -70,7 +73,7 @@ export default function EditDriverDialog({ open, driver, onClose, onSuccess }: P
               size="small"
             />
             <TextField
-              label="Maxsus texnika / Rusumi"
+              label={t('dispatcherPages.drivers.specializationLabel')}
               name="specialization"
               value={formik.values.specialization}
               onChange={formik.handleChange}
@@ -81,25 +84,27 @@ export default function EditDriverDialog({ open, driver, onClose, onSuccess }: P
             <Divider />
             <Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Telegram holati
+                {t('dispatcherPages.drivers.telegramStatus')}
               </Typography>
               <Typography variant="body2" sx={{ color: driver.telegramId ? 'success.main' : 'warning.main', mb: 1 }}>
                 {driver.telegramId
-                  ? `✅ Ulangan: ${driver.telegramUsername ? '@' + driver.telegramUsername : driver.telegramId}`
-                  : '⚠️ Ulanmagan'}
+                  ? t('dispatcherPages.drivers.telegramConnectedSuccess', {
+                      name: driver.telegramUsername ? '@' + driver.telegramUsername : driver.telegramId
+                    })
+                  : t('dispatcherPages.drivers.telegramNotConnected')}
               </Typography>
               {driver.telegramId && (
                 <Button size="small" color="error" variant="outlined" onClick={handleUnlink}>
-                  Telegram ulanishini uzish
+                  {t('dispatcherPages.drivers.unlinkTelegram')}
                 </Button>
               )}
             </Box>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Bekor qilish</Button>
+          <Button onClick={onClose}>{t('dispatcherPages.common.cancel')}</Button>
           <Button type="submit" variant="contained" disabled={formik.isSubmitting}>
-            Saqlash
+            {t('dispatcherPages.common.save')}
           </Button>
         </DialogActions>
       </form>

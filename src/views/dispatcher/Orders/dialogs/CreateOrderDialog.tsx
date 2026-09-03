@@ -15,12 +15,13 @@ import {
   Autocomplete,
   Box,
   Typography,
-  CircularProgress,
+  CircularProgress
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
+  const { t } = useTranslation();
   const [customerOptions, setCustomerOptions] = useState<CustomerSuggestion[]>([]);
   const [customerLoading, setCustomerLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -52,29 +54,29 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
       location: '',
       description: '',
       scheduledAt: null as dayjs.Dayjs | null,
-      priority: 1,
+      priority: 1
     },
     validationSchema: Yup.object({
-      customer: Yup.string().required('Mijoz ismi kiritilishi shart'),
-      phone: Yup.string().required('Telefon raqam kiritilishi shart'),
-      address: Yup.string().required('Manzil kiritilishi shart'),
+      customer: Yup.string().required(t('dispatcherPages.orders.customerRequired')),
+      phone: Yup.string().required(t('dispatcherPages.orders.phoneRequired')),
+      address: Yup.string().required(t('dispatcherPages.orders.addressRequired'))
     }),
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         await api.post('/orders', {
           ...values,
-          scheduledAt: values.scheduledAt ? values.scheduledAt.toISOString() : undefined,
+          scheduledAt: values.scheduledAt ? values.scheduledAt.toISOString() : undefined
         });
-        toast.success('Buyurtma muvaffaqiyatli yaratildi');
+        toast.success(t('dispatcherPages.orders.orderCreated'));
         resetForm();
         setInputValue('');
         onSuccess();
       } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Xatolik yuz berdi');
+        toast.error(err.response?.data?.message || t('dispatcherPages.common.errorOccurred'));
       } finally {
         setSubmitting(false);
       }
-    },
+    }
   });
 
   // Mijozlarni qidirish (debounce bilan)
@@ -84,7 +86,7 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
       setCustomerLoading(true);
       try {
         const { data } = await api.get('/orders/customers/search', {
-          params: { q: inputValue },
+          params: { q: inputValue }
         });
         setCustomerOptions(data.data || []);
       } catch (err) {
@@ -106,7 +108,7 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DraggableDialog title="Yangi buyurtma" open={open} onClose={handleClose} fullWidth maxWidth="sm">
+      <DraggableDialog title={t('dispatcherPages.common.newOrder')} open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <form onSubmit={formik.handleSubmit}>
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
@@ -152,12 +154,12 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Mijoz ismi yoki telefoni"
+                    label={t('dispatcherPages.orders.customerInputLabel')}
                     name="customer"
                     error={formik.touched.customer && !!formik.errors.customer}
                     helperText={
                       (formik.touched.customer && formik.errors.customer) ||
-                      "Mijoz ismi yoki telefonini yozing, mavjud mijozlar avtomatik taklif qilinadi"
+                      t('dispatcherPages.orders.customerInputHelper')
                     }
                     fullWidth
                     size="small"
@@ -170,15 +172,15 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
                             {customerLoading ? <CircularProgress color="inherit" size={18} /> : null}
                             {params.slotProps?.input?.endAdornment}
                           </>
-                        ),
-                      },
+                        )
+                      }
                     }}
                   />
                 )}
               />
 
               <TextField
-                label="Telefon raqam"
+                label={t('dispatcherPages.common.phone')}
                 name="phone"
                 value={formik.values.phone}
                 onChange={formik.handleChange}
@@ -188,7 +190,7 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
                 size="small"
               />
               <TextField
-                label="Manzil"
+                label={t('dispatcherPages.common.address')}
                 name="address"
                 value={formik.values.address}
                 onChange={formik.handleChange}
@@ -198,16 +200,16 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
                 size="small"
               />
               <TextField
-                label="Lokatsiya (ixtiyoriy)"
+                label={t('dispatcherPages.common.locationOptional')}
                 name="location"
                 value={formik.values.location}
                 onChange={formik.handleChange}
                 fullWidth
                 size="small"
-                placeholder="Xarita havolasi yoki koordinata"
+                placeholder={t('dispatcherPages.common.locationPlaceholder')}
               />
               <TextField
-                label="Vazifa / Izoh"
+                label={t('dispatcherPages.common.taskDescription')}
                 name="description"
                 value={formik.values.description}
                 onChange={formik.handleChange}
@@ -217,30 +219,30 @@ export default function CreateOrderDialog({ open, onClose, onSuccess }: Props) {
                 rows={3}
               />
               <DateTimePicker
-                label="Buyurtma vaqti (ixtiyoriy)"
+                label={t('dispatcherPages.common.orderTimeOptional')}
                 value={formik.values.scheduledAt}
                 onChange={(val) => formik.setFieldValue('scheduledAt', val)}
                 slotProps={{ textField: { size: 'small', fullWidth: true } }}
               />
               <FormControl size="small" fullWidth>
-                <InputLabel>Prioritet</InputLabel>
+                <InputLabel>{t('dispatcherPages.common.priority')}</InputLabel>
                 <Select
                   name="priority"
                   value={formik.values.priority}
                   onChange={formik.handleChange}
-                  label="Prioritet"
+                  label={t('dispatcherPages.common.priority')}
                 >
-                  <MenuItem value={1}>⚪ Past</MenuItem>
-                  <MenuItem value={2}>🟡 O'rta</MenuItem>
-                  <MenuItem value={3}>🔴 Yuqori</MenuItem>
+                  <MenuItem value={1}>{t('dispatcherPages.orders.priorityLow')}</MenuItem>
+                  <MenuItem value={2}>{t('dispatcherPages.orders.priorityMedium')}</MenuItem>
+                  <MenuItem value={3}>{t('dispatcherPages.orders.priorityHigh')}</MenuItem>
                 </Select>
               </FormControl>
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Bekor qilish</Button>
+            <Button onClick={handleClose}>{t('dispatcherPages.common.cancel')}</Button>
             <Button type="submit" variant="contained" disabled={formik.isSubmitting}>
-              Saqlash
+              {t('dispatcherPages.common.save')}
             </Button>
           </DialogActions>
         </form>
