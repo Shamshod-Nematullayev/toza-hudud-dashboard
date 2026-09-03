@@ -31,12 +31,12 @@ export interface IRow {
 }
 
 function MonayTransfer() {
-  const [pdfFile, setPdfFile] = useState<{ file: File; url: string }>({ file: null, url: '' });
+  const [pdfFile, setPdfFile] = useState<{ file: File | null; url: string }>({ file: null, url: '' });
   const [rows, setRows] = useState<IRow[]>([]);
   const [accountNumber, setAccountNumber] = useState('');
   const [amount, setAmount] = useState('');
-  const [abonentData, setAbonentData] = useState<IAbonentData>(null);
-  const [currentAbonentData, setCurrentAbonentData] = useState<IAbonentData>(null);
+  const [abonentData, setAbonentData] = useState<IAbonentData | null>(null);
+  const [currentAbonentData, setCurrentAbonentData] = useState<IAbonentData | null>(null);
   const [ariza, setAriza] = useState<IAriza | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -85,7 +85,7 @@ function MonayTransfer() {
     (async () => {
       if (pdfFile.file) {
         const qrData = await extractQRCodeFromPDF(new Uint8Array(await pdfFile.file.arrayBuffer()), 1);
-        if (!qrData.ok) return;
+        if (!qrData.ok || !qrData.result) return;
 
         const [key, id, document_number] = qrData.result.split('_');
         if (key !== 'ariza') {
@@ -107,7 +107,7 @@ function MonayTransfer() {
         }
 
         const abonentData = await getAbonentData(ariza.licshet);
-        let creditors = await Promise.all(
+        let creditors: IRow[] = await Promise.all(
           ariza.needMonayTransferActs.map(async (a, i) => {
             const abonentData = await getAbonentData(a.accountNumber);
             return {
@@ -115,9 +115,9 @@ function MonayTransfer() {
               amount: a.amount,
               residentId: abonentData.id,
               id: i + 2,
-              kSaldo: abonentData.balance.kSaldo,
+              kSaldo: abonentData.balance?.kSaldo || 0,
               fullName: a.fullName,
-              phone: abonentData.phone,
+              phone: abonentData.phone || '',
               mahallaName: abonentData.mahallaName
             };
           })
@@ -128,9 +128,9 @@ function MonayTransfer() {
             amount: ariza.aktSummasi,
             residentId: abonentData.id,
             id: 1,
-            kSaldo: abonentData.balance.kSaldo,
-            fullName: `${abonentData.citizen.firstName} ${abonentData.citizen.lastName} ${abonentData.citizen.patronymic}`,
-            phone: abonentData.phone,
+            kSaldo: abonentData.balance?.kSaldo || 0,
+            fullName: `${abonentData.citizen?.firstName || ''} ${abonentData.citizen?.lastName || ''} ${abonentData.citizen?.patronymic || ''}`.trim(),
+            phone: abonentData.phone || '',
             mahallaName: abonentData.mahallaName
           },
           ...creditors
@@ -161,8 +161,8 @@ function MonayTransfer() {
 
   return (
     <MainCard contentSX={{ height: 'calc( 100vh  - 130px )' }}>
-      <Grid container spacing={1} height={'100%'}>
-        <Grid item xs={6} height={'100%'}>
+      <Grid container spacing={1} sx={{ height: '100%' }}>
+        <Grid size={{ xs: 6 }} sx={{ height: '100%' }}>
           <ToolsMonayTransfer
             accountNumber={accountNumber}
             setAccountNumber={setAccountNumber}
@@ -204,8 +204,8 @@ function MonayTransfer() {
             slots={{
               footer: () => (
                 <FooterMonayTransfer
-                  debitorAmount={rows.length > 0 && rows[0].amount}
-                  creditorAmount={rows.length > 0 && rows.slice(1).reduce((a, b) => a + b.amount, 0)}
+                  debitorAmount={rows.length > 0 ? rows[0].amount : 0}
+                  creditorAmount={rows.length > 0 ? rows.slice(1).reduce((a, b) => a + b.amount, 0) : 0}
                 />
               )
             }}
@@ -214,7 +214,7 @@ function MonayTransfer() {
             }}
           />
         </Grid>
-        <Grid item xs={6} height={'100%'}>
+        <Grid size={{ xs: 6 }} sx={{ height: '100%' }}>
           {!pdfFile.url ? <FileInputDrop setFunc={setPdfFile} /> : <PdfViewer base64String={pdfFile.url} />}
         </Grid>
       </Grid>

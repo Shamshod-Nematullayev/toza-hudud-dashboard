@@ -98,7 +98,7 @@ export const KpiHeader: React.FC = () => {
           boxShadow: '0 10px 25px rgba(11, 79, 59, 0.2)'
         }}
       >
-        <Grid container spacing={2} alignItems="center" justifyContent="space-between">
+        <Grid container spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <Grid size={{ xs: 12, md: 8 }}>
             <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mb: 1 }}>
               <Box

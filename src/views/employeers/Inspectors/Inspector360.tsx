@@ -99,7 +99,7 @@ interface SpecialAssignment {
   accountNumber: string;
   fullName: string;
   type: 'phone' | 'electricity';
-  status: 'completed' | 'in-progress' | 'rejected';
+  status: 'completed' | 'in-progress' | 'rejected' | 'checking';
   purpose: string;
   mahallaId?: number;
 }

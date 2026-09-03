@@ -274,7 +274,7 @@ function WorkQueueDetail() {
 
       {/* QUEUE SUMMARY METRICS */}
       <Grid container spacing={2.5}>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Paper
             elevation={0}
             sx={{
@@ -293,7 +293,7 @@ function WorkQueueDetail() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Paper
             elevation={0}
             sx={{
@@ -312,7 +312,7 @@ function WorkQueueDetail() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Paper
             elevation={0}
             sx={{
@@ -368,13 +368,15 @@ function WorkQueueDetail() {
                 setSearchQuery(e.target.value);
                 setPage(0);
               }}
-              InputProps={{
-                startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />,
-                endAdornment: searchQuery ? (
-                  <IconButton size="small" onClick={() => setSearchQuery('')}>
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                ) : null
+              slotProps={{
+                input: {
+                  startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />,
+                  endAdornment: searchQuery ? (
+                    <IconButton size="small" onClick={() => setSearchQuery('')}>
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  ) : null
+                }
               }}
               sx={{ width: { xs: '100%', sm: 340 } }}
             />
@@ -468,7 +470,7 @@ function WorkQueueDetail() {
                           <Chip
                             label={meta.nextActionText}
                             size="small"
-                            variant="contained"
+                            variant="filled"
                             color={meta.color as any}
                             sx={{ fontWeight: 700, px: 0.5 }}
                           />

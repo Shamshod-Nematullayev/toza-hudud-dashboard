@@ -60,7 +60,7 @@ function ToolBar() {
           placeholder={t('search')}
           value={documentNumber}
           onChange={handleDocumentNumberChange}
-          inputProps={{ style: { padding: '10px 10px' } }}
+          slotProps={{ htmlInput: { style: { padding: '10px 10px' } } }}
           sx={{ width: 90 }}
         />
       </form>

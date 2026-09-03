@@ -49,26 +49,7 @@ export interface IMahalla {
     billingAdminName: string;
   };
 }
-// export interface IAbonentData {
-//   id: number;
-//   accountNumber: string;
-//   fullName: string;
-//   balance: Balance;
-//   mahallaName: string;
-//   mahallaId: number;
-//   streetName: string;
-//   house: {
-//     cadastralNumber: string;
-//     homeIndex: string;
-//     homeNumber: string;
-//     inhabitantCnt: number;
-//   };
-//   citizen: {
-//     passport: string;
-//     pnfl: string;
-//     phone: string;
-//   };
-// }
+export type IAbonentData = AbonentDetails;
 
 export const defaultAbonentData: AbonentDetails = {
   id: 0,

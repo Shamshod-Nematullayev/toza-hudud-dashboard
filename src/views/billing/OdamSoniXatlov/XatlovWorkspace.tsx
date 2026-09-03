@@ -880,7 +880,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       {/* Shared Modals */}
       <AddSingleXatlovModal open={openSingleModal} onClose={() => setOpenSingleModal(false)} />
       <ImportXatlovExcelModal open={openExcelModal} onClose={() => setOpenExcelModal(false)} />
-      {openPreviewDialog && <PreviewDialog document={currentDocument} requestDocuments={requestDocuments} setOpen={setOpenPreviewDialog} />}
+      {openPreviewDialog && currentDocument && (
+        <PreviewDialog document={currentDocument} requestDocuments={requestDocuments} setOpen={setOpenPreviewDialog} />
+      )}
     </MainCard>
   );
 }

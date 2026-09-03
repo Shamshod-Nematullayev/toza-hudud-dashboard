@@ -31,10 +31,10 @@ const StatCard = ({
   color?: string;
 }) => (
   <Paper sx={{ p: 3, height: '100%', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-    <Typography variant="h3" fontWeight={700} color={color || 'text.primary'}>
+    <Typography variant="h3" sx={{ fontWeight: 700, color: color || 'text.primary' }}>
       {value}
     </Typography>
-    <Typography variant="body2" color="text.secondary" mt={0.5}>
+    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
       {label}
     </Typography>
   </Paper>
@@ -95,7 +95,7 @@ export default function DispatcherDashboard() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" p={4}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -104,18 +104,18 @@ export default function DispatcherDashboard() {
   return (
     <Box>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
-          <Typography variant="h3" fontWeight={700}>
+          <Typography variant="h3" sx={{ fontWeight: 700 }}>
             Bosh sahifa
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Bugungi holat — barcha buyurtmalar va texniklar bir joyda
+            Bugungi holat — barcha buyurtmalar va haydovchilar bir joyda
           </Typography>
         </Box>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Box textAlign="right">
-            <Typography variant="h4" fontWeight={700}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ textAlign: 'right' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
               {now.format('HH:mm')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -134,21 +134,21 @@ export default function DispatcherDashboard() {
       </Box>
 
       {/* Stats Cards */}
-      <Grid container spacing={2} mb={3}>
-        <Grid item xs={6} sm={3}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard value={stats?.total ?? 0} label="Bugungi buyurtmalar" />
         </Grid>
-        <Grid item xs={6} sm={3}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
             value={`${driverStats.busy}/${driverStats.total}`}
-            label="Band texniklar"
+            label="Band haydovchilar"
             color="warning.main"
           />
         </Grid>
-        <Grid item xs={6} sm={3}>
-          <StatCard value={driverStats.free} label="Bo'sh texniklar" />
+        <Grid size={{ xs: 6, sm: 3 }}>
+          <StatCard value={driverStats.free} label="Bo'sh haydovchilar" />
         </Grid>
-        <Grid item xs={6} sm={3}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard value={stats?.todayCompleted ?? 0} label="Bugun bajarilgan" color="success.main" />
         </Grid>
       </Grid>
@@ -164,9 +164,9 @@ export default function DispatcherDashboard() {
             borderRadius: 2,
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
             <WarningAmberIcon color="warning" />
-            <Typography fontWeight={600}>Vaqti yaqinlashayotgan buyurtmalar</Typography>
+            <Typography sx={{ fontWeight: 600 }}>Vaqti yaqinlashayotgan buyurtmalar</Typography>
             <Typography variant="body2" color="text.secondary">
               — boshlanishiga 2 soatdan kam qoldi
             </Typography>
@@ -181,24 +181,26 @@ export default function DispatcherDashboard() {
             return (
               <Box
                 key={order._id}
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-                py={1.5}
-                borderTop="1px solid"
-                borderColor="divider"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  py: 1.5,
+                  borderTop: '1px solid',
+                  borderColor: 'divider'
+                }}
               >
-                <Box minWidth={200}>
+                <Box sx={{ minWidth: 200 }}>
                   <Typography variant="body2" color="text.secondary">
                     #{order._id.slice(-6).toUpperCase()}
                   </Typography>
-                  <Typography fontWeight={600}>{order.customer}</Typography>
+                  <Typography sx={{ fontWeight: 600 }}>{order.customer}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {order.address}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography fontWeight={600}>{driver?.name || '—'}</Typography>
+                  <Typography sx={{ fontWeight: 600 }}>{driver?.name || '—'}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {order.description?.slice(0, 30)} ·{' '}
                     {order.scheduledAt ? dayjs(order.scheduledAt).format('HH:mm') : ''}
@@ -219,7 +221,7 @@ export default function DispatcherDashboard() {
 
       {/* Recent Orders Table */}
       <Paper sx={{ p: 2.5, borderRadius: 2 }}>
-        <Typography variant="h5" fontWeight={600} mb={2}>
+        <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
           So'nggi buyurtmalar
         </Typography>
         <Table size="small">
@@ -229,7 +231,7 @@ export default function DispatcherDashboard() {
               <TableCell>Mijoz</TableCell>
               <TableCell>Manzil</TableCell>
               <TableCell>Xizmat</TableCell>
-              <TableCell>Texnik</TableCell>
+              <TableCell>Haydovchi</TableCell>
               <TableCell>Vaqt</TableCell>
               <TableCell>Holat</TableCell>
             </TableRow>
@@ -240,12 +242,12 @@ export default function DispatcherDashboard() {
               return (
                 <TableRow key={order._id} hover>
                   <TableCell>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       #{order._id.slice(-6).toUpperCase()}
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {order.customer}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">

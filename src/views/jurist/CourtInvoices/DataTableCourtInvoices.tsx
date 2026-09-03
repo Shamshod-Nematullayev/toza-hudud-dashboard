@@ -65,7 +65,7 @@ function DataTableCourtInvoices({
         rows={rows}
         checkboxSelection
         pageSizeOptions={[15, 30, 50, 100]}
-        onRowSelectionModelChange={(rowSelectionModel) => setChecked(rowSelectionModel.map((id) => id.toString()))}
+        onRowSelectionModelChange={(rowSelectionModel: any) => setChecked(Array.from(rowSelectionModel).map((id: any) => id.toString()))}
       />
     </div>
   );

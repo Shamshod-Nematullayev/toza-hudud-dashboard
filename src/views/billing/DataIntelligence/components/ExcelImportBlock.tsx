@@ -258,7 +258,7 @@ export const ExcelImportBlock: React.FC = () => {
             </Box>
 
             {/* Quick Actions / Templates */}
-            <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: 'center' }} flexWrap="wrap">
+            <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
                 variant="outlined"
                 size="small"
@@ -296,7 +296,7 @@ export const ExcelImportBlock: React.FC = () => {
                   </Button>
                 </Stack>
 
-                <Stack direction="row" spacing={1} sx={{ mb: 1.5 }} flexWrap="wrap">
+                <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap' }}>
                   <Chip
                     icon={<CheckCircleOutlined sx={{ fontSize: 16 }} />}
                     label={`Jami: ${parseResult.totalCount} ta qator`}

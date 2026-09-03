@@ -58,10 +58,10 @@ export default function MahallaSidebar({ onSelectMahalla }: MahallaSidebarProps)
     >
       {/* Header & Qidiruv */}
       <Box sx={{ p: 2, pb: 1.5 }}>
-        <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <LocationCity color="primary" />
-            <Typography variant="subtitle1" fontWeight={700}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {t('Mahallalar')}
             </Typography>
           </Stack>
@@ -103,12 +103,12 @@ export default function MahallaSidebar({ onSelectMahalla }: MahallaSidebarProps)
       <Box sx={{ flex: 1, overflowY: 'auto', p: 1, pt: 0 }}>
         {filteredMahallas.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="caption" display="block">
+            <Typography variant="caption" sx={{ display: 'block' }}>
               {searchQuery ? t('Mahalla yoki nazoratchi topilmadi') : t("Ro'yxat bo'sh")}
             </Typography>
           </Box>
         ) : (
-          <List disablePadding spacing={0.5}>
+          <List disablePadding>
             {filteredMahallas.map((item) => {
               const isSelected = Number(selectedMahalla) === Number(item.id);
               return (
@@ -140,15 +140,17 @@ export default function MahallaSidebar({ onSelectMahalla }: MahallaSidebarProps)
                       primary={
                         <Typography
                           variant="body2"
-                          fontWeight={isSelected ? 700 : 600}
-                          color={isSelected ? 'primary.main' : 'text.primary'}
+                          sx={{
+                            fontWeight: isSelected ? 700 : 600,
+                            color: isSelected ? 'primary.main' : 'text.primary'
+                          }}
                           noWrap
                         >
                           {item.name}
                         </Typography>
                       }
                       secondary={
-                        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.3, overflow: 'hidden' }}>
+                        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 0.3, overflow: 'hidden' }}>
                           <PersonOutlined sx={{ fontSize: 13, color: 'text.secondary', flexShrink: 0 }} />
                           <Typography
                             variant="caption"

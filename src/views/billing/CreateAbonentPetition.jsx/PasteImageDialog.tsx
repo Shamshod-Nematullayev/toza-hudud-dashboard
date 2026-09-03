@@ -121,7 +121,7 @@ const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open, setOpen }) =>
   return (
     <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           <ImageIcon color="primary" />
           <Typography variant="h4">{t('Hujjat rasmini yuklash')}</Typography>
         </Stack>
@@ -165,7 +165,7 @@ const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open, setOpen }) =>
             accept="image/*"
             onChange={handleFileChange}
           />
-          <Stack spacing={1} alignItems="center">
+          <Stack spacing={1} sx={{ alignItems: 'center' }}>
             <Box
               sx={{
                 width: 48,
@@ -180,7 +180,7 @@ const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open, setOpen }) =>
             >
               <CloudUpload />
             </Box>
-            <Typography variant="subtitle1" fontWeight={600}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
               {t("Faylni tanlang yoki shu yerga tashlang")}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -195,7 +195,7 @@ const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open, setOpen }) =>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
               {t("Yuklanayotgan rasm:")}
             </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
               <Box
                 component="img"
                 src={preview}
@@ -210,7 +210,7 @@ const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open, setOpen }) =>
                 }}
               />
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="body2" noWrap fontWeight={600}>
+                <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                   {selectedFile?.name}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">

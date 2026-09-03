@@ -94,10 +94,12 @@ export const CreateCallModal = () => {
             fullWidth
             autoFocus
             value={accountNumber}
-            inputProps={{ maxLength: 12 }}
             onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))} // Faqat raqamlar
-            InputProps={{
-              endAdornment: loading && <CircularProgress size={20} />
+            slotProps={{
+              htmlInput: { maxLength: 12 },
+              input: {
+                endAdornment: loading && <CircularProgress size={20} />
+              }
             }}
           />
 

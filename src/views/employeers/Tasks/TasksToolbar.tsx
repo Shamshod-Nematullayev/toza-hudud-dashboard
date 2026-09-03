@@ -18,7 +18,11 @@ function TasksToolbar() {
   };
 
   return (
-    <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 1 }}>
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={2}
+      sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between', mb: 1 }}
+    >
       <Box>
         <Typography variant="h4" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
           📋 Nazoratchilar Topshiriqlari Boshqaruvi
@@ -28,7 +32,7 @@ function TasksToolbar() {
         </Typography>
       </Box>
 
-      <Stack direction="row" spacing={1} flexWrap="wrap">
+      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
         <Tooltip title="Fondagi debitorlar holatiga asoslanib topshiriqlar holatini avtomatik 'Bajarilgan' (completed) darajasiga yangilash">
           <span>
             <Button

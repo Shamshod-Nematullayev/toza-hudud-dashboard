@@ -59,12 +59,12 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
       setIsLoading(false);
     }
   };
-  const handleSubmitWarning = async (e) => {
+  const handleSubmitWarning = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const promises = selectedRows.map(async (row) => {
-        const act = rows.find((r) => r.id === row);
+      const promises = selectedRows.map(async (row: any) => {
+        const act = rows.find((r: any) => r.id === row);
         const date = new Date(act.createdAt);
         const period = `${date.getMonth() + 1}.${date.getFullYear()}`;
         const { data } = await api.patch(`/acts/${act.id}/check`, {
@@ -91,12 +91,12 @@ function Toolbar({ selectedRows, setSelectedRows, filters, setFilters, rows, ref
       setIsLoading(false);
     }
   };
-  const handleSubmitCancel = async (e) => {
+  const handleSubmitCancel = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const promises = selectedRows.map(async (row) => {
-        const act = rows.find((r) => r.id === row);
+      const promises = selectedRows.map(async (row: any) => {
+        const act = rows.find((r: any) => r.id === row);
         const date = new Date(act.createdAt);
         const period = `${date.getMonth() + 1}.${date.getFullYear()}`;
         const { data } = await api.patch(`/acts/${act.id}/check`, {

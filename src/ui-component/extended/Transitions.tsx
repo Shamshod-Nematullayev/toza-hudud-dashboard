@@ -11,7 +11,7 @@ import Zoom from '@mui/material/Zoom';
 
 // ==============================|| TRANSITIONS ||============================== //
 
-const Transitions = React.forwardRef(({ children, position, type, direction, ...others }: any, ref) => {
+const Transitions = React.forwardRef(({ children, position = 'top-left', type = 'grow', direction = 'up', ...others }: any, ref) => {
   let positionSX = {
     transformOrigin: '0 0 0'
   };
@@ -101,12 +101,6 @@ Transitions.propTypes = {
   type: PropTypes.oneOf(['grow', 'fade', 'collapse', 'slide', 'zoom']),
   position: PropTypes.oneOf(['top-left', 'top-right', 'top', 'bottom-left', 'bottom-right', 'bottom']),
   direction: PropTypes.oneOf(['up', 'down', 'left', 'right'])
-};
-
-Transitions.defaultProps = {
-  type: 'grow',
-  position: 'top-left',
-  direction: 'up'
 };
 
 export default Transitions;

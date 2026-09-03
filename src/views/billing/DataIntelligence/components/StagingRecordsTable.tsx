@@ -131,13 +131,14 @@ export const StagingRecordsTable: React.FC = () => {
             placeholder="F.I.Sh, JShShIR, Kadastr yoki manzil bo'yicha qidirish..."
             value={stagingSearchQuery}
             onChange={(e) => setStagingSearchQuery(e.target.value)}
-            slot
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="action" />
-                </InputAdornment>
-              )
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search color="action" />
+                  </InputAdornment>
+                )
+              }
             }}
           />
         </Grid>

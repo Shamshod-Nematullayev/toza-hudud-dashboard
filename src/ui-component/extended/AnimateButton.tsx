@@ -14,7 +14,8 @@ interface AnimateButtonProps {
 
 // ==============================|| ANIMATION BUTTON ||============================== //
 
-const AnimateButton = React.forwardRef<HTMLDivElement, AnimateButtonProps>(({ children, type, direction, offset, scale }, ref) => {
+const AnimateButton = React.forwardRef<HTMLDivElement, AnimateButtonProps>(
+  ({ children, type = 'scale', direction = 'right', offset = 10, scale = { hover: 1, tap: 0.9 } }, ref) => {
   let offset1;
   let offset2;
   switch (direction) {
@@ -53,13 +54,23 @@ const AnimateButton = React.forwardRef<HTMLDivElement, AnimateButtonProps>(({ ch
     case 'slide':
       if (direction === 'up' || direction === 'down') {
         return (
-          <motion.div ref={ref} animate={{ y: y !== undefined ? y : '' }} onHoverEnd={() => cycleY()} onHoverStart={() => cycleY()}>
+          <motion.div
+            ref={ref}
+            animate={{ y: y !== undefined ? y : '' }}
+            onHoverEnd={() => cycleY()}
+            onHoverStart={() => cycleY()}
+          >
             {children}
           </motion.div>
         );
       }
       return (
-        <motion.div ref={ref} animate={{ x: x !== undefined ? x : '' }} onHoverEnd={() => cycleX()} onHoverStart={() => cycleX()}>
+        <motion.div
+          ref={ref}
+          animate={{ x: x !== undefined ? x : '' }}
+          onHoverEnd={() => cycleX()}
+          onHoverStart={() => cycleX()}
+        >
           {children}
         </motion.div>
       );
@@ -86,16 +97,6 @@ AnimateButton.propTypes = {
   type: PropTypes.oneOf(['slide', 'scale', 'rotate']),
   direction: PropTypes.oneOf(['up', 'down', 'left', 'right']),
   scale: PropTypes.oneOfType([PropTypes.number, PropTypes.object])
-};
-
-AnimateButton.defaultProps = {
-  type: 'scale',
-  offset: 10,
-  direction: 'right',
-  scale: {
-    hover: 1,
-    tap: 0.9
-  }
 };
 
 export default AnimateButton;

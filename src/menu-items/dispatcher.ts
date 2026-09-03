@@ -1,7 +1,7 @@
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ListAltOutlinedIcon from '@mui/icons-material/ListAltOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
-import EngineeringOutlinedIcon from '@mui/icons-material/EngineeringOutlined';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import { MenuItem } from 'menu-items';
 
@@ -43,7 +43,7 @@ const dispatcher: MenuItem = {
       title: 'drivers',
       type: 'item',
       url: '/dispatcher/drivers',
-      icon: EngineeringOutlinedIcon,
+      icon: LocalShippingOutlinedIcon,
       breadcrumbs: false,
       allowedRoles: ['admin', 'dispatcher'],
     },

@@ -68,7 +68,7 @@ function HeaderVisitGPage() {
         <Box component="form">
           <Grid container spacing={2}>
             {/* Davlat raqami */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label="Avtomobil davlat raqami"
                 value={autoMobileName}
@@ -78,12 +78,12 @@ function HeaderVisitGPage() {
             </Grid>
 
             {/* Model */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField label="Avtomobil modeli" value={automobileModel} onChange={(e) => setAutomobileModel(e.target.value)} fullWidth />
             </Grid>
 
             {/* Yili */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label="Avtomobil yili"
                 type="number"
@@ -94,7 +94,7 @@ function HeaderVisitGPage() {
             </Grid>
 
             {/* Kilometri */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label="Avtomobil kilometri"
                 type="number"
@@ -105,17 +105,17 @@ function HeaderVisitGPage() {
             </Grid>
 
             {/* Haydovchi */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField label="Haydovchi" value={currentDriver} onChange={(e) => setCurrentDriver(e.target.value)} fullWidth />
             </Grid>
 
             {/* Telefon */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField label="Haydovchi telefon raqami" value={phone} onChange={(e) => setPhone(e.target.value)} fullWidth />
             </Grid>
 
             {/* Status */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Select value={autoStatus} onChange={(e) => setAutoStatus(e.target.value as 'soz' | 'nosoz')} fullWidth displayEmpty>
                 <MenuItem value="soz">Soz</MenuItem>
                 <MenuItem value="nosoz">Nosoz</MenuItem>
@@ -123,7 +123,7 @@ function HeaderVisitGPage() {
             </Grid>
 
             {/* Tozamakon */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField label="Tozamakon raqami" value={tozamakonId} onChange={(e) => setTozamakonId(e.target.value)} fullWidth />
             </Grid>
           </Grid>

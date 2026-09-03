@@ -353,7 +353,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle sx={{ m: 0, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.04) }}>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <HomeWorkOutlined color="primary" />
             <Box>
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
@@ -385,8 +385,8 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
               <Stack spacing={2}>
                 {/* 1. Citizen Information Card */}
                 <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                       <AccountCircleOutlined color="primary" fontSize="small" />
                       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                         Abonent Egasi (Shaxsiy Ma'lumotlar)
@@ -453,7 +453,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                         fullWidth
                         value={citizenPnfl}
                         onChange={(e) => setCitizenPnfl(e.target.value.replace(/\D/g, ''))}
-                        inputProps={{ maxLength: 14 }}
+                        slotProps={{ htmlInput: { maxLength: 14 } }}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -480,8 +480,8 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
 
                 {/* 2. Location (Mahalla & Street) Card */}
                 <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                       <LocationOnOutlined color="primary" fontSize="small" />
                       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                         Manzil: Mahalla va Ko'cha (Avtotahlil)
@@ -577,8 +577,8 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
             {/* RIGHT COLUMN: MVD Propiska & Inhabitants Table */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }} flexWrap="wrap" gap={1}>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                     <GroupOutlined color="secondary" fontSize="small" />
                     <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                       MVD Propiska & Odam Soni
@@ -599,7 +599,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                 </Stack>
 
                 {/* Inhabitants Count Input */}
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
                   <TextField
                     size="small"
                     type="number"
@@ -607,7 +607,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                     value={inhabitantCount}
                     onChange={(e) => setInhabitantCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
                     sx={{ width: 220 }}
-                    inputProps={{ min: 1 }}
+                    slotProps={{ htmlInput: { min: 1 } }}
                   />
                   <Chip
                     label={`MVD dagi jami: ${members.length} kishi`}
@@ -671,7 +671,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                   </TableContainer>
                 )}
 
-                <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1.5 }}>
+                <Stack direction="row" sx={{ justifyContent: 'flex-end', mt: 1.5 }}>
                   <Button
                     size="small"
                     variant="text"

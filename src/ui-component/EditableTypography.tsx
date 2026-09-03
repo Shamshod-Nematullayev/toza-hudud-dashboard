@@ -9,7 +9,7 @@ function extractText(node: React.ReactNode): string {
     return node.map(extractText).join('');
   }
   if (React.isValidElement(node)) {
-    return extractText(node.props.children);
+    return extractText((node.props as any).children);
   }
   return '';
 }

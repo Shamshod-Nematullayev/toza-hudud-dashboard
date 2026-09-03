@@ -26,7 +26,7 @@ const InfoRow = ({ label, value }: { label: string; value?: React.ReactNode }) =
     <Typography variant="caption" color="text.secondary">
       {label}
     </Typography>
-    <Typography variant="body2" fontWeight={500}>
+    <Typography variant="body2" sx={{ fontWeight: 500 }}>
       {value || '—'}
     </Typography>
   </Box>
@@ -57,8 +57,8 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <Box sx={{ width: 400, p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h5" fontWeight={700}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
             ORDER #{row._id?.slice(-6).toUpperCase()}
           </Typography>
           {overdue ? (
@@ -73,7 +73,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
 
         <Divider sx={{ mb: 2 }} />
 
-        <Stack spacing={2} flex={1} sx={{ overflowY: 'auto' }}>
+        <Stack spacing={2} sx={{ flex: 1, overflowY: 'auto' }}>
           <InfoRow label="👤 Mijoz" value={row.customer} />
           <InfoRow label="📞 Telefon" value={row.phone} />
           <InfoRow label="📍 Manzil" value={row.address} />
@@ -89,7 +89,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
             value={row.scheduledAt ? dayjs(row.scheduledAt).format('DD.MM.YYYY HH:mm') : 'Belgilanmagan'}
           />
           <InfoRow
-            label="🚛 Biriktirilgan texnik"
+            label="🚛 Biriktirilgan haydovchi"
             value={driver ? `${driver.name}${driver.specialization ? ` · ${driver.specialization}` : ''}` : 'Tayinlanmagan'}
           />
           <InfoRow label="⭐ Prioritet" value={PRIORITY_LABELS[row.priority] || '—'} />
@@ -106,7 +106,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
           {row.cancelReason && <InfoRow label="Bekor qilish sababi" value={row.cancelReason} />}
 
           {showCancel && (
-            <Box mt={1}>
+            <Box sx={{ mt: 1 }}>
               <TextField
                 label="Bekor qilish sababi"
                 value={cancelReason}
@@ -116,7 +116,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
                 rows={2}
                 size="small"
               />
-              <Stack direction="row" spacing={1} mt={1}>
+              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                 <Button size="small" onClick={() => setShowCancel(false)}>
                   Orqaga
                 </Button>
@@ -135,7 +135,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
         </Stack>
 
         <Divider sx={{ my: 2 }} />
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
           {!['COMPLETED', 'CANCELLED'].includes(row.status) && !showCancel && (
             <Button color="error" variant="outlined" size="small" onClick={() => setShowCancel(true)}>
               Bekor qilish

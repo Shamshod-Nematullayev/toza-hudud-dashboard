@@ -59,13 +59,13 @@ const NotificationSection = () => {
   /**
    * anchorRef is used on different componets and specifying one type leads to other components throwing an error
    * */
-  const anchorRef = useRef(null);
+  const anchorRef = useRef<any>(null);
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
-  const handleClose = (event) => {
+  const handleClose = (event: any) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
@@ -74,13 +74,13 @@ const NotificationSection = () => {
 
   const prevOpen = useRef(open);
   useEffect(() => {
-    if (prevOpen.current === true && open === false) {
+    if (prevOpen.current === true && open === false && anchorRef.current) {
       anchorRef.current.focus();
     }
     prevOpen.current = open;
   }, [open]);
 
-  const handleChange = (event) => {
+  const handleChange = (event: any) => {
     if (event?.target.value) setFilterStatus(event?.target.value);
   };
 
@@ -164,10 +164,10 @@ const NotificationSection = () => {
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
-                  <Grid container direction="column" spacing={2}>
-                    <Grid item xs={12}>
-                      <Grid container alignItems="center" justifyContent="space-between" sx={{ pt: 2, px: 2 }}>
-                        <Grid item>
+                  <Grid container spacing={2} sx={{ flexDirection: 'column' }}>
+                    <Grid size={{ xs: 12 }}>
+                      <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between', pt: 2, px: 2 }}>
+                        <Grid>
                           <Stack direction="row" spacing={2}>
                             <Typography variant="subtitle1">O'qilmagan</Typography>
                             <Chip
@@ -182,10 +182,10 @@ const NotificationSection = () => {
                         </Grid>
                       </Grid>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 205px)', overflowX: 'hidden' }}>
-                        <Grid container direction="column" spacing={2}>
-                          <Grid item xs={12}>
+                        <Grid container spacing={2} sx={{ flexDirection: 'column' }}>
+                          <Grid size={{ xs: 12 }}>
                             <Box sx={{ px: 2, pt: 0.25 }}>
                               <TextField
                                 id="outlined-select-currency-native"
@@ -193,8 +193,10 @@ const NotificationSection = () => {
                                 fullWidth
                                 value={filterStatus}
                                 onChange={handleChange}
-                                SelectProps={{
-                                  native: true
+                                slotProps={{
+                                  select: {
+                                    native: true
+                                  }
                                 }}
                               >
                                 {status.map((option) => (
@@ -205,7 +207,7 @@ const NotificationSection = () => {
                               </TextField>
                             </Box>
                           </Grid>
-                          <Grid item xs={12} p={0}>
+                          <Grid size={{ xs: 12 }} sx={{ p: 0 }}>
                             <Divider sx={{ my: 0 }} />
                           </Grid>
                         </Grid>

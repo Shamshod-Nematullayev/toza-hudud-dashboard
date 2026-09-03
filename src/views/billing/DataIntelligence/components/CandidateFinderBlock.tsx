@@ -487,7 +487,7 @@ export const CandidateFinderBlock: React.FC = () => {
                         </Stack>
 
                         {/* Match Strategy Badges */}
-                        <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap>
+                        <Stack direction="row" spacing={0.8} useFlexGap sx={{ flexWrap: 'wrap' }}>
                           {item.discoveryReasons.map((r, rIdx) => (
                             <Chip
                               key={rIdx}

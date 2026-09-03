@@ -156,12 +156,14 @@ export const QuickPickModal: React.FC<QuickPickModalProps> = ({
               handleApiSearch(e.target.value);
             }
           }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                {loading ? <CircularProgress size={18} /> : <Search color="action" />}
-              </InputAdornment>
-            )
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  {loading ? <CircularProgress size={18} /> : <Search color="action" />}
+                </InputAdornment>
+              )
+            }
           }}
           sx={{ mb: 2 }}
         />

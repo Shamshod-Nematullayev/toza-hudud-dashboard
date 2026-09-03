@@ -192,7 +192,7 @@ export default function ImportXatlovExcelModal({ open, onClose }: ImportXatlovEx
                 {resultSummary.errors && resultSummary.errors.length > 0 && (
                   <Box sx={{ mt: 1, maxHeight: 100, overflowY: 'auto' }}>
                     {resultSummary.errors.map((err: string, idx: number) => (
-                      <Typography key={idx} variant="caption" color="error" display="block">
+                      <Typography key={idx} variant="caption" color="error" sx={{ display: 'block' }}>
                         {err}
                       </Typography>
                     ))}

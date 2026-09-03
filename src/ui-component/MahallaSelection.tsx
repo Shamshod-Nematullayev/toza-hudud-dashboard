@@ -12,6 +12,7 @@ type MahallaSelectionProps = Omit<TextFieldProps, 'value' | 'onChange'> & {
   setSelectedMahallaId: (e: number | string) => void;
   setMahallalar?: React.Dispatch<React.SetStateAction<{ id: number; name: string }[]>>;
   defaultValueDisabled?: boolean;
+  defaultValueLabel?: string;
   native?: boolean;
 };
 
@@ -21,6 +22,7 @@ function MahallaSelection({
   setMahallalar = () => {},
   label,
   defaultValueDisabled,
+  defaultValueLabel,
   native,
   ...rest // Qolgan barcha TextField propslari (error, helperText, disabled, size, variant va h.k.)
 }: MahallaSelectionProps) {
@@ -67,7 +69,7 @@ function MahallaSelection({
           {...rest} // Tashqaridan kelgan barcha qo'shimcha propslar shu yerga o'tadi
         >
           <option disabled={defaultValueDisabled} value="">
-            {label || t('all')}
+            {defaultValueLabel !== undefined ? defaultValueLabel : label || t('all')}
           </option>
           {sortedMahallas.map((mfy) => (
             <option key={mfy.id} value={mfy.id}>
@@ -85,7 +87,7 @@ function MahallaSelection({
           {...rest} // Tashqaridan kelgan barcha qo'shimcha propslar shu yerga o'tadi
         >
           <MenuItem disabled={defaultValueDisabled} value="">
-            {t('all')}
+            {defaultValueLabel !== undefined ? defaultValueLabel : t('all')}
           </MenuItem>
           {sortedMahallas.map((mfy) => (
             <MenuItem key={mfy.id} value={mfy.id}>

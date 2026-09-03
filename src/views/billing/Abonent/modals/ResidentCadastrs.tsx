@@ -66,14 +66,14 @@ const houseTypeIcons: Record<string, string> = {
 // Styled Card for info blocks
 const InfoCard = styled(Box)(({ theme }) => ({
   // backgroundColor: theme.palette.grey[50],
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
   padding: theme.spacing(1.5),
   border: `1px solid ${theme.palette.grey[100]}`
 }));
 
 const OwnerCard = styled(Box)(({ theme }) => ({
   border: `1px solid ${theme.palette.grey[200]}`,
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
   padding: theme.spacing(1.5),
   marginBottom: theme.spacing(1)
 }));
@@ -139,10 +139,10 @@ function HouseDetail({ house }: { house: House }) {
   return (
     <Box sx={{ px: 0.5 }}>
       <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Box
             sx={{
-              borderRadius: theme.shape.borderRadius * 1.5,
+              borderRadius: Number(theme.shape.borderRadius) * 1.5,
               padding: theme.spacing(1.5),
               border: `1px solid ${theme.palette.grey[100]}`,
               display: 'flex',
@@ -169,7 +169,7 @@ function HouseDetail({ house }: { house: House }) {
           </Box>
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <InfoCard>
             <Typography
               variant="caption"
@@ -184,7 +184,7 @@ function HouseDetail({ house }: { house: House }) {
           </InfoCard>
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <InfoCard>
             <Typography
               variant="caption"
@@ -199,7 +199,7 @@ function HouseDetail({ house }: { house: House }) {
           </InfoCard>
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <InfoCard>
             <Typography
               variant="caption"
@@ -214,7 +214,7 @@ function HouseDetail({ house }: { house: House }) {
           </InfoCard>
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <InfoCard>
             <Typography
               variant="caption"
@@ -229,7 +229,7 @@ function HouseDetail({ house }: { house: House }) {
           </InfoCard>
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <InfoCard>
             <Typography
               variant="caption"
@@ -258,24 +258,24 @@ function HouseDetail({ house }: { house: House }) {
               👤 {owner.name}
             </Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6}>
-                <Typography variant="caption" color="text.secondary" display="block">
+              <Grid size={{ xs: 6 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   Passport:{' '}
                   <Box component="span" sx={{ color: 'text.primary', fontFamily: 'monospace' }}>
                     {owner.passport}
                   </Box>
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
-                <Typography variant="caption" color="text.secondary" display="block">
+              <Grid size={{ xs: 6 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   JShShIR:{' '}
                   <Box component="span" sx={{ color: 'text.primary', fontFamily: 'monospace' }}>
                     {owner.pinfl}
                   </Box>
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary" display="block">
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   Turi:{' '}
                   <Box component="span" sx={{ color: 'text.primary' }}>
                     {owner.type}

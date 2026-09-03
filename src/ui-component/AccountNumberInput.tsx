@@ -46,7 +46,7 @@ function AccountNumberInput({
       disabled={disabled}
       required={required}
       type="text"
-      inputProps={{ maxLength: 12 }}
+      slotProps={{ htmlInput: { maxLength: 12 } }}
       onFocus={handleFocus}
       size={size}
       onBlur={(e) => {

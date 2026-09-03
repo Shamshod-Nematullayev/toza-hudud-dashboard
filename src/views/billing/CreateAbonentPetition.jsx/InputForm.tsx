@@ -22,6 +22,7 @@ import {
   Stack,
   Switch,
   TextField,
+  Badge,
   Tooltip,
   Typography,
   useTheme
@@ -30,10 +31,9 @@ import {
   AccountCircle,
   AddPhotoAlternate,
   ArrowForward,
-  Badge,
-  CheckCircleOutline,
+  CheckCircleOutlined as CheckCircleOutline,
   CreditCard,
-  DeleteOutline,
+  DeleteOutlined as DeleteOutline,
   DirectionsCar,
   Group,
   Home,
@@ -174,11 +174,11 @@ export default function InputForm() {
     (aktType === 'dvaynik' && !abonentData2.accountNumber) ||
     (aktType === 'gps' && images.length === 0);
 
-  const getCreateDisabledReason = () => {
-    if (!abonentData.accountNumber) return t("Avval asosiy hisob raqamini kiriting");
-    if (!aktType) return t("Hujjat turini tanlang");
-    if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t("Ikkilamchi hisob raqamini kiriting");
-    if (aktType === 'gps' && images.length === 0) return t("GPS arizasi uchun kamida bitta rasm biriktiring");
+  const getCreateDisabledReason = (): string => {
+    if (!abonentData.accountNumber) return t("Avval asosiy hisob raqamini kiriting") || '';
+    if (!aktType) return t("Hujjat turini tanlang") || '';
+    if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t("Ikkilamchi hisob raqamini kiriting") || '';
+    if (aktType === 'gps' && images.length === 0) return t("GPS arizasi uchun kamida bitta rasm biriktiring") || '';
     return '';
   };
 
@@ -197,11 +197,11 @@ export default function InputForm() {
     >
       {/* 1. Sarlavha va Tozalash */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           <Badge color="primary" variant="dot" invisible={!abonentData.accountNumber}>
             <CreditCard color="primary" />
           </Badge>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {t('Ariza shakllantirish')}
           </Typography>
         </Stack>
@@ -248,10 +248,10 @@ export default function InputForm() {
             <Stack spacing={1}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography variant="subtitle1" fontWeight={700} color="primary.dark">
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'primary.dark' }}>
                     {abonentData.fullName || '—'}
                   </Typography>
-                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: 'text.secondary', mt: 0.2 }}>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: 'text.secondary', mt: 0.2 }}>
                     <LocationOn sx={{ fontSize: 14 }} />
                     <Typography variant="caption">
                       {abonentData.mahallaName}, {abonentData.streetName} {abonentData.house?.homeNumber ? `№${abonentData.house.homeNumber}` : ''}
@@ -281,14 +281,16 @@ export default function InputForm() {
                   variant="outlined"
                   sx={{ fontWeight: 600, fontSize: '12px' }}
                 />
-                <Stack direction="row" spacing={0.5} alignItems="center">
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                   <Typography variant="caption" color="text.secondary">
                     {t('Saldo')}:
                   </Typography>
                   <Typography
                     variant="subtitle2"
-                    fontWeight={700}
-                    color={(abonentData.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'}
+                    sx={{
+                      fontWeight: 700,
+                      color: (abonentData.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
+                    }}
                   >
                     {(abonentData.balance?.kSaldo || 0).toLocaleString()} so'm
                   </Typography>
@@ -327,7 +329,7 @@ export default function InputForm() {
           <Stack spacing={2}>
             {/* Odam soni / Vafot holati */}
             {(aktType === 'odam_soni' || aktType === 'death') && (
-              <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -383,16 +385,18 @@ export default function InputForm() {
                       bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
                     }}
                   >
-                    <Typography variant="subtitle2" fontWeight={700} color="warning.dark">
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'warning.dark' }}>
                       Ikkilamchi: {abonentData2.fullName || '—'}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                       {abonentData2.mahallaName}, {abonentData2.streetName} | {abonentData2.house?.inhabitantCnt || 0} kishi
                     </Typography>
                     <Typography
                       variant="caption"
-                      fontWeight={700}
-                      color={(abonentData2.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'}
+                      sx={{
+                        fontWeight: 700,
+                        color: (abonentData2.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
+                      }}
                     >
                       Saldo: {(abonentData2.balance?.kSaldo || 0).toLocaleString()} so'm
                     </Typography>
@@ -437,7 +441,7 @@ export default function InputForm() {
                       />
                     }
                     label={
-                      <Typography variant="body2" fontWeight={600}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {t("Ikkilamchi hisobdagi to'lovlarni asosiyga ko'chirish")}
                       </Typography>
                     }
@@ -474,7 +478,7 @@ export default function InputForm() {
                     />
                   }
                   label={
-                    <Typography variant="body2" fontWeight={500}>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
                       {t("Muzlatish (Hozirda ham xizmat ko'rsatilmaydi)")}
                     </Typography>
                   }
@@ -494,7 +498,7 @@ export default function InputForm() {
                     }}
                   >
                     <DirectionsCar color="action" fontSize="small" />
-                    <Typography variant="caption" fontWeight={600}>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
                       {t("Biriktirilgan mashina")}: {autoMobile.name}
                     </Typography>
                   </Paper>
@@ -529,13 +533,15 @@ export default function InputForm() {
                   alignItems: 'center'
                 }}
               >
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                   {t('createAbonentPetitionPage.actAmount')}:
                 </Typography>
                 <Typography
                   variant="subtitle1"
-                  fontWeight={800}
-                  color={aktSumma.total < 0 ? 'error.main' : aktSumma.total > 0 ? 'success.main' : 'text.primary'}
+                  sx={{
+                    fontWeight: 800,
+                    color: aktSumma.total < 0 ? 'error.main' : aktSumma.total > 0 ? 'success.main' : 'text.primary'
+                  }}
                 >
                   {aktSumma.total.toLocaleString()} so'm
                 </Typography>

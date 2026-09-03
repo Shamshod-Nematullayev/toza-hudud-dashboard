@@ -45,9 +45,9 @@ function ToolsMonayTransfer({
 }: {
   rows: IRow[];
   accountNumber: string;
-  abonentData: IAbonentData;
+  abonentData: IAbonentData | null;
   amount: string;
-  pdfFile: File;
+  pdfFile: File | null;
   ariza: IAriza | null;
   transferReason: 'ortiqcha_tulov' | 'yanglish_tulov';
   selectedApplicantId: number | '';
@@ -56,7 +56,7 @@ function ToolsMonayTransfer({
   setAccountNumber: (e: string) => void;
   clearPdfFile: () => void;
   openPrintSection: (data: IAriza) => void;
-  setAbonentData: (data: IAbonentData) => void;
+  setAbonentData: (data: IAbonentData | null) => void;
   setAriza: (data: IAriza) => void;
   setTransferReason: (reason: 'ortiqcha_tulov' | 'yanglish_tulov') => void;
   setSelectedApplicantId: (id: number | '') => void;
@@ -67,15 +67,20 @@ function ToolsMonayTransfer({
   const handleAddButtonClick = (e: React.FormEvent) => {
     e.preventDefault();
     if (!accountNumber || !amount) return toast.error('Majburiy qiymatlar kiritilmadi');
+    if (!abonentData) return;
     if (rows.find((r) => r.residentId === abonentData?.id)) return toast.error('Ushbu abonent allaqachon kiritildi');
     if (rows.length === 0) {
       setAbonentData(abonentData);
     }
-    const newRow = {
-      ...abonentData,
+    const newRow: IRow = {
+      fullName: (abonentData as any).fullName || `${(abonentData as any).citizen?.firstName || ''} ${(abonentData as any).citizen?.lastName || ''}`.trim(),
+      accountNumber: (abonentData as any).accountNumber,
+      kSaldo: (abonentData as any).balance?.kSaldo || (abonentData as any).kSaldo || 0,
+      phone: (abonentData as any).phone,
+      mahallaName: (abonentData as any).mahallaName,
       id: rows.length + 1,
       amount: Number(amount),
-      residentId: abonentData.id,
+      residentId: abonentData.id
     };
     setRows([...rows, newRow]);
 
@@ -89,6 +94,7 @@ function ToolsMonayTransfer({
   };
 
   const handleClickPrintButton = async () => {
+    if (!pdfFile) return toast.error("PDF fayl yuklanmagan");
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -234,7 +240,7 @@ function ToolsMonayTransfer({
             size="small"
             label="F.I.O"
             value={abonentData?.fullName || ''}
-            inputProps={{ readOnly: true }}
+            slotProps={{ htmlInput: { readOnly: true } }}
             sx={{ flex: 1, minWidth: 150 }}
             disabled={isLoading}
           />
@@ -251,12 +257,12 @@ function ToolsMonayTransfer({
           <Button
             type="button"
             size="small"
-            disabled={
+            disabled={Boolean(
               rows.length === 0 ||
               rows[0].amount !== rows.slice(1).reduce((a, b) => a + b.amount, 0) ||
               isLoading ||
               (ariza?._id && ariza?.status !== 'yangi')
-            }
+            )}
             variant="contained"
             color="primary"
             onClick={handleClickPrintButton}

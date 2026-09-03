@@ -43,7 +43,7 @@ export default function AssignOrderDialog({ open, row, onClose, onSuccess }: Pro
       scheduledAt: row.scheduledAt ? dayjs(row.scheduledAt) : dayjs().add(1, 'hour'),
     },
     validationSchema: Yup.object({
-      driverId: Yup.string().required('Texnikni tanlang'),
+      driverId: Yup.string().required('Haydovchini tanlang'),
       scheduledAt: Yup.mixed().required('Vaqtni kiriting'),
     }),
     onSubmit: async (values, { setSubmitting }) => {
@@ -73,17 +73,17 @@ export default function AssignOrderDialog({ open, row, onClose, onSuccess }: Pro
       >
         <form onSubmit={formik.handleSubmit}>
           <DialogContent>
-            <Stack spacing={2} pt={1}>
+            <Stack spacing={2} sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary">
                 Mijoz: <strong>{row.customer}</strong> | Manzil: {row.address}
               </Typography>
               <FormControl size="small" fullWidth error={formik.touched.driverId && !!formik.errors.driverId}>
-                <InputLabel>Texnikni tanlang</InputLabel>
+                <InputLabel>Haydovchini tanlang</InputLabel>
                 <Select
                   name="driverId"
                   value={formik.values.driverId}
                   onChange={formik.handleChange}
-                  label="Texnikni tanlang"
+                  label="Haydovchini tanlang"
                 >
                   {drivers.map((d) => (
                     <MenuItem key={d._id} value={d._id}>

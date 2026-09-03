@@ -121,7 +121,7 @@ const NavCollapse = ({ menu, level }: { menu: MenuItem; level: number }) => {
           }
           secondary={
             menu.caption && (
-              <Typography variant="caption" sx={{ ...(theme.typography as any).subMenuCaption }} display="block" gutterBottom>
+              <Typography variant="caption" sx={{ ...(theme.typography as any).subMenuCaption, display: 'block' }} gutterBottom>
                 {menu.caption}
               </Typography>
             )

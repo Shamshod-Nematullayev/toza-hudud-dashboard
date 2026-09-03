@@ -1,0 +1,1836 @@
+{
+  "src/layout/MainLayout/Header/NotificationSection/index.tsx": [
+    {
+      "line": "68",
+      "code": "TS7006",
+      "msg": "Parameter 'event' implicitly has an 'any' type."
+    },
+    {
+      "line": "69",
+      "code": "TS2339",
+      "msg": "Property 'contains' does not exist on type 'never'."
+    },
+    {
+      "line": "78",
+      "code": "TS18047",
+      "msg": "'anchorRef.current' is possibly 'null'."
+    },
+    {
+      "line": "83",
+      "code": "TS7006",
+      "msg": "Parameter 'event' implicitly has an 'any' type."
+    },
+    {
+      "line": "122",
+      "code": "TS2339",
+      "msg": "Property 'commonAvatar' does not exist on type 'TypographyVariants'."
+    },
+    {
+      "line": "123",
+      "code": "TS2339",
+      "msg": "Property 'mediumAvatar' does not exist on type 'TypographyVariants'."
+    },
+    {
+      "line": "166",
+      "code": "TS2322",
+      "msg": "Type '{ children: Element[]; border: false; elevation: number; content: false; boxShadow: true; shadow: string; }' is not assignable to type 'IntrinsicAttributes & { border?: boolean | undefined; boxShadow?: boolean | undefined; children?: ReactNode; content?: boolean | undefined; contentClass?: string | undefined; ... 5 more ...; title?: ReactNode; } & RefAttributes<...>'."
+    },
+    {
+      "line": "167",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "168",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "169",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "170",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "185",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "187",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "188",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "196",
+      "code": "TS2322",
+      "msg": "Type '{ children: Element[]; id: string; select: true; fullWidth: true; value: \"all\" | \"new\"; onChange: (event: any) => void; SelectProps: { native: boolean; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "208",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/layout/MainLayout/Header/SearchAbonentSection/SearchAbonentForm.tsx": [
+    {
+      "line": "162",
+      "code": "TS2322",
+      "msg": "Type '{ label: string; selectedMahallaId: string; defaultValueDisabled: false; defaultValueLabel: string; defaultValue: string; setSelectedMahallaId: (id: string | number) => void; native: true; }' is not assignable to type 'IntrinsicAttributes & Omit<TextFieldProps, \"onChange\" | \"value\"> & { selectedMahallaId: string | number; setSelectedMahallaId: (e: string | number) => void; setMahallalar?: Dispatch<...> | undefined; defaultValueDisabled?: boolean | undefined; native?: boolean | undefined; }'."
+    }
+  ],
+  "src/layout/MainLayout/Header/SearchSection/index.tsx": [
+    {
+      "line": "200",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "201",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/layout/MainLayout/Sidebar/MenuList/NavCollapse/index.tsx": [
+    {
+      "line": "124",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/layout/MainLayout/Sidebar/MenuList/NavGroup/index.tsx": [
+    {
+      "line": "51",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "54",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/ui-component/AccountNumberInput.tsx": [
+    {
+      "line": "49",
+      "code": "TS2322",
+      "msg": "Type '{ inputRef: RefObject<null>; value: string; label: string | undefined; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; ... 7 more ...; onBlur: (e: FocusEvent<...>) => void; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    }
+  ],
+  "src/ui-component/cards/RecalculatorAbonent.tsx": [
+    {
+      "line": "170",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "194",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "219",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "266",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/ui-component/cards/SubCard.tsx": [
+    {
+      "line": "61",
+      "code": "TS2339",
+      "msg": "Property 'defaultProps' does not exist on type 'ForwardRefExoticComponent<MySubCardProps & RefAttributes<HTMLDivElement>>'."
+    }
+  ],
+  "src/ui-component/EditableTypography.tsx": [
+    {
+      "line": "12",
+      "code": "TS18046",
+      "msg": "'node.props' is of type 'unknown'."
+    }
+  ],
+  "src/ui-component/extended/AnimateButton.tsx": [
+    {
+      "line": "91",
+      "code": "TS2339",
+      "msg": "Property 'defaultProps' does not exist on type 'ForwardRefExoticComponent<AnimateButtonProps & RefAttributes<HTMLDivElement>>'."
+    }
+  ],
+  "src/ui-component/extended/Transitions.tsx": [
+    {
+      "line": "106",
+      "code": "TS2339",
+      "msg": "Property 'defaultProps' does not exist on type 'ForwardRefExoticComponent<Omit<any, \"ref\"> & RefAttributes<unknown>>'."
+    }
+  ],
+  "src/ui-component/ImportAkts/index.tsx": [
+    {
+      "line": "9",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "12",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "15",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/Abonent/modals/MvdAddress.tsx": [
+    {
+      "line": "10",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "15",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "45",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/Abonent/modals/ResidentCadastrs.tsx": [
+    {
+      "line": "69",
+      "code": "TS2362",
+      "msg": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type."
+    },
+    {
+      "line": "76",
+      "code": "TS2362",
+      "msg": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type."
+    },
+    {
+      "line": "142",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "145",
+      "code": "TS2362",
+      "msg": "The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type."
+    },
+    {
+      "line": "172",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "187",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "202",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "217",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "232",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "261",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "262",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "269",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "270",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "277",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "278",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/AbonentPetitions/ToolBar.tsx": [
+    {
+      "line": "63",
+      "code": "TS2322",
+      "msg": "Type '{ placeholder: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement, Element>) => void; inputProps: { style: { padding: string; }; }; sx: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    }
+  ],
+  "src/views/billing/CallRequestAdmin/modals/CreateCallModal.tsx": [
+    {
+      "line": "97",
+      "code": "TS2322",
+      "msg": "Type '{ label: string; fullWidth: true; autoFocus: true; value: string; inputProps: { maxLength: number; }; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; InputProps: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    }
+  ],
+  "src/views/billing/CreateAbonentPetition.jsx/DHJTable.tsx": [
+    {
+      "line": "181",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"DHJ ma'lumotlari mavjud emas\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "184",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"DHJ tarixini ko'rish uchun abonent hisob raqamini kiriting\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "209",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "228",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Asl holatga qaytish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "228",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Kiritilgan o'zgarishlar bilan oldindan ko'rish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    }
+  ],
+  "src/views/billing/CreateAbonentPetition.jsx/InputForm.tsx": [
+    {
+      "line": "34",
+      "code": "TS2724",
+      "msg": "'\"@mui/icons-material\"' has no exported member named 'CheckCircleOutline'. Did you mean 'CheckCircleOutlined'?"
+    },
+    {
+      "line": "36",
+      "code": "TS2724",
+      "msg": "'\"@mui/icons-material\"' has no exported member named 'DeleteOutline'. Did you mean 'DeleteOutlined'?"
+    },
+    {
+      "line": "178",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Avval asosiy hisob raqamini kiriting\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: never; }] | [key: string | string[], defaultValue: never, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "179",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Hujjat turini tanlang\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: never; }] | [key: string | string[], defaultValue: never, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "180",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ikkilamchi hisob raqamini kiriting\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: never; }] | [key: string | string[], defaultValue: never, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "181",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"GPS arizasi uchun kamida bitta rasm biriktiring\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: never; }] | [key: string | string[], defaultValue: never, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "200",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "201",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "205",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ariza shakllantirish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "208",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Barcha maydonlarni tozalash\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "227",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Asosiy Abonent\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "254",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "261",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Abonent kartasini chop etish / ko'rish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "284",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "286",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Saldo\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "307",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Hujjat parametri\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "319",
+      "code": "TS2345",
+      "msg": "Argument of type '[`documentTypes.${string}`]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "332",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "346",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Vafot etganligi sababli 1 kishi avtomatik kamaytiriladi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "365",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Hisob raqamlarni almashtirish (Swap)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "391",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "410",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Abonentlar o'rtasidagi qarindoshlik / aloqa\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "414",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Abonentlar o'rtasidagi qarindoshlik / aloqa\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "445",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ikkilamchi hisobdagi to'lovlarni asosiyga ko'chirish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "456",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ko'chiriladigan to'lovlar summasi (so'm)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "460",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ikkilamchi hisob raqamiga to'langan barcha to'lovlarning umumiy yig'indisi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "482",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Muzlatish (Hozirda ham xizmat ko'rsatilmaydi)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "502",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Biriktirilgan mashina\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "516",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rasmlar biriktirildi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: never; }] | [key: string | string[], defaultValue: never, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "556",
+      "code": "TS2322",
+      "msg": "Type 'unknown' is not assignable to type 'ReactNode'."
+    },
+    {
+      "line": "575",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Arizani shakllantirish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "585",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Formani tozalashni xohlaysizmi?\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "589",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Kiritilgan barcha hisob-kitoblar, tanlangan davrlar va rasmlar bekor qilinadi.\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "597",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ha, tozalash\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    }
+  ],
+  "src/views/billing/CreateAbonentPetition.jsx/PasteImageDialog.tsx": [
+    {
+      "line": "41",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Faqat rasm fayllari qabul qilinadi (.png, .jpg, .jpeg)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "105",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rasm muvaffaqiyatli qo'shildi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "110",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rasm yuklashda xatolik yuz berdi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "124",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "126",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Hujjat rasmini yuklash\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "168",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "184",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Faylni tanlang yoki shu yerga tashlang\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "196",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Yuklanayotgan rasm:\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "198",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "231",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Qo'shish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "241",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Biriktirilgan rasmlar\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "252",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"O'chirish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/CandidateFinderBlock.tsx": [
+    {
+      "line": "490",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/CodeOpeningPreparationModal.tsx": [
+    {
+      "line": "356",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "388",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "389",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "456",
+      "code": "TS2322",
+      "msg": "Type '{ size: \"small\"; label: string; fullWidth: true; value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; inputProps: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "483",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "484",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "580",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "581",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "602",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "610",
+      "code": "TS2322",
+      "msg": "Type '{ size: \"small\"; type: \"number\"; label: string; value: number; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; sx: { ...; }; inputProps: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "674",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/ExcelImportBlock.tsx": [
+    {
+      "line": "261",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "299",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/KpiHeader.tsx": [
+    {
+      "line": "101",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/MatchingJobCard.tsx": [
+    {
+      "line": "194",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "217",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "236",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "304",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "311",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "347",
+      "code": "TS2367",
+      "msg": "This comparison appears to be unintentional because the types 'number' and 'string' have no overlap."
+    },
+    {
+      "line": "363",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/MatchingPlaygroundBlock.tsx": [
+    {
+      "line": "210",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "255",
+      "code": "TS2322",
+      "msg": "Type '{ fullWidth: true; size: \"small\"; label: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; placeholder: string; inputProps: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "294",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "404",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "447",
+      "code": "TS2322",
+      "msg": "Type '{ fullWidth: true; size: \"small\"; label: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; placeholder: string; inputProps: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "487",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "529",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "544",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "551",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/QuickPickModal.tsx": [
+    {
+      "line": "159",
+      "code": "TS2322",
+      "msg": "Type '{ fullWidth: true; size: \"small\"; placeholder: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; InputProps: { ...; }; sx: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/SoliqRecordsTable.tsx": [
+    {
+      "line": "186",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "195",
+      "code": "TS2322",
+      "msg": "Type '{ size: \"small\"; placeholder: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; sx: { ...; }; InputProps: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "318",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "371",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DataIntelligence/components/StagingRecordsTable.tsx": [
+    {
+      "line": "134",
+      "code": "TS2322",
+      "msg": "Type 'boolean' is not assignable to type 'string'."
+    }
+  ],
+  "src/views/billing/DataIntelligence/engine/excelParser.ts": [
+    {
+      "line": "407",
+      "code": "TS2353",
+      "msg": "Object literal may only specify known properties, and 'rawPayload' does not exist in type 'StagingRecord'."
+    }
+  ],
+  "src/views/billing/DataIntelligence/index.tsx": [
+    {
+      "line": "73",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "139",
+      "code": "TS2322",
+      "msg": "Type '{ children: Element[]; anchor: \"right\"; open: boolean; onClose: () => void; PaperProps: { sx: { width: { xs: string; md: string; lg: string; }; p: number; bgcolor: string; }; }; }' is not assignable to type 'IntrinsicAttributes & DrawerProps'."
+    }
+  ],
+  "src/views/billing/DataIntelligence/store/useDataIntelligenceStore.ts": [
+    {
+      "line": "41",
+      "code": "TS2304",
+      "msg": "Cannot find name 'CandidateSearchOptions'."
+    },
+    {
+      "line": "42",
+      "code": "TS2304",
+      "msg": "Cannot find name 'CandidateSearchOptions'."
+    }
+  ],
+  "src/views/billing/Debitors/DebitorsSideBar.tsx": [
+    {
+      "line": "454",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/Debitors/index.tsx": [
+    {
+      "line": "937",
+      "code": "TS18048",
+      "msg": "'index' is possibly 'undefined'."
+    },
+    {
+      "line": "937",
+      "code": "TS18048",
+      "msg": "'index' is possibly 'undefined'."
+    }
+  ],
+  "src/views/billing/DebtCollectionCenter/DebtCollectionOverview.tsx": [
+    {
+      "line": "173",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "174",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "196",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "218",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "240",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "291",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DebtCollectionCenter/WorkQueueDetail.tsx": [
+    {
+      "line": "277",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "296",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "315",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "371",
+      "code": "TS2322",
+      "msg": "Type '{ size: \"small\"; placeholder: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => void; InputProps: { ...; }; sx: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "471",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/DeleteDublicate/InputFileDrop.tsx": [
+    {
+      "line": "84",
+      "code": "TS7006",
+      "msg": "Parameter 'e' implicitly has an 'any' type."
+    },
+    {
+      "line": "85",
+      "code": "TS2339",
+      "msg": "Property 'files' does not exist on type 'never'."
+    },
+    {
+      "line": "86",
+      "code": "TS2339",
+      "msg": "Property 'files' does not exist on type 'never'."
+    },
+    {
+      "line": "87",
+      "code": "TS2339",
+      "msg": "Property 'files' does not exist on type 'never'."
+    },
+    {
+      "line": "87",
+      "code": "TS2339",
+      "msg": "Property 'files' does not exist on type 'never'."
+    },
+    {
+      "line": "106",
+      "code": "TS7006",
+      "msg": "Parameter 'dropZoneElement' implicitly has an 'any' type."
+    },
+    {
+      "line": "106",
+      "code": "TS7006",
+      "msg": "Parameter 'file' implicitly has an 'any' type."
+    }
+  ],
+  "src/views/billing/MonayTransfer/MonayTransfer.tsx": [
+    {
+      "line": "16",
+      "code": "TS2305",
+      "msg": "Module '\"../CreateAbonentPetition.jsx/useStore\"' has no exported member 'IAbonentData'."
+    },
+    {
+      "line": "34",
+      "code": "TS2322",
+      "msg": "Type 'null' is not assignable to type 'File'."
+    },
+    {
+      "line": "68",
+      "code": "TS2322",
+      "msg": "Type 'null' is not assignable to type 'File'."
+    },
+    {
+      "line": "90",
+      "code": "TS18048",
+      "msg": "'qrData.result' is possibly 'undefined'."
+    },
+    {
+      "line": "133",
+      "code": "TS2322",
+      "msg": "Type 'string | null' is not assignable to type 'string | undefined'."
+    },
+    {
+      "line": "136",
+      "code": "TS2322",
+      "msg": "Type '{ accountNumber: string; amount: number; residentId: number; id: number; kSaldo: number; fullName: string; phone: string | null; mahallaName: string; }' is not assignable to type 'IRow'."
+    },
+    {
+      "line": "164",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "165",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "207",
+      "code": "TS2322",
+      "msg": "Type 'number | false' is not assignable to type 'number'."
+    },
+    {
+      "line": "208",
+      "code": "TS2322",
+      "msg": "Type 'number | false' is not assignable to type 'number'."
+    },
+    {
+      "line": "217",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "226",
+      "code": "TS2322",
+      "msg": "Type 'RefObject<null>' is not assignable to type 'MutableRefObject<HTMLDivElement>'."
+    }
+  ],
+  "src/views/billing/MonayTransfer/ToolsMonayTransfer.tsx": [
+    {
+      "line": "25",
+      "code": "TS2305",
+      "msg": "Module '\"../CreateAbonentPetition.jsx/useStore\"' has no exported member 'IAbonentData'."
+    },
+    {
+      "line": "237",
+      "code": "TS2322",
+      "msg": "Type '{ size: \"small\"; label: string; value: any; inputProps: { readOnly: boolean; }; sx: { flex: number; minWidth: number; }; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "254",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/NotariusCheck/NotariusCheck.tsx": [
+    {
+      "line": "30",
+      "code": "TS7006",
+      "msg": "Parameter 'input' implicitly has an 'any' type."
+    },
+    {
+      "line": "65",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "69",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/OdamSoniXatlov/modals/AddSingleXatlovModal.tsx": [
+    {
+      "line": "146",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "149",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/OdamSoniXatlov/modals/ImportXatlovExcelModal.tsx": [
+    {
+      "line": "195",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/OdamSoniXatlov/XatlovWorkspace.tsx": [
+    {
+      "line": "883",
+      "code": "TS2322",
+      "msg": "Type 'IXatlovDocument | undefined' is not assignable to type 'IXatlovDocument'."
+    }
+  ],
+  "src/views/billing/PrintAbonentsList/Header.tsx": [
+    {
+      "line": "170",
+      "code": "TS18047",
+      "msg": "'printContentRef.current' is possibly 'null'."
+    },
+    {
+      "line": "191",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Abonentlar ro'yxati bo'sh\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "205",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rasmlar tayyorlanmoqda...\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "207",
+      "code": "TS18047",
+      "msg": "'printContentRef.current' is possibly 'null'."
+    },
+    {
+      "line": "244",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Barcha rasmlar Telegramga muvaffaqiyatli yuborildi!\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "247",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rasm yuborishda xatolik yuz berdi.\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "271",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Excel yuklab olishda xatolik\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "337",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "338",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Jami abonentlar\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "373",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "374",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Jami saldo\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "405",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "406",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Yashovchilar soni\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "421",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Jadval sozlamalari (Shrift, Ustunlar, Rang)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "443",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Chop etish\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "453",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Excel\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "463",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Telegram\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "483",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Mahalla\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "546",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Filtrlarni tozalash\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "559",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Yangilash\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "571",
+      "code": "TS2322",
+      "msg": "Type '{ children: Element[]; open: boolean; onClose: () => void; maxWidth: \"sm\"; fullWidth: true; PaperProps: { sx: { borderRadius: number; p: number; }; }; }' is not assignable to type 'IntrinsicAttributes & DialogProps'."
+    },
+    {
+      "line": "573",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Jadval ko'rinishi sozlamalari\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "578",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Shrift o'lchami\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "601",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"QogтАШoz formati / YoтАШnalishi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "608",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Kitobcha (Portrait - A4 vertikal)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "609",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Albom (Landscape - A4 gorizontal)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "616",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Alifbo / Yozuv turi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "623",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Lotincha (O'zbek)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "624",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"╨Ъ╨╕╤А╨╕╨╗╨╗╤З╨░ (╨О╨╖╨▒╨╡╨║)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "631",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rang rejimi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "638",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rangli (Qizil/Yashil)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "639",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Rangsiz (Sof Qora)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "646",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Qator zichligi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "653",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ixcham (Ko'proq qator)\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "654",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Oddiy\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "662",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "665",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Jadvalda koтАШrsatiladigan ustunlar\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "686",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Tayyor\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    }
+  ],
+  "src/views/billing/PrintAbonentsList/HeaderFilters.tsx": [
+    {
+      "line": "24",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "47",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "70",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "75",
+      "code": "TS2322",
+      "msg": "Type '{ label: string; type: \"number\"; placeholder: string; InputProps: { inputProps: { step: number; }; }; value: any; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => any; fullWidth: true; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "87",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "92",
+      "code": "TS2322",
+      "msg": "Type '{ label: string; type: \"number\"; placeholder: string; InputProps: { inputProps: { step: number; }; }; value: any; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => any; fullWidth: true; }' is not assignable to type 'IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "104",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "109",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/PrintAbonentsList/MahallaSidebar.tsx": [
+    {
+      "line": "61",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "62",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "65",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Mahallalar\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "81",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Mahalla yoki nazoratchi qidirish...\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "106",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "107",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Mahalla yoki nazoratchi topilmadi\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "107",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Ro'yxat bo'sh\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "111",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "153",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "165",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Nazoratchi biriktirilmagan\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "167",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Nazoratchi biriktirilmagan\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    }
+  ],
+  "src/views/billing/PrintAbonentsList/PrintSection.tsx": [
+    {
+      "line": "127",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Abonentlar ro'yxati shakllantirilmagan\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "130",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"Chap tarafdagi paneldan mahallani tanlang yoki yuqoridagi filtrlar orqali 'Yangilash' tugmasini bosing\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    }
+  ],
+  "src/views/billing/Reports/SpecialTasksReport.tsx": [
+    {
+      "line": "377",
+      "code": "TS2339",
+      "msg": "Property 'totalChecking' does not exist on type 'ReportSummary'."
+    },
+    {
+      "line": "567",
+      "code": "TS2339",
+      "msg": "Property 'checkingTotal' does not exist on type 'InspectorReportRow'."
+    }
+  ],
+  "src/views/billing/SmsWarnings/ImportSmsModal.tsx": [
+    {
+      "line": "54",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/billing/XatlovDalolatnomalar/DataTable.tsx": [
+    {
+      "line": "42",
+      "code": "TS7006",
+      "msg": "Parameter 'document' implicitly has an 'any' type."
+    },
+    {
+      "line": "72",
+      "code": "TS2345",
+      "msg": "Argument of type 'boolean' is not assignable to parameter of type 'number'."
+    },
+    {
+      "line": "112",
+      "code": "TS2339",
+      "msg": "Property 'id' does not exist on type 'never'."
+    },
+    {
+      "line": "112",
+      "code": "TS2339",
+      "msg": "Property 'name' does not exist on type 'never'."
+    }
+  ],
+  "src/views/billing/XatlovDalolatnomalar/PreviewDialog.tsx": [
+    {
+      "line": "13",
+      "code": "TS7051",
+      "msg": "Parameter has a name but no type. Did you mean 'arg0: boolean'?"
+    }
+  ],
+  "src/views/dispatcher/Dashboard/index.tsx": [
+    {
+      "line": "137",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "138",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "141",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "148",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "151",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "167",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "182",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "191",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Drivers/dialogs/CreateDriverDialog.tsx": [
+    {
+      "line": "39",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Drivers/dialogs/EditDriverDialog.tsx": [
+    {
+      "line": "51",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Drivers/index.tsx": [
+    {
+      "line": "95",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "107",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "136",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "194",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "195",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Orders/dialogs/AssignOrderDialog.tsx": [
+    {
+      "line": "76",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Orders/dialogs/CreateOrderDialog.tsx": [
+    {
+      "line": "112",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "138",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "146",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Orders/dialogs/OrderDetailDrawer.tsx": [
+    {
+      "line": "76",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "109",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "119",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "138",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Schedule/index.tsx": [
+    {
+      "line": "92",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "110",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "212",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "225",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/dispatcher/Telegram/index.tsx": [
+    {
+      "line": "90",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "91",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "102",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "120",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/employeers/AddInspectorModal.tsx": [
+    {
+      "line": "66",
+      "code": "TS2322",
+      "msg": "Type '{ InputProps: { readOnly: boolean; }; margin: \"dense\"; id: string; label: string; type: \"text\"; fullWidth: true; variant: \"standard\"; value: any; }' is not assignable to type 'IntrinsicAttributes & { variant?: \"standard\" | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    },
+    {
+      "line": "84",
+      "code": "TS2322",
+      "msg": "Type '{ slotProps: { input: { readOnly: true; }; }; InputProps: { readOnly: boolean; }; margin: \"dense\"; id: string; label: string; type: \"text\"; fullWidth: true; variant: \"standard\"; value: any; }' is not assignable to type 'IntrinsicAttributes & { variant?: \"standard\" | undefined; } & Omit<FilledTextFieldProps | StandardTextFieldProps | OutlinedTextFieldProps, \"variant\">'."
+    }
+  ],
+  "src/views/employeers/Inspectors/Inspector360.tsx": [
+    {
+      "line": "1735",
+      "code": "TS2367",
+      "msg": "This comparison appears to be unintentional because the types '\"in-progress\" | \"rejected\"' and '\"checking\"' have no overlap."
+    }
+  ],
+  "src/views/employeers/Inspectors/Inspectors.tsx": [
+    {
+      "line": "105",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"errors.fetchDataFailed\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    },
+    {
+      "line": "145",
+      "code": "TS2345",
+      "msg": "Argument of type '[\"messages.statusUpdated\"]' is not assignable to parameter of type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'."
+    }
+  ],
+  "src/views/employeers/Tasks/EditTaskDialog.tsx": [
+    {
+      "line": "20",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "27",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "35",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "42",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "57",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "64",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "81",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/employeers/Tasks/FiltersBar.tsx": [
+    {
+      "line": "96",
+      "code": "TS2322",
+      "msg": "Type '{ label: string; selectedMahallaId: string; setSelectedMahallaId: (e: string | number) => void; defaultValueDisabled: false; defaultValueLabel: string; }' is not assignable to type 'IntrinsicAttributes & Omit<TextFieldProps, \"onChange\" | \"value\"> & { selectedMahallaId: string | number; setSelectedMahallaId: (e: string | number) => void; setMahallalar?: Dispatch<...> | undefined; defaultValueDisabled?: boolean | undefined; native?: boolean | undefined; }'."
+    }
+  ],
+  "src/views/employeers/Tasks/TasksStatsHeader.tsx": [
+    {
+      "line": "87",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "109",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/employeers/Tasks/TasksToolbar.tsx": [
+    {
+      "line": "21",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "31",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/gpsMonitoring/VisitGrafikPage/HeaderVisitGPage.tsx": [
+    {
+      "line": "71",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "81",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "86",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "97",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "108",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "113",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "118",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "126",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/jurist/CourtInvoices/DataTableCourtInvoices.tsx": [
+    {
+      "line": "68",
+      "code": "TS2339",
+      "msg": "Property 'map' does not exist on type 'GridRowSelectionModel'."
+    },
+    {
+      "line": "68",
+      "code": "TS7006",
+      "msg": "Parameter 'id' implicitly has an 'any' type."
+    }
+  ],
+  "src/views/jurist/CourtProcesses/MIBXatModal.tsx": [
+    {
+      "line": "18",
+      "code": "TS2345",
+      "msg": "Argument of type 'null' is not assignable to parameter of type 'IAbonent | (() => IAbonent)'."
+    },
+    {
+      "line": "19",
+      "code": "TS2554",
+      "msg": "Expected 1 arguments, but got 0."
+    },
+    {
+      "line": "23",
+      "code": "TS2322",
+      "msg": "Type 'RefObject<unknown>' is not assignable to type 'RefObject<ContentNode>'."
+    },
+    {
+      "line": "26",
+      "code": "TS7006",
+      "msg": "Parameter 'e' implicitly has an 'any' type."
+    },
+    {
+      "line": "40",
+      "code": "TS2322",
+      "msg": "Type 'null' is not assignable to type 'number'."
+    },
+    {
+      "line": "64",
+      "code": "TS2345",
+      "msg": "Argument of type 'string' is not assignable to parameter of type 'SetStateAction<null>'."
+    },
+    {
+      "line": "72",
+      "code": "TS2345",
+      "msg": "Argument of type 'PickerValue' is not assignable to parameter of type 'SetStateAction<Dayjs>'."
+    }
+  ],
+  "src/views/jurist/WarningLetters/useStore.ts": [
+    {
+      "line": "54",
+      "code": "TS2322",
+      "msg": "Type 'null' is not assignable to type 'string'."
+    }
+  ],
+  "src/views/productAdmin/ProductAnalytics.tsx": [
+    {
+      "line": "167",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "176",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "185",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "369",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "375",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "381",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "387",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "396",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    },
+    {
+      "line": "423",
+      "code": "TS2769",
+      "msg": "No overload matches this call."
+    }
+  ],
+  "src/views/stm/Acts/Toolbar.tsx": [
+    {
+      "line": "62",
+      "code": "TS7006",
+      "msg": "Parameter 'e' implicitly has an 'any' type."
+    },
+    {
+      "line": "66",
+      "code": "TS7006",
+      "msg": "Parameter 'row' implicitly has an 'any' type."
+    },
+    {
+      "line": "67",
+      "code": "TS7006",
+      "msg": "Parameter 'r' implicitly has an 'any' type."
+    },
+    {
+      "line": "94",
+      "code": "TS7006",
+      "msg": "Parameter 'e' implicitly has an 'any' type."
+    },
+    {
+      "line": "98",
+      "code": "TS7006",
+      "msg": "Parameter 'row' implicitly has an 'any' type."
+    },
+    {
+      "line": "99",
+      "code": "TS7006",
+      "msg": "Parameter 'r' implicitly has an 'any' type."
+    }
+  ]
+}

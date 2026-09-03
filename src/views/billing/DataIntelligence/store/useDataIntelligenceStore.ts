@@ -8,7 +8,8 @@ import {
 } from '../engine/matchingEngine';
 import {
   searchGreenZoneRealApi,
-  CandidateResult
+  CandidateResult,
+  CandidateSearchOptions
 } from '../engine/candidateFinder';
 import {
   StagingRecord,

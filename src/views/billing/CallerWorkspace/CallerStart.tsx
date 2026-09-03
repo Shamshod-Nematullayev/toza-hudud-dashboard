@@ -35,7 +35,7 @@ const CallerStart = () => {
   }, [navigate]);
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="80vh">
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
       <CircularProgress />
       <Typography sx={{ mt: 2 }}>Navbatdagi abonent yuklanmoqda, To‘ram...</Typography>
     </Box>

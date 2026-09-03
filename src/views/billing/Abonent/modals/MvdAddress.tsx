@@ -7,13 +7,13 @@ import { useAbonentStore } from '../hooks/abonentStore';
 // Ma'lumotlarni qatorma-qator ko'rsatish uchun yordamchi komponent
 const InfoRow = ({ label, value }: { label: string; value?: string | number }) => (
   <Grid container spacing={1} sx={{ mb: 1.5 }}>
-    <Grid item xs={5}>
+    <Grid size={{ xs: 5 }}>
       <Typography variant="subtitle2" color="textSecondary">
         {label}:
       </Typography>
     </Grid>
-    <Grid item xs={7}>
-      <Typography variant="body2" fontWeight={500}>
+    <Grid size={{ xs: 7 }}>
+      <Typography variant="body2" sx={{ fontWeight: 500 }}>
         {value || '—'}
       </Typography>
     </Grid>
@@ -42,7 +42,7 @@ function MvdAddress() {
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
-            <Grid container direction="column">
+            <Grid container sx={{ flexDirection: 'column' }}>
               <InfoRow label={t('tableHeaders.Viloyat')} value={addressInfo.Region?.Value} />
               <InfoRow label={t('tableHeaders.Tuman')} value={addressInfo.District?.Value} />
               <InfoRow label={t('tableHeaders.mfy')} value={addressInfo.Maxalla?.Value} />

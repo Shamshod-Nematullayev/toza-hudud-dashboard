@@ -47,7 +47,7 @@ export default function AktInfoCard() {
 function InfoRow({ label, value }) {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-      <Typography fontWeight={500}>{label}</Typography>
+      <Typography sx={{ fontWeight: 500 }}>{label}</Typography>
       <Typography color="text.secondary">{value}</Typography>
     </Box>
   );

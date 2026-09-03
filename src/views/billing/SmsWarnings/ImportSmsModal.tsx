@@ -51,7 +51,7 @@ function ImportSmsModal({ open, mode = 'individual', onClose, onSave }: Props) {
     >
       <DialogContent>
         <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" color="text.secondary" paragraph>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {isOrg
               ? "Tashkilot qarzdorlar ro'yxatini Excel fayli ko'rinishida yuklang. Faylda accountNumber, organizationId, phone va debtAmount bo'lishi lozim (Maksimal 1000 ta)."
               : "Aholi qarzdorlar ro'yxatini Excel fayli ko'rinishida yuklang. Faylda accountNumber, residentId, phone va debtAmount bo'lishi lozim (Maksimal 1000 ta)."}

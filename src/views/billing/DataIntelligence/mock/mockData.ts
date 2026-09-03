@@ -7,6 +7,7 @@ export interface StagingRecord extends RecordSource {
   validationIssues: ValidationIssue[];
   status: 'valid' | 'warning' | 'error';
   rowNumber: number;
+  rawPayload?: any;
 }
 
 export interface ValidationIssue {

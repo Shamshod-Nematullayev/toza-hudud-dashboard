@@ -183,7 +183,7 @@ export const SoliqRecordsTable: React.FC = () => {
               </Typography>
             </Box>
 
-            <Stack direction="row" spacing={1.5} alignItems="center">
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
               {/* Search Input */}
               <Box component="form" onSubmit={handleSearchSubmit}>
                 <TextField
@@ -192,12 +192,14 @@ export const SoliqRecordsTable: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   sx={{ width: { xs: '100%', sm: 260 } }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search fontSize="small" sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    )
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search fontSize="small" sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Box>
@@ -315,7 +317,7 @@ export const SoliqRecordsTable: React.FC = () => {
                     {/* MVD Propiska / Suggested People Count */}
                     <TableCell>
                       {row.cadastreNumber ? (
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                           {row.suggestedPeopleCount !== undefined && row.suggestedPeopleCount > 0 ? (
                             <Chip
                               icon={<GroupOutlined sx={{ fontSize: 15 }} />}
@@ -368,7 +370,7 @@ export const SoliqRecordsTable: React.FC = () => {
 
                     {/* Action */}
                     <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                      <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
                         {row.status !== 'matched' && row.cadastreNumber && (
                           <Tooltip title="Kadastr va MVD ma'lumotlari bilan yangi abonent kodini ochish">
                             <Button

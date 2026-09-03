@@ -21,7 +21,7 @@ function HeaderFilters({
   return (
     <Grid container spacing={1}>
       {/* Identifikatsiya */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
         <FormControl fullWidth>
           <InputLabel id="identity">Identifikatsiya</InputLabel>
 
@@ -44,7 +44,7 @@ function HeaderFilters({
       </Grid>
 
       {/* Elektr holati */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
         <FormControl fullWidth>
           <InputLabel id="etk-status">Elektr holati</InputLabel>
 
@@ -67,13 +67,13 @@ function HeaderFilters({
       </Grid>
 
       {/* Qarzdorlik dan */}
-      <Grid item xs={6} sm={6} md={4} lg={2}>
+      <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2 }}>
         <TextField
           label="dan"
           type="number"
           placeholder="qarzdorlik summasi"
-          InputProps={{
-            inputProps: {
+          slotProps={{
+            htmlInput: {
               step: 100000
             }
           }}
@@ -84,13 +84,13 @@ function HeaderFilters({
       </Grid>
 
       {/* Qarzdorlik gacha */}
-      <Grid item xs={6} sm={6} md={4} lg={2}>
+      <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2 }}>
         <TextField
           label="gacha"
           type="number"
           placeholder="qarzdorlik summasi"
-          InputProps={{
-            inputProps: {
+          slotProps={{
+            htmlInput: {
               step: 100000
             }
           }}
@@ -101,12 +101,12 @@ function HeaderFilters({
       </Grid>
 
       {/* Mahalla */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
         <MahallaSelection selectedMahallaId={selectedMahalla} setSelectedMahallaId={setSelectedMahalla} />
       </Grid>
 
       {/* Yangilash */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
         <Button
           onClick={() => {
             handleClickUpdate();

@@ -1,13 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Stack,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
+import { Box, Typography, Button, Paper, Stack, IconButton, Tooltip } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AddIcon from '@mui/icons-material/Add';
@@ -27,7 +19,7 @@ const STATUS_BG: Record<string, string> = {
   COMPLETED: '#388e3c',
   CANCELLED: '#c62828',
   NEW: '#546e7a',
-  SCHEDULED: '#0277bd',
+  SCHEDULED: '#0277bd'
 };
 
 export default function SchedulePage() {
@@ -41,7 +33,7 @@ export default function SchedulePage() {
     try {
       const [ordersRes, driversRes] = await Promise.all([
         api.get('/orders/today', { params: { date: date.format('YYYY-MM-DD') } }),
-        api.get('/drivers'),
+        api.get('/drivers')
       ]);
       setOrders(ordersRes.data.data || []);
       setDrivers(driversRes.data.data || []);
@@ -76,32 +68,32 @@ export default function SchedulePage() {
   return (
     <Box>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
-          <Typography variant="h3" fontWeight={700}>
+          <Typography variant="h3" sx={{ fontWeight: 700 }}>
             Jadval
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Texniklarning bugungi band va bo'sh vaqtlari
+            Haydovchilarning bugungi band va bo'sh vaqtlari
           </Typography>
         </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setCreateOpen(true)}
-          sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
+          sx={{ bgcolor: 'warning.main', color: '#000', '&:hover': { bgcolor: 'warning.dark' } }}
         >
           Yangi buyurtma
         </Button>
       </Box>
 
       {/* Legend + Date Nav */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Stack direction="row" alignItems="center" spacing={1}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           <IconButton onClick={() => setDate((d) => d.subtract(1, 'day'))}>
             <ChevronLeftIcon />
           </IconButton>
-          <Typography fontWeight={600}>
+          <Typography sx={{ fontWeight: 600 }}>
             {date.isSame(dayjs(), 'day') ? 'Bugun, ' : ''}
             {date.format('D-MMMM')}
           </Typography>
@@ -113,9 +105,9 @@ export default function SchedulePage() {
           {[
             ['Tayinlangan', '#5c6bc0'],
             ['Bajarilmoqda', '#f57c00'],
-            ['Bajarildi', '#388e3c'],
+            ['Bajarildi', '#388e3c']
           ].map(([label, color]) => (
-            <Stack direction="row" alignItems="center" spacing={0.5} key={label}>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }} key={label}>
               <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: color }} />
               <Typography variant="caption">{label}</Typography>
             </Stack>
@@ -126,7 +118,7 @@ export default function SchedulePage() {
       {/* Timeline Grid */}
       <Paper sx={{ overflow: 'auto', p: 0, borderRadius: 2 }}>
         {/* Hour header */}
-        <Box display="flex" sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', borderBottom: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ width: 180, minWidth: 180, p: 1, borderRight: '1px solid', borderColor: 'divider' }} />
           {HOURS.map((h) => (
             <Box
@@ -137,7 +129,7 @@ export default function SchedulePage() {
                 textAlign: 'center',
                 py: 1,
                 borderRight: '1px solid',
-                borderColor: 'divider',
+                borderColor: 'divider'
               }}
             >
               <Typography variant="caption" color="text.secondary">
@@ -151,11 +143,7 @@ export default function SchedulePage() {
         {drivers.map((driver) => {
           const driverOrders = getOrdersForDriver(driver._id);
           return (
-            <Box
-              key={driver._id}
-              display="flex"
-              sx={{ borderBottom: '1px solid', borderColor: 'divider', minHeight: ROW_HEIGHT }}
-            >
+            <Box key={driver._id} sx={{ display: 'flex', borderBottom: '1px solid', borderColor: 'divider', minHeight: ROW_HEIGHT }}>
               {/* Driver name */}
               <Box
                 sx={{
@@ -166,10 +154,10 @@ export default function SchedulePage() {
                   borderColor: 'divider',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                <Typography variant="body2" fontWeight={600}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {driver.name}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -189,7 +177,7 @@ export default function SchedulePage() {
                       top: 0,
                       bottom: 0,
                       width: 1,
-                      bgcolor: 'divider',
+                      bgcolor: 'divider'
                     }}
                   />
                 ))}
@@ -199,10 +187,7 @@ export default function SchedulePage() {
                   const block = getOrderBlock(order);
                   if (!block) return null;
                   return (
-                    <Tooltip
-                      key={order._id}
-                      title={`#${order._id.slice(-6).toUpperCase()} · ${order.customer} · ${order.address}`}
-                    >
+                    <Tooltip key={order._id} title={`#${order._id.slice(-6).toUpperCase()} · ${order.customer} · ${order.address}`}>
                       <Box
                         onClick={() => setDetailRow(order)}
                         sx={{
@@ -218,13 +203,13 @@ export default function SchedulePage() {
                           cursor: 'pointer',
                           overflow: 'hidden',
                           zIndex: 2,
-                          '&:hover': { opacity: 0.85 },
+                          '&:hover': { opacity: 0.85 }
                         }}
                       >
-                        <Typography variant="caption" color="white" fontWeight={600} noWrap display="block">
+                        <Typography variant="caption" sx={{ color: 'white', fontWeight: 600, display: 'block' }} noWrap>
                           #{order._id.slice(-6).toUpperCase()}
                         </Typography>
-                        <Typography variant="caption" color="rgba(255,255,255,0.85)" display="block" noWrap>
+                        <Typography variant="caption" color="rgba(255,255,255,0.85)" sx={{ display: 'block' }} noWrap>
                           {dayjs(order.scheduledAt).format('HH:mm')}
                         </Typography>
                       </Box>
@@ -237,8 +222,8 @@ export default function SchedulePage() {
         })}
 
         {drivers.length === 0 && (
-          <Box p={4} textAlign="center">
-            <Typography color="text.secondary">Texniklar topilmadi. Avval texnik qo'shing.</Typography>
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary">Haydovchilar topilmadi. Avval haydovchi qo'shing.</Typography>
           </Box>
         )}
       </Paper>

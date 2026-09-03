@@ -164,7 +164,7 @@ export default function ProductAnalytics() {
 
       {/* KPI Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{ p: 3 }}>
             <Typography variant="subtitle2" color="textSecondary" gutterBottom>Faol Foydalanuvchilar</Typography>
             <Typography variant="h3">{overview?.activeUsers?.last7Days || 0}</Typography>
@@ -173,7 +173,7 @@ export default function ProductAnalytics() {
             </Typography>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{ p: 3 }}>
             <Typography variant="subtitle2" color="textSecondary" gutterBottom>Faol Tashkilotlar</Typography>
             <Typography variant="h3">{overview?.organizations?.active7Days || 0}</Typography>
@@ -182,7 +182,7 @@ export default function ProductAnalytics() {
             </Typography>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{ p: 3 }}>
             <Typography variant="subtitle2" color="textSecondary" gutterBottom>Tizim Faolligi (So'rovlar)</Typography>
             <Typography variant="h3">{overview?.activity?.last7Days || 0}</Typography>
@@ -366,25 +366,25 @@ export default function ProductAnalytics() {
         {/* TAB 3: TELEGRAM */}
         <TabPanel value={tabValue} index={3}>
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'primary.dark' : 'primary.light', color: 'primary.main' }}>
                 <Typography variant="subtitle2" gutterBottom>Telegram Faol (Bugun)</Typography>
                 <Typography variant="h3" color="inherit">{telegram?.kpi?.activeUsersToday || 0}</Typography>
               </Card>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2 }}>
                 <Typography variant="subtitle2" color="textSecondary" gutterBottom>Telegram Faol (7 kun)</Typography>
                 <Typography variant="h3">{telegram?.kpi?.activeUsers7d || 0}</Typography>
               </Card>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2 }}>
                 <Typography variant="subtitle2" color="textSecondary" gutterBottom>Telegram Faol (30 kun)</Typography>
                 <Typography variant="h3">{telegram?.kpi?.activeUsers30d || 0}</Typography>
               </Card>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2 }}>
                 <Typography variant="subtitle2" color="textSecondary" gutterBottom>Jami Faollik (7 kun)</Typography>
                 <Typography variant="h3">{telegram?.kpi?.totalActivity7d || 0}</Typography>
@@ -393,7 +393,7 @@ export default function ProductAnalytics() {
           </Grid>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h4" sx={{ px: 2, mb: 2 }}>Eng ko'p ishlatilgan Commandlar</Typography>
               <TableContainer component={Paper} variant="outlined" sx={{ mb: 4 }}>
                 <Table size="small">
@@ -420,7 +420,7 @@ export default function ProductAnalytics() {
               </TableContainer>
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h4" sx={{ px: 2, mb: 2 }}>Eng ko'p bosilgan Tugmalar (Buttons)</Typography>
               <TableContainer component={Paper} variant="outlined" sx={{ mb: 4 }}>
                 <Table size="small">

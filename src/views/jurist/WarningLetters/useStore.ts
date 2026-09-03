@@ -15,8 +15,8 @@ interface StoreState {
   setFromDate: (fromDate: Date) => void;
   toDate: Date;
   setToDate: (toDate: Date) => void;
-  status: string;
-  setStatus: (status: string) => void;
+  status: string | null;
+  setStatus: (status: string | null) => void;
   filters: any;
   setFilters: (filters: any) => void;
   checked: any[];

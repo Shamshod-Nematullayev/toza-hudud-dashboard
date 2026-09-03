@@ -123,10 +123,10 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
         >
           <TableChartOutlined sx={{ fontSize: 40, color: 'text.disabled' }} />
         </Box>
-        <Typography variant="h5" fontWeight={600} color="text.secondary">
+        <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.secondary' }}>
           {t("Abonentlar ro'yxati shakllantirilmagan")}
         </Typography>
-        <Typography variant="body2" color="text.disabled" textAlign="center" sx={{ maxWidth: 450 }}>
+        <Typography variant="body2" color="text.disabled" sx={{ textAlign: 'center', maxWidth: 450 }}>
           {t("Chap tarafdagi paneldan mahallani tanlang yoki yuqoridagi filtrlar orqali 'Yangilash' tugmasini bosing")}
         </Typography>
       </Box>
@@ -230,8 +230,8 @@ export default function PrintSection({ printContentRef, filters }: PrintSectionP
                   <th style={{ padding: cellPadding, border: '1px solid #000', width: '32px' }}>{isCyrillic ? 'Хонадон' : 'Xonadon'}</th>
                 )}
                 {visibleCols.inhabitantCnt !== false && (
-                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '32px' }}>
-                    {isCyrillic ? 'Я/С' : 'Y/S'}
+                  <th style={{ padding: cellPadding, border: '1px solid #000', width: '28px' }}>
+                    {isCyrillic ? 'Я' : 'Y'}
                   </th>
                 )}
                 {visibleCols.ksaldo !== false && (

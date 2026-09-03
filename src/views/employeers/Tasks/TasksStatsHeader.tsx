@@ -84,7 +84,7 @@ function TasksStatsHeader() {
               justify: 'space-between',
             }}
           >
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {card.title}
               </Typography>
@@ -106,7 +106,7 @@ function TasksStatsHeader() {
               {statsLoading ? (
                 <Skeleton variant="text" width={80} height={36} />
               ) : (
-                <Stack direction="row" alignItems="baseline" spacing={1}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
                   <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary' }}>
                     {new Intl.NumberFormat('uz-UZ').format(card.value)}
                   </Typography>

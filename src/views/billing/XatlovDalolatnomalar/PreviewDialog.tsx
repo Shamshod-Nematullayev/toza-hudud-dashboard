@@ -10,7 +10,7 @@ function PreviewDialog({
 }: {
   requestDocuments: IMultiplyRequest[];
   document: IXatlovDocument;
-  setOpen: (boolean) => void;
+  setOpen: (open: boolean) => void;
 }) {
   const [mahalla, setMahalla] = useState<IMahalla>({} as IMahalla);
   useEffect(() => {

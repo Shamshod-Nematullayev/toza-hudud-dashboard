@@ -21,7 +21,7 @@ export default function CreateDriverDialog({ open, onClose, onSuccess }: Props) 
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         await api.post('/drivers', values);
-        toast.success("Texnik qo'shildi");
+        toast.success("Haydovchi qo'shildi");
         resetForm();
         onSuccess();
       } catch (err: any) {
@@ -33,10 +33,10 @@ export default function CreateDriverDialog({ open, onClose, onSuccess }: Props) 
   });
 
   return (
-    <DraggableDialog title="Yangi texnik qo'shish" open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <DraggableDialog title="Yangi haydovchi qo'shish" open={open} onClose={onClose} fullWidth maxWidth="sm">
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
-          <Stack spacing={2} pt={1}>
+          <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField
               label="To'liq ism"
               name="name"
@@ -58,13 +58,13 @@ export default function CreateDriverDialog({ open, onClose, onSuccess }: Props) 
               size="small"
             />
             <TextField
-              label="Mutaxassislik (ixtiyoriy)"
+              label="Maxsus texnika / Rusumi (ixtiyoriy)"
               name="specialization"
               value={formik.values.specialization}
               onChange={formik.handleChange}
               fullWidth
               size="small"
-              placeholder="Konditsioner ustasi, Santexnik, Elektrik..."
+              placeholder="Masalan: Chiqindi tashuvchi (Isuzu), Kamaz 5320..."
             />
           </Stack>
         </DialogContent>

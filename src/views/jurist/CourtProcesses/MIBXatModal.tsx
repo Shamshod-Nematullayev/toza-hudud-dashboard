@@ -12,18 +12,18 @@ import { reactToPrintDefaultOptions } from 'store/constant';
 
 function MIBXatModal({ handleClose, open }: { handleClose: () => void; open: boolean }) {
   const [pnfl, setPnfl] = useState('');
-  const [courtResultDate, setCourtResultDate] = useState<Dayjs>(dayjs());
+  const [courtResultDate, setCourtResultDate] = useState<Dayjs | null>(dayjs());
   const [courtResultNumber, setCourtResultNumber] = useState('21402');
-  const [claimAmount, setClaimAmount] = useState(null);
-  const [abonentDetails, setAbonentDetails] = useState<IAbonent>(null);
-  const componentRef = useRef();
+  const [claimAmount, setClaimAmount] = useState<string | number | null>('');
+  const [abonentDetails, setAbonentDetails] = useState<IAbonent | null>(null);
+  const componentRef = useRef<any>(null);
 
   const printFunction = useReactToPrint({
     ...reactToPrintDefaultOptions,
     contentRef: componentRef
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const abonents = await getResidents(pnfl);
     if (abonents.length != 1) return toast.error("Abonent topilmadi yoki qidiruv natijalari ko'p");

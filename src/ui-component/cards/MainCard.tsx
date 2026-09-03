@@ -37,6 +37,7 @@ const MainCard = React.forwardRef(
     }: {
       border?: boolean;
       boxShadow?: boolean;
+      elevation?: number;
       children?: React.ReactNode;
       content?: boolean;
       contentClass?: string;

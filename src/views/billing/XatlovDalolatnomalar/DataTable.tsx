@@ -28,9 +28,9 @@ function DataTable({
   setRows: any;
   setCurrentDocument: any;
   setRequestDocuments: (args0: any) => void;
-  setOpenPreviewDialog: (args0: number) => void;
+  setOpenPreviewDialog: (args0: boolean) => void;
 }) {
-  const [mahallalar, setMahallalar] = useState([]);
+  const [mahallalar, setMahallalar] = useState<any[]>([]);
   const { setPrintModal } = odamSoniXatlovStore();
 
   useEffect(() => {
@@ -39,7 +39,7 @@ function DataTable({
     });
   }, []);
 
-  const handleClickCancelButton = async (document) => {
+  const handleClickCancelButton = async (document: any) => {
     try {
       const asos = prompt(
         `Siz haqiqatan ham ushbu (${document.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing`

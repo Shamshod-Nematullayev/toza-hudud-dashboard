@@ -27,7 +27,7 @@ function NotariusCheck() {
     }
   };
   const handleChangeCadastrNum = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const formatInput = (input) => {
+    const formatInput = (input: string) => {
       const digits = input.replace(/\D/g, '').slice(0, 18); // Faqat raqamlar (max 18)
 
       const segments = [
@@ -62,11 +62,11 @@ function NotariusCheck() {
   return (
     <MainCard>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <TextField label="kadastr raqami" placeholder="00:00:00:00:0000:0000" onChange={handleChangeCadastrNum} value={cadastrNum} />
           <Button onClick={handleSearchButtonClick}>Qidirish</Button>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <h2>Natijalar:</h2>
           <p>
             <b>Kadastr bo'yicha</b>

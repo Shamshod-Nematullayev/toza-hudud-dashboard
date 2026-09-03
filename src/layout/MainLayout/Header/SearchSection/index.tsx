@@ -197,8 +197,8 @@ const SearchSection = () => {
                     <Transitions type="zoom" {...TransitionProps} sx={{ transformOrigin: 'center left' }}>
                       <Card sx={{ bgcolor: 'background.default', border: 0, boxShadow: 'none' }}>
                         <Box sx={{ p: 2 }}>
-                          <Grid container alignItems="center" justifyContent="space-between">
-                            <Grid item xs>
+                          <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Grid size={{ xs: 12 }}>
                               <MobileSearch value={value} setValue={setValue} popupState={popupState} />
                             </Grid>
                           </Grid>

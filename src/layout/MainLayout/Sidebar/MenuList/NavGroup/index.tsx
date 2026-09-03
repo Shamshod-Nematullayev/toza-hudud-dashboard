@@ -48,10 +48,10 @@ const NavGroup = ({ item }: { item: MenuItem }) => {
       <List
         subheader={
           item.title && (
-            <Typography variant="caption" sx={{ ...(theme.typography as any).menuCaption }} display="block" gutterBottom>
+            <Typography variant="caption" sx={{ ...(theme.typography as any).menuCaption, display: 'block' }} gutterBottom>
               {t(`menuItems.${item.title}`)}
               {item.caption && (
-                <Typography variant="caption" sx={{ ...(theme.typography as any).subMenuCaption }} display="block" gutterBottom>
+                <Typography variant="caption" sx={{ ...(theme.typography as any).subMenuCaption, display: 'block' }} gutterBottom>
                   {item.caption}
                 </Typography>
               )}

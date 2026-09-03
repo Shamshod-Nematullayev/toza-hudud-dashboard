@@ -70,7 +70,7 @@ const DataIntelligencePage: React.FC = () => {
           }}
         >
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
               <AutoAwesomeRounded sx={{ color: 'primary.main', fontSize: 24 }} />
               <Typography variant="h3" sx={{ fontWeight: 800 }}>
                 AI Data Intelligence — Soliq va GreenZone Solishtirish
@@ -136,11 +136,13 @@ const DataIntelligencePage: React.FC = () => {
         anchor="right"
         open={drawerMode !== 'none'}
         onClose={handleCloseDrawer}
-        PaperProps={{
-          sx: {
-            width: { xs: '100%', md: '80%', lg: '70%' },
-            p: 3,
-            bgcolor: 'background.default'
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100%', md: '80%', lg: '70%' },
+              p: 3,
+              bgcolor: 'background.default'
+            }
           }
         }}
       >

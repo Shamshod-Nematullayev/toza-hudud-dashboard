@@ -63,8 +63,10 @@ function AddInspectorModal({ setOpenCreateInspectorModal, setInspectors }: any) 
             ))}
           </Select>
           <TextField
-            InputProps={{
-              readOnly: true
+            slotProps={{
+              input: {
+                readOnly: true
+              }
             }}
             margin="dense"
             id="name"
@@ -75,14 +77,10 @@ function AddInspectorModal({ setOpenCreateInspectorModal, setInspectors }: any) 
             value={rows.find((row) => row.id === selectedInspector)?.id || ''}
           />
           <TextField
-            // @ts-ignore
             slotProps={{
               input: {
                 readOnly: true
               }
-            }}
-            InputProps={{
-              readOnly: true
             }}
             margin="dense"
             id="name"

@@ -143,10 +143,10 @@ export default function AddSingleXatlovModal({ open, onClose }: AddSingleXatlovM
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   F.I.SH: {abonentInfo.fio}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   Mahalla: {abonentInfo.mahallaName || 'Kiritilmagan'}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   Joriy yashovchilar soni: {abonentInfo.currentInhabitantCnt} ta
                 </Typography>
               </Alert>

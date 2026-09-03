@@ -934,7 +934,7 @@ function Debitors() {
         const page = (dataGridProps.paginationModel?.page || 0) + 1;
         const pageSize = dataGridProps.paginationModel?.pageSize || 25;
         const index = dataGridProps.rows?.findIndex((r: any) => r._id === params.row._id);
-        return (page - 1) * pageSize + (index >= 0 ? index + 1 : 1);
+        return (page - 1) * pageSize + (index != null && index >= 0 ? index + 1 : 1);
       }
     },
     {

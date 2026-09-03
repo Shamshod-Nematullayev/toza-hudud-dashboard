@@ -207,7 +207,7 @@ export const MatchingPlaygroundBlock: React.FC = () => {
       {/* Main Dual Pane Form & Result */}
       <Grid container spacing={3}>
         {/* LEFT PANE: Manba A (Soliq) */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card
             sx={{
               p: 2.5,
@@ -252,7 +252,7 @@ export const MatchingPlaygroundBlock: React.FC = () => {
                 value={sourceA.pnfl || ''}
                 onChange={(e) => setSourceA({ pnfl: e.target.value })}
                 placeholder="31205851230045"
-                inputProps={{ maxLength: 14 }}
+                slotProps={{ htmlInput: { maxLength: 14 } }}
               />
               <TextField
                 fullWidth
@@ -291,7 +291,7 @@ export const MatchingPlaygroundBlock: React.FC = () => {
         </Grid>
 
         {/* MIDDLE PANE: Match Details & Progress Bars */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card
             sx={{
               p: 2.5,
@@ -401,7 +401,7 @@ export const MatchingPlaygroundBlock: React.FC = () => {
         </Grid>
 
         {/* RIGHT PANE: Manba B (GreenZone) */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card
             sx={{
               p: 2.5,
@@ -444,7 +444,7 @@ export const MatchingPlaygroundBlock: React.FC = () => {
                 value={sourceB.pnfl || ''}
                 onChange={(e) => setSourceB({ pnfl: e.target.value })}
                 placeholder="31205851230045"
-                inputProps={{ maxLength: 14 }}
+                slotProps={{ htmlInput: { maxLength: 14 } }}
               />
               <TextField
                 fullWidth
@@ -484,7 +484,7 @@ export const MatchingPlaygroundBlock: React.FC = () => {
 
         {/* BOTTOM FULL-WIDTH: Explainability Block */}
         {result && (
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card
               sx={{
                 p: 3,
@@ -526,7 +526,7 @@ export const MatchingPlaygroundBlock: React.FC = () => {
               </Alert>
 
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Paper sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                       📋 Batafsil kuzatishlar:
@@ -541,14 +541,14 @@ export const MatchingPlaygroundBlock: React.FC = () => {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Paper sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                       ⚙️ Qo'llanilgan qoidalar (Applied Rules):
                     </Typography>
                     <Stack spacing={0.8}>
                       {result.appliedRules.map((rule, i) => (
-                        <Stack key={i} direction="row" spacing={1} alignItems="center">
+                        <Stack key={i} direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                           <Chip label={rule} size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }} />
                         </Stack>
                       ))}

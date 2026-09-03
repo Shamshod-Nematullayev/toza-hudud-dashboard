@@ -1,15 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Chip,
-  Stack,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
+import { Box, Typography, Button, Chip, Stack, TextField, InputAdornment, IconButton, Tooltip } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,7 +17,7 @@ const STATUS_FILTERS = [
   { label: 'Yangi', value: 'NEW' },
   { label: 'Tayinlangan', value: 'ASSIGNED' },
   { label: 'Bajarilmoqda', value: 'IN_PROGRESS' },
-  { label: 'Bajarildi', value: 'COMPLETED' },
+  { label: 'Bajarildi', value: 'COMPLETED' }
 ];
 
 export default function OrdersPage() {
@@ -72,15 +62,10 @@ export default function OrdersPage() {
       headerName: 'ID',
       width: 90,
       renderCell: ({ row }) => (
-        <Typography
-          variant="body2"
-          fontWeight={600}
-          sx={{ cursor: 'pointer', color: 'primary.main' }}
-          onClick={() => setDetailRow(row)}
-        >
+        <Typography variant="body2" sx={{ fontWeight: 600, cursor: 'pointer', color: 'primary.main' }} onClick={() => setDetailRow(row)}>
           #{row._id?.slice(-6).toUpperCase()}
         </Typography>
-      ),
+      )
     },
     {
       field: 'customer',
@@ -88,23 +73,21 @@ export default function OrdersPage() {
       width: 160,
       renderCell: ({ row }) => (
         <Box>
-          <Typography variant="body2" fontWeight={600}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
             {row.customer}
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {row.phone}
           </Typography>
         </Box>
-      ),
+      )
     },
     { field: 'address', headerName: 'Manzil', width: 180 },
     {
       field: 'description',
       headerName: 'Xizmat',
       width: 160,
-      renderCell: ({ row }) => (
-        <Typography variant="body2">{row.description?.slice(0, 40) || '—'}</Typography>
-      ),
+      renderCell: ({ row }) => <Typography variant="body2">{row.description?.slice(0, 40) || '—'}</Typography>
     },
     {
       field: 'scheduledAt',
@@ -117,16 +100,16 @@ export default function OrdersPage() {
           <Typography variant="body2" color="text.secondary">
             Vaqt belgilanmagan
           </Typography>
-        ),
+        )
     },
     {
       field: 'assignedTo',
-      headerName: 'Texnik',
+      headerName: 'Haydovchi',
       width: 130,
       renderCell: ({ row }) => {
         const driver = row.assignedTo as any;
         return <Typography variant="body2">{driver?.name || '—'}</Typography>;
-      },
+      }
     },
     {
       field: 'status',
@@ -142,7 +125,7 @@ export default function OrdersPage() {
             size="small"
           />
         );
-      },
+      }
     },
     {
       field: 'actions',
@@ -174,16 +157,16 @@ export default function OrdersPage() {
           );
         }
         return null;
-      },
-    },
+      }
+    }
   ];
 
   return (
     <MainCard
       title={
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Box>
-            <Typography variant="h3" fontWeight={700}>
+            <Typography variant="h3" sx={{ fontWeight: 700 }}>
               Buyurtmalar
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -194,14 +177,14 @@ export default function OrdersPage() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setCreateOpen(true)}
-            sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
+            sx={{ bgcolor: 'warning.main', color: '#000', '&:hover': { bgcolor: 'warning.dark' } }}
           >
             Yangi buyurtma
           </Button>
         </Box>
       }
     >
-      <Stack direction="row" spacing={1} mb={2} flexWrap="wrap" alignItems="center">
+      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
         {STATUS_FILTERS.map((f) => (
           <Chip
             key={f.value ?? 'all'}
@@ -225,12 +208,14 @@ export default function OrdersPage() {
             setPage(0);
             refresh();
           }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              )
+            }
           }}
           sx={{ ml: 'auto', width: 280 }}
         />

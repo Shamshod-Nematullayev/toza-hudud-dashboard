@@ -24,10 +24,10 @@ function MibXatPrintsection({
   abonentDetails,
   printRef
 }: {
-  courtResultDate: Dayjs;
+  courtResultDate: Dayjs | null;
   courtResultNumber: string;
-  claimAmount: number;
-  abonentDetails: IAbonent;
+  claimAmount: number | string | null;
+  abonentDetails: IAbonent | null;
   printRef: any;
 }) {
   const currentTime = new Date();
@@ -45,7 +45,7 @@ function MibXatPrintsection({
         <div style={{ width: '33%' }}>
           SANA:{' '}
           <b>
-            {String(currentTime.getDate()).padStart(2, '0')}.{String(courtResultDate.month() + 1).padStart(2, '0')}.
+            {String(currentTime.getDate()).padStart(2, '0')}.{String(courtResultDate ? courtResultDate.month() + 1 : currentTime.getMonth() + 1).padStart(2, '0')}.
             {currentTime.getFullYear()}
           </b>{' '}
           yil <br /> №: ____
@@ -61,7 +61,7 @@ function MibXatPrintsection({
           {String(courtResultDate.date()).padStart(2, '0')}.{String(courtResultDate.month() + 1).padStart(2, '0')}.{courtResultDate.year()}
         </b>
         -yildagi*/}
-        <b>{formatCourtNumber(courtResultNumber)}</b> sonli ijro varaqasiga asosan qarzdor <b>{formatName(abonentDetails?.fullName)}</b> dan
+        <b>{formatCourtNumber(courtResultNumber)}</b> sonli ijro varaqasiga asosan qarzdor <b>{formatName(abonentDetails?.fullName || '')}</b> dan
         undiruvchi <b>“Anvarjon Biznes Invest” MChJ</b> foydasiga <b>{Number(claimAmount).toLocaleString()}</b> so’m qarz undirish
         belgilangan.
       </p>

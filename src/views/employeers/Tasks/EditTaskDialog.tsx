@@ -17,14 +17,14 @@ function EditTaskDialog() {
         <p>Loading...</p>
       ) : (
         <Grid container spacing={1}>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               value={task.accountNumber}
               label={t('tableHeaders.accountNumber')}
               onChange={(e) => setTask({ ...task, accountNumber: e.target.value })}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               value={task.fullName}
               label={t('tableHeaders.fullName')}
@@ -32,14 +32,14 @@ function EditTaskDialog() {
               disabled
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <MahallaSelection
               selectedMahallaId={task.mahallaId}
               setSelectedMahallaId={(e) => setTask({ ...task, mahallaId: e as number })}
               defaultValueDisabled
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth>
               <InputLabel id={typeLabelId}>{t('taskTypes.type')}</InputLabel>
               <Select
@@ -54,14 +54,14 @@ function EditTaskDialog() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <InspectorSelection
               selectedIspectorId={Number(task.nazoratchi_id)}
               setSelectedIspectorId={(e) => setTask({ ...task, nazoratchi_id: e as number })}
               label={t('tableHeaders.inspector')}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth>
               <InputLabel id={statusLabelId}>{t('tableHeaders.status')}</InputLabel>
               <Select
@@ -78,7 +78,7 @@ function EditTaskDialog() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextareaAutosize
               minRows={5}
               placeholder={t('tableHeaders.purpose')}

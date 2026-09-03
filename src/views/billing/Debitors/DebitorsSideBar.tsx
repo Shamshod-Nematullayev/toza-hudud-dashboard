@@ -451,7 +451,7 @@ export function Sidebar({
             helperText="Bo'sh qoldirilsa barcha mos debitorlar ko'rib chiqiladi."
             sx={{ mb: 1.5 }}
           />
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
             {[
               { label: 'Barchasi', val: '' },
               { label: '500 ta', val: '500' },

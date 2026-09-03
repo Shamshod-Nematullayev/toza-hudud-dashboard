@@ -112,7 +112,7 @@ const uz = {
     dispatcherHome: 'Bosh sahifa',
     orders: 'Buyurtmalar',
     dispatchSchedule: 'Jadval',
-    drivers: 'Texniklar',
+    drivers: 'Haydovchilar',
     dispatchTelegram: 'Telegram'
   },
   priority: {

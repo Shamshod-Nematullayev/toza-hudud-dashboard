@@ -177,10 +177,10 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
         >
           <TableChartOutlined sx={{ fontSize: 32, color: 'text.disabled' }} />
         </Box>
-        <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.secondary' }}>
           {t("DHJ ma'lumotlari mavjud emas")}
         </Typography>
-        <Typography variant="caption" color="text.disabled" textAlign="center">
+        <Typography variant="caption" color="text.disabled" sx={{ textAlign: 'center' }}>
           {t("DHJ tarixini ko'rish uchun abonent hisob raqamini kiriting")}
         </Typography>
       </Box>
@@ -206,12 +206,11 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
               {label}
             </Typography>
           )}
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ overflow: 'hidden' }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', overflow: 'hidden' }}>
             <Typography
               variant="subtitle2"
-              fontWeight={700}
               noWrap
-              sx={{ maxWidth: { xs: '160px', sm: '240px', md: '300px' } }}
+              sx={{ fontWeight: 700, maxWidth: { xs: '160px', sm: '240px', md: '300px' } }}
               title={abonentData.fullName}
             >
               {abonentData.fullName || '—'}

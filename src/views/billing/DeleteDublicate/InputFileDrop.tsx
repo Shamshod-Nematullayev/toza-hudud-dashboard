@@ -52,8 +52,8 @@ const CustomStyle = createGlobalStyle`
   }
 `;
 function FileInputDrop({ setFunc }: { setFunc: (e: any) => void }) {
-  const dropZoneRef = useRef(null);
-  const fileInputRef = useRef(null);
+  const dropZoneRef = useRef<HTMLLabelElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // =============================|States|================================================
 
@@ -65,7 +65,7 @@ function FileInputDrop({ setFunc }: { setFunc: (e: any) => void }) {
 
     const handleDrop = async (e: any) => {
       e.preventDefault();
-      (dropZoneElement as HTMLElement)?.classList.remove('drop-zone--over');
+      dropZoneElement.classList.remove('drop-zone--over');
 
       updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
 
@@ -74,36 +74,36 @@ function FileInputDrop({ setFunc }: { setFunc: (e: any) => void }) {
 
     const handleDragOver = (e: any) => {
       e.preventDefault();
-      (dropZoneElement as HTMLElement)?.classList.add('drop-zone--over');
+      dropZoneElement.classList.add('drop-zone--over');
     };
 
     const handleDragLeave = () => {
-      (dropZoneElement as HTMLElement)?.classList.remove('drop-zone--over');
+      dropZoneElement.classList.remove('drop-zone--over');
     };
 
-    const handleChange = (e) => {
-      if (inputElement.files.length) {
+    const handleChange = (e: any) => {
+      if (inputElement.files && inputElement.files.length) {
         updateThumbnail(dropZoneElement, inputElement.files[0]);
         setFunc({ file: inputElement.files[0], url: URL.createObjectURL(inputElement.files[0]) });
       }
     };
 
-    (dropZoneElement as HTMLElement)?.addEventListener('dragover', handleDragOver);
-    (dropZoneElement as HTMLElement)?.addEventListener('dragleave', handleDragLeave);
-    (dropZoneElement as HTMLElement)?.addEventListener('dragend', handleDragLeave);
-    (dropZoneElement as HTMLElement)?.addEventListener('drop', handleDrop);
-    (inputElement as HTMLInputElement)?.addEventListener('change', handleChange);
+    dropZoneElement.addEventListener('dragover', handleDragOver);
+    dropZoneElement.addEventListener('dragleave', handleDragLeave);
+    dropZoneElement.addEventListener('dragend', handleDragLeave);
+    dropZoneElement.addEventListener('drop', handleDrop);
+    inputElement.addEventListener('change', handleChange);
 
     return () => {
-      (dropZoneElement as HTMLElement)?.removeEventListener('dragover', handleDragOver);
-      (dropZoneElement as HTMLElement)?.removeEventListener('dragleave', handleDragLeave);
-      (dropZoneElement as HTMLElement)?.removeEventListener('dragend', handleDragLeave);
-      (dropZoneElement as HTMLElement)?.removeEventListener('drop', handleDrop);
-      (inputElement as HTMLInputElement).removeEventListener('change', handleChange);
+      dropZoneElement.removeEventListener('dragover', handleDragOver);
+      dropZoneElement.removeEventListener('dragleave', handleDragLeave);
+      dropZoneElement.removeEventListener('dragend', handleDragLeave);
+      dropZoneElement.removeEventListener('drop', handleDrop);
+      inputElement.removeEventListener('change', handleChange);
     };
   }, []);
 
-  const updateThumbnail = (dropZoneElement, file) => {
+  const updateThumbnail = (dropZoneElement: any, file: any) => {
     let thumbnailElement = dropZoneElement.querySelector('.drop-zone__thumb');
 
     if (dropZoneElement.querySelector('.drop-zone__prompt')) {

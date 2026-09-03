@@ -166,6 +166,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
   });
 
   const printFunction = () => {
+    if (!printContentRef.current) return;
     if (isMobile) {
       document.body.innerHTML = printContentRef.current.innerHTML;
       window.print();
@@ -190,6 +191,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
     if (abonents.length === 0) {
       return toast.error(t("Abonentlar ro'yxati bo'sh"));
     }
+    if (!printContentRef.current) return;
 
     const rows = document.querySelectorAll('.abonent_rows');
     const maxRowsPerImage = 50;
@@ -204,7 +206,8 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
     try {
       toast.info(t('Rasmlar tayyorlanmoqda...'));
       for (let i = 0; i < rows.length; i += maxRowsPerImage) {
-        const clonedTable = printContentRef.current.querySelectorAll('table')[1].cloneNode(true) as HTMLElement;
+        const clonedTable = printContentRef.current.querySelectorAll('table')[1]?.cloneNode(true) as HTMLElement;
+        if (!clonedTable) continue;
         const tbody = clonedTable.querySelector('tbody') as HTMLElement;
 
         const rowsToRender = Array.from(rows).slice(i, i + maxRowsPerImage);
@@ -281,7 +284,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
     { key: 'homeNumber', label: 'Uy raqami' },
     { key: 'homeIndex', label: 'Uy indeksi' },
     { key: 'flatNumber', label: 'Xonadon' },
-    { key: 'inhabitantCnt', label: 'Yashovchilar soni (Y/S)' },
+    { key: 'inhabitantCnt', label: 'Yashovchilar soni (Y)' },
     { key: 'ksaldo', label: 'Qarzdorlik / Saldo' },
     { key: 'lastPayment', label: "Oxirgi to'lov (Summa / Sana)" },
     { key: 'electricityAccountNumber', label: 'Elektr hisob raqam (ETK)' },
@@ -334,10 +337,10 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
             >
               <GroupOutlined color="primary" sx={{ fontSize: 20 }} />
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>
                   {t('Jami abonentlar')}
                 </Typography>
-                <Typography variant="subtitle2" fontWeight={700} color="primary.dark">
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.dark' }}>
                   {stats.totalAbonents} ta
                 </Typography>
               </Box>
@@ -370,13 +373,15 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
                 sx={{ fontSize: 20 }}
               />
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>
                   {t('Jami saldo')}
                 </Typography>
                 <Typography
                   variant="subtitle2"
-                  fontWeight={700}
-                  color={stats.totalDebt > 0 ? 'error.main' : stats.totalDebt < 0 ? 'success.main' : 'text.primary'}
+                  sx={{
+                    fontWeight: 700,
+                    color: stats.totalDebt > 0 ? 'error.main' : stats.totalDebt < 0 ? 'success.main' : 'text.primary'
+                  }}
                 >
                   {stats.totalDebt.toLocaleString()} so'm
                 </Typography>
@@ -400,10 +405,10 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
             >
               <PeopleAltOutlined color="info" sx={{ fontSize: 20 }} />
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>
                   {t('Yashovchilar soni')}
                 </Typography>
-                <Typography variant="subtitle2" fontWeight={700} color="info.main">
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'info.main' }}>
                   {stats.totalInhabitants} kishi
                 </Typography>
               </Box>
@@ -566,13 +571,13 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
         onClose={() => setSettingsOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+        slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
       >
         <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>{t("Jadval ko'rinishi sozlamalari")}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
           {/* Shrift o'lchami */}
           <Box>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }} gutterBottom>
               {t("Shrift o'lchami")}: <b>{printTableSettings?.fontSize || 12}px</b>
             </Typography>
             <Slider
@@ -595,7 +600,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
 
           {/* Qog'oz formati / Yo'nalishi */}
           <Box>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }} gutterBottom>
               {t('Qog‘oz formati / Yo‘nalishi')}
             </Typography>
             <RadioGroup
@@ -610,7 +615,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
 
           {/* Alifbo tanlovi */}
           <Box>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }} gutterBottom>
               {t('Alifbo / Yozuv turi')}
             </Typography>
             <RadioGroup
@@ -625,7 +630,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
 
           {/* Rang rejimi */}
           <Box>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }} gutterBottom>
               {t('Rang rejimi')}
             </Typography>
             <RadioGroup
@@ -640,7 +645,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
 
           {/* Qator zichligi */}
           <Box>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }} gutterBottom>
               {t('Qator zichligi')}
             </Typography>
             <RadioGroup
@@ -657,9 +662,9 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
 
           {/* Ustunlarni boshqarish (Visible Columns) */}
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
               <ViewColumnOutlined fontSize="small" color="primary" />
-              <Typography variant="subtitle2" fontWeight={700}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 {t('Jadvalda ko‘rsatiladigan ustunlar')}
               </Typography>
             </Stack>

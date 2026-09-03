@@ -63,7 +63,7 @@ export default function DriversPage() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" p={6}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
         <CircularProgress />
       </Box>
     );
@@ -71,13 +71,13 @@ export default function DriversPage() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
-          <Typography variant="h3" fontWeight={700}>
-            Texniklar
+          <Typography variant="h3" sx={{ fontWeight: 700 }}>
+            Haydovchilar
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Jamoa a'zolari, ularning holati va yuklamasi
+            Haydovchilar, ularning holati va yuklamasi
           </Typography>
         </Box>
         <Button
@@ -86,13 +86,13 @@ export default function DriversPage() {
           onClick={() => setCreateOpen(true)}
           sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
         >
-          Texnik qo'shish
+          Haydovchi qo'shish
         </Button>
       </Box>
 
       <Grid container spacing={2}>
         {drivers.map((driver) => (
-          <Grid item xs={12} sm={6} md={4} key={driver._id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={driver._id}>
             <Paper
               sx={{
                 p: 2.5,
@@ -103,8 +103,8 @@ export default function DriversPage() {
               }}
             >
               {/* Header */}
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                <Stack direction="row" spacing={1.5} alignItems="center">
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                   <Avatar
                     sx={{
                       bgcolor: driver.status === 'busy' ? 'warning.main' : 'success.main',
@@ -116,7 +116,7 @@ export default function DriversPage() {
                     {getInitials(driver.name)}
                   </Avatar>
                   <Box>
-                    <Typography fontWeight={700}>{driver.name}</Typography>
+                    <Typography sx={{ fontWeight: 700 }}>{driver.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       {driver.specialization || '—'}
                     </Typography>
@@ -133,23 +133,25 @@ export default function DriversPage() {
               <Divider sx={{ mb: 2 }} />
 
               {/* Info */}
-              <Stack spacing={1} mb={2}>
-                <Box display="flex" justifyContent="space-between">
+              <Stack spacing={1} sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">
                     Telefon
                   </Typography>
-                  <Typography variant="body2" fontWeight={500}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {driver.phone}
                   </Typography>
                 </Box>
-                <Box display="flex" justifyContent="space-between">
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">
                     Telegram
                   </Typography>
                   <Typography
                     variant="body2"
-                    fontWeight={500}
-                    color={driver.telegramId ? 'success.main' : 'error.main'}
+                    sx={{
+                      fontWeight: 500,
+                      color: driver.telegramId ? 'success.main' : 'error.main'
+                    }}
                   >
                     {driver.telegramUsername
                       ? `@${driver.telegramUsername}`
@@ -189,10 +191,10 @@ export default function DriversPage() {
         ))}
 
         {drivers.length === 0 && (
-          <Grid item xs={12}>
-            <Box textAlign="center" py={6}>
+          <Grid size={{ xs: 12 }}>
+            <Box sx={{ textAlign: 'center', py: 6 }}>
               <Typography color="text.secondary">
-                Texniklar ro'yxati bo'sh. Yangi texnik qo'shing.
+                Haydovchilar ro'yxati bo'sh. Yangi haydovchi qo'shing.
               </Typography>
             </Box>
           </Grid>

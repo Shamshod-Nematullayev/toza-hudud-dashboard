@@ -191,7 +191,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
         }}
       >
         {/* Title & Status */}
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
               width: 44,
@@ -214,7 +214,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
           </Box>
 
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 AI Matching Jarayoni (Avtomatlashtirilgan Job)
               </Typography>
@@ -233,7 +233,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
         </Stack>
 
         {/* Action Controls */}
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Button
             size="small"
             variant="outlined"
@@ -301,14 +301,14 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
             bgcolor: alpha(theme.palette.background.default, 0.6)
           }}
         >
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
             <FilterAltOutlined color="primary" fontSize="small" />
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
               AI Matching Ishga Tushirish Filtrlari:
             </Typography>
           </Stack>
 
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             {/* Scope Filter */}
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <FormControl size="small" fullWidth>
@@ -344,7 +344,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
                 <Select
                   value={selectedMahallaId}
                   label="Mahallani tanlang (Ixtiyoriy)"
-                  onChange={(e) => setSelectedMahallaId(e.target.value === '' ? '' : Number(e.target.value))}
+                  onChange={(e) => setSelectedMahallaId(String(e.target.value) === '' ? '' : (Number(e.target.value) as any))}
                 >
                   <MenuItem value="">
                     <em>Barcha mahallalar</em>
@@ -360,7 +360,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
 
             {/* Additional Checkboxes */}
             <Grid size={{ xs: 12, md: 4 }}>
-              <Stack direction="row" spacing={1.5} flexWrap="wrap">
+              <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <FormControlLabel
                   control={
                     <Checkbox

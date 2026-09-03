@@ -23,7 +23,7 @@ export default function EditDriverDialog({ open, driver, onClose, onSuccess }: P
     onSubmit: async (values, { setSubmitting }) => {
       try {
         await api.put(`/drivers/${driver._id}`, values);
-        toast.success('Texnik yangilandi');
+        toast.success('Haydovchi yangilandi');
         onSuccess();
       } catch (err: any) {
         toast.error(err.response?.data?.message || 'Xatolik');
@@ -48,7 +48,7 @@ export default function EditDriverDialog({ open, driver, onClose, onSuccess }: P
     <DraggableDialog title={`Tahrirlash: ${driver.name}`} open={open} onClose={onClose} fullWidth maxWidth="sm">
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
-          <Stack spacing={2} pt={1}>
+          <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField
               label="To'liq ism"
               name="name"
@@ -70,7 +70,7 @@ export default function EditDriverDialog({ open, driver, onClose, onSuccess }: P
               size="small"
             />
             <TextField
-              label="Mutaxassislik"
+              label="Maxsus texnika / Rusumi"
               name="specialization"
               value={formik.values.specialization}
               onChange={formik.handleChange}
@@ -80,10 +80,10 @@ export default function EditDriverDialog({ open, driver, onClose, onSuccess }: P
 
             <Divider />
             <Box>
-              <Typography variant="body2" color="text.secondary" mb={1}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 Telegram holati
               </Typography>
-              <Typography variant="body2" color={driver.telegramId ? 'success.main' : 'warning.main'} mb={1}>
+              <Typography variant="body2" sx={{ color: driver.telegramId ? 'success.main' : 'warning.main', mb: 1 }}>
                 {driver.telegramId
                   ? `✅ Ulangan: ${driver.telegramUsername ? '@' + driver.telegramUsername : driver.telegramId}`
                   : '⚠️ Ulanmagan'}

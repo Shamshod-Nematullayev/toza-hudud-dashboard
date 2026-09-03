@@ -13,7 +13,7 @@ function PrintSectionMonayTransferAriza({
   debitorDetails,
   transferReason = 'ortiqcha_tulov'
 }: {
-  printComponentRef: MutableRefObject<HTMLDivElement>;
+  printComponentRef: any;
   ariza: IAriza | null;
   abonentDetails: AbonentDetails;
   debitorDetails?: { accountNumber?: string; fullName?: string; mahallaName?: string };

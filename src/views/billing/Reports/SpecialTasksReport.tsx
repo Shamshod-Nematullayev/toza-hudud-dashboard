@@ -52,6 +52,7 @@ interface InspectorReportRow {
   completedTotal: number;
   inProgressTotal: number;
   rejectedTotal: number;
+  checkingTotal?: number;
   rangeCompleted: number;
   completionPct: number;
   phoneCount: number;
@@ -64,6 +65,7 @@ interface ReportSummary {
   totalCompleted: number;
   totalInProgress: number;
   totalRejected: number;
+  totalChecking?: number;
   totalRangeCompleted: number;
 }
 

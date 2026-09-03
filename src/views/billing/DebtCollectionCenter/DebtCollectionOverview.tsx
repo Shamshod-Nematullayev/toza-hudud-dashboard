@@ -170,8 +170,8 @@ function DebtCollectionOverview() {
           border: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Grid container spacing={2.5} alignItems="center">
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid container spacing={2.5} sx={{ alignItems: 'center' }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper
               elevation={0}
               sx={{
@@ -193,7 +193,7 @@ function DebtCollectionOverview() {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper
               elevation={0}
               sx={{
@@ -215,7 +215,7 @@ function DebtCollectionOverview() {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper
               elevation={0}
               sx={{
@@ -237,7 +237,7 @@ function DebtCollectionOverview() {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper
               elevation={0}
               sx={{
@@ -288,7 +288,7 @@ function DebtCollectionOverview() {
           const pctOfTotal = overview.activeCount > 0 ? Math.round((queue.count / overview.activeCount) * 100) : 0;
 
           return (
-            <Grid item xs={12} sm={6} md={4} key={queue.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={queue.id}>
               <Card
                 sx={{
                   height: '100%',

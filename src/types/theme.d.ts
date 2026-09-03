@@ -87,6 +87,28 @@ declare module '@mui/material/styles' {
     divider: string;
   }
 
+  interface TypographyVariants {
+    commonAvatar: React.CSSProperties;
+    smallAvatar: React.CSSProperties;
+    mediumAvatar: React.CSSProperties;
+    largeAvatar: React.CSSProperties;
+    menuCaption: React.CSSProperties;
+    subMenuCaption: React.CSSProperties;
+    customInput: React.CSSProperties;
+    mainContent: React.CSSProperties;
+  }
+
+  interface TypographyVariantsOptions {
+    commonAvatar?: React.CSSProperties;
+    smallAvatar?: React.CSSProperties;
+    mediumAvatar?: React.CSSProperties;
+    largeAvatar?: React.CSSProperties;
+    menuCaption?: React.CSSProperties;
+    subMenuCaption?: React.CSSProperties;
+    customInput?: React.CSSProperties;
+    mainContent?: React.CSSProperties;
+  }
+
   interface ThemeOptions {
     colors?: Theme['colors'];
     customization?: Theme['customization'];
@@ -101,3 +123,4 @@ declare module '@mui/material/styles' {
     divider?: string;
   }
 }
+

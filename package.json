@@ -11,8 +11,9 @@
   "scripts": {
     "start": "env-cmd -f .env vite",
     "dev": "env-cmd -f .env vite",
-    "build": "vite build",
-    "devBuild": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
+    "build": "tsc && vite build",
+    "devBuild": "tsc && node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
+    "typecheck": "tsc",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
