@@ -16,13 +16,18 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import LinkIcon from '@mui/icons-material/Link';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import api from 'utils/api';
 import { DriverRow } from '../types';
 import CreateDriverDialog from './dialogs/CreateDriverDialog';
 import EditDriverDialog from './dialogs/EditDriverDialog';
 import { toast } from 'react-toastify';
+import useCustomizationStore from 'store/customizationStore';
 
 export default function DriversPage() {
+  const user = useCustomizationStore((state) => state.user);
+  const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
+
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -42,6 +47,17 @@ export default function DriversPage() {
   useEffect(() => {
     fetchDrivers();
   }, [fetchDrivers]);
+
+  const handleDeleteDriver = async (driver: DriverRow) => {
+    if (!window.confirm(`${driver.name} haydovchisini tizimdan o'chirmoqchimisiz?`)) return;
+    try {
+      await api.delete(`/drivers/${driver._id}`);
+      toast.success("Haydovchi muvaffaqiyatli o'chirildi");
+      fetchDrivers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "O'chirishda xatolik yuz berdi");
+    }
+  };
 
   const handleCopyLink = async (driver: DriverRow) => {
     try {
@@ -84,7 +100,12 @@ export default function DriversPage() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setCreateOpen(true)}
-          sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
+          sx={{
+            bgcolor: 'warning.main',
+            color: '#000',
+            fontWeight: 700,
+            '&:hover': { bgcolor: 'warning.dark', color: '#000' }
+          }}
         >
           Haydovchi qo'shish
         </Button>
@@ -185,6 +206,13 @@ export default function DriversPage() {
                 <IconButton size="small" onClick={() => setEditRow(driver)}>
                   <EditOutlinedIcon fontSize="small" />
                 </IconButton>
+                {isAdmin && (
+                  <Tooltip title="Haydovchini o'chirish">
+                    <IconButton size="small" color="error" onClick={() => handleDeleteDriver(driver)}>
+                      <DeleteOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </Stack>
             </Paper>
           </Grid>

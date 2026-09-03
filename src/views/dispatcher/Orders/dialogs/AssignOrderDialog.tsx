@@ -110,7 +110,17 @@ export default function AssignOrderDialog({ open, row, onClose, onSuccess }: Pro
           </DialogContent>
           <DialogActions>
             <Button onClick={onClose}>Bekor qilish</Button>
-            <Button type="submit" variant="contained" color="warning" disabled={formik.isSubmitting}>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={formik.isSubmitting}
+              sx={{
+                bgcolor: 'warning.main',
+                color: '#000',
+                fontWeight: 700,
+                '&:hover': { bgcolor: 'warning.dark', color: '#000' }
+              }}
+            >
               📨 Tayinlash va Yuborish
             </Button>
           </DialogActions>

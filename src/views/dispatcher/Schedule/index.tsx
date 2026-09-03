@@ -81,7 +81,12 @@ export default function SchedulePage() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setCreateOpen(true)}
-          sx={{ bgcolor: 'warning.main', color: '#000', '&:hover': { bgcolor: 'warning.dark' } }}
+          sx={{
+            bgcolor: 'warning.main',
+            color: '#000',
+            fontWeight: 700,
+            '&:hover': { bgcolor: 'warning.dark', color: '#000' }
+          }}
         >
           Yangi buyurtma
         </Button>

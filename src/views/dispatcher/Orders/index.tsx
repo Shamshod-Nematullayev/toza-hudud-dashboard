@@ -4,9 +4,12 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import SendIcon from '@mui/icons-material/Send';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import dayjs from 'dayjs';
+import { toast } from 'react-toastify';
+import useCustomizationStore from 'store/customizationStore';
 import { OrderRow, STATUS_LABELS, STATUS_COLORS, isOverdue } from '../types';
 import CreateOrderDialog from './dialogs/CreateOrderDialog';
 import AssignOrderDialog from './dialogs/AssignOrderDialog';
@@ -21,6 +24,9 @@ const STATUS_FILTERS = [
 ];
 
 export default function OrdersPage() {
+  const user = useCustomizationStore((state) => state.user);
+  const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
+
   const [rows, setRows] = useState<OrderRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -33,6 +39,25 @@ export default function OrdersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [assignRow, setAssignRow] = useState<OrderRow | null>(null);
   const [detailRow, setDetailRow] = useState<OrderRow | null>(null);
+
+  const refresh = () => setRefreshKey((k) => k + 1);
+
+  const handleDeleteOrder = async (order: OrderRow) => {
+    const confirmText =
+      order.status === 'NEW'
+        ? `Buyurtma #${order._id?.slice(-6).toUpperCase()} ni o'chirmoqchimisiz?`
+        : `DIQQAT! Buyurtma holati: "${STATUS_LABELS[order.status]}". Haqiqatan ham ushbu buyurtmani o'chirib tashlamoqchimisiz?`;
+
+    if (!window.confirm(confirmText)) return;
+
+    try {
+      await api.delete(`/orders/${order._id}`);
+      toast.success("Buyurtma muvaffaqiyatli o'chirildi");
+      refresh();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "O'chirishda xatolik yuz berdi");
+    }
+  };
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -53,8 +78,6 @@ export default function OrdersPage() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
-
-  const refresh = () => setRefreshKey((k) => k + 1);
 
   const columns: GridColDef[] = [
     {
@@ -130,33 +153,45 @@ export default function OrdersPage() {
     {
       field: 'actions',
       headerName: 'Amal',
-      width: 120,
+      width: 155,
       sortable: false,
       renderCell: ({ row }) => {
-        if (row.status === 'NEW' || row.status === 'SCHEDULED' || row.status === 'POSTPONED') {
-          return (
-            <Button size="small" variant="contained" onClick={() => setAssignRow(row)}>
-              Tayinlash
-            </Button>
-          );
-        }
-        if (row.status === 'ASSIGNED' || row.status === 'IN_PROGRESS') {
-          return (
-            <Tooltip title="Telegram orqali yuborilgan">
-              <IconButton size="small" color="primary" onClick={() => setDetailRow(row)}>
-                <SendIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          );
-        }
-        if (row.status === 'COMPLETED') {
-          return (
-            <Button size="small" variant="outlined" color="success" disabled>
-              Bajarildi
-            </Button>
-          );
-        }
-        return null;
+        const canDelete = isAdmin || row.status === 'NEW';
+        return (
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
+            {(row.status === 'NEW' || row.status === 'SCHEDULED' || row.status === 'POSTPONED') && (
+              <Button size="small" variant="contained" onClick={() => setAssignRow(row)}>
+                Tayinlash
+              </Button>
+            )}
+            {(row.status === 'ASSIGNED' || row.status === 'IN_PROGRESS') && (
+              <Tooltip title="Telegram orqali yuborilgan">
+                <IconButton size="small" color="primary" onClick={() => setDetailRow(row)}>
+                  <SendIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {row.status === 'COMPLETED' && (
+              <Button size="small" variant="outlined" color="success" disabled>
+                Bajarildi
+              </Button>
+            )}
+            {canDelete && (
+              <Tooltip title={row.status === 'NEW' ? "Buyurtmani o'chirish" : "Admin: Buyurtmani o'chirish"}>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteOrder(row);
+                  }}
+                >
+                  <DeleteOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Stack>
+        );
       }
     }
   ];
@@ -177,7 +212,12 @@ export default function OrdersPage() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setCreateOpen(true)}
-            sx={{ bgcolor: 'warning.main', color: '#000', '&:hover': { bgcolor: 'warning.dark' } }}
+            sx={{
+              bgcolor: 'warning.main',
+              color: '#000',
+              fontWeight: 700,
+              '&:hover': { bgcolor: 'warning.dark', color: '#000' }
+            }}
           >
             Yangi buyurtma
           </Button>
