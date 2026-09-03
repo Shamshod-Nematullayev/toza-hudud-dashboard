@@ -58,7 +58,17 @@ interface CompanyItem {
   name: string;
 }
 
-const AVAILABLE_ROLES = ['admin', 'stm', 'billing', 'yurist', 'gps', 'product_admin', 'rahbar', 'murojaat_nazoratchi'];
+const AVAILABLE_ROLES = [
+  'admin',
+  'dispatcher',
+  'stm',
+  'billing',
+  'yurist',
+  'gps',
+  'product_admin',
+  'rahbar',
+  'murojaat_nazoratchi'
+];
 
 const initialUserState: UserData = {
   login: '',
@@ -85,14 +95,13 @@ export default function Users() {
     try {
       const [usersRes, companiesRes] = await Promise.all([
         api.get('/product-admin/users'),
-        api.get('/auth/companies') // Expose list of companies
+        api.get('/product-admin/companies').catch(() => api.get('/auth/companies'))
       ]);
       if (usersRes.data.ok) {
         setUsers(usersRes.data.data || []);
       }
-      if (companiesRes.data.success) {
-        setCompanies(companiesRes.data.data || []);
-      }
+      const list = companiesRes.data?.data || companiesRes.data?.companies || [];
+      setCompanies(list);
     } catch (err: any) {
       toast.error(err.message || 'Ma\'lumotlarni yuklashda xatolik');
     } finally {
@@ -331,20 +340,26 @@ export default function Users() {
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <FormControl fullWidth>
+                <FormControl fullWidth required>
                   <InputLabel id="company-select-label">Tashkilot</InputLabel>
                   <Select
                     labelId="company-select-label"
-                    value={form.companyId || ''}
+                    value={form.companyId ? form.companyId : ''}
                     label="Tashkilot"
                     required
                     onChange={(e) => setForm({ ...form, companyId: Number(e.target.value) })}
                   >
-                    {companies.map((c) => (
-                      <MenuItem key={c.id} value={c.id}>
-                        {c.name}
+                    {companies.length === 0 ? (
+                      <MenuItem value="" disabled>
+                        Tashkilotlar mavjud emas
                       </MenuItem>
-                    ))}
+                    ) : (
+                      companies.map((c) => (
+                        <MenuItem key={c.id} value={c.id}>
+                          {c.name} (ID: {c.id})
+                        </MenuItem>
+                      ))
+                    )}
                   </Select>
                 </FormControl>
               </Grid>
