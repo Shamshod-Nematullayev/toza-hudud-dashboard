@@ -33,6 +33,17 @@ export interface IPrintTableCustomization {
   visibleColumns: ITableVisibleColumns;
 }
 
+export interface IMenuItemCustomization {
+  order?: string[];     // User-defined order of item IDs
+  hidden?: string[];    // IDs of hidden items
+}
+
+export interface IMenuCustomizationSettings {
+  groupOrder?: string[];                           // Order of main groups
+  hiddenGroups?: string[];                         // Hidden group IDs
+  itemsByGroup?: Record<string, IMenuItemCustomization>; // Per-group item customization
+}
+
 interface CustomizationState {
   customization: {
     isOpen: string[];
@@ -47,6 +58,9 @@ interface CustomizationState {
   };
   printTableSettings: IPrintTableCustomization;
   setPrintTableSettings: (settings: Partial<IPrintTableCustomization>) => void;
+  menuSettings: IMenuCustomizationSettings;
+  setMenuSettings: (settings: Partial<IMenuCustomizationSettings>) => void;
+  resetMenuSettings: () => void;
   user: {
     fullName: string;
     avatar: string;
@@ -101,6 +115,12 @@ const defaultPrintTableSettings: IPrintTableCustomization = {
   visibleColumns: defaultVisibleColumns
 };
 
+export const defaultMenuSettings: IMenuCustomizationSettings = {
+  groupOrder: [],
+  hiddenGroups: [],
+  itemsByGroup: {}
+};
+
 const initialState = {
   customization: {
     isOpen: [],
@@ -114,6 +134,7 @@ const initialState = {
     mfyRaisiIshtirok: true
   },
   printTableSettings: defaultPrintTableSettings,
+  menuSettings: defaultMenuSettings,
   user: null,
   company: {
     billingAdminName: '',
@@ -141,6 +162,14 @@ const useCustomizationStore = create<CustomizationState>()(
         set((state) => ({
           printTableSettings: { ...state.printTableSettings, ...settings }
         })),
+      setMenuSettings: (settings) =>
+        set((state) => ({
+          menuSettings: { ...state.menuSettings, ...settings }
+        })),
+      resetMenuSettings: () =>
+        set({
+          menuSettings: defaultMenuSettings
+        }),
       language: 'ru',
       setLanguage: (language) => set({ language }),
       resetCustomization: () => set({ customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' } }),

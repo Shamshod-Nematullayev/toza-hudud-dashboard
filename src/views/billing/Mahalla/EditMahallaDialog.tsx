@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Stack, Typography, IconButton, Divider, Grid, FormControlLabel, Checkbox, MenuItem } from '@mui/material';
+import { TextField, Button, Stack, Typography, IconButton, Divider, Grid, FormControlLabel, Checkbox, MenuItem, Box } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 
@@ -19,6 +19,9 @@ export interface MahallaData {
   readyToBlock?: boolean;
   mfyPrimaryName?: string;
   sektor?: string;
+  groupId?: string;
+  groupName?: string;
+  groupColor?: string;
 }
 
 interface Props {
@@ -26,9 +29,10 @@ interface Props {
   onClose: () => void;
   initialData?: MahallaData;
   onSave: (data: MahallaData) => void;
+  availableGroups?: { _id: string; name: string; color: string }[];
 }
 
-function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
+function EditMahallaDialog({ open, onClose, initialData, onSave, availableGroups = [] }: Props) {
   const [formData, setFormData] = useState<MahallaData>({
     name: '',
     mfy_rais_name: '',
@@ -36,7 +40,10 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
     employees: [],
     readyToBlock: false,
     mfyPrimaryName: '',
-    sektor: ''
+    sektor: '',
+    groupId: '',
+    groupName: '',
+    groupColor: ''
   });
 
   useEffect(() => {
@@ -46,7 +53,10 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
         employees: initialData.employees || [],
         readyToBlock: !!initialData.readyToBlock,
         mfyPrimaryName: initialData.mfyPrimaryName || '',
-        sektor: initialData.sektor ? String(initialData.sektor) : ''
+        sektor: initialData.sektor ? String(initialData.sektor) : '',
+        groupId: initialData.groupId || '',
+        groupName: initialData.groupName || '',
+        groupColor: initialData.groupColor || ''
       });
     }
   }, [initialData, open]);
@@ -100,6 +110,44 @@ function EditMahallaDialog({ open, onClose, initialData, onSave }: Props) {
               <MenuItem value="2">2-sektor</MenuItem>
               <MenuItem value="3">3-sektor</MenuItem>
               <MenuItem value="4">4-sektor</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <TextField
+              fullWidth
+              select
+              label="Qo'shni mahallalar guruhi (Klaster)"
+              value={formData.groupId || ''}
+              onChange={(e) => {
+                const selectedGId = e.target.value;
+                const foundG = availableGroups.find((g) => g._id === selectedGId);
+                setFormData((prev) => ({
+                  ...prev,
+                  groupId: selectedGId,
+                  groupName: foundG?.name || '',
+                  groupColor: foundG?.color || ''
+                }));
+              }}
+              helperText="Ushbu mahalla bilan aholisi va kadastri aralashishi mumkin bo'lgan qo'shnilar klasteri"
+            >
+              <MenuItem value="">
+                <em>Guruhga biriktirilmagan</em>
+              </MenuItem>
+              {availableGroups.map((g) => (
+                <MenuItem key={g._id} value={g._id}>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        bgcolor: g.color
+                      }}
+                    />
+                    <span>{g.name}</span>
+                  </Stack>
+                </MenuItem>
+              ))}
             </TextField>
           </Grid>
         </Grid>

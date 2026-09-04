@@ -1,15 +1,41 @@
-import { Edit } from '@mui/icons-material';
-import { Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Edit, GroupWorkOutlined } from '@mui/icons-material';
+import { Button, Chip, IconButton, Stack, Tooltip, Typography, alpha } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
 import React from 'react';
 import MainCard from 'ui-component/cards/MainCard';
 import api from 'utils/api';
 import EditMahallaDialog, { MahallaData } from './EditMahallaDialog';
+import ManageMahallaGroupsDialog from './ManageMahallaGroupsDialog';
 import { IMahalla } from 'types/billing';
 
 function Mahalla() {
   const [refreshState, setRefreshState] = React.useState(false);
+  const [openManageGroupsDialog, setOpenManageGroupsDialog] = React.useState(false);
+  const [groups, setGroups] = React.useState<any[]>([]);
+  const [allMahallas, setAllMahallas] = React.useState<any[]>([]);
+
+  const fetchGroupsAndMahallas = React.useCallback(async () => {
+    try {
+      const [groupsRes, mahallasRes] = await Promise.all([
+        api.get('/mahallas/groups'),
+        api.get('/mahallas', { params: { page: 1, limit: 1000 } })
+      ]);
+      if (groupsRes.data?.data) {
+        setGroups(groupsRes.data.data);
+      }
+      if (mahallasRes.data?.data) {
+        setAllMahallas(mahallasRes.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load mahalla groups or list', err);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchGroupsAndMahallas();
+  }, [fetchGroupsAndMahallas]);
+
   const { dataGridProps, rows } = useServerDataGrid(
     async ({ limit, page, filters, sortDirection, sortField }) => {
       const { data } = await api.get('/mahallas', {
@@ -40,18 +66,79 @@ function Mahalla() {
     setOpenEditDialog(true);
   };
   const handleSave = async (data: MahallaData) => {
-    const mfy = await api.put(`/mahallas/${data._id}`, data);
+    await api.put(`/mahallas/${data._id}`, data);
     setRefreshState((prev) => !prev); // Ma'lumotlarni yangilash uchun
+    fetchGroupsAndMahallas();
     setOpenEditDialog(false);
   };
+
+  const handleGroupsChanged = () => {
+    fetchGroupsAndMahallas();
+    setRefreshState((prev) => !prev);
+  };
+
   return (
-    <MainCard>
-      <EditMahallaDialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} initialData={selectedMahalla} onSave={handleSave} />
+    <MainCard
+      title="Mahallalar ro'yxati"
+      secondary={
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<GroupWorkOutlined />}
+          onClick={() => setOpenManageGroupsDialog(true)}
+          sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+        >
+          Guruhlarni boshqarish {groups.length > 0 && `(${groups.length})`}
+        </Button>
+      }
+    >
+      <EditMahallaDialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+        initialData={selectedMahalla}
+        onSave={handleSave}
+        availableGroups={groups}
+      />
+      <ManageMahallaGroupsDialog
+        open={openManageGroupsDialog}
+        onClose={() => setOpenManageGroupsDialog(false)}
+        onGroupsChanged={handleGroupsChanged}
+        allMahallas={allMahallas}
+      />
       <DataGrid
         {...dataGridProps}
         columns={[
           { field: 'id', headerName: 'ID', width: 90 },
           { field: 'name', headerName: 'Name', width: 150 },
+          {
+            field: 'groupName',
+            headerName: 'Mahalla guruhi',
+            width: 200,
+            renderCell: (params: any) => {
+              const name = params.row.groupName;
+              const color = params.row.groupColor || '#0D9488';
+              if (!name) {
+                return (
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    —
+                  </Typography>
+                );
+              }
+              return (
+                <Chip
+                  label={name}
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(color, 0.12),
+                    color: color,
+                    fontWeight: 700,
+                    border: `1px solid ${alpha(color, 0.3)}`,
+                    borderRadius: '6px'
+                  }}
+                />
+              );
+            }
+          },
           {
             field: 'sektor',
             headerName: 'Sektor',

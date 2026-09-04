@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 
 // material-ui
-import { useTheme } from '@mui/material';
+import { Button, useTheme } from '@mui/material';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { Tune } from '@mui/icons-material';
 
 // third-party
 import PerfectScrollbar from 'react-perfect-scrollbar';
@@ -15,6 +17,7 @@ import { BrowserView, MobileView } from 'react-device-detect';
 import MenuList from './MenuList';
 import LogoSection from '../LogoSection';
 import Chip from 'ui-component/extended/Chip';
+import MenuCustomizationDialog from 'layout/Customization/MenuCustomizationDialog';
 
 import { drawerWidth } from 'store/constant';
 
@@ -29,6 +32,7 @@ interface Props {
 const Sidebar = ({ drawerOpen, drawerToggle, window }: Props) => {
   const theme = useTheme();
   const matchUpMd = useMediaQuery(theme.breakpoints.up('md'));
+  const [openMenuDialog, setOpenMenuDialog] = useState(false);
 
   const drawer = (
     <>
@@ -47,7 +51,17 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }: Props) => {
           }}
         >
           <MenuList />
-          <Stack direction="row" sx={{ mb: 2, justifyContent: 'center' }}>
+          <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: 'center', justifyContent: 'center' }}>
+            <Button
+              size="small"
+              variant="text"
+              color="secondary"
+              startIcon={<Tune sx={{ fontSize: 16 }} />}
+              onClick={() => setOpenMenuDialog(true)}
+              sx={{ textTransform: 'none', fontSize: '11px', fontWeight: 600, py: 0.3, px: 1 }}
+            >
+              Menyuni sozlash
+            </Button>
             <Chip
               label={import.meta.env.VITE_APP_VERSION}
               variant={'outlined'}
@@ -62,7 +76,17 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }: Props) => {
       <MobileView>
         <Box sx={{ px: 2 }}>
           <MenuList />
-          <Stack direction="row" sx={{ mb: 2, justifyContent: 'center' }}>
+          <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: 'center', justifyContent: 'center' }}>
+            <Button
+              size="small"
+              variant="text"
+              color="secondary"
+              startIcon={<Tune sx={{ fontSize: 16 }} />}
+              onClick={() => setOpenMenuDialog(true)}
+              sx={{ textTransform: 'none', fontSize: '11px', fontWeight: 600, py: 0.3, px: 1 }}
+            >
+              Menyuni sozlash
+            </Button>
             <Chip
               label={import.meta.env.VITE_APP_VERSION}
               variant={'outlined'}
@@ -74,6 +98,11 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }: Props) => {
           </Stack>
         </Box>
       </MobileView>
+
+      <MenuCustomizationDialog
+        open={openMenuDialog}
+        onClose={() => setOpenMenuDialog(false)}
+      />
     </>
   );
 

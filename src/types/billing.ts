@@ -329,6 +329,9 @@ export interface IMahalla {
   created_at: Date;
   readyToBlock: boolean;
   mfyPrimaryName: string;
+  groupId?: string;
+  groupName?: string;
+  groupColor?: string;
 }
 
 export interface IRowDhj {

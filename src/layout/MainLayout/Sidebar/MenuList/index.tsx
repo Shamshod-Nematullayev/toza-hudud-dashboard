@@ -7,12 +7,15 @@ import NavGroup from './NavGroup';
 import menuItem from 'menu-items';
 import NavCollapse from './NavCollapse';
 import useCustomizationStore from 'store/customizationStore';
+import { getCustomizedMenuItems } from 'utils/menuCustomizationHelper';
 
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
-  const { user } = useCustomizationStore();
-  const navItems = menuItem.items.map((item) => {
+  const { user, menuSettings } = useCustomizationStore();
+  const customizedItems = getCustomizedMenuItems(menuItem.items, menuSettings);
+
+  const navItems = customizedItems.map((item) => {
     switch (item.type) {
       case 'group':
         return item.allowedRoles?.some((role) => user?.roles?.includes(role)) && <NavGroup key={item.id} item={item} />;

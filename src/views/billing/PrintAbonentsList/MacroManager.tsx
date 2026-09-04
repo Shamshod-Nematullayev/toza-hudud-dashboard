@@ -43,6 +43,10 @@ import api from 'utils/api';
 import useStore, { IFilters, IMahallaItem } from './useStore';
 import { toPng } from 'html-to-image';
 
+import { lotinga, kirillga } from 'helpers/lotinKiril';
+import { formatName } from '../CreateAbonentPetition.jsx/PrintSection';
+import useCustomizationStore, { defaultVisibleColumns } from 'store/customizationStore';
+
 interface MacroManagerProps {
   printContentRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -115,6 +119,153 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
     link.click();
   };
 
+  // HTML jadvaldan Telegram uchun rasmlar generatsiya qilish
+  const generateImagesForAbonents = async (abonentList: any[], mfyName: string): Promise<Blob[]> => {
+    const { company, printTableSettings } = useCustomizationStore.getState();
+    const isCyrillic = printTableSettings?.alphabet === 'cyrillic';
+    const isMonochrome = printTableSettings?.colorMode === 'monochrome';
+    const isCompact = printTableSettings?.lineDensity === 'compact';
+    const visibleCols = printTableSettings?.visibleColumns || defaultVisibleColumns;
+    const fontSize = printTableSettings?.fontSize || 13;
+    const cellPadding = isCompact ? '3px 4px' : '5px 6px';
+
+    const convertTxt = (text: any) => {
+      if (!text && text !== 0) return '—';
+      const str = String(text);
+      return isCyrillic ? kirillga(str) : lotinga(str);
+    };
+
+    const formatAccNum = (accNum: string) => {
+      if (!accNum) return '—';
+      const clean = accNum.replace(/\s+/g, '');
+      if (clean.length >= 12) {
+        return `${clean.slice(0, 6)} ${clean.slice(6, 9)} ${clean.slice(9)}`;
+      }
+      return clean;
+    };
+
+    const maxRowsPerImage = 50;
+    const images: Blob[] = [];
+
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'fixed';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.width = '1000px';
+    tempContainer.style.backgroundColor = '#ffffff';
+    tempContainer.style.padding = '16px';
+    tempContainer.style.color = '#000000';
+    tempContainer.style.fontFamily = 'Roboto, sans-serif';
+    document.body.appendChild(tempContainer);
+
+    const now = new Date();
+    const dateStr = `${now.getDate().toString().padStart(2, '0')}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getFullYear()}`;
+
+    try {
+      for (let i = 0; i < abonentList.length; i += maxRowsPerImage) {
+        const slice = abonentList.slice(i, i + maxRowsPerImage);
+        const partNum = Math.floor(i / maxRowsPerImage) + 1;
+        const totalParts = Math.ceil(abonentList.length / maxRowsPerImage);
+
+        let tableHtml = `
+          <div style="background:#fff; color:#000; padding:12px; width:960px; box-sizing:border-box;">
+            <table style="width:100%; border-collapse:collapse; margin-bottom:8px; font-size:12px;">
+              <tbody>
+                <tr>
+                  <td style="font-size:11px; font-style:italic; color:#555;"><i>GreenZone ish boshqaruv tizimi</i></td>
+                  <td style="text-align:right; font-size:12px; font-weight:bold;">${isCyrillic ? 'Сана' : 'Sana'}: ${dateStr}</td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="font-size:14px; font-weight:bold; padding-top:4px;">
+                    ${convertTxt(company?.locationName || '')} / ${convertTxt(company?.name || '')}
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="font-size:13px; font-weight:600; padding-top:2px;">
+                    ${isCyrillic ? 'Маҳалла' : 'Mahalla'}: ${convertTxt(mfyName)} (${isCyrillic ? 'Жами' : 'Jami'}: ${abonentList.length} ${isCyrillic ? 'та абонент' : 'ta abonent'}${totalParts > 1 ? `, ${partNum}-${isCyrillic ? 'қисм' : 'qism'}` : ''})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table style="width:100%; border-collapse:collapse; font-size:${fontSize}px; table-layout:auto;">
+              <thead>
+                <tr style="background-color:#f0f0f0; border:1px solid #000; text-align:center; font-weight:bold;">
+                  ${visibleCols.orderNum !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; width:28px;">№</th>` : ''}
+                  ${visibleCols.accountNumber !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${isCyrillic ? 'Ҳисоб рақам' : 'Hisob raqam'}</th>` : ''}
+                  ${visibleCols.fullName !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; max-width:230px;">${isCyrillic ? 'Ф.И.Ш' : 'F.I.Sh'}</th>` : ''}
+                  ${visibleCols.streetName !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; max-width:85px;">${isCyrillic ? 'Кўча' : 'Ko‘cha'}</th>` : ''}
+                  ${visibleCols.homeNumber !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; width:30px;">${isCyrillic ? 'Уй' : 'Uy'}</th>` : ''}
+                  ${visibleCols.homeIndex !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; width:30px;">${isCyrillic ? 'Индекс' : 'Indeks'}</th>` : ''}
+                  ${visibleCols.flatNumber !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; width:32px;">${isCyrillic ? 'Хонадон' : 'Xonadon'}</th>` : ''}
+                  ${visibleCols.inhabitantCnt !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; width:28px;">${isCyrillic ? 'Я' : 'Y'}</th>` : ''}
+                  ${visibleCols.ksaldo !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${isCyrillic ? 'Қарздорлик' : 'Qarzdorlik'}</th>` : ''}
+                  ${visibleCols.lastPayment !== false ? `
+                    <th style="padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${isCyrillic ? 'Охирги тўлов' : 'Oxirgi to‘lov'}</th>
+                    <th style="padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${isCyrillic ? 'Сана' : 'Sana'}</th>
+                  ` : ''}
+                  ${visibleCols.electricityAccountNumber !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${isCyrillic ? 'ЭТК' : 'ETK'}</th>` : ''}
+                  ${visibleCols.phone !== false ? `<th style="padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${isCyrillic ? 'Телефон' : 'Telefon'}</th>` : ''}
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        slice.forEach((abonent: any, idx: number) => {
+          const rowNum = i + idx + 1;
+          const ksaldoNum = Number(abonent.ksaldo) || 0;
+          const debtColor = !isMonochrome ? (ksaldoNum > 0 ? '#d32f2f' : ksaldoNum < 0 ? '#2e7d32' : '#000') : '#000';
+          const isIdentified = Boolean(abonent.identified) || abonent.isIdentified === '✅';
+          const shortName = abonent.fullName ? (abonent.fullName.length < 30 ? abonent.fullName : abonent.fullName.slice(0, 30) + '..') : '—';
+          const bg = idx % 2 === 0 ? '#fff' : '#fafafa';
+
+          tableHtml += `
+            <tr style="background-color:${bg}; border:1px solid #000; font-size:${fontSize}px;">
+              ${visibleCols.orderNum !== false ? `<td style="text-align:center; padding:${cellPadding}; border:1px solid #000;">${rowNum}</td>` : ''}
+              ${visibleCols.accountNumber !== false ? `<td style="text-align:center; padding:${cellPadding}; border:1px solid #000; font-weight:bold; white-space:nowrap;">${formatAccNum(abonent.accountNumber)}</td>` : ''}
+              ${visibleCols.fullName !== false ? `
+                <td style="padding:${cellPadding}; border:1px solid #000; font-weight:500; max-width:230px; white-space:nowrap; overflow:hidden;">
+                  ${convertTxt(formatName(shortName))} ${!isIdentified ? '⚠️' : ''}
+                </td>
+              ` : ''}
+              ${visibleCols.streetName !== false ? `<td style="padding:${cellPadding}; border:1px solid #000; max-width:85px; white-space:nowrap; overflow:hidden;">${convertTxt(abonent.streetName || '—')}</td>` : ''}
+              ${visibleCols.homeNumber !== false ? `<td style="text-align:center; padding:${cellPadding}; border:1px solid #000;">${abonent.homeNumber || ''}</td>` : ''}
+              ${visibleCols.homeIndex !== false ? `<td style="text-align:center; padding:${cellPadding}; border:1px solid #000;">${abonent.homeIndex || ''}</td>` : ''}
+              ${visibleCols.flatNumber !== false ? `<td style="text-align:center; padding:${cellPadding}; border:1px solid #000;">${abonent.flatNumber || ''}</td>` : ''}
+              ${visibleCols.inhabitantCnt !== false ? `<td style="text-align:center; font-weight:bold; padding:${cellPadding}; border:1px solid #000;">${abonent.inhabitantCnt ?? 0}</td>` : ''}
+              ${visibleCols.ksaldo !== false ? `<td style="text-align:right; font-weight:bold; color:${debtColor}; padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${Math.floor(ksaldoNum).toLocaleString()}</td>` : ''}
+              ${visibleCols.lastPayment !== false ? `
+                <td style="text-align:right; padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${abonent.lastPaymentAmount ? Number(abonent.lastPaymentAmount).toLocaleString() : '—'}</td>
+                <td style="text-align:center; padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${abonent.lastPayDate ? String(abonent.lastPayDate).split('T')[0] : '—'}</td>
+              ` : ''}
+              ${visibleCols.electricityAccountNumber !== false ? `<td style="text-align:center; padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${abonent.electricityAccountNumber || '—'}</td>` : ''}
+              ${visibleCols.phone !== false ? `<td style="text-align:center; padding:${cellPadding}; border:1px solid #000; white-space:nowrap;">${abonent.phone || '—'}</td>` : ''}
+            </tr>
+          `;
+        });
+
+        tableHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        tempContainer.innerHTML = tableHtml;
+        const elem = tempContainer.firstElementChild as HTMLElement;
+        const dataUrl = await toPng(elem, { backgroundColor: '#ffffff' });
+        const blob = await (await fetch(dataUrl)).blob();
+        images.push(blob);
+        tempContainer.innerHTML = '';
+      }
+    } finally {
+      if (document.body.contains(tempContainer)) {
+        document.body.removeChild(tempContainer);
+      }
+    }
+
+    return images;
+  };
+
   // 1 ta mahalla uchun Telegramga yuborish
   const processTelegramForMahalla = async (mahallaId: number, mahallaName: string) => {
     // 1. Abonentlarni olish
@@ -131,14 +282,27 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
       return; // Bo'sh bo'lsa o'tkazib yuborish
     }
 
-    // Backend endpoint orqali to'g'ridan-to'g'ri jo'natish
-    await api.post('/billing/send-abonents-list-to-telegram', new FormData(), {
+    // 2. Rasmlarni generatsiya qilish
+    const images = await generateImagesForAbonents(data.data, mahallaName);
+    if (images.length === 0) return;
+
+    const formData = new FormData();
+    images.forEach((blob, index) => {
+      formData.append(`image_${index + 1}`, blob, `abonentlar_${mahallaName}_${index + 1}.png`);
+    });
+
+    // 3. Backend endpoint orqali jo'natish
+    await api.post('/billing/send-abonents-list-to-telegram', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
       params: {
         minSaldo: macroMinSaldo,
         maxSaldo: macroMaxSaldo,
         mahalla_name: mahallaName,
         mahallaId,
-        ...macroFilters
+        identified: macroFilters.identified,
+        elektrAccountNumberConfirmed: macroFilters.elektrAccountNumberConfirmed
       }
     });
   };

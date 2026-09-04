@@ -18,13 +18,20 @@ export interface RecordSource {
   source?: 'soliq' | 'greenzone' | 'manual' | 'kadastr' | 'elektr';
 }
 
+export type DecisionTier = 'CONFIRMED' | 'HIGH_CONFIDENCE' | 'PROPERTY_MATCH' | 'REVIEW_REQUIRED' | 'NO_MATCH';
+
 export type MatchCategory =
-  | 'identity_match' // 🟢 JShShIR (+ ism mos >= 40%) - Aynan shu shaxs
-  | 'identity_conflict' // 🟠 JShShIR mos, ism mos emas (< 40%) - Shubhali, tekshirish talab etiladi
-  | 'property_candidate' // 🔵 Kadastr mos - Obyekt/manzil bo'yicha nomzod (boshqa oila a'zosi)
-  | 'high_match' // 🟢 Yuqori moslik (boshqa maydonlar orqali)
-  | 'moderate_match' // 🟡 O'rtacha moslik
-  | 'weak_match'; // 🔴 Past / Zaif moslik
+  | 'confirmed' // 🟢 CONFIRMED: 14 xonali JShShIR va F.I.Sh to'liq mos
+  | 'high_confidence' // 🟢 HIGH_CONFIDENCE: Ism va manzil/kadastr to'liq mos, PNFL yo'q
+  | 'property_match' // 🔵 PROPERTY_MATCH: Kadastr bir xil, shaxs boshqa (oila a'zosi)
+  | 'review_required' // 🟠 REVIEW_REQUIRED: JShShIR ziddiyati, typo yoki noaniq
+  | 'no_match' // 🔴 NO_MATCH: Moslik topilmadi
+  | 'identity_match' // Legacy
+  | 'identity_conflict' // Legacy
+  | 'property_candidate' // Legacy
+  | 'high_match' // Legacy
+  | 'moderate_match' // Legacy
+  | 'weak_match'; // Legacy
 
 export interface FieldScore {
   field: keyof RecordSource;
@@ -40,6 +47,7 @@ export interface FieldScore {
 export interface MatchingResult {
   overallScore: number; // 0 - 100
   matchType: MatchCategory;
+  decisionTier?: DecisionTier;
   categoryLabel: string;
   categoryColor: 'success' | 'warning' | 'info' | 'error';
   fieldScores: FieldScore[];
@@ -47,6 +55,14 @@ export interface MatchingResult {
   bulletPoints: string[];
   recommendation: string;
   appliedRules: string[];
+  auditTrail?: {
+    decision: DecisionTier;
+    score: number;
+    evidence: Record<string, any>;
+    conflicts: string[];
+    algorithmVersion: string;
+    decisionReason: string;
+  };
   timestamp: string;
 }
 
@@ -536,14 +552,24 @@ export function applyConflictRules(
 ): {
   finalScore: number;
   matchType: MatchCategory;
+  decisionTier: DecisionTier;
   categoryLabel: string;
   categoryColor: 'success' | 'warning' | 'info' | 'error';
   appliedRules: string[];
   summaryExplanation: string;
   bulletPoints: string[];
   recommendation: string;
+  auditTrail: {
+    decision: DecisionTier;
+    score: number;
+    evidence: Record<string, any>;
+    conflicts: string[];
+    algorithmVersion: string;
+    decisionReason: string;
+  };
 } {
   const pnflScore = fieldScores.find((f) => f.field === 'pnfl')?.score || 0;
+  const pnflStatus = fieldScores.find((f) => f.field === 'pnfl')?.status || 'empty';
   const nameScore = fieldScores.find((f) => f.field === 'fullName')?.score || 0;
   const cadastreScore = fieldScores.find((f) => f.field === 'cadastreNumber')?.score || 0;
   const mahallaScore = fieldScores.find((f) => f.field === 'mahalla')?.score || 0;
@@ -551,60 +577,99 @@ export function applyConflictRules(
 
   const appliedRules: string[] = [];
   const bulletPoints: string[] = [];
+  const conflicts: string[] = [];
 
   // -------------------------------------------------------------
-  // HOLAT A: JShShIR mos (>= 90%), lekin F.I.Sh mos emas (< 40%)
+  // RULE A: PNFL Ziddiyati (CONFLICT) - Manzil orqali tasdiqlash taqiqlanadi
   // -------------------------------------------------------------
-  if (pnflScore >= 90 && nameScore < 40) {
-    appliedRules.push('HOLAT_A_PNFL_NAME_CONFLICT');
-    bulletPoints.push("⚠️ JShShIR 100% mos keldi, lekin F.I.Sh o'xshashligi juda past (< 40%).");
-    bulletPoints.push("⚠️ JShShIR shaxsiy hujjat hisoblanadi. Bunday katta ism farqi OCR, kiritish xatosi yoki soxta JShShIR mavjudligini bildiradi.");
+  if (pnflStatus === 'mismatch') {
+    conflicts.push('PNFL_HARD_CONFLICT');
+    appliedRules.push('RULE_PNFL_HARD_CONFLICT');
+    bulletPoints.push("⚠️ JShShIR ziddiyati: Ikkala manbada butunlay boshqa-boshqa JShShIR kiritilgan.");
 
     if (cadastreScore >= 80) {
-      bulletPoints.push("ℹ️ Biroq ko'chmas mulk kadastri mos kelmoqda.");
+      bulletPoints.push("🏠 Biroq ko'chmas mulk kadastri bir xil. Ushbu xonadonda boshqa oila a'zosi yashaydi.");
+      return {
+        finalScore: Math.min(Math.max(initialOverallScore, 70), 80),
+        matchType: 'property_match',
+        decisionTier: 'PROPERTY_MATCH',
+        categoryLabel: '🔵 Obyekt mosligi (Boshqa oila a\'zosi)',
+        categoryColor: 'info',
+        appliedRules,
+        summaryExplanation: "Ko'chmas mulk bir xil, lekin JShShIR boshqa shaxsga tegishli.",
+        bulletPoints,
+        recommendation: "Ushbu xonadonda yashovchi boshqa oila a'zosi. Abonent shartnomasini birlashtirish yoki tekshirish tavsiya etiladi.",
+        auditTrail: {
+          decision: 'PROPERTY_MATCH',
+          score: Math.min(Math.max(initialOverallScore, 70), 80),
+          evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+          conflicts,
+          algorithmVersion: 'v2.0-dual-identity',
+          decisionReason: "Kadastr bir xil, ammo JShShIR ziddiyatli bo'lgani sababli PROPERTY_MATCH deb belgilandi."
+        }
+      };
     }
 
+    bulletPoints.push("🛑 Hard Constraint: JShShIR ziddiyatli bo'lsa, manzil qanchalik o'xshash bo'lmasin shaxs deb tasdiqlash taqiqlanadi.");
     return {
-      finalScore: Math.min(initialOverallScore, 45), // Score ni cheklash
-      matchType: 'identity_conflict',
-      categoryLabel: '🟠 Ziddiyat — JShShIR va ism mos emas',
+      finalScore: Math.min(initialOverallScore, 40),
+      matchType: 'review_required',
+      decisionTier: 'REVIEW_REQUIRED',
+      categoryLabel: '🟠 Ziddiyat — Tekshirish talab etiladi',
       categoryColor: 'warning',
       appliedRules,
-      summaryExplanation: "Ziddiyat aniqlandi: JShShIR bir xil, ammo fuqaro ism-sharifida jiddiy farq bor.",
+      summaryExplanation: "Ziddiyat aniqlandi: Turli JShShIR larga ega fuqarolar.",
       bulletPoints,
-      recommendation: "DIQQAT: JShShIR shubhali yoki noto'g'ri kiritilgan bo'lishi mumkin. Operator shaxsni tasdiqlovchi hujjat (pasport/ID) orqali qo'lda tekshirishi shart."
+      recommendation: "Operator shaxsni tasdiqlovchi hujjat orqali qo'lda tekshirishi lozim.",
+      auditTrail: {
+        decision: 'REVIEW_REQUIRED',
+        score: Math.min(initialOverallScore, 40),
+        evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+        conflicts,
+        algorithmVersion: 'v2.0-dual-identity',
+        decisionReason: "JShShIR ziddiyati sababli REVIEW_REQUIRED ga o'tkazildi."
+      }
     };
   }
 
   // -------------------------------------------------------------
-  // HOLAT B: Kadastr mos (>= 85%), lekin F.I.Sh mos emas (< 50%)
+  // RULE B: PROPERTY MATCH - Kadastr mos, F.I.Sh mos emas (< 45%)
   // -------------------------------------------------------------
-  if (cadastreScore >= 85 && nameScore < 50) {
-    appliedRules.push('HOLAT_B_PROPERTY_CANDIDATE');
+  if (cadastreScore >= 85 && nameScore < 45) {
+    appliedRules.push('RULE_PROPERTY_MATCH_DIFFERENT_PERSON');
     bulletPoints.push("🏠 Ko'chmas mulk kadastr kodi 100% mos keldi.");
-    bulletPoints.push("👨‍👩‍👧 Ism-sharif mos emasligi normal holat: ushbu ko'chmas mulk oila a'zosi (ota/ona/turmush o'rtog'i) nomida turgan bo'lishi mumkin.");
+    bulletPoints.push("👨‍👩‍👧 Ism-sharif mos emasligi normal holat: ushbu ko'chmas mulk oila a'zosi nomida turgan bo'lishi mumkin.");
 
     if (mahallaScore >= 70 || streetScore >= 70) {
       bulletPoints.push("📍 Manzil (mahalla/ko'cha) ham to'liq mos kelmoqda.");
     }
 
     return {
-      finalScore: Math.max(initialOverallScore, 75), // Obyekt signali kuchini saqlash
-      matchType: 'property_candidate',
-      categoryLabel: '🔵 Obyekt bo\'yicha nomzod (Oila a\'zosi uyi)',
+      finalScore: Math.max(initialOverallScore, 75),
+      matchType: 'property_match',
+      decisionTier: 'PROPERTY_MATCH',
+      categoryLabel: '🔵 Obyekt mosligi (Oila a\'zosi uyi)',
       categoryColor: 'info',
       appliedRules,
-      summaryExplanation: "Kadastr mos: Bitta ko'chmas mulk obyekti bo'yicha boshqa oila a'zosi nomidagi abonent aniqlandi.",
+      summaryExplanation: "Kadastr mos: Bitta ko'chmas mulk obyekti bo'yicha boshqa oila a'zosi aniqlandi.",
       bulletPoints,
-      recommendation: "Ushbu xonadon bo'yicha amaldagi xizmatdan oila a'zosi foydalanmoqda. Abonent shartnomasini birlashtirish yoki yashovchilar sonini tekshirish tavsiya etiladi."
+      recommendation: "Ushbu xonadon bo'yicha amaldagi xizmatdan oila a'zosi foydalanmoqda. Abonent shartnomasini birlashtirish tavsiya etiladi.",
+      auditTrail: {
+        decision: 'PROPERTY_MATCH',
+        score: Math.max(initialOverallScore, 75),
+        evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+        conflicts,
+        algorithmVersion: 'v2.0-dual-identity',
+        decisionReason: "Kadastr 100% mos, lekin shaxs ismi farq qiladi -> PROPERTY_MATCH."
+      }
     };
   }
 
   // -------------------------------------------------------------
-  // IDENTITY MATCH: JShShIR >= 90% VA Ism >= 40%
+  // RULE C: CONFIRMED - Exact PNFL >= 90% VA Ism >= 45%
   // -------------------------------------------------------------
-  if (pnflScore >= 90 && nameScore >= 40) {
-    appliedRules.push('IDENTITY_FULL_MATCH');
+  if (pnflScore >= 90 && nameScore >= 45) {
+    appliedRules.push('RULE_CONFIRMED_IDENTITY_MATCH');
     bulletPoints.push("✅ 14 xonali JShShIR to'liq mos keldi.");
     bulletPoints.push(`✅ Ism-sharif o'xshashligi ${nameScore}% (Kirill-Lotin to'liq mos).`);
 
@@ -613,62 +678,134 @@ export function applyConflictRules(
     }
 
     return {
-      finalScore: Math.max(initialOverallScore, 90),
-      matchType: 'identity_match',
-      categoryLabel: '🟢 Shaxs to\'liq mos keldi (Identity Match)',
+      finalScore: Math.max(initialOverallScore, 95),
+      matchType: 'confirmed',
+      decisionTier: 'CONFIRMED',
+      categoryLabel: '🟢 Tasdiqlangan shaxs (CONFIRMED)',
       categoryColor: 'success',
       appliedRules,
       summaryExplanation: "Shaxs va uning identifikatsiya ma'lumotlari ikkala tizimda to'liq mos keldi.",
       bulletPoints,
-      recommendation: "Ushbu shaxs GreenZone bazasida mavjud abonent bilan bir xil. Alohida harakat talab etilmaydi."
+      recommendation: "Ushbu shaxs GreenZone bazasida mavjud abonent bilan bir xil. Alohida harakat talab etilmaydi.",
+      auditTrail: {
+        decision: 'CONFIRMED',
+        score: Math.max(initialOverallScore, 95),
+        evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+        conflicts,
+        algorithmVersion: 'v2.0-dual-identity',
+        decisionReason: "14 xonali JShShIR va F.I.Sh to'liq mos -> CONFIRMED."
+      }
     };
   }
 
   // -------------------------------------------------------------
-  // STANDART FORMULA NATIJASI (High / Moderate / Weak)
+  // RULE D: JShShIR da Typo (1-2 raqam farq) - Avtomatik tasdiqlash taqiqlanadi!
   // -------------------------------------------------------------
-  if (initialOverallScore >= 80) {
-    appliedRules.push('HIGH_SIMILARITY_MATCH');
-    bulletPoints.push(`Ko'rsatkichlar bo'yicha umumiy yuqori o'xshashlik (${initialOverallScore}%).`);
+  if (pnflStatus === 'partial') {
+    conflicts.push('POSSIBLE_PNFL_TYPO');
+    appliedRules.push('RULE_POSSIBLE_TYPO_RESTRAINT');
+    bulletPoints.push("⚠️ JShShIR da 1-2 ta raqam farq qilmoqda (texnik xatolik/typo bo'lishi mumkin).");
+    bulletPoints.push("🛑 Hard Constraint: Typo xatolik avtomatik tasdiqlanmaydi, faqat nomzod belgisi sifatida qabul qilinadi.");
 
     return {
-      finalScore: initialOverallScore,
-      matchType: 'high_match',
-      categoryLabel: '🟢 Yuqori moslik',
+      finalScore: Math.min(initialOverallScore, 65),
+      matchType: 'review_required',
+      decisionTier: 'REVIEW_REQUIRED',
+      categoryLabel: '🟠 Typo gumoni — Tekshirish kerak',
+      categoryColor: 'warning',
+      appliedRules,
+      summaryExplanation: "JShShIR da kichik raqam farqi mavjud. Operator qo'lda tekshirishi shart.",
+      bulletPoints,
+      recommendation: "Pasport/ID hujjatini solishtirib, raqamdagi xatolikni tuzatish lozim.",
+      auditTrail: {
+        decision: 'REVIEW_REQUIRED',
+        score: Math.min(initialOverallScore, 65),
+        evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+        conflicts,
+        algorithmVersion: 'v2.0-dual-identity',
+        decisionReason: "PNFL typo shubhasi sababli avtomatik tasdiqlanmadi -> REVIEW_REQUIRED."
+      }
+    };
+  }
+
+  // -------------------------------------------------------------
+  // RULE E: HIGH CONFIDENCE - Ism va manzil to'liq mos, lekin PNFL mavjud emas
+  // -------------------------------------------------------------
+  if (pnflStatus === 'empty' && nameScore >= 80 && (cadastreScore >= 80 || (mahallaScore >= 75 && streetScore >= 70))) {
+    appliedRules.push('RULE_HIGH_CONFIDENCE_NO_PNFL');
+    bulletPoints.push("ℹ️ Manbada JShShIR ko'rsatilmagan.");
+    bulletPoints.push(`✅ Biroq Ism-sharif (${nameScore}%) va ko'chmas mulk/manzil to'liq mos.`);
+
+    return {
+      finalScore: Math.max(initialOverallScore, 85),
+      matchType: 'high_confidence',
+      decisionTier: 'HIGH_CONFIDENCE',
+      categoryLabel: '🟢 Yuqori ishonchli (HIGH CONFIDENCE)',
       categoryColor: 'success',
       appliedRules,
-      summaryExplanation: "Ko'rsatkichlar yuqori moslik darajasiga ega.",
+      summaryExplanation: "Ism va manzil to'liq mos, JShShIR qo'shimcha kiritilishi tavsiya etiladi.",
       bulletPoints,
-      recommendation: "Abonent ma'lumotlarini tasdiqlash uchun tavsiya etiladi."
+      recommendation: "Abonent ma'lumotlarini tasdiqlash va JShShIR biriktirish tavsiya etiladi.",
+      auditTrail: {
+        decision: 'HIGH_CONFIDENCE',
+        score: Math.max(initialOverallScore, 85),
+        evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+        conflicts,
+        algorithmVersion: 'v2.0-dual-identity',
+        decisionReason: "Ism va manzil to'liq mos, PNFL yo'q -> HIGH_CONFIDENCE."
+      }
     };
-  } else if (initialOverallScore >= 50) {
-    appliedRules.push('MODERATE_SIMILARITY_MATCH');
+  }
+
+  // -------------------------------------------------------------
+  // STANDART FORMULA NATIJASI (Review Required / No Match)
+  // -------------------------------------------------------------
+  if (initialOverallScore >= 50) {
+    appliedRules.push('RULE_MODERATE_REVIEW_REQUIRED');
     bulletPoints.push(`O'rtacha o'xshashlik (${initialOverallScore}%). Ayrim maydonlarda farqlar mavjud.`);
 
     return {
       finalScore: initialOverallScore,
-      matchType: 'moderate_match',
-      categoryLabel: '🟡 O\'rtacha moslik',
+      matchType: 'review_required',
+      decisionTier: 'REVIEW_REQUIRED',
+      categoryLabel: '🟡 O\'rtacha moslik (Ko\'rib chiqish kerak)',
       categoryColor: 'warning',
       appliedRules,
       summaryExplanation: "Ayrim maydonlar mos, lekin to'liq ishonch hosil qilish uchun qo'shimcha ma'lumot kerak.",
       bulletPoints,
-      recommendation: "Operator qo'lda ko'rib chiqishi tavsiya etiladi."
+      recommendation: "Operator qo'lda ko'rib chiqishi tavsiya etiladi.",
+      auditTrail: {
+        decision: 'REVIEW_REQUIRED',
+        score: initialOverallScore,
+        evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+        conflicts,
+        algorithmVersion: 'v2.0-dual-identity',
+        decisionReason: "O'rtacha ball -> REVIEW_REQUIRED."
+      }
     };
   }
 
-  appliedRules.push('WEAK_OR_MISMATCH');
+  appliedRules.push('RULE_NO_RELIABLE_MATCH');
   bulletPoints.push("Maydonlar bo'yicha yetarli moslik signali topilmadi.");
 
   return {
     finalScore: initialOverallScore,
-    matchType: 'weak_match',
-    categoryLabel: '🔴 Mos kelmadi / Turli shaxslar',
+    matchType: 'no_match',
+    decisionTier: 'NO_MATCH',
+    categoryLabel: '🔴 Mos kelmadi (NO MATCH)',
     categoryColor: 'error',
     appliedRules,
     summaryExplanation: "Ikkala manbadagi ma'lumotlar butunlay turli shaxslar yoki obyektlarga tegishli.",
     bulletPoints,
-    recommendation: "Moslik mavjud emas. Yangi abonent sifatida ko'rib chiqilishi mumkin."
+    recommendation: "Moslik mavjud emas. Yangi abonent sifatida ko'rib chiqilishi mumkin.",
+    auditTrail: {
+      decision: 'NO_MATCH',
+      score: initialOverallScore,
+      evidence: { pnflScore, cadastreScore, nameScore, mahallaScore, streetScore },
+      conflicts,
+      algorithmVersion: 'v2.0-dual-identity',
+      decisionReason: "Yetarli moslik topilmadi -> NO_MATCH."
+    }
   };
 }
 
@@ -756,6 +893,7 @@ export function evaluateMatch(
   return {
     overallScore: conflictEvaluation.finalScore,
     matchType: conflictEvaluation.matchType,
+    decisionTier: conflictEvaluation.decisionTier,
     categoryLabel: conflictEvaluation.categoryLabel,
     categoryColor: conflictEvaluation.categoryColor,
     fieldScores,
@@ -763,6 +901,7 @@ export function evaluateMatch(
     bulletPoints: conflictEvaluation.bulletPoints,
     recommendation: conflictEvaluation.recommendation,
     appliedRules: conflictEvaluation.appliedRules,
+    auditTrail: conflictEvaluation.auditTrail,
     timestamp: new Date().toISOString()
   };
 }

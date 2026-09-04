@@ -40,6 +40,10 @@ export interface CandidateSearchOptions {
   includeNeighbors?: boolean;
 }
 
+// Tezkor kesh (bir xil qidiruv takrorlanganda 0ms da javob berish uchun)
+const candidateCache = new Map<string, { timestamp: number; response: CandidateSearchResponse }>();
+const CACHE_TTL_MS = 30_000; // 30 soniya
+
 /**
  * GreenZone AI Data Intelligence maxsus bazasidan (/api/data-intelligence/search) abonentlarni qidirish
  */
@@ -81,6 +85,16 @@ export async function searchGreenZoneRealApi(
       candidates: [],
       searchTimeMs: 0,
       sourceType: 'greenzone_database'
+    };
+  }
+
+  // Keshni tekshirish
+  const cacheKey = `${queryPnfl}_${queryCadastre}_${queryName}_${mahallaId || ''}`;
+  const cached = candidateCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return {
+      ...cached.response,
+      searchTimeMs: 1
     };
   }
 
@@ -183,13 +197,17 @@ export async function searchGreenZoneRealApi(
   const finalCandidates = candidateResults.slice(0, maxCandidates);
   const endTime = performance.now();
 
-  return {
+  const response: CandidateSearchResponse = {
     queryRecord: soliqRecord,
     totalFound: finalCandidates.length,
     candidates: finalCandidates,
     searchTimeMs: Math.max(1, Math.round(endTime - startTime)),
     sourceType: 'greenzone_database'
   };
+
+  candidateCache.set(cacheKey, { timestamp: Date.now(), response });
+
+  return response;
 }
 
 /**

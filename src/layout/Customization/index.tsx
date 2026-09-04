@@ -26,6 +26,9 @@ import { gridSpacing } from 'store/constant';
 import { IconSettings } from '@tabler/icons-react';
 import useCustomizationStore, { FontFamily } from 'store/customizationStore';
 import { useLocation } from 'react-router-dom';
+import Button from '@mui/material/Button';
+import { Tune } from '@mui/icons-material';
+import MenuCustomizationDialog from './MenuCustomizationDialog';
 
 // concat 'px'
 function valueText(value: number) {
@@ -39,6 +42,7 @@ const Customization = () => {
   const { customization, setCustomization } = useCustomizationStore();
 
   const [mode, setMode] = useState(customization.mode);
+  const [openMenuDialog, setOpenMenuDialog] = useState(false);
   useEffect(() => {
     setCustomization({ mode });
   }, [mode]);
@@ -260,9 +264,33 @@ const Customization = () => {
                 </Grid>
               )}
             </Grid>
+
+            {/* Menyu elementlarini moslashtirish */}
+            <Grid size={12}>
+              <SubCard title="Menyu Sozlamalari">
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  Menyu bandlarini tartiblash va kerakmaslarini yashirish
+                </Typography>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<Tune />}
+                  onClick={() => setOpenMenuDialog(true)}
+                  sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+                >
+                  Menyularni Sozlash
+                </Button>
+              </SubCard>
+            </Grid>
           </Grid>
         </PerfectScrollbar>
       </Drawer>
+
+      <MenuCustomizationDialog
+        open={openMenuDialog}
+        onClose={() => setOpenMenuDialog(false)}
+      />
     </>
   );
 };
