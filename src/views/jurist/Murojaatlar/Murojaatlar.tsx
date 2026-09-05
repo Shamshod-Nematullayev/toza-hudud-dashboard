@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -184,15 +185,15 @@ function Murojaatlar() {
     () => [
       {
         field: 'mahallaId',
-        headerName: 'Mahalla ID',
-        width: 120,
-        valueFormatter: (value) => mahallalar.find((m) => m.id == value)?.name
+        headerName: 'Mahalla',
+        width: 180,
+        valueFormatter: (value) => mahallalar.find((m) => m.id == value)?.name || (value ? String(value) : '-')
       },
       {
         field: 'residentId',
         headerName: 'Resident ID',
         width: 140,
-        valueFormatter: (value) => (value ? value : '-')
+        valueFormatter: (value) => (value ? String(value) : '-')
       },
       {
         field: 'fileName',
@@ -228,6 +229,11 @@ function Murojaatlar() {
         field: 'assignedTo',
         headerName: 'Inspektor',
         width: 220,
+        valueFormatter: (value: any) => {
+          if (!value) return '-';
+          if (typeof value === 'string') return value;
+          return (value as any)?.name || '-';
+        },
         renderCell: (params) => {
           const value = params.row.assignedTo;
           if (!value) return '-';
@@ -238,14 +244,51 @@ function Murojaatlar() {
       {
         field: 'status',
         headerName: 'Holati',
-        width: 130,
-        renderCell: (params) => (params.value === 'closed' ? '🟢 Yopiq' : '🔴 Ochiq')
+        width: 150,
+        valueFormatter: (value) => (value === 'closed' ? 'Yopiq' : 'Ochiq'),
+        renderCell: (params) => {
+          if (params.value === 'closed') {
+            return <Chip label="Yopiq" size="small" color="success" sx={{ fontWeight: 600 }} />;
+          }
+          const isOverdue = params.row.dueDate
+            ? dayjs(params.row.dueDate).subtract(5, 'day').isBefore(dayjs().startOf('day'))
+            : false;
+
+          return isOverdue ? (
+            <Chip label="Muddati o'tgan" size="small" color="error" sx={{ fontWeight: 700 }} />
+          ) : (
+            <Chip label="Ochiq" size="small" color="warning" sx={{ fontWeight: 600 }} />
+          );
+        }
       },
       {
         field: 'dueDate',
-        headerName: 'Muddat',
-        width: 150,
-        renderCell: (params) => (params.value ? dayjs(params.value).format('DD.MM.YYYY') : '-')
+        headerName: 'Ijro muddati',
+        width: 170,
+        valueFormatter: (value) => (value ? dayjs(value).subtract(5, 'day').format('DD.MM.YYYY') : '-'),
+        renderCell: (params) => {
+          if (!params.value) return '-';
+          const originalDate = dayjs(params.value).format('DD.MM.YYYY');
+          const inspectorDate = dayjs(params.value).subtract(5, 'day').format('DD.MM.YYYY');
+          const isOverdue = dayjs(params.value).subtract(5, 'day').isBefore(dayjs().startOf('day'));
+
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 700,
+                  color: isOverdue && params.row.status === 'open' ? 'error.main' : 'text.primary'
+                }}
+              >
+                {inspectorDate}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '10px' }}>
+                Asl: {originalDate}
+              </Typography>
+            </Box>
+          );
+        }
       },
       {
         field: 'actions',

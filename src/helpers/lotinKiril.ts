@@ -235,6 +235,7 @@ var alphaRus = [
 /*=================kirillga o'girish=================== */
 
 function kirillga(originalMessage: string): string {
+  if (!originalMessage) return '';
   /*original textni olyapti */
   var CyrillicTranslated = ''; //kirill ga o'girilgan xabar
   /*avval bu harf birikmalar o'zgartirilsin : */

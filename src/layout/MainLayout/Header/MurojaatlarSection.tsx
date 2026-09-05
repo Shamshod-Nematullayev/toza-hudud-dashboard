@@ -8,6 +8,7 @@ import api from 'utils/api';
 function MurojaatlarSection() {
   const theme = useTheme();
   const { openMurojaatCount, setOpenMurojaatCount, user } = useCustomizationStore();
+  const [dueMurojaatCount, setDueMurojaatCount] = useState(0);
   const navigate = useNavigate();
 
   const roles = user?.roles || [];
@@ -20,8 +21,11 @@ function MurojaatlarSection() {
 
     const fetchData = async () => {
       try {
-        const { data } = await api.get<number>('/murojaatlar/open-count');
-        setOpenMurojaatCount(data);
+        const { data } = await api.get<any>('/murojaatlar/open-count');
+        const openCount = typeof data === 'number' ? data : (data?.openMurojaatCount ?? 0);
+        const overdueCount = typeof data === 'object' && data !== null ? (data?.overdueMurojaatCount ?? 0) : 0;
+        setOpenMurojaatCount(openCount);
+        setDueMurojaatCount(overdueCount);
       } catch (err) {
         console.error(err);
       }
@@ -37,9 +41,16 @@ function MurojaatlarSection() {
     navigate('/jurist/murojaatlar');
   };
 
+  const countToDisplay =
+    typeof openMurojaatCount === 'number'
+      ? openMurojaatCount
+      : typeof (openMurojaatCount as any)?.openMurojaatCount === 'number'
+      ? (openMurojaatCount as any).openMurojaatCount
+      : 0;
+
   return (
     <ButtonBase sx={{ borderRadius: '12px' }}>
-      <Badge color="warning" variant="standard" badgeContent={openMurojaatCount} max={20}>
+      <Badge color={dueMurojaatCount > 0 ? 'error' : 'warning'} variant="standard" badgeContent={countToDisplay} max={20}>
         <Avatar
           variant="rounded"
           sx={{

@@ -188,7 +188,10 @@ const useCustomizationStore = create<CustomizationState>()(
           company: { billingAdminName: '', gpsOperatorName: '', id: 0, locationName: '', managerName: '', name: '', phone: '' },
           mahallalar: []
         }),
-      setOpenMurojaatCount: (count: number) => set({ openMurojaatCount: count })
+      setOpenMurojaatCount: (count: any) => {
+        const num = typeof count === 'number' ? count : typeof count?.openMurojaatCount === 'number' ? count.openMurojaatCount : 0;
+        set({ openMurojaatCount: num });
+      }
     }),
     {
       name: 'customization-store',

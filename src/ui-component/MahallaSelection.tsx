@@ -47,8 +47,8 @@ function MahallaSelection({
 
   // Mahalalarni alifbo bo'yicha saralash funksiyasi
   const sortedMahallas = [...mahallas].sort((a, b) => {
-    const nameA = i18n.language === 'uz' ? lotinga(a.name) : kirillga(a.name);
-    const nameB = i18n.language === 'uz' ? lotinga(b.name) : kirillga(b.name);
+    const nameA = i18n.language === 'uz' ? lotinga(a?.name || '') : kirillga(a?.name || '');
+    const nameB = i18n.language === 'uz' ? lotinga(b?.name || '') : kirillga(b?.name || '');
     return nameA.localeCompare(nameB, i18n.language === 'uz' ? 'uz-Latn' : 'uz-Cyrl');
   });
 
