@@ -90,7 +90,15 @@ function CreateAbonentPetition() {
       <PrintAbonentCard
         open={ui.abonentCardOpenState}
         onClose={() => setAbonentCardOpenState(false)}
-        fetchParams={{ accountNumber: ui.globalAbonentAccountNumber }}
+        fetchParams={{
+          accountNumber: ui.globalAbonentAccountNumber,
+          residentId:
+            ui.globalAbonentAccountNumber === abonentData.accountNumber && abonentData.id
+              ? abonentData.id
+              : ui.globalAbonentAccountNumber === abonentData2.accountNumber && abonentData2.id
+              ? abonentData2.id
+              : undefined
+        }}
       />
 
       <PasteImageDialog open={pasteImageDialogOpen} setOpen={setPasteImageDialogOpen} />

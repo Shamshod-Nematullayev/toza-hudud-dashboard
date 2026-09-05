@@ -5,6 +5,7 @@ import {
   Card,
   Checkbox,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -44,7 +45,9 @@ import {
   RestartAlt,
   ScreenRotationAlt,
   Send,
-  WarningAmber
+  WarningAmber,
+  Public as PublicIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -74,6 +77,13 @@ export default function InputForm() {
     setAktSumma,
     createAriza,
     updateAbonentDataByAccNum,
+    searchAllAccountsAbonent,
+    isGlobalAbonent,
+    isGlobalAbonent2,
+    notFoundInCompanyMain,
+    notFoundInCompanyDublicate,
+    isSearchingGlobalMain,
+    isSearchingGlobalDublicate,
     getAutoMobile,
     autoMobile,
     shouldBeMoneyTransfer,
@@ -171,10 +181,14 @@ export default function InputForm() {
   const isCreateDisabled =
     !abonentData.accountNumber ||
     !aktType ||
+    isGlobalAbonent ||
     (aktType === 'dvaynik' && !abonentData2.accountNumber) ||
+    (aktType === 'dvaynik' && isGlobalAbonent2) ||
     (aktType === 'gps' && images.length === 0);
 
   const getCreateDisabledReason = (): string => {
+    if (isGlobalAbonent) return t("Boshqa tashkilot abonenti uchun ariza shakllantirish mumkin emas (faqat ma'lumot uchun ko'rish va chop etish mumkin)");
+    if (aktType === 'dvaynik' && isGlobalAbonent2) return t("Ikkilamchi abonent boshqa tashkilotga tegishli");
     if (!abonentData.accountNumber) return t("Avval asosiy hisob raqamini kiriting") || '';
     if (!aktType) return t("Hujjat turini tanlang") || '';
     if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t("Ikkilamchi hisob raqamini kiriting") || '';
@@ -232,6 +246,42 @@ export default function InputForm() {
           setFunc={setAccountNumber}
         />
 
+        {/* Agar joriy tashkilotda topilmasa, O'zbekiston bo'ylab izlash tugmasi */}
+        {notFoundInCompanyMain && accountNumber.length === 12 && !abonentData.accountNumber && (
+          <Paper
+            elevation={0}
+            sx={{
+              mt: 1.5,
+              p: 1.5,
+              borderRadius: 2,
+              border: '1px dashed',
+              borderColor: 'warning.main',
+              bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
+            }}
+          >
+            <Typography variant="caption" color="warning.dark" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
+              ⚠️ Ushbu hisob raqam joriy tashkilot bazasida topilmadi.
+            </Typography>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="primary"
+              size="small"
+              disabled={isSearchingGlobalMain}
+              onClick={() => searchAllAccountsAbonent(accountNumber, 'main')}
+              startIcon={isSearchingGlobalMain ? <CircularProgress size={14} color="inherit" /> : <PublicIcon />}
+              sx={{
+                fontWeight: 700,
+                fontSize: '12px',
+                textTransform: 'none',
+                borderRadius: 1.5
+              }}
+            >
+              {isSearchingGlobalMain ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
+            </Button>
+          </Paper>
+        )}
+
         {/* Abonent ma'lumotlari mini-kartochkasi */}
         {abonentData.accountNumber && (
           <Paper
@@ -241,14 +291,30 @@ export default function InputForm() {
               p: 1.75,
               borderRadius: 2,
               border: '1px solid',
-              borderColor: 'primary.light',
-              bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'primary.50'
+              borderColor: isGlobalAbonent ? 'info.main' : 'primary.light',
+              bgcolor: theme.palette.mode === 'dark' ? 'background.default' : isGlobalAbonent ? 'info.50' : 'primary.50'
             }}
           >
             <Stack spacing={1}>
+              {/* Boshqa tashkilotga tegishli ekanligi haqida belgi */}
+              {isGlobalAbonent && (
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                  <Chip
+                    size="small"
+                    icon={<BusinessIcon sx={{ fontSize: '14px !important' }} />}
+                    label={abonentData.companyName || "Boshqa tashkilot"}
+                    color="info"
+                    sx={{ fontWeight: 700, fontSize: '11px', height: 22 }}
+                  />
+                  <Typography variant="caption" color="info.dark" sx={{ fontWeight: 600, fontSize: '11px' }}>
+                    (Faqat ma'lumot uchun)
+                  </Typography>
+                </Stack>
+              )}
+
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'primary.dark' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isGlobalAbonent ? 'info.dark' : 'primary.dark' }}>
                     {abonentData.fullName || '—'}
                   </Typography>
                   <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: 'text.secondary', mt: 0.2 }}>
@@ -261,7 +327,7 @@ export default function InputForm() {
                 <Tooltip title={t("Abonent kartasini chop etish / ko'rish")}>
                   <IconButton
                     size="small"
-                    color="primary"
+                    color={isGlobalAbonent ? 'info' : 'primary'}
                     onClick={() => handleOpenAbonentCard(abonentData.accountNumber)}
                     sx={{ bgcolor: 'background.paper', boxShadow: 1 }}
                   >
@@ -277,7 +343,7 @@ export default function InputForm() {
                   size="small"
                   icon={<Group sx={{ fontSize: '14px !important' }} />}
                   label={`${abonentData.house?.inhabitantCnt || 0} nafar yashovchi`}
-                  color="info"
+                  color={isGlobalAbonent ? 'default' : 'info'}
                   variant="outlined"
                   sx={{ fontWeight: 600, fontSize: '12px' }}
                 />
@@ -373,6 +439,41 @@ export default function InputForm() {
                   </Tooltip>
                 </Box>
 
+                {/* Agar ikkilamchi hisob joriy tashkilotda topilmasa, O'zbekiston bo'ylab izlash */}
+                {notFoundInCompanyDublicate && accountNumber2.length === 12 && !abonentData2.accountNumber && (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      border: '1px dashed',
+                      borderColor: 'warning.main',
+                      bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
+                    }}
+                  >
+                    <Typography variant="caption" color="warning.dark" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
+                      ⚠️ Ikkilamchi hisob raqam joriy tashkilotda topilmadi.
+                    </Typography>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      color="warning"
+                      size="small"
+                      disabled={isSearchingGlobalDublicate}
+                      onClick={() => searchAllAccountsAbonent(accountNumber2, 'dublicate')}
+                      startIcon={isSearchingGlobalDublicate ? <CircularProgress size={14} color="inherit" /> : <PublicIcon />}
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        textTransform: 'none',
+                        borderRadius: 1.5
+                      }}
+                    >
+                      {isSearchingGlobalDublicate ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
+                    </Button>
+                  </Paper>
+                )}
+
                 {/* Ikkilamchi abonent ma'lumotlari */}
                 {abonentData2.accountNumber && (
                   <Paper
@@ -381,25 +482,53 @@ export default function InputForm() {
                       p: 1.5,
                       borderRadius: 1.5,
                       border: '1px solid',
-                      borderColor: 'warning.light',
-                      bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
+                      borderColor: isGlobalAbonent2 ? 'info.main' : 'warning.light',
+                      bgcolor: theme.palette.mode === 'dark' ? 'background.default' : isGlobalAbonent2 ? 'info.50' : 'warning.50'
                     }}
                   >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'warning.dark' }}>
-                      Ikkilamchi: {abonentData2.fullName || '—'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      {abonentData2.mahallaName}, {abonentData2.streetName} | {abonentData2.house?.inhabitantCnt || 0} kishi
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 700,
-                        color: (abonentData2.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
-                      }}
-                    >
-                      Saldo: {(abonentData2.balance?.kSaldo || 0).toLocaleString()} so'm
-                    </Typography>
+                    {isGlobalAbonent2 && (
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mb: 0.5 }}>
+                        <Chip
+                          size="small"
+                          icon={<BusinessIcon sx={{ fontSize: '14px !important' }} />}
+                          label={abonentData2.companyName || "Boshqa tashkilot"}
+                          color="info"
+                          sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
+                        />
+                        <Typography variant="caption" color="info.dark" sx={{ fontWeight: 600, fontSize: '10.5px' }}>
+                          (Boshqa tashkilot)
+                        </Typography>
+                      </Stack>
+                    )}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isGlobalAbonent2 ? 'info.dark' : 'warning.dark' }}>
+                          Ikkilamchi: {abonentData2.fullName || '—'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          {abonentData2.mahallaName}, {abonentData2.streetName} | {abonentData2.house?.inhabitantCnt || 0} kishi
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 700,
+                            color: (abonentData2.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
+                          }}
+                        >
+                          Saldo: {(abonentData2.balance?.kSaldo || 0).toLocaleString()} so'm
+                        </Typography>
+                      </Box>
+                      <Tooltip title={t("Abonent kartasini chop etish / ko'rish")}>
+                        <IconButton
+                          size="small"
+                          color={isGlobalAbonent2 ? 'info' : 'warning'}
+                          onClick={() => handleOpenAbonentCard(abonentData2.accountNumber)}
+                          sx={{ bgcolor: 'background.paper', boxShadow: 1 }}
+                        >
+                          <AccountCircle fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </Paper>
                 )}
 

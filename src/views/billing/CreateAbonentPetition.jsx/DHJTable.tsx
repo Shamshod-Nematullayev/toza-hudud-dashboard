@@ -73,7 +73,15 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
   };
 
   useEffect(() => {
-    if (abonentData.accountNumber) {
+    // Agar abonent barcha tashkilotlar bo'yicha tortilgan bo'lsa, DHJ jadvali allaqachon store.rowsDhjTable da to'liq 2019-hozirgacha mavjud
+    const isGlobal = label?.includes('Ikkilamchi') ? store.isGlobalAbonent2 : store.isGlobalAbonent;
+
+    if (isGlobal && store.rowsDhjTable.length > 0) {
+      setRowsDhjTable(store.rowsDhjTable);
+      return;
+    }
+
+    if (abonentData.accountNumber && abonentData.id > 0) {
       api
         .get('/billing/get-abonent-dxj-by-id', {
           params: {
@@ -82,36 +90,24 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
         })
         .then(({ data }: { data: { ok: boolean; message: string; rows: IRowDhj[] } }) => {
           if (!data.ok) return toast.error(data.message);
-          setRowsDhjTable(
-            data.rows.map((row, i) => ({
-              id: i + 1,
-              davr: row.period,
-              saldo_n: row.nSaldo,
-              nachis: row.accrual,
-              saldo_k: row.kSaldo,
-              akt: row.actAmount,
-              yashovchilar_soni: row.inhabitantCount,
-              allPaymentsSum: row.allPaymentsSum
-            }))
-          );
-          store.setRowsDhjTable(
-            data.rows.map((row, i) => ({
-              id: i + 1,
-              davr: row.period,
-              saldo_n: row.nSaldo,
-              nachis: row.accrual,
-              saldo_k: row.kSaldo,
-              akt: row.actAmount,
-              yashovchilar_soni: row.inhabitantCount,
-              allPaymentsSum: row.allPaymentsSum
-            }))
-          );
+          const mappedRows = data.rows.map((row, i) => ({
+            id: i + 1,
+            davr: row.period,
+            saldo_n: row.nSaldo,
+            nachis: row.accrual,
+            saldo_k: row.kSaldo,
+            akt: row.actAmount,
+            yashovchilar_soni: row.inhabitantCount,
+            allPaymentsSum: row.allPaymentsSum
+          }));
+          setRowsDhjTable(mappedRows);
+          store.setRowsDhjTable(mappedRows);
         });
     } else {
       setRowsDhjTable([]);
       store.setRowsDhjTable([]);
     }
-  }, [abonentData]);
+  }, [abonentData, store.isGlobalAbonent, store.isGlobalAbonent2]);
 
   useEffect(() => {
     if (show && rowsDhjTable.length) {
@@ -222,6 +218,14 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
               color={label?.includes('Ikkilamchi') ? 'warning' : 'primary'}
               sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
             />
+            {(label?.includes('Ikkilamchi') ? store.isGlobalAbonent2 : store.isGlobalAbonent) && abonentData.companyName && (
+              <Chip
+                label={abonentData.companyName}
+                size="small"
+                color="info"
+                sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
+              />
+            )}
           </Stack>
         </Box>
 

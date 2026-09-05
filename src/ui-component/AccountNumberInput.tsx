@@ -38,8 +38,11 @@ function AccountNumberInput({
       value={value}
       label={label}
       onChange={(e) => {
-        if (Number(e.target.value)) {
-          setFunc(e.target.value);
+        const val = e.target.value;
+        if (val === '') {
+          setFunc('');
+        } else if (/^\d+$/.test(val)) {
+          setFunc(val);
         }
       }}
       sx={sx}

@@ -167,7 +167,7 @@ function RecalculatorAbonent() {
     >
       <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
         {/* Boshlanish sanasi */}
-        <Grid size={{ xs: 12, sm: 3.5 }}>
+        <Grid size={{ xs: 12, sm: 3, md: 2.8 }}>
           <DatePicker
             views={['year', 'month', 'day']}
             minDate={dayjs('2019-01-01')}
@@ -191,7 +191,7 @@ function RecalculatorAbonent() {
         </Grid>
 
         {/* Tugash sanasi */}
-        <Grid size={{ xs: 12, sm: 3.5 }}>
+        <Grid size={{ xs: 12, sm: 3, md: 2.8 }}>
           <DatePicker
             views={['year', 'month', 'day']}
             minDate={dayjs('2019-01-01')}
@@ -216,7 +216,7 @@ function RecalculatorAbonent() {
         </Grid>
 
         {/* Debitor / Kreditor tugmalari */}
-        <Grid size={{ xs: 12, sm: 2.5 }}>
+        <Grid size={{ xs: 12, sm: 3.2, md: 3.4 }}>
           <Stack direction="row" spacing={1}>
             <Tooltip title={`${t('recalculator.debitor')} — Qarzni kamaytirish (Manfiy summa)`} arrow>
               <Button
@@ -263,7 +263,7 @@ function RecalculatorAbonent() {
         </Grid>
 
         {/* Tanlangan davr summasi */}
-        <Grid size={{ xs: 12, sm: 2.5 }}>
+        <Grid size={{ xs: 12, sm: 2.8, md: 3 }}>
           <Paper
             elevation={0}
             sx={{
