@@ -19,6 +19,7 @@ import CourtNote from 'views/jurist/CourtNotes';
 import XatlovDalolatnomalar from 'views/billing/XatlovDalolatnomalar';
 import Reports from 'views/billing/Reports';
 import PendingNewAbonents from 'views/billing/PendingNewAbonents';
+import IdentityVerification from 'views/billing/IdentityVerification';
 import QarzdorAbonentlar from 'views/jurist/QarzdorAbonentlar';
 import NazoratchilarXatlov from 'views/billing/Reports/NazoratchilarXatlov';
 import ActPacks from 'views/stm/ActPacks';
@@ -209,6 +210,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'pendingNewAbonents',
           element: <PendingNewAbonents />
+        },
+        {
+          path: 'shaxsni-tasdiqlash',
+          element: <IdentityVerification />
         },
         {
           path: 'debitors',

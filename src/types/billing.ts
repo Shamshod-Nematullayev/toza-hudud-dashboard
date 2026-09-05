@@ -288,6 +288,7 @@ export interface IMultiplyRequest {
     user_name: string;
   };
   confirm: boolean;
+  confirmDate?: string | Date;
   mahallaId: string;
   abonentId: string;
   mahallaName: string;

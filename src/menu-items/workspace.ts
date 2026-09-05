@@ -23,7 +23,8 @@ import {
   MessageOutlined,
   Speed,
   BusinessOutlined,
-  PsychologyOutlined
+  PsychologyOutlined,
+  HowToRegOutlined
 } from '@mui/icons-material';
 import { MenuItem } from 'menu-items';
 
@@ -51,7 +52,8 @@ const icons = {
   MessageOutlined,
   Speed,
   BusinessOutlined,
-  PsychologyOutlined
+  PsychologyOutlined,
+  HowToRegOutlined
 };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
@@ -175,6 +177,15 @@ const billing: MenuItem = {
       type: 'item',
       url: '/billing/pendingNewAbonents',
       icon: icons.PersonAddAltIcon,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
+    },
+    {
+      id: 'identityVerification',
+      title: 'Shaxsni tasdiqlash',
+      type: 'item',
+      url: '/billing/shaxsni-tasdiqlash',
+      icon: icons.HowToRegOutlined,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
     },
