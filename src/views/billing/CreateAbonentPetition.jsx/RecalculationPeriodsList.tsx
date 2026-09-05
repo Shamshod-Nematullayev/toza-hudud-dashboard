@@ -36,6 +36,7 @@ export default function RecalculationPeriodsList() {
 
   return (
     <Card
+      id="tour-recalc-list"
       elevation={2}
       sx={{
         height: '100%',

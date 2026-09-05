@@ -166,57 +166,59 @@ function RecalculatorAbonent() {
       }}
     >
       <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
-        {/* Boshlanish sanasi */}
-        <Grid size={{ xs: 12, sm: 3, md: 2.8 }}>
-          <DatePicker
-            views={['year', 'month', 'day']}
-            minDate={dayjs('2019-01-01')}
-            maxDate={dayjs()}
-            label={t('recalculator.from')}
-            format="DD.MM.YY"
-            value={startDate}
-            onChange={setStartDate}
-            slotProps={{
-              textField: {
-                size: 'small',
-                fullWidth: true,
-                sx: {
-                  fontSize: '12px',
-                  borderRadius: 1.5
-                }
-              },
-              openPickerIcon: { sx: { fontSize: '16px' } }
-            }}
-          />
-        </Grid>
-
-        {/* Tugash sanasi */}
-        <Grid size={{ xs: 12, sm: 3, md: 2.8 }}>
-          <DatePicker
-            views={['year', 'month', 'day']}
-            minDate={dayjs('2019-01-01')}
-            maxDate={dayjs()}
-            label={t('recalculator.to')}
-            format="DD.MM.YY"
-            value={endDate}
-            onChange={setEndDate}
-            disabled={aktType === 'death'}
-            slotProps={{
-              textField: {
-                size: 'small',
-                fullWidth: true,
-                sx: {
-                  fontSize: '12px',
-                  borderRadius: 1.5
-                }
-              },
-              openPickerIcon: { sx: { fontSize: '16px' } }
-            }}
-          />
+        {/* Boshlanish va tugash sanalari */}
+        <Grid size={{ xs: 12, sm: 6, md: 5.6 }} id="tour-recalc-dates">
+          <Grid container spacing={1}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <DatePicker
+                views={['year', 'month', 'day']}
+                minDate={dayjs('2019-01-01')}
+                maxDate={dayjs()}
+                label={t('recalculator.from')}
+                format="DD.MM.YY"
+                value={startDate}
+                onChange={setStartDate}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    fullWidth: true,
+                    sx: {
+                      fontSize: '12px',
+                      borderRadius: 1.5
+                    }
+                  },
+                  openPickerIcon: { sx: { fontSize: '16px' } }
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <DatePicker
+                views={['year', 'month', 'day']}
+                minDate={dayjs('2019-01-01')}
+                maxDate={dayjs()}
+                label={t('recalculator.to')}
+                format="DD.MM.YY"
+                value={endDate}
+                onChange={setEndDate}
+                disabled={aktType === 'death'}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    fullWidth: true,
+                    sx: {
+                      fontSize: '12px',
+                      borderRadius: 1.5
+                    }
+                  },
+                  openPickerIcon: { sx: { fontSize: '16px' } }
+                }}
+              />
+            </Grid>
+          </Grid>
         </Grid>
 
         {/* Debitor / Kreditor tugmalari */}
-        <Grid size={{ xs: 12, sm: 3.2, md: 3.4 }}>
+        <Grid size={{ xs: 12, sm: 3.2, md: 3.4 }} id="tour-debitor-kreditor">
           <Stack direction="row" spacing={1}>
             <Tooltip title={`${t('recalculator.debitor')} — Qarzni kamaytirish (Manfiy summa)`} arrow>
               <Button
@@ -263,7 +265,7 @@ function RecalculatorAbonent() {
         </Grid>
 
         {/* Tanlangan davr summasi */}
-        <Grid size={{ xs: 12, sm: 2.8, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 2.8, md: 3 }} id="tour-period-sum">
           <Paper
             elevation={0}
             sx={{

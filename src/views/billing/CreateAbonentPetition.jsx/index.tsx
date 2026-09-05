@@ -1,23 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Box,
-  Card,
-  Grid,
-  Tab,
-  Tabs,
-  Paper,
-  Typography,
-  Divider,
-  useTheme
-} from '@mui/material';
-import {
-  TableChartOutlined,
-  CompareArrowsOutlined,
-  PersonOutlineOutlined,
-  GroupOutlined
-} from '@mui/icons-material';
+import { Box, Card, Grid, Tab, Tabs, Paper, Typography, Divider, useTheme } from '@mui/material';
+import { TableChartOutlined, CompareArrowsOutlined, PersonOutlineOutlined, GroupOutlined } from '@mui/icons-material';
 
 import { useStore } from './useStore';
 import InputForm from './InputForm';
@@ -27,8 +12,15 @@ import RecalculationPeriodsList from './RecalculationPeriodsList';
 import PrintSection from './PrintSection';
 import PasteImageDialog from './PasteImageDialog';
 import PrintAbonentCard from '../Abonent/modals/PrintAbonentCard';
+import { usePageTour, createAbonentPetitionSteps } from '../../../ui-component/tour';
 
 function CreateAbonentPetition() {
+  const { startTour } = usePageTour({
+    tourKey: 'create_abonent_petition',
+    steps: createAbonentPetitionSteps,
+    autoStart: true,
+    delayMs: 700
+  });
   const {
     aktType,
     abonentData,
@@ -68,7 +60,7 @@ function CreateAbonentPetition() {
   }, [location]);
 
   return (
-    <Box sx={{ minHeight: 'calc(100vh - 120px)' }}>
+    <Box sx={{ minHeight: 'calc(100vh - 120px)' }} id="tour-petition-header">
       {/* Chop etish va modallar */}
       <PrintSection
         show={showPrintSection}
@@ -96,8 +88,8 @@ function CreateAbonentPetition() {
             ui.globalAbonentAccountNumber === abonentData.accountNumber && abonentData.id
               ? abonentData.id
               : ui.globalAbonentAccountNumber === abonentData2.accountNumber && abonentData2.id
-              ? abonentData2.id
-              : undefined
+                ? abonentData2.id
+                : undefined
         }}
       />
 
@@ -107,7 +99,7 @@ function CreateAbonentPetition() {
       <Grid container spacing={1.5} sx={{ height: { xs: 'auto', md: 'calc(100vh - 130px)' } }}>
         {/* 1-Ustun (Chapda): Ariza shakllantirish formasi */}
         <Grid size={{ xs: 12, md: 3, lg: 2.5 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
-          <InputForm />
+          <InputForm onStartTour={startTour} />
         </Grid>
 
         {/* 2-Ustun (Markazda): DHJ jadvali va uning tepasida Qayta hisoblash vositasi */}
@@ -133,7 +125,7 @@ function CreateAbonentPetition() {
             <Divider />
 
             {/* Pastda: To'liq DHJ Jadvali */}
-            <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <Box id="tour-dhj-table" sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
               {aktType === 'dvaynik' ? (
                 <>
                   <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1, flexShrink: 0 }}>

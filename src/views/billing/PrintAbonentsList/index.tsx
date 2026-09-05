@@ -9,6 +9,7 @@ import MahallaSidebar from './MahallaSidebar';
 import PrintSection from './PrintSection';
 import useLoaderStore from 'store/loaderStore';
 import { createGlobalStyle } from 'styled-components';
+import { usePageTour, printAbonentsListSteps } from 'ui-component/tour';
 
 const CustomStyle = createGlobalStyle`
 table {
@@ -28,6 +29,13 @@ export default function PrintAbonentsList() {
   const { setIsLoading } = useLoaderStore();
   const printContentRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
+
+  const { startTour } = usePageTour({
+    tourKey: 'print_abonents_list',
+    steps: printAbonentsListSteps,
+    autoStart: true,
+    delayMs: 700
+  });
 
   const [filters, setFilters] = useState<IFilters>({
     identified: '',
@@ -115,10 +123,17 @@ export default function PrintAbonentsList() {
         }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: 'calc(100vh - 140px)' }}>
             {/* Yuqori Header Paneli */}
-            <Header printContentRef={printContentRef} getAbonents={getAbonents} filters={filters} setFilters={setFilters} />
+            <Header
+              printContentRef={printContentRef}
+              getAbonents={getAbonents}
+              filters={filters}
+              setFilters={setFilters}
+              onStartTour={startTour}
+            />
 
             {/* Asosiy A4 Qog'oz Ko'rish Maydoni */}
             <Card
+              id="tour-print-preview"
               elevation={0}
               sx={{
                 flex: 1,

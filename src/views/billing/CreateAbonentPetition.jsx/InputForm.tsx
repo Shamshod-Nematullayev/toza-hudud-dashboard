@@ -55,8 +55,13 @@ import { toast } from 'react-toastify';
 import { aktType, defaultAbonentData, dublicateRelations, useStore } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import { documentTypes } from 'store/constant';
+import { TourHelpButton } from 'ui-component/tour';
 
-export default function InputForm() {
+interface InputFormProps {
+  onStartTour?: () => void;
+}
+
+export default function InputForm({ onStartTour }: InputFormProps) {
   const {
     aktType,
     setAktType,
@@ -187,12 +192,13 @@ export default function InputForm() {
     (aktType === 'gps' && images.length === 0);
 
   const getCreateDisabledReason = (): string => {
-    if (isGlobalAbonent) return t("Boshqa tashkilot abonenti uchun ariza shakllantirish mumkin emas (faqat ma'lumot uchun ko'rish va chop etish mumkin)");
-    if (aktType === 'dvaynik' && isGlobalAbonent2) return t("Ikkilamchi abonent boshqa tashkilotga tegishli");
-    if (!abonentData.accountNumber) return t("Avval asosiy hisob raqamini kiriting") || '';
-    if (!aktType) return t("Hujjat turini tanlang") || '';
-    if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t("Ikkilamchi hisob raqamini kiriting") || '';
-    if (aktType === 'gps' && images.length === 0) return t("GPS arizasi uchun kamida bitta rasm biriktiring") || '';
+    if (isGlobalAbonent)
+      return t("Boshqa tashkilot abonenti uchun ariza shakllantirish mumkin emas (faqat ma'lumot uchun ko'rish va chop etish mumkin)");
+    if (aktType === 'dvaynik' && isGlobalAbonent2) return t('Ikkilamchi abonent boshqa tashkilotga tegishli');
+    if (!abonentData.accountNumber) return t('Avval asosiy hisob raqamini kiriting') || '';
+    if (!aktType) return t('Hujjat turini tanlang') || '';
+    if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t('Ikkilamchi hisob raqamini kiriting') || '';
+    if (aktType === 'gps' && images.length === 0) return t('GPS arizasi uchun kamida bitta rasm biriktiring') || '';
     return '';
   };
 
@@ -219,32 +225,31 @@ export default function InputForm() {
             {t('Ariza shakllantirish')}
           </Typography>
         </Stack>
-        <Tooltip title={t("Barcha maydonlarni tozalash")}>
-          <Button
-            size="small"
-            color="error"
-            variant="text"
-            startIcon={<RestartAlt fontSize="small" />}
-            onClick={() => setClearConfirmOpen(true)}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
-          >
-            {t('buttons.clear')}
-          </Button>
-        </Tooltip>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          {onStartTour && <TourHelpButton onClick={onStartTour} />}
+          <Tooltip title={t('Barcha maydonlarni tozalash')}>
+            <Button
+              size="small"
+              color="error"
+              variant="text"
+              startIcon={<RestartAlt fontSize="small" />}
+              onClick={() => setClearConfirmOpen(true)}
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              {t('buttons.clear')}
+            </Button>
+          </Tooltip>
+        </Stack>
       </Box>
 
       <Divider />
 
       {/* 2. Asosiy Abonent qidirish (Hisob raqam) */}
-      <Box>
+      <Box id="tour-main-account">
         <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 1, display: 'block' }}>
           1. {t('Asosiy Abonent')}
         </Typography>
-        <AccountNumberInput
-          label={t('createAbonentPetitionPage.accountNumber')}
-          value={accountNumber}
-          setFunc={setAccountNumber}
-        />
+        <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={accountNumber} setFunc={setAccountNumber} />
 
         {/* Agar joriy tashkilotda topilmasa, O'zbekiston bo'ylab izlash tugmasi */}
         {notFoundInCompanyMain && accountNumber.length === 12 && !abonentData.accountNumber && (
@@ -302,7 +307,7 @@ export default function InputForm() {
                   <Chip
                     size="small"
                     icon={<BusinessIcon sx={{ fontSize: '14px !important' }} />}
-                    label={abonentData.companyName || "Boshqa tashkilot"}
+                    label={abonentData.companyName || 'Boshqa tashkilot'}
                     color="info"
                     sx={{ fontWeight: 700, fontSize: '11px', height: 22 }}
                   />
@@ -320,7 +325,8 @@ export default function InputForm() {
                   <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: 'text.secondary', mt: 0.2 }}>
                     <LocationOn sx={{ fontSize: 14 }} />
                     <Typography variant="caption">
-                      {abonentData.mahallaName}, {abonentData.streetName} {abonentData.house?.homeNumber ? `№${abonentData.house.homeNumber}` : ''}
+                      {abonentData.mahallaName}, {abonentData.streetName}{' '}
+                      {abonentData.house?.homeNumber ? `№${abonentData.house.homeNumber}` : ''}
                     </Typography>
                   </Stack>
                 </Box>
@@ -368,7 +374,7 @@ export default function InputForm() {
       </Box>
 
       {/* 3. Hujjat turi tanlash */}
-      <Box>
+      <Box id="tour-document-type">
         <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 1, display: 'block' }}>
           2. {t('Hujjat parametri')}
         </Typography>
@@ -390,298 +396,314 @@ export default function InputForm() {
       </Box>
 
       {/* 4. Dinamik maydonlar (Hujjat turiga bog'liq) */}
-      {aktType && (
-        <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: 'action.hover' }}>
-          <Stack spacing={2}>
-            {/* Odam soni / Vafot holati */}
-            {(aktType === 'odam_soni' || aktType === 'death') && (
-              <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label={t('createAbonentPetitionPage.inhabitantCnt')}
-                  value={yashovchiSoniInput}
-                  disabled={aktType === 'death'}
-                  onChange={(e) => {
-                    if (!isNaN(Number(e.target.value))) {
-                      setYashovchiSoniInput(e.target.value);
-                    }
-                  }}
-                  helperText={
-                    aktType === 'death'
-                      ? t("Vafot etganligi sababli 1 kishi avtomatik kamaytiriladi")
-                      : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
-                  }
-                  sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
-                />
-              </Stack>
-            )}
-
-            {/* Dvoynik holati */}
-            {aktType === 'dvaynik' && (
-              <Stack spacing={1.5}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <AccountNumberInput
-                      label={t('createAbonentPetitionPage.dublicateAccountNumber')}
-                      value={accountNumber2}
-                      setFunc={setAccountNumber2}
-                    />
-                  </Box>
-                  <Tooltip title={t("Hisob raqamlarni almashtirish (Swap)")}>
-                    <IconButton
-                      onClick={handleSwapIconButtonClick}
-                      color="primary"
-                      sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
-                    >
-                      <ScreenRotationAlt />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-
-                {/* Agar ikkilamchi hisob joriy tashkilotda topilmasa, O'zbekiston bo'ylab izlash */}
-                {notFoundInCompanyDublicate && accountNumber2.length === 12 && !abonentData2.accountNumber && (
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      border: '1px dashed',
-                      borderColor: 'warning.main',
-                      bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
+      <Box id="tour-dynamic-fields">
+        {aktType ? (
+          <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: 'action.hover' }}>
+            <Stack spacing={2}>
+              {/* Odam soni / Vafot holati */}
+              {(aktType === 'odam_soni' || aktType === 'death') && (
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label={t('createAbonentPetitionPage.inhabitantCnt')}
+                    value={yashovchiSoniInput}
+                    disabled={aktType === 'death'}
+                    onChange={(e) => {
+                      if (!isNaN(Number(e.target.value))) {
+                        setYashovchiSoniInput(e.target.value);
+                      }
                     }}
-                  >
-                    <Typography variant="caption" color="warning.dark" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
-                      ⚠️ Ikkilamchi hisob raqam joriy tashkilotda topilmadi.
-                    </Typography>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      color="warning"
-                      size="small"
-                      disabled={isSearchingGlobalDublicate}
-                      onClick={() => searchAllAccountsAbonent(accountNumber2, 'dublicate')}
-                      startIcon={isSearchingGlobalDublicate ? <CircularProgress size={14} color="inherit" /> : <PublicIcon />}
+                    helperText={
+                      aktType === 'death'
+                        ? t('Vafot etganligi sababli 1 kishi avtomatik kamaytiriladi')
+                        : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                    }
+                    sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
+                  />
+                </Stack>
+              )}
+
+              {/* Dvoynik holati */}
+              {aktType === 'dvaynik' && (
+                <Stack spacing={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <AccountNumberInput
+                        label={t('createAbonentPetitionPage.dublicateAccountNumber')}
+                        value={accountNumber2}
+                        setFunc={setAccountNumber2}
+                      />
+                    </Box>
+                    <Tooltip title={t('Hisob raqamlarni almashtirish (Swap)')}>
+                      <IconButton
+                        onClick={handleSwapIconButtonClick}
+                        color="primary"
+                        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
+                      >
+                        <ScreenRotationAlt />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+
+                  {/* Agar ikkilamchi hisob joriy tashkilotda topilmasa, O'zbekiston bo'ylab izlash */}
+                  {notFoundInCompanyDublicate && accountNumber2.length === 12 && !abonentData2.accountNumber && (
+                    <Paper
+                      elevation={0}
                       sx={{
-                        fontWeight: 700,
-                        fontSize: '12px',
-                        textTransform: 'none',
-                        borderRadius: 1.5
+                        p: 1.5,
+                        borderRadius: 2,
+                        border: '1px dashed',
+                        borderColor: 'warning.main',
+                        bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
                       }}
                     >
-                      {isSearchingGlobalDublicate ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
-                    </Button>
-                  </Paper>
-                )}
-
-                {/* Ikkilamchi abonent ma'lumotlari */}
-                {abonentData2.accountNumber && (
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 1.5,
-                      border: '1px solid',
-                      borderColor: isGlobalAbonent2 ? 'info.main' : 'warning.light',
-                      bgcolor: theme.palette.mode === 'dark' ? 'background.default' : isGlobalAbonent2 ? 'info.50' : 'warning.50'
-                    }}
-                  >
-                    {isGlobalAbonent2 && (
-                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mb: 0.5 }}>
-                        <Chip
-                          size="small"
-                          icon={<BusinessIcon sx={{ fontSize: '14px !important' }} />}
-                          label={abonentData2.companyName || "Boshqa tashkilot"}
-                          color="info"
-                          sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
-                        />
-                        <Typography variant="caption" color="info.dark" sx={{ fontWeight: 600, fontSize: '10.5px' }}>
-                          (Boshqa tashkilot)
-                        </Typography>
-                      </Stack>
-                    )}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isGlobalAbonent2 ? 'info.dark' : 'warning.dark' }}>
-                          Ikkilamchi: {abonentData2.fullName || '—'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                          {abonentData2.mahallaName}, {abonentData2.streetName} | {abonentData2.house?.inhabitantCnt || 0} kishi
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: 700,
-                            color: (abonentData2.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
-                          }}
-                        >
-                          Saldo: {(abonentData2.balance?.kSaldo || 0).toLocaleString()} so'm
-                        </Typography>
-                      </Box>
-                      <Tooltip title={t("Abonent kartasini chop etish / ko'rish")}>
-                        <IconButton
-                          size="small"
-                          color={isGlobalAbonent2 ? 'info' : 'warning'}
-                          onClick={() => handleOpenAbonentCard(abonentData2.accountNumber)}
-                          sx={{ bgcolor: 'background.paper', boxShadow: 1 }}
-                        >
-                          <AccountCircle fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </Paper>
-                )}
-
-                {/* 1-Qoida: Familiyalar har xil bo'lsa qarindoshlik / aloqadorlikni tanlash */}
-                {abonentData2.accountNumber && (
-                  <Box sx={{ mt: 0.5 }}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel id="dublicate-relation-label">{t("Abonentlar o'rtasidagi qarindoshlik / aloqa")}</InputLabel>
-                      <Select
-                        labelId="dublicate-relation-label"
-                        value={dublicateRelation || ''}
-                        label={t("Abonentlar o'rtasidagi qarindoshlik / aloqa")}
-                        onChange={(e) => setDublicateRelation(e.target.value)}
-                        sx={{ borderRadius: 1.5, bgcolor: 'background.paper' }}
-                      >
-                        {dublicateRelations.map((rel) => (
-                          <MenuItem key={rel} value={rel}>
-                            {rel}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    {abonentData.fullName && abonentData2.fullName && abonentData.fullName !== abonentData2.fullName && !dublicateRelation && (
-                      <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5, fontSize: '11px', fontWeight: 600 }}>
-                        ⚠️ Ism-familiyalar turlicha. Qonuniy dalolatnoma uchun aloqadorlikni tanlash tavsiya etiladi.
+                      <Typography variant="caption" color="warning.dark" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
+                        ⚠️ Ikkilamchi hisob raqam joriy tashkilotda topilmadi.
                       </Typography>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        color="warning"
+                        size="small"
+                        disabled={isSearchingGlobalDublicate}
+                        onClick={() => searchAllAccountsAbonent(accountNumber2, 'dublicate')}
+                        startIcon={isSearchingGlobalDublicate ? <CircularProgress size={14} color="inherit" /> : <PublicIcon />}
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '12px',
+                          textTransform: 'none',
+                          borderRadius: 1.5
+                        }}
+                      >
+                        {isSearchingGlobalDublicate ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
+                      </Button>
+                    </Paper>
+                  )}
+
+                  {/* Ikkilamchi abonent ma'lumotlari */}
+                  {abonentData2.accountNumber && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: isGlobalAbonent2 ? 'info.main' : 'warning.light',
+                        bgcolor: theme.palette.mode === 'dark' ? 'background.default' : isGlobalAbonent2 ? 'info.50' : 'warning.50'
+                      }}
+                    >
+                      {isGlobalAbonent2 && (
+                        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mb: 0.5 }}>
+                          <Chip
+                            size="small"
+                            icon={<BusinessIcon sx={{ fontSize: '14px !important' }} />}
+                            label={abonentData2.companyName || 'Boshqa tashkilot'}
+                            color="info"
+                            sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
+                          />
+                          <Typography variant="caption" color="info.dark" sx={{ fontWeight: 600, fontSize: '10.5px' }}>
+                            (Boshqa tashkilot)
+                          </Typography>
+                        </Stack>
+                      )}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isGlobalAbonent2 ? 'info.dark' : 'warning.dark' }}>
+                            Ikkilamchi: {abonentData2.fullName || '—'}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {abonentData2.mahallaName}, {abonentData2.streetName} | {abonentData2.house?.inhabitantCnt || 0} kishi
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 700,
+                              color: (abonentData2.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
+                            }}
+                          >
+                            Saldo: {(abonentData2.balance?.kSaldo || 0).toLocaleString()} so'm
+                          </Typography>
+                        </Box>
+                        <Tooltip title={t("Abonent kartasini chop etish / ko'rish")}>
+                          <IconButton
+                            size="small"
+                            color={isGlobalAbonent2 ? 'info' : 'warning'}
+                            onClick={() => handleOpenAbonentCard(abonentData2.accountNumber)}
+                            sx={{ bgcolor: 'background.paper', boxShadow: 1 }}
+                          >
+                            <AccountCircle fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Paper>
+                  )}
+
+                  {/* 1-Qoida: Familiyalar har xil bo'lsa qarindoshlik / aloqadorlikni tanlash */}
+                  {abonentData2.accountNumber && (
+                    <Box sx={{ mt: 0.5 }}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel id="dublicate-relation-label">{t("Abonentlar o'rtasidagi qarindoshlik / aloqa")}</InputLabel>
+                        <Select
+                          labelId="dublicate-relation-label"
+                          value={dublicateRelation || ''}
+                          label={t("Abonentlar o'rtasidagi qarindoshlik / aloqa")}
+                          onChange={(e) => setDublicateRelation(e.target.value)}
+                          sx={{ borderRadius: 1.5, bgcolor: 'background.paper' }}
+                        >
+                          {dublicateRelations.map((rel) => (
+                            <MenuItem key={rel} value={rel}>
+                              {rel}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      {abonentData.fullName &&
+                        abonentData2.fullName &&
+                        abonentData.fullName !== abonentData2.fullName &&
+                        !dublicateRelation && (
+                          <Typography
+                            variant="caption"
+                            color="warning.main"
+                            sx={{ display: 'block', mt: 0.5, fontSize: '11px', fontWeight: 600 }}
+                          >
+                            ⚠️ Ism-familiyalar turlicha. Qonuniy dalolatnoma uchun aloqadorlikni tanlash tavsiya etiladi.
+                          </Typography>
+                        )}
+                    </Box>
+                  )}
+
+                  {/* 2-Qoida: To'lovlarni ko'chirish va summa kiritish */}
+                  <Box sx={{ p: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1.5, bgcolor: 'background.paper' }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={shouldBeMoneyTransfer}
+                          onChange={(e) => setShouldBeMoneyTransfer(e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {t("Ikkilamchi hisobdagi to'lovlarni asosiyga ko'chirish")}
+                        </Typography>
+                      }
+                    />
+
+                    {shouldBeMoneyTransfer && (
+                      <Box sx={{ mt: 1.5 }}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          type="number"
+                          label={t("Ko'chiriladigan to'lovlar summasi (so'm)")}
+                          value={moneyTransferAmount}
+                          onChange={(e) => setMoneyTransferAmount(e.target.value)}
+                          placeholder="0"
+                          helperText={t("Ikkilamchi hisob raqamiga to'langan barcha to'lovlarning umumiy yig'indisi")}
+                          sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
+                        />
+                      </Box>
                     )}
                   </Box>
-                )}
+                </Stack>
+              )}
 
-                {/* 2-Qoida: To'lovlarni ko'chirish va summa kiritish */}
-                <Box sx={{ p: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1.5, bgcolor: 'background.paper' }}>
+              {/* GPS monitoring holati */}
+              {aktType === 'gps' && (
+                <Stack spacing={1.5}>
                   <FormControlLabel
-                    control={
-                      <Switch
-                        checked={shouldBeMoneyTransfer}
-                        onChange={(e) => setShouldBeMoneyTransfer(e.target.checked)}
-                        color="primary"
-                      />
-                    }
+                    control={<Switch checked={muzlatiladi} onChange={(e) => setMuzlatiladi(e.target.checked)} color="warning" />}
                     label={
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {t("Ikkilamchi hisobdagi to'lovlarni asosiyga ko'chirish")}
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {t("Muzlatish (Hozirda ham xizmat ko'rsatilmaydi)")}
                       </Typography>
                     }
                   />
 
-                  {shouldBeMoneyTransfer && (
-                    <Box sx={{ mt: 1.5 }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        type="number"
-                        label={t("Ko'chiriladigan to'lovlar summasi (so'm)")}
-                        value={moneyTransferAmount}
-                        onChange={(e) => setMoneyTransferAmount(e.target.value)}
-                        placeholder="0"
-                        helperText={t("Ikkilamchi hisob raqamiga to'langan barcha to'lovlarning umumiy yig'indisi")}
-                        sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
-                      />
-                    </Box>
+                  {autoMobile && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 1.2,
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}
+                    >
+                      <DirectionsCar color="action" fontSize="small" />
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                        {t('Biriktirilgan mashina')}: {autoMobile.name}
+                      </Typography>
+                    </Paper>
                   )}
-                </Box>
-              </Stack>
-            )}
 
-            {/* GPS monitoring holati */}
-            {aktType === 'gps' && (
-              <Stack spacing={1.5}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={muzlatiladi}
-                      onChange={(e) => setMuzlatiladi(e.target.checked)}
-                      color="warning"
-                    />
-                  }
-                  label={
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {t("Muzlatish (Hozirda ham xizmat ko'rsatilmaydi)")}
-                    </Typography>
-                  }
-                />
-
-                {autoMobile && (
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 1.2,
-                      borderRadius: 1.5,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1
-                    }}
+                  <Button
+                    fullWidth
+                    variant={images.length > 0 ? 'contained' : 'outlined'}
+                    color={images.length > 0 ? 'success' : 'primary'}
+                    startIcon={<AddPhotoAlternate />}
+                    onClick={() => setPasteImageDialogOpen(true)}
+                    sx={{ textTransform: 'none', borderRadius: 2 }}
                   >
-                    <DirectionsCar color="action" fontSize="small" />
-                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      {t("Biriktirilgan mashina")}: {autoMobile.name}
-                    </Typography>
-                  </Paper>
-                )}
+                    {images.length > 0 ? `${t('Rasmlar biriktirildi')} (${images.length})` : t('buttons.addImage')}
+                  </Button>
+                </Stack>
+              )}
 
-                <Button
-                  fullWidth
-                  variant={images.length > 0 ? 'contained' : 'outlined'}
-                  color={images.length > 0 ? 'success' : 'primary'}
-                  startIcon={<AddPhotoAlternate />}
-                  onClick={() => setPasteImageDialogOpen(true)}
-                  sx={{ textTransform: 'none', borderRadius: 2 }}
-                >
-                  {images.length > 0
-                    ? `${t('Rasmlar biriktirildi')} (${images.length})`
-                    : t('buttons.addImage')}
-                </Button>
-              </Stack>
-            )}
-
-            {/* Akt summasi indikatori */}
-            {aktType !== 'dvaynik' && (
-              <Box
-                sx={{
-                  p: 1.5,
-                  borderRadius: 1.5,
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  {t('createAbonentPetitionPage.actAmount')}:
-                </Typography>
-                <Typography
-                  variant="subtitle1"
+              {/* Akt summasi indikatori */}
+              {aktType !== 'dvaynik' && (
+                <Box
                   sx={{
-                    fontWeight: 800,
-                    color: aktSumma.total < 0 ? 'error.main' : aktSumma.total > 0 ? 'success.main' : 'text.primary'
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}
                 >
-                  {aktSumma.total.toLocaleString()} so'm
-                </Typography>
-              </Box>
-            )}
-          </Stack>
-        </Box>
-      )}
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    {t('createAbonentPetitionPage.actAmount')}:
+                  </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: 800,
+                      color: aktSumma.total < 0 ? 'error.main' : aktSumma.total > 0 ? 'success.main' : 'text.primary'
+                    }}
+                  >
+                    {aktSumma.total.toLocaleString()} so'm
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              p: 1.5,
+              border: '1px dashed',
+              borderColor: 'divider',
+              borderRadius: 2,
+              textAlign: 'center',
+              bgcolor: 'action.hover'
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+              {t('Hujjat turi tanlanganda qo‘shimcha parametrlar bu yerda aks etadi')}
+            </Typography>
+          </Box>
+        )}
+      </Box>
 
       {/* 5. Asosiy Yaratish Tugmasi (Sticky Bottom) */}
-      <Box sx={{ mt: 'auto', pt: 1 }}>
+      <Box id="tour-submit-petition" sx={{ mt: 'auto', pt: 1 }}>
         <Tooltip title={isCreateDisabled ? getCreateDisabledReason() : ''} arrow placement="top">
           <span>
             <Button
@@ -711,12 +733,10 @@ export default function InputForm() {
       <Dialog open={clearConfirmOpen} onClose={() => setClearConfirmOpen(false)}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <WarningAmber color="warning" />
-          {t("Formani tozalashni xohlaysizmi?")}
+          {t('Formani tozalashni xohlaysizmi?')}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            {t("Kiritilgan barcha hisob-kitoblar, tanlangan davrlar va rasmlar bekor qilinadi.")}
-          </DialogContentText>
+          <DialogContentText>{t('Kiritilgan barcha hisob-kitoblar, tanlangan davrlar va rasmlar bekor qilinadi.')}</DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setClearConfirmOpen(false)} color="inherit">

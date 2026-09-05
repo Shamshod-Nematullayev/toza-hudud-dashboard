@@ -47,15 +47,17 @@ import MahallaSelection from 'ui-component/MahallaSelection';
 import { useTranslation } from 'react-i18next';
 import useCustomizationStore, { defaultVisibleColumns, ITableVisibleColumns } from 'store/customizationStore';
 import MacroManager from './MacroManager';
+import { TourHelpButton } from 'ui-component/tour';
 
 interface Props {
   printContentRef: React.RefObject<HTMLDivElement | null>;
   getAbonents: () => void;
   filters: IFilters;
   setFilters: (e: any) => void;
+  onStartTour?: () => void;
 }
 
-export default function Header({ printContentRef, getAbonents, filters, setFilters }: Props) {
+export default function Header({ printContentRef, getAbonents, filters, setFilters, onStartTour }: Props) {
   const {
     selectedMahalla,
     setSelectedMahalla,
@@ -319,7 +321,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
             borderColor: 'divider'
           }}
         >
-          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+          <Stack id="tour-print-kpi" direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5 }}>
             {/* Jami abonentlar */}
             <Paper
               elevation={0}
@@ -417,12 +419,18 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
 
           {/* Asosiy Harakatlar (Makros, Print, Excel, Telegram, Sozlamalar) */}
           <Stack direction="row" spacing={1} sx={{ ml: 'auto', alignItems: 'center' }}>
+            {/* Yo'riqnoma tugmasi */}
+            {onStartTour && <TourHelpButton onClick={onStartTour} />}
+
             {/* Makros Avtomatlashtirish tugmasi */}
-            <MacroManager printContentRef={printContentRef} />
+            <Box id="tour-print-macro-btn">
+              <MacroManager printContentRef={printContentRef} />
+            </Box>
 
             {/* Jadval sozlamalari */}
             <Tooltip title={t('Jadval sozlamalari (Shrift, Ustunlar, Rang)')} arrow>
               <IconButton
+                id="tour-print-settings-btn"
                 onClick={() => setSettingsOpen(true)}
                 sx={{
                   border: '1px solid',
@@ -436,6 +444,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
             </Tooltip>
 
             <Button
+              id="tour-print-btn"
               disabled={mainFunctionsDisabled}
               onClick={printFunction}
               variant="contained"
@@ -445,31 +454,35 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
             >
               {t('Chop etish')}
             </Button>
-            <Button
-              disabled={mainFunctionsDisabled}
-              onClick={handleClickExcel}
-              variant="outlined"
-              color="success"
-              startIcon={<GridOn />}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-            >
-              {t('Excel')}
-            </Button>
-            <Button
-              disabled={mainFunctionsDisabled}
-              onClick={handleClickSendTelegramAsImg}
-              variant="outlined"
-              color="secondary"
-              startIcon={<TelegramIcon />}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-            >
-              {t('Telegram')}
-            </Button>
+
+            <Stack id="tour-print-export-actions" direction="row" spacing={1}>
+              <Button
+                disabled={mainFunctionsDisabled}
+                onClick={handleClickExcel}
+                variant="outlined"
+                color="success"
+                startIcon={<GridOn />}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+              >
+                {t('Excel')}
+              </Button>
+              <Button
+                disabled={mainFunctionsDisabled}
+                onClick={handleClickSendTelegramAsImg}
+                variant="outlined"
+                color="secondary"
+                startIcon={<TelegramIcon />}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+              >
+                {t('Telegram')}
+              </Button>
+            </Stack>
           </Stack>
         </Box>
 
         {/* 2-Qator: Filtrlar qatori */}
         <Box
+          id="tour-print-filters"
           sx={{
             display: 'grid',
             gridTemplateColumns: {
@@ -545,7 +558,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
           </FormControl>
 
           {/* Tugmalar guruhi */}
-          <Stack direction="row" spacing={1}>
+          <Stack id="tour-print-filter-actions" direction="row" spacing={1}>
             <Tooltip title={t('Filtrlarni tozalash')} arrow>
               <Button variant="outlined" color="inherit" onClick={handleResetFilters} sx={{ minWidth: 40, px: 1, borderRadius: 2 }}>
                 <RestartAlt fontSize="small" />

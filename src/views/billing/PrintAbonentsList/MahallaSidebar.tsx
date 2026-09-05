@@ -45,6 +45,7 @@ export default function MahallaSidebar({ onSelectMahalla }: MahallaSidebarProps)
 
   return (
     <Card
+      id="tour-print-sidebar"
       elevation={0}
       sx={{
         height: 'calc(100vh - 140px)',
