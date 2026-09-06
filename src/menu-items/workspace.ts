@@ -182,7 +182,7 @@ const billing: MenuItem = {
     },
     {
       id: 'identityVerification',
-      title: 'Shaxsni tasdiqlash',
+      title: 'identityVerification',
       type: 'item',
       url: '/billing/shaxsni-tasdiqlash',
       icon: icons.HowToRegOutlined,

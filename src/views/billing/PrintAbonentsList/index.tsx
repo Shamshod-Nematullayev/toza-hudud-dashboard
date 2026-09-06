@@ -9,7 +9,7 @@ import MahallaSidebar from './MahallaSidebar';
 import PrintSection from './PrintSection';
 import useLoaderStore from 'store/loaderStore';
 import { createGlobalStyle } from 'styled-components';
-import { usePageTour, printAbonentsListSteps } from 'ui-component/tour';
+import { usePageTour, getPrintAbonentsListSteps } from 'ui-component/tour';
 
 const CustomStyle = createGlobalStyle`
 table {
@@ -32,7 +32,7 @@ export default function PrintAbonentsList() {
 
   const { startTour } = usePageTour({
     tourKey: 'print_abonents_list',
-    steps: printAbonentsListSteps,
+    steps: getPrintAbonentsListSteps,
     autoStart: true,
     delayMs: 700
   });

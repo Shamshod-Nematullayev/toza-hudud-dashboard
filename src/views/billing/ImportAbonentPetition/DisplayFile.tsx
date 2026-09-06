@@ -35,7 +35,7 @@ function DisplayFile() {
   const theme = useTheme();
 
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+    <Box id="tour-import-pdf-viewer" sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
       {hasFile ? (
         <PdfViewer base64String={currentFile?.url || ''} />
       ) : (

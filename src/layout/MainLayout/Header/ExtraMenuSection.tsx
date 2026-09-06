@@ -16,14 +16,17 @@ import {
   Typography,
   useTheme
 } from '@mui/material';
-import { IconDotsVertical, IconSearch, IconBuilding, IconSparkles } from '@tabler/icons-react';
+import { IconDotsVertical, IconSearch, IconBuilding, IconSparkles, IconHelp } from '@tabler/icons-react';
 import Transitions from 'ui-component/extended/Transitions';
 import useCustomizationStore from 'store/customizationStore';
 import { useSearchAbonentSectionStore } from './SearchAbonentSection/useSearchAbonentSectionStore';
 import CompanySelector from './CompanySelector';
+import { useTranslation } from 'react-i18next';
+import { startAppOnboardingTour } from 'layout/MainLayout/OnboardingTour';
 
 function ExtraMenuSection() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const anchorRef = useRef<any>(null);
   const [open, setOpen] = useState(false);
 
@@ -152,6 +155,31 @@ function ExtraMenuSection() {
                       </ListItemIcon>
                       <ListItemText
                         primary="Abonent yoki Nazoratchi izlash"
+                        slotProps={{ primary: { variant: 'subtitle2', sx: { fontWeight: 600 } } }}
+                      />
+                    </MenuItem>
+
+                    {/* 2. Tizim bo'yicha yo'riqnoma */}
+                    <MenuItem
+                      onClick={() => {
+                        setOpen(false);
+                        startAppOnboardingTour();
+                      }}
+                      sx={{
+                        borderRadius: 1.5,
+                        py: 1.2,
+                        px: 1.5,
+                        my: 0.5,
+                        '&:hover': {
+                          bgcolor: theme.palette.mode === 'dark' ? 'action.hover' : 'secondary.light'
+                        }
+                      }}
+                    >
+                      <ListItemIcon>
+                        <IconHelp size="1.2rem" color={theme.palette.primary.main} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={t('tour.onboarding.menuItem', 'Tizim bo‘yicha yo‘riqnoma')}
                         slotProps={{ primary: { variant: 'subtitle2', sx: { fontWeight: 600 } } }}
                       />
                     </MenuItem>

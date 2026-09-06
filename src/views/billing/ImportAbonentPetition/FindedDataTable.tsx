@@ -192,7 +192,7 @@ function FindedDataTable() {
       />
       <AnimatePresence>
         {page && (
-          <Box key="content-box" sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box id="tour-import-analysis-table" key="content-box" sx={{ display: 'flex', flexDirection: 'column' }}>
             {page}
           </Box>
         )}

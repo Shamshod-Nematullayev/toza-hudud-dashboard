@@ -74,6 +74,9 @@ interface CustomizationState {
   language: string;
   setLanguage: (lang: string) => void;
   resetCustomization: () => void;
+  customizationDrawerOpen: boolean;
+  setCustomizationDrawerOpen: (open: boolean) => void;
+  toggleCustomizationDrawer: () => void;
   company: {
     billingAdminName: string;
     gpsOperatorName: string;
@@ -146,7 +149,8 @@ const initialState = {
     phone: ''
   },
   mahallalar: [],
-  openMurojaatCount: 0
+  openMurojaatCount: 0,
+  customizationDrawerOpen: false
 };
 
 const useCustomizationStore = create<CustomizationState>()(
@@ -173,6 +177,9 @@ const useCustomizationStore = create<CustomizationState>()(
       language: 'ru',
       setLanguage: (language) => set({ language }),
       resetCustomization: () => set({ customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' } }),
+      customizationDrawerOpen: false,
+      setCustomizationDrawerOpen: (open) => set({ customizationDrawerOpen: open }),
+      toggleCustomizationDrawer: () => set((state) => ({ customizationDrawerOpen: !state.customizationDrawerOpen })),
       setCompany: (company) =>
         set((state) => {
           if (state.company?.id !== company?.id) {

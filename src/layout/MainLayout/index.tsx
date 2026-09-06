@@ -13,6 +13,7 @@ import Sidebar from './Sidebar';
 import Customization from '../Customization';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import { drawerWidth } from 'store/constant';
+import OnboardingTour from './OnboardingTour';
 
 // assets
 import { IconChevronRight } from '@tabler/icons-react';
@@ -150,13 +151,14 @@ const MainLayout = () => {
 
       {/* main content */}
       {/* @ts-ignore */}
-      <Main open={leftDrawerOpened}>
+      <Main open={leftDrawerOpened} id="tour-main-content">
         {/* breadcrumb */}
         {/* @ts-ignore */}
         <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
         <Outlet />
       </Main>
       <Customization />
+      <OnboardingTour />
     </Box>
   );
 };

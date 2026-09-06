@@ -1,70 +1,107 @@
-import { Add, NoteAddOutlined, Update, UploadFileOutlined } from '@mui/icons-material';
-import { Button, Card, TextField, Tooltip, useMediaQuery } from '@mui/material';
+import { FilterListOutlined, NoteAddOutlined, SearchOutlined, Update, UploadFileOutlined } from '@mui/icons-material';
+import { Box, Button, InputAdornment, Stack, TextField, Tooltip, useMediaQuery } from '@mui/material';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import useStore from './useStore';
 import { useTranslation } from 'react-i18next';
 
-function ToolBar() {
+interface ToolBarProps {
+  onOpenMobileFilter?: () => void;
+  showMobileFilterButton?: boolean;
+}
+
+function ToolBar({ onOpenMobileFilter, showMobileFilterButton }: ToolBarProps) {
   const { t } = useTranslation();
   const { setFilter, filter, documentNumber, setDocumentNumber, total, updateFromTozamakon, isLoading } = useStore();
   const isXs = useMediaQuery('(max-width:600px)');
+
   const handleDocumentNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isNaN(Number(e.target.value))) {
       setDocumentNumber(e.target.value);
     }
   };
-  const handleDocumentNumberSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+
+  const handleDocumentNumberSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFilter({ ...filter, document_number: documentNumber });
+    setFilter({ ...filter, document_number: documentNumber || undefined });
   };
 
   return (
-    <Card
+    <Box
       sx={{
         display: 'flex',
+        flexWrap: 'wrap',
+        gap: 1.5,
+        alignItems: 'center',
         justifyContent: 'space-between',
-        borderRadius: 0,
-        padding: '0 0 15px 0',
-        button: {
-          margin: '0 10px'
-        }
+        p: { xs: 1.5, sm: 2 },
+        borderBottom: '1px solid',
+        borderColor: 'divider'
       }}
     >
-      <div>
-        <Link to="/billing/createAbonentAriza">
-          <Button color="primary" variant="contained">
-            <NoteAddOutlined /> {!isXs && ` ${t('buttons.add')}`}
+      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+        <Link to="/billing/createAbonentAriza" style={{ textDecoration: 'none' }}>
+          <Button color="primary" variant="contained" size="small" startIcon={<NoteAddOutlined />}>
+            {!isXs ? t('buttons.add', 'Ariza qo‘shish') : t('buttons.add', 'Qo‘shish')}
           </Button>
         </Link>
 
-        <Link to="/billing/importAbonentPetition">
-          <Button color="secondary" variant="outlined" startIcon={<UploadFileOutlined />}>
-            {t('buttons.import')}
+        <Link to="/billing/importAbonentPetition" style={{ textDecoration: 'none' }}>
+          <Button color="secondary" variant="outlined" size="small" startIcon={<UploadFileOutlined />}>
+            {t('buttons.import', 'Import')}
           </Button>
         </Link>
-        <Tooltip title={t('buttons.updateFromTozamakon')}>
-          <Button
-            color="success"
-            variant="contained"
-            startIcon={<Update />}
-            disabled={total > 1000 || isLoading}
-            onClick={updateFromTozamakon}
-          >
-            {t('buttons.update')}
-          </Button>
+
+        <Tooltip title={t('buttons.updateFromTozamakon', 'Tozamarkaz / Tozamakon orqali yangilash')}>
+          <span>
+            <Button
+              color="success"
+              variant="outlined"
+              size="small"
+              startIcon={<Update />}
+              disabled={total > 1000 || isLoading}
+              onClick={updateFromTozamakon}
+            >
+              {t('buttons.update', 'Yangilash')}
+            </Button>
+          </span>
         </Tooltip>
-      </div>
-      <form onSubmit={handleDocumentNumberSubmit}>
-        <TextField
-          placeholder={t('search')}
-          value={documentNumber}
-          onChange={handleDocumentNumberChange}
-          slotProps={{ htmlInput: { style: { padding: '10px 10px' } } }}
-          sx={{ width: 90 }}
-        />
-      </form>
-    </Card>
+      </Stack>
+
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <Box component="form" onSubmit={handleDocumentNumberSubmit}>
+          <TextField
+            placeholder={t('tableHeaders.documentNumber', 'Hujjat raqami')}
+            value={documentNumber}
+            onChange={handleDocumentNumberChange}
+            size="small"
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchOutlined fontSize="small" color="action" />
+                  </InputAdornment>
+                )
+              }
+            }}
+            sx={{ width: { xs: 130, sm: 170 } }}
+          />
+        </Box>
+
+        {showMobileFilterButton && onOpenMobileFilter && (
+          <Button
+            variant="outlined"
+            size="small"
+            color="secondary"
+            startIcon={<FilterListOutlined />}
+            onClick={onOpenMobileFilter}
+            sx={{ height: 40 }}
+          >
+            {t('filters', 'Filtrlar')}
+          </Button>
+        )}
+      </Stack>
+    </Box>
   );
 }
 

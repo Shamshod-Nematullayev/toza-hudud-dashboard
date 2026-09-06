@@ -25,6 +25,10 @@ import { useNavigate } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
 import { IconBolt, IconChartBar, IconShieldCheck, IconUsers } from '@tabler/icons-react';
 import DispatcherDashboard from 'views/dispatcher/Dashboard';
+import { useTranslation } from 'react-i18next';
+import { TourHelpButton } from 'ui-component/tour';
+import { startAppOnboardingTour } from 'layout/MainLayout/OnboardingTour';
+import ArizalarReportWidget from './ArizalarReportWidget';
 
 interface IStat {
   allAbonentsCount?: number;
@@ -160,6 +164,7 @@ const fmtMoney = (n: number) => fmt(n) + " so'm";
 const Dashboard = () => {
   const { mahallalar, user } = useCustomizationStore();
   const theme = useTheme();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [isLoading, setLoading] = useState(true);
@@ -185,6 +190,9 @@ const Dashboard = () => {
 
   const identityProcent = Math.floor(((stats?.identifiedCount || 0) / (stats?.allAbonentsCount || 1)) * 100) || 0;
   const isProductAdmin = user?.roles?.includes('product_admin');
+  const canViewArizalar = Boolean(
+    user?.roles?.some((r) => ['billing', 'meneger', 'manager', 'rahbar', 'admin', 'product_admin'].includes(r))
+  );
 
   // Custom warning color: to'q sariq (dark yellow) in light mode, och sariq (light yellow) in dark mode
   const darkYellowColor = theme.palette.mode === 'dark' ? '#fcd34d' : '#b45309';
@@ -306,15 +314,9 @@ const Dashboard = () => {
   const currentlyBlockedCount = blockedQ.count;
   const currentlyBlockedDebt = blockedQ.totalDebt;
 
-  const totalActiveDebtCount =
-    debitorOps?.overview?.activeCount ??
-    debitorOps?.totalOverview?.[0]?.activeCount ??
-    0;
+  const totalActiveDebtCount = debitorOps?.overview?.activeCount ?? debitorOps?.totalOverview?.[0]?.activeCount ?? 0;
 
-  const totalActiveDebtSum =
-    debitorOps?.overview?.totalDebt ??
-    debitorOps?.totalOverview?.[0]?.totalDebt ??
-    0;
+  const totalActiveDebtSum = debitorOps?.overview?.totalDebt ?? debitorOps?.totalOverview?.[0]?.totalDebt ?? 0;
 
   // Tayyor emas = Jami faol qarzdorlik - Bloklashga tayyorlar - Bloklanganlar
   // Bu bitta debitor bir vaqtning o'zida telefon va het navbatlarida takror hisoblanib ketishining oldini oladi
@@ -330,25 +332,45 @@ const Dashboard = () => {
 
   return (
     <Grid container spacing={gridSpacing}>
+      {/* 0. WELCOME / ONBOARDING TOUR HEADER */}
+      <Grid size={{ xs: 12 }}>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+          <Box>
+            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+              {t('dashboard.welcomeTitle', 'Boshqaruv Paneli')}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.2 }}>
+              {t('dashboard.welcomeSubtitle', 'Tizimdagi asosiy faoliyat ko‘rsatkichlari va tahlillar')}
+            </Typography>
+          </Box>
+          <TourHelpButton
+            id="tour-dashboard-help-btn"
+            onClick={startAppOnboardingTour}
+            title={t('tour.onboarding.menuItem', 'Tizim bo‘yicha yo‘riqnoma')}
+            size="medium"
+          />
+        </Stack>
+      </Grid>
+
       {/* 1. ASOSIY STRATEGIK KARTALAR */}
       <Grid size={{ xs: 12 }}>
         <Grid container spacing={gridSpacing}>
           <StatCard
-            title="Umumiy Iste'molchilar"
+            title={t('dashboard.allConsumers', "Umumiy Iste'molchilar")}
             count={stats?.allAbonentsCount || 0}
             icon={<IconUsers size="2.2rem" />}
             color={theme.palette.primary.main}
             loading={isLoading}
           />
           <StatCard
-            title="Identifikatsiyadan o'tmagan"
+            title={t('dashboard.unidentified', "Identifikatsiyadan o'tmagan")}
             count={(stats?.allAbonentsCount || 0) - (stats?.identifiedCount || 0)}
             icon={<IconShieldCheck size="2.2rem" />}
             color={theme.palette.success.main}
             loading={isLoading}
           />
           <StatCard
-            title="Yangi abonent arizalari"
+            title={t('dashboard.newAbonentRequests', "Yangi abonent arizalari")}
             count={stats?.newAbonentRequestCount || 0}
             icon={<IconBolt size="2.2rem" />}
             color={theme.palette.warning.main}
@@ -369,15 +391,15 @@ const Dashboard = () => {
           }}
         >
           <Typography variant="h3" sx={{ mb: 4, fontWeight: 800, color: '#1a237e' }}>
-            Tizim Nazorati <IconChartBar size="1.5rem" style={{ verticalAlign: 'middle' }} />
+            {t('dashboard.systemControl', 'Tizim Nazorati')} <IconChartBar size="1.5rem" style={{ verticalAlign: 'middle' }} />
           </Typography>
 
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(33, 150, 243, 0.04)', borderRadius: '15px' }}>
-                <RadialChart isLoading={isLoading} progress={identityProcent} label="Identifikatsiya" />
+                <RadialChart isLoading={isLoading} progress={identityProcent} label={t('dashboard.identified', 'Identifikatsiya')} />
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  Umumiy bazaga nisbatan aniqlik darajasi
+                  {t('dashboard.identificationAccuracy', 'Umumiy bazaga nisbatan aniqlik darajasi')}
                 </Typography>
               </Box>
             </Grid>
@@ -386,10 +408,10 @@ const Dashboard = () => {
                 <RadialChart
                   isLoading={isLoading}
                   progress={Math.floor(((stats?.monthlyIncomePlanTotalAmount || 0) / (stats?.monthlyIncomePlanAccrual || 1)) * 100) || 0}
-                  label="Tushum reja bajarilishi"
+                  label={t('dashboard.monthlyIncomePlanExecution', 'Tushum reja bajarilishi')}
                 />
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  Oylik rejaning bajarilishi
+                  {t('dashboard.monthlyIncomePlanSub', 'Oylik rejaning bajarilishi')}
                 </Typography>
               </Box>
             </Grid>
@@ -415,14 +437,14 @@ const Dashboard = () => {
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
               <Box>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#1a237e' }}>
-                  Debitorlar holati
+                  {t('dashboard.debitorsStatus', 'Debitorlar holati')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  Boshqaruv uchun tezkor ko'rsatkich
+                  {t('dashboard.quickManagementIndicator', "Boshqaruv uchun tezkor ko'rsatkich")}
                 </Typography>
               </Box>
               <Chip
-                label="Operativ"
+                label={t('dashboard.operational', 'Operativ')}
                 size="small"
                 sx={{
                   fontWeight: 700,
@@ -457,16 +479,16 @@ const Dashboard = () => {
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                       <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#64748b' }} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                        Tayyor emas
+                        {t('dashboard.notReady', 'Tayyor emas')}
                       </Typography>
                     </Stack>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
-                      Tel yo'q / HET tekshiruvda
+                      {t('dashboard.notReadySub', "Tel yo'q / HET tekshiruvda")}
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155' }}>
-                      {fmt(notReadyCount)} ta
+                      {fmt(notReadyCount)} {t('dashboard.countUnit', 'ta')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                       {fmtMoney(notReadyDebt)}
@@ -490,16 +512,16 @@ const Dashboard = () => {
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                       <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#f59e0b' }} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: darkYellowColor }}>
-                        Bloklashga tayyor
+                        {t('dashboard.readyToBlock', 'Bloklashga tayyor')}
                       </Typography>
                     </Stack>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
-                      HET orqali uzish navbatida
+                      {t('dashboard.readyToBlockSub', 'HET orqali uzish navbatida')}
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: darkYellowColor }}>
-                      {fmt(readyToBlockCount)} ta
+                      {fmt(readyToBlockCount)} {t('dashboard.countUnit', 'ta')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: darkYellowColor, fontWeight: 600 }}>
                       {fmtMoney(readyToBlockDebt)}
@@ -523,16 +545,16 @@ const Dashboard = () => {
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                       <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444' }} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#dc2626' }}>
-                        Bloklangan
+                        {t('dashboard.currentlyBlocked', 'Bloklangan')}
                       </Typography>
                     </Stack>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
-                      Elektr tarmog'idan uzilgan
+                      {t('dashboard.currentlyBlockedSub', "Elektr tarmog'idan uzilgan")}
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#dc2626' }}>
-                      {fmt(currentlyBlockedCount)} ta
+                      {fmt(currentlyBlockedCount)} {t('dashboard.countUnit', 'ta')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#dc2626', fontWeight: 600 }}>
                       {fmtMoney(currentlyBlockedDebt)}
@@ -546,7 +568,7 @@ const Dashboard = () => {
           <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px dashed rgba(0,0,0,0.1)' }}>
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                Jami faol qarzdorlik ({fmt(totalActiveDebtCount)} ta):
+                {t('dashboard.totalActiveDebt', 'Jami faol qarzdorlik')} ({fmt(totalActiveDebtCount)} {t('dashboard.countUnit', 'ta')}):
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1a237e' }}>
                 {fmtMoney(totalActiveDebtSum)}
@@ -569,11 +591,18 @@ const Dashboard = () => {
                 }
               }}
             >
-              Undiruv markaziga o'tish →
+              {t('dashboard.goToDebtCollection', "Undiruv markaziga o'tish →")}
             </Button>
           </Box>
         </Card>
       </Grid>
+
+      {/* 3.1 ARIZALAR OYLIK HISOBOTI (Billing, Meneger, Admin rollari uchun) */}
+      {canViewArizalar && (
+        <Grid size={{ xs: 12 }}>
+          <ArizalarReportWidget />
+        </Grid>
+      )}
 
       {/* 4. YASHOVCHILAR SONINI OSHIRISH (XATLOV / MULTIPLY INHABITANTS) HISOBOTI */}
       <Grid size={{ xs: 12, lg: 6 }}>
@@ -591,10 +620,10 @@ const Dashboard = () => {
           <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
             <Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#1a237e' }}>
-                Yashovchilar sonini ko'paytirish (Xatlov)
+                {t('dashboard.multiplyInhabitantsTitle', "Yashovchilar sonini ko'paytirish (Xatlov)")}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Inspektorlar kiritgan so'rovlar va dalolatnomalar holati
+                {t('dashboard.multiplyInhabitantsSubtitle', 'Inspektorlar kiritgan so\'rovlar va dalolatnomalar holati')}
               </Typography>
             </Box>
             <Button
@@ -603,7 +632,7 @@ const Dashboard = () => {
               onClick={() => navigate('/billing/xatlovOdamSoni')}
               sx={{ textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}
             >
-              Batafsil →
+              {t('dashboard.details', 'Batafsil →')}
             </Button>
           </Stack>
 
@@ -629,13 +658,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Jami so'rovlar
+                  {t('dashboard.totalRequests', "Jami so'rovlar")}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#1976d2', mt: 0.5 }}>
-                  {multiplyLoading ? '...' : fmt(multiplyStats?.totalRequests || 0)} ta
+                  {multiplyLoading ? '...' : fmt(multiplyStats?.totalRequests || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 700, display: 'block', mt: 0.5 }}>
-                  +{multiplyLoading ? '...' : fmt(multiplyStats?.totalInhabitantsToAdd || 0)} kishi
+                  +{multiplyLoading ? '...' : fmt(multiplyStats?.totalInhabitantsToAdd || 0)} {t('dashboard.peopleUnit', 'kishi')}
                 </Typography>
               </Box>
             </Grid>
@@ -660,13 +689,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Kiritilmagan (Yangi)
+                  {t('dashboard.notEnteredNew', 'Kiritilmagan (Yangi)')}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#dc2626', mt: 0.5 }}>
-                  {multiplyLoading ? '...' : fmt(multiplyStats?.pendingCount || 0)} ta
+                  {multiplyLoading ? '...' : fmt(multiplyStats?.pendingCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#dc2626', fontWeight: 700, display: 'block', mt: 0.5 }}>
-                  +{multiplyLoading ? '...' : fmt(multiplyStats?.pendingInhabitantsToAdd || 0)} kishi
+                  +{multiplyLoading ? '...' : fmt(multiplyStats?.pendingInhabitantsToAdd || 0)} {t('dashboard.peopleUnit', 'kishi')}
                 </Typography>
               </Box>
             </Grid>
@@ -691,13 +720,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Dalolatnoma qilingan
+                  {t('dashboard.actCreatedWaiting', 'Dalolatnoma qilingan')}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: darkYellowColor, mt: 0.5 }}>
-                  {multiplyLoading ? '...' : fmt(multiplyStats?.inDocumentPendingConfirmCount || 0)} ta
+                  {multiplyLoading ? '...' : fmt(multiplyStats?.inDocumentPendingConfirmCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: darkYellowColor, fontWeight: 700, display: 'block', mt: 0.5 }}>
-                  +{multiplyLoading ? '...' : fmt(multiplyStats?.inDocumentInhabitantsToAdd || 0)} kishi
+                  +{multiplyLoading ? '...' : fmt(multiplyStats?.inDocumentInhabitantsToAdd || 0)} {t('dashboard.peopleUnit', 'kishi')}
                 </Typography>
               </Box>
             </Grid>
@@ -722,13 +751,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Kiritilgan (Tasdiq)
+                  {t('dashboard.enteredConfirmed', 'Kiritilgan (Tasdiq)')}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#15803d', mt: 0.5 }}>
-                  {multiplyLoading ? '...' : fmt(multiplyStats?.confirmedCount || 0)} ta
+                  {multiplyLoading ? '...' : fmt(multiplyStats?.confirmedCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 700, display: 'block', mt: 0.5 }}>
-                  +{multiplyLoading ? '...' : fmt(multiplyStats?.confirmedInhabitantsToAdd || 0)} kishi
+                  +{multiplyLoading ? '...' : fmt(multiplyStats?.confirmedInhabitantsToAdd || 0)} {t('dashboard.peopleUnit', 'kishi')}
                 </Typography>
               </Box>
             </Grid>
@@ -737,20 +766,20 @@ const Dashboard = () => {
           {/* Top mahallalar kesimi */}
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
             {xatlovFilter === 'confirmed'
-              ? "TozaMakonga kiritilgan mahallalar (Tasdiqlanganlar bo'yicha Top 5):"
+              ? t('dashboard.topMahallasConfirmed', "TozaMakonga kiritilgan mahallalar (Tasdiqlanganlar bo'yicha Top 5):")
               : xatlovFilter === 'pending'
-              ? "Eng ko'p kutilayotgan mahallalar (Kiritilmagan / Yangi bo'yicha Top 5):"
-              : xatlovFilter === 'inDocument'
-              ? "Dalolatnoma qilingan mahallalar (Kutilayotganlar bo'yicha Top 5):"
-              : "Eng ko'p yashovchi so'ralgan mahallalar (Jami so'rovlar bo'yicha Top 5):"}
+                ? t('dashboard.topMahallasPending', "Eng ko'p kutilayotgan mahallalar (Kiritilmagan / Yangi bo'yicha Top 5):")
+                : xatlovFilter === 'inDocument'
+                  ? t('dashboard.topMahallasInDocument', "Dalolatnoma qilingan mahallalar (Kutilayotganlar bo'yicha Top 5):")
+                  : t('dashboard.topMahallasAll', "Eng ko'p yashovchi so'ralgan mahallalar (Jami so'rovlar bo'yicha Top 5):")}
           </Typography>
           <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '10px' }}>
             <Table size="small">
-              <TableHead sx={{ bgcolor: 'grey.50' }}>
+              <TableHead sx={{ bgcolor: useCustomizationStore.getState().customization.mode == 'dark' ? 'grey.800' : 'grey.50' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, py: 1 }}>Mahalla nomi</TableCell>
-                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'center' }}>So'rovlar soni</TableCell>
-                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'right' }}>Qo'shiladigan kishi</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>{t('dashboard.mahallaName', 'Mahalla nomi')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'center' }}>{t('dashboard.requestCount', "So'rovlar soni")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'right' }}>{t('dashboard.inhabitantsToAdd', "Qo'shiladigan kishi")}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -760,20 +789,20 @@ const Dashboard = () => {
                       <Skeleton height={30} />
                     </TableCell>
                   </TableRow>
-                ) : !((multiplyStats?.topMahallasByFilter?.[xatlovFilter]) || multiplyStats?.topMahallas) ||
-                  ((multiplyStats?.topMahallasByFilter?.[xatlovFilter]) || multiplyStats?.topMahallas || []).length === 0 ? (
+                ) : !(multiplyStats?.topMahallasByFilter?.[xatlovFilter] || multiplyStats?.topMahallas) ||
+                  (multiplyStats?.topMahallasByFilter?.[xatlovFilter] || multiplyStats?.topMahallas || []).length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={3} sx={{ py: 2, textAlign: 'center', color: 'text.secondary' }}>
-                      Hozircha so'rovlar mavjud emas
+                      {t('dashboard.noRequestsYet', "Hozircha so'rovlar mavjud emas")}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  ((multiplyStats?.topMahallasByFilter?.[xatlovFilter]) || multiplyStats?.topMahallas || []).map((item, idx) => (
+                  (multiplyStats?.topMahallasByFilter?.[xatlovFilter] || multiplyStats?.topMahallas || []).map((item, idx) => (
                     <TableRow key={item._id || idx} hover>
-                      <TableCell sx={{ py: 1, fontWeight: 600 }}>{item.mahallaName || "Noma'lum"}</TableCell>
-                      <TableCell sx={{ py: 1, textAlign: 'center' }}>{fmt(item.requestCount ?? item.count ?? 0)} ta</TableCell>
+                      <TableCell sx={{ py: 1, fontWeight: 600 }}>{item.mahallaName || t('dashboard.unknownMahalla', "Noma'lum")}</TableCell>
+                      <TableCell sx={{ py: 1, textAlign: 'center' }}>{fmt(item.requestCount ?? item.count ?? 0)} {t('dashboard.countUnit', 'ta')}</TableCell>
                       <TableCell sx={{ py: 1, textAlign: 'right', fontWeight: 700, color: 'primary.main' }}>
-                        +{fmt(item.totalInhabitantsToAdd ?? item.inhabitants ?? 0)} nafar
+                        +{fmt(item.totalInhabitantsToAdd ?? item.inhabitants ?? 0)} {t('dashboard.personUnit', 'nafar')}
                       </TableCell>
                     </TableRow>
                   ))
@@ -800,10 +829,10 @@ const Dashboard = () => {
           <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
             <Box>
               <Typography variant="h3" sx={{ fontWeight: 800, color: '#1a237e' }}>
-                Shaxsni tasdiqlash so'rovlari
+                {t('dashboard.identityRequestsTitle', "Shaxsni tasdiqlash so'rovlari")}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Inspektorlar kiritgan pasport/JSHSHIR so'rovlari holati
+                {t('dashboard.identityRequestsSubtitle', "Inspektorlar kiritgan pasport/JSHSHIR so'rovlari holati")}
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -813,7 +842,7 @@ const Dashboard = () => {
                 onClick={() => navigate('/billing/shaxsni-tasdiqlash')}
                 sx={{ textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap', borderRadius: '8px' }}
               >
-                So'rovlar →
+                {t('dashboard.requests', "So'rovlar →")}
               </Button>
               <Button
                 variant="text"
@@ -821,7 +850,7 @@ const Dashboard = () => {
                 onClick={() => navigate('/billing/report-identifikatsiya')}
                 sx={{ textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}
               >
-                Hisobot →
+                {t('dashboard.report', "Hisobot →")}
               </Button>
             </Stack>
           </Stack>
@@ -848,13 +877,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Jami so'rovlar
+                  {t('dashboard.totalRequests', "Jami so'rovlar")}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#1976d2', mt: 0.5 }}>
-                  {identityLoading ? '...' : fmt(identityStats?.totalRequests || 0)} ta
+                  {identityLoading ? '...' : fmt(identityStats?.totalRequests || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  Botdan yuborilgan
+                  {t('dashboard.sentFromBot', "Botdan yuborilgan")}
                 </Typography>
               </Box>
             </Grid>
@@ -879,13 +908,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Faol (Kutilmoqda)
+                  {t('dashboard.activeWaiting', "Faol (Kutilmoqda)")}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: darkYellowColor, mt: 0.5 }}>
-                  {identityLoading ? '...' : fmt(identityStats?.pendingCount || 0)} ta
+                  {identityLoading ? '...' : fmt(identityStats?.pendingCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: darkYellowColor, fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  Tasdiq kutilmoqda
+                  {t('dashboard.waitingConfirmation', "Tasdiq kutilmoqda")}
                 </Typography>
               </Box>
             </Grid>
@@ -910,13 +939,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Tasdiqlangan
+                  {t('dashboard.confirmed', "Tasdiqlangan")}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#15803d', mt: 0.5 }}>
-                  {identityLoading ? '...' : fmt(identityStats?.confirmedCount || 0)} ta
+                  {identityLoading ? '...' : fmt(identityStats?.confirmedCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  Shaxsi tekshirilgan
+                  {t('dashboard.identityVerified', "Shaxsi tekshirilgan")}
                 </Typography>
               </Box>
             </Grid>
@@ -941,13 +970,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Bekor qilingan
+                  {t('dashboard.canceled', "Bekor qilingan")}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#dc2626', mt: 0.5 }}>
-                  {identityLoading ? '...' : fmt(identityStats?.canceledCount || 0)} ta
+                  {identityLoading ? '...' : fmt(identityStats?.canceledCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#dc2626', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  Rad etilgan
+                  {t('dashboard.rejected', "Rad etilgan")}
                 </Typography>
               </Box>
             </Grid>
@@ -956,27 +985,27 @@ const Dashboard = () => {
           {/* Top nazoratchilar reytingi */}
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
             {identityFilter === 'confirmed'
-              ? "Shaxsi tasdiqlangan so'rovlar bo'yicha nazoratchilar (Top 5):"
+              ? t('dashboard.topInspectorsConfirmed', "Shaxsi tasdiqlangan so'rovlar bo'yicha nazoratchilar (Top 5):")
               : identityFilter === 'pending'
-              ? "Faol kutilayotgan so'rovlar bo'yicha nazoratchilar (Top 5):"
-              : identityFilter === 'canceled'
-              ? "Bekor qilingan so'rovlar bo'yicha nazoratchilar (Top 5):"
-              : "Eng ko'p so'rov kiritgan nazoratchilar (Jami so'rovlar bo'yicha Top 5):"}
+                ? t('dashboard.topInspectorsPending', "Faol kutilayotgan so'rovlar bo'yicha nazoratchilar (Top 5):")
+                : identityFilter === 'canceled'
+                  ? t('dashboard.topInspectorsCanceled', "Bekor qilingan so'rovlar bo'yicha nazoratchilar (Top 5):")
+                  : t('dashboard.topInspectorsAll', "Eng ko'p so'rov kiritgan nazoratchilar (Jami so'rovlar bo'yicha Top 5):")}
           </Typography>
           <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '10px' }}>
             <Table size="small">
-              <TableHead sx={{ bgcolor: 'grey.50' }}>
+              <TableHead sx={{ bgcolor: useCustomizationStore.getState().customization.mode == 'dark' ? 'grey.800' : 'grey.50' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 700, py: 1, width: 40 }}>№</TableCell>
-                  <TableCell sx={{ fontWeight: 700, py: 1 }}>Nazoratchi F.I.SH</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1 }}>{t('dashboard.inspectorFullName', 'Nazoratchi F.I.SH')}</TableCell>
                   <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'right' }}>
                     {identityFilter === 'pending'
-                      ? "Kutilayotgan so'rovlar"
+                      ? t('dashboard.pendingRequests', "Kutilayotgan so'rovlar")
                       : identityFilter === 'confirmed'
-                      ? 'Tasdiqlangan'
-                      : identityFilter === 'canceled'
-                      ? 'Bekor qilingan'
-                      : "So'rovlar soni"}
+                        ? t('dashboard.confirmed', 'Tasdiqlangan')
+                        : identityFilter === 'canceled'
+                          ? t('dashboard.canceled', 'Bekor qilingan')
+                          : t('dashboard.requestCount', "So'rovlar soni")}
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -987,18 +1016,18 @@ const Dashboard = () => {
                       <Skeleton height={30} />
                     </TableCell>
                   </TableRow>
-                ) : !((identityStats?.topInspectorsByFilter?.[identityFilter]) || identityStats?.topInspectors) ||
-                  ((identityStats?.topInspectorsByFilter?.[identityFilter]) || identityStats?.topInspectors || []).length === 0 ? (
+                ) : !(identityStats?.topInspectorsByFilter?.[identityFilter] || identityStats?.topInspectors) ||
+                  (identityStats?.topInspectorsByFilter?.[identityFilter] || identityStats?.topInspectors || []).length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={3} sx={{ py: 2, textAlign: 'center', color: 'text.secondary' }}>
-                      Hozircha ma'lumot mavjud emas
+                      {t('dashboard.noDataYet', "Hozircha ma'lumot mavjud emas")}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  ((identityStats?.topInspectorsByFilter?.[identityFilter]) || identityStats?.topInspectors || []).map((inspector, idx) => (
+                  (identityStats?.topInspectorsByFilter?.[identityFilter] || identityStats?.topInspectors || []).map((inspector, idx) => (
                     <TableRow key={inspector._id || idx} hover>
                       <TableCell sx={{ py: 1, fontWeight: 700, color: 'text.secondary' }}>{idx + 1}</TableCell>
-                      <TableCell sx={{ py: 1, fontWeight: 600 }}>{inspector.inspectorName || "Noma'lum nazoratchi"}</TableCell>
+                      <TableCell sx={{ py: 1, fontWeight: 600 }}>{inspector.inspectorName || t('dashboard.unknownInspector', "Noma'lum nazoratchi")}</TableCell>
                       <TableCell
                         sx={{
                           py: 1,
@@ -1008,13 +1037,13 @@ const Dashboard = () => {
                             identityFilter === 'confirmed'
                               ? '#15803d'
                               : identityFilter === 'pending'
-                              ? darkYellowColor
-                              : identityFilter === 'canceled'
-                              ? '#dc2626'
-                              : '#1976d2'
+                                ? darkYellowColor
+                                : identityFilter === 'canceled'
+                                  ? '#dc2626'
+                                  : '#1976d2'
                         }}
                       >
-                        {fmt(inspector.confirmedCount ?? inspector.count ?? 0)} ta
+                        {fmt(inspector.confirmedCount ?? inspector.count ?? 0)} {t('dashboard.countUnit', 'ta')}
                       </TableCell>
                     </TableRow>
                   ))
@@ -1030,7 +1059,7 @@ const Dashboard = () => {
         <Grid size={{ xs: 12 }}>
           <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}>
             <Typography variant="h3" sx={{ mb: 3, fontWeight: 800, color: '#1a237e' }}>
-              Qarzdorlar statistikasi (Tashkilotlar kesimida)
+              {t('dashboard.debtorsByCompanyTitle', 'Qarzdorlar statistikasi (Tashkilotlar kesimida)')}
             </Typography>
             {debitorLoading ? (
               <Stack spacing={2}>
@@ -1039,19 +1068,23 @@ const Dashboard = () => {
                 <Skeleton variant="rectangular" height={50} sx={{ borderRadius: '8px' }} />
               </Stack>
             ) : (
-              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
+              <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{ border: '1px solid rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'hidden' }}
+              >
                 <Table sx={{ minWidth: 1000 }}>
                   <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50' }}>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 700 }}>Tashkilot nomi</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Faol qarzdorlar</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Yangi aniqlangan</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Elektr kodi yo'q</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Telefon raqami yo'q</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Tekshirilmoqda (SMS)</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>HET sinxronizatsiya kutilmoqda</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Bloklanishi kutilmoqda</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Bloklangan</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.companyName', 'Tashkilot nomi')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.activeDebtors', 'Faol qarzdorlar')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.newlyIdentified', 'Yangi aniqlangan')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.noElectricityCode', "Elektr kodi yo'q")}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.noPhoneNumber', "Telefon raqami yo'q")}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.checkingSms', 'Tekshirilmoqda (SMS)')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.awaitingHetSync', 'HET sinxronizatsiya kutilmoqda')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.awaitingBlock', 'Bloklanishi kutilmoqda')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t('dashboard.blocked', 'Bloklangan')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -1066,10 +1099,7 @@ const Dashboard = () => {
                         getStatusData(row.statuses, 'debt_identified');
                       const noHet = row.noHetAccount || getStatusData(row.statuses, 'no_het_account');
                       const noPhone = row.noPhone || getStatusData(row.statuses, 'no_phone');
-                      const smsSent =
-                        row.smsChecking ||
-                        getStatusData(row.statuses, 'sms_sent') ||
-                        getStatusData(row.statuses, 'checking');
+                      const smsSent = row.smsChecking || getStatusData(row.statuses, 'sms_sent') || getStatusData(row.statuses, 'checking');
                       const awaitingHet =
                         row.needsHetSync ||
                         getStatusData(row.statuses, 'awaiting_het_sync') ||
@@ -1080,55 +1110,89 @@ const Dashboard = () => {
                       return (
                         <TableRow key={row.companyId} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                           <TableCell>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{row.companyName || "Noma'lum"}</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.locationName || ''}</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {row.companyName || t('dashboard.unknownMahalla', "Noma'lum")}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              {row.locationName || ''}
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>{fmt(activeCount)} ta</Typography>
-                              <Typography variant="caption" sx={{ fontWeight: 500 }}>{fmtMoney(activeDebt)}</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                                {fmt(activeCount)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
+                              <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                                {fmtMoney(activeDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2">{fmt(identified.count)} ta</Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtMoney(identified.totalDebt)}</Typography>
+                              <Typography variant="body2">{fmt(identified.count)} {t('dashboard.countUnit', 'ta')}</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {fmtMoney(identified.totalDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>{fmt(noHet.count)} ta</Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtMoney(noHet.totalDebt)}</Typography>
+                              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
+                                {fmt(noHet.count)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {fmtMoney(noHet.totalDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>{fmt(noPhone.count)} ta</Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtMoney(noPhone.totalDebt)}</Typography>
+                              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
+                                {fmt(noPhone.count)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {fmtMoney(noPhone.totalDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2" sx={{ color: darkYellowColor, fontWeight: 700 }}>{fmt(smsSent.count)} ta</Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtMoney(smsSent.totalDebt)}</Typography>
+                              <Typography variant="body2" sx={{ color: darkYellowColor, fontWeight: 700 }}>
+                                {fmt(smsSent.count)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {fmtMoney(smsSent.totalDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2" sx={{ color: darkYellowColor, fontWeight: 700 }}>{fmt(awaitingHet.count)} ta</Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtMoney(awaitingHet.totalDebt)}</Typography>
+                              <Typography variant="body2" sx={{ color: darkYellowColor, fontWeight: 700 }}>
+                                {fmt(awaitingHet.count)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {fmtMoney(awaitingHet.totalDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>{fmt(readyBlock.count)} ta</Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtMoney(readyBlock.totalDebt)}</Typography>
+                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
+                                {fmt(readyBlock.count)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {fmtMoney(readyBlock.totalDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>{fmt(blocked.count)} ta</Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{fmtMoney(blocked.totalDebt)}</Typography>
+                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
+                                {fmt(blocked.count)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {fmtMoney(blocked.totalDebt)}
+                              </Typography>
                             </Stack>
                           </TableCell>
                         </TableRow>

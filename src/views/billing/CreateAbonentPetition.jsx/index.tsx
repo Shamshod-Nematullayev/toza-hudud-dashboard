@@ -12,12 +12,12 @@ import RecalculationPeriodsList from './RecalculationPeriodsList';
 import PrintSection from './PrintSection';
 import PasteImageDialog from './PasteImageDialog';
 import PrintAbonentCard from '../Abonent/modals/PrintAbonentCard';
-import { usePageTour, createAbonentPetitionSteps } from '../../../ui-component/tour';
+import { usePageTour, getCreateAbonentPetitionSteps } from '../../../ui-component/tour';
 
 function CreateAbonentPetition() {
   const { startTour } = usePageTour({
     tourKey: 'create_abonent_petition',
-    steps: createAbonentPetitionSteps,
+    steps: getCreateAbonentPetitionSteps,
     autoStart: true,
     delayMs: 700
   });

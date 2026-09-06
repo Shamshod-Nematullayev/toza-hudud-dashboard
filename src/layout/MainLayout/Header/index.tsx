@@ -62,7 +62,7 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
         <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
           <LogoSection />
         </Box>
-        <ButtonBase sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+        <ButtonBase id="tour-sidebar-toggle" sx={{ borderRadius: '8px', overflow: 'hidden' }}>
           <Tooltip title="Asosiy menyu (Ctrl+B)" placement="bottom">
             <Avatar
               ref={menuButtonRef}
@@ -90,7 +90,7 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       </Box>
 
       {/* header search */}
-      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+      <Box id="tour-header-search" sx={{ display: { xs: 'none', md: 'block' } }}>
         <SearchSection />
       </Box>
       <Box sx={{ flexGrow: 1 }} />
@@ -102,16 +102,22 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       <Box sx={{ flexGrow: 1 }} />
 
       {/* Abonent Izlash - Mobile va Desktop ekranlarda ko'rinadi */}
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box id="tour-header-search-abonent" sx={{ display: 'flex', alignItems: 'center' }}>
         <SearchAbonentSection />
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1, md: 1.5 }, ml: 'auto' }}>
-        <LanguageSection />
+        <Box id="tour-header-language">
+          <LanguageSection />
+        </Box>
         {/* notification, profile va qo'shimcha 3-Dot menyu */}
-        <MurojaatlarSection />
-        <NotificationSection />
-        <ProfileSection />
+        <Box id="tour-header-notifications" sx={{ display: 'flex', alignItems: 'center' }}>
+          <MurojaatlarSection />
+          <NotificationSection />
+        </Box>
+        <Box id="tour-header-profile">
+          <ProfileSection />
+        </Box>
         <ExtraMenuSection />
       </Box>
     </>

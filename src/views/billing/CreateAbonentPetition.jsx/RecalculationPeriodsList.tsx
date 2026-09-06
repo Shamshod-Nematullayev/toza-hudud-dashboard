@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Box,
+  Button,
   Card,
   Chip,
   Divider,
@@ -15,9 +16,11 @@ import {
   PlaylistAddCheck,
   DeleteOutlineOutlined,
   CalendarToday,
-  ReceiptLongOutlined
+  ReceiptLongOutlined,
+  UploadFileOutlined
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from './useStore';
 import { colors } from 'store/constant';
@@ -212,6 +215,36 @@ export default function RecalculationPeriodsList() {
             })}
           </Stack>
         )}
+      </Box>
+
+      {/* Eng pastki qism: Arizalarni kiritish (Tozamakon) ga o'tish */}
+      <Divider sx={{ my: 1.5 }} />
+
+      <Box sx={{ flexShrink: 0 }}>
+        <Link to="/billing/importAbonentPetition" style={{ textDecoration: 'none' }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="primary"
+            size="small"
+            startIcon={<UploadFileOutlined />}
+            sx={{
+              py: 1,
+              borderRadius: 2,
+              fontWeight: 600,
+              fontSize: '12px',
+              textTransform: 'none',
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.08)' : 'rgba(33, 150, 243, 0.04)',
+              '&:hover': {
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.16)' : 'rgba(33, 150, 243, 0.08)'
+              }
+            }}
+          >
+            {t('menuItems.importAbonentPetition', 'Arizalarni kiritish (Tozamakon)')} →
+          </Button>
+        </Link>
       </Box>
     </Card>
   );

@@ -21,7 +21,7 @@ export default function TourHelpButton({
   sx
 }: TourHelpButtonProps) {
   const { t } = useTranslation();
-  const tooltipText = title || t('Sahifa bo‘yicha yo‘riqnoma');
+  const tooltipText = title || t('tour.helpTooltip', 'Sahifa bo‘yicha yo‘riqnoma');
 
   return (
     <Tooltip title={tooltipText} arrow placement="bottom">

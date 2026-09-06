@@ -28,7 +28,11 @@ function AbonentDhjTable() {
         page: data.meta.page,
         total: data.meta.total
       },
-      data: data.rows.map((row: IRowDhj, index: number) => ({ ...row, orderNumber: (page - 1) * limit + index + 1 }))
+      data: data.rows.map((row: IRowDhj, index: number) => ({
+        ...row,
+        orderNumber: (page - 1) * limit + index + 1,
+        allPaymentsAmount: row.cashAmount + row.eMoneyAmount + row.munisAmount + row.q1031Amount
+      }))
     };
   });
   const columns: GridColDef[] = [
@@ -83,9 +87,27 @@ function AbonentDhjTable() {
       type: 'number'
     },
     {
+      field: 'allPaymentsAmount',
+      headerName: t('tableHeaders.allPaymentsAmount'),
+      type: 'number',
+      flex: 1
+    },
+    {
       field: 'kSaldo',
       headerName: t('tableHeaders.kSaldo'),
-      type: 'number'
+      flex: 1,
+      minWidth: 100,
+      type: 'number',
+      renderCell: (e) => (
+        <span
+          style={{
+            fontWeight: 600,
+            color: Number(e.value) > 0 ? '#d32f2f' : '#2e7d32'
+          }}
+        >
+          {e.value ? Number(e.value).toLocaleString('uz-UZ') : '0'}
+        </span>
+      )
     },
     {
       field: 'penaltyFee',

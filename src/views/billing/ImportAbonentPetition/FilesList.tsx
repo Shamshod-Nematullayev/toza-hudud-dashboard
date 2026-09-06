@@ -23,7 +23,7 @@ function FilesList() {
   const filteredFiles = pdfFiles.filter(({ file }) => file?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <Box sx={{height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column'}}>
+    <Box id="tour-import-files-list" sx={{ height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
       <TextField
         placeholder={t('tableActions.search-file') + '...'}
         value={searchQuery}

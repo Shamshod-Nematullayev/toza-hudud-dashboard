@@ -128,6 +128,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }: Props) => {
             }
           }
         }}
+        slotProps={{ paper: { id: 'tour-sidebar' } }}
         ModalProps={{ keepMounted: true }}
         color="inherit"
       >

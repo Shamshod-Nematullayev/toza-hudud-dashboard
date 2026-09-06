@@ -165,6 +165,7 @@ export function ArizaMode({
       {/* 4. Pastki Tugmalar */}
       <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
         <Button
+          id="tour-import-confirm-action"
           startIcon={<UploadFileOutlined />}
           sx={{ flex: 1, py: 1.2 }}
           variant="contained"

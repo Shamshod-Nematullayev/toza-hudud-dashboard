@@ -1,19 +1,26 @@
-import MainCard from 'ui-component/cards/MainCard';
+import React from 'react';
 import useStore, { PDFFile } from './hooks/useStore';
 import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
 import CancelDialog from './CancelDialog';
 import DisplayFile from './DisplayFile';
-// Grid va boshqa komponentlar yangi standartda
-import { Box, Button, Chip, Grid, TextField } from '@mui/material';
+import { Box, Card, Grid } from '@mui/material';
 import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
 import { useUiStore } from './hooks/useUiStore';
 import HeaderImportAbonentPetition from './HeaderImportAbonentPetition';
 import FileInputDrop from 'ui-component/FileInputDrop';
+import { usePageTour, getImportAbonentPetitionSteps } from 'ui-component/tour';
 
 function ImportAbonentPetition() {
   const { pdfFiles, showDialog, setShowDialog } = useStore();
   const { pdfFileLoading } = useUiStore();
+
+  const { startTour } = usePageTour({
+    tourKey: 'import_abonent_petition',
+    steps: getImportAbonentPetitionSteps,
+    autoStart: true,
+    delayMs: 700
+  });
 
   const handleChangeFiles = async (fileList: FileList | null) => {
     if (!fileList) return;
@@ -45,55 +52,71 @@ function ImportAbonentPetition() {
   const isOnlyFileDrop = pdfFiles.length === 0;
 
   return (
-    <MainCard contentSX={{ minHeight: 'calc(100vh - 130px)', position: 'relative' }}>
-      {/* Konteyner o'zgarishsiz qoladi, lekin ichi tozalandi */}
-      <Grid container spacing={2}>
-        {/* 1. Fayllar ro'yxati ustuni */}
-        {!isOnlyFileDrop && (
-          <Grid size={{ xs: 1.5 }}>
-            <FilesList />
-          </Grid>
-        )}
+    <Box sx={{ width: '100%', minHeight: 'calc(100vh - 120px)' }}>
+      {/* Header bar */}
+      <HeaderImportAbonentPetition onStartTour={startTour} />
 
-        {/* 2. Dinamik o'lchamli PDF Ko'rsatuvchi/Drop ustun */}
-        <Grid
-          size={{ xs: pdfFiles.length === 0 ? 12 : 4.5 }}
-          sx={{ position: 'relative', minHeight: 'calc(100vh - 130px)', maxHeight: 'calc(100vh - 130px)' }}
-        >
-          {pdfFileLoading && (
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: -10,
-                zIndex: 20,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backdropFilter: 'blur(60px)',
-                borderRadius: 2
-              }}
-            >
-              <CustomAtomLoader />
-            </Box>
+      <Card
+        sx={{
+          p: 1.5,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: 'none',
+          minHeight: 'calc(100vh - 190px)',
+          position: 'relative'
+        }}
+      >
+        <Grid container spacing={1.5}>
+          {/* 1. Fayllar ro'yxati ustuni (Kengaytirilgan: 2 ustun) */}
+          {!isOnlyFileDrop && (
+            <Grid size={{ xs: 12, md: 3, lg: 2.2 }}>
+              <FilesList />
+            </Grid>
           )}
-          {pdfFiles.length === 0 ? (
-            <FileInputDrop clearTrigger={pdfFiles.length > 0} setFiles={handleChangeFiles} fileType="pdf" />
-          ) : (
-            <DisplayFile />
+
+          {/* 2. Dinamik o'lchamli PDF Ko'rsatuvchi/Drop ustun */}
+          <Grid
+            size={{ xs: 12, md: isOnlyFileDrop ? 12 : 4.5, lg: isOnlyFileDrop ? 12 : 4.8 }}
+            sx={{ position: 'relative', minHeight: 'calc(100vh - 220px)', maxHeight: 'calc(100vh - 220px)' }}
+          >
+            {pdfFileLoading && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: -10,
+                  zIndex: 20,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(60px)',
+                  borderRadius: 2
+                }}
+              >
+                <CustomAtomLoader />
+              </Box>
+            )}
+            {isOnlyFileDrop ? (
+              <Box id="tour-import-dropzone" sx={{ height: '100%' }}>
+                <FileInputDrop clearTrigger={pdfFiles.length > 0} setFiles={handleChangeFiles} fileType="pdf" />
+              </Box>
+            ) : (
+              <DisplayFile />
+            )}
+          </Grid>
+
+          {/* 3. Topilgan ma'lumotlar jadvali ustuni */}
+          {!isOnlyFileDrop && (
+            <Grid size={{ xs: 12, md: 4.5, lg: 5 }}>
+              <FindedDataTable />
+            </Grid>
           )}
         </Grid>
 
-        {/* 3. Topilgan ma'lumotlar jadvali ustuni */}
-        {!isOnlyFileDrop && (
-          <Grid size={{ xs: 6 }}>
-            <FindedDataTable />
-          </Grid>
-        )}
-      </Grid>
-
-      <CancelDialog showDialog={showDialog} setShowDialog={setShowDialog} />
-    </MainCard>
+        <CancelDialog showDialog={showDialog} setShowDialog={setShowDialog} />
+      </Card>
+    </Box>
   );
 }
 

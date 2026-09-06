@@ -1,10 +1,13 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { driver, Driver, DriveStep } from 'driver.js';
+import { useTranslation } from 'react-i18next';
 import './tour.css';
+
+type TranslationFn = (key: string, defaultVal?: string) => string;
 
 interface UsePageTourOptions {
   tourKey: string;
-  steps: DriveStep[];
+  steps: DriveStep[] | ((t: TranslationFn) => DriveStep[]);
   autoStart?: boolean;
   delayMs?: number;
 }
@@ -15,14 +18,23 @@ export function usePageTour({
   autoStart = true,
   delayMs = 700
 }: UsePageTourOptions) {
+  const { t, i18n } = useTranslation();
   const driverRef = useRef<Driver | null>(null);
   const [isActive, setIsActive] = useState(false);
   const storageKey = `has_seen_tour_${tourKey}`;
 
+  const resolvedSteps = useMemo(() => {
+    if (typeof steps === 'function') {
+      return steps((key: string, defaultVal?: string) => t(key, defaultVal || ''));
+    }
+    return steps;
+  }, [steps, t, i18n.language]);
+
   // Driver obyektini initsializatsiya qilish
   const getDriverInstance = useCallback(() => {
     if (driverRef.current) {
-      return driverRef.current;
+      driverRef.current.destroy();
+      driverRef.current = null;
     }
 
     const driverObj = driver({
@@ -33,11 +45,11 @@ export function usePageTour({
       stagePadding: 6,
       stageRadius: 8,
       skipMissingElement: true,
-      nextBtnText: 'Keyingisi →',
-      prevBtnText: '← Oldingisi',
-      doneBtnText: 'Tushunarli ✓',
-      progressText: '{{current}} / {{total}}',
-      steps,
+      nextBtnText: t('tour.next', 'Keyingisi →'),
+      prevBtnText: t('tour.prev', '← Oldingisi'),
+      doneBtnText: t('tour.done', 'Tushunarli ✓'),
+      progressText: t('tour.progress', '{{current}} / {{total}}'),
+      steps: resolvedSteps,
       onHighlightStarted: () => {
         setIsActive(true);
       },
@@ -54,7 +66,7 @@ export function usePageTour({
 
     driverRef.current = driverObj;
     return driverObj;
-  }, [steps, storageKey]);
+  }, [resolvedSteps, storageKey, t]);
 
   // Qo'lda yo'riqnomani boshlash (masalan, ? tugmasi bosilganda)
   const startTour = useCallback(() => {

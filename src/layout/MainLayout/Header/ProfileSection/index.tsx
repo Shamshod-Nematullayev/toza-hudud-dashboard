@@ -28,18 +28,23 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 
+// third-party
+import { useTranslation } from 'react-i18next';
+
 // assets
-import { IconLogout, IconSettings } from '@tabler/icons-react';
+import { IconLogout, IconSettings, IconHelp } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
 import Cookies from 'js-cookie';
 import { useUserStore } from 'store/userStore';
 import api from 'utils/api';
 import { useMediaQuery } from '@mui/material';
+import { startAppOnboardingTour } from 'layout/MainLayout/OnboardingTour';
 
 // ==============================|| PROFILE MENU ||============================== //
 
 const ProfileSection = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { customization, user, logOut } = useCustomizationStore();
   const { openSettingsModal } = useUserStore();
   const navigate = useNavigate();
@@ -204,7 +209,19 @@ const ProfileSection = () => {
                         <ListItemIcon>
                           <IconSettings stroke={1.5} size="1.3rem" />
                         </ListItemIcon>
-                        <ListItemText primary={<Typography variant="body2">Sozlamalar</Typography>} />
+                        <ListItemText primary={<Typography variant="body2">{t('customization.title', 'Sozlamalar')}</Typography>} />
+                      </ListItemButton>
+                      <ListItemButton
+                        sx={{ borderRadius: `${customization.borderRadius}px` }}
+                        onClick={(event) => {
+                          handleClose(event);
+                          startAppOnboardingTour();
+                        }}
+                      >
+                        <ListItemIcon>
+                          <IconHelp stroke={1.5} size="1.3rem" />
+                        </ListItemIcon>
+                        <ListItemText primary={<Typography variant="body2">{t('tour.onboarding.menuItem', 'Tizim bo‘yicha yo‘riqnoma')}</Typography>} />
                       </ListItemButton>
                       <ListItemButton
                         sx={{ borderRadius: `${customization.borderRadius}px` }}
@@ -214,7 +231,7 @@ const ProfileSection = () => {
                         <ListItemIcon>
                           <IconLogout stroke={1.5} size="1.3rem" />
                         </ListItemIcon>
-                        <ListItemText primary={<Typography variant="body2">Chiqish</Typography>} />
+                        <ListItemText primary={<Typography variant="body2">{t('chiqish', 'Chiqish')}</Typography>} />
                       </ListItemButton>
                     </List>
                   </Box>
