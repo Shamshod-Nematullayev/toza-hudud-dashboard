@@ -76,11 +76,13 @@ function AbonentTools() {
 
   // Umumiy tugma stillari
   const btnStyle = {
-    px: 2.5,
-    py: 1.2,
+    px: 1.75,
+    py: 0.85,
+    whiteSpace: 'nowrap',
     textTransform: 'none',
     fontWeight: 500,
-    fontSize: '0.85rem',
+    fontSize: '0.82rem',
+    lineHeight: 1.3,
     transition: 'all 0.2s ease-in-out',
     '&:hover': {
       transform: 'translateY(-2px)',
@@ -94,8 +96,10 @@ function AbonentTools() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
   const [anchorElMore, setAnchorElMore] = useState<null | HTMLElement>(null);
   const [anchorElActions, setAnchorElActions] = useState<null | HTMLElement>(null);
+  const [anchorElPrint, setAnchorElPrint] = useState<null | HTMLElement>(null);
   const [openBindingElectrAccountsModal, setOpenBindingElectrAccountsModal] = useState(false);
   return (
     <>
@@ -108,7 +112,7 @@ function AbonentTools() {
       {isMobile ? (
         <>
           {/* Top Scrollable Tabs Strip */}
-          <Box sx={{ mb: 2, borderBottom: '1px solid', borderColor: '#29346B', pb: 1 }}>
+          <Box sx={{ mb: 2, borderBottom: '1px solid', borderColor: isDark ? '#29346B' : 'divider', pb: 1 }}>
             <Tabs
               value={tab}
               onChange={handleTabsChange}
@@ -122,16 +126,16 @@ function AbonentTools() {
                   px: 2.25,
                   borderRadius: '20px',
                   border: '1px solid',
-                  borderColor: '#29346B',
+                  borderColor: isDark ? '#29346B' : 'divider',
                   textTransform: 'none',
                   fontWeight: 600,
                   fontSize: '13px',
-                  bgcolor: '#16204A',
-                  color: '#9AA3C7',
+                  bgcolor: isDark ? '#16204A' : 'background.paper',
+                  color: isDark ? '#9AA3C7' : 'text.secondary',
                   '&.Mui-selected': {
-                    bgcolor: 'rgba(52, 199, 123, 0.14)',
-                    color: '#34C77B',
-                    borderColor: 'rgba(52, 199, 123, 0.4)'
+                    bgcolor: isDark ? 'rgba(52, 199, 123, 0.14)' : 'rgba(33, 150, 243, 0.12)',
+                    color: isDark ? '#34C77B' : 'primary.main',
+                    borderColor: isDark ? 'rgba(52, 199, 123, 0.4)' : 'primary.main'
                   }
                 },
                 '& .MuiTabs-indicator': { display: 'none' }
@@ -153,7 +157,7 @@ function AbonentTools() {
 
           {/* Sticky Bottom Bar */}
           <Paper
-            elevation={4}
+            elevation={isDark ? 4 : 8}
             sx={{
               position: 'fixed',
               bottom: 0,
@@ -162,9 +166,10 @@ function AbonentTools() {
               zIndex: 1000,
               display: 'flex',
               justifyContent: 'space-around',
-              bgcolor: '#121B42',
+              bgcolor: isDark ? '#121B42' : 'background.paper',
               borderTop: '1px solid',
-              borderColor: '#29346B',
+              borderColor: isDark ? '#29346B' : 'divider',
+              boxShadow: isDark ? '0 -2px 10px rgba(0,0,0,0.5)' : '0 -2px 12px rgba(0,0,0,0.08)',
               pb: 'env(safe-area-inset-bottom, 10px)',
               pt: 1
             }}
@@ -172,10 +177,10 @@ function AbonentTools() {
             {/* Item 1: Amallar */}
             <IconButton
               onClick={(e) => setAnchorElActions(e.currentTarget)}
-              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+              sx={{ flexDirection: 'column', color: isDark ? '#9AA3C7' : 'text.secondary', gap: 0.5 }}
             >
               <ActionsIcon sx={{ fontSize: 20, color: '#FFB648' }} />
-              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#34C77B' }}>
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: isDark ? '#34C77B' : 'primary.main' }}>
                 Amallar
               </Typography>
             </IconButton>
@@ -208,20 +213,18 @@ function AbonentTools() {
 
             {/* Item 2: Chop etish */}
             <IconButton
-              onClick={(e) => {
-                setPrintSelectionOpen(true);
-              }}
-              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+              onClick={(e) => setAnchorElPrint(e.currentTarget)}
+              sx={{ flexDirection: 'column', color: isDark ? '#9AA3C7' : 'text.secondary', gap: 0.5 }}
             >
-              <PrintIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
-              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+              <PrintIcon sx={{ fontSize: 20, color: isDark ? '#EDEFFA' : 'text.primary' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: isDark ? '#9AA3C7' : 'text.secondary' }}>
                 Chop etish
               </Typography>
             </IconButton>
             <Menu
-              anchorEl={printSectionRef.current || anchorElActions}
-              open={printSelectionOpen}
-              onClose={() => setPrintSelectionOpen(false)}
+              anchorEl={anchorElPrint}
+              open={Boolean(anchorElPrint)}
+              onClose={() => setAnchorElPrint(null)}
               anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
               transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
@@ -229,7 +232,7 @@ function AbonentTools() {
                 sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
                 onClick={() => {
                   setOpenPrintAbonentcardState(true);
-                  setPrintSelectionOpen(false);
+                  setAnchorElPrint(null);
                 }}
               >
                 <IconFileSpreadsheet /> {t('abonentCardPage.abonentCard')}
@@ -239,7 +242,7 @@ function AbonentTools() {
                 sx={{ display: 'flex', justifyContent: 'space-between', width: 180, gap: 2 }}
                 onClick={() => {
                   setOpenDebtCertificateDialog(true);
-                  setPrintSelectionOpen(false);
+                  setAnchorElPrint(null);
                 }}
               >
                 <IconCertificate /> {t('abonentCardPage.certificate')}
@@ -249,10 +252,10 @@ function AbonentTools() {
             {/* Item 3: Yashovchi */}
             <IconButton
               onClick={() => setOpenAddInhabitantsDialog(true)}
-              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+              sx={{ flexDirection: 'column', color: isDark ? '#9AA3C7' : 'text.secondary', gap: 0.5 }}
             >
-              <MultipleIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
-              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+              <MultipleIcon sx={{ fontSize: 20, color: isDark ? '#EDEFFA' : 'text.primary' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: isDark ? '#9AA3C7' : 'text.secondary' }}>
                 Yashovchi
               </Typography>
             </IconButton>
@@ -260,10 +263,10 @@ function AbonentTools() {
             {/* Item 4: Telefon */}
             <IconButton
               onClick={() => setOpenChangePhoneDialog(true)}
-              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+              sx={{ flexDirection: 'column', color: isDark ? '#9AA3C7' : 'text.secondary', gap: 0.5 }}
             >
-              <PhoneIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
-              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+              <PhoneIcon sx={{ fontSize: 20, color: isDark ? '#EDEFFA' : 'text.primary' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: isDark ? '#9AA3C7' : 'text.secondary' }}>
                 Telefon
               </Typography>
             </IconButton>
@@ -271,10 +274,10 @@ function AbonentTools() {
             {/* Item 5: Yana */}
             <IconButton
               onClick={(e) => setAnchorElMore(e.currentTarget)}
-              sx={{ flexDirection: 'column', color: '#9AA3C7', gap: 0.5 }}
+              sx={{ flexDirection: 'column', color: isDark ? '#9AA3C7' : 'text.secondary', gap: 0.5 }}
             >
-              <MoreIcon sx={{ fontSize: 20, color: '#EDEFFA' }} />
-              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: '#9AA3C7' }}>
+              <MoreIcon sx={{ fontSize: 20, color: isDark ? '#EDEFFA' : 'text.primary' }} />
+              <Typography variant="caption" sx={{ fontSize: '9.5px', fontWeight: 600, color: isDark ? '#9AA3C7' : 'text.secondary' }}>
                 Yana
               </Typography>
             </IconButton>
@@ -335,18 +338,22 @@ function AbonentTools() {
             bgcolor: 'background.paper',
             borderRadius: '16px',
             border: '1px solid #e2e8f0',
-            display: 'flex',
+            alignItems: 'center',
             marginBottom: 1,
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            gap: 1.5,
+            overflowX: 'auto'
           }}
         >
           <ButtonGroup
             variant="outlined"
             sx={{
+              flexShrink: 0,
               '& .MuiButton-root': {
                 borderColor: '#cbd5e1',
                 color: 'text.primary',
                 bgcolor: 'background.default',
+                whiteSpace: 'nowrap',
                 '&:hover': {
                   bgcolor: '#f1f5f9',
                   borderColor: '#94a3b8',
@@ -467,25 +474,38 @@ function AbonentTools() {
               {t('buttons.createAbonentPetition')}
             </Button>
           </ButtonGroup>
-          <Tooltip title={t('buttons.refresh')}>
-            <IconButton onClick={handleRefreshDetails} sx={{ p: 1 }} aria-label={t('buttons.refresh')}>
-              <Refresh />
-            </IconButton>
-          </Tooltip>
-          <Tabs value={tab} onChange={handleTabsChange}>
-            <Tab label={"Ma'lumotlar"} value={'details'} />
-            <Tab label={'DHJ'} value={'dhj'} />
-            <Tab
-              label={
-                <Badge badgeContent={abonentPetitions.filter((a) => a.status === 'yangi').length} color="primary" variant="dot">
-                  Arizalar
-                </Badge>
-              }
-              value={'ariza'}
-            />
-
-            <Tab label={'Aktlar'} value={'acts'} />
-          </Tabs>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexShrink: 0 }}>
+            <Tooltip title={t('buttons.refresh')}>
+              <IconButton onClick={handleRefreshDetails} sx={{ p: 0.8 }} aria-label={t('buttons.refresh')}>
+                <Refresh />
+              </IconButton>
+            </Tooltip>
+            <Tabs
+              value={tab}
+              onChange={handleTabsChange}
+              sx={{
+                minHeight: 40,
+                '& .MuiTab-root': {
+                  minHeight: 40,
+                  py: 0.5,
+                  px: 1.5,
+                  fontSize: '0.85rem'
+                }
+              }}
+            >
+              <Tab label={"Ma'lumotlar"} value={'details'} />
+              <Tab label={'DHJ'} value={'dhj'} />
+              <Tab
+                label={
+                  <Badge badgeContent={abonentPetitions.filter((a) => a.status === 'yangi').length} color="primary" variant="dot">
+                    Arizalar
+                  </Badge>
+                }
+                value={'ariza'}
+              />
+              <Tab label={'Aktlar'} value={'acts'} />
+            </Tabs>
+          </Stack>
         </Stack>
       )}
     </>

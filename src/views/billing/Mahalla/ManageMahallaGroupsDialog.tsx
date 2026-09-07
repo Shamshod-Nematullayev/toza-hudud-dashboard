@@ -29,6 +29,8 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
+import { lotinga, kirillga } from 'helpers/lotinKiril';
+import i18n from 'languageConfig';
 
 export interface MahallaGroupItem {
   _id: string;
@@ -168,6 +170,19 @@ export const ManageMahallaGroupsDialog: React.FC<Props> = ({
     }
   };
 
+  const getLocalizedMahallaName = (name: string) => {
+    if (!name) return '';
+    return i18n.language === 'uz' ? lotinga(name) : kirillga(name);
+  };
+
+  const sortedAllMahallas = React.useMemo(() => {
+    return [...allMahallas].sort((a, b) => {
+      const nameA = getLocalizedMahallaName(a?.name || '');
+      const nameB = getLocalizedMahallaName(b?.name || '');
+      return nameA.localeCompare(nameB, i18n.language === 'uz' ? 'uz-Latn' : 'uz-Cyrl');
+    });
+  }, [allMahallas, i18n.language]);
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ pb: 1 }}>
@@ -258,9 +273,9 @@ export const ManageMahallaGroupsDialog: React.FC<Props> = ({
                 {/* Multi-select Autocomplete for Mahallalar */}
                 <Autocomplete
                   multiple
-                  options={allMahallas}
-                  getOptionLabel={(opt) => opt.name || `ID: ${opt.id}`}
-                  value={allMahallas.filter((m) => selectedMahallaIds.includes(m.id))}
+                  options={sortedAllMahallas}
+                  getOptionLabel={(opt) => getLocalizedMahallaName(opt.name) || `ID: ${opt.id}`}
+                  value={sortedAllMahallas.filter((m) => selectedMahallaIds.includes(m.id))}
                   onChange={(_, newValues) => {
                     setSelectedMahallaIds(newValues.map((v) => v.id));
                   }}
@@ -370,7 +385,7 @@ export const ManageMahallaGroupsDialog: React.FC<Props> = ({
                             {memberMahallas.map((m) => (
                               <Chip
                                 key={m.id}
-                                label={m.name}
+                                label={getLocalizedMahallaName(m.name)}
                                 size="small"
                                 variant="outlined"
                                 sx={{

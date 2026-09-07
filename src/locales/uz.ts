@@ -345,7 +345,8 @@ const uz = {
     errorMessage: 'Xatolik habari',
     Viloyat: 'Viloyat',
     Tuman: 'Tuman',
-    acceptedDate: 'Qabul qilingan vaqti'
+    acceptedDate: 'Qabul qilingan vaqti',
+    allPaymentsAmount: "Jami to'lovlar summasi"
   },
   tableActions: {
     edit: 'Tahrirlash',

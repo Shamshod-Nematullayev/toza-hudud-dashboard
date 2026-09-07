@@ -347,7 +347,8 @@ const uzKirill: typeof uz = {
     errorMessage: 'Хатолик хабари',
     Viloyat: 'Вилоят',
     Tuman: 'Туман',
-    acceptedDate: 'Қабул қилинган вақти'
+    acceptedDate: 'Қабул қилинган вақти',
+    allPaymentsAmount: 'Жами тўловлар суммаси'
   },
   tableActions: {
     edit: 'Таҳрирлаш',

@@ -147,17 +147,34 @@ export function normalizeText(str: string | undefined | null): string {
  */
 export function normalizeAddress(str: string | undefined | null): string {
   if (!str) return '';
-  let text = normalizeText(str);
+  // 1. Apostroflarni olib tashlash (ko'cha -> kocha) va tinish belgilarini bo'shliq qilish
+  let text = String(str)
+    .toLowerCase()
+    .replace(/[`'ʻʼʽ‘’]/g, '')
+    .replace(/[\-_.,/\\#%?:;!]/g, ' ')
+    .replace(/\b(mfy|msg|ssg|gsg|qfy|shfy|мфй|мсг|ссг|гсг|қфй|шфй|махалла|маҳалла|mahalla|qishloq|qishlogi|кишлок|киш|kish|qish|село|ул|улица|kocha|kochasi|кўча|кўчаси|дом|уй|dom|uy|кв|xonadon|хонадон|kvartira|квартира)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 2. Kirill -> Lotin transliteratsiyasi
+  text = normalizeText(text);
+
+  // 3. Lotin noise words
   const noiseWords = [
-    'mfy', 'm.f.y', 'mahalla', 'mahallasi', 'fuqarolar yigini',
+    'mfy', 'msg', 'ssg', 'gsg', 'mahalla', 'mahallasi',
     'kocha', 'kochasi', 'proyezd', 'tor kocha',
-    'massiv', 'mavze', 'daha', 'qishloq', 'ovul', 'uy', 'xonadon', 'kvartira'
+    'massiv', 'mavze', 'daha', 'qishloq', 'qishlogi', 'kishloq', 'kishlak', 'kish', 'qish', 'selo',
+    'ovul', 'uy', 'dom', 'xonadon', 'kvartira', 'kv',
+    'ul', 'ulica'
   ];
 
   for (const word of noiseWords) {
     const reg = new RegExp(`\\b${word}\\b`, 'gi');
-    text = text.replace(reg, '');
+    text = text.replace(reg, ' ');
   }
+
+  // 4. Standalone '0' or '00' representing unnumbered house (masalan "0 uy")
+  text = text.replace(/\b0+\b/g, ' ');
 
   return text.replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
 }
