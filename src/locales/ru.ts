@@ -347,7 +347,8 @@ const ru: typeof uz = {
     errorMessage: 'Сообщение об ошибке',
     Viloyat: 'Область',
     Tuman: 'Район',
-    acceptedDate: 'Время принятия'
+    acceptedDate: 'Время принятия',
+    allPaymentsAmount: 'Общая сумма платежей'
   },
   tableActions: {
     edit: 'Редактировать',

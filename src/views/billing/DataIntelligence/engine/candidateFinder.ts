@@ -220,7 +220,7 @@ function transformToRecordSource(item: any): RecordSource {
     pnfl: item.pinfl || item.pnfl || '',
     cadastreNumber: item.cadastralNumber || item.kadastr_number || item.cadastreNumber || '',
     mahalla: item.mahallaName || item.mahalla_name || item.mahalla || '',
-    street: item.streetName || item.street || '',
+    street: item.street || item.streetName || item.streets_name || item.street_name || item.address || '',
     objectType: item.tariffName || 'Aholi',
     phone: item.phone || '',
     source: 'greenzone'

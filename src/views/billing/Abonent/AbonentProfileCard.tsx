@@ -58,6 +58,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
   const isLoading = !data;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
 
   const {
     verifyIdentity,
@@ -130,7 +131,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
         ) : (
           <Icon sx={{ fontSize: 18, color: labelColor || 'text.secondary', opacity: 0.7 }} />
         )}
-        <Typography variant="body2" sx={{ color: isMobile ? '#9AA3C7' : (labelColor || 'text.secondary') }}>
+        <Typography variant="body2" sx={{ color: isMobile && isDark ? '#9AA3C7' : labelColor || 'text.secondary' }}>
           {label}:
         </Typography>
       </Grid>
@@ -139,7 +140,10 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           <Skeleton variant="text" width="80%" height={20} />
         ) : (
           <>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: isMobile ? (color === 'text.primary' ? '#EDEFFA' : color) : color, fontSize }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600, color: isMobile && isDark ? (color === 'text.primary' ? '#EDEFFA' : color) : color, fontSize }}
+            >
               {value || '—'}
             </Typography>
             {copyable && value && (
@@ -161,11 +165,12 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           <Card
             sx={{
               borderRadius: '16px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+              boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.2)' : '0 4px 16px rgba(0,0,0,0.06)',
               overflow: 'hidden',
-              border: '1px solid #29346B',
-              bgcolor: '#16204A',
-              color: '#EDEFFA'
+              border: '1px solid',
+              borderColor: isDark ? '#29346B' : 'divider',
+              bgcolor: isDark ? '#16204A' : 'background.paper',
+              color: isDark ? '#EDEFFA' : 'text.primary'
             }}
           >
             <CardContent sx={{ p: 2 }}>
@@ -187,7 +192,18 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                   />
                 )}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      flexWrap: 'wrap',
+                      color: 'inherit'
+                    }}
+                  >
                     {data?.fullName || ''}
                     {!isLoading && (
                       <IconButton size="small" onClick={() => verifyIdentity(data!.id, !data!.identified)} sx={{ p: 0 }}>
@@ -213,7 +229,15 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
               <Divider sx={{ mb: 1.5 }} />
 
               <Stack spacing={0.5}>
-                <InfoRow icon="💳" label="Ҳисоб raqami" value={data?.accountNumber} color="success.main" fontSize={16} copyable isSkeleton={isLoading} />
+                <InfoRow
+                  icon="💳"
+                  label="Ҳисоб raqami"
+                  value={data?.accountNumber}
+                  color="success.main"
+                  fontSize={16}
+                  copyable
+                  isSkeleton={isLoading}
+                />
                 <InfoRow icon="🪪" label="Паспорт raqami" value={data?.citizen.passport} isSkeleton={isLoading} />
                 <InfoRow icon="🔑" label="ЖШШИР" value={data?.citizen.pnfl} isSkeleton={isLoading} />
                 <InfoRow icon="📄" label="Шартнома raqami" value={data?.contractNumber} isSkeleton={isLoading} />
@@ -227,11 +251,12 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           <Card
             sx={{
               borderRadius: '16px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+              boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.2)' : '0 4px 16px rgba(0,0,0,0.06)',
               overflow: 'hidden',
-              border: '1px solid #29346B',
-              bgcolor: '#16204A',
-              color: '#EDEFFA'
+              border: '1px solid',
+              borderColor: isDark ? '#29346B' : 'divider',
+              bgcolor: isDark ? '#16204A' : 'background.paper',
+              color: isDark ? '#EDEFFA' : 'text.primary'
             }}
           >
             <CardContent sx={{ p: 2 }}>
@@ -251,7 +276,13 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                   label="Телефон raqami"
                   value={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: isMobile ? (data?.phone ? '#EDEFFA' : '#FF4D4F') : (data?.phone ? 'text.primary' : 'error.main') }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          color: isMobile && isDark ? (data?.phone ? '#EDEFFA' : '#FF4D4F') : data?.phone ? 'text.primary' : 'error.main'
+                        }}
+                      >
                         {data ? formatPhoneNumber(data.phone || '') : '—'}
                       </Typography>
                       {abonentDebitorStatus?.phoneStatus && PHONE_CFG[abonentDebitorStatus.phoneStatus] && (
@@ -277,7 +308,9 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                     labelColor={isDublicateElectricity ? 'error.main' : undefined}
                     value={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
-                        <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber || '—'}</Typography>
+                        <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
+                          {data?.electricityAccountNumber || '—'}
+                        </Typography>
                         {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
                           <Chip
                             label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
@@ -327,13 +360,14 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           {data?.description && (
             <Card
               sx={{
-              borderRadius: '16px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
-              overflow: 'hidden',
-              border: '1px solid #29346B',
-              bgcolor: '#16204A',
-              color: '#EDEFFA'
-            }}
+                borderRadius: '16px',
+                boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.2)' : '0 4px 16px rgba(0,0,0,0.06)',
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: isDark ? '#29346B' : 'divider',
+                bgcolor: isDark ? '#16204A' : 'background.paper',
+                color: isDark ? '#EDEFFA' : 'text.primary'
+              }}
             >
               <CardContent sx={{ p: 2 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.5 }}>
@@ -359,7 +393,10 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           <CardContent sx={{ p: 3 }}>
             <Grid container spacing={3}>
               {/* Avatar qismi */}
-              <Grid size={{ xs: 3, md: 1.5 }} sx={{ alignItems: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column' }}>
+              <Grid
+                size={{ xs: 3, md: 1.5 }}
+                sx={{ alignItems: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column' }}
+              >
                 {isLoading ? (
                   <Skeleton variant="rounded" sx={{ width: '100%', aspectRatio: '1/1.2', borderRadius: '12px', mb: 1 }} />
                 ) : (
@@ -455,7 +492,11 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                               onClick={() => fetchAbonentMvdAddress(data?.citizen.pnfl || '')}
                               disabled={ui.mvdAddressLoading || !data?.citizen.pnfl || data.citizen.pnfl.length !== 14}
                             >
-                              {ui.mvdAddressLoading ? <CircularProgress size={16} /> : <MvdIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
+                              {ui.mvdAddressLoading ? (
+                                <CircularProgress size={16} />
+                              ) : (
+                                <MvdIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                              )}
                             </IconButton>
                           </Tooltip>
                         </>
@@ -521,7 +562,12 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                     labelColor={data && !data.phone ? 'error.main' : undefined}
                     isSkeleton={isLoading}
                   />
-                  <InfoRow icon={HomePhoneIcon} label="Уй телефони" value={formatPhoneNumber(data?.homePhone || '')} isSkeleton={isLoading} />
+                  <InfoRow
+                    icon={HomePhoneIcon}
+                    label="Уй телефони"
+                    value={formatPhoneNumber(data?.homePhone || '')}
+                    isSkeleton={isLoading}
+                  />
                   <InfoRow icon={SoatoIcon} label="Электр СОАТО" value={data?.electricityCoato} isSkeleton={isLoading} />
                   <div ref={etkInfoRow}>
                     <InfoRow
@@ -530,7 +576,9 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                       labelColor={isDublicateElectricity ? 'error.main' : undefined}
                       value={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
-                          <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>{data?.electricityAccountNumber || '—'}</Typography>
+                          <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
+                            {data?.electricityAccountNumber || '—'}
+                          </Typography>
                           {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
                             <Chip
                               label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}

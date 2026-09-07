@@ -24,8 +24,9 @@ function Abonent() {
   const currentTab = location.pathname.split('/').pop() || 'details';
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
   return (
-    <Box sx={isMobile ? { pb: '84px', bgcolor: '#0B1330', minHeight: '100vh', mx: -2, mt: -2, p: 2 } : undefined}>
+    <Box sx={isMobile ? { pb: '84px', bgcolor: isDark ? '#0B1330' : 'background.default', minHeight: '100vh', mx: -2, mt: -2, p: 2 } : undefined}>
       <AbonentTools />
       {currentTab !== 'details' && abonentDetails && (
         <Paper
@@ -35,9 +36,9 @@ function Abonent() {
             py: isMobile ? 1 : 1.25,
             mb: 1.5,
             borderRadius: isMobile ? '10px' : '12px',
-            border: isMobile ? '1px solid #29346B' : '1px solid',
-            borderColor: isMobile ? undefined : 'divider',
-            bgcolor: isMobile ? '#16204A' : 'background.paper',
+            border: '1px solid',
+            borderColor: isMobile && isDark ? '#29346B' : 'divider',
+            bgcolor: isMobile && isDark ? '#16204A' : 'background.paper',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
             alignItems: isMobile ? 'flex-start' : 'center',
@@ -45,19 +46,19 @@ function Abonent() {
           }}
         >
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Typography variant="caption" sx={{ fontWeight: 600, color: isMobile ? '#9AA3C7' : 'text.secondary' }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, color: isMobile && isDark ? '#9AA3C7' : 'text.secondary' }}>
               👤 Abonent:
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: isMobile ? '#EDEFFA' : 'text.primary', textTransform: 'uppercase', fontSize: isMobile ? '12px' : 'inherit' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: isMobile && isDark ? '#EDEFFA' : 'text.primary', textTransform: 'uppercase', fontSize: isMobile ? '12px' : 'inherit' }}>
               {abonentDetails.fullName}
             </Typography>
           </Stack>
           {!isMobile && <Box sx={{ borderLeft: '1px solid', borderColor: 'divider', height: 20 }} />}
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Typography variant="caption" sx={{ fontWeight: 600, color: isMobile ? '#9AA3C7' : 'text.secondary' }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, color: isMobile && isDark ? '#9AA3C7' : 'text.secondary' }}>
               💳 Hisob raqami:
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: isMobile ? '#34C77B' : 'success.main', fontFamily: 'monospace', fontSize: isMobile ? '12px' : '1rem' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: isMobile && isDark ? '#34C77B' : 'success.main', fontFamily: 'monospace', fontSize: isMobile ? '12px' : '1rem' }}>
               {abonentDetails.accountNumber}
             </Typography>
           </Stack>

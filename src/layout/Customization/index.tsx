@@ -13,6 +13,7 @@ import Slider from '@mui/material/Slider';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 // third-party
 import PerfectScrollbar from 'react-perfect-scrollbar';
@@ -45,6 +46,7 @@ import { IconSettings } from '@tabler/icons-react';
 
 const Customization: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t, i18n } = useTranslation();
   const isDarkMode = theme.palette.mode === 'dark';
   const location = useLocation();
@@ -121,8 +123,8 @@ const Customization: React.FC = () => {
 
   // Section card wrapper styling
   const sectionCardSx = {
-    p: 2,
-    borderRadius: 3,
+    p: { xs: 1.5, sm: 2 },
+    borderRadius: { xs: 2.5, sm: 3 },
     backgroundColor: isDarkMode ? '#121B42' : '#FFFFFF',
     border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
     boxShadow: isDarkMode ? '0 4px 16px rgba(0, 0, 0, 0.25)' : '0 2px 10px rgba(0, 0, 0, 0.04)',
@@ -143,18 +145,18 @@ const Customization: React.FC = () => {
             zIndex: theme.zIndex.speedDial,
             backgroundColor: isDarkMode ? '#2196F3' : '#673AB7',
             color: '#FFFFFF',
-            borderTopLeftRadius: '24px',
-            borderBottomLeftRadius: '24px',
+            borderTopLeftRadius: { xs: '18px', sm: '24px' },
+            borderBottomLeftRadius: { xs: '18px', sm: '24px' },
             borderTopRightRadius: 0,
             borderBottomRightRadius: 0,
-            py: 1,
-            px: 1.2,
-            boxShadow: isDarkMode ? '0 6px 20px rgba(33, 150, 243, 0.45)' : '0 6px 20px rgba(103, 58, 183, 0.45)',
+            py: { xs: 0.6, sm: 1 },
+            px: { xs: 0.8, sm: 1.2 },
+            boxShadow: isDarkMode ? '0 4px 14px rgba(33, 150, 243, 0.45)' : '0 4px 14px rgba(103, 58, 183, 0.45)',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               backgroundColor: isDarkMode ? '#1E88E5' : '#5E35B1',
-              paddingRight: 1.8,
-              transform: 'translateX(-3px)'
+              paddingRight: { xs: 1.2, sm: 1.8 },
+              transform: 'translateX(-2px)'
             }
           }}
         >
@@ -170,7 +172,7 @@ const Customization: React.FC = () => {
                 }
               }}
             >
-              <IconSettings size={22} stroke={1.8} />
+              <IconSettings size={isMobile ? 18 : 22} stroke={1.8} />
             </Box>
           </Stack>
         </ButtonBase>
@@ -184,10 +186,14 @@ const Customization: React.FC = () => {
         slotProps={{
           paper: {
             sx: {
-              width: { xs: '100%', sm: 360 },
+              width: { xs: 'min(330px, 88vw)', sm: 360 },
+              borderTopLeftRadius: { xs: '20px', sm: 0 },
+              borderBottomLeftRadius: { xs: '20px', sm: 0 },
               backgroundColor: isDarkMode ? '#0B1330' : '#F8FAFC',
               borderLeft: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
-              backgroundImage: 'none'
+              backgroundImage: 'none',
+              boxShadow: isDarkMode ? '-8px 0 32px rgba(0,0,0,0.6)' : '-8px 0 32px rgba(0,0,0,0.12)',
+              overflow: 'hidden'
             }
           }
         }}
@@ -195,8 +201,8 @@ const Customization: React.FC = () => {
         {/* Sticky Header */}
         <Box
           sx={{
-            p: 2,
-            px: 2.5,
+            p: { xs: 1.5, sm: 2 },
+            px: { xs: 1.75, sm: 2.5 },
             position: 'sticky',
             top: 0,
             zIndex: 10,
@@ -206,12 +212,12 @@ const Customization: React.FC = () => {
           }}
         >
           <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center' }}>
               <Box
                 sx={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: '10px',
+                  width: { xs: 32, sm: 38 },
+                  height: { xs: 32, sm: 38 },
+                  borderRadius: '9px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -222,11 +228,11 @@ const Customization: React.FC = () => {
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
                 }}
               >
-                <PaletteOutlined fontSize="small" />
+                <PaletteOutlined sx={{ fontSize: { xs: 18, sm: 20 } }} />
               </Box>
               <Box>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, lineHeight: 1.2, fontSize: { xs: '0.95rem', sm: '1.15rem' } }}>
                     {t('customization.title', 'Sozlamalar')}
                   </Typography>
                   <Chip
@@ -234,34 +240,35 @@ const Customization: React.FC = () => {
                     size="small"
                     color="success"
                     sx={{
-                      height: 18,
-                      fontSize: '0.65rem',
+                      height: 16,
+                      fontSize: '0.62rem',
                       fontWeight: 700,
-                      px: 0.5,
-                      '& .MuiChip-label': { px: 0.5 }
+                      px: 0.3,
+                      '& .MuiChip-label': { px: 0.4 }
                     }}
                   />
                 </Stack>
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.2 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.1, fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
                   {t('customization.subtitle', 'Interfeys va ish muhiti')}
                 </Typography>
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={0.3} sx={{ alignItems: 'center' }}>
               <Tooltip title={t('customization.resetTooltip', 'Standartga qaytarish')}>
                 <IconButton
                   size="small"
                   onClick={handleResetAll}
                   sx={{
                     color: isDarkMode ? '#9AA3C7' : '#697586',
+                    p: { xs: 0.6, sm: 0.75 },
                     '&:hover': {
                       backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
                       color: 'error.main'
                     }
                   }}
                 >
-                  <RestartAlt fontSize="small" />
+                  <RestartAlt sx={{ fontSize: { xs: 18, sm: 20 } }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title={t('customization.closeTooltip', 'Yopish')}>
@@ -270,12 +277,13 @@ const Customization: React.FC = () => {
                   onClick={handleToggle}
                   sx={{
                     color: isDarkMode ? '#9AA3C7' : '#697586',
+                    p: { xs: 0.6, sm: 0.75 },
                     '&:hover': {
                       backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
                     }
                   }}
                 >
-                  <Close fontSize="small" />
+                  <Close sx={{ fontSize: { xs: 18, sm: 20 } }} />
                 </IconButton>
               </Tooltip>
             </Stack>
@@ -283,25 +291,25 @@ const Customization: React.FC = () => {
         </Box>
 
         {/* Scrollable Content */}
-        <PerfectScrollbar component="div" style={{ height: 'calc(100vh - 75px)', overflowX: 'hidden' }}>
-          <Stack spacing={2.5} sx={{ p: 2.5 }}>
+        <PerfectScrollbar component="div" style={{ height: 'calc(100vh - 65px)', overflowX: 'hidden' }}>
+          <Stack spacing={{ xs: 1.5, sm: 2.5 }} sx={{ p: { xs: 1.5, sm: 2.5 } }}>
             {/* 1. MAVZU REJIMI (THEME MODE) */}
             <Box sx={sectionCardSx}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
-                <Brightness4 sx={{ fontSize: 18, color: 'primary.main' }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mb: { xs: 1, sm: 1.5 } }}>
+                <Brightness4 sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
                   {t('customization.themeMode', 'Mavzu Rejimi')}
                 </Typography>
               </Stack>
 
-              <Stack direction="row" spacing={1.5} sx={{ width: '100%' }}>
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ width: '100%' }}>
                 {/* Dark Mode Card */}
                 <ButtonBase
                   onClick={() => handleModeChange('dark')}
                   sx={{
                     flex: 1,
-                    p: 1.5,
-                    borderRadius: 2.5,
+                    p: { xs: 1.2, sm: 1.5 },
+                    borderRadius: { xs: 2, sm: 2.5 },
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -317,29 +325,29 @@ const Customization: React.FC = () => {
                   }}
                 >
                   {mode === 'dark' && (
-                    <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                      <CheckCircle sx={{ fontSize: 18, color: '#2196F3' }} />
+                    <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
+                      <CheckCircle sx={{ fontSize: { xs: 16, sm: 18 }, color: '#2196F3' }} />
                     </Box>
                   )}
                   <Box
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: { xs: 28, sm: 32 },
+                      height: { xs: 28, sm: 32 },
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: mode === 'dark' ? '#2196F3' : 'rgba(255, 255, 255, 0.1)',
                       color: mode === 'dark' ? '#FFFFFF' : isDarkMode ? '#9AA3C7' : '#697586',
-                      mb: 1
+                      mb: { xs: 0.6, sm: 1 }
                     }}
                   >
-                    <Brightness4 sx={{ fontSize: 18 }} />
+                    <Brightness4 sx={{ fontSize: { xs: 16, sm: 18 } }} />
                   </Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     {t('customization.dark', 'Tungi')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
                     {t('customization.darkMode', 'Dark Mode')}
                   </Typography>
                 </ButtonBase>
@@ -349,8 +357,8 @@ const Customization: React.FC = () => {
                   onClick={() => handleModeChange('light')}
                   sx={{
                     flex: 1,
-                    p: 1.5,
-                    borderRadius: 2.5,
+                    p: { xs: 1.2, sm: 1.5 },
+                    borderRadius: { xs: 2, sm: 2.5 },
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -366,29 +374,29 @@ const Customization: React.FC = () => {
                   }}
                 >
                   {mode === 'light' && (
-                    <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                      <CheckCircle sx={{ fontSize: 18, color: '#FFA726' }} />
+                    <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
+                      <CheckCircle sx={{ fontSize: { xs: 16, sm: 18 }, color: '#FFA726' }} />
                     </Box>
                   )}
                   <Box
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: { xs: 28, sm: 32 },
+                      height: { xs: 28, sm: 32 },
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: mode === 'light' ? '#FFA726' : isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
                       color: mode === 'light' ? '#FFFFFF' : isDarkMode ? '#9AA3C7' : '#697586',
-                      mb: 1
+                      mb: { xs: 0.6, sm: 1 }
                     }}
                   >
-                    <Brightness7 sx={{ fontSize: 18 }} />
+                    <Brightness7 sx={{ fontSize: { xs: 16, sm: 18 } }} />
                   </Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     {t('customization.light', 'Kunduzgi')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
                     {t('customization.lightMode', 'Light Mode')}
                   </Typography>
                 </ButtonBase>
@@ -397,14 +405,14 @@ const Customization: React.FC = () => {
 
             {/* 2. ASOSIY SHRIFT (FONT FAMILY) */}
             <Box sx={sectionCardSx}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
-                <TextFields sx={{ fontSize: 18, color: 'primary.main' }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mb: { xs: 1, sm: 1.5 } }}>
+                <TextFields sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
                   {t('customization.fontFamily', 'Asosiy Shrift')}
                 </Typography>
               </Stack>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: { xs: 0.8, sm: 1.2 } }}>
                 {fontOptions.map((font) => {
                   const isSelected = fontFamily === font.value;
                   return (
@@ -412,8 +420,8 @@ const Customization: React.FC = () => {
                       key={font.name}
                       onClick={() => handleFontChange(font.value)}
                       sx={{
-                        p: 1.2,
-                        borderRadius: 2,
+                        p: { xs: 0.9, sm: 1.2 },
+                        borderRadius: { xs: 1.5, sm: 2 },
                         textAlign: 'left',
                         display: 'flex',
                         flexDirection: 'column',
@@ -443,8 +451,8 @@ const Customization: React.FC = () => {
                       }}
                     >
                       {isSelected && (
-                        <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
-                          <CheckCircle sx={{ fontSize: 16, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
+                        <Box sx={{ position: 'absolute', top: 5, right: 5 }}>
+                          <CheckCircle sx={{ fontSize: { xs: 14, sm: 16 }, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
                         </Box>
                       )}
                       <Typography
@@ -453,16 +461,17 @@ const Customization: React.FC = () => {
                           fontFamily: font.value,
                           fontWeight: 700,
                           lineHeight: 1,
-                          mb: 0.5,
+                          fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                          mb: 0.3,
                           color: isSelected ? (isDarkMode ? '#2196F3' : '#673AB7') : isDarkMode ? '#EDEFFA' : '#121926'
                         }}
                       >
                         Aa
                       </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem', lineHeight: 1.2 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.8rem' }, lineHeight: 1.2 }}>
                         {font.name}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem', mt: 0.2 }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.62rem', sm: '0.68rem' }, mt: 0.1 }}>
                         {font.tag}
                       </Typography>
                     </ButtonBase>
@@ -473,10 +482,10 @@ const Customization: React.FC = () => {
 
             {/* 3. BURCHAKLAR RADIUSI (BORDER RADIUS) */}
             <Box sx={sectionCardSx}>
-              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <AspectRatio sx={{ fontSize: 18, color: 'primary.main' }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: { xs: 1, sm: 1.5 } }}>
+                <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                  <AspectRatio sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
                     {t('customization.borderRadius', 'Burchaklar Radiusi')}
                   </Typography>
                 </Stack>
@@ -485,29 +494,29 @@ const Customization: React.FC = () => {
                   size="small"
                   color="primary"
                   variant="filled"
-                  sx={{ fontWeight: 700, height: 22, px: 0.5 }}
+                  sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem', px: 0.4 }}
                 />
               </Stack>
 
               {/* Live Interactive Preview Box */}
               <Box
                 sx={{
-                  p: 1.5,
-                  mb: 2,
+                  p: { xs: 1, sm: 1.5 },
+                  mb: { xs: 1.25, sm: 2 },
                   borderRadius: `${borderRadius}px`,
                   backgroundColor: isDarkMode ? '#16204A' : '#F1F5F9',
                   border: `1.5px dashed ${isDarkMode ? '#29346B' : '#CBD5E1'}`,
                   transition: 'border-radius 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 1
+                  gap: 0.8
                 }}
               >
                 <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box
                     sx={{
-                      width: 24,
-                      height: 24,
+                      width: { xs: 20, sm: 24 },
+                      height: { xs: 20, sm: 24 },
                       borderRadius: `${Math.max(2, borderRadius - 4)}px`,
                       backgroundColor: isDarkMode ? '#2196F3' : '#673AB7',
                       transition: 'border-radius 0.2s ease'
@@ -515,12 +524,12 @@ const Customization: React.FC = () => {
                   />
                   <Box
                     sx={{
-                      px: 1.2,
-                      py: 0.4,
+                      px: 1,
+                      py: 0.3,
                       borderRadius: `${borderRadius}px`,
                       backgroundColor: isDarkMode ? '#1E2958' : '#FFFFFF',
                       border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                      fontSize: '0.7rem',
+                      fontSize: '0.65rem',
                       fontWeight: 600,
                       transition: 'border-radius 0.2s ease'
                     }}
@@ -531,7 +540,7 @@ const Customization: React.FC = () => {
                 <Box
                   sx={{
                     width: '80%',
-                    height: 6,
+                    height: 5,
                     borderRadius: `${borderRadius}px`,
                     backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
                     transition: 'border-radius 0.2s ease'
@@ -540,7 +549,7 @@ const Customization: React.FC = () => {
               </Box>
 
               {/* Preset Chips */}
-              <Stack direction="row" spacing={0.8} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.8 }}>
+              <Stack direction="row" spacing={0.6} sx={{ mb: { xs: 1.25, sm: 2 }, flexWrap: 'wrap', gap: 0.6 }}>
                 {radiusPresets.map((preset) => {
                   const isSelected = borderRadius === preset.value;
                   return (
@@ -549,8 +558,8 @@ const Customization: React.FC = () => {
                       onClick={() => setCustomization({ borderRadius: preset.value })}
                       sx={{
                         flex: 1,
-                        py: 0.6,
-                        px: 0.8,
+                        py: { xs: 0.45, sm: 0.6 },
+                        px: { xs: 0.6, sm: 0.8 },
                         borderRadius: 1.5,
                         backgroundColor: isSelected
                           ? isDarkMode
@@ -561,7 +570,7 @@ const Customization: React.FC = () => {
                           : '#F1F5F9',
                         color: isSelected ? '#FFFFFF' : isDarkMode ? '#EDEFFA' : '#121926',
                         fontWeight: 600,
-                        fontSize: '0.75rem',
+                        fontSize: { xs: '0.7rem', sm: '0.75rem' },
                         transition: 'all 0.2s ease',
                         '&:hover': {
                           backgroundColor: isSelected
@@ -600,10 +609,10 @@ const Customization: React.FC = () => {
                   }}
                 />
                 <Stack direction="row" sx={{ justifyContent: 'space-between', mt: 0.5 }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
                     {`4px (${t('customization.radiusSharp', "O'tkir")})`}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
                     {`24px (${t('customization.radiusRounded', 'Yumaloq')})`}
                   </Typography>
                 </Stack>
@@ -612,25 +621,25 @@ const Customization: React.FC = () => {
 
             {/* 4. JADVALLAR ZICHLIGI (DATA DENSITY) */}
             <Box sx={sectionCardSx}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
-                <ViewStream sx={{ fontSize: 18, color: 'primary.main' }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mb: { xs: 0.8, sm: 1.2 } }}>
+                <ViewStream sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
                   {t('customization.tableDensity', 'Jadvallar Zichligi')}
                 </Typography>
               </Stack>
 
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: { xs: 1, sm: 1.5 }, fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
                 {t('customization.densityDesc', "Ma'lumotlar ro'yxatlari va jadvallardagi qator balandligi")}
               </Typography>
 
-              <Stack direction="row" spacing={1.5}>
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }}>
                 {/* Compact Density */}
                 <ButtonBase
                   onClick={() => setPrintTableSettings({ lineDensity: 'compact' })}
                   sx={{
                     flex: 1,
-                    p: 1.5,
-                    borderRadius: 2,
+                    p: { xs: 1, sm: 1.5 },
+                    borderRadius: { xs: 1.5, sm: 2 },
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -656,15 +665,15 @@ const Customization: React.FC = () => {
                   }}
                 >
                   {lineDensity === 'compact' && (
-                    <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
-                      <CheckCircle sx={{ fontSize: 16, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
+                    <Box sx={{ position: 'absolute', top: 5, right: 5 }}>
+                      <CheckCircle sx={{ fontSize: { xs: 14, sm: 16 }, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
                     </Box>
                   )}
-                  <ViewHeadline sx={{ fontSize: 20, mb: 0.8, color: isDarkMode ? '#EDEFFA' : '#121926' }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>
+                  <ViewHeadline sx={{ fontSize: { xs: 18, sm: 20 }, mb: 0.5, color: isDarkMode ? '#EDEFFA' : '#121926' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
                     {t('customization.compact', 'Ixcham')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem', mt: 0.2 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.62rem', sm: '0.68rem' }, mt: 0.1 }}>
                     {t('customization.compactDesc', "Ko'proq ma'lumot")}
                   </Typography>
                 </ButtonBase>
@@ -674,8 +683,8 @@ const Customization: React.FC = () => {
                   onClick={() => setPrintTableSettings({ lineDensity: 'normal' })}
                   sx={{
                     flex: 1,
-                    p: 1.5,
-                    borderRadius: 2,
+                    p: { xs: 1, sm: 1.5 },
+                    borderRadius: { xs: 1.5, sm: 2 },
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -701,15 +710,15 @@ const Customization: React.FC = () => {
                   }}
                 >
                   {lineDensity === 'normal' && (
-                    <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
-                      <CheckCircle sx={{ fontSize: 16, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
+                    <Box sx={{ position: 'absolute', top: 5, right: 5 }}>
+                      <CheckCircle sx={{ fontSize: { xs: 14, sm: 16 }, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
                     </Box>
                   )}
-                  <ViewStream sx={{ fontSize: 20, mb: 0.8, color: isDarkMode ? '#EDEFFA' : '#121926' }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>
+                  <ViewStream sx={{ fontSize: { xs: 18, sm: 20 }, mb: 0.5, color: isDarkMode ? '#EDEFFA' : '#121926' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
                     {t('customization.normal', 'Standart')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem', mt: 0.2 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.62rem', sm: '0.68rem' }, mt: 0.1 }}>
                     {t('customization.normalDesc', 'Qulay oraliq')}
                   </Typography>
                 </ButtonBase>
@@ -718,14 +727,14 @@ const Customization: React.FC = () => {
 
             {/* 5. TIZIM TILI (LANGUAGE) */}
             <Box sx={sectionCardSx}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
-                <Language sx={{ fontSize: 18, color: 'primary.main' }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mb: { xs: 1, sm: 1.5 } }}>
+                <Language sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
                   {t('customization.systemLanguage', 'Tizim Tili')}
                 </Typography>
               </Stack>
 
-              <Stack spacing={1}>
+              <Stack spacing={0.8}>
                 {languageOptions.map((item) => {
                   const isSelected = language === item.value;
                   return (
@@ -736,8 +745,8 @@ const Customization: React.FC = () => {
                         i18n.changeLanguage(item.value);
                       }}
                       sx={{
-                        p: 1.2,
-                        borderRadius: 2,
+                        p: { xs: 0.8, sm: 1.2 },
+                        borderRadius: { xs: 1.5, sm: 2 },
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -764,25 +773,25 @@ const Customization: React.FC = () => {
                         }
                       }}
                     >
-                      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                      <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center' }}>
                         <Box
                           component="img"
                           src={item.img}
                           alt={item.label}
                           sx={{
-                            width: 24,
-                            height: 16,
+                            width: { xs: 20, sm: 24 },
+                            height: { xs: 13, sm: 16 },
                             borderRadius: '3px',
                             objectFit: 'cover',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
                           }}
                         />
-                        <Typography variant="body2" sx={{ fontWeight: isSelected ? 700 : 500 }}>
+                        <Typography variant="body2" sx={{ fontWeight: isSelected ? 700 : 500, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                           {item.label}
                         </Typography>
                       </Stack>
                       {isSelected && (
-                        <CheckCircle sx={{ fontSize: 18, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
+                        <CheckCircle sx={{ fontSize: { xs: 16, sm: 18 }, color: isDarkMode ? '#2196F3' : '#673AB7' }} />
                       )}
                     </ButtonBase>
                   );
@@ -793,28 +802,29 @@ const Customization: React.FC = () => {
             {/* 6. MENYU BOSHQARUVI (MENU CUSTOMIZATION - ONLY FOR AUTHENTICATED USERS) */}
             {Boolean(user) && (
               <Box sx={sectionCardSx}>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
-                  <Tune sx={{ fontSize: 18, color: 'primary.main' }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mb: { xs: 0.8, sm: 1 } }}>
+                  <Tune sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
                     {t('customization.menuManagement', 'Menyu Boshqaruvi')}
                   </Typography>
                 </Stack>
 
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: { xs: 1.25, sm: 2 }, fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
                   {t('customization.menuDesc', "Yon menyu bandlarini tartiblash va o'zingizga kerakmaslarini yashirish")}
                 </Typography>
 
-                <Stack spacing={1.2}>
+                <Stack spacing={1}>
                   <Button
                     fullWidth
                     variant="contained"
                     color="primary"
-                    startIcon={<Tune />}
+                    startIcon={<Tune sx={{ fontSize: { xs: 18, sm: 20 } }} />}
                     onClick={() => setOpenMenuDialog(true)}
                     sx={{
-                      py: 1,
+                      py: { xs: 0.75, sm: 1 },
                       textTransform: 'none',
                       fontWeight: 700,
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
                       borderRadius: 2,
                       boxShadow: isDarkMode
                         ? '0 4px 14px rgba(33, 150, 243, 0.35)'
@@ -832,7 +842,7 @@ const Customization: React.FC = () => {
                     onClick={handleResetMenu}
                     sx={{
                       textTransform: 'none',
-                      fontSize: '0.75rem',
+                      fontSize: '0.72rem',
                       color: 'text.secondary',
                       '&:hover': {
                         backgroundColor: 'transparent',
@@ -848,8 +858,8 @@ const Customization: React.FC = () => {
             )}
 
             {/* Version & Info footer */}
-            <Box sx={{ textAlign: 'center', pt: 1, pb: 2 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+            <Box sx={{ textAlign: 'center', pt: 0.5, pb: 2 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
                 GreenZone Dashboard • v3.5.0
               </Typography>
             </Box>

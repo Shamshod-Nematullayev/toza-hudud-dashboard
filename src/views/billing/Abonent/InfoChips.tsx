@@ -54,6 +54,7 @@ interface InfoChipsProps {
 function InfoChips(props: InfoChipsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
   const { residentId } = useAbonentLogic();
   const { balancePredicts, getIncomePredicts, setOpenIIBInhabitantsDialog, getCardDetails, abonentDetails, cardDetails } =
     useAbonentStore();
@@ -155,7 +156,7 @@ function InfoChips(props: InfoChipsProps) {
               fontWeight: 700,
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
-              color: '#9AA3C7',
+              color: isDark ? '#9AA3C7' : 'text.secondary',
               display: 'block',
               mb: 1
             }}
@@ -170,8 +171,9 @@ function InfoChips(props: InfoChipsProps) {
                 sx={{
                   p: 2,
                   borderRadius: '14px',
-                  border: '1px solid #29346B',
-                  bgcolor: '#16204A',
+                  border: '1px solid',
+                  borderColor: isDark ? '#29346B' : 'divider',
+                  bgcolor: isDark ? '#16204A' : 'background.paper',
                   cursor: 'pointer'
                 }}
                 onClick={() => setOpenCalc(true)}
@@ -179,7 +181,7 @@ function InfoChips(props: InfoChipsProps) {
               >
                 <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
-                    <Typography variant="h3" color={props.balance < 0 ? 'error.main' : 'success.main'} sx={{ fontWeight: 800 }}>
+                    <Typography variant="h3" color={props.balance < 0 ? 'error' : 'success'} sx={{ fontWeight: 800 }}>
                       {props.balance.toLocaleString('uz-Latn')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -187,11 +189,7 @@ function InfoChips(props: InfoChipsProps) {
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
-                    <Typography
-                      variant="h4"
-                      color={Number(props.balanceToYearEnd) < 0 ? 'error.main' : 'success.main'}
-                      sx={{ fontWeight: 800 }}
-                    >
+                    <Typography variant="h4" color={Number(props.balanceToYearEnd) < 0 ? 'error' : 'success'} sx={{ fontWeight: 800 }}>
                       {props.balanceToYearEnd !== null ? Number(props.balanceToYearEnd).toLocaleString('uz-Latn') : '—'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -231,13 +229,14 @@ function InfoChips(props: InfoChipsProps) {
                     p: 1.5,
                     height: '100%',
                     borderRadius: '14px',
-                    border: '1px solid #29346B',
-                    bgcolor: '#16204A',
-                    color: '#EDEFFA',
+                    border: '1px solid',
+                    borderColor: isDark ? '#29346B' : 'divider',
+                    bgcolor: isDark ? '#16204A' : 'background.paper',
+                    color: isDark ? '#EDEFFA' : 'text.primary',
                     cursor: item.clickable ? 'pointer' : 'default',
                     '&:hover': item.clickable
                       ? {
-                          bgcolor: '#1B2554'
+                          bgcolor: isDark ? '#1B2554' : 'action.hover'
                         }
                       : {}
                   }}
@@ -248,7 +247,7 @@ function InfoChips(props: InfoChipsProps) {
                       width: 32,
                       height: 32,
                       borderRadius: '8px',
-                      bgcolor: '#1B2554',
+                      bgcolor: isDark ? '#1B2554' : 'action.hover',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -258,10 +257,10 @@ function InfoChips(props: InfoChipsProps) {
                   >
                     {item.icon}
                   </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1, color: item.valColor || '#EDEFFA' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1, color: item.valColor || (isDark ? '#EDEFFA' : 'text.primary') }}>
                     {item.val}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#9AA3C7', display: 'block', mt: 0.5, lineHeight: 1.2 }}>
+                  <Typography variant="caption" sx={{ color: isDark ? '#9AA3C7' : 'text.secondary', display: 'block', mt: 0.5, lineHeight: 1.2 }}>
                     {item.label}
                   </Typography>
                 </Card>

@@ -120,7 +120,9 @@ function AbonentDhjTable() {
       <DataGrid
         {...dataGridProps}
         columns={columns}
-        pageSizeOptions={[15, 50, 100, 200]}
+        pageSizeOptions={[15, 50, 100]}
+        disableColumnSorting
+        disableColumnMenu
         getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'even-row' : 'odd-row')}
         sx={{
           '& .MuiDataGrid-columnHeaderTitle': {

@@ -33,8 +33,10 @@ import {
   RefreshRounded,
   GroupOutlined,
   PersonAddAlt1Outlined,
-  BadgeOutlined
+  BadgeOutlined,
+  FileDownloadOutlined
 } from '@mui/icons-material';
+import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { useDataIntelligenceStore } from '../store/useDataIntelligenceStore';
 import { CodeOpeningPreparationModal } from './CodeOpeningPreparationModal';
@@ -50,6 +52,7 @@ export const SoliqRecordsTable: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [selectedRecordForCodeOpening, setSelectedRecordForCodeOpening] = useState<any | null>(null);
 
   const [stats, setStats] = useState({
@@ -98,6 +101,45 @@ export const SoliqRecordsTable: React.FC = () => {
   const handleTabChange = (_: React.SyntheticEvent, newStatus: string) => {
     setStatusFilter(newStatus);
     setPage(0);
+  };
+
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      const res = await api.get('/data-intelligence/soliq-records/export-excel', {
+        params: {
+          status: statusFilter !== 'all' ? statusFilter : undefined
+        },
+        responseType: 'blob'
+      });
+
+      const statusLabels: Record<string, string> = {
+        matched: 'Mos_kelganlar',
+        conflict: 'Ziddiyatlilar',
+        unmatched: 'Topilmaganlar',
+        pending: 'Kutilayotganlar',
+        all: 'Barchasi'
+      };
+      const filterLabel = statusLabels[statusFilter] || 'Barchasi';
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const filename = `Soliq_yozuvlari_${filterLabel}_${dateStr}.xlsx`;
+
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+
+      toast.success(`Excel fayli muvaffaqiyatli yuklab olindi (${filterLabel.replace('_', ' ')})`);
+    } catch (err: any) {
+      console.error('Error exporting excel:', err);
+      toast.error('Excel faylini yuklab olishda xatolik yuz berdi');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleInspectRecord = (rec: any) => {
@@ -183,7 +225,7 @@ export const SoliqRecordsTable: React.FC = () => {
               </Typography>
             </Box>
 
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               {/* Search Input */}
               <Box component="form" onSubmit={handleSearchSubmit}>
                 <TextField
@@ -191,7 +233,7 @@ export const SoliqRecordsTable: React.FC = () => {
                   placeholder="F.I.Sh, JShShIR, Kadastr..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  sx={{ width: { xs: '100%', sm: 260 } }}
+                  sx={{ width: { xs: '100%', sm: 240 } }}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -207,6 +249,35 @@ export const SoliqRecordsTable: React.FC = () => {
               <IconButton size="small" onClick={() => fetchRecords()} title="Jadvalni yangilash">
                 <RefreshRounded fontSize="small" />
               </IconButton>
+
+              {/* Excel Download Button */}
+              <Tooltip title={`Filtr: ${statusFilter === 'all' ? 'Barchasi' : statusFilter} bo'yicha Excelga yuklab olish`}>
+                <span>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    startIcon={exporting ? <CircularProgress size={16} color="inherit" /> : <FileDownloadOutlined />}
+                    onClick={handleExportExcel}
+                    disabled={exporting || stats.total === 0}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      px: 1.8,
+                      py: 0.7,
+                      borderColor: alpha(theme.palette.primary.main, 0.5),
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                        bgcolor: alpha(theme.palette.primary.main, 0.06)
+                      }
+                    }}
+                  >
+                    {exporting ? 'Yuklanmoqda...' : 'Excelga yuklash'}
+                  </Button>
+                </span>
+              </Tooltip>
             </Stack>
           </Stack>
 
