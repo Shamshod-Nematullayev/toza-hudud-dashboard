@@ -56,10 +56,16 @@ interface MahallaOption {
 }
 
 interface MatchingJobCardProps {
+  fixedRegistryId?: string;
+  fixedRegistryName?: string;
   onRefreshRecords?: () => void;
 }
 
-export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecords }) => {
+export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
+  fixedRegistryId,
+  fixedRegistryName,
+  onRefreshRecords
+}) => {
   const theme = useTheme();
 
   const [job, setJob] = useState<JobStats>({
@@ -81,15 +87,30 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
   const [selectedMahallaId, setSelectedMahallaId] = useState<number | ''>('');
   const [hasCadastreOnly, setHasCadastreOnly] = useState(false);
   const [enrichMvd, setEnrichMvd] = useState(true);
+  const [selectedRegistryId, setSelectedRegistryId] = useState<string>(fixedRegistryId || 'all');
+  const [selectedGroup, setSelectedGroup] = useState<string>('all');
+  const [registries, setRegistries] = useState<any[]>([]);
   const [mahallas, setMahallas] = useState<MahallaOption[]>([]);
 
-  // Fetch Mahallas
+  useEffect(() => {
+    if (fixedRegistryId) {
+      setSelectedRegistryId(fixedRegistryId);
+    }
+  }, [fixedRegistryId]);
+
+  // Fetch Mahallas & Registries
   useEffect(() => {
     api.get('/mahallas', { params: { limit: 1000 } }).then(({ data }) => {
       const list = Array.isArray(data) ? data : data?.data || data?.docs || [];
       setMahallas(list);
     }).catch(() => {});
-  }, []);
+
+    if (!fixedRegistryId) {
+      api.get('/data-intelligence/registries', { params: { limit: 100 } }).then(({ data }) => {
+        if (data?.ok) setRegistries(data.data || []);
+      }).catch(() => {});
+    }
+  }, [fixedRegistryId]);
 
   const fetchJobStatus = async () => {
     try {
@@ -115,7 +136,9 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
         scope,
         mahallas_id: selectedMahallaId || undefined,
         hasCadastreOnly,
-        enrichMvd
+        enrichMvd,
+        listId: fixedRegistryId || (selectedRegistryId !== 'all' ? selectedRegistryId : undefined),
+        sourceGroup: selectedGroup !== 'all' ? selectedGroup : undefined
       };
 
       const res = await api.post('/data-intelligence/job/start', payload);
@@ -310,40 +333,88 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
 
           <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             {/* Scope Filter */}
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl size="small" fullWidth>
-                <InputLabel>Qaysi yozuvlar bo'yicha tahlil qilinsin?</InputLabel>
+                <InputLabel>Tahlil qamrovi (Scope)</InputLabel>
                 <Select
                   value={scope}
-                  label="Qaysi yozuvlar bo'yicha tahlil qilinsin?"
+                  label="Tahlil qamrovi (Scope)"
                   onChange={(e) => setScope(e.target.value)}
                 >
                   <MenuItem value="non_matched">
-                    ⚡ Barcha noaniqlar (Topilmagan + Navbatdagi + Ziddiyatli)
+                    ⚡ Barcha noaniqlar
                   </MenuItem>
                   <MenuItem value="pending">
-                    ⏳ Faqat navbatdagilar (Kutilmoqda)
+                    ⏳ Faqat navbatdagilar
                   </MenuItem>
                   <MenuItem value="unmatched">
-                    🔴 Faqat topilmaganlar (Topilmadi)
+                    🔴 Faqat topilmaganlar
                   </MenuItem>
                   <MenuItem value="conflict">
-                    🟠 Faqat ziddiyatlilar (Shubhali)
+                    🟠 Faqat ziddiyatlilar
                   </MenuItem>
                   <MenuItem value="all">
-                    🔄 Barcha yozuvlar (Noldan to'liq qayta tahlil)
+                    🔄 Barchasi (Noldan)
                   </MenuItem>
                 </Select>
               </FormControl>
             </Grid>
 
-            {/* Mahalla Filter */}
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            {/* Guruh Filter */}
+            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
               <FormControl size="small" fullWidth>
-                <InputLabel>Mahallani tanlang (Ixtiyoriy)</InputLabel>
+                <InputLabel>Guruh</InputLabel>
+                <Select
+                  value={selectedGroup}
+                  label="Guruh"
+                  onChange={(e) => setSelectedGroup(e.target.value)}
+                >
+                  <MenuItem value="all">Barcha guruhlar</MenuItem>
+                  <MenuItem value="soliq">Soliq</MenuItem>
+                  <MenuItem value="elektr">Elektr</MenuItem>
+                  <MenuItem value="kadastr">Kadastr</MenuItem>
+                  <MenuItem value="mib">MIB</MenuItem>
+                  <MenuItem value="gaz">Gaz</MenuItem>
+                  <MenuItem value="boshqa">Boshqa</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Ro'yxat Filter */}
+            <Grid size={{ xs: 12, sm: 6, md: 3.5 }}>
+              {!fixedRegistryId ? (
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Aniq ro'yxat</InputLabel>
+                  <Select
+                    value={selectedRegistryId}
+                    label="Aniq ro'yxat"
+                    onChange={(e) => setSelectedRegistryId(e.target.value)}
+                  >
+                    <MenuItem value="all">Barcha ro'yxatlar</MenuItem>
+                    {registries.map((r) => (
+                      <MenuItem key={r._id} value={r._id}>
+                        {r.name} ({r.group?.toUpperCase()})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : (
+                <Box sx={{ p: 0.8, borderRadius: 1.5, border: `1px solid ${theme.palette.primary.main}`, bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
+                  <Typography variant="caption" color="text.secondary">Tanlangan Ro'yxat:</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    {fixedRegistryName || 'Ushbu ro\'yxat'}
+                  </Typography>
+                </Box>
+              )}
+            </Grid>
+
+            {/* Mahalla Filter */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Mahalla</InputLabel>
                 <Select
                   value={selectedMahallaId}
-                  label="Mahallani tanlang (Ixtiyoriy)"
+                  label="Mahalla"
                   onChange={(e) => setSelectedMahallaId(String(e.target.value) === '' ? '' : (Number(e.target.value) as any))}
                 >
                   <MenuItem value="">
@@ -359,7 +430,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({ onRefreshRecor
             </Grid>
 
             {/* Additional Checkboxes */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12 }}>
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <FormControlLabel
                   control={

@@ -21,7 +21,11 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
-  Tooltip
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   Search,
@@ -34,15 +38,27 @@ import {
   GroupOutlined,
   PersonAddAlt1Outlined,
   BadgeOutlined,
-  FileDownloadOutlined
+  FileDownloadOutlined,
+  FilterAltOutlined
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { useDataIntelligenceStore } from '../store/useDataIntelligenceStore';
 import { CodeOpeningPreparationModal } from './CodeOpeningPreparationModal';
 import { ConflictResolutionModal } from './ConflictResolutionModal';
+import { ExternalRegistryItem, getGroupColor, getGroupLabel } from './RegistryManagerModal';
 
-export const SoliqRecordsTable: React.FC = () => {
+export interface SoliqRecordsTableProps {
+  fixedRegistryId?: string;
+  fixedRegistryName?: string;
+  onRefreshParentStats?: () => void;
+}
+
+export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
+  fixedRegistryId,
+  fixedRegistryName,
+  onRefreshParentStats
+}) => {
   const theme = useTheme();
   const { startCandidateSearchForStagingRecord } = useDataIntelligenceStore();
 
@@ -51,6 +67,9 @@ export const SoliqRecordsTable: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceGroupFilter, setSourceGroupFilter] = useState<string>('all');
+  const [selectedRegistryId, setSelectedRegistryId] = useState<string>(fixedRegistryId || 'all');
+  const [registries, setRegistries] = useState<ExternalRegistryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -65,7 +84,31 @@ export const SoliqRecordsTable: React.FC = () => {
     unmatched: 0
   });
 
-  const fetchRecords = async (targetPage = page, targetStatus = statusFilter, targetSearch = searchQuery) => {
+  const loadRegistries = async () => {
+    if (fixedRegistryId) return;
+    try {
+      const res = await api.get('/data-intelligence/registries', { params: { limit: 100 } });
+      if (res.data?.ok) {
+        setRegistries(res.data.data || []);
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    if (fixedRegistryId) {
+      setSelectedRegistryId(fixedRegistryId);
+    } else {
+      loadRegistries();
+    }
+  }, [fixedRegistryId]);
+
+  const fetchRecords = async (
+    targetPage = page,
+    targetStatus = statusFilter,
+    targetSearch = searchQuery,
+    targetGroup = sourceGroupFilter,
+    targetRegId = fixedRegistryId || selectedRegistryId
+  ) => {
     setLoading(true);
     try {
       const res = await api.get('/data-intelligence/soliq-records', {
@@ -73,7 +116,9 @@ export const SoliqRecordsTable: React.FC = () => {
           page: targetPage + 1,
           limit: rowsPerPage,
           status: targetStatus !== 'all' ? targetStatus : undefined,
-          search: targetSearch.trim() || undefined
+          search: targetSearch.trim() || undefined,
+          sourceGroup: targetGroup !== 'all' ? targetGroup : undefined,
+          listId: (fixedRegistryId || (targetRegId !== 'all' ? targetRegId : undefined))
         }
       });
 
@@ -91,13 +136,13 @@ export const SoliqRecordsTable: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchRecords(page, statusFilter, searchQuery);
-  }, [page, rowsPerPage, statusFilter]);
+    fetchRecords(page, statusFilter, searchQuery, sourceGroupFilter, selectedRegistryId);
+  }, [page, rowsPerPage, statusFilter, sourceGroupFilter, selectedRegistryId]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(0);
-    fetchRecords(0, statusFilter, searchQuery);
+    fetchRecords(0, statusFilter, searchQuery, sourceGroupFilter, selectedRegistryId);
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newStatus: string) => {
@@ -110,7 +155,9 @@ export const SoliqRecordsTable: React.FC = () => {
     try {
       const res = await api.get('/data-intelligence/soliq-records/export-excel', {
         params: {
-          status: statusFilter !== 'all' ? statusFilter : undefined
+          status: statusFilter !== 'all' ? statusFilter : undefined,
+          sourceGroup: sourceGroupFilter !== 'all' ? sourceGroupFilter : undefined,
+          listId: selectedRegistryId !== 'all' ? selectedRegistryId : undefined
         },
         responseType: 'blob'
       });
@@ -243,10 +290,10 @@ export const SoliqRecordsTable: React.FC = () => {
           >
             <Box>
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                Soliq Bazasi Yozuvlari ({stats.total} ta)
+                Tashqi Bazalar va Ro'yxatlar Yozuvlari ({stats.total} ta)
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                MongoDB dagi saqlangan Soliq yozuvlari, MVD propiska ma'lumotlari va GreenZone solishtirish natijalari
+                Soliq, Elektr, Kadastr va boshqa tashqi manbalar yozuvlari hamda GreenZone solishtirish natijalari
               </Typography>
             </Box>
 
@@ -306,6 +353,77 @@ export const SoliqRecordsTable: React.FC = () => {
             </Stack>
           </Stack>
 
+          {/* Group Filter Chips & Registry Selector */}
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              mb: 2,
+              flexWrap: 'wrap',
+              gap: 1.5
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, mr: 0.5 }}>
+                Guruh:
+              </Typography>
+              {[
+                { id: 'all', label: 'Barchasi' },
+                { id: 'soliq', label: 'Soliq' },
+                { id: 'elektr', label: 'Elektr' },
+                { id: 'kadastr', label: 'Kadastr' },
+                { id: 'mib', label: 'MIB' },
+                { id: 'gaz', label: 'Gaz' },
+                { id: 'boshqa', label: 'Boshqa' }
+              ].map((g) => (
+                <Chip
+                  key={g.id}
+                  label={g.label}
+                  clickable
+                  color={sourceGroupFilter === g.id ? 'primary' : 'default'}
+                  variant={sourceGroupFilter === g.id ? 'filled' : 'outlined'}
+                  size="small"
+                  onClick={() => {
+                    setSourceGroupFilter(g.id);
+                    setPage(0);
+                  }}
+                  sx={{ fontWeight: 600 }}
+                />
+              ))}
+            </Stack>
+
+            {!fixedRegistryId ? (
+              <FormControl size="small" sx={{ minWidth: 220 }}>
+                <InputLabel id="records-table-reg-select-label">Ro'yxat bo'yicha</InputLabel>
+                <Select
+                  labelId="records-table-reg-select-label"
+                  value={selectedRegistryId}
+                  label="Ro'yxat bo'yicha"
+                  onChange={(e) => {
+                    setSelectedRegistryId(e.target.value);
+                    setPage(0);
+                  }}
+                >
+                  <MenuItem value="all">Barcha ro'yxatlar</MenuItem>
+                  {registries.map((reg) => (
+                    <MenuItem key={reg._id} value={reg._id}>
+                      {reg.name} ({reg.group?.toUpperCase()})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
+              <Chip
+                label={`Ro'yxat: ${fixedRegistryName || 'Tanlangan'}`}
+                color="primary"
+                variant="outlined"
+                sx={{ fontWeight: 700 }}
+              />
+            )}
+          </Stack>
+
           {/* Status Filter Tabs */}
           <Tabs
             value={statusFilter}
@@ -337,12 +455,13 @@ export const SoliqRecordsTable: React.FC = () => {
             <TableHead sx={{ bgcolor: alpha(theme.palette.divider, 0.04) }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>F.I.Sh (Soliq)</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Guruh / Ro'yxat</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>F.I.Sh</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>JShShIR / Kadastr</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Mahalla & Manzil</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>MVD Propiska / Odam Soni</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Mos Kelgan GreenZone Abonenti</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Mos Kelgan GreenZone</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700 }}>
                   Amallar
                 </TableCell>
@@ -352,7 +471,7 @@ export const SoliqRecordsTable: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
                     <CircularProgress size={32} />
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                       Ma'lumotlar yuklanmoqda...
@@ -361,7 +480,7 @@ export const SoliqRecordsTable: React.FC = () => {
                 </TableRow>
               ) : records.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
                     <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Yozuvlar topilmadi
                     </Typography>
@@ -374,6 +493,29 @@ export const SoliqRecordsTable: React.FC = () => {
                 records.map((row, idx) => (
                   <TableRow key={row._id || idx} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                     <TableCell>{page * rowsPerPage + idx + 1}</TableCell>
+
+                    {/* Guruh va Ro'yxat */}
+                    <TableCell>
+                      <Chip
+                        label={getGroupLabel(row.sourceGroup || (row.listId && typeof row.listId === 'object' ? row.listId.group : 'soliq'))}
+                        color={getGroupColor(row.sourceGroup || (row.listId && typeof row.listId === 'object' ? row.listId.group : 'soliq'))}
+                        size="small"
+                        sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700, mb: 0.5 }}
+                      />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: 'block',
+                          maxWidth: 130,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {row.listId && typeof row.listId === 'object' ? row.listId.name : 'Asosiy'}
+                      </Typography>
+                    </TableCell>
 
                     {/* FIO */}
                     <TableCell>

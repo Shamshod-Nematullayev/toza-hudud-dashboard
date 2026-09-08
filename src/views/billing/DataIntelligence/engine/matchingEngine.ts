@@ -7,6 +7,7 @@
 
 export interface RecordSource {
   id?: string;
+  accountNumber?: string;
   fullName: string;
   pnfl: string;
   cadastreNumber: string;
@@ -15,7 +16,7 @@ export interface RecordSource {
   objectType?: string;
   phone?: string;
   tin?: string; // INN
-  source?: 'soliq' | 'greenzone' | 'manual' | 'kadastr' | 'elektr';
+  source?: 'soliq' | 'greenzone' | 'manual' | 'kadastr' | 'elektr' | string;
 }
 
 export type DecisionTier = 'CONFIRMED' | 'HIGH_CONFIDENCE' | 'PROPERTY_MATCH' | 'REVIEW_REQUIRED' | 'NO_MATCH';

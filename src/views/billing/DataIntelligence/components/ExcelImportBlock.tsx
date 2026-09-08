@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -20,8 +20,17 @@ import {
   Divider,
   useTheme,
   alpha,
-  CircularProgress
+  CircularProgress,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  RadioGroup,
+  FormControlLabel,
+  Radio
 } from '@mui/material';
+import dayjs from 'dayjs';
 import {
   CloudUploadOutlined,
   DownloadOutlined,
@@ -48,7 +57,17 @@ import { ColumnMappingDialog } from './ColumnMappingDialog';
 import { ImportBatch } from '../mock/mockData';
 import api from 'utils/api';
 
-export const ExcelImportBlock: React.FC = () => {
+export interface ExcelImportBlockProps {
+  targetRegistry?: any | null; // Agar berilsa -> shu ro'yxatga qo'shiladi
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export const ExcelImportBlock: React.FC<ExcelImportBlockProps> = ({
+  targetRegistry,
+  onSuccess,
+  onCancel
+}) => {
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,9 +81,23 @@ export const ExcelImportBlock: React.FC = () => {
   const [isMappingDialogOpen, setIsMappingDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Yangi ro'yxat formasi (agar targetRegistry berilmagan bo'lsa)
+  const [newRegistryForm, setNewRegistryForm] = useState({
+    name: '',
+    group: 'soliq',
+    registryDate: dayjs().format('YYYY-MM-DD'),
+    description: ''
+  });
+
   // Faylni yuklash va o'qish
   const handleFileChange = async (file: File) => {
     setSelectedFile(file);
+    if (!targetRegistry) {
+      setNewRegistryForm((prev) => ({
+        ...prev,
+        name: prev.name || file.name.replace(/\.[^/.]+$/, '')
+      }));
+    }
     setIsProcessing(true);
 
     try {
@@ -101,48 +134,50 @@ export const ExcelImportBlock: React.FC = () => {
     }
   };
 
-  // Namuna shablon yuklab olish
-  const handleDownloadSample = () => {
-    const csvContent = generateSampleCsvContent();
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'soliq_baza_namuna.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Namuna Soliq fayli yuklab olindi');
-  };
-
-  // Namuna test faylni to'g'ridan-to'g'ri tizimga kiritish (1 tugma bilan test)
-  const handleLoadMockSample = () => {
-    const csvContent = generateSampleCsvContent();
-    const mockFile = new File([csvContent], 'soliq_test_namuna_avgust2026.csv', { type: 'text/csv' });
-    handleFileChange(mockFile);
-  };
-
-  // Ustunlar moslashuvi yangilanganda
-  const handleConfirmMapping = (newMapping: ColumnMapping) => {
-    setCurrentMapping(newMapping);
-    setIsMappingDialogOpen(false);
-
-    if (parsedSheet && selectedFile) {
-      const result = validateAndTransformRows(parsedSheet.rawRows, newMapping, selectedFile.name);
-      setParseResult(result);
-      toast.success('Ustunlar moslashuvi qayta hisoblandi');
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFileChange(e.target.files[0]);
     }
   };
 
-  // Staging va MongoDB'ga saqlash
+  // Namuna shablon yuklab olish
+  const handleDownloadSample = () => {
+    const csvData = generateSampleCsvContent();
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'soliq_import_namuna.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Namuna shablon yuklab olindi!');
+  };
+
+  // Xaritalashni tasdiqlash
+  const handleApplyMapping = (newMapping: ColumnMapping) => {
+    if (!parsedSheet || !selectedFile) return;
+    setCurrentMapping(newMapping);
+    setIsMappingDialogOpen(false);
+    const newResult = validateAndTransformRows(parsedSheet.rawRows, newMapping, selectedFile.name);
+    setParseResult(newResult);
+    toast.success('Ustunlar moslashuvi yangilandi!');
+  };
+
+  // BAZAGA SAQLASH
   const handleSaveToStaging = async () => {
     if (!parseResult || !selectedFile) return;
 
+    if (!targetRegistry && !newRegistryForm.name.trim()) {
+      toast.warn("Iltimos, yangi ro'yxat nomini kiriting!");
+      return;
+    }
+
     const newBatch: ImportBatch = {
-      id: `batch-${Date.now()}`,
+      id: `batch_${Date.now()}`,
       fileName: selectedFile.name,
       fileSize: `${(selectedFile.size / 1024).toFixed(1)} KB`,
-      importedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      importedAt: new Date().toISOString(),
       importedBy: 'Operator',
       rowCount: parseResult.totalCount,
       validCount: parseResult.validCount,
@@ -159,6 +194,19 @@ export const ExcelImportBlock: React.FC = () => {
         formData.append('mapping', JSON.stringify(currentMapping));
       }
 
+      if (targetRegistry?._id) {
+        // Ro'yxat ichida bo'lsa -> to'g'ridan-to'g'ri shu ro'yxatga birikadi
+        formData.append('listId', targetRegistry._id);
+      } else {
+        // Yangi ro'yxat ochilmoqda
+        formData.append('listName', newRegistryForm.name || selectedFile.name.replace(/\.[^/.]+$/, ''));
+        formData.append('sourceGroup', newRegistryForm.group);
+        formData.append('registryDate', newRegistryForm.registryDate);
+        if (newRegistryForm.description) {
+          formData.append('description', newRegistryForm.description);
+        }
+      }
+
       const res = await api.post('/data-intelligence/upload-excel', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -168,7 +216,7 @@ export const ExcelImportBlock: React.FC = () => {
       if (res.data?.ok) {
         toast.success(
           res.data.message ||
-          `${parseResult.totalCount} ta Soliq yozuvi MongoDB bazasiga muvaffaqiyatli saqlandi!`
+          `${parseResult.totalCount} ta yozuv MongoDB bazasiga muvaffaqiyatli saqlandi!`
         );
         addStagingBatch(newBatch, parseResult.records);
 
@@ -176,6 +224,10 @@ export const ExcelImportBlock: React.FC = () => {
         setSelectedFile(null);
         setParsedSheet(null);
         setParseResult(null);
+
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'MongoDB bazasiga saqlashda xatolik yuz berdi');
@@ -190,12 +242,20 @@ export const ExcelImportBlock: React.FC = () => {
         {/* Upload Zone & Action Controls */}
         <Grid size={{ xs: 12, lg: 5 }}>
           <Card sx={{ p: 3, borderRadius: 2.5, height: '100%', border: `1px solid ${theme.palette.divider}` }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-              Soliq Bazasi Excel Import Kanali
-            </Typography>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                {targetRegistry ? `"${targetRegistry.name}" Ro'yxatiga Excel Yuklash` : "Excel Orqali Yangi Tashqi Ro'yxat Yaratish"}
+              </Typography>
+              {onCancel && (
+                <Button size="small" variant="text" color="inherit" onClick={onCancel}>
+                  Yopish
+                </Button>
+              )}
+            </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-              Soliq qo'mitasi yoki boshqa tashqi manbadan olingan faylni yuklang. Ma'lumotlar alohida <strong>Staging</strong> holatida
-              saqlanadi.
+              {targetRegistry
+                ? `Fayldagi yangi yozuvlar bevosita "${targetRegistry.name}" ro'yxatiga qo'shiladi va statistikasi yangilanadi.`
+                : "Soliq, Elektr (HET), Kadastr yoki boshqa tashqi bazaning Excel/CSV faylini yuklab, yangi ro'yxat oching."}
             </Typography>
 
             {/* Drag & Drop Zone */}
@@ -326,6 +386,80 @@ export const ExcelImportBlock: React.FC = () => {
                     />
                   )}
                 </Stack>
+
+                {/* Ro'yxat Biriktirish / Yaratish */}
+                {targetRegistry ? (
+                  <Box
+                    sx={{
+                      my: 2,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.25)}`
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main', mb: 0.5 }}>
+                      📋 Biriktirilayotgan Tashqi Ro'yxat:
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                      {targetRegistry.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Guruh: {targetRegistry.group?.toUpperCase()} • Barcha yozuvlar ushbu ro'yxatga qo'shiladi va statistikasi yangilanadi.
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      my: 2,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: 'background.paper',
+                      border: `1px solid ${theme.palette.divider}`
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>
+                      ✨ Yangi Tashqi Ro'yxat Ma'lumotlari:
+                    </Typography>
+
+                    <Stack spacing={1.5}>
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="Ro'yxat nomi"
+                          placeholder="Masalan: 2026-yil Soliq Ro'yxati"
+                          value={newRegistryForm.name}
+                          onChange={(e) => setNewRegistryForm({ ...newRegistryForm, name: e.target.value })}
+                        />
+                        <FormControl size="small" sx={{ minWidth: 140 }}>
+                          <InputLabel id="reg-grp-select-label">Guruhi</InputLabel>
+                          <Select
+                            labelId="reg-grp-select-label"
+                            value={newRegistryForm.group}
+                            label="Guruhi"
+                            onChange={(e) => setNewRegistryForm({ ...newRegistryForm, group: e.target.value })}
+                          >
+                            <MenuItem value="soliq">Soliq</MenuItem>
+                            <MenuItem value="elektr">Elektr (HET)</MenuItem>
+                            <MenuItem value="kadastr">Kadastr</MenuItem>
+                            <MenuItem value="mib">MIB</MenuItem>
+                            <MenuItem value="gaz">Gaz</MenuItem>
+                            <MenuItem value="boshqa">Boshqa</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Stack>
+                      <TextField
+                        type="date"
+                        size="small"
+                        label="Ro'yxat sanasi"
+                        value={newRegistryForm.registryDate}
+                        onChange={(e) => setNewRegistryForm({ ...newRegistryForm, registryDate: e.target.value })}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                      />
+                    </Stack>
+                  </Box>
+                )}
 
                 <Button
                   fullWidth
@@ -548,7 +682,7 @@ export const ExcelImportBlock: React.FC = () => {
           onClose={() => setIsMappingDialogOpen(false)}
           headers={parsedSheet.headers}
           initialMapping={currentMapping || parsedSheet.suggestedMapping}
-          onConfirm={handleConfirmMapping}
+          onConfirm={handleApplyMapping}
           fileName={selectedFile.name}
         />
       )}
