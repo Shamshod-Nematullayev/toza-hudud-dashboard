@@ -44,15 +44,17 @@ const RadialChart = ({ progress, label, isLoading }) => {
   };
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {label && (
         <Typography
           variant="subtitle1"
-          fontWeight="bold"
-          fontSize={isXs ? '14px' : '18px'}
-          color={theme.palette.primary.main}
-          fontFamily={customization.fontFamily}
-          mt={1}
+          sx={{
+            fontWeight: 'bold',
+            fontSize: isXs ? '14px' : '18px',
+            color: theme.palette.primary.main,
+            fontFamily: customization.fontFamily,
+            mt: 1
+          }}
         >
           {label}
         </Typography>

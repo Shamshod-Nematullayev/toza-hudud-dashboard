@@ -17,7 +17,8 @@ import {
   FormControlLabel,
   Switch,
   MenuItem,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import {
   PersonSearchOutlined,
@@ -29,7 +30,8 @@ import {
   StarsOutlined,
   ClearOutlined,
   LocationCityOutlined,
-  HolidayVillageOutlined
+  HolidayVillageOutlined,
+  CheckCircle
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -58,6 +60,38 @@ export const CandidateFinderBlock: React.FC = () => {
   const [isPickModalOpen, setIsPickModalOpen] = useState(false);
   const [selectedMahallaId, setSelectedMahallaId] = useState<number | string>('');
   const [includeNeighbors, setIncludeNeighbors] = useState<boolean>(true);
+  const [resolvingCandId, setResolvingCandId] = useState<string | number | null>(null);
+
+  const handleQuickConfirmFromFinder = async (item: CandidateResult) => {
+    if (!candidateQueryRecord.id) return;
+    const candId = item.subscriber.id || 'cand';
+    setResolvingCandId(candId);
+    try {
+      const res = await api.post(`/data-intelligence/soliq-records/${candidateQueryRecord.id}/resolve-conflict`, {
+        action: 'confirm',
+        candidate: {
+          id: item.subscriber.id,
+          accountNumber: item.subscriber.accountNumber || item.subscriber.id,
+          fullName: item.subscriber.fullName,
+          pinfl: item.subscriber.pnfl,
+          cadastralNumber: item.subscriber.cadastreNumber,
+          mahallaName: item.subscriber.mahalla,
+          score: item.matchResult.overallScore
+        },
+        note: 'Candidate Finder orqali admin tomonidan biriktirildi'
+      });
+
+      if (res.data?.success) {
+        toast.success(res.data.message || 'Abonentga muvaffaqiyatli biriktirildi!');
+      } else {
+        toast.warning(res.data?.message || 'Amal bajarilmadi');
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Xatolik yuz berdi');
+    } finally {
+      setResolvingCandId(null);
+    }
+  };
 
   // Rasmiy mahallalarni yuklash
   useEffect(() => {
@@ -534,16 +568,39 @@ export const CandidateFinderBlock: React.FC = () => {
                         </Typography>
 
                         {/* Action Buttons */}
-                        <Stack direction="row" spacing={1.5} sx={{ pt: 0.5, justifyContent: 'flex-end' }}>
+                        <Stack
+                          direction="row"
+                          spacing={1.5}
+                          sx={{ pt: 0.5, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}
+                        >
+                          {Boolean(candidateQueryRecord.id) && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="success"
+                              startIcon={
+                                resolvingCandId === (item.subscriber.id || 'cand') ? (
+                                  <CircularProgress size={16} color="inherit" />
+                                ) : (
+                                  <CheckCircle />
+                                )
+                              }
+                              onClick={() => handleQuickConfirmFromFinder(item)}
+                              disabled={Boolean(resolvingCandId)}
+                              sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}
+                            >
+                              Ushbu abonentga biriktirish
+                            </Button>
+                          )}
                           <Button
                             size="small"
-                            variant="contained"
+                            variant="outlined"
                             color="primary"
                             startIcon={<CompareArrows />}
                             onClick={() => handleDeepCompare(item)}
                             sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700 }}
                           >
-                            2-Bosqich: Chuqur Solishtirish (Playground)
+                            Chuqur Solishtirish (Playground)
                           </Button>
                         </Stack>
                       </Stack>

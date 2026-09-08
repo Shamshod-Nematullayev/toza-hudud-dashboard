@@ -40,6 +40,7 @@ import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { useDataIntelligenceStore } from '../store/useDataIntelligenceStore';
 import { CodeOpeningPreparationModal } from './CodeOpeningPreparationModal';
+import { ConflictResolutionModal } from './ConflictResolutionModal';
 
 export const SoliqRecordsTable: React.FC = () => {
   const theme = useTheme();
@@ -54,6 +55,7 @@ export const SoliqRecordsTable: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [selectedRecordForCodeOpening, setSelectedRecordForCodeOpening] = useState<any | null>(null);
+  const [selectedRecordForConflict, setSelectedRecordForConflict] = useState<any | null>(null);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -156,37 +158,60 @@ export const SoliqRecordsTable: React.FC = () => {
     });
   };
 
-  const getStatusBadge = (status: string, score?: number) => {
+  const getStatusBadge = (row: any) => {
+    const status = row?.status;
+    const score = row?.matchScore;
     switch (status) {
       case 'matched':
         return (
-          <Chip
-            icon={<CheckCircleOutlineOutlined sx={{ fontSize: 16 }} />}
-            label={`${score || 85}% Mos keldi`}
-            color="success"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
+          <Tooltip title="Moslik ma'lumotlarini ko'rish">
+            <Chip
+              icon={<CheckCircleOutlineOutlined sx={{ fontSize: 16 }} />}
+              label={`${score || 85}% Mos keldi`}
+              color="success"
+              size="small"
+              clickable
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedRecordForConflict(row);
+              }}
+              sx={{ fontWeight: 600, cursor: 'pointer' }}
+            />
+          </Tooltip>
         );
       case 'conflict':
         return (
-          <Chip
-            icon={<WarningAmberRounded sx={{ fontSize: 16 }} />}
-            label={`${score || 50}% Ziddiyatli`}
-            color="warning"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
+          <Tooltip title="Ziddiyatni ko'rish va yechish uchun bosing">
+            <Chip
+              icon={<WarningAmberRounded sx={{ fontSize: 16 }} />}
+              label={`${score || 50}% Ziddiyatli`}
+              color="warning"
+              size="small"
+              clickable
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedRecordForConflict(row);
+              }}
+              sx={{ fontWeight: 700, cursor: 'pointer', boxShadow: 1 }}
+            />
+          </Tooltip>
         );
       case 'unmatched':
         return (
-          <Chip
-            icon={<HighlightOffRounded sx={{ fontSize: 16 }} />}
-            label="Topilmadi (Yangi)"
-            color="error"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
+          <Tooltip title="Nomzodlarni ko'rish yoki yangi abonent ochish">
+            <Chip
+              icon={<HighlightOffRounded sx={{ fontSize: 16 }} />}
+              label="Topilmadi (Yangi)"
+              color="error"
+              size="small"
+              clickable
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedRecordForConflict(row);
+              }}
+              sx={{ fontWeight: 600, cursor: 'pointer' }}
+            />
+          </Tooltip>
         );
       case 'pending':
       default:
@@ -383,7 +408,7 @@ export const SoliqRecordsTable: React.FC = () => {
                     </TableCell>
 
                     {/* Status */}
-                    <TableCell>{getStatusBadge(row.status, row.matchScore)}</TableCell>
+                    <TableCell>{getStatusBadge(row)}</TableCell>
 
                     {/* MVD Propiska / Suggested People Count */}
                     <TableCell>
@@ -442,6 +467,30 @@ export const SoliqRecordsTable: React.FC = () => {
                     {/* Action */}
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                        {row.status === 'conflict' ? (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="warning"
+                            startIcon={<WarningAmberRounded />}
+                            onClick={() => setSelectedRecordForConflict(row)}
+                            sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700, fontSize: '0.72rem', px: 1.5 }}
+                          >
+                            Ziddiyatni yechish
+                          </Button>
+                        ) : (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<CompareArrows />}
+                            onClick={() => setSelectedRecordForConflict(row)}
+                            sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700, fontSize: '0.72rem', px: 1.5 }}
+                          >
+                            Nomzodlar
+                          </Button>
+                        )}
+
                         {row.status !== 'matched' && row.cadastreNumber && (
                           <Tooltip title="Kadastr va MVD ma'lumotlari bilan yangi abonent kodini ochish">
                             <Button
@@ -456,16 +505,6 @@ export const SoliqRecordsTable: React.FC = () => {
                             </Button>
                           </Tooltip>
                         )}
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<CompareArrows />}
-                          onClick={() => handleInspectRecord(row)}
-                          sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 700, fontSize: '0.72rem', px: 1.5 }}
-                        >
-                          Nomzodlar
-                        </Button>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -498,6 +537,14 @@ export const SoliqRecordsTable: React.FC = () => {
         onClose={() => setSelectedRecordForCodeOpening(null)}
         soliqRecord={selectedRecordForCodeOpening}
         onSaved={() => fetchRecords()}
+      />
+
+      {/* Conflict Resolution Modal */}
+      <ConflictResolutionModal
+        open={Boolean(selectedRecordForConflict)}
+        onClose={() => setSelectedRecordForConflict(null)}
+        soliqRecord={selectedRecordForConflict}
+        onResolved={() => fetchRecords()}
       />
     </>
   );

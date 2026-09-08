@@ -15,7 +15,8 @@ import {
   IconButton,
   Tooltip,
   useTheme,
-  alpha
+  alpha,
+  CircularProgress
 } from '@mui/material';
 import {
   CompareArrows,
@@ -36,6 +37,7 @@ import {
   Search
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
+import api from 'utils/api';
 import { useDataIntelligenceStore } from '../store/useDataIntelligenceStore';
 import { WeightConfigModal } from './WeightConfigModal';
 import { QuickPickModal } from './QuickPickModal';
@@ -62,6 +64,40 @@ export const MatchingPlaygroundBlock: React.FC = () => {
   const [isWeightsOpen, setIsWeightsOpen] = useState(false);
   const [isPickOpenA, setIsPickOpenA] = useState(false);
   const [isPickOpenB, setIsPickOpenB] = useState(false);
+  const [resolving, setResolving] = useState(false);
+
+  const handleConfirmMatchInPlayground = async () => {
+    if (!sourceA.id) {
+      toast.info("Manba A da Soliq bazasi yozuvi ID si mavjud emas");
+      return;
+    }
+    setResolving(true);
+    try {
+      const res = await api.post(`/data-intelligence/soliq-records/${sourceA.id}/resolve-conflict`, {
+        action: 'confirm',
+        candidate: {
+          id: sourceB.id,
+          accountNumber: sourceB.accountNumber || sourceB.id,
+          fullName: sourceB.fullName,
+          pinfl: sourceB.pnfl,
+          cadastralNumber: sourceB.cadastreNumber,
+          mahallaName: sourceB.mahalla,
+          score: currentMatchResult?.overallScore || 90
+        },
+        note: "Playground orqali tahlil qilinib, admin tomonidan biriktirildi"
+      });
+
+      if (res.data?.success) {
+        toast.success(res.data.message || 'Muvaffaqiyatli biriktirildi!');
+      } else {
+        toast.warning(res.data?.message || 'Amal bajarilmadi');
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Biriktirishda xatolik yuz berdi');
+    } finally {
+      setResolving(false);
+    }
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return theme.palette.success.main;
@@ -343,6 +379,27 @@ export const MatchingPlaygroundBlock: React.FC = () => {
                     sx={{ fontWeight: 700, px: 1 }}
                   />
                 </Paper>
+
+                {/* Direct Conflict Resolution / Linking CTA */}
+                {Boolean(sourceA.id && (sourceB.fullName || sourceB.id)) && (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="success"
+                    startIcon={resolving ? <CircularProgress size={16} color="inherit" /> : <CheckCircle />}
+                    onClick={handleConfirmMatchInPlayground}
+                    disabled={resolving}
+                    sx={{
+                      py: 1,
+                      fontWeight: 700,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      boxShadow: theme.shadows[1]
+                    }}
+                  >
+                    Ushbu abonentga biriktirish (Tasdiqlash)
+                  </Button>
+                )}
 
                 {/* Field-by-field breakdowns */}
                 <Stack spacing={1.5}>
