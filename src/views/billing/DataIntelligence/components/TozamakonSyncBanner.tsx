@@ -19,7 +19,8 @@ import {
   ErrorOutlineRounded,
   CloudDownloadOutlined,
   LayersOutlined,
-  LocationCityOutlined
+  LocationCityOutlined,
+  CancelRounded
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -120,6 +121,27 @@ export const TozamakonSyncBanner: React.FC = () => {
     }
   };
 
+  const [isCanceling, setIsCanceling] = useState(false);
+
+  // Jobni bekor qilish
+  const handleCancelSync = async () => {
+    if (!window.confirm("Haqiqatan ham sinxronizatsiya jarayonini bekor qilmoqchimisiz?")) {
+      return;
+    }
+    setIsCanceling(true);
+    try {
+      const res = await api.post('/data-intelligence/tozamakon-sync/cancel');
+      if (res.data?.ok) {
+        toast.info("Sinxronizatsiya jarayoni bekor qilindi");
+        await fetchStatus();
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || "Bekor qilishda xatolik yuz berdi");
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
   if (loading && !syncStatus) {
     return null;
   }
@@ -199,38 +221,76 @@ export const TozamakonSyncBanner: React.FC = () => {
                 sx={{ fontSize: '0.75rem', fontWeight: 600 }}
               />
             )}
+
+            {syncStatus?.status === 'failed' && !isRunning && (
+              <Chip
+                icon={<ErrorOutlineRounded sx={{ fontSize: 14 }} />}
+                label={syncStatus.error || syncStatus.stepMessage || "Oxirgi yangilanish bekor qilingan"}
+                size="small"
+                color="error"
+                variant="outlined"
+                sx={{ fontSize: '0.75rem', fontWeight: 600 }}
+              />
+            )}
           </Stack>
         </Box>
 
-        {/* O'ng tomon: Action Button */}
+        {/* O'ng tomon: Action Buttons */}
         <Box>
-          <Button
-            variant="contained"
-            color="info"
-            disabled={!canRun || isRunning || isStarting}
-            startIcon={
-              isRunning || isStarting ? (
-                <CircularProgress size={18} color="inherit" />
-              ) : (
-                <SyncRounded />
-              )
-            }
-            onClick={handleStartSync}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 700,
-              py: 1.1,
-              px: 2.2,
-              boxShadow: 'none'
-            }}
-          >
-            {isRunning
-              ? "Yangilanmoqda..."
-              : canRun
-              ? "Tozamakondan Yangilash"
-              : `15 kunda 1 marta (${syncStatus?.remainingDays} kun qoldi)`}
-          </Button>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Button
+              variant="contained"
+              color="info"
+              disabled={!canRun || isRunning || isStarting}
+              startIcon={
+                isRunning || isStarting ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : (
+                  <SyncRounded />
+                )
+              }
+              onClick={handleStartSync}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 700,
+                py: 1.1,
+                px: 2.2,
+                boxShadow: 'none'
+              }}
+            >
+              {isRunning
+                ? "Yangilanmoqda..."
+                : canRun
+                ? "Tozamakondan Yangilash"
+                : `15 kunda 1 marta (${syncStatus?.remainingDays} kun qoldi)`}
+            </Button>
+
+            {isRunning && (
+              <Button
+                variant="outlined"
+                color="error"
+                disabled={isCanceling}
+                startIcon={
+                  isCanceling ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <CancelRounded sx={{ fontSize: 18 }} />
+                  )
+                }
+                onClick={handleCancelSync}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1.1,
+                  px: 1.8
+                }}
+              >
+                {isCanceling ? "Bekor qilinmoqda..." : "Bekor qilish"}
+              </Button>
+            )}
+          </Stack>
         </Box>
       </Stack>
 

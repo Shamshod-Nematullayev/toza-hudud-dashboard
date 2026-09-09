@@ -128,14 +128,15 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
           id: 1,
           davr: rowsDhjTable[0].davr,
           saldo_n: rowsDhjTable[0].saldo_n,
-          nachis: !isNaN(Number(store.yashovchiSoniInput))
-            ? Number(store.yashovchiSoniInput) * hisoblandi
-            : rowsDhjTable[0].nachis,
+          nachis: !isNaN(Number(store.yashovchiSoniInput)) ? Number(store.yashovchiSoniInput) * hisoblandi : rowsDhjTable[0].nachis,
           saldo_k: kSaldo,
           akt: -(rowsDhjTable[0].akt + store.aktSumma.total),
-          yashovchilar_soni: !isNaN(Number(store.yashovchiSoniInput))
-            ? Number(store.yashovchiSoniInput)
-            : rowsDhjTable[0].yashovchilar_soni,
+          yashovchilar_soni:
+            store.aktType == 'viza'
+              ? rowsDhjTable[0].yashovchilar_soni
+              : !isNaN(Number(store.yashovchiSoniInput))
+                ? Number(store.yashovchiSoniInput)
+                : rowsDhjTable[0].yashovchilar_soni,
           allPaymentsSum: rowsDhjTable[0].allPaymentsSum
         },
         ...rowsDhjTable.slice(1)
@@ -219,17 +220,12 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
               sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
             />
             {(label?.includes('Ikkilamchi') ? store.isGlobalAbonent2 : store.isGlobalAbonent) && abonentData.companyName && (
-              <Chip
-                label={abonentData.companyName}
-                size="small"
-                color="info"
-                sx={{ fontWeight: 700, fontSize: '11px', height: 20 }}
-              />
+              <Chip label={abonentData.companyName} size="small" color="info" sx={{ fontWeight: 700, fontSize: '11px', height: 20 }} />
             )}
           </Stack>
         </Box>
 
-        <Tooltip title={show ? t("Asl holatga qaytish") : t("Kiritilgan o'zgarishlar bilan oldindan ko'rish")} arrow>
+        <Tooltip title={show ? t('Asl holatga qaytish') : t("Kiritilgan o'zgarishlar bilan oldindan ko'rish")} arrow>
           <IconButton
             size="small"
             color={show ? 'secondary' : 'primary'}

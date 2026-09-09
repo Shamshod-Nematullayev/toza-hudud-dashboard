@@ -21,7 +21,7 @@ import {
   Typography,
   useTheme
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
 import { IconBolt, IconChartBar, IconShieldCheck, IconUsers } from '@tabler/icons-react';
 import DispatcherDashboard from 'views/dispatcher/Dashboard';
@@ -375,6 +375,7 @@ const Dashboard = () => {
             icon={<IconBolt size="2.2rem" />}
             color={theme.palette.warning.main}
             loading={isLoading}
+            to="/billing/pendingNewAbonents"
           />
         </Grid>
       </Grid>
@@ -1216,30 +1217,62 @@ interface PropsStatCard {
   icon: JSX.Element;
   color: string;
   loading: boolean;
+  to?: string;
+  onClick?: () => void;
 }
 
-const StatCard = ({ title, count, icon, color, loading }: PropsStatCard) => (
-  <Grid size={{ xs: 12, md: 4 }}>
+const StatCard = ({ title, count, icon, color, loading, to, onClick }: PropsStatCard) => {
+  const isClickable = Boolean(to || onClick);
+
+  const cardContent = (
     <Card
+      onClick={onClick}
       sx={{
         p: 3,
         borderRadius: '16px',
         position: 'relative',
         overflow: 'hidden',
-        transition: '0.3s',
-        '&:hover': { transform: 'translateY(-5px)', boxShadow: 6 }
+        transition: 'all 0.3s ease-in-out',
+        height: '100%',
+        cursor: isClickable ? 'pointer' : 'default',
+        '&:hover': {
+          transform: 'translateY(-5px)',
+          boxShadow: isClickable ? 8 : 6,
+          ...(isClickable && {
+            borderColor: color
+          })
+        }
       }}
     >
       <Box sx={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.1, color: color }}>{icon}</Box>
-      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-        {title}
-      </Typography>
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+          {title}
+        </Typography>
+        {isClickable && (
+          <Typography variant="caption" sx={{ color: color, fontWeight: 700, fontSize: '0.85rem' }}>
+            →
+          </Typography>
+        )}
+      </Stack>
       <Typography variant="h2" sx={{ mt: 1, fontWeight: 800 }}>
         {loading ? '...' : count?.toLocaleString()}
       </Typography>
     </Card>
-  </Grid>
-);
+  );
+
+  return (
+    <Grid size={{ xs: 12, md: 4 }}>
+      {to ? (
+        <Link to={to} style={{ textDecoration: 'none', color: 'inherit', display: 'block', height: '100%' }}>
+          {cardContent}
+        </Link>
+      ) : (
+        cardContent
+      )}
+    </Grid>
+  );
+};
 
 const getStatusData = (statuses: any[], statusKey: string) => {
   const match = (statuses || []).find((s: any) => s.status === statusKey);

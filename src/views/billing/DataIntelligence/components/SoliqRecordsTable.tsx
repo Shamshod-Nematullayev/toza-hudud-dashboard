@@ -52,12 +52,16 @@ export interface SoliqRecordsTableProps {
   fixedRegistryId?: string;
   fixedRegistryName?: string;
   onRefreshParentStats?: () => void;
+  activeStatusFilter?: string;
+  onStatusFilterChange?: (status: string) => void;
 }
 
 export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
   fixedRegistryId,
   fixedRegistryName,
-  onRefreshParentStats
+  onRefreshParentStats,
+  activeStatusFilter,
+  onStatusFilterChange
 }) => {
   const theme = useTheme();
   const { startCandidateSearchForStagingRecord } = useDataIntelligenceStore();
@@ -66,9 +70,16 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState(activeStatusFilter || 'all');
   const [sourceGroupFilter, setSourceGroupFilter] = useState<string>('all');
   const [selectedRegistryId, setSelectedRegistryId] = useState<string>(fixedRegistryId || 'all');
+
+  useEffect(() => {
+    if (activeStatusFilter !== undefined && activeStatusFilter !== statusFilter) {
+      setStatusFilter(activeStatusFilter);
+      setPage(0);
+    }
+  }, [activeStatusFilter]);
   const [registries, setRegistries] = useState<ExternalRegistryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -148,6 +159,9 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
   const handleTabChange = (_: React.SyntheticEvent, newStatus: string) => {
     setStatusFilter(newStatus);
     setPage(0);
+    if (onStatusFilterChange) {
+      onStatusFilterChange(newStatus);
+    }
   };
 
   const handleExportExcel = async () => {
