@@ -82,21 +82,23 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
 
     const isProductionDomain = SERVER_DOMAIN.includes('greenzone.uz');
 
-    // 1. Agar local backend bo'lsa (yoki kelgusida serverga yangi backend deploy qilingach), maxsus endpointga so'rov
-    if (!isProductionDomain) {
-      try {
-        const res = await api.get(`/data-intelligence/soliq-records/${soliqRecord._id}/candidates`);
-        if (res.data?.candidates) {
+    // 1. Agar backendda /candidates endpointi bo'lsa, so'rov yuboramiz
+    try {
+      const res = await api.get(`/data-intelligence/soliq-records/${soliqRecord._id}/candidates`);
+      if (res.data?.candidates && res.data.candidates.length > 0) {
+        const hasCadastre = res.data.candidates.some((c: any) => Boolean(c.candidate?.cadastreNumber));
+        // Agar nomzodlarda kadastr mavjud bo'lsa yoki soliq yozuvida kadastr bo'lmasa, darhol qabul qilamiz
+        if (hasCadastre || !soliqRecord.cadastreNumber) {
           setCandidates(res.data.candidates);
           setLoading(false);
           return;
         }
-      } catch (e: any) {
-        console.warn('Local candidates endpoint failed, falling back to search API:', e?.message);
       }
+    } catch (e: any) {
+      console.warn('Candidates endpoint failed, falling back to search API:', e?.message);
     }
 
-    // 2. Production (api.greenzone.uz) yoki fallback: to'g'ridan-to'g'ri /api/data-intelligence/search orqali topish (404 xatolik bo'lmaydi)
+    // 2. Fallback: to'g'ridan-to'g'ri searchGreenZoneRealApi orqali TozaMakondan jonli ma'lumotlarni tortish
     try {
       const searchRes = await searchGreenZoneRealApi(
         {
@@ -115,7 +117,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         const mapped: EvaluatedCandidateItem[] = searchRes.candidates.map((c) => ({
           candidate: {
             id: c.subscriber.id,
-            accountNumber: c.subscriber.accountNumber || String(c.subscriber.id || ''),
+            accountNumber: (c.subscriber.accountNumber || String(c.subscriber.id || '')).replace(/^Abonent\s*#?/i, ''),
             fullName: c.subscriber.fullName,
             pnfl: c.subscriber.pnfl,
             cadastreNumber: c.subscriber.cadastreNumber,

@@ -54,6 +54,8 @@ export interface SoliqRecordsTableProps {
   onRefreshParentStats?: () => void;
   activeStatusFilter?: string;
   onStatusFilterChange?: (status: string) => void;
+  refreshTrigger?: number;
+  onStatsUpdate?: (stats: { total: number; matched: number; conflict: number; unmatched: number; pending: number }) => void;
 }
 
 export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
@@ -61,7 +63,9 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
   fixedRegistryName,
   onRefreshParentStats,
   activeStatusFilter,
-  onStatusFilterChange
+  onStatusFilterChange,
+  refreshTrigger,
+  onStatsUpdate
 }) => {
   const theme = useTheme();
   const { startCandidateSearchForStagingRecord } = useDataIntelligenceStore();
@@ -72,6 +76,7 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [statusFilter, setStatusFilter] = useState(activeStatusFilter || 'all');
   const [sourceGroupFilter, setSourceGroupFilter] = useState<string>('all');
+  const [mvdStatusFilter, setMvdStatusFilter] = useState<string>('all');
   const [selectedRegistryId, setSelectedRegistryId] = useState<string>(fixedRegistryId || 'all');
 
   useEffect(() => {
@@ -118,7 +123,8 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
     targetStatus = statusFilter,
     targetSearch = searchQuery,
     targetGroup = sourceGroupFilter,
-    targetRegId = fixedRegistryId || selectedRegistryId
+    targetRegId = fixedRegistryId || selectedRegistryId,
+    targetMvdStatus = mvdStatusFilter
   ) => {
     setLoading(true);
     try {
@@ -129,7 +135,8 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
           status: targetStatus !== 'all' ? targetStatus : undefined,
           search: targetSearch.trim() || undefined,
           sourceGroup: targetGroup !== 'all' ? targetGroup : undefined,
-          listId: (fixedRegistryId || (targetRegId !== 'all' ? targetRegId : undefined))
+          listId: (fixedRegistryId || (targetRegId !== 'all' ? targetRegId : undefined)),
+          mvdStatus: targetMvdStatus !== 'all' ? targetMvdStatus : undefined
         }
       });
 
@@ -138,6 +145,9 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
         setTotal(res.data.meta?.total || 0);
         if (res.data.statistics) {
           setStats(res.data.statistics);
+          if (onStatsUpdate) {
+            onStatsUpdate(res.data.statistics);
+          }
         }
       }
     } catch (e) {
@@ -147,13 +157,13 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
   };
 
   useEffect(() => {
-    fetchRecords(page, statusFilter, searchQuery, sourceGroupFilter, selectedRegistryId);
-  }, [page, rowsPerPage, statusFilter, sourceGroupFilter, selectedRegistryId]);
+    fetchRecords(page, statusFilter, searchQuery, sourceGroupFilter, selectedRegistryId, mvdStatusFilter);
+  }, [page, rowsPerPage, statusFilter, sourceGroupFilter, selectedRegistryId, mvdStatusFilter, refreshTrigger]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(0);
-    fetchRecords(0, statusFilter, searchQuery, sourceGroupFilter, selectedRegistryId);
+    fetchRecords(0, statusFilter, searchQuery, sourceGroupFilter, selectedRegistryId, mvdStatusFilter);
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newStatus: string) => {
@@ -171,7 +181,8 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
         params: {
           status: statusFilter !== 'all' ? statusFilter : undefined,
           sourceGroup: sourceGroupFilter !== 'all' ? sourceGroupFilter : undefined,
-          listId: selectedRegistryId !== 'all' ? selectedRegistryId : undefined
+          listId: (fixedRegistryId || (selectedRegistryId !== 'all' ? selectedRegistryId : undefined)),
+          mvdStatus: mvdStatusFilter !== 'all' ? mvdStatusFilter : undefined
         },
         responseType: 'blob'
       });
@@ -292,34 +303,135 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
     <>
       <Card sx={{ borderRadius: 2.5, border: `1px solid ${theme.palette.divider}`, mt: 3 }}>
         {/* Table Header & Filters */}
-        <Box sx={{ p: 2.5, borderBottom: `1px solid ${theme.palette.divider}` }}>
+        <Box sx={{ p: { xs: 1.5, sm: 2 }, borderBottom: `1px solid ${theme.palette.divider}` }}>
+          {/* Faqat Global ko'rinishda (barcha ro'yxatlar bo'yicha bo'lsa) Sarlavha va Guruh filtrlarini ko'rsatish */}
+          {!fixedRegistryId && (
+            <>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                  Tashqi Bazalar va Ro'yxatlar Yozuvlari ({stats.total} ta)
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Soliq, Elektr, Kadastr va boshqa tashqi manbalar yozuvlari hamda GreenZone solishtirish natijalari
+                </Typography>
+              </Box>
+
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: { xs: 'flex-start', sm: 'center' },
+                  mb: 2,
+                  flexWrap: 'wrap',
+                  gap: 1.5
+                }}
+              >
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, mr: 0.5 }}>
+                    Guruh:
+                  </Typography>
+                  {[
+                    { id: 'all', label: 'Barchasi' },
+                    { id: 'soliq', label: 'Soliq' },
+                    { id: 'elektr', label: 'Elektr' },
+                    { id: 'kadastr', label: 'Kadastr' },
+                    { id: 'mib', label: 'MIB' },
+                    { id: 'gaz', label: 'Gaz' },
+                    { id: 'boshqa', label: 'Boshqa' }
+                  ].map((g) => (
+                    <Chip
+                      key={g.id}
+                      label={g.label}
+                      clickable
+                      color={sourceGroupFilter === g.id ? 'primary' : 'default'}
+                      variant={sourceGroupFilter === g.id ? 'filled' : 'outlined'}
+                      size="small"
+                      onClick={() => {
+                        setSourceGroupFilter(g.id);
+                        setPage(0);
+                      }}
+                      sx={{ fontWeight: 600 }}
+                    />
+                  ))}
+                </Stack>
+
+                <FormControl size="small" sx={{ minWidth: 220 }}>
+                  <InputLabel id="records-table-reg-select-label">Ro'yxat bo'yicha</InputLabel>
+                  <Select
+                    labelId="records-table-reg-select-label"
+                    value={selectedRegistryId}
+                    label="Ro'yxat bo'yicha"
+                    onChange={(e) => {
+                      setSelectedRegistryId(e.target.value);
+                      setPage(0);
+                    }}
+                  >
+                    <MenuItem value="all">Barcha ro'yxatlar</MenuItem>
+                    {registries.map((reg) => (
+                      <MenuItem key={reg._id} value={reg._id}>
+                        {reg.name} ({reg.group?.toUpperCase()})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+            </>
+          )}
+
+          {/* Asosiy qator: Chapda Status Tablari va O'ngda Flex bo'lib Qidiruv + Excelga Eksport */}
           <Stack
+            direction={{ xs: 'column', lg: 'row' }}
+            spacing={1.5}
             sx={{
-              direction: { xs: 'column', md: 'row' },
               justifyContent: 'space-between',
-              alignItems: { xs: 'flex-start', md: 'center' },
-              gap: 2,
-              mb: 2
+              alignItems: { xs: 'stretch', lg: 'center' },
+              mb: 1.2
             }}
           >
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                Tashqi Bazalar va Ro'yxatlar Yozuvlari ({stats.total} ta)
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Soliq, Elektr, Kadastr va boshqa tashqi manbalar yozuvlari hamda GreenZone solishtirish natijalari
-              </Typography>
-            </Box>
+            {/* Status Filter Tabs */}
+            <Tabs
+              value={statusFilter}
+              onChange={handleTabChange}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{
+                minHeight: 38,
+                flexShrink: 1,
+                '& .MuiTab-root': {
+                  minHeight: 38,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  py: 0.5,
+                  px: 1.5
+                }
+              }}
+            >
+              <Tab value="all" label={`Barchasi (${stats.total})`} />
+              <Tab value="matched" label={`🟢 Mos kelganlar (${stats.matched})`} />
+              <Tab value="conflict" label={`🟠 Ziddiyatlilar (${stats.conflict})`} />
+              <Tab value="unmatched" label={`🔴 Topilmaganlar (${stats.unmatched})`} />
+              <Tab value="pending" label={`⏳ Kutilmoqda (${stats.pending})`} />
+            </Tabs>
 
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              {/* Search Input */}
-              <Box component="form" onSubmit={handleSearchSubmit}>
+            {/* Qidiruv + Excelga Eksport */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+                flexShrink: 0,
+                justifyContent: { xs: 'flex-start', sm: 'flex-end' }
+              }}
+            >
+              <Box component="form" onSubmit={handleSearchSubmit} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                 <TextField
                   size="small"
                   placeholder="F.I.Sh, JShShIR, Kadastr..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  sx={{ width: { xs: '100%', sm: 240 } }}
+                  sx={{ width: { xs: '100%', sm: 220 } }}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -332,12 +444,14 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
                 />
               </Box>
 
-              <IconButton size="small" onClick={() => fetchRecords()} title="Jadvalni yangilash">
-                <RefreshRounded fontSize="small" />
-              </IconButton>
+              {!fixedRegistryId && (
+                <IconButton size="small" onClick={() => fetchRecords()} title="Jadvalni yangilash">
+                  <RefreshRounded fontSize="small" />
+                </IconButton>
+              )}
 
               {/* Excel Download Button */}
-              <Tooltip title={`Filtr: ${statusFilter === 'all' ? 'Barchasi' : statusFilter} bo'yicha Excelga yuklab olish`}>
+              <Tooltip title={`Filtrlangan (${statusFilter === 'all' ? 'Barchasi' : statusFilter}) yozuvlarni Excel fayl qilib yuklab olish`}>
                 <span>
                   <Button
                     variant="outlined"
@@ -351,8 +465,9 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
                       textTransform: 'none',
                       fontWeight: 700,
                       fontSize: '0.8rem',
-                      px: 1.8,
-                      py: 0.7,
+                      px: 1.6,
+                      py: 0.6,
+                      whiteSpace: 'nowrap',
                       borderColor: alpha(theme.palette.primary.main, 0.5),
                       '&:hover': {
                         borderColor: theme.palette.primary.main,
@@ -360,107 +475,54 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
                       }
                     }}
                   >
-                    {exporting ? 'Yuklanmoqda...' : 'Excelga yuklash'}
+                    {exporting ? 'Yuklanmoqda...' : 'Excelga eksport'}
                   </Button>
                 </span>
               </Tooltip>
             </Stack>
           </Stack>
 
-          {/* Group Filter Chips & Registry Selector */}
+          {/* MVD Propiska Filter Chips */}
           <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
+            direction="row"
+            spacing={1}
             sx={{
-              justifyContent: 'space-between',
-              alignItems: { xs: 'flex-start', sm: 'center' },
-              mb: 2,
+              alignItems: 'center',
               flexWrap: 'wrap',
-              gap: 1.5
+              pt: 1.2,
+              borderTop: `1px dashed ${alpha(theme.palette.divider, 0.6)}`
             }}
           >
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, mr: 0.5 }}>
-                Guruh:
+            <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mr: 0.5 }}>
+              <GroupOutlined sx={{ fontSize: 18, color: 'text.secondary' }} />
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.8rem' }}>
+                MVD Odam soni:
               </Typography>
-              {[
-                { id: 'all', label: 'Barchasi' },
-                { id: 'soliq', label: 'Soliq' },
-                { id: 'elektr', label: 'Elektr' },
-                { id: 'kadastr', label: 'Kadastr' },
-                { id: 'mib', label: 'MIB' },
-                { id: 'gaz', label: 'Gaz' },
-                { id: 'boshqa', label: 'Boshqa' }
-              ].map((g) => (
-                <Chip
-                  key={g.id}
-                  label={g.label}
-                  clickable
-                  color={sourceGroupFilter === g.id ? 'primary' : 'default'}
-                  variant={sourceGroupFilter === g.id ? 'filled' : 'outlined'}
-                  size="small"
-                  onClick={() => {
-                    setSourceGroupFilter(g.id);
-                    setPage(0);
-                  }}
-                  sx={{ fontWeight: 600 }}
-                />
-              ))}
             </Stack>
-
-            {!fixedRegistryId ? (
-              <FormControl size="small" sx={{ minWidth: 220 }}>
-                <InputLabel id="records-table-reg-select-label">Ro'yxat bo'yicha</InputLabel>
-                <Select
-                  labelId="records-table-reg-select-label"
-                  value={selectedRegistryId}
-                  label="Ro'yxat bo'yicha"
-                  onChange={(e) => {
-                    setSelectedRegistryId(e.target.value);
-                    setPage(0);
-                  }}
-                >
-                  <MenuItem value="all">Barcha ro'yxatlar</MenuItem>
-                  {registries.map((reg) => (
-                    <MenuItem key={reg._id} value={reg._id}>
-                      {reg.name} ({reg.group?.toUpperCase()})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : (
+            {[
+              { id: 'all', label: 'Barchasi' },
+              { id: 'with_mvd', label: '👥 Propiska bor (>0 kishi)' },
+              { id: 'zero_mvd', label: "⭕ 0 kishi (propiska yo'q)" },
+              { id: 'without_mvd', label: '⏳ Tekshirilmagan' }
+            ].map((m) => (
               <Chip
-                label={`Ro'yxat: ${fixedRegistryName || 'Tanlangan'}`}
-                color="primary"
-                variant="outlined"
-                sx={{ fontWeight: 700 }}
+                key={m.id}
+                label={m.label}
+                clickable
+                color={mvdStatusFilter === m.id ? 'secondary' : 'default'}
+                variant={mvdStatusFilter === m.id ? 'filled' : 'outlined'}
+                size="small"
+                onClick={() => {
+                  setMvdStatusFilter(m.id);
+                  setPage(0);
+                }}
+                sx={{
+                  fontWeight: mvdStatusFilter === m.id ? 700 : 500,
+                  fontSize: '0.78rem'
+                }}
               />
-            )}
+            ))}
           </Stack>
-
-          {/* Status Filter Tabs */}
-          <Tabs
-            value={statusFilter}
-            onChange={handleTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              minHeight: 40,
-              '& .MuiTab-root': {
-                minHeight: 40,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                py: 0.5
-              }
-            }}
-          >
-            <Tab value="all" label={`Barchasi (${stats.total})`} />
-            <Tab value="matched" label={`🟢 Mos kelganlar (${stats.matched})`} />
-            <Tab value="conflict" label={`🟠 Ziddiyatlilar (${stats.conflict})`} />
-            <Tab value="unmatched" label={`🔴 Topilmaganlar (${stats.unmatched})`} />
-            <Tab value="pending" label={`⏳ Kutilmoqda (${stats.pending})`} />
-          </Tabs>
         </Box>
 
         {/* Table Content */}
@@ -571,16 +633,29 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
                       {row.cadastreNumber ? (
                         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                           {row.suggestedPeopleCount !== undefined && row.suggestedPeopleCount > 0 ? (
-                            <Chip
-                              icon={<GroupOutlined sx={{ fontSize: 15 }} />}
-                              label={`${row.suggestedPeopleCount} kishi`}
-                              color="primary"
-                              variant="outlined"
-                              size="small"
-                              onClick={() => setSelectedRecordForCodeOpening(row)}
-                              clickable
-                              sx={{ fontWeight: 700, cursor: 'pointer' }}
-                            />
+                            <Tooltip title="MVD Propiska ma'lumotlari va a'zolarni ko'rish">
+                              <Chip
+                                icon={<GroupOutlined sx={{ fontSize: 15 }} />}
+                                label={`${row.suggestedPeopleCount} kishi`}
+                                color="success"
+                                size="small"
+                                onClick={() => setSelectedRecordForCodeOpening(row)}
+                                clickable
+                                sx={{ fontWeight: 700, cursor: 'pointer' }}
+                              />
+                            </Tooltip>
+                          ) : row.mvdEnrichedAt ? (
+                            <Tooltip title="MVD bo'yicha propiskada odam yo'q (0 kishi). Ko'rish uchun bosing">
+                              <Chip
+                                icon={<GroupOutlined sx={{ fontSize: 15 }} />}
+                                label="0 kishi"
+                                color="default"
+                                size="small"
+                                onClick={() => setSelectedRecordForCodeOpening(row)}
+                                clickable
+                                sx={{ fontWeight: 600, cursor: 'pointer' }}
+                              />
+                            </Tooltip>
                           ) : (
                             <Button
                               size="small"
@@ -595,7 +670,7 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
                           )}
                         </Stack>
                       ) : (
-                        <Typography variant="caption" color="text.disabled">
+                        <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                           Kadastr yo'q
                         </Typography>
                       )}
@@ -692,7 +767,10 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
         open={Boolean(selectedRecordForCodeOpening)}
         onClose={() => setSelectedRecordForCodeOpening(null)}
         soliqRecord={selectedRecordForCodeOpening}
-        onSaved={() => fetchRecords()}
+        onSaved={() => {
+          fetchRecords();
+          onRefreshParentStats?.();
+        }}
       />
 
       {/* Conflict Resolution Modal */}
@@ -700,7 +778,10 @@ export const SoliqRecordsTable: React.FC<SoliqRecordsTableProps> = ({
         open={Boolean(selectedRecordForConflict)}
         onClose={() => setSelectedRecordForConflict(null)}
         soliqRecord={selectedRecordForConflict}
-        onResolved={() => fetchRecords()}
+        onResolved={() => {
+          fetchRecords();
+          onRefreshParentStats?.();
+        }}
       />
     </>
   );

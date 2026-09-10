@@ -26,7 +26,8 @@ import {
   HourglassEmptyRounded,
   PlayArrowRounded,
   StopRounded,
-  AutoModeRounded
+  AutoModeRounded,
+  GroupOutlined
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import api from 'utils/api';
@@ -34,6 +35,7 @@ import { toast } from 'react-toastify';
 import { ExternalRegistryItem, getGroupColor, getGroupLabel } from './RegistryManagerModal';
 import { SoliqRecordsTable } from './SoliqRecordsTable';
 import { ExcelImportBlock } from './ExcelImportBlock';
+import { MvdJobConfigModal } from './MvdJobConfigModal';
 
 interface RegistryDetailViewProps {
   registry: ExternalRegistryItem;
@@ -51,6 +53,15 @@ interface JobStatusState {
   progressPercent: number;
 }
 
+interface MvdJobStatusState {
+  isRunning: boolean;
+  total: number;
+  processed: number;
+  enriched: number;
+  zeroCount: number;
+  progressPercent: number;
+}
+
 export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry, onBack }) => {
   const theme = useTheme();
 
@@ -59,6 +70,8 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [matchingLoading, setMatchingLoading] = useState(false);
+  const [mvdJobModalOpen, setMvdJobModalOpen] = useState(false);
+  const [mvdJobLoading, setMvdJobLoading] = useState(false);
 
   const [jobStatus, setJobStatus] = useState<JobStatusState>({
     isRunning: false,
@@ -71,6 +84,15 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
     progressPercent: 0
   });
 
+  const [mvdJobStatus, setMvdJobStatus] = useState<MvdJobStatusState>({
+    isRunning: false,
+    total: 0,
+    processed: 0,
+    enriched: 0,
+    zeroCount: 0,
+    progressPercent: 0
+  });
+
   // Ro'yxat statistikasini qayta yuklash
   const reloadRegistryData = async () => {
     try {
@@ -79,6 +101,18 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
         setCurrentRegistry(res.data.data);
       }
     } catch (e) {}
+  };
+
+  // Jadvaldan to'g'ridan-to'g'ri yangilangan statistikani qabul qilish (real-time sinxronizatsiya)
+  const handleTableStatsUpdate = (tableStats: { total: number; matched: number; conflict: number; unmatched: number; pending: number }) => {
+    setCurrentRegistry((prev) => ({
+      ...prev,
+      totalRecords: tableStats.total,
+      matchedCount: tableStats.matched,
+      conflictCount: tableStats.conflict,
+      unmatchedCount: tableStats.unmatched,
+      pendingCount: tableStats.pending
+    }));
   };
 
   // Ushbu ro'yxat bo'yicha AI job holatini tekshirish
@@ -97,19 +131,35 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
     } catch (e) {}
   };
 
+  // MVD Propiska Job holatini tekshirish
+  const fetchMvdJobStatus = async () => {
+    try {
+      const res = await api.get('/data-intelligence/mvd-job/status');
+      if (res.data?.ok && res.data.job) {
+        setMvdJobStatus(res.data.job);
+        if (res.data.job.isRunning) {
+          reloadRegistryData();
+        }
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     reloadRegistryData();
     fetchJobStatus();
+    fetchMvdJobStatus();
   }, [refreshTrigger]);
 
-  // Jonli polling: agar job ishlayotgan bo'lsa har 3 soniyada, aks holda har 15 soniyada
+  // Jonli polling: agar biror job ishlayotgan bo'lsa har 2.5 soniyada, aks holda har 15 soniyada
   useEffect(() => {
-    const intervalTime = jobStatus.isRunning ? 3000 : 15000;
+    const isAnyRunning = jobStatus.isRunning || mvdJobStatus.isRunning;
+    const intervalTime = isAnyRunning ? 2500 : 15000;
     const interval = setInterval(() => {
       fetchJobStatus();
+      fetchMvdJobStatus();
     }, intervalTime);
     return () => clearInterval(interval);
-  }, [jobStatus.isRunning, currentRegistry._id]);
+  }, [jobStatus.isRunning, mvdJobStatus.isRunning, currentRegistry._id]);
 
   const handleImportSuccess = () => {
     setShowImport(false);
@@ -151,6 +201,21 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
       }
     } catch (e) {} finally {
       setMatchingLoading(false);
+    }
+  };
+
+  // MVD Propiska Job'ni to'xtatish
+  const handleStopMvdJob = async () => {
+    setMvdJobLoading(true);
+    try {
+      const res = await api.post('/data-intelligence/mvd-job/stop');
+      if (res.data?.ok) {
+        toast.info("MVD Odam soni job to'xtatildi");
+        fetchMvdJobStatus();
+        reloadRegistryData();
+      }
+    } catch (e) {} finally {
+      setMvdJobLoading(false);
     }
   };
 
@@ -322,6 +387,15 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
                     sx={{ fontWeight: 700 }}
                   />
                 )}
+                {mvdJobStatus.isRunning && (
+                  <Chip
+                    icon={<CircularProgress size={14} color="inherit" />}
+                    label="MVD tekshirilmoqda..."
+                    color="secondary"
+                    size="small"
+                    sx={{ fontWeight: 700 }}
+                  />
+                )}
               </Stack>
               <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                 Ro'yxat sanasi: <strong>{dayjs(currentRegistry.registryDate).format('DD.MM.YYYY')}</strong>
@@ -331,8 +405,9 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
             </Box>
           </Stack>
 
-          {/* O'ng qism: AI Solishtirish tugmasi + Excel yuklash + Refresh */}
+          {/* O'ng qism: AI Solishtirish + MVD Odam Soni Job + Excel yuklash + Refresh */}
           <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* 1. AI Matching Job Button */}
             {jobStatus.isRunning ? (
               <Button
                 variant="outlined"
@@ -370,6 +445,45 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
               </Button>
             )}
 
+            {/* 2. MVD Propiska & Odam Soni Job Button */}
+            {mvdJobStatus.isRunning ? (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<StopRounded />}
+                onClick={handleStopMvdJob}
+                disabled={mvdJobLoading}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 2.2,
+                  py: 1
+                }}
+              >
+                MVD Jobni To'xtatish
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<GroupOutlined />}
+                onClick={() => setMvdJobModalOpen(true)}
+                disabled={total === 0 || mvdJobLoading}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 2,
+                  py: 1,
+                  borderWidth: 1.5,
+                  '&:hover': { borderWidth: 1.5 }
+                }}
+              >
+                MVD Odam Soni Job
+              </Button>
+            )}
+
             <Button
               variant={showImport ? 'contained' : 'outlined'}
               color="inherit"
@@ -384,14 +498,15 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
                 border: `1px solid ${alpha(theme.palette.divider, 0.8)}`
               }}
             >
-              {showImport ? "Import Oynasini Yopish" : "+ Excel Yuklash"}
+              {showImport ? "Import Oynasini Yopish" : "+ Excel Import"}
             </Button>
 
-            <Tooltip title="Ma'lumotlarni yangilash">
+            <Tooltip title="Barcha ma'lumotlarni yangilash">
               <IconButton
                 onClick={() => {
                   reloadRegistryData();
                   fetchJobStatus();
+                  fetchMvdJobStatus();
                   setRefreshTrigger((prev) => prev + 1);
                 }}
                 sx={{
@@ -510,6 +625,48 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
               />
             </Box>
           )}
+
+          {/* Jonli MVD Odam Soni Job Bajarilish Ko'rsatkichi */}
+          {mvdJobStatus.isRunning && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 1.8,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.secondary.main, 0.05),
+                border: `1px solid ${alpha(theme.palette.secondary.main, 0.25)}`
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}
+              >
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <GroupOutlined sx={{ color: 'secondary.main', fontSize: 20 }} />
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    MVD Propiska orqali odam soni aniqlanmoqda...
+                  </Typography>
+                </Stack>
+                <Typography variant="body2" sx={{ fontWeight: 800, color: 'secondary.main' }}>
+                  {mvdJobStatus.processed} / {mvdJobStatus.total} ta ({mvdJobStatus.progressPercent}%) • {mvdJobStatus.enriched} ta propiska bor • {mvdJobStatus.zeroCount} ta 0 kishi
+                </Typography>
+              </Stack>
+              <LinearProgress
+                variant="determinate"
+                value={mvdJobStatus.progressPercent}
+                color="secondary"
+                sx={{
+                  height: 7,
+                  borderRadius: 3.5,
+                  bgcolor: alpha(theme.palette.secondary.main, 0.1),
+                  '& .MuiLinearProgress-bar': {
+                    borderRadius: 3.5
+                  }
+                }}
+              />
+            </Box>
+          )}
         </Box>
       </Card>
 
@@ -529,6 +686,22 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
         onRefreshParentStats={reloadRegistryData}
         activeStatusFilter={selectedStatusFilter}
         onStatusFilterChange={(st) => setSelectedStatusFilter(st)}
+        refreshTrigger={refreshTrigger}
+        onStatsUpdate={handleTableStatsUpdate}
+      />
+
+      {/* 5. MVD Propiska Job Konfiguratsiya Modali */}
+      <MvdJobConfigModal
+        open={mvdJobModalOpen}
+        onClose={() => setMvdJobModalOpen(false)}
+        listId={currentRegistry._id}
+        listName={currentRegistry.name}
+        sourceGroup={currentRegistry.group}
+        onJobStarted={() => {
+          fetchMvdJobStatus();
+          reloadRegistryData();
+          setRefreshTrigger((prev) => prev + 1);
+        }}
       />
     </Box>
   );

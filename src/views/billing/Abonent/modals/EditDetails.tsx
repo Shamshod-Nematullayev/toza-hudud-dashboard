@@ -1,7 +1,8 @@
 import { t } from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../hooks/abonentStore';
+import useCustomizationStore from 'store/customizationStore';
 import {
   alertTitleClasses,
   Avatar,
@@ -52,6 +53,17 @@ export function extractBirthDateString(jshshir: string) {
 
 function EditDetails() {
   const { editDialogOpenState, setEditDialogOpenState, abonentDetails, updateDetails, getCitizensDetails } = useAbonentStore();
+  const { mahallalar } = useCustomizationStore();
+  const isMountedRef = useRef(true);
+  const isReopenedByErrorRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const [pnfl, setPnfl] = useState('');
   const [passport, setPassport] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -69,6 +81,7 @@ function EditDetails() {
   const [electricityAccountNumber, setElectricityAccountNumber] = useState('');
   const [mahallaId, setMahallaId] = useState('');
   const [streetId, setStreetId] = useState('');
+  const [streetName, setStreetName] = useState('');
   const [active, setActive] = useState(false);
   const [accountNumber, setAccountNumber] = useState('');
   const [homeType, setHomeType] = useState<'HOUSE' | 'APARTMENT' | ''>('');
@@ -86,6 +99,12 @@ function EditDetails() {
 
   useEffect(() => {
     if (editDialogOpenState && abonentDetails?.id) {
+      if (isReopenedByErrorRef.current) {
+        // Modal saqlash xatoligi sababli qayta ochildi; foydalanuvchi kiritgan ma'lumotlar saqlanadi
+        isReopenedByErrorRef.current = false;
+        return;
+      }
+      setTabIndex(0);
       setPnfl(abonentDetails.citizen.pnfl);
       setPassport(abonentDetails.citizen.passport);
       setFirstName(abonentDetails.citizen.firstName);
@@ -103,6 +122,7 @@ function EditDetails() {
       setElectricityAccountNumber(abonentDetails.electricityAccountNumber);
       setMahallaId(abonentDetails.mahallaId.toString());
       setStreetId(abonentDetails.streetId.toString());
+      setStreetName(abonentDetails.streetName || '');
       setActive(abonentDetails.active);
       setAccountNumber(abonentDetails.accountNumber);
       setHomeType(abonentDetails.house.type);
@@ -199,8 +219,17 @@ function EditDetails() {
     if (!homeType || !birthDate || !passportGivenDate || !passportExpireDate || !isNumberValue(homeIndex) || !abonentDetails) {
       return toast.error(t('errors.missingRequiredFields'));
     }
-    await updateDetails({
+    const targetResidentId = abonentDetails.id;
+    const newFullName = [lastName, firstName, patronymic].filter(Boolean).join(' ').trim();
+    const selectedMahalla = mahallalar.find((m: any) => String(m.id) === String(mahallaId));
+    const updatedMahallaName = selectedMahalla ? selectedMahalla.name : abonentDetails.mahallaName;
+    const updatedStreetName = streetName || abonentDetails.streetName;
+
+    const updatedDetails: any = {
       ...abonentDetails,
+      fullName: newFullName || abonentDetails.fullName,
+      mahallaName: updatedMahallaName,
+      streetName: updatedStreetName,
       citizen: {
         ...abonentDetails?.citizen,
         pnfl,
@@ -237,11 +266,43 @@ function EditDetails() {
       streetId: parseInt(streetId),
       phone,
       homePhone: housePhone
-    });
+    };
+
+    // Optimistic UI: Modal darhol yopiladi va muvaffaqiyat xabari ko'rsatiladi
     setEditDialogOpenState(false);
+    setTabIndex(0);
+    toast.success("Muvaffaqiyatli saqlandi");
+
+    // Serverga so'rov fonda yuboriladi
+    updateDetails(updatedDetails).catch((error: any) => {
+      const errorMsg =
+        error?.response?.data?.message || error?.message || 'Saqlashda xatolik yuz berdi';
+      toast.error(errorMsg);
+
+      // Faqatgina foydalanuvchi joriy abonent sahifasidan chiqib ketmagan holdagina modal qayta ochiladi
+      const pathname = window.location.pathname;
+      const match = pathname.match(/\/abonent\/(\d+)/);
+      const currentUrlResidentId = match ? Number(match[1]) : null;
+      const currentStoreResidentId = useAbonentStore.getState().abonentDetails?.id;
+      const isStillOnSameAbonent =
+        currentUrlResidentId === targetResidentId && currentStoreResidentId === targetResidentId;
+
+      if (isMountedRef.current && isStillOnSameAbonent) {
+        isReopenedByErrorRef.current = true;
+        setEditDialogOpenState(true);
+      }
+    });
   };
   return (
-    <DraggableDialog title={t('buttons.edit')} open={editDialogOpenState} onClose={() => setEditDialogOpenState(false)}>
+    <DraggableDialog
+      title={t('buttons.edit')}
+      open={editDialogOpenState}
+      onClose={() => {
+        isReopenedByErrorRef.current = false;
+        setEditDialogOpenState(false);
+        setTabIndex(0);
+      }}
+    >
       <Tabs value={tabIndex} onChange={(e, value) => setTabIndex(value)} sx={{ pb: 1 }}>
         <Tab label={t('abonentCardPage.personalDetails')} value={0} />
         <Tab label={t('abonentCardPage.abonentDetails')} value={1} />
@@ -423,6 +484,7 @@ function EditDetails() {
                 <StreetSelection
                   value={streetId}
                   onChange={(e) => setStreetId(e.target.value)}
+                  onStreetChange={(s) => setStreetName(s?.name || '')}
                   mahallaId={Number(mahallaId)}
                   defaultValueDisabled
                   required

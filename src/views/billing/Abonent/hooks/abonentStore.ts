@@ -229,8 +229,18 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ abonentDetailsFromDB: data.abonentDetailsFromDB });
   },
   updateDetails: async (details) => {
-    await api.put('/abonents/details/' + details.id, details);
-    set({ abonentDetails: { ...(get().abonentDetails as AbonentDetails), ...details } });
+    const prev = get().abonentDetails;
+    if (prev && details.id === prev.id) {
+      set({ abonentDetails: { ...prev, ...details } as AbonentDetails });
+    }
+    try {
+      await api.put('/abonents/details/' + details.id, details);
+    } catch (error) {
+      if (prev && get().abonentDetails?.id === prev.id) {
+        set({ abonentDetails: prev });
+      }
+      throw error;
+    }
   },
   updatePhone: async (phone: string) => {
     const abonentDetails = get().abonentDetails;

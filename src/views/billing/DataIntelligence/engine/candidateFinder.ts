@@ -125,6 +125,34 @@ export async function searchGreenZoneRealApi(
         fetchedAbonentsMap.set(key, transformToRecordSource(item));
       }
     });
+
+    // Agar topilgan abonentlarda kadastr raqami bo'lmasa, TozaMakondan to'ldiramiz
+    const hasMissingCadastre = queryCadastre && Array.from(fetchedAbonentsMap.values()).some((a) => !a.cadastreNumber);
+    if (fetchedAbonentsMap.size === 0 || hasMissingCadastre) {
+      try {
+        if (queryPnfl && queryPnfl.length >= 6) {
+          const tozaRes = await api.get('/abonents/tozamakon', { params: { pnfl: queryPnfl, size: 20 } });
+          const tozaItems = tozaRes.data?.content || (Array.isArray(tozaRes.data) ? tozaRes.data : []);
+          tozaItems.forEach((item: any) => {
+            const key = item.id || item.accountNumber || item.pinfl;
+            if (fetchedAbonentsMap.has(key)) {
+              const existing = fetchedAbonentsMap.get(key)!;
+              if (!existing.cadastreNumber && item.cadastralNumber) {
+                existing.cadastreNumber = item.cadastralNumber;
+              }
+              if (!existing.street && item.streetName) {
+                existing.street = item.streetName;
+              }
+              if (item.mahallaName) {
+                existing.mahalla = item.mahallaName;
+              }
+            } else {
+              fetchedAbonentsMap.set(key, transformToRecordSource(item));
+            }
+          });
+        }
+      } catch (e2) {}
+    }
   } catch (e) {
     // Fallback TozaMakon
     try {

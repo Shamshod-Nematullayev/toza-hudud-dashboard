@@ -11,6 +11,7 @@ interface Props {
   native?: boolean;
   defaultValueDisabled?: boolean;
   required?: boolean;
+  onStreetChange?: (street: Street | undefined) => void;
 }
 
 interface Street {
@@ -18,7 +19,7 @@ interface Street {
   name: string;
 }
 
-function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisabled, required }: Props) {
+function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisabled, required, onStreetChange }: Props) {
   const [streets, setStreets] = useState<Street[]>([]);
   useEffect(() => {
     if (mahallaId) {
@@ -30,13 +31,26 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
         })
         .then(({ data }) => {
           setStreets(data);
+          if (value && onStreetChange) {
+            const current = data.find((s: Street) => String(s.id) === String(value));
+            if (current) onStreetChange(current);
+          }
         });
     }
   }, [mahallaId]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    onChange(e);
+    if (onStreetChange) {
+      const selected = streets.find((s) => String(s.id) === String(e.target.value));
+      onStreetChange(selected);
+    }
+  };
+
   return (
     <>
       {native ? (
-        <TextField select value={value ?? ''} onChange={onChange} fullWidth slotProps={{ select: { native: true } }}>
+        <TextField select value={value ?? ''} onChange={handleChange} fullWidth slotProps={{ select: { native: true } }}>
           <option value="" disabled={defaultValueDisabled}>
             {t('tableHeaders.street')}
           </option>
@@ -47,7 +61,7 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
           ))}
         </TextField>
       ) : (
-        <TextField select value={value ?? ''} onChange={onChange} label={t('tableHeaders.street')} fullWidth>
+        <TextField select value={value ?? ''} onChange={handleChange} label={t('tableHeaders.street')} fullWidth>
           <MenuItem value="" disabled={defaultValueDisabled}>
             {t('all')}
           </MenuItem>

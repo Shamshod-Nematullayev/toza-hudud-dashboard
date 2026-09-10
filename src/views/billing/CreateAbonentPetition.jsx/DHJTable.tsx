@@ -117,26 +117,39 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
         currentTariff = store.hisoblandiJadval[store.hisoblandiJadval.length - 1];
       }
       const hisoblandi = currentTariff?.hisoblandi ?? 0;
+
+      const isViza = store.aktType === 'viza';
+      const hasInhabitantInput =
+        !isViza &&
+        store.yashovchiSoniInput !== '' &&
+        store.yashovchiSoniInput !== null &&
+        store.yashovchiSoniInput !== undefined &&
+        !isNaN(Number(store.yashovchiSoniInput));
+
+      const previewYashovchilar = hasInhabitantInput
+        ? Number(store.yashovchiSoniInput)
+        : (rowsDhjTable[0].yashovchilar_soni ?? abonentData?.house?.inhabitantCnt ?? 0);
+
+      const previewNachis = hasInhabitantInput
+        ? Number(store.yashovchiSoniInput) * hisoblandi
+        : rowsDhjTable[0].nachis;
+
       const kSaldo =
-        Number(store.yashovchiSoniInput) * hisoblandi +
+        previewNachis +
         rowsDhjTable[0].saldo_n -
         rowsDhjTable[0].allPaymentsSum -
         rowsDhjTable[0].akt -
         store.aktSumma.total;
+
       setRowsPreviewTable([
         {
           id: 1,
           davr: rowsDhjTable[0].davr,
           saldo_n: rowsDhjTable[0].saldo_n,
-          nachis: !isNaN(Number(store.yashovchiSoniInput)) ? Number(store.yashovchiSoniInput) * hisoblandi : rowsDhjTable[0].nachis,
+          nachis: previewNachis,
           saldo_k: kSaldo,
           akt: -(rowsDhjTable[0].akt + store.aktSumma.total),
-          yashovchilar_soni:
-            store.aktType == 'viza'
-              ? rowsDhjTable[0].yashovchilar_soni
-              : !isNaN(Number(store.yashovchiSoniInput))
-                ? Number(store.yashovchiSoniInput)
-                : rowsDhjTable[0].yashovchilar_soni,
+          yashovchilar_soni: previewYashovchilar,
           allPaymentsSum: rowsDhjTable[0].allPaymentsSum
         },
         ...rowsDhjTable.slice(1)
@@ -144,7 +157,15 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
     } else {
       setRowsPreviewTable(rowsDhjTable);
     }
-  }, [show, rowsDhjTable, store.yashovchiSoniInput, store.aktSumma.total, store.hisoblandiJadval]);
+  }, [
+    show,
+    rowsDhjTable,
+    store.aktType,
+    store.yashovchiSoniInput,
+    store.aktSumma.total,
+    store.hisoblandiJadval,
+    abonentData?.house?.inhabitantCnt
+  ]);
 
   if (!abonentData?.accountNumber) {
     return (
