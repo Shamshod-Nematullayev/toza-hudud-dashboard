@@ -719,6 +719,10 @@ function Debitors() {
   // Job tugaganda va real-time socket xabari kelganda ma'lumotlarni avto-yangilash
   React.useEffect(() => {
     const handleJobProgress = (data: any) => {
+      if (data && data.stopped) {
+        refresh();
+        return;
+      }
       if (data && data.progress === 100) {
         toast.success("Job jarayoni yakunlandi. Ma'lumotlar va statistika yangilandi.");
         refresh();

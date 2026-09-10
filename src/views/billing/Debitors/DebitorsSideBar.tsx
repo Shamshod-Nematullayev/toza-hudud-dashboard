@@ -26,7 +26,8 @@ import {
   PhoneAndroidOutlined,
   PlayArrowOutlined,
   CheckCircleOutlined,
-  SmsOutlined
+  SmsOutlined,
+  StopRounded
 } from '@mui/icons-material';
 import api from 'utils/api';
 import React from 'react';
@@ -141,16 +142,31 @@ export function Sidebar({
       const { data } = await api.post(endpoint, payload || {});
       toast.success(data.message || 'Job muvaffaqiyatli ishga tushirildi!', { autoClose: 4000 });
       wasJobRunningRef.current = true;
-      if (jobKey === 'unlock') {
-        onJobFinish?.();
-      } else {
-        fetchJobProgress();
-      }
+      fetchJobProgress();
     } catch (err: any) {
       const errMsg = err.response?.data?.message || 'Job ishga tushirishda xatolik yuz berdi.';
       toast.error(errMsg, { autoClose: 5000 });
     } finally {
       setTriggerLoading(null);
+    }
+  };
+
+  // Stop Active Job Handler
+  const [stopping, setStopping] = React.useState(false);
+  const handleStopJob = async () => {
+    setStopping(true);
+    try {
+      const { data } = await api.post('/debitors/jobs/stop');
+      toast.info(data?.message || "Jarayon to'xtatildi", { autoClose: 3000 });
+      setActiveJob(null);
+      wasJobRunningRef.current = false;
+      onJobFinish?.();
+      fetchJobProgress();
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || "To'xtatishda xatolik yuz berdi.";
+      toast.error(errMsg);
+    } finally {
+      setStopping(false);
     }
   };
 
@@ -221,6 +237,25 @@ export function Sidebar({
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 11 }}>
               {activeJob.message}
             </Typography>
+
+            <Button
+              fullWidth
+              size="small"
+              variant="contained"
+              color="error"
+              startIcon={stopping ? <CircularProgress size={14} color="inherit" /> : <StopRounded fontSize="small" />}
+              onClick={handleStopJob}
+              disabled={stopping}
+              sx={{
+                mt: 1.5,
+                fontWeight: 700,
+                fontSize: 12,
+                boxShadow: 1,
+                textTransform: 'none'
+              }}
+            >
+              To'xtatish
+            </Button>
           </Box>
         ) : (
           <Alert severity="info" icon={<CheckCircleOutlined fontSize="small" />} sx={{ mb: 1.5, py: 0.2, fontSize: 11 }}>
@@ -320,18 +355,6 @@ export function Sidebar({
               </Button>
             </span>
           </Tooltip>
-
-          <Button
-            fullWidth
-            size="small"
-            variant="text"
-            color="error"
-            onClick={() => handleTriggerJob('/debitors/jobs/unlock', 'unlock')}
-            disabled={Boolean(triggerLoading)}
-            sx={{ fontSize: 10, mt: 0.5, opacity: 0.7, '&:hover': { opacity: 1 } }}
-          >
-            🧹 Qotib qolgan jobni majburiy tozalash (Unlock)
-          </Button>
         </Stack>
       </Box>
 
