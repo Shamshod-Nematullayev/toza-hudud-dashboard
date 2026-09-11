@@ -49,7 +49,13 @@ const ActiveJobsMonitor: React.FC = () => {
         params: company?.id ? { companyId: company.id } : undefined
       });
       if (data?.success && Array.isArray(data.data)) {
-        setJobs(data.data);
+        setJobs(
+          data.data.filter(
+            (j: ActiveJobItem) =>
+              j.name !== 'sendScheduledMahallaTushumlarReport' &&
+              !j.name?.toLowerCase().includes('scheduled')
+          )
+        );
       }
     } catch (err) {
       // Ignore network errors
@@ -64,7 +70,13 @@ const ActiveJobsMonitor: React.FC = () => {
 
     const handleActiveJobsUpdate = (updatedJobs: ActiveJobItem[]) => {
       if (Array.isArray(updatedJobs)) {
-        setJobs(updatedJobs);
+        setJobs(
+          updatedJobs.filter(
+            (j) =>
+              j.name !== 'sendScheduledMahallaTushumlarReport' &&
+              !j.name?.toLowerCase().includes('scheduled')
+          )
+        );
       }
     };
 

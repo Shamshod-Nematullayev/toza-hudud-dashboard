@@ -9,30 +9,39 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
-import OutlinedInput from '@mui/material/OutlinedInput';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 import Popper from '@mui/material/Popper';
+import Tooltip from '@mui/material/Tooltip';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 
 // third-party
 import PopupState, { bindPopper, bindToggle } from 'material-ui-popup-state';
+import { PopupState as PopupStateType } from 'material-ui-popup-state/hooks';
 
 // project imports
 import Transitions from 'ui-component/extended/Transitions';
 
 // assets
-import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
+import { IconSearch, IconX } from '@tabler/icons-react';
 import menuItems, { MenuItem } from 'menu-items';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, List, Tooltip } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
 import { useTranslation } from 'react-i18next';
-import { t } from 'i18next';
-import { PopupState as PopupStateType } from 'material-ui-popup-state/hooks';
 
-const flattenMenu = (items: MenuItem[]) => {
+const flattenMenu = (items: MenuItem[], userRoles?: string[]): MenuItem[] => {
   let result: MenuItem[] = [];
   items.forEach((item) => {
-    if (item.title) result.push(item);
-    if (item.children) result = result.concat(flattenMenu(item.children));
+    if (item.allowedRoles && userRoles && !item.allowedRoles.some((role) => userRoles.includes(role))) {
+      return;
+    }
+    if (item.title && item.url) {
+      result.push(item);
+    }
+    if (item.children) {
+      result = result.concat(flattenMenu(item.children, userRoles));
+    }
   });
   return result;
 };
@@ -66,116 +75,305 @@ HeaderAvatar.propTypes = {
   children: PropTypes.node
 };
 
+// ==============================|| SEARCH AUTOCOMPLETE COMPONENT ||============================== //
+
+interface SearchAutocompleteProps {
+  fullWidth?: boolean;
+  onSelect?: () => void;
+  autoFocus?: boolean;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const SearchAutocomplete = ({
+  fullWidth = false,
+  onSelect,
+  autoFocus = false,
+  inputRef,
+  onOpenChange
+}: SearchAutocompleteProps) => {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { customization, user } = useCustomizationStore();
+
+  const [inputValue, setInputValue] = useState('');
+  const [open, setOpen] = useState(false);
+
+  const localRef = useRef<HTMLInputElement>(null);
+  const actualRef = inputRef || localRef;
+
+  const flatMenu = useMemo(() => flattenMenu(menuItems.items, user?.roles), [user?.roles]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    onOpenChange?.(newOpen);
+  };
+
+  useEffect(() => {
+    setInputValue('');
+    handleOpenChange(false);
+  }, [location.pathname]);
+
+  return (
+    <Autocomplete<MenuItem, false, false, false>
+      id="header-search-autocomplete"
+      open={open}
+      onOpen={() => {
+        if (inputValue.trim().length > 0) {
+          handleOpenChange(true);
+        }
+      }}
+      onClose={() => {
+        handleOpenChange(false);
+      }}
+      inputValue={inputValue}
+      onInputChange={(event, newInputValue, reason) => {
+        if (reason === 'reset') {
+          return;
+        }
+        setInputValue(newInputValue);
+        handleOpenChange(newInputValue.trim().length > 0);
+      }}
+      value={null}
+      options={flatMenu}
+      autoHighlight
+      clearOnEscape
+      popupIcon={null}
+      noOptionsText={t('noResultsFound', 'Natija topilmadi')}
+      getOptionLabel={(option) => {
+        if (typeof option === 'string') return option;
+        return t(`menuItems.${option.title}`, { defaultValue: String(option.title) });
+      }}
+      filterOptions={(options, { inputValue: searchVal }) => {
+        const q = searchVal.trim().toLowerCase();
+        if (!q) return [];
+        return options.filter((item) => {
+          const translated = t(`menuItems.${item.title}`, { defaultValue: String(item.title) }).toLowerCase();
+          const rawTitle = String(item.title).toLowerCase();
+          const id = String(item.id).toLowerCase();
+          return translated.includes(q) || rawTitle.includes(q) || id.includes(q);
+        });
+      }}
+      isOptionEqualToValue={(option, val) => option.id === val.id && option.url === val.url}
+      onChange={(event, selectedItem) => {
+        if (selectedItem && selectedItem.url) {
+          navigate(selectedItem.url);
+          setInputValue('');
+          handleOpenChange(false);
+          actualRef.current?.blur();
+          onSelect?.();
+        }
+      }}
+      slotProps={{
+        paper: {
+          elevation: 8,
+          sx: {
+            mt: 1,
+            borderRadius: `${customization.borderRadius}px`,
+            bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#ffffff',
+            backgroundImage: 'none',
+            boxShadow:
+              theme.palette.mode === 'dark'
+                ? '0 8px 24px rgba(0,0,0,0.5)'
+                : '0 8px 24px rgba(0,0,0,0.12)',
+            border: `1px solid ${theme.palette.divider}`,
+            maxHeight: 360,
+            '& .MuiAutocomplete-listbox': {
+              p: 0.5,
+              maxHeight: 340
+            },
+            '& .MuiAutocomplete-noOptions': {
+              fontSize: '0.875rem',
+              color: theme.palette.text.secondary,
+              p: 2,
+              textAlign: 'center'
+            }
+          }
+        },
+        popper: {
+          sx: {
+            zIndex: 1301,
+            minWidth: fullWidth ? '100%' : { md: 280, lg: 360 }
+          }
+        }
+      }}
+      renderOption={(props, item) => {
+        const { key, ...otherProps } = props;
+        const Icon = item.icon;
+        const isCurrentActive = customization.isOpen.findIndex((id) => id === item?.id) > -1;
+        const isDark = theme.palette.mode === 'dark';
+
+        return (
+          <Box
+            component="li"
+            key={item.id || key}
+            {...otherProps}
+            sx={{
+              py: 0.85,
+              px: 1.5,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              borderRadius: `${customization.borderRadius}px`,
+              mx: 0.5,
+              my: 0.25,
+              color: 'text.primary',
+              '&[aria-selected="true"], &.Mui-focused, &[data-focus="true"]': {
+                bgcolor: isDark ? 'rgba(103, 58, 183, 0.25)' : 'secondary.light',
+                color: isDark ? 'secondary.200' : 'secondary.dark',
+                '& .MuiListItemIcon-root': {
+                  color: isDark ? 'secondary.200' : 'secondary.dark'
+                }
+              },
+              '&:hover': {
+                bgcolor: isDark ? 'rgba(103, 58, 183, 0.2)' : 'secondary.light',
+                color: isDark ? 'secondary.200' : 'secondary.dark',
+                '& .MuiListItemIcon-root': {
+                  color: isDark ? 'secondary.200' : 'secondary.dark'
+                }
+              }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 28, color: 'inherit' }}>
+              {Icon ? (
+                <Icon stroke={1.5} size="1.25rem" />
+              ) : (
+                <FiberManualRecordIcon
+                  sx={{
+                    width: isCurrentActive ? 8 : 6,
+                    height: isCurrentActive ? 8 : 6
+                  }}
+                />
+              )}
+            </ListItemIcon>
+            <ListItemText
+              primary={t(`menuItems.${item.title}`, { defaultValue: String(item.title) })}
+              slotProps={{
+                primary: {
+                  sx: {
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: 'inherit'
+                  }
+                }
+              }}
+            />
+          </Box>
+        );
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          inputRef={actualRef}
+          autoFocus={autoFocus}
+          placeholder={`${t('search')}...`}
+          slotProps={{
+            ...params.slotProps,
+            input: {
+              ...params.slotProps?.input,
+              startAdornment: (
+                <InputAdornment position="start" sx={{ ml: 0.5, mr: -0.5 }}>
+                  <IconSearch stroke={1.5} size="16px" />
+                </InputAdornment>
+              ),
+              endAdornment: params.slotProps?.input?.endAdornment
+            }
+          }}
+          sx={{
+            width: fullWidth ? '100%' : { md: 250, lg: 320 },
+            ml: fullWidth ? 0 : 2,
+            '& .MuiOutlinedInput-root': {
+              bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50',
+              borderRadius: `${customization.borderRadius}px`,
+              py: 0.5,
+              px: 1.5,
+              '& fieldset': {
+                borderColor: theme.palette.mode === 'dark' ? theme.palette.divider : 'transparent',
+                transition: 'all 0.2s ease-in-out'
+              },
+              '&:hover fieldset': {
+                borderColor: theme.palette.secondary.light
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: theme.palette.secondary.main,
+                borderWidth: '1px'
+              }
+            },
+            '& input': {
+              py: 1.25,
+              fontSize: '0.875rem',
+              color: theme.palette.text.primary
+            }
+          }}
+        />
+      )}
+    />
+  );
+};
+
 // ==============================|| SEARCH INPUT - MOBILE||============================== //
 
-const MobileSearch = ({
-  value,
-  setValue,
-  popupState
-}: {
-  value: string;
-  setValue: (value: string) => void;
-  popupState: PopupStateType;
-}) => {
+const MobileSearch = ({ popupState }: { popupState: PopupStateType }) => {
   const theme = useTheme();
-  const flatMenu = useMemo(() => flattenMenu(menuItems.items), []);
-  const filteredItems = useMemo(
-    () => flatMenu.filter((item) => t(`menuItems.${item.title}`).toLowerCase().includes(value.toLowerCase())),
-    [value, flatMenu]
-  );
-  const { t } = useTranslation();
+
   return (
-    <Box style={{ position: 'relative' }}>
-      <Box>
-        <OutlinedInput
-          id="input-search-header"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={t('search') + '...'}
-          startAdornment={
-            <InputAdornment position="start">
-              <IconSearch stroke={1.5} size="16px" />
-            </InputAdornment>
-          }
-          endAdornment={
-            <InputAdornment position="end">
-              <HeaderAvatar>
-                <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
-              </HeaderAvatar>
-              <Box sx={{ ml: 2 }}>
-                <Avatar
-                  variant="rounded"
-                  sx={{
-                    // @ts-ignore
-                    ...theme.typography.commonAvatar,
-                    // @ts-ignore
-                    ...theme.typography.mediumAvatar,
-                    bgcolor: 'orange.light',
-                    color: 'orange.dark',
-                    '&:hover': {
-                      bgcolor: 'orange.dark',
-                      color: 'orange.light'
-                    }
-                  }}
-                  {...bindToggle(popupState)}
-                >
-                  <IconX stroke={1.5} size="20px" />
-                </Avatar>
-              </Box>
-            </InputAdornment>
-          }
-          aria-describedby="search-helper-text"
-          inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
-          sx={{ width: '100%', ml: 0.5, px: 2, bgcolor: 'background.paper' }}
-        />
+    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+      <Box sx={{ flexGrow: 1 }}>
+        <SearchAutocomplete fullWidth onSelect={() => popupState.close()} autoFocus />
       </Box>
-      {value.length > 2 && <FindedList filteredItems={filteredItems} />}
+      <Box sx={{ ml: 1 }}>
+        <Avatar
+          variant="rounded"
+          sx={{
+            // @ts-ignore
+            ...theme.typography.commonAvatar,
+            // @ts-ignore
+            ...theme.typography.mediumAvatar,
+            bgcolor: 'orange.light',
+            color: 'orange.dark',
+            cursor: 'pointer',
+            '&:hover': {
+              bgcolor: 'orange.dark',
+              color: 'orange.light'
+            }
+          }}
+          {...bindToggle(popupState)}
+        >
+          <IconX stroke={1.5} size="20px" />
+        </Avatar>
+      </Box>
     </Box>
   );
 };
 
 MobileSearch.propTypes = {
-  value: PropTypes.string,
-  setValue: PropTypes.func,
-  popupState: PopupState
+  popupState: PropTypes.object
 };
 
-// ==============================|| SEARCH INPUT ||============================== //
+// ==============================|| SEARCH INPUT - DESKTOP & WRAPPER ||============================== //
 
 const SearchSection = () => {
-  const [value, setValue] = useState('');
-  const flatMenu: MenuItem[] = useMemo(() => flattenMenu(menuItems.items), []);
-  const filteredItems = useMemo(
-    // @ts-ignore
-    () => flatMenu.filter((item) => t(`menuItems.${item.title}`).toLowerCase().includes(value.toLowerCase())),
-    [value, flatMenu]
-  );
-  const location = useLocation();
+  const { t } = useTranslation();
   const searchRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    setValue('');
-  }, [location.pathname]);
+  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Mac uchun metaKey ham tekshiramiz
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-
-        // Agar input ichida yozayotgan bo‘lsa qaytarmaymiz
-        const active = document.activeElement;
-        const isTyping =
-          active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.getAttribute('contenteditable') === 'true';
-
-        if (!isTyping) {
-          // Qachondir kerak bo'lsa shu coment o'rniga searchRef.current?.focus(); qo'yiladi
-        }
         searchRef.current?.focus();
+        searchRef.current?.select();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
   return (
     <>
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
@@ -193,19 +391,17 @@ const SearchSection = () => {
                 sx={{ zIndex: 1100, width: '99%', top: '-55px !important', px: { xs: 1.25, sm: 1.5 } }}
               >
                 {({ TransitionProps }) => (
-                  <>
-                    <Transitions type="zoom" {...TransitionProps} sx={{ transformOrigin: 'center left' }}>
-                      <Card sx={{ bgcolor: 'background.default', border: 0, boxShadow: 'none' }}>
-                        <Box sx={{ p: 2 }}>
-                          <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Grid size={{ xs: 12 }}>
-                              <MobileSearch value={value} setValue={setValue} popupState={popupState} />
-                            </Grid>
+                  <Transitions type="zoom" {...TransitionProps} sx={{ transformOrigin: 'center left' }}>
+                    <Card sx={{ bgcolor: 'background.default', border: 0, boxShadow: 'none' }}>
+                      <Box sx={{ p: 2 }}>
+                        <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Grid size={{ xs: 12 }}>
+                            <MobileSearch popupState={popupState} />
                           </Grid>
-                        </Box>
-                      </Card>
-                    </Transitions>
-                  </>
+                        </Grid>
+                      </Box>
+                    </Card>
+                  </Transitions>
                 )}
               </Popper>
             </>
@@ -213,69 +409,19 @@ const SearchSection = () => {
         </PopupState>
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'relative' }}>
-        <Tooltip title={t('search') + ' (Ctrl+K)'} placement="bottom">
-          <OutlinedInput
-            inputRef={searchRef}
-            id="input-search-header"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={t('search') + '...'}
-            startAdornment={
-              <InputAdornment position="start">
-                <IconSearch stroke={1.5} size="16px" />
-              </InputAdornment>
-            }
-            aria-describedby="search-helper-text"
-            inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
-            sx={{ width: { md: 250, lg: 300 }, ml: 2, px: 2, input: { py: 1.5 } }}
-          />
+        <Tooltip
+          title={`${t('search')} (Ctrl+K)`}
+          placement="bottom"
+          disableFocusListener
+          disableTouchListener
+          disableHoverListener={isAutocompleteOpen}
+        >
+          <Box>
+            <SearchAutocomplete inputRef={searchRef} onOpenChange={setIsAutocompleteOpen} />
+          </Box>
         </Tooltip>
-        {value.length > 2 && <FindedList filteredItems={filteredItems} />}
       </Box>
     </>
-  );
-};
-
-const FindedList = ({ filteredItems }: { filteredItems: MenuItem[] }) => {
-  const { customization } = useCustomizationStore();
-
-  return (
-    <List
-      sx={{
-        position: 'absolute',
-        top: '100%',
-        bgcolor: 'background.paper',
-        width: { md: 250, lg: 434, xs: 340 },
-        ml: 2,
-        px: 2
-      }}
-    >
-      {filteredItems.map((item, index) => {
-        const Icon = item.icon;
-        const itemIcon = item?.icon ? (
-          <Icon stroke={1.5} size="1.3rem" />
-        ) : (
-          <FiberManualRecordIcon
-            sx={{
-              width: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6,
-              height: customization.isOpen.findIndex((id) => id === item?.id) > -1 ? 8 : 6
-            }}
-          />
-        );
-        return (
-          <>
-            <ListItemButton key={index}>
-              <Link to={item.url || '#'} style={{ textDecoration: 'none', display: 'flex' }}>
-                <ListItemIcon>{itemIcon}</ListItemIcon>
-                {/* @ts-ignore */}
-                <ListItemText primary={t('menuItems.' + item.title)} />
-              </Link>
-            </ListItemButton>
-            {index < filteredItems.length - 1 && <Divider />}
-          </>
-        );
-      })}
-    </List>
   );
 };
 

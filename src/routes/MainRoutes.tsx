@@ -29,6 +29,8 @@ import MonayTransfer from 'views/billing/MonayTransfer/MonayTransfer';
 import ReportPetitions from 'views/billing/Reports/AbonentPetitions/ReportPetitions';
 import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMahallaKesim';
 import SpecialTasksReport from 'views/billing/Reports/SpecialTasksReport';
+import MahallaTushumlarNazoratchi from 'views/billing/Reports/MahallaTushumlarNazoratchi';
+import InspectorPlanMatrix from 'views/billing/Reports/InspectorPlanMatrix';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
@@ -206,6 +208,14 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'report-special-tasks',
           element: <SpecialTasksReport />
+        },
+        {
+          path: 'report-mahalla-tushumlar',
+          element: <MahallaTushumlarNazoratchi />
+        },
+        {
+          path: 'report-inspector-plan-matrix',
+          element: <InspectorPlanMatrix />
         },
         {
           path: 'pendingNewAbonents',

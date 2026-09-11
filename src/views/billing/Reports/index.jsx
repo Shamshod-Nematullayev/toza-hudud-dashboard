@@ -8,7 +8,9 @@ const reportTypes = [
   { id: 1, name: "Nazoratchilar: Abonent ma'lumotlari", path: 'xatlov-inspectors' },
   { id: 2, name: 'Arizalar hisoboti', path: 'report-petitions' },
   { id: 3, name: 'Identifikatsiya mahalla kesimida ', path: 'report-identifikatsiya' },
-  { id: 4, name: 'Maxsus topshiriqlar (Nazoratchilar)', path: 'report-special-tasks' }
+  { id: 4, name: 'Maxsus topshiriqlar (Nazoratchilar)', path: 'report-special-tasks' },
+  { id: 5, name: 'Mahalla tushumlar (Nazoratchilar kesimida)', path: 'report-mahalla-tushumlar' },
+  { id: 6, name: 'Kunlik reja matritsasi (Nazoratchilar)', path: 'report-inspector-plan-matrix' }
 ];
 
 function Reports() {
