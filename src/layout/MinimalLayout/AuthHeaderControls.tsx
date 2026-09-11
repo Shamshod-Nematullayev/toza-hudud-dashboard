@@ -23,6 +23,7 @@ import { languageOptions } from 'store/constant';
 import {
   Brightness4,
   Brightness7,
+  SettingsBrightness,
   CheckCircle,
   KeyboardArrowDown
 } from '@mui/icons-material';
@@ -36,6 +37,7 @@ const AuthHeaderControls: React.FC = () => {
   const isDarkMode = theme.palette.mode === 'dark';
 
   const {
+    customization,
     setCustomization,
     language,
     setLanguage,
@@ -59,8 +61,15 @@ const AuthHeaderControls: React.FC = () => {
     handleCloseLangMenu();
   };
 
+  // Cycle between light -> dark -> system -> light
   const handleToggleThemeMode = () => {
-    setCustomization({ mode: isDarkMode ? 'light' : 'dark' });
+    if (customization.mode === 'light') {
+      setCustomization({ mode: 'dark' });
+    } else if (customization.mode === 'dark') {
+      setCustomization({ mode: 'system' });
+    } else {
+      setCustomization({ mode: 'light' });
+    }
   };
 
   const currentLang = languageOptions.find((l) => l.value === language) || languageOptions[0];
@@ -218,8 +227,16 @@ const AuthHeaderControls: React.FC = () => {
 
       <Divider orientation="vertical" flexItem sx={{ my: 0.5, borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)' }} />
 
-      {/* Dark / Light Mode Toggle */}
-      <Tooltip title={isDarkMode ? t('customization.lightMode', 'Yorug‘ rejim') : t('customization.darkMode', 'Qorong‘i rejim')}>
+      {/* Theme Mode Toggle (Light -> Dark -> System) */}
+      <Tooltip
+        title={
+          customization.mode === 'system'
+            ? `${t('customization.systemMode', 'OS Rejimi')} (${isDarkMode ? t('customization.systemActiveDark', 'OS: Tungi') : t('customization.systemActiveLight', 'OS: Kunduzgi')})`
+            : customization.mode === 'dark'
+            ? t('customization.darkMode', 'Tungi rejim')
+            : t('customization.lightMode', 'Kunduzgi rejim')
+        }
+      >
         <IconButton
           onClick={handleToggleThemeMode}
           size="small"
@@ -227,16 +244,39 @@ const AuthHeaderControls: React.FC = () => {
             width: 32,
             height: 32,
             borderRadius: '50%',
-            backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
-            color: isDarkMode ? '#FBBF24' : '#64748B',
+            backgroundColor:
+              customization.mode === 'system'
+                ? isDarkMode
+                  ? 'rgba(124, 77, 255, 0.16)'
+                  : 'rgba(124, 77, 255, 0.1)'
+                : isDarkMode
+                ? 'rgba(255, 255, 255, 0.06)'
+                : 'rgba(0, 0, 0, 0.04)',
+            color:
+              customization.mode === 'system'
+                ? '#A78BFA'
+                : customization.mode === 'dark'
+                ? '#60A5FA'
+                : '#F59E0B',
             transition: 'all 0.2s ease',
             '&:hover': {
-              backgroundColor: isDarkMode ? 'rgba(251, 191, 36, 0.15)' : 'rgba(100, 116, 139, 0.12)',
+              backgroundColor:
+                customization.mode === 'system'
+                  ? 'rgba(124, 77, 255, 0.25)'
+                  : isDarkMode
+                  ? 'rgba(255, 255, 255, 0.12)'
+                  : 'rgba(0, 0, 0, 0.08)',
               transform: 'scale(1.05)'
             }
           }}
         >
-          {isDarkMode ? <Brightness7 sx={{ fontSize: 18 }} /> : <Brightness4 sx={{ fontSize: 18 }} />}
+          {customization.mode === 'system' ? (
+            <SettingsBrightness sx={{ fontSize: 18 }} />
+          ) : customization.mode === 'dark' ? (
+            <Brightness4 sx={{ fontSize: 18 }} />
+          ) : (
+            <Brightness7 sx={{ fontSize: 18 }} />
+          )}
         </IconButton>
       </Tooltip>
 

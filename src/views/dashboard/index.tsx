@@ -776,7 +776,7 @@ const Dashboard = () => {
           </Typography>
           <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '10px' }}>
             <Table size="small">
-              <TableHead sx={{ bgcolor: useCustomizationStore.getState().customization.mode == 'dark' ? 'grey.800' : 'grey.50' }}>
+              <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 700, py: 1 }}>{t('dashboard.mahallaName', 'Mahalla nomi')}</TableCell>
                   <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'center' }}>{t('dashboard.requestCount', "So'rovlar soni")}</TableCell>
@@ -995,7 +995,7 @@ const Dashboard = () => {
           </Typography>
           <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '10px' }}>
             <Table size="small">
-              <TableHead sx={{ bgcolor: useCustomizationStore.getState().customization.mode == 'dark' ? 'grey.800' : 'grey.50' }}>
+              <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 700, py: 1, width: 40 }}>№</TableCell>
                   <TableCell sx={{ fontWeight: 700, py: 1 }}>{t('dashboard.inspectorFullName', 'Nazoratchi F.I.SH')}</TableCell>

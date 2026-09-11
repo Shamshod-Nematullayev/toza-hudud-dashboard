@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@mui/material/styles';
 import useCustomizationStore from 'store/customizationStore';
 import { GoogleLoginButton } from './GoogleLoginButton';
 
@@ -114,6 +115,8 @@ const Icon = styled.div`
 `;
 
 function Login() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [showPassword, setShowPassword] = useState(false);
   const [values, setValues] = useState({ username: '', password: '' });
   const navigate = useNavigate();
@@ -157,7 +160,7 @@ function Login() {
     <Body
       style={{
         backgroundImage:
-          customization.mode === 'dark'
+          isDark
             ? 'url(https://i.pinimg.com/1200x/2c/90/a3/2c90a3402573bea4f3ba5b85c1008cc5.jpg)'
             : 'url(https://images.pexels.com/photos/11724620/pexels-photo-11724620.jpeg)'
       }}

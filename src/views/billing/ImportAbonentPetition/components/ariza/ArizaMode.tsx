@@ -1,4 +1,5 @@
 import { Box, Button, IconButton, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { Close, Delete, EditOutlined, UploadFileOutlined, Visibility, VisibilityOff } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import { t } from 'i18next';
@@ -51,6 +52,8 @@ export function ArizaMode({
   handleDeleteButtonClick,
   setShowDialog
 }: ArizaModeProps) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       {/* 1. Yuqori Ma'lumotlar Qismi */}
@@ -156,7 +159,7 @@ export function ArizaMode({
           getRowId={(row) => row.id}
           sx={{
             height: '90%',
-            '.first-row': { bgcolor: useCustomizationStore.getState().customization.mode === 'dark' ? 'warning.dark' : 'warning.light' }
+            '.first-row': { bgcolor: isDark ? 'warning.dark' : 'warning.light' }
           }}
           getRowClassName={(params) => (params.indexRelativeToCurrentPage === 0 ? 'first-row' : '')}
         />

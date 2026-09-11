@@ -44,6 +44,22 @@ export interface IMenuCustomizationSettings {
   itemsByGroup?: Record<string, IMenuItemCustomization>; // Per-group item customization
 }
 
+export type ThemeMode = 'light' | 'dark' | 'system';
+
+export const getSystemTheme = (): 'light' | 'dark' => {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'light';
+};
+
+export const getEffectiveThemeMode = (mode?: string | ThemeMode): 'light' | 'dark' => {
+  if (!mode || mode === 'system' || mode === 'auto') {
+    return getSystemTheme();
+  }
+  return mode === 'dark' ? 'dark' : 'light';
+};
+
 interface CustomizationState {
   customization: {
     isOpen: string[];
@@ -51,7 +67,7 @@ interface CustomizationState {
     fontFamily: FontFamily;
     borderRadius: number;
     opened: boolean;
-    mode: string;
+    mode: ThemeMode;
     documentVariantOdamSoni: 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza';
     boshliqIshtirokida: boolean;
     mfyRaisiIshtirok: boolean;
@@ -131,7 +147,7 @@ const initialState = {
     fontFamily: FontFamily.Roboto,
     borderRadius: config.borderRadius,
     opened: true,
-    mode: 'dark',
+    mode: 'dark' as ThemeMode,
     documentVariantOdamSoni: 'ariza+dalolatnoma',
     boshliqIshtirokida: false,
     mfyRaisiIshtirok: true

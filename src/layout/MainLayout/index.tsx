@@ -14,6 +14,7 @@ import Customization from '../Customization';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import { drawerWidth } from 'store/constant';
 import OnboardingTour from './OnboardingTour';
+import ActiveJobsMonitor from './ActiveJobsMonitor';
 
 // assets
 import { IconChevronRight } from '@tabler/icons-react';
@@ -159,6 +160,7 @@ const MainLayout = () => {
       </Main>
       <Customization />
       <OnboardingTour />
+      <ActiveJobsMonitor />
     </Box>
   );
 };

@@ -74,7 +74,7 @@ declare module '@mui/material/styles' {
     };
     customization: {
       borderRadius: number;
-      mode: 'light' | 'dark';
+      mode: 'light' | 'dark' | 'system';
     };
     menuSelected: string;
     menuSelectedBack: string;

@@ -26,20 +26,29 @@ function RokirovkaModal({ handleClose, abonent, refresh }) {
       });
   }, []);
 
+  const [submitting, setSubmitting] = useState(false);
   const handleConfirm = async function () {
-    api
-      .post('/pendingNewAbonents/castling', {
+    setSubmitting(true);
+    try {
+      const { data } = await api.post('/pendingNewAbonents/castling', {
         id: freeAbonent.id,
         newAbonentId: abonent._id,
         accountNumber: accountNumber
-      })
-      .then(({ data }) => {
-        if (data.ok) {
-          handleClose();
-          toast.success(data.message);
-          refresh();
-        }
       });
+      if (data.ok) {
+        handleClose();
+        toast.success(data.message || 'Muvaffaqiyatli almashtirildi');
+        refresh();
+      } else {
+        toast.error(data.message || 'Xatolik yuz berdi');
+      }
+    } catch (error) {
+      console.error(error);
+      const errMsg = error.response?.data?.message || error.message || 'Xatolik yuz berdi';
+      toast.error(errMsg);
+    } finally {
+      setSubmitting(false);
+    }
   };
   return (
     <Dialog open={true}>
@@ -78,8 +87,8 @@ function RokirovkaModal({ handleClose, abonent, refresh }) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>{t('buttons.close')}</Button>
-        <Button onClick={handleConfirm}>{t('buttons.confirm')}</Button>
+        <Button onClick={handleClose} disabled={submitting}>{t('buttons.close')}</Button>
+        <Button onClick={handleConfirm} disabled={submitting || !accountNumber || !freeAbonent}>{t('buttons.confirm')}</Button>
       </DialogActions>
     </Dialog>
   );

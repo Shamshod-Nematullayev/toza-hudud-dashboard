@@ -41,16 +41,75 @@ const App = () => {
   const { isLoading } = useLoaderStore();
   const { settingsModalOpenState } = useUserStore();
 
+  const [systemDark, setSystemDark] = React.useState(() => {
+    return typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const updateTheme = () => {
+      const isDark = mediaQuery.matches;
+      setSystemDark((prev) => (prev !== isDark ? isDark : prev));
+    };
+
+    // 1. Initial check
+    updateTheme();
+
+    // 2. MediaQuery change event (with both modern addEventListener and legacy addListener)
+    const handleMediaChange = (e) => {
+      const isDark = e && typeof e.matches === 'boolean' ? e.matches : mediaQuery.matches;
+      setSystemDark((prev) => (prev !== isDark ? isDark : prev));
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleMediaChange);
+    } else if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(handleMediaChange);
+    }
+
+    // 3. Window focus and document visibility (crucial on Windows when switching back from OS Settings)
+    window.addEventListener('focus', updateTheme);
+    document.addEventListener('visibilitychange', updateTheme);
+
+    // 4. Fallback interval for real-time detection without needing to focus the browser
+    let intervalId = null;
+    if (customization.mode === 'system') {
+      intervalId = setInterval(updateTheme, 1000);
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === 'function') {
+        mediaQuery.removeEventListener('change', handleMediaChange);
+      } else if (typeof mediaQuery.removeListener === 'function') {
+        mediaQuery.removeListener(handleMediaChange);
+      }
+      window.removeEventListener('focus', updateTheme);
+      document.removeEventListener('visibilitychange', updateTheme);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [customization.mode]);
+
   useEffect(() => {
     i18n.changeLanguage(language);
   }, [language]);
 
+  const effectiveMode = customization.mode === 'system' ? (systemDark ? 'dark' : 'light') : customization.mode;
+
+  const currentTheme = React.useMemo(() => {
+    return themes({ ...customization, mode: effectiveMode });
+  }, [customization, effectiveMode]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={themes(customization)}>
+        <ThemeProvider theme={currentTheme}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <ToastContainer autoClose="5000" theme={customization.mode} position="top-right" />
+            <ToastContainer autoClose="5000" theme={effectiveMode} position="top-right" />
             <CssBaseline />
             <NavigationScroll>
               {isLoading && <Loader />}

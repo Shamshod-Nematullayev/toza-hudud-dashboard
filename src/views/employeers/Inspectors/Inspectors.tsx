@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Button, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery, Box, Theme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -41,14 +42,16 @@ interface InspectorRow {
   [key: string]: any; // Dinamik mfy_X kalitlari uchun
 }
 
+type ChoiceMethod = 'inspector' | 'mfy' | null;
+
 interface ApiResponse {
   rows: InspectorRow[];
   mahallalar: Mahalla[];
 }
 
-type ChoiceMethod = 'inspector' | 'mfy' | null;
-
 function Inspectors(): React.JSX.Element {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
   const { customization } = useCustomizationStore();
   const isXsUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'));
@@ -165,8 +168,6 @@ function Inspectors(): React.JSX.Element {
 
   // Dinamik Mahalla Rendering funksiyasi
   const renderMahallaCell = (mfy: AttachedMahalla | undefined, inspectorId: number) => {
-    const isDark = customization.mode === 'dark';
-
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', height: '100%' }}>
         {mfy ? (
@@ -221,7 +222,7 @@ function Inspectors(): React.JSX.Element {
     });
 
     return baseColumns;
-  }, [maxMahallaCount, t, customization.mode, rows]);
+  }, [maxMahallaCount, t, isDark, rows]);
 
   return (
     <MainCard contentSX={{ height: '100%' }}>
@@ -264,7 +265,7 @@ function Inspectors(): React.JSX.Element {
                     sx={{ py: 0.5, px: 1, borderBottom: '1px dashed', borderColor: 'divider' }}
                     secondaryAction={
                       <IconButton edge="end" size="small" onClick={() => openChooseModal({ type: 'inspector', focus: item.id })}>
-                        <PersonAddAltIcon sx={{ color: customization.mode === 'dark' ? 'success.200' : 'success.main' }} />
+                        <PersonAddAltIcon sx={{ color: isDark ? 'success.200' : 'success.main' }} />
                       </IconButton>
                     }
                   >
@@ -313,7 +314,7 @@ function Inspectors(): React.JSX.Element {
                     sx={{ py: 0.5, px: 1, borderBottom: '1px dashed', borderColor: 'divider' }}
                     secondaryAction={
                       <IconButton edge="end" size="small" onClick={() => handleDelete(item.id)}>
-                        <DeleteIcon sx={{ color: customization.mode === 'dark' ? 'error.light' : 'error.main' }} />
+                        <DeleteIcon sx={{ color: isDark ? 'error.light' : 'error.main' }} />
                       </IconButton>
                     }
                   >

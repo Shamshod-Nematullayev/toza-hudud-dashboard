@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 
 import useCustomizationStore from 'store/customizationStore';
 import { IconButton, Tooltip } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import EditModal from './EditModal';
 import api from 'utils/api';
@@ -14,6 +15,8 @@ import PDFViewerModal from 'ui-component/PDFViewerModal';
 import useLoaderStore from 'store/loaderStore';
 
 function DataTableWarnings() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { customization } = useCustomizationStore();
   const { setIsLoading } = useLoaderStore();
   const { fromDate, toDate, filters, setChecked, rows, setRows } = useWarningLettersStore();
@@ -80,13 +83,13 @@ function DataTableWarnings() {
       renderCell: (params) => (
         <div style={{ display: 'flex' }}>
           <IconButton onClick={() => handleEdit(params.row)}>
-            <EditIcon sx={{ color: customization.mode === 'dark' ? 'primary.200' : 'primary.main' }} />
+            <EditIcon sx={{ color: isDark ? 'primary.200' : 'primary.main' }} />
           </IconButton>
           <Tooltip title="Pochta kvitansiyasini ko'rish">
             <IconButton
               onClick={() => handlePreviewPostCash(params.row)}
               disabled={!params.row.isSent}
-              sx={{ color: customization.mode === 'dark' ? 'primary.200' : 'primary.main' }}
+              sx={{ color: isDark ? 'primary.200' : 'primary.main' }}
             >
               <Preview />
             </IconButton>

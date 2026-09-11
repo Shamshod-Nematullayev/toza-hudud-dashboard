@@ -7,7 +7,7 @@ export default function themePalette(theme) {
   const isDarkMode = theme.customization.mode === 'dark';
 
   return {
-    mode: theme.customization.mode, // light yoki dark
+    mode: isDarkMode ? 'dark' : 'light',
     common: {
       black: isDarkMode ? theme.colors.darkPaper : '#000000'
     },

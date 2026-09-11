@@ -15,20 +15,30 @@ import themeTypography from './typography';
 
 export const theme = (customization) => {
   const color = colors;
+  const isDark =
+    customization.mode === 'dark' ||
+    (customization.mode === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+
+  const effectiveCustomization = {
+    ...customization,
+    mode: isDark ? 'dark' : 'light'
+  };
 
   const themeOption = {
     colors: color,
-    heading: customization.mode === 'dark' ? color.grey100 : color.grey900,
-    paper: customization.mode === 'dark' ? color.darkPaper : color.paper,
-    backgroundDefault: customization.mode === 'dark' ? color.darkBackground : color.paper,
-    background: customization.mode === 'dark' ? color.darkBackground : color.primaryLight,
-    darkTextPrimary: customization.mode === 'dark' ? color.lightText : color.grey700,
-    darkTextSecondary: customization.mode === 'dark' ? color.lightTextSecondary : color.grey500,
-    textDark: customization.mode === 'dark' ? color.lightText : color.grey900,
-    menuSelected: customization.mode === 'dark' ? color.secondary200 : color.secondaryDark,
-    menuSelectedBack: customization.mode === 'dark' ? color.secondaryDark : color.secondaryLight,
-    divider: customization.mode === 'dark' ? color.grey700 : color.grey200,
-    customization
+    heading: isDark ? color.grey100 : color.grey900,
+    paper: isDark ? color.darkPaper : color.paper,
+    backgroundDefault: isDark ? color.darkBackground : color.paper,
+    background: isDark ? color.darkBackground : color.primaryLight,
+    darkTextPrimary: isDark ? color.lightText : color.grey700,
+    darkTextSecondary: isDark ? color.lightTextSecondary : color.grey500,
+    textDark: isDark ? color.lightText : color.grey900,
+    menuSelected: isDark ? color.secondary200 : color.secondaryDark,
+    menuSelectedBack: isDark ? color.secondaryDark : color.secondaryLight,
+    divider: isDark ? color.grey700 : color.grey200,
+    customization: effectiveCustomization
   };
 
   const themeOptions = {

@@ -22,13 +22,14 @@ import { useTranslation } from 'react-i18next';
 
 // project imports
 import MenuCustomizationDialog from './MenuCustomizationDialog';
-import useCustomizationStore, { FontFamily } from 'store/customizationStore';
+import useCustomizationStore, { FontFamily, ThemeMode } from 'store/customizationStore';
 import { languageOptions } from 'store/constant';
 
 // assets
 import {
   Brightness4,
   Brightness7,
+  SettingsBrightness,
   Close,
   RestartAlt,
   Tune,
@@ -72,7 +73,7 @@ const Customization: React.FC = () => {
 
   // Theme mode
   const mode = customization.mode;
-  const handleModeChange = (newMode: string) => {
+  const handleModeChange = (newMode: ThemeMode) => {
     setCustomization({ mode: newMode });
   };
 
@@ -302,14 +303,20 @@ const Customization: React.FC = () => {
                 </Typography>
               </Stack>
 
-              <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ width: '100%' }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: { xs: 0.8, sm: 1 },
+                  width: '100%'
+                }}
+              >
                 {/* Dark Mode Card */}
                 <ButtonBase
                   onClick={() => handleModeChange('dark')}
                   sx={{
-                    flex: 1,
-                    p: { xs: 1.2, sm: 1.5 },
-                    borderRadius: { xs: 2, sm: 2.5 },
+                    p: { xs: 1, sm: 1.2 },
+                    borderRadius: { xs: 2, sm: 2.2 },
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -325,29 +332,29 @@ const Customization: React.FC = () => {
                   }}
                 >
                   {mode === 'dark' && (
-                    <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
-                      <CheckCircle sx={{ fontSize: { xs: 16, sm: 18 }, color: '#2196F3' }} />
+                    <Box sx={{ position: 'absolute', top: 5, right: 5 }}>
+                      <CheckCircle sx={{ fontSize: { xs: 14, sm: 16 }, color: '#2196F3' }} />
                     </Box>
                   )}
                   <Box
                     sx={{
-                      width: { xs: 28, sm: 32 },
-                      height: { xs: 28, sm: 32 },
+                      width: { xs: 26, sm: 30 },
+                      height: { xs: 26, sm: 30 },
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: mode === 'dark' ? '#2196F3' : 'rgba(255, 255, 255, 0.1)',
                       color: mode === 'dark' ? '#FFFFFF' : isDarkMode ? '#9AA3C7' : '#697586',
-                      mb: { xs: 0.6, sm: 1 }
+                      mb: { xs: 0.5, sm: 0.8 }
                     }}
                   >
-                    <Brightness4 sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                    <Brightness4 sx={{ fontSize: { xs: 15, sm: 17 } }} />
                   </Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926', fontSize: { xs: '0.75rem', sm: '0.825rem' } }}>
                     {t('customization.dark', 'Tungi')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.62rem', sm: '0.68rem' } }}>
                     {t('customization.darkMode', 'Dark Mode')}
                   </Typography>
                 </ButtonBase>
@@ -356,9 +363,8 @@ const Customization: React.FC = () => {
                 <ButtonBase
                   onClick={() => handleModeChange('light')}
                   sx={{
-                    flex: 1,
-                    p: { xs: 1.2, sm: 1.5 },
-                    borderRadius: { xs: 2, sm: 2.5 },
+                    p: { xs: 1, sm: 1.2 },
+                    borderRadius: { xs: 2, sm: 2.2 },
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -374,33 +380,122 @@ const Customization: React.FC = () => {
                   }}
                 >
                   {mode === 'light' && (
-                    <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
-                      <CheckCircle sx={{ fontSize: { xs: 16, sm: 18 }, color: '#FFA726' }} />
+                    <Box sx={{ position: 'absolute', top: 5, right: 5 }}>
+                      <CheckCircle sx={{ fontSize: { xs: 14, sm: 16 }, color: '#FFA726' }} />
                     </Box>
                   )}
                   <Box
                     sx={{
-                      width: { xs: 28, sm: 32 },
-                      height: { xs: 28, sm: 32 },
+                      width: { xs: 26, sm: 30 },
+                      height: { xs: 26, sm: 30 },
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: mode === 'light' ? '#FFA726' : isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
                       color: mode === 'light' ? '#FFFFFF' : isDarkMode ? '#9AA3C7' : '#697586',
-                      mb: { xs: 0.6, sm: 1 }
+                      mb: { xs: 0.5, sm: 0.8 }
                     }}
                   >
-                    <Brightness7 sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                    <Brightness7 sx={{ fontSize: { xs: 15, sm: 17 } }} />
                   </Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926', fontSize: { xs: '0.75rem', sm: '0.825rem' } }}>
                     {t('customization.light', 'Kunduzgi')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.62rem', sm: '0.68rem' } }}>
                     {t('customization.lightMode', 'Light Mode')}
                   </Typography>
                 </ButtonBase>
-              </Stack>
+
+                {/* System (OS) Mode Card */}
+                <ButtonBase
+                  onClick={() => handleModeChange('system')}
+                  sx={{
+                    p: { xs: 1, sm: 1.2 },
+                    borderRadius: { xs: 2, sm: 2.2 },
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    position: 'relative',
+                    background: mode === 'system'
+                      ? isDarkMode
+                        ? 'linear-gradient(145deg, #2A1B54, #1B2554)'
+                        : 'linear-gradient(145deg, #F3E8FF, #EDE9FE)'
+                      : isDarkMode
+                      ? '#16204A'
+                      : '#F1F5F9',
+                    border: `2px solid ${mode === 'system' ? '#7C4DFF' : 'transparent'}`,
+                    boxShadow: mode === 'system' ? '0 4px 14px rgba(124, 77, 255, 0.3)' : 'none',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  {mode === 'system' && (
+                    <Box sx={{ position: 'absolute', top: 5, right: 5 }}>
+                      <CheckCircle sx={{ fontSize: { xs: 14, sm: 16 }, color: '#7C4DFF' }} />
+                    </Box>
+                  )}
+                  <Box
+                    sx={{
+                      width: { xs: 26, sm: 30 },
+                      height: { xs: 26, sm: 30 },
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: mode === 'system' ? '#7C4DFF' : isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
+                      color: mode === 'system' ? '#FFFFFF' : isDarkMode ? '#9AA3C7' : '#697586',
+                      mb: { xs: 0.5, sm: 0.8 }
+                    }}
+                  >
+                    <SettingsBrightness sx={{ fontSize: { xs: 15, sm: 17 } }} />
+                  </Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDarkMode ? '#EDEFFA' : '#121926', fontSize: { xs: '0.75rem', sm: '0.825rem' } }}>
+                    {t('customization.system', 'Tizim')}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.62rem', sm: '0.68rem' } }}>
+                    {t('customization.systemMode', 'OS Rejimi')}
+                  </Typography>
+                </ButtonBase>
+              </Box>
+
+              {/* System Mode Live Indicator banner */}
+              {mode === 'system' && (
+                <Box
+                  sx={{
+                    mt: 1.25,
+                    p: { xs: 0.8, sm: 1 },
+                    px: { xs: 1, sm: 1.25 },
+                    borderRadius: 1.5,
+                    bgcolor: isDarkMode ? 'rgba(124, 77, 255, 0.12)' : 'rgba(124, 77, 255, 0.08)',
+                    border: '1px solid',
+                    borderColor: isDarkMode ? 'rgba(124, 77, 255, 0.3)' : 'rgba(124, 77, 255, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#D1C4E9' : '#5E35B1', fontWeight: 500, fontSize: { xs: '0.68rem', sm: '0.72rem' } }}>
+                    {t('customization.systemDesc', 'Qurilma sozlamalari asosida')}
+                  </Typography>
+                  <Chip
+                    label={isDarkMode ? t('customization.systemActiveDark', 'OS: Tungi') : t('customization.systemActiveLight', 'OS: Kunduzgi')}
+                    size="small"
+                    sx={{
+                      height: 18,
+                      fontSize: '0.62rem',
+                      fontWeight: 700,
+                      bgcolor: isDarkMode ? '#2196F3' : '#FFA726',
+                      color: '#FFFFFF',
+                      '& .MuiChip-label': { px: 0.6 }
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
 
             {/* 2. ASOSIY SHRIFT (FONT FAMILY) */}

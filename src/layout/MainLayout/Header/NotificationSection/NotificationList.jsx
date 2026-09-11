@@ -24,7 +24,7 @@ import useNotificationStore from './useNotificationStore';
 import useCustomizationStore from 'store/customizationStore';
 
 const ListItemWrapper = ({ children }) => {
-  const { customization } = useCustomizationStore();
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -33,7 +33,7 @@ const ListItemWrapper = ({ children }) => {
         borderColor: 'divider',
         cursor: 'pointer',
         '&:hover': {
-          bgcolor: customization.mode === 'light' ? 'primary.light' : 'primary.dark'
+          bgcolor: theme.palette.mode === 'light' ? 'primary.light' : 'primary.dark'
         }
       }}
     >

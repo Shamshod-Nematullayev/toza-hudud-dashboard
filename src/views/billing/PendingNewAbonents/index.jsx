@@ -177,12 +177,15 @@ function PendingNewAbonents() {
     setIsLoading(true);
     // Call API to accept the request
     try {
-      const updatedRow = (await api.put('/pendingNewAbonents/accept/' + row._id)).data;
-      if (!updatedRow.ok) return toast.error(updatedRow.message);
+      const response = await api.put('/pendingNewAbonents/accept/' + row._id);
+      const updatedRow = response.data;
+      if (!updatedRow?.ok) return toast.error(updatedRow?.message || 'Xatolik yuz berdi');
       setRows((prevRows) => prevRows.filter((r) => r._id !== row._id));
       toast.success('Murojaat qabul qilindi');
     } catch (error) {
       console.error(error);
+      const errMsg = error.response?.data?.message || error.message || 'Abonent ochishda xatolik yuz berdi';
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }
