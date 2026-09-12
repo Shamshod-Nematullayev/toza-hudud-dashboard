@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useTasksStore } from './useTasksStore';
-import { Button, DialogActions, IconButton, Tooltip, Box, Paper, Typography, CircularProgress } from '@mui/material';
+import { Button, DialogActions, IconButton, Tooltip, Box, Paper, Typography, CircularProgress, Radio } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Download, HelpOutlineOutlined, InsertDriveFile, Close } from '@mui/icons-material';
 import InfoDialog from './InfoDialog';
@@ -15,19 +15,21 @@ function SendExcelToTelegramGroupDialog() {
   const { openSETTDialogDate, setOpenSETTDialogDate, openInfoDialog, setOpenInfoDialog } = useTasksStore();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [sendType, setSendType] = useState<'excel' | 'image'>('excel');
 
   // 1. React Query useMutation - Telegramga yuborish
   const sendMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ file, sendType }: { file: File; sendType: 'excel' | 'image' }) => {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('sendType', sendType);
       const response = await api.post('/fetchTelegram/send-excel-to-telegram', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       return response.data;
     },
     onSuccess: () => {
-      toast.success(t('messages.successSend') || 'Excel muvaffaqiyatli yuborildi!');
+      toast.success(t('messages.successSend') || 'Muvaffaqiyatli yuborildi!');
       handleClose();
     },
     onError: (error: any) => {
@@ -57,6 +59,7 @@ function SendExcelToTelegramGroupDialog() {
 
   const handleClose = () => {
     setSelectedFile(null);
+    setSendType('excel');
     setOpenSETTDialogDate(false);
   };
 
@@ -74,13 +77,96 @@ function SendExcelToTelegramGroupDialog() {
 
   const handleSubmit = () => {
     if (selectedFile) {
-      sendMutation.mutate(selectedFile);
+      sendMutation.mutate({ file: selectedFile, sendType });
     }
   };
 
   return (
     <DraggableDialog open={openSETTDialogDate} onClose={handleClose} title={t('buttons.sendExcelToTelegramGroup')}>
-      <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 420 }}>
+      <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2.5, minWidth: 440 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            {t('buttons.sendFormat') || 'Yuborish shakli'}
+          </Typography>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 1.5
+            }}
+          >
+            <Paper
+              variant="outlined"
+              onClick={() => setSendType('excel')}
+              sx={{
+                p: 1.5,
+                cursor: 'pointer',
+                borderRadius: 2,
+                border: 2,
+                borderColor: sendType === 'excel' ? 'primary.main' : 'divider',
+                bgcolor: sendType === 'excel' ? 'primary.light' : 'background.paper',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.25,
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  bgcolor: sendType === 'excel' ? 'primary.light' : 'action.hover'
+                }
+              }}
+            >
+              <Radio
+                size="small"
+                checked={sendType === 'excel'}
+                sx={{ p: 0, mt: 0.25, color: 'primary.main' }}
+              />
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  {t('buttons.formatExcel') || "Excel fayllarga bo'lib"}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                  {t('buttons.formatExcelDesc') || 'Har bir guruh alohida Excel fayl'}
+                </Typography>
+              </Box>
+            </Paper>
+
+            <Paper
+              variant="outlined"
+              onClick={() => setSendType('image')}
+              sx={{
+                p: 1.5,
+                cursor: 'pointer',
+                borderRadius: 2,
+                border: 2,
+                borderColor: sendType === 'image' ? 'primary.main' : 'divider',
+                bgcolor: sendType === 'image' ? 'primary.light' : 'background.paper',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.25,
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  bgcolor: sendType === 'image' ? 'primary.light' : 'action.hover'
+                }
+              }}
+            >
+              <Radio
+                size="small"
+                checked={sendType === 'image'}
+                sx={{ p: 0, mt: 0.25, color: 'primary.main' }}
+              />
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  {t('buttons.formatImage') || "Rasm ko'rinishida"}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                  {t('buttons.formatImageDesc') || 'Har bir guruh jadval rasmi'}
+                </Typography>
+              </Box>
+            </Paper>
+          </Box>
+        </Box>
+
         {!selectedFile ? (
           <FileInputDrop setFiles={handleFilesChange} fileType="excel" />
         ) : (
@@ -101,7 +187,7 @@ function SendExcelToTelegramGroupDialog() {
                 <Typography variant="body2" sx={{ fontWeight: 600, flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
                   {selectedFile.name}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                   {(selectedFile.size / 1024).toFixed(1)} KB
                 </Typography>
               </Box>

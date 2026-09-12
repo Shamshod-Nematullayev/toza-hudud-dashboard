@@ -876,14 +876,16 @@ function Debitors() {
 
   // Excel yuklash funksiyasi
   const fetchExcelFile = async () => {
+    const sortItem = dataGridProps.sortModel?.[0];
     const response = await api.get('/debitors/excel', {
       params: {
         page: 0,
         limit: 0,
-        sortField: '',
-        sortDirection: '',
+        sortField: sortItem?.field || undefined,
+        sortDirection: sortItem?.sort || undefined,
         search: appliedSearch || undefined,
         status: applied.status.length > 0 ? applied.status.join(',') : undefined,
+        hetAccountStatus: applied.hetAccountStatus.length > 0 ? applied.hetAccountStatus.join(',') : undefined,
         phoneStatus: applied.phoneStatus.length > 0 ? applied.phoneStatus.join(',') : undefined,
         debtAmountFrom: applied.debtFrom || undefined,
         debtAmountTo: applied.debtTo || undefined

@@ -76,12 +76,7 @@ interface CodeOpeningPreparationModalProps {
   onSaved?: () => void;
 }
 
-export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalProps> = ({
-  open,
-  onClose,
-  soliqRecord,
-  onSaved
-}) => {
+export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalProps> = ({ open, onClose, soliqRecord, onSaved }) => {
   const theme = useTheme();
 
   const [loading, setLoading] = useState(false);
@@ -107,7 +102,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
 
   // Inhabitants & House states
   const [members, setMembers] = useState<MvdMember[]>([]);
-  const [inhabitantCount, setInhabitantCount] = useState(1);
+  const [inhabitantCount, setInhabitantCount] = useState(0);
   const [houseInfo, setHouseInfo] = useState<any>(null);
   const [cacheInfo, setCacheInfo] = useState<{ isFromCache: boolean; lastFetchedAt?: string }>({
     isFromCache: true
@@ -163,9 +158,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
         }
 
         // Members & People count
-        const existingMembersMap = new Map(
-          (soliqRecord.suggestedMembers || []).map((m: any) => [m.Pinpp, m.isSelected])
-        );
+        const existingMembersMap = new Map((soliqRecord.suggestedMembers || []).map((m: any) => [m.Pinpp, m.isSelected]));
 
         const loadedMembers: MvdMember[] = (data.permanentPersons || []).map((p: any) => ({
           Id: p.Id,
@@ -180,7 +173,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
 
         setMembers(loadedMembers);
         const activeCount = loadedMembers.filter((m) => m.isSelected).length;
-        setInhabitantCount(activeCount > 0 ? activeCount : data.suggestedPeopleCount || 1);
+        setInhabitantCount(activeCount > 0 ? activeCount : data.suggestedPeopleCount || 0);
 
         if (forceRefresh) {
           toast.success("TozaMakon va MVD dan yangi ma'lumotlar keshga yangilandi!");
@@ -229,7 +222,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
       const updated = [...prev];
       updated[index].isSelected = !updated[index].isSelected;
       const count = updated.filter((m) => m.isSelected).length;
-      setInhabitantCount(count > 0 ? count : 1);
+      setInhabitantCount(count > 0 ? count : 0);
       return updated;
     });
   };
@@ -238,7 +231,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
     setMembers((prev) => {
       const updated = prev.map((m) => ({ ...m, isSelected: checked }));
       const count = updated.filter((m) => m.isSelected).length;
-      setInhabitantCount(count > 0 ? count : 1);
+      setInhabitantCount(count > 0 ? count : 0);
       return updated;
     });
   };
@@ -285,7 +278,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
         if (onSaved) onSaved();
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Saqlashda xatolik");
+      toast.error(e?.response?.data?.message || 'Saqlashda xatolik');
     } finally {
       setSavingMembers(false);
     }
@@ -296,12 +289,12 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
     if (!soliqRecord) return;
 
     if (!citizenLastName.trim() || !citizenFirstName.trim()) {
-      toast.warn("Iltimos, abonent egasining familiyasi va ismini kiriting!");
+      toast.warn('Iltimos, abonent egasining familiyasi va ismini kiriting!');
       return;
     }
 
     if (!selectedMahallaId) {
-      toast.warn("Iltimos, mahallani tanlang!");
+      toast.warn('Iltimos, mahallani tanlang!');
       return;
     }
 
@@ -333,15 +326,12 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
       const res = await api.post(`/data-intelligence/soliq-records/${soliqRecord._id}/create-abonent`, payload);
 
       if (res.data?.ok) {
-        toast.success(
-          `🎉 Abonent muvaffaqiyatli yaratildi! Yangi hisob raqami: #${res.data.accountNumber}`,
-          { autoClose: 6000 }
-        );
+        toast.success(`🎉 Abonent muvaffaqiyatli yaratildi! Yangi hisob raqami: #${res.data.accountNumber}`, { autoClose: 6000 });
         if (onSaved) onSaved();
         onClose();
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Abonent yaratishda xatolik yuz berdi");
+      toast.error(e?.response?.data?.message || 'Abonent yaratishda xatolik yuz berdi');
     } finally {
       setCreatingAbonent(false);
     }
@@ -500,7 +490,8 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                   {/* Soliq Raw Address Preview */}
                   <Box sx={{ mb: 1.5, p: 1, bgcolor: alpha(theme.palette.info.main, 0.06), borderRadius: 1.5 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      Soliq yozuvidagi xom manzil: <strong>{soliqRecord?.mahalla || '—'}</strong> | <strong>{soliqRecord?.street || '—'}</strong>
+                      Soliq yozuvidagi xom manzil: <strong>{soliqRecord?.mahalla || '—'}</strong> |{' '}
+                      <strong>{soliqRecord?.street || '—'}</strong>
                     </Typography>
                   </Box>
 
@@ -549,13 +540,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
-                      <TextField
-                        size="small"
-                        label="Kadastr raqami"
-                        fullWidth
-                        disabled
-                        value={soliqRecord?.cadastreNumber || '—'}
-                      />
+                      <TextField size="small" label="Kadastr raqami" fullWidth disabled value={soliqRecord?.cadastreNumber || '—'} />
                     </Grid>
                   </Grid>
                 </Paper>
@@ -567,7 +552,8 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                       🏠 Kadastr to'liq manzili: <strong>{houseInfo.fullAddress || '—'}</strong>
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      Mulkdor: <strong>{houseInfo.owners?.[0]?.name || '—'}</strong> • Obyekt turi: {houseInfo.objectType || houseInfo.houseType || 'Turar joy'}
+                      Mulkdor: <strong>{houseInfo.owners?.[0]?.name || '—'}</strong> • Obyekt turi:{' '}
+                      {houseInfo.objectType || houseInfo.houseType || 'Turar joy'}
                     </Typography>
                   </Paper>
                 )}
@@ -605,9 +591,9 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                     type="number"
                     label="Hisoblanadigan Odam Soni"
                     value={inhabitantCount}
-                    onChange={(e) => setInhabitantCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    onChange={(e) => setInhabitantCount(Math.max(0, parseInt(e.target.value, 10) || 0))}
                     sx={{ width: 220 }}
-                    slotProps={{ htmlInput: { min: 1 } }}
+                    slotProps={{ htmlInput: { min: 0 } }}
                   />
                   <Chip
                     label={`MVD dagi jami: ${members.length} kishi`}
@@ -621,7 +607,8 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                 {/* Table of MVD inhabitants */}
                 {members.length === 0 ? (
                   <Alert severity="info" sx={{ borderRadius: 2, my: 'auto' }}>
-                    Ushbu kadastr manzilida MVD bazasi bo'yicha propiskadagi shaxslar topilmadi. Odam sonini qo'lda kiritib davom etishingiz mumkin.
+                    Ushbu kadastr manzilida MVD bazasi bo'yicha propiskadagi shaxslar topilmadi. Odam sonini qo'lda kiritib davom etishingiz
+                    mumkin.
                   </Alert>
                 ) : (
                   <TableContainer component={Paper} variant="outlined" sx={{ flexGrow: 1, maxHeight: 320, borderRadius: 2 }}>
@@ -645,11 +632,7 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                         {members.map((row, idx) => (
                           <TableRow key={row.Pinpp || idx} hover selected={row.isSelected}>
                             <TableCell padding="checkbox">
-                              <Checkbox
-                                size="small"
-                                checked={Boolean(row.isSelected)}
-                                onChange={() => handleToggleMember(idx)}
-                              />
+                              <Checkbox size="small" checked={Boolean(row.isSelected)} onChange={() => handleToggleMember(idx)} />
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.78rem' }}>

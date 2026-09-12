@@ -43,19 +43,47 @@ const ActiveJobsMonitor: React.FC = () => {
   const [jobs, setJobs] = useState<ActiveJobItem[]>([]);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
+  const mergeJobsState = (incomingJobs: ActiveJobItem[]) => {
+    const filtered = incomingJobs.filter(
+      (j: ActiveJobItem) =>
+        j.name !== 'sendScheduledMahallaTushumlarReport' &&
+        !j.name?.toLowerCase().includes('scheduled')
+    );
+
+    setJobs((prevJobs) => {
+      const prevMap = new Map(prevJobs.map((j) => [String(j.jobId), j]));
+      return filtered.map((incoming) => {
+        const prev = prevMap.get(String(incoming.jobId));
+        if (!prev) return incoming;
+
+        // Agar eski job faol (running) bo'lib, yangi kelgan job progressi 0 yoki orqaga qaytgan bo'lsa,
+        // foydalanuvchiga lippillash (0% ko'rinib qolishi) holatini oldini olish uchun
+        // real-time socket progressini va hisoblangan ma'lumotlarni saqlab qolamiz:
+        const shouldUsePrevProgress =
+          prev.status === 'running' &&
+          incoming.status === 'running' &&
+          typeof prev.progress === 'number' &&
+          prev.progress > 0 &&
+          (!incoming.progress || incoming.progress < prev.progress);
+
+        return {
+          ...incoming,
+          progress: shouldUsePrevProgress ? prev.progress : incoming.progress,
+          message: shouldUsePrevProgress && prev.message ? prev.message : incoming.message,
+          current: shouldUsePrevProgress && prev.current !== undefined ? prev.current : incoming.current,
+          total: shouldUsePrevProgress && prev.total !== undefined ? prev.total : incoming.total
+        };
+      });
+    });
+  };
+
   const fetchActiveJobs = useCallback(async () => {
     try {
       const { data } = await api.get('/jobs/active', {
         params: company?.id ? { companyId: company.id } : undefined
       });
       if (data?.success && Array.isArray(data.data)) {
-        setJobs(
-          data.data.filter(
-            (j: ActiveJobItem) =>
-              j.name !== 'sendScheduledMahallaTushumlarReport' &&
-              !j.name?.toLowerCase().includes('scheduled')
-          )
-        );
+        mergeJobsState(data.data);
       }
     } catch (err) {
       // Ignore network errors
@@ -70,13 +98,7 @@ const ActiveJobsMonitor: React.FC = () => {
 
     const handleActiveJobsUpdate = (updatedJobs: ActiveJobItem[]) => {
       if (Array.isArray(updatedJobs)) {
-        setJobs(
-          updatedJobs.filter(
-            (j) =>
-              j.name !== 'sendScheduledMahallaTushumlarReport' &&
-              !j.name?.toLowerCase().includes('scheduled')
-          )
-        );
+        mergeJobsState(updatedJobs);
       }
     };
 

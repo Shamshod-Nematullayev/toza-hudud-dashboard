@@ -13,8 +13,12 @@ function InfoDialog({ openInfoDialog, setOpenInfoDialog }: { openInfoDialog: boo
           <li>
             Excel faylning <b>1-ustuni</b> bo‘yicha ma’lumotlar guruhlanadi.
           </li>
-          <li>Har bir guruh alohida jadval ko‘rinishida rasmga aylantiriladi.</li>
-          <li>Hosil bo‘lgan rasmlar nazoratchilar Telegram guruhiga yuboriladi.</li>
+          <li>
+            Yuborish shaklini tanlang: <b>Excel fayllarga bo‘lib</b> yoki <b>Rasm ko‘rinishida</b>.
+          </li>
+          <li>
+            Har bir guruh alohida Excel fayl yoki jadval rasmi ko‘rinishida shakllantiriladi va nazoratchilar Telegram guruhiga yuboriladi.
+          </li>
           <li>Agar topshiriqnoma kiritilgan bo‘lsa, u inspektorlarga alohida xabar sifatida jo‘natiladi.</li>
         </ol>
 
