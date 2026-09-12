@@ -52,6 +52,7 @@ interface ITasksStore {
   statsLoading: boolean;
   fetchStats: () => Promise<void>;
   triggerUpdateStatus: () => Promise<void>;
+  triggerGenerateTasks: () => Promise<void>;
   openSETTDialogDate: boolean;
   setOpenSETTDialogDate: (open: boolean) => void;
   openInfoDialog: boolean;
@@ -111,6 +112,18 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
       await get().fetchStats();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Topshiriqlar holatini yangilashda xatolik");
+    } finally {
+      useLoaderStore.setState({ isLoading: false });
+    }
+  },
+  triggerGenerateTasks: async () => {
+    try {
+      useLoaderStore.setState({ isLoading: true });
+      const { data } = await api.post('/tasks/trigger-generate-tasks');
+      toast.success(data.message || "Yangi topshiriqlar yuklandi!");
+      await get().fetchStats();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Topshiriqlarni yuklashda xatolik");
     } finally {
       useLoaderStore.setState({ isLoading: false });
     }

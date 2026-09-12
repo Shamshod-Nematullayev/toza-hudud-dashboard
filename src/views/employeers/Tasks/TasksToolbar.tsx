@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Send, DescriptionOutlined, SyncOutlined } from '@mui/icons-material';
+import { Send, DescriptionOutlined, SyncOutlined, CloudDownloadOutlined } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Stack, Tooltip, Typography } from '@mui/material';
 import { t } from 'i18next';
 import { useTasksStore } from './useTasksStore';
 
 function TasksToolbar() {
-  const { setOpenSETTDialogDate, downloadExcel, triggerUpdateStatus } = useTasksStore();
+  const { setOpenSETTDialogDate, downloadExcel, triggerUpdateStatus, triggerGenerateTasks } = useTasksStore();
   const [updating, setUpdating] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const handleTriggerStatusUpdate = async () => {
     setUpdating(true);
@@ -14,6 +15,15 @@ function TasksToolbar() {
       await triggerUpdateStatus();
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleTriggerGenerateTasks = async () => {
+    setGenerating(true);
+    try {
+      await triggerGenerateTasks();
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -33,6 +43,20 @@ function TasksToolbar() {
       </Box>
 
       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+        <Tooltip title="Debitorlar bazasidan telefon yoki elektr hisob raqami yo'q bo'lgan abonentlarni aniqlab, mahallasiga qarab nazoratchilariga yangi topshiriq sifatida yuklash">
+          <span>
+            <Button
+              variant="contained"
+              color="info"
+              startIcon={generating ? <CircularProgress size={16} color="inherit" /> : <CloudDownloadOutlined />}
+              onClick={handleTriggerGenerateTasks}
+              disabled={generating || updating}
+            >
+              Yangi Topshiriqlarni Yuklash (Job)
+            </Button>
+          </span>
+        </Tooltip>
+
         <Tooltip title="Fondagi debitorlar holatiga asoslanib topshiriqlar holatini avtomatik 'Bajarilgan' (completed) darajasiga yangilash">
           <span>
             <Button
@@ -40,7 +64,7 @@ function TasksToolbar() {
               color="secondary"
               startIcon={updating ? <CircularProgress size={16} color="inherit" /> : <SyncOutlined />}
               onClick={handleTriggerStatusUpdate}
-              disabled={updating}
+              disabled={updating || generating}
             >
               Topshiriqlar Holatini Yangilash (Job)
             </Button>
