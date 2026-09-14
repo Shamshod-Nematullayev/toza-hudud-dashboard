@@ -362,10 +362,10 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     variant="subtitle2"
                     sx={{
                       fontWeight: 700,
-                      color: (abonentData.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
+                      color: (abonentData.balance?.kSaldo || 0) > 0 ? 'error.main' : 'success.main'
                     }}
                   >
-                    {(abonentData.balance?.kSaldo || 0).toLocaleString()} so'm
+                    {(abonentData.balance?.kSaldo * -1 || 0).toLocaleString()} so'm
                   </Typography>
                 </Stack>
               </Box>
@@ -520,10 +520,10 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                             variant="caption"
                             sx={{
                               fontWeight: 700,
-                              color: (abonentData2.balance?.kSaldo || 0) < 0 ? 'error.main' : 'success.main'
+                              color: (abonentData2.balance?.kSaldo || 0) > 0 ? 'error.main' : 'success.main'
                             }}
                           >
-                            Saldo: {(abonentData2.balance?.kSaldo || 0).toLocaleString()} so'm
+                            Saldo: {(abonentData2.balance?.kSaldo * -1 || 0).toLocaleString()} so'm
                           </Typography>
                         </Box>
                         <Tooltip title={t("Abonent kartasini chop etish / ko'rish")}>
