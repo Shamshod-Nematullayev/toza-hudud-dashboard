@@ -141,6 +141,15 @@ const billing: MenuItem = {
           icon: UploadFileOutlinedIcon,
           breadcrumbs: false,
           allowedRoles: ['admin', 'billing']
+        },
+        {
+          id: 'actPacks',
+          title: 'Aktlar pachkasi',
+          type: 'item',
+          url: '/billing/act-packs',
+          icon: ReceiptOutlined,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing', 'stm', 'rahbar', 'product_admin']
         }
       ]
     },

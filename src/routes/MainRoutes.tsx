@@ -35,6 +35,8 @@ import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
 import ImportAkt from 'views/billing/ImportAkt/ImportAkt';
+import BillingActPacks from 'views/billing/ActPacks';
+import ActList from 'views/billing/ActPacks/ActList';
 import Debitors from 'views/billing/Debitors';
 import DebtCollectionOverview from 'views/billing/DebtCollectionCenter/DebtCollectionOverview';
 import WorkQueueDetail from 'views/billing/DebtCollectionCenter/WorkQueueDetail';
@@ -244,6 +246,14 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'importAkt',
           element: <ImportAkt />
+        },
+        {
+          path: 'act-packs',
+          element: <BillingActPacks />
+        },
+        {
+          path: 'act-packs/:packId',
+          element: <ActList />
         },
         {
           path: 'data-intelligence',
