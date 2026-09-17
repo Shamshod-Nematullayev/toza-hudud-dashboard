@@ -51,6 +51,37 @@ export function extractBirthDateString(jshshir: string) {
   return `${fullYear}-${month}-${day}`;
 }
 
+export function formatAddress({
+  mahallaName,
+  streetName,
+  homeNumber,
+  flatNumber,
+  homeType
+}: {
+  mahallaName?: string;
+  streetName?: string;
+  homeNumber?: string;
+  flatNumber?: string;
+  homeType?: 'HOUSE' | 'APARTMENT' | '';
+}) {
+  const parts: string[] = [];
+
+  if (mahallaName && mahallaName.trim()) {
+    parts.push(mahallaName.trim());
+  }
+  if (streetName && streetName.trim()) {
+    parts.push(streetName.trim());
+  }
+  if (homeNumber && homeNumber.trim()) {
+    parts.push(homeNumber.trim());
+  }
+  if (flatNumber && flatNumber.trim()) {
+    parts.push(flatNumber.trim());
+  }
+
+  return parts.join(', ');
+}
+
 function EditDetails() {
   const { editDialogOpenState, setEditDialogOpenState, abonentDetails, updateDetails, getCitizensDetails } = useAbonentStore();
   const { mahallalar } = useCustomizationStore();
@@ -93,6 +124,8 @@ function EditDetails() {
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
   const [tabIndex, setTabIndex] = useState<0 | 1>(0);
+  const [address, setAddress] = useState('');
+  const [isCustomAddress, setIsCustomAddress] = useState(false);
   const [avatar, setAvatar] = useState<string>('');
 
   const [isAutoCadastr, setIsAutoCadastr] = useState(false);
@@ -134,8 +167,29 @@ function EditDetails() {
       setEmail(abonentDetails.citizen.email || '');
       setDescription(abonentDetails.description || '');
       setAvatar(abonentDetails.citizen.photo || '');
+      const initialAddress = abonentDetails.address || '';
+      setAddress(initialAddress);
+      setIsCustomAddress(Boolean(initialAddress));
     }
   }, [abonentDetails, editDialogOpenState]);
+
+  useEffect(() => {
+    if (!isCustomAddress && editDialogOpenState) {
+      const selectedMahalla = mahallalar.find((m: any) => String(m.id) === String(mahallaId));
+      const mName = selectedMahalla ? selectedMahalla.name : abonentDetails?.mahallaName || '';
+      const sName = streetName || abonentDetails?.streetName || '';
+      const autoAddr = formatAddress({
+        mahallaName: mName,
+        streetName: sName,
+        homeNumber: buildingId,
+        flatNumber: flatId,
+        homeType
+      });
+      if (autoAddr) {
+        setAddress(autoAddr);
+      }
+    }
+  }, [mahallaId, streetName, buildingId, flatId, homeType, isCustomAddress, mahallalar, abonentDetails, editDialogOpenState]);
 
   useEffect(() => {
     if (pnfl.length === 14 && pnfl !== abonentDetails?.citizen.pnfl) {
@@ -225,8 +279,21 @@ function EditDetails() {
     const updatedMahallaName = selectedMahalla ? selectedMahalla.name : abonentDetails.mahallaName;
     const updatedStreetName = streetName || abonentDetails.streetName;
 
+    const finalAddress = (address || formatAddress({
+      mahallaName: updatedMahallaName,
+      streetName: updatedStreetName,
+      homeNumber: buildingId,
+      flatNumber: flatId,
+      homeType
+    })).trim();
+
+    if (!finalAddress) {
+      return toast.error("Manzil kiritilishi shart (Mahalla, ko'cha, uy raqami)");
+    }
+
     const updatedDetails: any = {
       ...abonentDetails,
+      address: finalAddress,
       fullName: newFullName || abonentDetails.fullName,
       mahallaName: updatedMahallaName,
       streetName: updatedStreetName,
@@ -544,6 +611,42 @@ function EditDetails() {
                   <TextField label={t('tableHeaders.flatId')} value={flatId} onChange={(e) => setFlatId(e.target.value)} fullWidth />
                 </Grid>
               )}
+
+              <Grid size={{ xs: 12 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
+                  <TextField
+                    label={t('tableHeaders.address') || 'Manzil'}
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setIsCustomAddress(true);
+                    }}
+                    helperText="Format: Mahalla, ko'cha\qishloq, uy raqami, kvartira raqami"
+                    fullWidth
+                    required
+                    error={!address.trim()}
+                  />
+                  <IconButton
+                    title="Manzilni avtomatik shakllantirish"
+                    onClick={() => {
+                      setIsCustomAddress(false);
+                      const selectedMahalla = mahallalar.find((m: any) => String(m.id) === String(mahallaId));
+                      const mName = selectedMahalla ? selectedMahalla.name : abonentDetails?.mahallaName || '';
+                      const sName = streetName || abonentDetails?.streetName || '';
+                      setAddress(formatAddress({
+                        mahallaName: mName,
+                        streetName: sName,
+                        homeNumber: buildingId,
+                        flatNumber: flatId,
+                        homeType
+                      }));
+                    }}
+                    sx={{ position: 'absolute', right: 8, top: 8 }}
+                  >
+                    <AutoFixHigh />
+                  </IconButton>
+                </Box>
+              </Grid>
 
               <Grid size={{ xs: 4 }}>
                 <PhoneInput

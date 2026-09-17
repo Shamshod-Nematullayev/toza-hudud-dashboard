@@ -123,15 +123,22 @@ function HouseDetail({ house }: { house: House }) {
       HOUSE: 'HOUSE',
       APARTMENT: 'APARTMENT'
     };
-    const address = parseAddress(house.fullAddress);
+    const parsed = parseAddress(house.fullAddress);
+    const mfy = parsed.mfy || aDetails.mahallaName;
+    const street = parsed.street || aDetails.streetName;
+    const homeNumber = house.houseNumber || aDetails.house?.homeNumber;
+    const flatNumber = parsed.flatNumber || aDetails.house?.flatNumber;
+    const formattedCadAddress = [mfy, street, homeNumber, flatNumber].filter(Boolean).join(', ');
+
     await updateDetails({
       id: aDetails.id,
+      address: formattedCadAddress || house.fullAddress || aDetails.address || '',
       house: {
         ...aDetails?.house,
         cadastralNumber: house.cadastralNumber,
         homeNumber: house.houseNumber,
         type: houseTypes[house.houseType],
-        flatNumber: address.flatNumber || undefined
+        flatNumber: parsed.flatNumber || undefined
       }
     });
     onClose();

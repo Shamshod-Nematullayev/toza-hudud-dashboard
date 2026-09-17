@@ -61,6 +61,7 @@ export interface AbonentDetails {
   active: boolean;
   description: string | null;
   phone: string | null;
+  address?: string;
   citizen: Citizen;
   house: House;
   balance: Balance;
