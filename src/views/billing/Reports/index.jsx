@@ -10,7 +10,8 @@ const reportTypes = [
   { id: 3, name: 'Identifikatsiya mahalla kesimida ', path: 'report-identifikatsiya' },
   { id: 4, name: 'Maxsus topshiriqlar (Nazoratchilar)', path: 'report-special-tasks' },
   { id: 5, name: 'Mahalla tushumlar (Nazoratchilar kesimida)', path: 'report-mahalla-tushumlar' },
-  { id: 6, name: 'Kunlik reja matritsasi (Nazoratchilar)', path: 'report-inspector-plan-matrix' }
+  { id: 6, name: 'Kunlik reja matritsasi (Nazoratchilar)', path: 'report-inspector-plan-matrix' },
+  { id: 7, name: "Mahallalar tushumlar tahlili (MFY)", path: 'report-mfy-income' }
 ];
 
 function Reports() {

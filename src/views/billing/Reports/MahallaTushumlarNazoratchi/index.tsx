@@ -192,7 +192,7 @@ export default function MahallaTushumlarNazoratchi() {
   const classicSummary = data?.classicData;
 
   return (
-    <MainCard contentSX={{ p: { xs: 1.5, sm: 2.5 } }}>
+    <MainCard contentSX={{ padding: 2.5 }}>
       {/* Print Styles */}
       <style>{`
         @media print {
@@ -375,7 +375,7 @@ export default function MahallaTushumlarNazoratchi() {
         {/* KPI Cards (Plan Mode) */}
         {reportMode === 'plan' && planSummary && (
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card
                 sx={{
                   p: 2,
@@ -406,7 +406,7 @@ export default function MahallaTushumlarNazoratchi() {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card
                 sx={{
                   p: 2,
@@ -437,7 +437,7 @@ export default function MahallaTushumlarNazoratchi() {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card
                 sx={{
                   p: 2,
@@ -479,7 +479,7 @@ export default function MahallaTushumlarNazoratchi() {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card
                 sx={{
                   p: 2,
@@ -525,7 +525,7 @@ export default function MahallaTushumlarNazoratchi() {
         {/* KPI Cards (Classic Mode) */}
         {reportMode === 'classic' && classicSummary && (
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Card
                 sx={{
                   p: 2,
@@ -542,7 +542,7 @@ export default function MahallaTushumlarNazoratchi() {
                 </Typography>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Card
                 sx={{
                   p: 2,

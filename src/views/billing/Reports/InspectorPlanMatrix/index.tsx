@@ -201,7 +201,7 @@ export default function InspectorPlanMatrix() {
   }, [data?.rows]);
 
   return (
-    <MainCard contentSX={{ p: { xs: 1.5, sm: 2.5 } }}>
+    <MainCard contentSX={{ padding: 2.5 }}>
       {/* Top Header */}
       <Box sx={{ mb: 2.5 }}>
         <Stack
@@ -382,7 +382,7 @@ export default function InspectorPlanMatrix() {
       {/* KPI Overview Cards */}
       {summaryStats && (
         <Grid container spacing={2} sx={{ mb: 2.5 }}>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Card
               sx={{
                 p: 1.5,
@@ -399,7 +399,7 @@ export default function InspectorPlanMatrix() {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Card
               sx={{
                 p: 1.5,
@@ -416,7 +416,7 @@ export default function InspectorPlanMatrix() {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Card
               sx={{
                 p: 1.5,
@@ -433,7 +433,7 @@ export default function InspectorPlanMatrix() {
               </Typography>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid size={{ xs: 6, sm: 3 }}>
             <Card
               sx={{
                 p: 1.5,

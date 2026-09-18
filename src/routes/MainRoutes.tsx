@@ -31,6 +31,7 @@ import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMa
 import SpecialTasksReport from 'views/billing/Reports/SpecialTasksReport';
 import MahallaTushumlarNazoratchi from 'views/billing/Reports/MahallaTushumlarNazoratchi';
 import InspectorPlanMatrix from 'views/billing/Reports/InspectorPlanMatrix';
+import MFYIncomeReport from 'views/billing/Reports/MFYIncomeReport';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
@@ -218,6 +219,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'report-inspector-plan-matrix',
           element: <InspectorPlanMatrix />
+        },
+        {
+          path: 'report-mfy-income',
+          element: <MFYIncomeReport />
         },
         {
           path: 'pendingNewAbonents',
