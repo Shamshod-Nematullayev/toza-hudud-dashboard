@@ -40,6 +40,7 @@ import {
 } from '@mui/icons-material';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
+import OnboardingWizardModal from './OnboardingWizardModal';
 
 interface CompanyData {
   _id?: string;
@@ -90,6 +91,7 @@ export default function Companies() {
   const [companies, setCompanies] = useState<CompanyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<CompanyData | null>(null);
   const [form, setForm] = useState<CompanyData>(initialCompanyState);
 
@@ -167,10 +169,10 @@ export default function Companies() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleOpenCreate}
+          onClick={() => setOnboardingOpen(true)}
           sx={{ borderRadius: '12px', px: 3, py: 1 }}
         >
-          Yangi tashkilot qo'shish
+          Yangi tashkilot qo'shish (Onboarding)
         </Button>
       </Box>
 
@@ -539,6 +541,15 @@ export default function Companies() {
           </DialogActions>
         </form>
       </Dialog>
+
+      {/* Modern Organization Onboarding Stepper Modal */}
+      <OnboardingWizardModal
+        open={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+        onSuccess={() => {
+          fetchCompanies();
+        }}
+      />
     </Box>
   );
 }

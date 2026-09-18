@@ -1,17 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Card,
-  Box,
-  Typography,
-  Stack,
-  Button,
-  LinearProgress,
-  Chip,
-  CircularProgress,
-  Tooltip,
-  useTheme,
-  alpha
-} from '@mui/material';
+import { Card, Box, Typography, Stack, Button, LinearProgress, Chip, CircularProgress, Tooltip, useTheme, alpha } from '@mui/material';
 import {
   SyncRounded,
   CheckCircleOutlineRounded,
@@ -83,9 +71,9 @@ export const TozamakonSyncBanner: React.FC = () => {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
             if (latest.status === 'completed') {
-              toast.success("Abonentlar bazasi Tozamakondan muvaffaqiyatli yangilandi!");
+              toast.success('Abonentlar bazasi Tozamakondan muvaffaqiyatli yangilandi!');
             } else if (latest.status === 'failed') {
-              toast.error(latest.error || "Yangilanish jarayonida xatolik yuz berdi");
+              toast.error(latest.error || 'Yangilanish jarayonida xatolik yuz berdi');
             }
           }
         }, 1000);
@@ -111,11 +99,11 @@ export const TozamakonSyncBanner: React.FC = () => {
     try {
       const res = await api.post('/data-intelligence/tozamakon-sync/start');
       if (res.data?.ok) {
-        toast.info("Abonentlar bazasini yangilash boshlandi (Excel yuklab olinmoqda)...");
+        toast.info('Abonentlar bazasini yangilash boshlandi (Excel yuklab olinmoqda)...');
         await fetchStatus();
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Sinxronizatsiyani boshlashda xatolik yuz berdi");
+      toast.error(e?.response?.data?.message || 'Sinxronizatsiyani boshlashda xatolik yuz berdi');
     } finally {
       setIsStarting(false);
     }
@@ -125,18 +113,18 @@ export const TozamakonSyncBanner: React.FC = () => {
 
   // Jobni bekor qilish
   const handleCancelSync = async () => {
-    if (!window.confirm("Haqiqatan ham sinxronizatsiya jarayonini bekor qilmoqchimisiz?")) {
+    if (!window.confirm('Haqiqatan ham sinxronizatsiya jarayonini bekor qilmoqchimisiz?')) {
       return;
     }
     setIsCanceling(true);
     try {
       const res = await api.post('/data-intelligence/tozamakon-sync/cancel');
       if (res.data?.ok) {
-        toast.info("Sinxronizatsiya jarayoni bekor qilindi");
+        toast.info('Sinxronizatsiya jarayoni bekor qilindi');
         await fetchStatus();
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Bekor qilishda xatolik yuz berdi");
+      toast.error(e?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
     } finally {
       setIsCanceling(false);
     }
@@ -152,9 +140,7 @@ export const TozamakonSyncBanner: React.FC = () => {
   const lastSuccessFormatted = syncStatus?.lastSuccessAt
     ? dayjs(syncStatus.lastSuccessAt).format('DD.MM.YYYY HH:mm')
     : 'Mavjud emas (hali qilinmagan)';
-  const nextAvailableFormatted = syncStatus?.nextAvailableDate
-    ? dayjs(syncStatus.nextAvailableDate).format('DD.MM.YYYY')
-    : '';
+  const nextAvailableFormatted = syncStatus?.nextAvailableDate ? dayjs(syncStatus.nextAvailableDate).format('DD.MM.YYYY') : '';
 
   return (
     <Card
@@ -162,9 +148,7 @@ export const TozamakonSyncBanner: React.FC = () => {
         p: 2.2,
         borderRadius: 2.5,
         border: `1px solid ${isRunning ? alpha(theme.palette.info.main, 0.4) : theme.palette.divider}`,
-        bgcolor: isRunning
-          ? alpha(theme.palette.info.main, 0.03)
-          : alpha(theme.palette.background.paper, 0.9),
+        bgcolor: isRunning ? alpha(theme.palette.info.main, 0.03) : alpha(theme.palette.background.paper, 0.9),
         mb: 2.5
       }}
     >
@@ -203,7 +187,8 @@ export const TozamakonSyncBanner: React.FC = () => {
           </Stack>
 
           <Typography variant="body2" color="text.secondary">
-            Tozamakondan butun tuman abonentlarining to'liq Excel bazasi yuklanib, GreenZone abonentlariga ko'cha/qishloq, uy raqami va manzillari kiritiladi.
+            Tozamakondan butun tuman abonentlarining to'liq Excel bazasi yuklanib, GreenZone abonentlariga ko'cha/qishloq, uy raqami va
+            manzillari kiritiladi.
           </Typography>
 
           <Stack direction="row" spacing={2} sx={{ mt: 1, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -225,7 +210,7 @@ export const TozamakonSyncBanner: React.FC = () => {
             {syncStatus?.status === 'failed' && !isRunning && (
               <Chip
                 icon={<ErrorOutlineRounded sx={{ fontSize: 14 }} />}
-                label={syncStatus.error || syncStatus.stepMessage || "Oxirgi yangilanish bekor qilingan"}
+                label={syncStatus.error || syncStatus.stepMessage || 'Oxirgi yangilanish bekor qilingan'}
                 size="small"
                 color="error"
                 variant="outlined"
@@ -242,13 +227,7 @@ export const TozamakonSyncBanner: React.FC = () => {
               variant="contained"
               color="info"
               disabled={!canRun || isRunning || isStarting}
-              startIcon={
-                isRunning || isStarting ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <SyncRounded />
-                )
-              }
+              startIcon={isRunning || isStarting ? <CircularProgress size={18} color="inherit" /> : <SyncRounded />}
               onClick={handleStartSync}
               sx={{
                 borderRadius: 2,
@@ -260,10 +239,10 @@ export const TozamakonSyncBanner: React.FC = () => {
               }}
             >
               {isRunning
-                ? "Yangilanmoqda..."
+                ? 'Yangilanmoqda...'
                 : canRun
-                ? "Tozamakondan Yangilash"
-                : `15 kunda 1 marta (${syncStatus?.remainingDays} kun qoldi)`}
+                  ? 'Tozamakondan Yangilash'
+                  : `15 kunda 1 marta (${syncStatus?.remainingDays} kun qoldi)`}
             </Button>
 
             {isRunning && (
@@ -271,13 +250,7 @@ export const TozamakonSyncBanner: React.FC = () => {
                 variant="outlined"
                 color="error"
                 disabled={isCanceling}
-                startIcon={
-                  isCanceling ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : (
-                    <CancelRounded sx={{ fontSize: 18 }} />
-                  )
-                }
+                startIcon={isCanceling ? <CircularProgress size={16} color="inherit" /> : <CancelRounded sx={{ fontSize: 18 }} />}
                 onClick={handleCancelSync}
                 sx={{
                   borderRadius: 2,
@@ -287,7 +260,7 @@ export const TozamakonSyncBanner: React.FC = () => {
                   px: 1.8
                 }}
               >
-                {isCanceling ? "Bekor qilinmoqda..." : "Bekor qilish"}
+                {isCanceling ? 'Bekor qilinmoqda...' : 'Bekor qilish'}
               </Button>
             )}
           </Stack>
@@ -315,9 +288,6 @@ export const TozamakonSyncBanner: React.FC = () => {
               bgcolor: alpha(theme.palette.info.main, 0.15)
             }}
           />
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-            ⚠️ Eslatma: Jarayon 100% yakunlanmaguncha jadvallar qayta yuklanmaydi va ortiqcha tarmoq trafigi tejaladi.
-          </Typography>
         </Box>
       )}
     </Card>
