@@ -4,10 +4,15 @@ export interface AssignedMfy {
 }
 
 export interface InspectorRow {
+  _id?: string;
   id: number;
   name: string;
   activ: boolean;
   biriktirilgan: AssignedMfy[];
+  telegram_id?: number[];
+  hasTelegram?: boolean;
+  telegramUsername?: string | null;
+  telegramLinkedAt?: string | null;
 }
 
 export interface Mahalla {

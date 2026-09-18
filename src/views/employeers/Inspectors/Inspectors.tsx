@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Button, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery, Box, Theme } from '@mui/material';
+import { Button, Chip, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery, Box, Theme } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
@@ -70,6 +70,7 @@ function Inspectors(): React.JSX.Element {
   const [openAddModal, setOpenAddModal] = useState<boolean>(false);
   const [openCreateInspectorModal, setOpenCreateInspectorModal] = useState<boolean>(false);
   const [openConnectTelegramModal, setOpenConnectTelegramModal] = useState<boolean>(false);
+  const [selectedInspectorForTelegram, setSelectedInspectorForTelegram] = useState<InspectorRow | null>(null);
 
   // API Data Fetching
   const updateData = useCallback(async () => {
@@ -85,10 +86,15 @@ function Inspectors(): React.JSX.Element {
         }
 
         const dynamicRow: InspectorRow = {
+          _id: row._id,
           id: row.id,
           name: row.name,
           activ: row.activ,
-          biriktirilgan: attached
+          biriktirilgan: attached,
+          telegram_id: row.telegram_id || [],
+          hasTelegram: row.hasTelegram ?? Boolean(row.telegram_id && row.telegram_id.length > 0 && row.telegram_id[0]),
+          telegramUsername: row.telegramUsername || null,
+          telegramLinkedAt: row.telegramLinkedAt || null
         };
 
         // Dinamik ravishda mfy_0, mfy_1, mfy_2... kalitlarini yuklaymiz
@@ -188,11 +194,52 @@ function Inspectors(): React.JSX.Element {
     );
   };
 
+  const handleOpenConnectTelegram = (inspector?: InspectorRow) => {
+    setSelectedInspectorForTelegram(inspector || null);
+    setOpenConnectTelegramModal(true);
+  };
+
+  const handleCloseConnectTelegram = () => {
+    setOpenConnectTelegramModal(false);
+    setSelectedInspectorForTelegram(null);
+  };
+
   // Dinamik Ustunlar (Columns) Arxitekturasi
   const columns = useMemo<GridColDef<InspectorRow>[]>(() => {
     const baseColumns: GridColDef<InspectorRow>[] = [
       { field: 'id', headerName: 'ID', width: 70 },
-      { field: 'name', headerName: t('tableHeaders.fullName'), flex: 2, minWidth: 180 }
+      { field: 'name', headerName: t('tableHeaders.fullName'), flex: 2, minWidth: 180 },
+      {
+        field: 'telegram',
+        headerName: 'Telegram',
+        width: 140,
+        sortable: false,
+        renderCell: (params: GridRenderCellParams<InspectorRow>) => {
+          const isLinked = Boolean(
+            params.row.hasTelegram || (params.row.telegram_id && params.row.telegram_id.length > 0)
+          );
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Chip
+                icon={<Telegram sx={{ fontSize: '18px !important' }} />}
+                label={isLinked ? 'Ulangan' : 'Ulash'}
+                color={isLinked ? 'success' : 'primary'}
+                size="small"
+                variant={isLinked ? 'filled' : 'outlined'}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  handleOpenConnectTelegram(params.row);
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  '&:hover': { opacity: 0.85 }
+                }}
+              />
+            </Box>
+          );
+        }
+      }
     ];
 
     // Cheksiz (N ta) mahallalar uchun ustunlarni loop orqali dinamik yaratamiz
@@ -227,7 +274,15 @@ function Inspectors(): React.JSX.Element {
   return (
     <MainCard contentSX={{ height: '100%' }}>
       {openCreateInspectorModal && <AddInspectorModal setOpenCreateInspectorModal={setOpenCreateInspectorModal} setInspectors={setRows} />}
-      {openConnectTelegramModal && <ConnectTelegramModal setOpenConnectTelegramModal={setOpenConnectTelegramModal} inspectors={rows} />}
+      {openConnectTelegramModal && (
+        <ConnectTelegramModal
+          setOpenConnectTelegramModal={setOpenConnectTelegramModal}
+          onClose={handleCloseConnectTelegram}
+          inspectors={rows}
+          selectedInspector={selectedInspectorForTelegram}
+          onSuccess={updateData}
+        />
+      )}
       <ModalChoose
         activeInspector={activeInspector}
         activeMFY={activeMFY}
@@ -245,7 +300,7 @@ function Inspectors(): React.JSX.Element {
             <Button color="success" onClick={() => setOpenCreateInspectorModal(true)} variant="contained" startIcon={<AddOutlined />}>
               {t('tableActions.add')}
             </Button>
-            <Button color="primary" onClick={() => setOpenConnectTelegramModal(true)} variant="contained" startIcon={<Telegram />}>
+            <Button color="primary" onClick={() => handleOpenConnectTelegram()} variant="contained" startIcon={<Telegram />}>
               {isXsUp && t('tableActions.connectTelegramAccount')}
             </Button>
           </Box>
