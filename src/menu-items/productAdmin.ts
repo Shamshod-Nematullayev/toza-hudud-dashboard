@@ -12,7 +12,7 @@ const productAdmin: MenuItem = {
   id: 'productAdminGroup',
   title: 'productAdmin',
   type: 'group',
-  allowedRoles: ['admin', 'product_admin'],
+  allowedRoles: ['product_admin'],
   children: [
     {
       id: 'manageCompanies',

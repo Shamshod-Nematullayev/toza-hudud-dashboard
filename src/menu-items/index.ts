@@ -21,7 +21,7 @@ export interface MenuItem {
 }
 
 const menuItems = {
-  items: [dispatcher, employeers, workspace, gpsMonitoring, caller, productAdmin]
+  items: [employeers, workspace, gpsMonitoring, caller, dispatcher, productAdmin]
 };
 
 export default menuItems;
