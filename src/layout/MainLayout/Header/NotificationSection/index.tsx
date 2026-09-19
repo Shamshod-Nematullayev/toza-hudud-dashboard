@@ -105,15 +105,7 @@ const NotificationSection = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          ml: { xs: 0, md: 2 },
-          mr: { xs: 0, md: 3 },
-          [theme.breakpoints.down('md')]: {
-            mr: { xs: 0, md: 2 }
-          }
-        }}
-      >
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <ButtonBase sx={{ borderRadius: '12px' }}>
           <Badge badgeContent={notifications.filter((n) => n.status === 'new').length} variant="dot" color="primary" max={10}>
             <Avatar
