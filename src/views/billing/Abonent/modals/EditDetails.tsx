@@ -138,6 +138,7 @@ function EditDetails() {
         return;
       }
       setTabIndex(0);
+      setIsAutoCadastr(false);
       setPnfl(abonentDetails.citizen.pnfl);
       setPassport(abonentDetails.citizen.passport);
       setFirstName(abonentDetails.citizen.firstName);
@@ -148,20 +149,20 @@ function EditDetails() {
       setForeignCitizen(Boolean(abonentDetails.citizen.foreignCitizen));
       setPassportGivenDate(abonentDetails.citizen.passportGivenDate ? dayjs(abonentDetails.citizen.passportGivenDate) : null);
       setPassportExpireDate(abonentDetails.citizen.passportExpireDate ? dayjs(abonentDetails.citizen.passportExpireDate) : null);
-      setCadastralNumber(abonentDetails.house.cadastralNumber);
-      setTemporaryCadastralNumber(abonentDetails.house.temporaryCadastralNumber || '');
+      setCadastralNumber(abonentDetails.house?.cadastralNumber || '');
+      setTemporaryCadastralNumber(abonentDetails.house?.temporaryCadastralNumber || '');
       setInn(abonentDetails.citizen.inn || '');
-      setElectricityCoato(abonentDetails.electricityCoato);
-      setElectricityAccountNumber(abonentDetails.electricityAccountNumber);
-      setMahallaId(abonentDetails.mahallaId.toString());
-      setStreetId(abonentDetails.streetId.toString());
+      setElectricityCoato(abonentDetails.electricityCoato || '');
+      setElectricityAccountNumber(abonentDetails.electricityAccountNumber || '');
+      setMahallaId(abonentDetails.mahallaId ? abonentDetails.mahallaId.toString() : '');
+      setStreetId(abonentDetails.streetId ? abonentDetails.streetId.toString() : '');
       setStreetName(abonentDetails.streetName || '');
       setActive(abonentDetails.active);
-      setAccountNumber(abonentDetails.accountNumber);
-      setHomeType(abonentDetails.house.type);
-      setBuildingId(abonentDetails.house.homeNumber || '');
-      setFlatId(abonentDetails.house.flatNumber?.toString() || '');
-      setHomeIndex(abonentDetails.house.homeIndex?.toString() || '');
+      setAccountNumber(abonentDetails.accountNumber || '');
+      setHomeType(abonentDetails.house?.type || '');
+      setBuildingId(abonentDetails.house?.homeNumber || '');
+      setFlatId(abonentDetails.house?.flatNumber?.toString() || '');
+      setHomeIndex(abonentDetails.house?.homeIndex?.toString() || '');
       setPhone(abonentDetails.phone || '');
       setHousePhone(abonentDetails.homePhone || '');
       setEmail(abonentDetails.citizen.email || '');
@@ -338,6 +339,7 @@ function EditDetails() {
     // Optimistic UI: Modal darhol yopiladi va muvaffaqiyat xabari ko'rsatiladi
     setEditDialogOpenState(false);
     setTabIndex(0);
+    setIsAutoCadastr(false);
     toast.success("Muvaffaqiyatli saqlandi");
 
     // Serverga so'rov fonda yuboriladi
@@ -368,6 +370,7 @@ function EditDetails() {
         isReopenedByErrorRef.current = false;
         setEditDialogOpenState(false);
         setTabIndex(0);
+        setIsAutoCadastr(false);
       }}
     >
       <Tabs value={tabIndex} onChange={(e, value) => setTabIndex(value)} sx={{ pb: 1 }}>
@@ -480,6 +483,7 @@ function EditDetails() {
               <Grid size={{ xs: 6 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
                   <PatternFormat
+                    key={`cadastr_${abonentDetails?.id || 'new'}_${homeType}`}
                     customInput={TextField} // MUI TextField bilan integratsiya
                     format={homeType == 'APARTMENT' ? '##:##:##:##:####:####:####:###' : '##:##:##:##:##:####:####'} // Format shabloni
                     mask="_" // To'ldirilmagan joylar uchun belgi
@@ -491,13 +495,18 @@ function EditDetails() {
                     }}
                     fullWidth
                     label={t('tableHeaders.cadastralNumber')}
-                    value={cadastralNumber}
+                    value={cadastralNumber || ''}
                   />
                   <IconButton
                     color={isAutoCadastr ? 'primary' : 'default'}
                     onClick={() => {
+                      const targetAccount = accountNumber || abonentDetails?.accountNumber || '';
+                      if (!targetAccount) {
+                        toast.warning('Hisob raqami topilmadi');
+                        return;
+                      }
                       const formatPattern = homeType == 'APARTMENT' ? '##:##:##:##:####:####:####:###' : '##:##:##:##:##:####:####';
-                      const cad = patternFormatter(String(1405 + (accountNumber || '')), {
+                      const cad = patternFormatter('1405' + targetAccount, {
                         format: formatPattern,
                         mask: '_'
                       });
