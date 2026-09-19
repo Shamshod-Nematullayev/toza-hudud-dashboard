@@ -76,6 +76,8 @@ const ru: typeof uz = {
     invertoreDocuments: 'Инвентарные акты',
     newAbonentRequirements: 'Требования для открытия нового абонента',
     identityVerification: 'Подтверждение личности',
+    electricCodeVerification: 'Код электроэнергии',
+    inspectorVerifications: 'Подтверждение данных инспекторов',
     Blankalar: 'Бланки',
     Yurist: 'Юрист',
     Ogohlantirish: 'Предупредительные письма',

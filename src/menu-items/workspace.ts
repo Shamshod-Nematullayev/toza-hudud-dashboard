@@ -163,13 +163,49 @@ const billing: MenuItem = {
       allowedRoles: ['admin', 'billing']
     },
     {
-      id: 'inventory',
-      title: 'inventory',
-      type: 'item',
-      icon: icons.ChecklistIcon,
+      id: 'inspectorVerifications',
+      title: 'inspectorVerifications',
+      type: 'collapse',
+      icon: icons.HowToRegOutlined,
       allowedRoles: ['admin', 'billing'],
-      url: '/billing/xatlovOdamSoni',
-      breadcrumbs: false
+      children: [
+        {
+          id: 'identityVerification',
+          title: 'identityVerification',
+          type: 'item',
+          url: '/billing/shaxsni-tasdiqlash',
+          icon: icons.HowToRegOutlined,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing']
+        },
+        {
+          id: 'electricCodeVerification',
+          title: 'electricCodeVerification',
+          type: 'item',
+          url: '/billing/elektr-kodi',
+          icon: icons.ElectricBolt,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing']
+        },
+        {
+          id: 'inventory',
+          title: 'inventory',
+          type: 'item',
+          icon: icons.ChecklistIcon,
+          allowedRoles: ['admin', 'billing'],
+          url: '/billing/xatlovOdamSoni',
+          breadcrumbs: false
+        },
+        {
+          id: 'newAbonentRequirements',
+          title: 'newAbonentRequirements',
+          type: 'item',
+          url: '/billing/pendingNewAbonents',
+          icon: icons.PersonAddAltIcon,
+          breadcrumbs: false,
+          allowedRoles: ['admin', 'billing']
+        }
+      ]
     },
     {
       id: 'reports',
@@ -177,24 +213,6 @@ const billing: MenuItem = {
       type: 'item',
       url: '/billing/reports',
       icon: icons.AssessmentOutlinedIcon,
-      breadcrumbs: false,
-      allowedRoles: ['admin', 'billing']
-    },
-    {
-      id: 'newAbonentRequirements',
-      title: 'newAbonentRequirements',
-      type: 'item',
-      url: '/billing/pendingNewAbonents',
-      icon: icons.PersonAddAltIcon,
-      breadcrumbs: false,
-      allowedRoles: ['admin', 'billing']
-    },
-    {
-      id: 'identityVerification',
-      title: 'identityVerification',
-      type: 'item',
-      url: '/billing/shaxsni-tasdiqlash',
-      icon: icons.HowToRegOutlined,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing']
     },

@@ -94,7 +94,7 @@ const IdentityVerification: React.FC = () => {
   const [stats, setStats] = useState<IStats>({ total: 0, pending: 0, approved: 0, rejected: 0 });
 
   // Filter & Pagination States
-  const [statusTab, setStatusTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [statusTab, setStatusTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [search, setSearch] = useState<string>('');
   const [searchInput, setSearchInput] = useState<string>('');
   const [page, setPage] = useState<number>(0);
@@ -117,9 +117,7 @@ const IdentityVerification: React.FC = () => {
 
   // Kutilayotgan so'rovlar navbati
   const pendingQueue = useMemo(() => {
-    return items.filter(
-      (item) => !item.confirm && !item.isCancel && item.status !== 'approved' && item.status !== 'rejected'
-    );
+    return items.filter((item) => !item.confirm && !item.isCancel && item.status !== 'approved' && item.status !== 'rejected');
   }, [items]);
 
   // Ma'lumotlarni yuklash
@@ -231,11 +229,7 @@ const IdentityVerification: React.FC = () => {
   const handleApprove = async (id: string): Promise<boolean> => {
     setActionLoading(true);
     try {
-      const res = await api.post(
-        `/custom-data-requests/approve/${id}`,
-        {},
-        { headers: { 'hide-error': true } }
-      );
+      const res = await api.post(`/custom-data-requests/approve/${id}`, {}, { headers: { 'hide-error': true } });
       if (res.data?.ok || res.data?.success) {
         toast.success(res.data?.message || "Shaxsni tasdiqlash so'rovi muvaffaqiyatli qabul qilindi");
         fetchData();
@@ -245,7 +239,7 @@ const IdentityVerification: React.FC = () => {
         return false;
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Tasdiqlashda xatolik yuz berdi");
+      toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
       return false;
     } finally {
       setActionLoading(false);
@@ -256,19 +250,15 @@ const IdentityVerification: React.FC = () => {
   const handleQuickApproveRow = async (id: string) => {
     setRowActionLoading(id);
     try {
-      const res = await api.post(
-        `/custom-data-requests/approve/${id}`,
-        {},
-        { headers: { 'hide-error': true } }
-      );
+      const res = await api.post(`/custom-data-requests/approve/${id}`, {}, { headers: { 'hide-error': true } });
       if (res.data?.ok || res.data?.success) {
-        toast.success(res.data?.message || "Abonent muvaffaqiyatli tasdiqlandi");
+        toast.success(res.data?.message || 'Abonent muvaffaqiyatli tasdiqlandi');
         fetchData();
       } else {
         toast.error(res.data?.message || 'Xatolik yuz berdi');
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Tasdiqlashda xatolik yuz berdi");
+      toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
     } finally {
       setRowActionLoading(null);
     }
@@ -278,11 +268,7 @@ const IdentityVerification: React.FC = () => {
   const handleReject = async (id: string, reason: string): Promise<boolean> => {
     setActionLoading(true);
     try {
-      const res = await api.post(
-        `/custom-data-requests/reject/${id}`,
-        { reason },
-        { headers: { 'hide-error': true } }
-      );
+      const res = await api.post(`/custom-data-requests/reject/${id}`, { reason }, { headers: { 'hide-error': true } });
       if (res.data?.ok || res.data?.success) {
         toast.info(res.data?.message || "So'rov bekor qilindi");
         fetchData();
@@ -292,7 +278,7 @@ const IdentityVerification: React.FC = () => {
         return false;
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Bekor qilishda xatolik yuz berdi");
+      toast.error(err?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
       return false;
     } finally {
       setActionLoading(false);
@@ -310,11 +296,7 @@ const IdentityVerification: React.FC = () => {
     if (!rowRejectItem) return;
     setRowActionLoading(rowRejectItem._id);
     try {
-      const res = await api.post(
-        `/custom-data-requests/reject/${rowRejectItem._id}`,
-        { reason },
-        { headers: { 'hide-error': true } }
-      );
+      const res = await api.post(`/custom-data-requests/reject/${rowRejectItem._id}`, { reason }, { headers: { 'hide-error': true } });
       if (res.data?.ok || res.data?.success) {
         toast.info(res.data?.message || "So'rov bekor qilindi");
         setRowRejectDialogOpen(false);
@@ -324,7 +306,7 @@ const IdentityVerification: React.FC = () => {
         toast.error(res.data?.message || 'Xatolik yuz berdi');
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Bekor qilishda xatolik yuz berdi");
+      toast.error(err?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
     } finally {
       setRowActionLoading(null);
     }
@@ -589,12 +571,7 @@ const IdentityVerification: React.FC = () => {
                   <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
                     <span>Kutilmoqda</span>
                     {stats.pending > 0 && (
-                      <Chip
-                        label={stats.pending}
-                        size="small"
-                        color="warning"
-                        sx={{ height: 20, fontSize: '0.75rem', fontWeight: 800 }}
-                      />
+                      <Chip label={stats.pending} size="small" color="warning" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 800 }} />
                     )}
                   </Stack>
                 }
@@ -681,12 +658,10 @@ const IdentityVerification: React.FC = () => {
               ) : (
                 items.map((row, idx) => {
                   const passportFullName =
-                    `${row.data?.last_name || ''} ${row.data?.first_name || ''} ${row.data?.middle_name || ''}`.trim() ||
-                    "Ma'lumot yo'q";
+                    `${row.data?.last_name || ''} ${row.data?.first_name || ''} ${row.data?.middle_name || ''}`.trim() || "Ma'lumot yo'q";
                   const billingFullName = row.billingData?.fio || row.currentAbonent?.fio || '-';
 
-                  const isPending =
-                    !row.confirm && !row.isCancel && row.status !== 'approved' && row.status !== 'rejected';
+                  const isPending = !row.confirm && !row.isCancel && row.status !== 'approved' && row.status !== 'rejected';
                   const isApproved = row.confirm || row.status === 'approved';
                   const isRejected = row.isCancel || row.status === 'rejected';
 
@@ -698,9 +673,7 @@ const IdentityVerification: React.FC = () => {
 
                   return (
                     <TableRow key={row._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary', py: 1.5 }}>
-                        {page * rowsPerPage + idx + 1}
-                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary', py: 1.5 }}>{page * rowsPerPage + idx + 1}</TableCell>
 
                       {/* Licshet */}
                       <TableCell sx={{ py: 1.5 }}>
@@ -708,7 +681,12 @@ const IdentityVerification: React.FC = () => {
                           {row.licshet}
                         </Typography>
                         {row.reUpdating && (
-                          <Chip label="2-marta" color="warning" size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800, mt: 0.3 }} />
+                          <Chip
+                            label="2-marta"
+                            color="warning"
+                            size="small"
+                            sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800, mt: 0.3 }}
+                          />
                         )}
                       </TableCell>
 
@@ -768,9 +746,7 @@ const IdentityVerification: React.FC = () => {
                           {row.createdAt ? new Date(row.createdAt).toLocaleDateString('uz-UZ') : '-'}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                          {row.createdAt
-                            ? new Date(row.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
-                            : ''}
+                          {row.createdAt ? new Date(row.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : ''}
                         </Typography>
                       </TableCell>
 

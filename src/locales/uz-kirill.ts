@@ -76,6 +76,8 @@ const uzKirill: typeof uz = {
     invertoreDocuments: 'Хатлов далолатномалари',
     newAbonentRequirements: 'Янги абонент очиш талаблари',
     identityVerification: 'Шахсни тасдиқлаш',
+    electricCodeVerification: 'Электр коди',
+    inspectorVerifications: 'Назоратчилар маълумотларини тасдиқлаш',
     Blankalar: 'Бланкалар',
     Yurist: 'Юрист',
     Ogohlantirish: 'Огоҳлантириш хатлари',

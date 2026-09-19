@@ -74,6 +74,8 @@ const uz = {
     invertoreDocuments: 'Xatlov dalolatnomalari',
     newAbonentRequirements: 'Yangi abonent ochish talablari',
     identityVerification: 'Shaxsni tasdiqlash',
+    electricCodeVerification: 'Elektr kodi',
+    inspectorVerifications: "Nazoratchilar ma'lumotlarini tasdiqlash",
     Blankalar: 'Blankalar',
     Yurist: 'Yurist',
     Ogohlantirish: 'Ogohlantirish xatlari',

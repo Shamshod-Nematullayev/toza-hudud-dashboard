@@ -19,6 +19,7 @@ import { useEffect, useRef } from 'react';
 import { Tooltip } from '@mui/material';
 import SearchAbonentSection from './SearchAbonentSection/SearchAbonentSection';
 import MurojaatlarSection from './MurojaatlarSection';
+import InspectorSubmissionsSection from './InspectorSubmissionsSection';
 import useCustomizationStore from 'store/customizationStore';
 import CompanySelector from './CompanySelector';
 import ExtraMenuSection from './ExtraMenuSection';
@@ -106,16 +107,17 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
         <SearchAbonentSection />
       </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1, md: 1.5 }, ml: 'auto' }}>
-        <Box id="tour-header-language">
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5, md: 2 }, ml: 'auto' }}>
+        <Box id="tour-header-language" sx={{ display: 'flex', alignItems: 'center' }}>
           <LanguageSection />
         </Box>
         {/* notification, profile va qo'shimcha 3-Dot menyu */}
-        <Box id="tour-header-notifications" sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box id="tour-header-notifications" sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5, md: 2 } }}>
           <MurojaatlarSection />
+          <InspectorSubmissionsSection />
           <NotificationSection />
         </Box>
-        <Box id="tour-header-profile">
+        <Box id="tour-header-profile" sx={{ display: 'flex', alignItems: 'center' }}>
           <ProfileSection />
         </Box>
         <ExtraMenuSection />
