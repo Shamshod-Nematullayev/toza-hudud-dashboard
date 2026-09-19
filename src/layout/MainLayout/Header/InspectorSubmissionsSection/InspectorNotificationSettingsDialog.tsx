@@ -14,7 +14,8 @@ import {
   IconButton,
   Tooltip,
   Divider,
-  Stack
+  Stack,
+  useTheme
 } from '@mui/material';
 import {
   IconSettings,
@@ -48,47 +49,49 @@ interface ICategoryConfig {
   bgColor: string;
 }
 
-const CATEGORIES: ICategoryConfig[] = [
-  {
-    key: 'shaxsniTasdiqlash',
-    title: 'Shaxsni tasdiqlash',
-    subtitle: 'Pasport va JSHSHIR ma’lumotlari',
-    icon: <IconUserCheck size={20} />,
-    color: '#2563eb',
-    bgColor: '#eff6ff'
-  },
-  {
-    key: 'elektrKodi',
-    title: 'Elektr kodi (ETK)',
-    subtitle: 'HET hisob raqamlarini tasdiqlash',
-    icon: <IconBolt size={20} />,
-    color: '#d97706',
-    bgColor: '#fffbeb'
-  },
-  {
-    key: 'xatlovOdamSoni',
-    title: 'Yashovchilar soni xatlov',
-    subtitle: 'Xonadondagi odam soni xatlovi',
-    icon: <IconUsers size={20} />,
-    color: '#7c3aed',
-    bgColor: '#f5f3ff'
-  },
-  {
-    key: 'yangiAbonent',
-    title: 'Yangi abonent ochish',
-    subtitle: 'Yangi abonent ochish so’rovlari',
-    icon: <IconUserPlus size={20} />,
-    color: '#059669',
-    bgColor: '#ecfdf5'
-  }
-];
-
 export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> = ({
   open,
   onClose
 }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { settings, updateSettings, resetSettings } = useInspectorVerificationsStore();
   const [localSettings, setLocalSettings] = useState<IVerificationSettings>(settings);
+
+  const categories: ICategoryConfig[] = [
+    {
+      key: 'shaxsniTasdiqlash',
+      title: 'Shaxsni tasdiqlash',
+      subtitle: 'Pasport va JSHSHIR ma’lumotlari',
+      icon: <IconUserCheck size={20} />,
+      color: isDark ? '#60a5fa' : '#2563eb',
+      bgColor: isDark ? 'rgba(37, 99, 235, 0.2)' : '#eff6ff'
+    },
+    {
+      key: 'elektrKodi',
+      title: 'Elektr kodi (ETK)',
+      subtitle: 'HET hisob raqamlarini tasdiqlash',
+      icon: <IconBolt size={20} />,
+      color: isDark ? '#fbbf24' : '#d97706',
+      bgColor: isDark ? 'rgba(217, 119, 6, 0.2)' : '#fffbeb'
+    },
+    {
+      key: 'xatlovOdamSoni',
+      title: 'Yashovchilar soni xatlov',
+      subtitle: 'Xonadondagi odam soni xatlovi',
+      icon: <IconUsers size={20} />,
+      color: isDark ? '#a78bfa' : '#7c3aed',
+      bgColor: isDark ? 'rgba(124, 58, 237, 0.2)' : '#f5f3ff'
+    },
+    {
+      key: 'yangiAbonent',
+      title: 'Yangi abonent ochish',
+      subtitle: 'Yangi abonent ochish so’rovlari',
+      icon: <IconUserPlus size={20} />,
+      color: isDark ? '#34d399' : '#059669',
+      bgColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ecfdf5'
+    }
+  ];
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -144,7 +147,7 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ p: 2.5, bgcolor: '#f8fafc' }}>
+      <DialogTitle sx={{ p: 2.5, bgcolor: isDark ? 'background.default' : '#f8fafc' }}>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -154,14 +157,14 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
               width: 40,
               height: 40,
               borderRadius: '10px',
-              bgcolor: '#e0f2fe',
-              color: '#0284c7'
+              bgcolor: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
+              color: isDark ? '#38bdf8' : '#0284c7'
             }}
           >
             <IconSettings size={22} />
           </Box>
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
               Bildirishnoma va Muhimlik sozlamalari
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -181,8 +184,15 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
             p: 2,
             mb: 2.5,
             borderRadius: '10px',
-            border: '1px solid #e2e8f0',
-            bgcolor: localSettings.soundEnabled ? '#f0fdf4' : '#f8fafc'
+            border: '1px solid',
+            borderColor: isDark ? 'divider' : '#e2e8f0',
+            bgcolor: localSettings.soundEnabled
+              ? isDark
+                ? 'rgba(34, 197, 94, 0.12)'
+                : '#f0fdf4'
+              : isDark
+                ? 'background.default'
+                : '#f8fafc'
           }}
         >
           <Stack
@@ -200,7 +210,7 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                 {localSettings.soundEnabled ? <IconBell size={24} /> : <IconBellOff size={24} />}
               </Box>
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                   Umumiy bildirishnoma tovushi
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -219,13 +229,13 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
           </Stack>
         </Paper>
 
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#475569' }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary' }}>
           Bo'limlar bo'yicha muhimlik va mute holati:
         </Typography>
 
         {/* Har bir bo'lim uchun sozlama */}
         <Stack spacing={2}>
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const catSetting = localSettings.categories[cat.key];
             const isMuted = catSetting.muted || !localSettings.soundEnabled;
 
@@ -236,8 +246,9 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                 sx={{
                   p: 2,
                   borderRadius: '10px',
-                  border: '1px solid #e2e8f0',
-                  bgcolor: '#ffffff'
+                  border: '1px solid',
+                  borderColor: isDark ? 'divider' : '#e2e8f0',
+                  bgcolor: isDark ? 'background.default' : '#ffffff'
                 }}
               >
                 {/* Bo'lim nomi va Mute switch */}
@@ -261,7 +272,7 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                       {cat.icon}
                     </Box>
                     <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                         {cat.title}
                       </Typography>
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -330,7 +341,7 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
 
       <Divider />
 
-      <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+      <DialogActions sx={{ p: 2, bgcolor: isDark ? 'background.default' : '#f8fafc', justifyContent: 'space-between' }}>
         <Button
           startIcon={<IconRotateClockwise size={16} />}
           onClick={handleReset}

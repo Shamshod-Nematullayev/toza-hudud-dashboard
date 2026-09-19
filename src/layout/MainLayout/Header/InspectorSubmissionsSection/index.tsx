@@ -91,6 +91,8 @@ export const InspectorSubmissionsSection: React.FC = () => {
 
   const badgeColor = getBadgeColor();
 
+  const isDark = theme.palette.mode === 'dark';
+
   // 4 ta operativ tekshiruv so'rovlari
   const items: Array<{
     id: keyof IVerificationSettings['categories'];
@@ -109,8 +111,8 @@ export const InspectorSubmissionsSection: React.FC = () => {
       count: counts.shaxsniTasdiqlash,
       path: '/billing/shaxsni-tasdiqlash',
       icon: <IconUserCheck size={20} />,
-      color: '#2563eb',
-      bgColor: '#eff6ff'
+      color: isDark ? '#60a5fa' : '#2563eb',
+      bgColor: isDark ? 'rgba(37, 99, 235, 0.2)' : '#eff6ff'
     },
     {
       id: 'elektrKodi',
@@ -119,8 +121,8 @@ export const InspectorSubmissionsSection: React.FC = () => {
       count: counts.elektrKodi,
       path: '/billing/elektr-kodi',
       icon: <IconBolt size={20} />,
-      color: '#d97706',
-      bgColor: '#fffbeb'
+      color: isDark ? '#fbbf24' : '#d97706',
+      bgColor: isDark ? 'rgba(217, 119, 6, 0.2)' : '#fffbeb'
     },
     {
       id: 'xatlovOdamSoni',
@@ -129,8 +131,8 @@ export const InspectorSubmissionsSection: React.FC = () => {
       count: counts.xatlovOdamSoni,
       path: '/billing/xatlovOdamSoni',
       icon: <IconUsers size={20} />,
-      color: '#7c3aed',
-      bgColor: '#f5f3ff'
+      color: isDark ? '#a78bfa' : '#7c3aed',
+      bgColor: isDark ? 'rgba(124, 58, 237, 0.2)' : '#f5f3ff'
     },
     {
       id: 'yangiAbonent',
@@ -139,8 +141,8 @@ export const InspectorSubmissionsSection: React.FC = () => {
       count: counts.yangiAbonent,
       path: '/billing/pendingNewAbonents',
       icon: <IconUserPlus size={20} />,
-      color: '#059669',
-      bgColor: '#ecfdf5'
+      color: isDark ? '#34d399' : '#059669',
+      bgColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ecfdf5'
     }
   ];
 
@@ -211,17 +213,20 @@ export const InspectorSubmissionsSection: React.FC = () => {
               sx={{
                 width: { xs: 320, sm: 370 },
                 borderRadius: '12px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid',
+                borderColor: isDark ? 'divider' : '#e2e8f0',
+                bgcolor: 'background.paper',
+                backgroundImage: 'none',
                 overflow: 'hidden'
               }}
             >
               <ClickAwayListener onClickAway={handleClose}>
                 <Box>
                   {/* Header */}
-                  <Box sx={{ p: 2, bgcolor: '#f8fafc' }}>
+                  <Box sx={{ p: 2, bgcolor: isDark ? 'background.default' : '#f8fafc' }}>
                     <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e293b' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'text.primary' }}>
                           Nazoratchilar so'rovlari
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
@@ -271,7 +276,7 @@ export const InspectorSubmissionsSection: React.FC = () => {
                             mb: 0.5,
                             p: 1.2,
                             '&:hover': {
-                              bgcolor: '#f1f5f9'
+                              bgcolor: isDark ? 'action.hover' : '#f1f5f9'
                             }
                           }}
                         >
@@ -294,13 +299,13 @@ export const InspectorSubmissionsSection: React.FC = () => {
                           <ListItemText
                             primary={
                               <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                                   {item.title}
                                 </Typography>
                                 {isMuted && (
                                   <Tooltip title="Ovoz o'chirilgan">
                                     <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                                      <IconBellOff size={13} color="#94a3b8" />
+                                      <IconBellOff size={13} color={isDark ? '#64748b' : '#94a3b8'} />
                                     </Box>
                                   </Tooltip>
                                 )}
@@ -327,7 +332,7 @@ export const InspectorSubmissionsSection: React.FC = () => {
                                 fontSize: '0.75rem'
                               }}
                             />
-                            <IconChevronRight size={16} color="#94a3b8" />
+                            <IconChevronRight size={16} color={isDark ? '#64748b' : '#94a3b8'} />
                           </Stack>
                         </ListItemButton>
                       );
@@ -337,7 +342,7 @@ export const InspectorSubmissionsSection: React.FC = () => {
                   <Divider />
 
                   {/* Footer */}
-                  <CardActions sx={{ p: 1.2, bgcolor: '#f8fafc', justifyContent: 'space-between', px: 2 }}>
+                  <CardActions sx={{ p: 1.2, bgcolor: isDark ? 'background.default' : '#f8fafc', justifyContent: 'space-between', px: 2 }}>
                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                       Avto-yangilanish faol
                     </Typography>
