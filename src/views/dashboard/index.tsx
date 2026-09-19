@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   Chip,
+  IconButton,
   Paper,
   Skeleton,
   Stack,
@@ -18,12 +19,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
   useTheme
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import useCustomizationStore from 'store/customizationStore';
-import { IconBolt, IconChartBar, IconShieldCheck, IconUsers } from '@tabler/icons-react';
+import { IconBolt, IconChartBar, IconRefresh, IconShieldCheck, IconUsers } from '@tabler/icons-react';
 import DispatcherDashboard from 'views/dispatcher/Dashboard';
 import { useTranslation } from 'react-i18next';
 import { TourHelpButton } from 'ui-component/tour';
@@ -158,6 +160,32 @@ interface IIdentityVerificationStats {
   };
 }
 
+const STATS_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 soat
+const STATS_CACHE_PREFIX = 'dashboard_system_stats_cache_';
+
+interface IStatsCache {
+  timestamp: number;
+  data: IStat;
+}
+
+const getStatsCacheKey = () => {
+  const targetCompanyId = localStorage.getItem('targetCompanyId') || 'default';
+  return `${STATS_CACHE_PREFIX}${targetCompanyId}`;
+};
+
+const formatUpdatedTime = (timestamp: number) => {
+  try {
+    const d = new Date(timestamp);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}.${month}, ${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
+};
+
 const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(n || 0);
 const fmtMoney = (n: number) => fmt(n) + " so'm";
 
@@ -168,7 +196,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const [isLoading, setLoading] = useState(true);
+  const [isStatsRefreshing, setIsStatsRefreshing] = useState(false);
   const [stats, setStats] = useState<IStat | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
 
   // Debitors operations summary (for executive widget)
   const [debitorOps, setDebitorOps] = useState<IDebitorOperationsSummary | null>(null);
@@ -197,6 +227,69 @@ const Dashboard = () => {
   // Custom warning color: to'q sariq (dark yellow) in light mode, och sariq (light yellow) in dark mode
   const darkYellowColor = theme.palette.mode === 'dark' ? '#fcd34d' : '#b45309';
 
+  const fetchStatsData = async (force = false) => {
+    const cacheKey = getStatsCacheKey();
+
+    if (!force) {
+      try {
+        const cachedRaw = localStorage.getItem(cacheKey);
+        if (cachedRaw) {
+          const parsed: IStatsCache = JSON.parse(cachedRaw);
+          const isFresh = Date.now() - parsed.timestamp < STATS_CACHE_TTL;
+          if (isFresh && parsed.data) {
+            setStats(parsed.data);
+            setLastUpdated(formatUpdatedTime(parsed.timestamp));
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse cached dashboard stats:', e);
+      }
+    }
+
+    if (force) {
+      setIsStatsRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const [allAbonentsCount, identifiedCount, newAbonentRequestCount, totalIncome] = await Promise.all([
+        api.get('/statistics/all-abonents-count'),
+        api.get('/statistics/identified-count'),
+        api.get('/statistics/new-abonent-request-count'),
+        api.get('/statistics/monthly-income-percent')
+      ]);
+
+      const freshStats: IStat = {
+        allAbonentsCount: allAbonentsCount.data,
+        identifiedCount: identifiedCount.data,
+        newAbonentRequestCount: newAbonentRequestCount.data,
+        monthlyIncomePlanAccrual: totalIncome.data.sumAccrual,
+        monthlyIncomePlanTotalAmount: totalIncome.data.totalAmount
+      };
+
+      setStats(freshStats);
+      const now = Date.now();
+      setLastUpdated(formatUpdatedTime(now));
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({ timestamp: now, data: freshStats }));
+      } catch (storageErr) {
+        console.error('Failed to save dashboard stats cache to localStorage:', storageErr);
+      }
+
+      if (force) {
+        toast.success(t('dashboard.statsUpdatedSuccess', "Hisobot ma'lumotlari muvaffaqiyatli yangilandi"));
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+      setIsStatsRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     if (mahallalar.length === 0) {
       api.get('/mahallas', { params: { isMinimalize: true, page: 1, limit: 1000 } }).then(({ data }) => {
@@ -208,29 +301,7 @@ const Dashboard = () => {
   useEffect(() => {
     document.title = 'GreenZone - Command Center';
 
-    const fetchData = async () => {
-      try {
-        const [allAbonentsCount, identifiedCount, newAbonentRequestCount, totalIncome] = await Promise.all([
-          api.get('/statistics/all-abonents-count'),
-          api.get('/statistics/identified-count'),
-          api.get('/statistics/new-abonent-request-count'),
-          api.get('/statistics/monthly-income-percent')
-        ]);
-
-        setStats({
-          allAbonentsCount: allAbonentsCount.data,
-          identifiedCount: identifiedCount.data,
-          newAbonentRequestCount: newAbonentRequestCount.data,
-          monthlyIncomePlanAccrual: totalIncome.data.sumAccrual,
-          monthlyIncomePlanTotalAmount: totalIncome.data.totalAmount
-        });
-      } catch (error: any) {
-        toast.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchStatsData(false);
 
     // 1. Debitors operational summary
     api
@@ -391,9 +462,49 @@ const Dashboard = () => {
             border: '1px solid rgba(0,0,0,0.05)'
           }}
         >
-          <Typography variant="h3" sx={{ mb: 4, fontWeight: 800, color: '#1a237e' }}>
-            {t('dashboard.systemControl', 'Tizim Nazorati')} <IconChartBar size="1.5rem" style={{ verticalAlign: 'middle' }} />
-          </Typography>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 1 }}>
+            <Typography variant="h3" sx={{ fontWeight: 800, color: '#1a237e' }}>
+              {t('dashboard.systemControl', 'Tizim Nazorati')} <IconChartBar size="1.5rem" style={{ verticalAlign: 'middle' }} />
+            </Typography>
+
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              {lastUpdated && (
+                <Chip
+                  size="small"
+                  label={`${t('dashboard.lastUpdated', 'Yangilangan')}: ${lastUpdated}`}
+                  sx={{
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: 'text.secondary'
+                  }}
+                />
+              )}
+              <Tooltip title={t('dashboard.refreshStatsTooltip', "Ma'lumotlarni yangilash (kesh: 6 soat)")}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => fetchStatsData(true)}
+                    disabled={isLoading || isStatsRefreshing}
+                    sx={{
+                      color: '#1a237e',
+                      bgcolor: 'rgba(26, 35, 126, 0.06)',
+                      '&:hover': { bgcolor: 'rgba(26, 35, 126, 0.14)' },
+                      '@keyframes spin': {
+                        '0%': { transform: 'rotate(0deg)' },
+                        '100%': { transform: 'rotate(360deg)' }
+                      },
+                      '& svg': {
+                        animation: isLoading || isStatsRefreshing ? 'spin 1s linear infinite' : 'none'
+                      }
+                    }}
+                  >
+                    <IconRefresh size="1.25rem" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Stack>
+          </Stack>
 
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 6 }}>
