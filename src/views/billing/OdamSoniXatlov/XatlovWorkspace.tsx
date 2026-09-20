@@ -42,7 +42,9 @@ import DoneAllOutlinedIcon from '@mui/icons-material/DoneAllOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import { CSVDownload } from 'react-csv';
+import * as XLSX from 'xlsx';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 
@@ -52,6 +54,7 @@ import api from 'utils/api';
 import useOdamSoniXatlovStore from './odamSoniXatlovStore';
 import AddSingleXatlovModal from './modals/AddSingleXatlovModal';
 import ImportXatlovExcelModal from './modals/ImportXatlovExcelModal';
+import MahallaHisobotTab from './MahallaHisobotTab';
 import PrintSection from './PrintSection';
 import PreviewDialog from '../XatlovDalolatnomalar/PreviewDialog';
 import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
@@ -224,29 +227,93 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   // Tab 0 Handlers: Excel Download
   const handleDownloadExcel = async () => {
     try {
+      setLoading(true);
       const { data } = await api.get('/yashovchi-soni-xatlov', {
         params: {
-          limit: 1000,
+          limit: 10000,
           ...pagination.filter
         }
       });
 
-      const formatted = data.data.map((row: any, i: number) => ({
-        id: i + 1,
-        accountNumber: row.KOD,
-        fio: row.fio,
-        currentInhabitantCount: row.currentInhabitantCount,
-        YASHOVCHILAR: row.YASHOVCHILAR,
-        mahalla: row.mahallaName,
-        status: !row.document_id ? 'yangi' : 'xujjat yaratilgan'
+      const formatted = (data.data || []).map((row: any, i: number) => ({
+        '№': i + 1,
+        'Hisob raqam': row.KOD,
+        'F.I.O': row.fio,
+        'Joriy aholi soni': row.currentInhabitantCount,
+        'Aniqlandi (Yangi)': row.YASHOVCHILAR,
+        'Aholi farqi': (row.YASHOVCHILAR || 0) - (row.currentInhabitantCount || 0),
+        'Mahalla': row.mahallaName || (typeof row.mahallaId === 'object' ? row.mahallaId?.mahallaName : row.mahallaId) || '',
+        'Holati': !row.document_id ? 'Yangi' : 'Hujjat yaratilgan'
       }));
 
-      setCsvData(formatted);
-      setReadyToDownload(true);
-      setTimeout(() => setReadyToDownload(false), 2000);
+      const ws = XLSX.utils.json_to_sheet(formatted);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Abonentlar_Xatlovi');
+      XLSX.writeFile(wb, `abonentlar_xatlovi_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      toast.success('Abonentlar ro\'yxati Excelga yuklandi');
     } catch (error) {
       toast.error("Ma'lumotlarni yuklashda xatolik");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Tab 1 Handlers: Excel Export
+  const handleExportDalolatnomalarExcel = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get('/yashovchi-soni-xatlov/get-dalolatnomalar', {
+        params: {
+          page: 0,
+          pageSize: 10000
+        }
+      });
+
+      const exportRows = (data.rows || []).map((row: any, i: number) => {
+        const mahallaName = mahallalarList.find((m) => m.id === row.mahallaId)?.name || row.mahallaId;
+        return {
+          '№': i + 1,
+          'Dalolatnoma raqami': row.documentNumber,
+          'Mahalla': mahallaName,
+          'Yaratilgan sana': row.date ? new Date(row.date).toLocaleDateString() : '-',
+          'Abonentlar soni': row.request_ids?.length || 0,
+          'Holati': row.isCancel ? 'Bekor qilingan' : 'Aktiv',
+          'Bekor qilish sababi': row.cancelDescription || ''
+        };
+      });
+
+      const ws = XLSX.utils.json_to_sheet(exportRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Dalolatnomalar');
+      XLSX.writeFile(wb, `dalolatnomalar_royxati_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      toast.success('Dalolatnomalar ro\'yxati Excelga yuklandi');
+    } catch (err) {
+      toast.error('Dalolatnomalarni yuklashda xatolik');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Tab 2 Handlers: Excel Export for Scanned/Loaded Rows
+  const handleExportScanningExcel = () => {
+    if (!uploadingRows.length) {
+      return toast.warning('Eksport qilish uchun jadvalda ma\'lumot yo\'q');
+    }
+
+    const exportData = uploadingRows.map((r, i) => ({
+      '№': i + 1,
+      'Hisob raqam': r.accountNumber,
+      'F.I.O': r.fullName,
+      'Aholi soni': r.YASHOVCHILAR,
+      'Holati': r.status,
+      'Bekor qilingan': r.isCancel ? 'Ha' : 'Yo\'q'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Dalolatnoma_${dalolatnomaNumber || 'scan'}`);
+    XLSX.writeFile(wb, `dalolatnoma_${dalolatnomaNumber || 'scan'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success('Dalolatnoma tarkibi Excelga yuklandi');
   };
 
   // Tab 0 Handlers: TozaMakondan yangilash
@@ -525,6 +592,12 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
             icon={<CheckCircleOutlinedIcon fontSize="small" />}
             sx={{ fontWeight: 600, py: 1.5 }}
           />
+          <Tab
+            label="📊 Mahalla Hisoboti"
+            iconPosition="start"
+            icon={<AssessmentOutlinedIcon fontSize="small" />}
+            sx={{ fontWeight: 600, py: 1.5 }}
+          />
         </Tabs>
       </Paper>
 
@@ -705,72 +778,113 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
       {/* TAB 1: DALOLATNOMALAR RO'YXATI */}
       {activeTab === 1 && (
-        <Paper variant="outlined" sx={{ height: '70vh', width: '100%', borderRadius: 2 }}>
-          <DataGrid
-            columns={[
-              { field: 'documentNumber', headerName: '№', width: 70 },
-              {
-                field: 'mahallaId',
-                headerName: 'Mahalla nomi',
-                width: 220,
-                renderCell: ({ row }) => mahallalarList.find((m) => m.id === row.mahallaId)?.name || row.mahallaId
-              },
-              {
-                field: 'date',
-                headerName: 'Yaratilgan sana',
-                width: 160,
-                valueFormatter: (value) => (value ? new Date(value).toLocaleDateString() : '')
-              },
-              {
-                field: 'elements',
-                headerName: 'Abonentlar soni',
-                width: 140,
-                renderCell: ({ row }) => row.request_ids?.length || 0
-              },
-              {
-                field: 'status',
-                headerName: 'Holati',
-                width: 160,
-                renderCell: ({ row }) => (
-                  <Chip label={row.isCancel ? 'Bekor qilingan' : 'Aktiv'} color={row.isCancel ? 'error' : 'success'} size="small" />
-                )
-              },
-              {
-                field: 'actions',
-                headerName: 'Amallar',
-                width: 180,
-                renderCell: ({ row }) => (
-                  <Stack direction="row" spacing={0.5}>
-                    <Tooltip title="Bekor qilish">
-                      <span>
-                        <IconButton size="small" color="error" onClick={() => handleClickCancelDalolatnoma(row)} disabled={row.isCancel}>
-                          <DoDisturbAltOutlinedIcon fontSize="small" />
+        <Stack spacing={2}>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 1.5,
+              px: 2,
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              flexWrap: 'wrap',
+              gap: 1
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              Shakllantirilgan dalolatnomalar ({dalolatnomaMeta.rowCount} ta)
+            </Typography>
+
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Tooltip title="Yangilash">
+                <IconButton color="primary" onClick={fetchDalolatnomalar}>
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<SimCardDownloadOutlinedIcon />}
+                onClick={handleExportDalolatnomalarExcel}
+                sx={{ fontWeight: 700 }}
+              >
+                Excelga yuklab olish
+              </Button>
+            </Stack>
+          </Paper>
+
+          <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2 }}>
+            <DataGrid
+              columns={[
+                { field: 'documentNumber', headerName: '№', width: 70 },
+                {
+                  field: 'mahallaId',
+                  headerName: 'Mahalla nomi',
+                  width: 220,
+                  renderCell: ({ row }) => mahallalarList.find((m) => m.id === row.mahallaId)?.name || row.mahallaId
+                },
+                {
+                  field: 'date',
+                  headerName: 'Yaratilgan sana',
+                  width: 160,
+                  valueFormatter: (value) => (value ? new Date(value).toLocaleDateString() : '')
+                },
+                {
+                  field: 'elements',
+                  headerName: 'Abonentlar soni',
+                  width: 140,
+                  renderCell: ({ row }) => row.request_ids?.length || 0
+                },
+                {
+                  field: 'status',
+                  headerName: 'Holati',
+                  width: 160,
+                  renderCell: ({ row }) => (
+                    <Chip label={row.isCancel ? 'Bekor qilingan' : 'Aktiv'} color={row.isCancel ? 'error' : 'success'} size="small" />
+                  )
+                },
+                {
+                  field: 'actions',
+                  headerName: 'Amallar',
+                  width: 180,
+                  renderCell: ({ row }) => (
+                    <Stack direction="row" spacing={0.5}>
+                      <Tooltip title="Bekor qilish">
+                        <span>
+                          <IconButton size="small" color="error" onClick={() => handleClickCancelDalolatnoma(row)} disabled={row.isCancel}>
+                            <DoDisturbAltOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Ko'rish">
+                        <IconButton size="small" color="info" onClick={() => handleClickViewDalolatnoma(row)}>
+                          <VisibilityIcon fontSize="small" />
                         </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title="Ko'rish">
-                      <IconButton size="small" color="info" onClick={() => handleClickViewDalolatnoma(row)}>
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Chop etish">
-                      <IconButton size="small" color="primary" onClick={() => handleClickPrintDalolatnoma(row)}>
-                        <PrintIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                )
-              }
-            ]}
-            rows={dalolatnomaRows}
-            paginationMode="server"
-            pageSizeOptions={[15, 30, 50]}
-            rowCount={dalolatnomaMeta.rowCount}
-            paginationModel={dalolatnomaPaging}
-            onPaginationModelChange={(model) => setDalolatnomaPaging(model)}
-            sx={{ border: 'none' }}
-          />
-        </Paper>
+                      </Tooltip>
+                      <Tooltip title="Chop etish">
+                        <IconButton size="small" color="primary" onClick={() => handleClickPrintDalolatnoma(row)}>
+                          <PrintIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  )
+                }
+              ]}
+              rows={dalolatnomaRows}
+              paginationMode="server"
+              pageSizeOptions={[15, 30, 50]}
+              rowCount={dalolatnomaMeta.rowCount}
+              paginationModel={dalolatnomaPaging}
+              onPaginationModelChange={(model) => setDalolatnomaPaging(model)}
+              sx={{ border: 'none' }}
+            />
+          </Paper>
+        </Stack>
       )}
 
       {/* TAB 2: PDF SCANNER & CONFIRMATION */}
@@ -804,11 +918,35 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       </IconButton>
                     </Box>
 
-                    <Button variant="contained" color="success" fullWidth onClick={handleConfirmAll} startIcon={<DoneAllOutlinedIcon />}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      fullWidth
+                      onClick={handleConfirmAll}
+                      startIcon={<DoneAllOutlinedIcon />}
+                    >
                       {t('buttons.acceptAll')}
                     </Button>
 
-                    <Button variant="outlined" color="error" fullWidth onClick={handleCancelAll} startIcon={<DeleteOutlinedIcon />}>
+                    <Button
+                      variant="contained"
+                      color="info"
+                      fullWidth
+                      disabled={uploadingRows.length === 0}
+                      onClick={handleExportScanningExcel}
+                      startIcon={<SimCardDownloadOutlinedIcon />}
+                      sx={{ fontWeight: 700 }}
+                    >
+                      Excelga yuklab olish
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      fullWidth
+                      onClick={handleCancelAll}
+                      startIcon={<DeleteOutlinedIcon />}
+                    >
                       {t('buttons.rejectAll')}
                     </Button>
 
@@ -872,6 +1010,19 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
             </>
           )}
         </Grid>
+      )}
+
+      {/* TAB 3: MAHALLA HISOBOTI */}
+      {activeTab === 3 && (
+        <MahallaHisobotTab
+          onSelectMahalla={(mahallaId) => {
+            updatePagination({
+              filter: { mahallaId },
+              page: 1
+            });
+            setActiveTab(0);
+          }}
+        />
       )}
 
       {/* CSV Hidden Downloader */}

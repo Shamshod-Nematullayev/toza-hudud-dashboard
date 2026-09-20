@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,15 +7,15 @@ import {
   Button,
   Typography,
   Switch,
-  FormControlLabel,
   Box,
   Paper,
   Chip,
   IconButton,
   Tooltip,
-  Divider,
   Stack,
-  useTheme
+  useTheme,
+  useMediaQuery,
+  alpha
 } from '@mui/material';
 import {
   IconSettings,
@@ -26,7 +26,8 @@ import {
   IconUsers,
   IconUserPlus,
   IconRotateClockwise,
-  IconCheck
+  IconCheck,
+  IconX
 } from '@tabler/icons-react';
 import {
   useInspectorVerificationsStore,
@@ -54,44 +55,48 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
   onClose
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isDark = theme.palette.mode === 'dark';
   const { settings, updateSettings, resetSettings } = useInspectorVerificationsStore();
   const [localSettings, setLocalSettings] = useState<IVerificationSettings>(settings);
 
-  const categories: ICategoryConfig[] = [
-    {
-      key: 'shaxsniTasdiqlash',
-      title: 'Shaxsni tasdiqlash',
-      subtitle: 'Pasport va JSHSHIR ma’lumotlari',
-      icon: <IconUserCheck size={20} />,
-      color: isDark ? '#60a5fa' : '#2563eb',
-      bgColor: isDark ? 'rgba(37, 99, 235, 0.2)' : '#eff6ff'
-    },
-    {
-      key: 'elektrKodi',
-      title: 'Elektr kodi (ETK)',
-      subtitle: 'HET hisob raqamlarini tasdiqlash',
-      icon: <IconBolt size={20} />,
-      color: isDark ? '#fbbf24' : '#d97706',
-      bgColor: isDark ? 'rgba(217, 119, 6, 0.2)' : '#fffbeb'
-    },
-    {
-      key: 'xatlovOdamSoni',
-      title: 'Yashovchilar soni xatlov',
-      subtitle: 'Xonadondagi odam soni xatlovi',
-      icon: <IconUsers size={20} />,
-      color: isDark ? '#a78bfa' : '#7c3aed',
-      bgColor: isDark ? 'rgba(124, 58, 237, 0.2)' : '#f5f3ff'
-    },
-    {
-      key: 'yangiAbonent',
-      title: 'Yangi abonent ochish',
-      subtitle: 'Yangi abonent ochish so’rovlari',
-      icon: <IconUserPlus size={20} />,
-      color: isDark ? '#34d399' : '#059669',
-      bgColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ecfdf5'
-    }
-  ];
+  const categories: ICategoryConfig[] = useMemo(
+    () => [
+      {
+        key: 'shaxsniTasdiqlash',
+        title: 'Shaxsni tasdiqlash',
+        subtitle: 'Pasport va JSHSHIR ma’lumotlari',
+        icon: <IconUserCheck size={20} />,
+        color: theme.palette.primary.main,
+        bgColor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.1)
+      },
+      {
+        key: 'elektrKodi',
+        title: 'Elektr kodi (ETK)',
+        subtitle: 'HET hisob raqamlarini tasdiqlash',
+        icon: <IconBolt size={20} />,
+        color: theme.palette.warning.main,
+        bgColor: alpha(theme.palette.warning.main, isDark ? 0.2 : 0.1)
+      },
+      {
+        key: 'xatlovOdamSoni',
+        title: 'Yashovchilar soni xatlov',
+        subtitle: 'Xonadondagi odam soni xatlovi',
+        icon: <IconUsers size={20} />,
+        color: theme.palette.secondary?.main || '#7c3aed',
+        bgColor: alpha(theme.palette.secondary?.main || '#7c3aed', isDark ? 0.2 : 0.1)
+      },
+      {
+        key: 'yangiAbonent',
+        title: 'Yangi abonent ochish',
+        subtitle: 'Yangi abonent ochish so’rovlari',
+        icon: <IconUserPlus size={20} />,
+        color: theme.palette.success.main,
+        bgColor: alpha(theme.palette.success.main, isDark ? 0.2 : 0.1)
+      }
+    ],
+    [theme, isDark]
+  );
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -146,53 +151,111 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ p: 2.5, bgcolor: isDark ? 'background.default' : '#f8fafc' }}>
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Box
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: isMobile ? 0 : '16px',
+            bgcolor: 'background.paper',
+            backgroundImage: 'none',
+            overflow: 'hidden'
+          }
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          p: { xs: 1.5, sm: 2 },
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}
+      >
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={1.2}
             sx={{
-              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: 40,
-              height: 40,
-              borderRadius: '10px',
-              bgcolor: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
-              color: isDark ? '#38bdf8' : '#0284c7'
+              minWidth: 0
             }}
           >
-            <IconSettings size={22} />
-          </Box>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
-              Bildirishnoma va Muhimlik sozlamalari
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              Har bir so'rov turi uchun muhimlik darajasi va tovushni sozlang
-            </Typography>
-          </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: { xs: 34, sm: 40 },
+                height: { xs: 34, sm: 40 },
+                borderRadius: '10px',
+                bgcolor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.1),
+                color: 'primary.main',
+                flexShrink: 0
+              }}
+            >
+              <IconSettings size={20} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 800,
+                  color: 'text.primary',
+                  fontSize: { xs: '0.95rem', sm: '1.15rem' },
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                Bildirishnoma sozlamalari
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  fontSize: { xs: '0.72rem', sm: '0.8rem' },
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                Muhimlik darajasi va tovushni sozlash
+              </Typography>
+            </Box>
+          </Stack>
+
+          <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary', flexShrink: 0 }}>
+            <IconX size={20} />
+          </IconButton>
         </Stack>
       </DialogTitle>
 
-      <Divider />
-
-      <DialogContent sx={{ p: 2.5 }}>
+      <DialogContent sx={{ p: { xs: 1.5, sm: 2.5 } }}>
         {/* Umumiy tovush sozlamasi */}
         <Paper
           elevation={0}
           sx={{
-            p: 2,
+            p: { xs: 1.5, sm: 2 },
             mb: 2.5,
-            borderRadius: '10px',
+            borderRadius: '12px',
             border: '1px solid',
-            borderColor: isDark ? 'divider' : '#e2e8f0',
+            borderColor: 'divider',
             bgcolor: localSettings.soundEnabled
-              ? isDark
-                ? 'rgba(34, 197, 94, 0.12)'
-                : '#f0fdf4'
-              : isDark
-                ? 'background.default'
-                : '#f8fafc'
+              ? alpha(theme.palette.success.main, isDark ? 0.15 : 0.08)
+              : alpha(theme.palette.background.default, 0.6)
           }}
         >
           <Stack
@@ -213,7 +276,7 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                   Umumiy bildirishnoma tovushi
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                   {localSettings.soundEnabled
                     ? 'Yangi so‘rov kelganda ovoz yangraydi'
                     : 'Barcha ovozli xabarlar o‘chirilgan'}
@@ -234,7 +297,7 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
         </Typography>
 
         {/* Har bir bo'lim uchun sozlama */}
-        <Stack spacing={2}>
+        <Stack spacing={1.5}>
           {categories.map((cat) => {
             const catSetting = localSettings.categories[cat.key];
             const isMuted = catSetting.muted || !localSettings.soundEnabled;
@@ -244,19 +307,23 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                 key={cat.key}
                 elevation={0}
                 sx={{
-                  p: 2,
-                  borderRadius: '10px',
+                  p: { xs: 1.5, sm: 2 },
+                  borderRadius: '12px',
                   border: '1px solid',
-                  borderColor: isDark ? 'divider' : '#e2e8f0',
-                  bgcolor: isDark ? 'background.default' : '#ffffff'
+                  borderColor: 'divider',
+                  bgcolor: 'background.paper',
+                  transition: 'border-color 0.2s ease',
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.primary.main, 0.4)
+                  }
                 }}
               >
                 {/* Bo'lim nomi va Mute switch */}
                 <Stack
                   direction="row"
-                  sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}
+                  sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}
                 >
-                  <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center' }}>
+                  <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center', minWidth: 0 }}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -266,16 +333,35 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                         height: 34,
                         borderRadius: '8px',
                         bgcolor: cat.bgColor,
-                        color: cat.color
+                        color: cat.color,
+                        flexShrink: 0
                       }}
                     >
                       {cat.icon}
                     </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 700,
+                          color: 'text.primary',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
                         {cat.title}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'text.secondary',
+                          display: 'block',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
                         {cat.subtitle}
                       </Typography>
                     </Box>
@@ -288,10 +374,11 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                       onClick={() => handleMuteToggle(cat.key)}
                       disabled={!localSettings.soundEnabled}
                       sx={{
-                        bgcolor: isMuted ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                        bgcolor: isMuted ? alpha(theme.palette.error.main, 0.1) : alpha(theme.palette.success.main, 0.1),
                         color: isMuted ? 'error.main' : 'success.main',
+                        flexShrink: 0,
                         '&:hover': {
-                          bgcolor: isMuted ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)'
+                          bgcolor: isMuted ? alpha(theme.palette.error.main, 0.2) : alpha(theme.palette.success.main, 0.2)
                         }
                       }}
                     >
@@ -301,36 +388,63 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
                 </Stack>
 
                 {/* Priority Selector */}
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1 }}>
+                <Stack
+                  direction="row"
+                  spacing={0.8}
+                  sx={{
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 0.8,
+                    mt: 1
+                  }}
+                >
                   <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', mr: 0.5 }}>
                     Muhimlik:
                   </Typography>
 
                   <Chip
-                    label="Odatiy (Ko'k)"
+                    label="Odatiy"
                     size="small"
                     variant={catSetting.priority === 'low' ? 'filled' : 'outlined'}
                     color={catSetting.priority === 'low' ? 'primary' : 'default'}
                     onClick={() => handlePriorityChange(cat.key, 'low')}
-                    sx={{ fontWeight: 700, cursor: 'pointer' }}
+                    sx={{
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      height: 26,
+                      borderRadius: '6px'
+                    }}
                   />
 
                   <Chip
-                    label="O'rtacha (Sariq)"
+                    label="O'rtacha"
                     size="small"
                     variant={catSetting.priority === 'medium' ? 'filled' : 'outlined'}
                     color={catSetting.priority === 'medium' ? 'warning' : 'default'}
                     onClick={() => handlePriorityChange(cat.key, 'medium')}
-                    sx={{ fontWeight: 700, cursor: 'pointer' }}
+                    sx={{
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      height: 26,
+                      borderRadius: '6px'
+                    }}
                   />
 
                   <Chip
-                    label="O'ta muhim (Qizil)"
+                    label="O'ta muhim"
                     size="small"
                     variant={catSetting.priority === 'high' ? 'filled' : 'outlined'}
                     color={catSetting.priority === 'high' ? 'error' : 'default'}
                     onClick={() => handlePriorityChange(cat.key, 'high')}
-                    sx={{ fontWeight: 700, cursor: 'pointer' }}
+                    sx={{
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      height: 26,
+                      borderRadius: '6px'
+                    }}
                   />
                 </Stack>
               </Paper>
@@ -339,21 +453,51 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
         </Stack>
       </DialogContent>
 
-      <Divider />
-
-      <DialogActions sx={{ p: 2, bgcolor: isDark ? 'background.default' : '#f8fafc', justifyContent: 'space-between' }}>
+      <DialogActions
+        sx={{
+          p: { xs: 1.5, sm: 2 },
+          bgcolor: 'background.paper',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 1.5
+        }}
+      >
         <Button
           startIcon={<IconRotateClockwise size={16} />}
           onClick={handleReset}
           color="inherit"
           size="small"
-          sx={{ fontWeight: 600 }}
+          sx={{
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+            color: 'text.secondary',
+            justifyContent: { xs: 'center', sm: 'flex-start' }
+          }}
         >
           Standartga qaytarish
         </Button>
 
-        <Stack direction="row" spacing={1}>
-          <Button onClick={onClose} color="inherit">
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: 'flex-end'
+          }}
+        >
+          <Button
+            onClick={onClose}
+            color="inherit"
+            sx={{
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              flex: { xs: 1, sm: 'none' },
+              px: 2
+            }}
+          >
             Bekor qilish
           </Button>
           <Button
@@ -361,7 +505,12 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
             color="primary"
             onClick={handleSave}
             startIcon={<IconCheck size={18} />}
-            sx={{ fontWeight: 700, px: 2.5 }}
+            sx={{
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              flex: { xs: 1, sm: 'none' },
+              px: 2.5
+            }}
           >
             Saqlash
           </Button>
@@ -370,3 +519,4 @@ export const InspectorNotificationSettingsDialog: React.FC<SettingsDialogProps> 
     </Dialog>
   );
 };
+

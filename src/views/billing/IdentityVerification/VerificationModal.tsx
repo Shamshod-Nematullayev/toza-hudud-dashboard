@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -15,7 +15,10 @@ import {
   Alert,
   Tooltip,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  useTheme,
+  useMediaQuery,
+  alpha
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
@@ -30,7 +33,9 @@ import {
   IconShieldCheck,
   IconChevronLeft,
   IconChevronRight,
-  IconBolt as IconFast
+  IconBolt as IconFast,
+  IconAlertTriangle,
+  IconArrowRight
 } from '@tabler/icons-react';
 import { RejectReasonDialog } from './RejectReasonDialog';
 
@@ -38,8 +43,8 @@ interface VerificationModalProps {
   open: boolean;
   onClose: () => void;
   data: any | null;
-  onApprove: (id: string) => Promise<boolean | void>;
-  onReject: (id: string, reason: string) => Promise<boolean | void>;
+  onApprove: (id: string) => Promise<boolean | void> | void;
+  onReject: (id: string, reason: string) => Promise<boolean | void> | void;
   actionLoading?: boolean;
   queueIndex?: number;
   queueTotal?: number;
@@ -67,557 +72,894 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
   autoAdvance = true,
   onToggleAutoAdvance
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [zoomPhotoOpen, setZoomPhotoOpen] = useState(false);
 
-  if (!data) return null;
-
-  const billing = data.billingData || {};
-  const passport = data.data || {};
+  const billing = data?.billingData || {};
+  const passport = data?.data || {};
   const details = passport.details || {};
 
   const passportFullName = `${passport.last_name || ''} ${passport.first_name || ''} ${passport.middle_name || ''}`.trim();
-  const billingFullName = billing.fio || data.currentAbonent?.fio || "Ma'lumot yo'q";
+  const billingFullName = billing.fio || data?.currentAbonent?.fio || "Ma'lumot yo'q";
 
-  const isPending = !data.confirm && !data.isCancel && data.status !== 'approved' && data.status !== 'rejected';
-  const isApproved = data.confirm || data.status === 'approved';
-  const isRejected = data.isCancel || data.status === 'rejected';
+  const isPending = Boolean(data && !data.confirm && !data.isCancel && data.status !== 'approved' && data.status !== 'rejected');
+  const isApproved = Boolean(data && (data.confirm || data.status === 'approved'));
+  const isRejected = Boolean(data && (data.isCancel || data.status === 'rejected'));
 
   // Diff checks
   const isFioDiff =
     billingFullName &&
     passportFullName &&
+    billingFullName !== "Ma'lumot yo'q" &&
     billingFullName.toLowerCase().replace(/\s+/g, '') !== passportFullName.toLowerCase().replace(/\s+/g, '');
 
-  const isPinflDiff =
-    billing.pinfl &&
+  const isPinflDiff = Boolean(
     passport.pinfl &&
-    String(billing.pinfl).trim() !== String(passport.pinfl).trim();
+    (!billing.pinfl || String(billing.pinfl).trim() !== String(passport.pinfl).trim())
+  );
 
-  const handleApproveClick = async () => {
-    const success = await onApprove(data._id);
-    if (success !== false && autoAdvance && onNext && hasNext) {
+  const isPassportDiff = Boolean(
+    passport.passport_serial &&
+    billing.passport_number &&
+    `${passport.passport_serial}${passport.passport_number}`.replace(/\s+/g, '') !==
+      String(billing.passport_number).replace(/\s+/g, '')
+  );
+
+  const handleApproveClick = () => {
+    if (!data) return;
+    onApprove(data._id);
+    if (autoAdvance && onNext && hasNext) {
       onNext();
     }
   };
 
-  const handleConfirmReject = async (reason: string) => {
+  const handleConfirmReject = (reason: string) => {
+    if (!data) return;
     setRejectDialogOpen(false);
-    const success = await onReject(data._id, reason);
-    if (success !== false && autoAdvance && onNext && hasNext) {
+    onReject(data._id, reason);
+    if (autoAdvance && onNext && hasNext) {
       onNext();
     }
   };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!open || !data) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (['INPUT', 'TEXTAREA'].includes(target?.tagName)) return;
+      if (rejectDialogOpen || zoomPhotoOpen) return;
+
+      if (e.key === 'ArrowRight' && hasNext && onNext) {
+        e.preventDefault();
+        onNext();
+      } else if (e.key === 'ArrowLeft' && hasPrev && onPrev) {
+        e.preventDefault();
+        onPrev();
+      } else if (e.key === 'Enter' && isPending && !actionLoading) {
+        e.preventDefault();
+        handleApproveClick();
+      } else if ((e.key === 'r' || e.key === 'R' || e.key === 'к' || e.key === 'К') && isPending && !actionLoading) {
+        e.preventDefault();
+        setRejectDialogOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, data, rejectDialogOpen, zoomPhotoOpen, hasNext, hasPrev, isPending, actionLoading, onNext, onPrev]);
+
+  if (!data) return null;
 
   return (
     <>
-      <Dialog open={open} onClose={actionLoading ? undefined : onClose} maxWidth="md" fullWidth>
-        {/* Modal Header */}
-        <DialogTitle sx={{ p: 2, bgcolor: 'background.paper', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+      <Dialog
+        open={open}
+        onClose={actionLoading ? undefined : onClose}
+        maxWidth="lg"
+        fullWidth
+        fullScreen={isMobile}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: isMobile ? 0 : '20px',
+              bgcolor: 'background.paper',
+              backgroundImage: 'none',
+              overflow: 'hidden'
+            }
+          }
+        }}
+      >
+        {/* Modal Header: Ixcham va Qulay */}
+        <DialogTitle
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: 'background.paper',
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+            <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center' }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 44,
-                  height: 44,
-                  borderRadius: '12px',
+                  width: { xs: 34, sm: 40 },
+                  height: { xs: 34, sm: 40 },
+                  borderRadius: '10px',
                   bgcolor: isApproved
-                    ? 'rgba(34, 197, 94, 0.12)'
+                    ? alpha(theme.palette.success.main, 0.15)
                     : isRejected
-                    ? 'rgba(239, 68, 68, 0.12)'
-                    : 'rgba(245, 158, 11, 0.12)',
-                  color: isApproved ? '#15803d' : isRejected ? '#dc2626' : '#d97706'
+                    ? alpha(theme.palette.error.main, 0.15)
+                    : alpha(theme.palette.warning.main, 0.15),
+                  color: isApproved
+                    ? 'success.main'
+                    : isRejected
+                    ? 'error.main'
+                    : 'warning.main',
+                  flexShrink: 0
                 }}
               >
-                <IconShieldCheck size={26} />
+                <IconShieldCheck size={20} />
               </Box>
               <Box>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary' }}>
-                    Abonent: {data.licshet}
+                <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: '1rem', sm: '1.2rem' } }}>
+                    Licshet: {data.licshet}
                   </Typography>
                   {data.reUpdating && (
-                    <Chip label="2-marta yangilash" color="warning" size="small" sx={{ fontWeight: 700 }} />
+                    <Chip label="2-marta" color="warning" size="small" sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
                   )}
                   {isApproved && (
-                    <Chip label="Tasdiqlangan" color="success" size="small" sx={{ fontWeight: 700 }} />
+                    <Chip label="Tasdiqlangan" color="success" size="small" sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
                   )}
                   {isRejected && (
-                    <Chip label="Bekor qilingan" color="error" size="small" sx={{ fontWeight: 700 }} />
+                    <Chip label="Bekor qilingan" color="error" size="small" sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
                   )}
                   {isPending && (
                     <Chip
-                      label="Ko'rib chiqilmoqda"
+                      label="Kutilmoqda"
                       size="small"
-                      sx={{
-                        bgcolor: 'rgba(245, 158, 11, 0.16)',
-                        color: '#b45309',
-                        fontWeight: 700,
-                        border: '1px solid rgba(245, 158, 11, 0.3)'
-                      }}
+                      color="warning"
+                      variant="outlined"
+                      sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }}
                     />
                   )}
                 </Stack>
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.3 }}>
-                  Nazoratchi: <b>{data.inspector_name || "Noma'lum"}</b> | Sana:{' '}
-                  {data.createdAt ? new Date(data.createdAt).toLocaleString('uz-UZ') : "Noma'lum"}
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.1, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
+                  Nazoratchi: <b>{data.inspector_name || "Noma'lum"}</b>
+                  {data.createdAt ? ` • ${new Date(data.createdAt).toLocaleDateString('uz-UZ')}` : ''}
                 </Typography>
               </Box>
             </Stack>
 
             {/* Navbat va Boshqaruv tugmalari */}
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', ml: 'auto' }}>
               {queueTotal !== undefined && queueTotal > 0 && (
-                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mr: 1 }}>
-                  <Tooltip title="Oldingi so'rov">
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  sx={{
+                    alignItems: 'center',
+                    bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    borderRadius: '8px',
+                    px: 0.8,
+                    py: 0.2
+                  }}
+                >
+                  <Tooltip title="Oldingi [←]">
                     <span>
-                      <IconButton size="small" onClick={onPrev} disabled={!hasPrev || actionLoading}>
-                        <IconChevronLeft size={20} />
+                      <IconButton size="small" onClick={onPrev} disabled={!hasPrev || actionLoading} sx={{ p: 0.5 }}>
+                        <IconChevronLeft size={16} />
                       </IconButton>
                     </span>
                   </Tooltip>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', px: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', px: 0.5 }}>
                     {(queueIndex ?? 0) + 1} / {queueTotal}
                   </Typography>
-                  <Tooltip title="Keyingi so'rov">
+                  <Tooltip title="Keyingi [→]">
                     <span>
-                      <IconButton size="small" onClick={onNext} disabled={!hasNext || actionLoading}>
-                        <IconChevronRight size={20} />
+                      <IconButton size="small" onClick={onNext} disabled={!hasNext || actionLoading} sx={{ p: 0.5 }}>
+                        <IconChevronRight size={16} />
                       </IconButton>
                     </span>
                   </Tooltip>
                 </Stack>
               )}
 
-              <IconButton onClick={onClose} disabled={actionLoading} size="small">
-                <IconX size={20} />
+              {queueTotal !== undefined && queueTotal > 1 && isPending && onToggleAutoAdvance && (
+                <Tooltip title={autoAdvance ? "Tasdiqlangach avtomatik keyingisiga o'tadi" : "Avto-o'tish o'chiq"}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        size="small"
+                        checked={autoAdvance}
+                        onChange={(e) => onToggleAutoAdvance(e.target.checked)}
+                        color="warning"
+                      />
+                    }
+                    label={
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: { xs: 'none', md: 'inline' } }}>
+                        {autoAdvance ? 'Avto' : 'Qo‘lda'}
+                      </Typography>
+                    }
+                    sx={{ m: 0 }}
+                  />
+                </Tooltip>
+              )}
+
+              <IconButton onClick={onClose} disabled={actionLoading} size="small" sx={{ color: 'text.secondary' }}>
+                <IconX size={18} />
               </IconButton>
             </Stack>
           </Stack>
-
-          {/* Tezkor avtomatik o'tish sozlamasi */}
-          {queueTotal !== undefined && queueTotal > 1 && isPending && onToggleAutoAdvance && (
-            <Stack
-              direction="row"
-              sx={{
-                mt: 1.5,
-                pt: 1,
-                borderTop: '1px dashed rgba(0,0,0,0.08)',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <IconFast size={16} color="#d97706" />
-                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                  Tezkor tasdiqlash rejimi: bittasini tasdiqlaganda yoki rad etganda avtomatik keyingisiga o'tadi
-                </Typography>
-              </Stack>
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={autoAdvance}
-                    onChange={(e) => onToggleAutoAdvance(e.target.checked)}
-                    color="warning"
-                  />
-                }
-                label={
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                    {autoAdvance ? 'Avto-o‘tish: Faol' : 'O‘chiq'}
-                  </Typography>
-                }
-                sx={{ m: 0 }}
-              />
-            </Stack>
-          )}
         </DialogTitle>
 
-        {/* Modal Content: Side-by-Side Comparison */}
-        <DialogContent sx={{ p: 3, bgcolor: 'grey.50' }}>
+        {/* Modal Content */}
+        <DialogContent
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.default, 0.6) : alpha(theme.palette.background.paper, 0.5),
+            overflowY: 'auto'
+          }}
+        >
           {/* Status Alert if Approved or Rejected */}
           {isApproved && (
-            <Alert severity="success" sx={{ mb: 2.5, borderRadius: '10px' }}>
+            <Alert severity="success" sx={{ mb: 1.5, borderRadius: '12px', py: 0.5 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 So'rov tasdiqlangan va TozaMakon billing tizimiga kiritilgan
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Tasdiqladi: {data.confirmedBy?.fullName || data.confirmedBy?.username || 'Admin'} (
-                {data.confirmDate ? new Date(data.confirmDate).toLocaleString('uz-UZ') : ''})
+                Tasdiqladi: {data.confirmedBy?.fullName || data.confirmedBy?.username || 'Admin'}
+                {data.confirmDate ? ` (${new Date(data.confirmDate).toLocaleString('uz-UZ')})` : ''}
               </Typography>
             </Alert>
           )}
 
           {isRejected && (
-            <Alert severity="error" sx={{ mb: 2.5, borderRadius: '10px' }}>
+            <Alert severity="error" sx={{ mb: 1.5, borderRadius: '12px', py: 0.5 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 So'rov bekor qilingan
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                Bekor qildi: {data.canceledBy?.fullName || data.canceledBy?.username || 'Admin'} (
-                {data.cancelDate ? new Date(data.cancelDate).toLocaleString('uz-UZ') : ''})
+                Bekor qildi: {data.canceledBy?.fullName || data.canceledBy?.username || 'Admin'}
+                {data.cancelDate ? ` (${new Date(data.cancelDate).toLocaleString('uz-UZ')})` : ''}
               </Typography>
               {data.cancelReason && (
-                <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ mt: 0.3, fontWeight: 700 }}>
                   Sababi: {data.cancelReason}
                 </Typography>
               )}
             </Alert>
           )}
 
-          {/* Side by side comparison grid */}
-          <Grid container spacing={2.5}>
-            {/* CHAP USTUN: BILLINGDAGI MA'LUMOTLAR */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card
+          {/* Fuqaro Pasport va Asosiy Shaxs Ixcham Banneri */}
+          <Card
+            elevation={0}
+            sx={{
+              p: { xs: 1.2, sm: 1.8 },
+              mb: 1.5,
+              borderRadius: '14px',
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: isPending ? alpha(theme.palette.primary.main, 0.3) : 'divider'
+            }}
+          >
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              {/* Pasport Fotosurati (Ixcham va Chiroyli) */}
+              <Box
                 sx={{
-                  p: 2.5,
-                  borderRadius: '16px',
-                  bgcolor: 'background.paper',
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-                  height: '100%'
+                  position: 'relative',
+                  width: { xs: 65, sm: 75 },
+                  height: { xs: 80, sm: 95 },
+                  borderRadius: '10px',
+                  overflow: 'hidden',
+                  bgcolor: alpha(theme.palette.text.primary, 0.05),
+                  border: '1.5px solid',
+                  borderColor: 'divider',
+                  flexShrink: 0,
+                  cursor: data.photo ? 'pointer' : 'default',
+                  '&:hover .zoom-overlay': { opacity: 1 },
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                 }}
+                onClick={() => data.photo && setZoomPhotoOpen(true)}
               >
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
-                  <Box
-                    sx={{
-                      p: 0.8,
-                      borderRadius: '8px',
-                      bgcolor: 'rgba(25, 118, 210, 0.1)',
-                      color: 'primary.main',
-                      display: 'flex'
-                    }}
-                  >
-                    <IconUser size={20} />
-                  </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
-                    Billingdagi ma'lumotlar
-                  </Typography>
-                </Stack>
-                <Divider sx={{ mb: 2 }} />
-
-                <Stack spacing={2}>
-                  {/* FIO */}
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                      F.I.SH (Billingda)
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary', mt: 0.3 }}>
-                      {billingFullName}
-                    </Typography>
-                  </Box>
-
-                  {/* Pasport */}
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                      Pasport raqami (Billingda)
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary', mt: 0.3 }}>
-                      {billing.passport_number || data.currentAbonent?.passport_number || "Kiritilmagan"}
-                    </Typography>
-                  </Box>
-
-                  {/* PINFL */}
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                      PINFL (Billingda)
-                    </Typography>
-                    <Typography
-                      variant="body1"
+                {data.photo ? (
+                  <>
+                    <Box
+                      component="img"
+                      src={data.photo}
+                      alt="Fuqaro surati"
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <Box
+                      className="zoom-overlay"
                       sx={{
-                        fontWeight: 700,
-                        color: billing.pinfl ? 'text.primary' : 'warning.main',
-                        mt: 0.3,
-                        fontFamily: 'monospace'
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        bgcolor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        opacity: 0,
+                        transition: 'opacity 0.2s ease-in-out'
                       }}
                     >
-                      {billing.pinfl || data.currentAbonent?.pinfl || "Mavjud emas (bo'sh)"}
-                    </Typography>
-                  </Box>
-
-                  {/* Manzil & Mahalla */}
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                      Manzil / Mahalla
-                    </Typography>
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 0.3 }}>
-                      <IconMapPin size={16} color="#6b7280" />
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {billing.mahalla || data.currentAbonent?.mahalla || ''}{' '}
-                        {billing.address || data.currentAbonent?.address ? `, ${billing.address || data.currentAbonent?.address}` : ''}
-                      </Typography>
-                    </Stack>
-                  </Box>
-
-                  {/* Elektr kodi */}
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                      Elektr hisob raqami (HET kodi)
-                    </Typography>
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 0.3 }}>
-                      <IconBolt size={16} color="#eab308" />
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a237e' }}>
-                        {billing.electricityAccountNumber || "Biriktirilmagan"}
-                      </Typography>
-                    </Stack>
-                  </Box>
-
-                  {/* Yashovchilar soni */}
-                  {billing.inhabitant_cnt !== undefined && (
-                    <Box>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                        Yashovchilar soni
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mt: 0.3 }}>
-                        {billing.inhabitant_cnt} nafar
-                      </Typography>
+                      <IconZoomIn size={22} />
                     </Box>
+                  </>
+                ) : (
+                  <Stack sx={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    <IconUser size={28} color={theme.palette.text.secondary} />
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                      Rasm yo'q
+                    </Typography>
+                  </Stack>
+                )}
+              </Box>
+
+              {/* Fuqaro Ismi va Pasport Xulosasi */}
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                    IIV Pasport egasi
+                  </Typography>
+                  <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }}>
+                    {isFioDiff ? (
+                      <Chip
+                        icon={<IconAlertTriangle size={13} />}
+                        label="F.I.SH farqli"
+                        color="warning"
+                        size="small"
+                        sx={{ fontWeight: 800, height: 20, fontSize: '0.68rem' }}
+                      />
+                    ) : (
+                      <Chip
+                        icon={<IconCheck size={13} />}
+                        label="F.I.SH mos"
+                        color="success"
+                        variant="outlined"
+                        size="small"
+                        sx={{ fontWeight: 700, height: 20, fontSize: '0.68rem' }}
+                      />
+                    )}
+                    {isPinflDiff && (
+                      <Chip
+                        label="Yangi PINFL"
+                        color="success"
+                        size="small"
+                        sx={{ fontWeight: 800, height: 20, fontSize: '0.68rem' }}
+                      />
+                    )}
+                  </Stack>
+                </Stack>
+
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontWeight: 900,
+                    color: isFioDiff ? 'warning.main' : 'text.primary',
+                    fontSize: { xs: '1.05rem', sm: '1.3rem' },
+                    mt: 0.3,
+                    lineHeight: 1.25
+                  }}
+                >
+                  {passportFullName || "Ma'lumot yo'q"}
+                </Typography>
+
+                <Stack
+                  direction="row"
+                  spacing={1.2}
+                  sx={{ alignItems: 'center', flexWrap: 'wrap', mt: 0.6 }}
+                >
+                  {/* Tug'ilgan sana - Asosiy tekshiriladigan parametr */}
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    sx={{
+                      alignItems: 'center',
+                      bgcolor: alpha(theme.palette.primary.main, 0.1),
+                      px: 1,
+                      py: 0.3,
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <IconCalendar size={16} color={theme.palette.primary.main} />
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '0.85rem' }}>
+                      Tug'ilgan sana: {passport.birth_date || "Ko'rsatilmagan"}
+                    </Typography>
+                  </Stack>
+
+                  {/* JSHSHIR - Minimal */}
+                  {passport.pinfl && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        fontFamily: 'monospace',
+                        fontWeight: 700,
+                        fontSize: '0.78rem'
+                      }}
+                    >
+                      JSHSHIR: <span style={{ color: theme.palette.text.primary }}>{passport.pinfl}</span>
+                    </Typography>
                   )}
                 </Stack>
-              </Card>
-            </Grid>
+              </Box>
+            </Stack>
+          </Card>
 
-            {/* O'NG USTUN: PASPORT / IIV DAN KELGAN YANGI MA'LUMOTLAR */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card
-                sx={{
-                  p: 2.5,
-                  borderRadius: '16px',
-                  bgcolor: 'background.paper',
-                  border: isPending ? '2px solid rgba(34, 197, 94, 0.5)' : '1px solid rgba(0,0,0,0.08)',
-                  boxShadow: isPending ? '0 4px 20px rgba(34, 197, 94, 0.12)' : '0 4px 20px rgba(0,0,0,0.03)',
-                  height: '100%'
-                }}
-              >
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2, justifyContent: 'space-between' }}>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          {/* 📱 MOBIL UCHUN MAXSUS: YAGONA TO'G'RIDAN-TO'G'RI SOLISHTIRISH KARTASI */}
+          {isMobile ? (
+            <Card
+              elevation={0}
+              sx={{
+                p: 1.5,
+                borderRadius: '14px',
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider'
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>
+                Ma'lumotlar solishtiruvi (Eski ➔ Yangi)
+              </Typography>
+
+              <Stack spacing={1.2}>
+                {/* 1. F.I.SH (Asosiy parametr) */}
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: '8px',
+                    bgcolor: isFioDiff ? alpha(theme.palette.warning.main, 0.08) : alpha(theme.palette.text.primary, 0.03),
+                    border: '1px solid',
+                    borderColor: isFioDiff ? alpha(theme.palette.warning.main, 0.3) : 'transparent'
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                    1. F.I.SH (Familiya, Ismi):
+                  </Typography>
+                  <Stack spacing={0.3} sx={{ mt: 0.3 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                      <span style={{ opacity: 0.7 }}>Billingda:</span> <b>{billingFullName}</b>
+                    </Typography>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                      <IconArrowRight size={14} color={isFioDiff ? theme.palette.warning.main : theme.palette.success.main} />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 800,
+                          color: isFioDiff ? 'warning.main' : 'success.main',
+                          fontSize: '0.88rem'
+                        }}
+                      >
+                        Pasportda: {passportFullName}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Box>
+
+                {/* 2. Tug'ilgan sana (Asosiy parametr) */}
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: '8px',
+                    bgcolor: alpha(theme.palette.primary.main, 0.06),
+                    border: '1px solid',
+                    borderColor: alpha(theme.palette.primary.main, 0.25)
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                    2. Tug'ilgan sana:
+                  </Typography>
+                  <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center', mt: 0.4 }}>
+                    <IconCalendar size={16} color={theme.palette.primary.main} />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 900,
+                        color: 'primary.main',
+                        fontSize: '0.95rem'
+                      }}
+                    >
+                      {passport.birth_date || "Ko'rsatilmagan"}
+                    </Typography>
+                  </Stack>
+                </Box>
+
+                {/* 3. Manzil */}
+                <Box sx={{ p: 1, borderRadius: '8px', bgcolor: alpha(theme.palette.text.primary, 0.03) }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                    3. Manzil:
+                  </Typography>
+                  <Stack spacing={0.5} sx={{ mt: 0.3 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.78rem' }}>
+                      <span style={{ opacity: 0.7 }}>Billing manzili:</span>{' '}
+                      <b>
+                        {billing.mahalla || data.currentAbonent?.mahalla || ''}{' '}
+                        {billing.address || data.currentAbonent?.address ? `, ${billing.address || data.currentAbonent?.address}` : ''}
+                      </b>
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.primary', fontSize: '0.78rem' }}>
+                      <span style={{ opacity: 0.7 }}>IIV doimiy:</span>{' '}
+                      {[details.living_region, details.living_district, details.living_street].filter(Boolean).join(', ') || "Ma'lumot yo'q"}
+                    </Typography>
+                  </Stack>
+                </Box>
+
+                {/* 4. Qo'shimcha rekvizitlar (Minimal JSHSHIR, HET, A'zolar) */}
+                <Box sx={{ p: 1, borderRadius: '8px', bgcolor: alpha(theme.palette.text.primary, 0.02), borderTop: '1px dashed', borderColor: 'divider' }}>
+                  <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                      JSHSHIR: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: theme.palette.text.primary }}>{passport.pinfl || '-'}</span>
+                    </Typography>
+                    {billing.electricityAccountNumber && (
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                        HET: <b>{billing.electricityAccountNumber}</b>
+                      </Typography>
+                    )}
+                    {billing.inhabitant_cnt !== undefined && (
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                        A'zolar: <b>{billing.inhabitant_cnt} nafar</b>
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
+              </Stack>
+            </Card>
+          ) : (
+            /* 💻 DESKTOP UCHUN: ANIQ YONMA-YON (2 USTUN) SOLISHTIRISH */
+            <Grid container spacing={2}>
+              {/* CHAP USTUN: BILLINGDAGI HOZIRGI MA'LUMOTLAR */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: '16px',
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    height: '100%'
+                  }}
+                >
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
                     <Box
                       sx={{
-                        p: 0.8,
+                        p: 0.6,
                         borderRadius: '8px',
-                        bgcolor: 'rgba(34, 197, 94, 0.12)',
-                        color: 'success.main',
+                        bgcolor: alpha(theme.palette.info.main, 0.12),
+                        color: 'info.main',
                         display: 'flex'
                       }}
                     >
-                      <IconId size={20} />
+                      <IconUser size={18} />
                     </Box>
-                    <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
-                      Pasport / IIV ma'lumotlari
+                    <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1rem' }}>
+                      Billingdagi ma'lumotlar (Hozirgi)
                     </Typography>
                   </Stack>
-                  {isFioDiff && (
-                    <Chip label="F.I.SH o'zgarishi bor" color="primary" size="small" sx={{ fontWeight: 700 }} />
-                  )}
-                </Stack>
-                <Divider sx={{ mb: 2 }} />
+                  <Divider sx={{ mb: 1.5 }} />
 
-                {/* Surat va Asosiy Identifikatorlar */}
-                <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'flex-start' }}>
-                  {/* Pasport surati */}
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      width: 100,
-                      height: 125,
-                      borderRadius: '10px',
-                      overflow: 'hidden',
-                      bgcolor: 'grey.100',
-                      border: '1px solid rgba(0,0,0,0.1)',
-                      flexShrink: 0,
-                      cursor: data.photo ? 'pointer' : 'default',
-                      '&:hover .zoom-overlay': { opacity: 1 }
-                    }}
-                    onClick={() => data.photo && setZoomPhotoOpen(true)}
-                  >
-                    {data.photo ? (
-                      <>
-                        <Box
-                          component="img"
-                          src={data.photo}
-                          alt="Fuqaro surati"
-                          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <Box
-                          className="zoom-overlay"
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            bgcolor: 'rgba(0,0,0,0.4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            opacity: 0,
-                            transition: '0.2s'
-                          }}
-                        >
-                          <IconZoomIn size={24} />
-                        </Box>
-                      </>
-                    ) : (
-                      <Stack sx={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                        <IconUser size={36} color="#9ca3af" />
-                        <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center', px: 0.5 }}>
-                          Rasm yo'q
+                  <Stack spacing={1.5}>
+                    {/* FIO */}
+                    <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: isFioDiff ? alpha(theme.palette.warning.main, 0.08) : 'transparent' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                        1. F.I.SH (Billingda):
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary', mt: 0.3 }}>
+                        {billingFullName}
+                      </Typography>
+                    </Box>
+
+                    {/* Tug'ilgan sana */}
+                    <Box sx={{ p: 1.2, borderRadius: '10px' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                        2. Tug'ilgan sana (Billingda):
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.3 }}>
+                        {billing.birth_date || "Kiritilmagan"}
+                      </Typography>
+                    </Box>
+
+                    {/* Manzil */}
+                    <Box sx={{ p: 1.2, borderRadius: '10px' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                        3. Manzil va Mahalla (Billingda):
+                      </Typography>
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'flex-start', mt: 0.3 }}>
+                        <IconMapPin size={16} color={theme.palette.text.secondary} style={{ flexShrink: 0, marginTop: 2 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          {billing.mahalla || data.currentAbonent?.mahalla || ''}{' '}
+                          {billing.address || data.currentAbonent?.address ? `, ${billing.address || data.currentAbonent?.address}` : ''}
                         </Typography>
                       </Stack>
-                    )}
-                  </Box>
+                    </Box>
 
-                  {/* FIO va Pasport seriya */}
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                      Pasportdagi to'liq F.I.SH
-                    </Typography>
-                    <Typography
-                      variant="body1"
+                    {/* Minimal qo'shimcha rekvizitlar */}
+                    <Box sx={{ p: 1.2, borderRadius: '10px', borderTop: '1px dashed', borderColor: 'divider' }}>
+                      <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                            JSHSHIR (Billing)
+                          </Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', fontFamily: 'monospace', mt: 0.2 }}>
+                            {billing.pinfl || data.currentAbonent?.pinfl || "-"}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                            HET (Elektr hisob)
+                          </Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'block', mt: 0.2 }}>
+                            {billing.electricityAccountNumber || "Yo'q"}
+                          </Typography>
+                        </Box>
+                        {billing.inhabitant_cnt !== undefined && (
+                          <Box>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              A'zolar soni
+                            </Typography>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'block', mt: 0.2 }}>
+                              {billing.inhabitant_cnt} nafar
+                            </Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </Card>
+              </Grid>
+
+              {/* O'NG USTUN: PASPORT / IIV DAN KELGAN YANGI MA'LUMOTLAR */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: '16px',
+                    bgcolor: 'background.paper',
+                    border: '2px solid',
+                    borderColor: isPending ? 'success.main' : 'divider',
+                    height: '100%'
+                  }}
+                >
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5, justifyContent: 'space-between' }}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          p: 0.6,
+                          borderRadius: '8px',
+                          bgcolor: alpha(theme.palette.success.main, 0.12),
+                          color: 'success.main',
+                          display: 'flex'
+                        }}
+                      >
+                        <IconId size={18} />
+                      </Box>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1rem' }}>
+                        Pasport / IIV ma'lumotlari (Yangi)
+                      </Typography>
+                    </Stack>
+                    {isPending && (
+                      <Chip label="Tasdiqlash kutilmoqda" color="success" size="small" sx={{ fontWeight: 700, height: 22 }} />
+                    )}
+                  </Stack>
+                  <Divider sx={{ mb: 1.5 }} />
+
+                  <Stack spacing={1.5}>
+                    {/* FIO */}
+                    <Box
                       sx={{
-                        fontWeight: 800,
-                        color: isFioDiff ? 'primary.main' : 'text.primary',
-                        mt: 0.2
+                        p: 1.2,
+                        borderRadius: '10px',
+                        bgcolor: isFioDiff ? alpha(theme.palette.warning.main, 0.12) : alpha(theme.palette.success.main, 0.06),
+                        border: '1px solid',
+                        borderColor: isFioDiff ? alpha(theme.palette.warning.main, 0.4) : alpha(theme.palette.success.main, 0.2)
                       }}
                     >
-                      {passportFullName || "Ma'lumot yo'q"}
-                    </Typography>
-
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mt: 1 }}>
-                      Pasport seriyasi va raqami
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mt: 0.2 }}>
-                      {passport.passport_serial} {passport.passport_number}
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                <Stack spacing={1.5}>
-                  {/* PINFL */}
-                  <Box
-                    sx={{
-                      p: 1.2,
-                      borderRadius: '8px',
-                      bgcolor: isPinflDiff ? 'rgba(34, 197, 94, 0.1)' : 'grey.100',
-                      border: isPinflDiff ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(0,0,0,0.06)'
-                    }}
-                  >
-                    <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                          Yangi biriktiriladigan JSHSHIR (PINFL)
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                          1. Pasportdagi to'liq F.I.SH:
                         </Typography>
-                        <Typography
-                          variant="h4"
-                          sx={{
-                            fontWeight: 800,
-                            color: '#15803d',
-                            letterSpacing: '1px',
-                            fontFamily: 'monospace',
-                            mt: 0.3
-                          }}
-                        >
-                          {passport.pinfl}
-                        </Typography>
-                      </Box>
-                      {isPinflDiff && (
-                        <Chip label="Yangi PINFL" color="success" size="small" sx={{ fontWeight: 700 }} />
-                      )}
-                    </Stack>
-                  </Box>
+                        {isFioDiff && (
+                          <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 800 }}>
+                            Yangilanadi ➔
+                          </Typography>
+                        )}
+                      </Stack>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 900,
+                          color: isFioDiff ? 'warning.main' : 'text.primary',
+                          mt: 0.3
+                        }}
+                      >
+                        {passportFullName || "Ma'lumot yo'q"}
+                      </Typography>
+                    </Box>
 
-                  {/* Tug'ilgan sana */}
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                      Tug'ilgan sana
-                    </Typography>
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 0.3 }}>
-                      <IconCalendar size={16} color="#6b7280" />
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {/* 2. Tug'ilgan sana (Asosiy parametr) */}
+                    <Box
+                      sx={{
+                        p: 1.2,
+                        borderRadius: '10px',
+                        bgcolor: alpha(theme.palette.primary.main, 0.08),
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.primary.main, 0.25)
+                      }}
+                    >
+                      <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
+                        <IconCalendar size={18} color={theme.palette.primary.main} />
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                          2. Tug'ilgan sana:
+                        </Typography>
+                      </Stack>
+                      <Typography
+                        variant="h4"
+                        sx={{
+                          fontWeight: 900,
+                          color: 'primary.main',
+                          mt: 0.3
+                        }}
+                      >
                         {passport.birth_date || "Ko'rsatilmagan"}
                       </Typography>
-                    </Stack>
-                  </Box>
-
-                  {/* Amal qilish muddati */}
-                  {details.doc_end_date && (
-                    <Box>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                        Hujjat amal qilish muddati
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mt: 0.3 }}>
-                        {details.doc_end_date}
-                      </Typography>
                     </Box>
-                  )}
 
-                  {/* Doimiy yashash manzili (MVD) */}
-                  {(details.living_region || details.living_district) && (
-                    <Box>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                        Doimiy ro'yxatdan o'tgan manzili (IIV)
+                    {/* Doimiy yashash manzili (IIV) */}
+                    <Box sx={{ p: 1.2, borderRadius: '10px' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                        3. Doimiy ro'yxatdan o'tgan manzili (IIV):
                       </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.primary', display: 'block', mt: 0.3 }}>
-                        {[details.living_region, details.living_district, details.living_street]
-                          .filter(Boolean)
-                          .join(', ')}
-                      </Typography>
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'flex-start', mt: 0.3 }}>
+                        <IconMapPin size={16} color={theme.palette.text.secondary} style={{ flexShrink: 0, marginTop: 2 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          {[details.living_region, details.living_district, details.living_street]
+                            .filter(Boolean)
+                            .join(', ') || "IIV manzil ma'lumoti yo'q"}
+                        </Typography>
+                      </Stack>
                     </Box>
-                  )}
-                </Stack>
-              </Card>
+
+                    {/* Minimal JSHSHIR va hujjat muddati */}
+                    <Box sx={{ p: 1.2, borderRadius: '10px', borderTop: '1px dashed', borderColor: 'divider' }}>
+                      <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                            JSHSHIR (PINFL)
+                          </Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'block', fontFamily: 'monospace', mt: 0.2 }}>
+                            {passport.pinfl || "-"}
+                          </Typography>
+                        </Box>
+                        {details.doc_end_date && (
+                          <Box>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              Amal qilish muddati
+                            </Typography>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', display: 'block', mt: 0.2 }}>
+                              {details.doc_end_date}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </Card>
+              </Grid>
             </Grid>
-          </Grid>
+          )}
         </DialogContent>
 
-        {/* Modal Actions */}
-        <DialogActions sx={{ p: 2, bgcolor: 'background.paper', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-          <Button onClick={onClose} disabled={actionLoading} color="inherit">
-            Yopish
-          </Button>
+        {/* Modal Actions: Mobilda ixcham va yagona qator */}
+        <DialogActions
+          sx={{
+            p: { xs: 1.2, sm: 2 },
+            bgcolor: 'background.paper',
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            position: isMobile ? 'sticky' : 'static',
+            bottom: 0,
+            zIndex: 10,
+            justifyContent: 'space-between'
+          }}
+        >
+          {!isMobile && (
+            <Button
+              onClick={onClose}
+              disabled={actionLoading}
+              color="inherit"
+              sx={{ fontWeight: 600, textTransform: 'none' }}
+            >
+              Yopish [Esc]
+            </Button>
+          )}
 
-          {isPending && (
-            <Stack direction="row" spacing={1.5}>
+          {isPending ? (
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ width: { xs: '100%', sm: 'auto' }, alignItems: 'center', justifyContent: 'flex-end' }}
+            >
               <Button
                 variant="outlined"
                 color="error"
                 startIcon={<IconX size={18} />}
                 onClick={() => setRejectDialogOpen(true)}
                 disabled={actionLoading}
-                sx={{ fontWeight: 600, px: 2.5 }}
+                sx={{
+                  fontWeight: 700,
+                  px: { xs: 2, sm: 2.5 },
+                  py: { xs: 1, sm: 1 },
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  flex: { xs: 1, sm: 'none' },
+                  whiteSpace: 'nowrap'
+                }}
               >
-                Rad etish
+                {isMobile ? 'Rad etish' : 'Rad etish [R]'}
               </Button>
+
               <Button
                 variant="contained"
                 color="success"
-                startIcon={<IconCheck size={18} />}
+                startIcon={<IconCheck size={20} />}
                 onClick={handleApproveClick}
                 disabled={actionLoading}
                 sx={{
-                  fontWeight: 700,
-                  px: 3,
+                  fontWeight: 800,
+                  px: { xs: 2.5, sm: 3.5 },
+                  py: { xs: 1, sm: 1 },
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontSize: { xs: '0.9rem', sm: '0.95rem' },
                   bgcolor: '#16a34a',
-                  boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
-                  '&:hover': { bgcolor: '#15803d' }
+                  boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
+                  '&:hover': { bgcolor: '#15803d' },
+                  flex: { xs: 2, sm: 'none' },
+                  whiteSpace: 'nowrap'
                 }}
               >
-                {actionLoading ? 'Kiritilmoqda...' : autoAdvance && hasNext ? 'Tasdiqlash va Keyingisi →' : 'Tasdiqlash va Billingga kiritish'}
+                {isMobile
+                  ? (autoAdvance && hasNext ? 'Tasdiqlash →' : 'Tasdiqlash')
+                  : (autoAdvance && hasNext ? 'Tasdiqlash va Keyingisi → [Enter]' : 'Tasdiqlash [Enter]')}
               </Button>
             </Stack>
-          )}
+          ) : isMobile ? (
+            <Button
+              onClick={onClose}
+              disabled={actionLoading}
+              color="inherit"
+              fullWidth
+              sx={{ fontWeight: 700, textTransform: 'none', py: 1 }}
+            >
+              Yopish
+            </Button>
+          ) : null}
         </DialogActions>
       </Dialog>
 
       {/* Rasm zoom dialogi */}
       {data.photo && (
         <Dialog open={zoomPhotoOpen} onClose={() => setZoomPhotoOpen(false)} maxWidth="sm">
-          <Box sx={{ p: 1, textAlign: 'center', bgcolor: '#000' }}>
+          <Box sx={{ p: 1, textAlign: 'center', bgcolor: '#000', position: 'relative' }}>
+            <IconButton
+              onClick={() => setZoomPhotoOpen(false)}
+              sx={{ position: 'absolute', top: 8, right: 8, color: '#fff', bgcolor: 'rgba(0,0,0,0.5)' }}
+            >
+              <IconX size={20} />
+            </IconButton>
             <Box
               component="img"
               src={data.photo}

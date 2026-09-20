@@ -28,3 +28,13 @@ AI agents MUST follow these rules to avoid breaking TypeScript compilation:
 
 ### 4. General Rule
 - Any CSS style property that is not an explicit top-level prop of an MUI component MUST go inside the `sx` prop.
+
+### 5. Dynamic Theme & Dark Mode Rules
+- **NEVER** use hardcoded light-only colors like `#ffffff`, `#fff`, `#f8fafc`, `#f1f5f9` or dark-only text colors like `#1e293b`, `#0f172a`, `#334155` directly for backgrounds or typography. Doing so completely breaks Dark Mode.
+- **ALWAYS** use theme-aware colors:
+  - **Backgrounds**: `theme.palette.background.paper`, `theme.palette.background.default`, or `theme.palette.mode === 'dark' ? ... : ...` (or `alpha(...)`).
+  - **Text**: `theme.palette.text.primary`, `theme.palette.text.secondary`, or inherit from Typography variant.
+  - **Borders & Dividers**: `theme.palette.divider` instead of hardcoded `#e2e8f0`.
+  - **Cards & Papers**: `elevation={0}` with `bgcolor: theme.palette.background.paper` and `border: '1px solid', borderColor: theme.palette.divider`.
+  - **Accent / Badge Backgrounds**: Use `alpha(theme.palette.<color>.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)`.
+

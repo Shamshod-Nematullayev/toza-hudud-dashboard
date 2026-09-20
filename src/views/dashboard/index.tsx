@@ -690,7 +690,7 @@ const Dashboard = () => {
               variant="outlined"
               fullWidth
               size="small"
-              onClick={() => navigate('/billing/debt-collection-center')}
+              onClick={() => navigate('/billing/debitors')}
               sx={{
                 textTransform: 'none',
                 fontWeight: 700,

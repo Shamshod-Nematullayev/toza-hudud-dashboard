@@ -24,6 +24,7 @@ import {
   Button,
   Avatar
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import {
   IconSearch,
@@ -37,24 +38,32 @@ import {
   IconUser,
   IconUsers,
   IconMapPin,
-  IconArrowsExchange
+  IconArrowsExchange,
+  IconPlus,
+  IconPrinter,
+  IconUpload,
+  IconFileText
 } from '@tabler/icons-react';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
-import { INewAbonentItem, IStats } from './types';
+import { INewAbonentItem, IStats, IApprovePayload } from './types';
 import { NewAbonentModal } from './NewAbonentModal';
 import { RejectReasonDialog } from './RejectReasonDialog';
 import { RokirovkaModal } from './RokirovkaModal';
+import { CreateManualAbonentModal } from './CreateManualAbonentModal';
+import { PrintNewAbonentDialog } from './PrintNewAbonentDialog';
+import { ImportScannedAbonentModal } from './ImportScannedAbonentModal';
 
 export const PendingNewAbonents: React.FC = () => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const [items, setItems] = useState<INewAbonentItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [stats, setStats] = useState<IStats>({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats] = useState<IStats>({ total: 0, pending: 0, document_created: 0, approved: 0, rejected: 0 });
 
   // Filter & Pagination States
-  const [statusTab, setStatusTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [statusTab, setStatusTab] = useState<'all' | 'pending' | 'document_created' | 'approved' | 'rejected'>('pending');
   const [search, setSearch] = useState<string>('');
   const [searchInput, setSearchInput] = useState<string>('');
   const [page, setPage] = useState<number>(0);
@@ -64,8 +73,19 @@ export const PendingNewAbonents: React.FC = () => {
   // Modal & Queue States
   const [selectedItem, setSelectedItem] = useState<INewAbonentItem | null>(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [createManualOpen, setCreateManualOpen] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [rowActionLoading, setRowActionLoading] = useState<string | null>(null);
+
+  // Hujjat chiqarish va Skaner yuklash
+  const [printItem, setPrintItem] = useState<INewAbonentItem | null>(null);
+  const [printDialogOpen, setPrintDialogOpen] = useState<boolean>(false);
+  const [importScannedModalOpen, setImportScannedModalOpen] = useState<boolean>(false);
+
+  const handleOpenPrint = (item: INewAbonentItem) => {
+    setPrintItem(item);
+    setPrintDialogOpen(true);
+  };
 
   // Jadvaldan to'g'ridan-to'g'ri rad etish dialogi
   const [rowRejectItem, setRowRejectItem] = useState<INewAbonentItem | null>(null);
@@ -79,9 +99,9 @@ export const PendingNewAbonents: React.FC = () => {
   const [queueIndex, setQueueIndex] = useState<number>(0);
   const [autoAdvance, setAutoAdvance] = useState<boolean>(true);
 
-  // Kutilayotgan so'rovlar navbati
+  // Kutilayotgan so'rovlar navbati (pending yoki document_created)
   const pendingQueue = useMemo(() => {
-    return items.filter((item) => item.status === 'pending');
+    return items.filter((item) => item.status === 'pending' || item.status === 'document_created');
   }, [items]);
 
   // Ma'lumotlarni yuklash
@@ -134,67 +154,59 @@ export const PendingNewAbonents: React.FC = () => {
   // Tezkor ko'rib chiqish (Navbatni boshidan boshlash)
   const handleStartFastQueue = async () => {
     if (pendingQueue.length === 0) {
-      toast.info("Ko'rib chiqilmagan so'rovlar mavjud emas");
+      toast.info('Hozirda kutilayotgan so‘rovlar mavjud emas');
       return;
     }
     setQueueIndex(0);
-    const firstItem = pendingQueue[0];
-    setSelectedItem(firstItem);
+    setSelectedItem(pendingQueue[0]);
     setModalOpen(true);
-
     try {
-      const res = await api.get(`/pendingNewAbonents/get-by-id/${firstItem._id}`);
+      const res = await api.get(`/pendingNewAbonents/get-by-id/${pendingQueue[0]._id}`);
       if (res.data?.ok && res.data?.data) {
         setSelectedItem(res.data.data);
       }
     } catch (e) {}
   };
 
-  // Navbatda keyingisiga o'tish
-  const handleNextInQueue = async () => {
+  const handleNextInQueue = () => {
     if (queueIndex < pendingQueue.length - 1) {
       const nextIdx = queueIndex + 1;
-      const nextItem = pendingQueue[nextIdx];
       setQueueIndex(nextIdx);
-      setSelectedItem(nextItem);
-
-      try {
-        const res = await api.get(`/pendingNewAbonents/get-by-id/${nextItem._id}`);
-        if (res.data?.ok && res.data?.data) {
-          setSelectedItem(res.data.data);
-        }
-      } catch (e) {}
+      setSelectedItem(pendingQueue[nextIdx]);
     } else {
-      toast.success("Navbatdagi barcha kutilayotgan so'rovlar ko'rib chiqildi!");
+      toast.success('Barcha kutilayotgan so‘rovlar ko‘rib chiqildi!');
       setModalOpen(false);
     }
   };
 
-  // Navbatda oldingisiga o'tish
-  const handlePrevInQueue = async () => {
+  const handlePrevInQueue = () => {
     if (queueIndex > 0) {
       const prevIdx = queueIndex - 1;
-      const prevItem = pendingQueue[prevIdx];
       setQueueIndex(prevIdx);
-      setSelectedItem(prevItem);
-
-      try {
-        const res = await api.get(`/pendingNewAbonents/get-by-id/${prevItem._id}`);
-        if (res.data?.ok && res.data?.data) {
-          setSelectedItem(res.data.data);
-        }
-      } catch (e) {}
+      setSelectedItem(pendingQueue[prevIdx]);
     }
   };
 
-  // Tasdiqlash
-  const handleApprove = async (id: string): Promise<boolean> => {
-    setActionLoading(true);
+  // Tasdiqlash funksiyasi
+  const handleApprove = async (id: string, payload?: IApprovePayload): Promise<boolean> => {
     setRowActionLoading(id);
+    setActionLoading(true);
     try {
-      const res = await api.put(`/pendingNewAbonents/accept/${id}`);
+      const res = await api.post(`/pendingNewAbonents/accept/${id}`, payload || {});
       if (res.data?.ok) {
-        toast.success(res.data?.message || 'Abonent muvaffaqiyatli yaratildi');
+        toast.success(res.data.message || `Abonent muvaffaqiyatli ochildi! Hisob raqami: ${res.data.accountNumber || ''}`);
+
+        // Modal ochiq bo'lsa va avto-o'tish yoqilgan bo'lsa, keyingi elementga o'tish
+        if (modalOpen && autoAdvance) {
+          if (queueIndex < pendingQueue.length - 1) {
+            handleNextInQueue();
+          } else {
+            setModalOpen(false);
+          }
+        } else if (modalOpen) {
+          setModalOpen(false);
+        }
+
         fetchData();
         return true;
       } else {
@@ -203,8 +215,7 @@ export const PendingNewAbonents: React.FC = () => {
       }
     } catch (err: any) {
       console.error(err);
-      const errMsg = err?.response?.data?.message || err.message || 'Tasdiqlashda xatolik yuz berdi';
-      toast.error(errMsg);
+      toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
       return false;
     } finally {
       setActionLoading(false);
@@ -212,14 +223,13 @@ export const PendingNewAbonents: React.FC = () => {
     }
   };
 
-  // Rad etishni ochish (Modal ichidan)
-  const handleRejectFromModal = (item: INewAbonentItem) => {
+  // Rad etish modalini ochish
+  const handleOpenRowReject = (item: INewAbonentItem) => {
     setRowRejectItem(item);
     setRowRejectDialogOpen(true);
   };
 
-  // Rad etishni ochish (Jadval qatoridan)
-  const handleOpenRowReject = (item: INewAbonentItem) => {
+  const handleRejectFromModal = (item: INewAbonentItem) => {
     setRowRejectItem(item);
     setRowRejectDialogOpen(true);
   };
@@ -227,20 +237,22 @@ export const PendingNewAbonents: React.FC = () => {
   // Rad etishni tasdiqlash
   const handleConfirmReject = async (reason: string) => {
     if (!rowRejectItem) return;
-    setActionLoading(true);
     setRowActionLoading(rowRejectItem._id);
+    setActionLoading(true);
     try {
-      const res = await api.put(`/pendingNewAbonents/cancel/${rowRejectItem._id}`, {
-        reason
-      });
+      const res = await api.post(`/pendingNewAbonents/cancel/${rowRejectItem._id}`, { reason });
       if (res.data?.ok) {
-        toast.info('Ariza rad etildi va nazoratchiga xabar yuborildi');
+        toast.success(res.data.message || 'So‘rov muvaffaqiyatli rad etildi');
         setRowRejectDialogOpen(false);
         setRowRejectItem(null);
 
-        // Agar modal ochiq bo'lsa va avto-o'tish yoniq bo'lsa
-        if (modalOpen && autoAdvance && queueIndex < pendingQueue.length - 1) {
-          handleNextInQueue();
+        // Agar modal ochiq bo'lsa va auto-advance bo'lsa
+        if (modalOpen && autoAdvance) {
+          if (queueIndex < pendingQueue.length - 1) {
+            handleNextInQueue();
+          } else {
+            setModalOpen(false);
+          }
         } else if (modalOpen) {
           setModalOpen(false);
         }
@@ -299,7 +311,7 @@ export const PendingNewAbonents: React.FC = () => {
         }}
       >
         <Box>
-          <Typography variant="h3" sx={{ fontWeight: 800, color: '#1e293b' }}>
+          <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary' }}>
             Yangi Abonentlarni Tasdiqlash
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
@@ -316,12 +328,46 @@ export const PendingNewAbonents: React.FC = () => {
             disabled={loading}
             sx={{
               fontWeight: 600,
-              bgcolor: '#ffffff',
-              borderColor: '#e2e8f0',
-              '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
+              bgcolor: 'background.paper',
+              borderColor: theme.palette.divider,
+              color: 'text.primary',
+              '&:hover': {
+                bgcolor: 'action.hover',
+                borderColor: theme.palette.divider
+              }
             }}
           >
             Yangilash
+          </Button>
+
+          <Button
+            variant="contained"
+            color="info"
+            startIcon={<IconUpload size={18} />}
+            onClick={() => setImportScannedModalOpen(true)}
+            sx={{
+              fontWeight: 700,
+              px: 2.5,
+              background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)'
+            }}
+          >
+            Skaner yuklash
+          </Button>
+
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<IconPlus size={18} />}
+            onClick={() => setCreateManualOpen(true)}
+            sx={{
+              fontWeight: 700,
+              px: 2.5,
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+            }}
+          >
+            Yangi abonent ochish
           </Button>
 
           <Button
@@ -345,14 +391,15 @@ export const PendingNewAbonents: React.FC = () => {
       {/* 2. KPI Statistik Kartalar */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         {/* Jami so'rovlar */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <Card
             elevation={0}
             sx={{
               p: 2.5,
               borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              bgcolor: '#ffffff',
+              border: '1px solid',
+              borderColor: theme.palette.divider,
+              bgcolor: 'background.paper',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
@@ -362,7 +409,7 @@ export const PendingNewAbonents: React.FC = () => {
               <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                 JAMI SO'ROVLAR
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: '#1e293b' }}>
+              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: 'text.primary' }}>
                 {loading ? <Skeleton width={60} /> : stats.total}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.disabled', mt: 0.5, display: 'block' }}>
@@ -374,8 +421,8 @@ export const PendingNewAbonents: React.FC = () => {
                 width: 48,
                 height: 48,
                 borderRadius: '12px',
-                bgcolor: '#eff6ff',
-                color: '#3b82f6',
+                bgcolor: isDark ? alpha(theme.palette.primary.main, 0.2) : '#eff6ff',
+                color: theme.palette.primary.main,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -387,27 +434,28 @@ export const PendingNewAbonents: React.FC = () => {
         </Grid>
 
         {/* Kutilayotgan */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <Card
             elevation={0}
             sx={{
               p: 2.5,
               borderRadius: '16px',
-              border: '1px solid #fed7aa',
-              bgcolor: '#fffaf5',
+              border: '1px solid',
+              borderColor: isDark ? alpha(theme.palette.warning.main, 0.3) : '#fed7aa',
+              bgcolor: isDark ? alpha(theme.palette.warning.main, 0.12) : '#fffaf5',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: '#c2410c', fontWeight: 700 }}>
+              <Typography variant="caption" sx={{ color: theme.palette.warning.main, fontWeight: 700 }}>
                 KUTILAYOTGAN
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: '#ea580c' }}>
+              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.warning.main }}>
                 {loading ? <Skeleton width={60} /> : stats.pending}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#c2410c', mt: 0.5, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: isDark ? theme.palette.warning.light : '#c2410c', mt: 0.5, display: 'block' }}>
                 Tasdiqlash navbatida
               </Typography>
             </Box>
@@ -416,8 +464,8 @@ export const PendingNewAbonents: React.FC = () => {
                 width: 48,
                 height: 48,
                 borderRadius: '12px',
-                bgcolor: '#ffedd5',
-                color: '#ea580c',
+                bgcolor: isDark ? alpha(theme.palette.warning.main, 0.25) : '#ffedd5',
+                color: theme.palette.warning.main,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -428,28 +476,72 @@ export const PendingNewAbonents: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Tasdiqlangan */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        {/* Hujjat chiqarilgan */}
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <Card
             elevation={0}
             sx={{
               p: 2.5,
               borderRadius: '16px',
-              border: '1px solid #bbf7d0',
-              bgcolor: '#f0fdf4',
+              border: '1px solid',
+              borderColor: isDark ? alpha(theme.palette.info.main, 0.3) : '#bae6fd',
+              bgcolor: isDark ? alpha(theme.palette.info.main, 0.12) : '#f0f9ff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 700 }}>
+              <Typography variant="caption" sx={{ color: theme.palette.info.main, fontWeight: 700 }}>
+                HUJJAT CHIQARILGAN
+              </Typography>
+              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.info.main }}>
+                {loading ? <Skeleton width={60} /> : (stats.document_created || 0)}
+              </Typography>
+              <Typography variant="caption" sx={{ color: isDark ? theme.palette.info.light : '#0284c7', mt: 0.5, display: 'block' }}>
+                Skaner kutilmoqda
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
+                bgcolor: isDark ? alpha(theme.palette.info.main, 0.25) : '#e0f2fe',
+                color: theme.palette.info.main,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <IconFileText size={26} />
+            </Box>
+          </Card>
+        </Grid>
+
+        {/* Tasdiqlangan */}
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+          <Card
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: '16px',
+              border: '1px solid',
+              borderColor: isDark ? alpha(theme.palette.success.main, 0.3) : '#bbf7d0',
+              bgcolor: isDark ? alpha(theme.palette.success.main, 0.12) : '#f0fdf4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Box>
+              <Typography variant="caption" sx={{ color: theme.palette.success.main, fontWeight: 700 }}>
                 TASDIQLANGAN
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: '#16a34a' }}>
+              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.success.main }}>
                 {loading ? <Skeleton width={60} /> : stats.approved}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#166534', mt: 0.5, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: isDark ? theme.palette.success.light : '#166534', mt: 0.5, display: 'block' }}>
                 Abonent ochilgan
               </Typography>
             </Box>
@@ -458,8 +550,8 @@ export const PendingNewAbonents: React.FC = () => {
                 width: 48,
                 height: 48,
                 borderRadius: '12px',
-                bgcolor: '#dcfce7',
-                color: '#16a34a',
+                bgcolor: isDark ? alpha(theme.palette.success.main, 0.25) : '#dcfce7',
+                color: theme.palette.success.main,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -471,27 +563,28 @@ export const PendingNewAbonents: React.FC = () => {
         </Grid>
 
         {/* Bekor qilingan */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <Card
             elevation={0}
             sx={{
               p: 2.5,
               borderRadius: '16px',
-              border: '1px solid #fecaca',
-              bgcolor: '#fef2f2',
+              border: '1px solid',
+              borderColor: isDark ? alpha(theme.palette.error.main, 0.3) : '#fecaca',
+              bgcolor: isDark ? alpha(theme.palette.error.main, 0.12) : '#fef2f2',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: '#b91c1c', fontWeight: 700 }}>
+              <Typography variant="caption" sx={{ color: theme.palette.error.main, fontWeight: 700 }}>
                 BEKOR QILINGAN
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: '#dc2626' }}>
+              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.error.main }}>
                 {loading ? <Skeleton width={60} /> : stats.rejected}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#991b1b', mt: 0.5, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: isDark ? theme.palette.error.light : '#991b1b', mt: 0.5, display: 'block' }}>
                 Rad etilgan so'rovlar
               </Typography>
             </Box>
@@ -500,8 +593,8 @@ export const PendingNewAbonents: React.FC = () => {
                 width: 48,
                 height: 48,
                 borderRadius: '12px',
-                bgcolor: '#fee2e2',
-                color: '#dc2626',
+                bgcolor: isDark ? alpha(theme.palette.error.main, 0.25) : '#fee2e2',
+                color: theme.palette.error.main,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -518,8 +611,9 @@ export const PendingNewAbonents: React.FC = () => {
         elevation={0}
         sx={{
           borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          bgcolor: '#ffffff',
+          border: '1px solid',
+          borderColor: theme.palette.divider,
+          bgcolor: 'background.paper',
           overflow: 'hidden',
           mb: 3
         }}
@@ -531,7 +625,8 @@ export const PendingNewAbonents: React.FC = () => {
             alignItems: { xs: 'stretch', md: 'center' },
             p: 2,
             gap: 2,
-            borderBottom: '1px solid #f1f5f9'
+            borderBottom: '1px solid',
+            borderBottomColor: theme.palette.divider
           }}
         >
           {/* Tabs */}
@@ -563,6 +658,21 @@ export const PendingNewAbonents: React.FC = () => {
                     size="small"
                     color="warning"
                     variant="filled"
+                    sx={{ height: 20, fontSize: '0.75rem', fontWeight: 800 }}
+                  />
+                </Stack>
+              }
+            />
+            <Tab
+              value="document_created"
+              label={
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <span>Hujjat chiqarilgan</span>
+                  <Chip
+                    label={stats.document_created || 0}
+                    size="small"
+                    color="info"
+                    variant={statusTab === 'document_created' ? 'filled' : 'outlined'}
                     sx={{ height: 20, fontSize: '0.75rem', fontWeight: 800 }}
                   />
                 </Stack>
@@ -653,16 +763,16 @@ export const PendingNewAbonents: React.FC = () => {
         {/* 4. Asosiy Jadval */}
         <TableContainer>
           <Table sx={{ minWidth: 900 }}>
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableHead sx={{ bgcolor: isDark ? alpha(theme.palette.background.default, 0.6) : '#f8fafc' }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', width: 60 }}>#</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Fuqaro (F.I.O / PINFL)</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Manzil (Mahalla, Ko'cha)</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Kadastr raqami</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', textAlign: 'center' }}>Odam soni</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569' }}>Nazoratchi / Sana</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', textAlign: 'center' }}>Holati</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', textAlign: 'right', pr: 3 }}>Amallar</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', width: 60 }}>#</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Fuqaro (F.I.O / PINFL)</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Manzil (Mahalla, Ko'cha)</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Kadastr raqami</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', textAlign: 'center' }}>Odam soni</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Nazoratchi / Sana</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', textAlign: 'center' }}>Holati</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', textAlign: 'right', pr: 3 }}>Amallar</TableCell>
               </TableRow>
             </TableHead>
 
@@ -702,12 +812,12 @@ export const PendingNewAbonents: React.FC = () => {
               ) : items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} sx={{ textAlign: 'center', py: 8 }}>
-                    <Box sx={{ color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Box sx={{ color: 'text.secondary', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <IconUser size={48} stroke={1.5} />
-                      <Typography variant="h4" sx={{ fontWeight: 700, mt: 1, color: '#64748b' }}>
+                      <Typography variant="h4" sx={{ fontWeight: 700, mt: 1, color: 'text.secondary' }}>
                         So'rovlar topilmadi
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.5 }}>
+                      <Typography variant="caption" sx={{ color: 'text.disabled', mt: 0.5 }}>
                         Tanlangan filtr yoki qidiruv bo'yicha hech qanday ariza mavjud emas
                       </Typography>
                     </Box>
@@ -716,6 +826,7 @@ export const PendingNewAbonents: React.FC = () => {
               ) : (
                 items.map((row, index) => {
                   const isRowPending = row.status === 'pending';
+                  const isRowDocCreated = row.status === 'document_created';
                   const isRowApproved = row.status === 'approved' || row.status === 'compaleted';
                   const isRowRejected = row.status === 'rejected';
                   const isCurrentRowLoading = rowActionLoading === row._id;
@@ -727,7 +838,13 @@ export const PendingNewAbonents: React.FC = () => {
                       hover
                       sx={{
                         '&:last-child td, &:last-child th': { border: 0 },
-                        bgcolor: isRowPending ? '#ffffff' : '#fcfcfd'
+                        bgcolor: isDark
+                          ? isRowPending || isRowDocCreated
+                            ? alpha(theme.palette.background.paper, 0.9)
+                            : alpha(theme.palette.background.default, 0.4)
+                          : isRowPending || isRowDocCreated
+                          ? 'background.paper'
+                          : alpha(theme.palette.background.default, 0.5)
                       }}
                     >
                       {/* ID */}
@@ -741,8 +858,8 @@ export const PendingNewAbonents: React.FC = () => {
                             sx={{
                               width: 38,
                               height: 38,
-                              bgcolor: '#e0f2fe',
-                              color: '#0284c7',
+                              bgcolor: isDark ? alpha(theme.palette.primary.main, 0.2) : '#e0f2fe',
+                              color: theme.palette.primary.main,
                               fontWeight: 700,
                               fontSize: '0.875rem'
                             }}
@@ -750,7 +867,7 @@ export const PendingNewAbonents: React.FC = () => {
                             {rowFullName.charAt(0).toUpperCase()}
                           </Avatar>
                           <Box>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                               {rowFullName}
                             </Typography>
                             <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mt: 0.2 }}>
@@ -772,8 +889,8 @@ export const PendingNewAbonents: React.FC = () => {
                       {/* Manzil */}
                       <TableCell>
                         <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
-                          <IconMapPin size={16} color="#0284c7" />
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                          <IconMapPin size={16} color={theme.palette.primary.main} />
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
                             {row.mahallaName}
                           </Typography>
                         </Stack>
@@ -784,7 +901,7 @@ export const PendingNewAbonents: React.FC = () => {
 
                       {/* Kadastr raqami */}
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f172a' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                           {row.cadastr || 'Mavjud emas'}
                         </Typography>
                         {row.kadastr_baza_not_worked && (
@@ -806,16 +923,17 @@ export const PendingNewAbonents: React.FC = () => {
                           size="small"
                           sx={{
                             fontWeight: 700,
-                            bgcolor: '#f3e8ff',
-                            color: '#7e22ce',
-                            border: '1px solid #e9d5ff'
+                            bgcolor: isDark ? alpha(theme.palette.secondary.main, 0.2) : '#f3e8ff',
+                            color: theme.palette.secondary.main,
+                            border: '1px solid',
+                            borderColor: isDark ? alpha(theme.palette.secondary.main, 0.35) : '#e9d5ff'
                           }}
                         />
                       </TableCell>
 
                       {/* Nazoratchi & Sana */}
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#334155' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
                           {row.inspector_name || row.nazoratchi_id || 'Noma’lum'}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
@@ -827,6 +945,9 @@ export const PendingNewAbonents: React.FC = () => {
                       <TableCell align="center">
                         {isRowPending && (
                           <Chip label="Kutilmoqda" size="small" color="warning" variant="filled" sx={{ fontWeight: 700, minWidth: 85 }} />
+                        )}
+                        {isRowDocCreated && (
+                          <Chip label={`Hujjat № ${row.document_number || ''}`} size="small" color="info" variant="filled" sx={{ fontWeight: 700, minWidth: 85 }} />
                         )}
                         {isRowApproved && (
                           <Chip label="Tasdiqlangan" size="small" color="success" variant="filled" sx={{ fontWeight: 700, minWidth: 85 }} />
@@ -845,72 +966,73 @@ export const PendingNewAbonents: React.FC = () => {
                               size="small"
                               onClick={() => handleOpenReview(row)}
                               sx={{
-                                color: '#0284c7',
-                                bgcolor: '#f0f9ff',
-                                '&:hover': { bgcolor: '#e0f2fe' }
+                                color: 'primary.main',
+                                bgcolor: isDark ? alpha(theme.palette.primary.main, 0.15) : '#f0f9ff',
+                                '&:hover': { bgcolor: isDark ? alpha(theme.palette.primary.main, 0.25) : '#e0f2fe' }
                               }}
                             >
                               <IconEye size={18} />
                             </IconButton>
                           </Tooltip>
 
-                          {isRowPending && (
-                            <>
-                              {/* Tezkor tasdiqlash */}
-                              <Tooltip title="Tasdiqlash va Abonent Ochish">
-                                <span>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleApprove(row._id)}
-                                    disabled={isCurrentRowLoading}
-                                    sx={{
-                                      color: 'success.main',
-                                      bgcolor: '#f0fdf4',
-                                      '&:hover': { bgcolor: '#dcfce7' }
-                                    }}
-                                  >
-                                    <IconCheck size={18} />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
+                          {/* Hujjat chiqarish (Ham pending, ham document_created uchun) */}
+                          {(isRowPending || isRowDocCreated) && (
+                            <Tooltip title={isRowDocCreated ? 'Hujjatni qayta chop etish' : 'Asoslantiruvchi hujjat chiqarish'}>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleOpenPrint(row)}
+                                  disabled={isCurrentRowLoading}
+                                  sx={{
+                                    color: 'info.main',
+                                    bgcolor: isDark ? alpha(theme.palette.info.main, 0.15) : '#f0f9ff',
+                                    '&:hover': { bgcolor: isDark ? alpha(theme.palette.info.main, 0.25) : '#e0f2fe' }
+                                  }}
+                                >
+                                  <IconPrinter size={18} />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
 
-                              {/* Rokirovka qilish */}
-                              {/*
-                              <Tooltip title="Rokirovka qilish">
-                                <span>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleOpenRokirovka(row)}
-                                    disabled={isCurrentRowLoading}
-                                    sx={{
-                                      color: 'info.main',
-                                      bgcolor: '#f0f9ff',
-                                      '&:hover': { bgcolor: '#e0f2fe' }
-                                    }}
-                                  >
-                                    <IconArrowsExchange size={18} />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                              */}
-                              {/* Tezkor rad etish */}
-                              <Tooltip title="Rad etish">
-                                <span>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleOpenRowReject(row)}
-                                    disabled={isCurrentRowLoading}
-                                    sx={{
-                                      color: 'error.main',
-                                      bgcolor: '#fef2f2',
-                                      '&:hover': { bgcolor: '#fee2e2' }
-                                    }}
-                                  >
-                                    <IconX size={18} />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            </>
+                          {/* Tezkor tasdiqlash (Mavjud bo'lib qolishi shart!) */}
+                          {(isRowPending || isRowDocCreated) && (
+                            <Tooltip title="Tezkor tasdiqlash va Abonent Ochish">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleApprove(row._id)}
+                                  disabled={isCurrentRowLoading}
+                                  sx={{
+                                    color: 'success.main',
+                                    bgcolor: isDark ? alpha(theme.palette.success.main, 0.15) : '#f0fdf4',
+                                    '&:hover': { bgcolor: isDark ? alpha(theme.palette.success.main, 0.25) : '#dcfce7' }
+                                  }}
+                                >
+                                  <IconCheck size={18} />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
+
+                          {/* Tezkor rad etish */}
+                          {(isRowPending || isRowDocCreated) && (
+                            <Tooltip title="Rad etish">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleOpenRowReject(row)}
+                                  disabled={isCurrentRowLoading}
+                                  sx={{
+                                    color: 'error.main',
+                                    bgcolor: isDark ? alpha(theme.palette.error.main, 0.15) : '#fef2f2',
+                                    '&:hover': { bgcolor: isDark ? alpha(theme.palette.error.main, 0.25) : '#fee2e2' }
+                                  }}
+                                >
+                                  <IconX size={18} />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                           )}
                         </Stack>
                       </TableCell>
@@ -947,6 +1069,7 @@ export const PendingNewAbonents: React.FC = () => {
         onApprove={handleApprove}
         onRejectClick={handleRejectFromModal}
         onRokirovkaClick={handleOpenRokirovka}
+        onPrintClick={handleOpenPrint}
         loading={actionLoading}
         queueIndex={queueIndex}
         queueLength={pendingQueue.length}
@@ -978,6 +1101,33 @@ export const PendingNewAbonents: React.FC = () => {
           refresh={fetchData}
         />
       )}
+
+      {/* Qo'lda yangi abonent ochish modali */}
+      <CreateManualAbonentModal
+        open={createManualOpen}
+        onClose={() => setCreateManualOpen(false)}
+        onSuccess={fetchData}
+      />
+
+      {/* Asoslantiruvchi hujjat chiqarish va chop etish dialogi */}
+      <PrintNewAbonentDialog
+        open={printDialogOpen}
+        onClose={() => {
+          setPrintDialogOpen(false);
+          setPrintItem(null);
+        }}
+        item={printItem}
+        onDocumentCreated={() => {
+          fetchData();
+        }}
+      />
+
+      {/* Skanerlangan hujjat orqali abonent ochish modali */}
+      <ImportScannedAbonentModal
+        open={importScannedModalOpen}
+        onClose={() => setImportScannedModalOpen(false)}
+        onSuccess={fetchData}
+      />
     </Box>
   );
 };
