@@ -958,6 +958,9 @@ const uzKirill: typeof uz = {
     clearAllFiles: 'Барча файлларни тозалаш'
   },
   recalculationPage: {
+    catalogsTitle: 'Ҳужжат турлари (Каталоглар)',
+    catalogHint: 'Аризаларни кўриш ва қайта ишлаш учун тегишли қаторни танланг',
+    noCatalogs: 'Ушбу даврда аризалар мавжуд эмас',
     cancelPetitionTitle: 'Аризани бекор қилиш',
     cancelPetitionDesc: 'Ушбу аризани бекор қилиш учун сабабни танланг ёки батафсил изоҳ киритинг:',
     selectReason: 'Сабабни танланг',

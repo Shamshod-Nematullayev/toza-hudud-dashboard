@@ -953,6 +953,9 @@ const ru: typeof uz = {
     clearAllFiles: 'Очистить все файлы'
   },
   recalculationPage: {
+    catalogsTitle: 'Типы документов (Каталоги)',
+    catalogHint: 'Выберите соответствующую строку для просмотра и обработки заявлений',
+    noCatalogs: 'В данном периоде заявления отсутствуют',
     cancelPetitionTitle: 'Отмена заявления',
     cancelPetitionDesc: 'Выберите причину или введите подробный комментарий для отмены данного заявления:',
     selectReason: 'Выберите причину',

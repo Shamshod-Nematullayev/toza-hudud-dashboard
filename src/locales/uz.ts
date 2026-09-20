@@ -960,6 +960,9 @@ const uz = {
     clearAllFiles: 'Barcha fayllarni tozalash'
   },
   recalculationPage: {
+    catalogsTitle: 'Hujjat turlari (Kataloglar)',
+    catalogHint: 'Arizalarni ko‘rish va qayta ishlash uchun tegishli qatorni tanlang',
+    noCatalogs: 'Ushbu davrda arizalar mavjud emas',
     cancelPetitionTitle: 'Arizani bekor qilish',
     cancelPetitionDesc: 'Ushbu arizani bekor qilish uchun sababni tanlang yoki batafsil izoh kiriting:',
     selectReason: 'Sababni tanlang',
