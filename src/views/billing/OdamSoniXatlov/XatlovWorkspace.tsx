@@ -427,7 +427,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   const handleConfirmRow = async (_id: string, silent = false) => {
     if (!pdfFile) return toast.error(t('errors.pdfFileRequired'));
     const formData = new FormData();
-    formData.append('file', pdfFile);
+    formData.append('file', pdfFile, pdfFile.name || 'dalolatnoma.pdf');
 
     try {
       if (!silent) setLoading(true);
