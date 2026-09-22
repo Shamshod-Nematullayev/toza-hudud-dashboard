@@ -210,3 +210,19 @@ export interface MvdAddress {
 }
 
 interface DebitorStatus {}
+
+export interface ElectricityBalanceResponse {
+  account: string;
+  coato: string;
+  customerName: string;
+  address: string;
+  balance: number;
+  balanceFormatted: string;
+  rawAmountString: string;
+  isDebt: boolean;
+  lastPaid?: string;
+  tariffPrice?: string;
+  meterReading?: string;
+  meterDate?: string;
+  source: 'click';
+}
