@@ -21,7 +21,11 @@ import {
   Tooltip,
   Typography,
   useTheme,
-  Button
+  Button,
+  Checkbox,
+  Divider,
+  useMediaQuery,
+  alpha
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
@@ -34,7 +38,10 @@ import {
   IconClock,
   IconBolt as IconFast,
   IconFileCertificate,
-  IconAlertCircle
+  IconAlertTriangle,
+  IconChecklist,
+  IconCalendar,
+  IconPlayerPlay
 } from '@tabler/icons-react';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -88,6 +95,7 @@ interface IStats {
 
 const IdentityVerification: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [items, setItems] = useState<ICustomRequestItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -111,6 +119,11 @@ const IdentityVerification: React.FC = () => {
   const [rowRejectItem, setRowRejectItem] = useState<ICustomRequestItem | null>(null);
   const [rowRejectDialogOpen, setRowRejectDialogOpen] = useState<boolean>(false);
 
+  // Ommaviy tanlash (Bulk selection & checkmarks)
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [batchRejectDialogOpen, setBatchRejectDialogOpen] = useState<boolean>(false);
+  const [batchLoading, setBatchLoading] = useState<boolean>(false);
+
   // Tezkor navbat (Queue)
   const [queueIndex, setQueueIndex] = useState<number>(0);
   const [autoAdvance, setAutoAdvance] = useState<boolean>(true);
@@ -120,9 +133,9 @@ const IdentityVerification: React.FC = () => {
     return items.filter((item) => !item.confirm && !item.isCancel && item.status !== 'approved' && item.status !== 'rejected');
   }, [items]);
 
-  // Ma'lumotlarni yuklash
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  // Ma'lumotlarni yuklash (so'rov photo siz juda yengil va tez yuklanadi)
+  const fetchData = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true);
     try {
       const res = await api.get('/custom-data-requests', {
         params: {
@@ -142,9 +155,11 @@ const IdentityVerification: React.FC = () => {
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "So'rovlarni yuklashda xatolik yuz berdi");
+      if (!quiet) {
+        toast.error(err?.response?.data?.message || "So'rovlarni yuklashda xatolik yuz berdi");
+      }
     } finally {
-      setLoading(false);
+      if (!quiet) setLoading(false);
     }
   }, [page, rowsPerPage, statusTab, search]);
 
@@ -152,22 +167,26 @@ const IdentityVerification: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  // Bitta elementni ko'rish (Batafsil / Modal)
+  // Tab yoki sahifa o'zgarganda tanlovni tozalash
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [statusTab, page]);
+
+  // Bitta elementni ko'rish (Batafsil / Modal) - 0ms kutish bilan ochish!
   const handleOpenReview = async (item: ICustomRequestItem) => {
-    // Navbatdagi o'rnini topish
     const pIndex = pendingQueue.findIndex((q) => q._id === item._id);
     setQueueIndex(pIndex >= 0 ? pIndex : 0);
+    // Mavjud ma'lumotlar bilan zudlik bilan ochamiz
     setSelectedItem(item);
     setModalOpen(true);
 
+    // Rasmi va to'liq ma'lumotlarini fonda yangilab olamiz
     try {
       const res = await api.get(`/custom-data-requests/${item._id}`);
       if (res.data?.ok && res.data?.data) {
         setSelectedItem(res.data.data);
       }
-    } catch (e) {
-      // mavjud ma'lumot bilan davom etadi
-    }
+    } catch (e) {}
   };
 
   // ⚡ Tezkor tasdiqlash rejimini boshlash
@@ -225,64 +244,107 @@ const IdentityVerification: React.FC = () => {
     }
   };
 
-  // Tasdiqlash (Modal ichidan)
-  const handleApprove = async (id: string): Promise<boolean> => {
-    setActionLoading(true);
-    try {
-      const res = await api.post(`/custom-data-requests/approve/${id}`, {}, { headers: { 'hide-error': true } });
-      if (res.data?.ok || res.data?.success) {
-        toast.success(res.data?.message || "Shaxsni tasdiqlash so'rovi muvaffaqiyatli qabul qilindi");
-        fetchData();
-        return true;
-      } else {
-        toast.error(res.data?.message || 'Xatolik yuz berdi');
-        return false;
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
-      return false;
-    } finally {
-      setActionLoading(false);
-    }
+  // Optimistik yangilanishlar: Tasdiqlash
+  const optimisticallyApprove = (id: string) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item._id === id
+          ? {
+              ...item,
+              status: 'approved',
+              confirm: true,
+              confirmDate: new Date().toISOString()
+            }
+          : item
+      )
+    );
+    setStats((prev) => ({
+      ...prev,
+      pending: Math.max(0, prev.pending - 1),
+      approved: prev.approved + 1
+    }));
+    setSelectedIds((prev) => prev.filter((i) => i !== id));
   };
 
-  // Jadvalning o'zidan bitta bosishda tezkor tasdiqlash
-  const handleQuickApproveRow = async (id: string) => {
-    setRowActionLoading(id);
-    try {
-      const res = await api.post(`/custom-data-requests/approve/${id}`, {}, { headers: { 'hide-error': true } });
-      if (res.data?.ok || res.data?.success) {
-        toast.success(res.data?.message || 'Abonent muvaffaqiyatli tasdiqlandi');
-        fetchData();
-      } else {
-        toast.error(res.data?.message || 'Xatolik yuz berdi');
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
-    } finally {
-      setRowActionLoading(null);
-    }
+  // Optimistik yangilanishlar: Bekor qilish
+  const optimisticallyReject = (id: string, reason?: string) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item._id === id
+          ? {
+              ...item,
+              status: 'rejected',
+              isCancel: true,
+              cancelReason: reason,
+              cancelDate: new Date().toISOString()
+            }
+          : item
+      )
+    );
+    setStats((prev) => ({
+      ...prev,
+      pending: Math.max(0, prev.pending - 1),
+      rejected: prev.rejected + 1
+    }));
+    setSelectedIds((prev) => prev.filter((i) => i !== id));
   };
 
-  // Rad etish (Modal ichidan)
-  const handleReject = async (id: string, reason: string): Promise<boolean> => {
-    setActionLoading(true);
-    try {
-      const res = await api.post(`/custom-data-requests/reject/${id}`, { reason }, { headers: { 'hide-error': true } });
-      if (res.data?.ok || res.data?.success) {
-        toast.info(res.data?.message || "So'rov bekor qilindi");
-        fetchData();
-        return true;
-      } else {
-        toast.error(res.data?.message || 'Xatolik yuz berdi');
-        return false;
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
-      return false;
-    } finally {
-      setActionLoading(false);
-    }
+  // Tasdiqlash (Modal ichidan) - Optimistik UI!
+  const handleApprove = (id: string) => {
+    optimisticallyApprove(id);
+    toast.success("Shaxs tasdiqlandi va billingga kiritilmoqda", { autoClose: 2000 });
+
+    // Fonda yuboriladi
+    api
+      .post(`/custom-data-requests/approve/${id}`, {}, { headers: { 'hide-error': true } })
+      .then((res) => {
+        if (!res.data?.ok && !res.data?.success) {
+          toast.error(res.data?.message || 'Tasdiqlashda xatolik yuz berdi');
+          fetchData(true);
+        }
+      })
+      .catch((err) => {
+        toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
+        fetchData(true);
+      });
+  };
+
+  // Jadvaldan bitta bosishda tezkor tasdiqlash - Optimistik UI!
+  const handleQuickApproveRow = (id: string) => {
+    optimisticallyApprove(id);
+    toast.success("Abonent tasdiqlandi", { autoClose: 1500 });
+
+    api
+      .post(`/custom-data-requests/approve/${id}`, {}, { headers: { 'hide-error': true } })
+      .then((res) => {
+        if (!res.data?.ok && !res.data?.success) {
+          toast.error(res.data?.message || 'Tasdiqlashda xatolik yuz berdi');
+          fetchData(true);
+        }
+      })
+      .catch((err) => {
+        toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
+        fetchData(true);
+      });
+  };
+
+  // Rad etish (Modal ichidan) - Optimistik UI!
+  const handleReject = (id: string, reason: string) => {
+    optimisticallyReject(id, reason);
+    toast.info("So'rov bekor qilindi", { autoClose: 1500 });
+
+    api
+      .post(`/custom-data-requests/reject/${id}`, { reason }, { headers: { 'hide-error': true } })
+      .then((res) => {
+        if (!res.data?.ok && !res.data?.success) {
+          toast.error(res.data?.message || 'Xatolik yuz berdi');
+          fetchData(true);
+        }
+      })
+      .catch((err) => {
+        toast.error(err?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
+        fetchData(true);
+      });
   };
 
   // Jadvaldan rad etish oynasini ochish
@@ -292,23 +354,112 @@ const IdentityVerification: React.FC = () => {
   };
 
   // Jadvaldan rad etishni tasdiqlash
-  const handleConfirmRowReject = async (reason: string) => {
+  const handleConfirmRowReject = (reason: string) => {
     if (!rowRejectItem) return;
-    setRowActionLoading(rowRejectItem._id);
+    const targetId = rowRejectItem._id;
+    setRowRejectDialogOpen(false);
+    setRowRejectItem(null);
+
+    optimisticallyReject(targetId, reason);
+    toast.info("So'rov bekor qilindi", { autoClose: 1500 });
+
+    api
+      .post(`/custom-data-requests/reject/${targetId}`, { reason }, { headers: { 'hide-error': true } })
+      .then((res) => {
+        if (!res.data?.ok && !res.data?.success) {
+          toast.error(res.data?.message || 'Xatolik yuz berdi');
+          fetchData(true);
+        }
+      })
+      .catch((err) => {
+        toast.error(err?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
+        fetchData(true);
+      });
+  };
+
+  // Ommaviy tasdiqlash (Batch Approve)
+  const handleBatchApprove = async () => {
+    if (selectedIds.length === 0) return;
+    const count = selectedIds.length;
+    const targetIds = [...selectedIds];
+    setSelectedIds([]);
+
+    // Optimistik yangilash
+    setItems((prev) =>
+      prev.map((it) => (targetIds.includes(it._id) ? { ...it, status: 'approved', confirm: true } : it))
+    );
+    setStats((prev) => ({
+      ...prev,
+      pending: Math.max(0, prev.pending - count),
+      approved: prev.approved + count
+    }));
+
+    setBatchLoading(true);
     try {
-      const res = await api.post(`/custom-data-requests/reject/${rowRejectItem._id}`, { reason }, { headers: { 'hide-error': true } });
+      const res = await api.post('/custom-data-requests/batch-approve', { ids: targetIds });
       if (res.data?.ok || res.data?.success) {
-        toast.info(res.data?.message || "So'rov bekor qilindi");
-        setRowRejectDialogOpen(false);
-        setRowRejectItem(null);
-        fetchData();
+        toast.success(res.data?.message || `${count} ta so'rov muvaffaqiyatli tasdiqlandi`);
       } else {
-        toast.error(res.data?.message || 'Xatolik yuz berdi');
+        toast.error(res.data?.message || 'Ommaviy tasdiqlashda xatolik yuz berdi');
+        fetchData(true);
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
+      toast.error(err?.response?.data?.message || 'Ommaviy tasdiqlashda xatolik yuz berdi');
+      fetchData(true);
     } finally {
-      setRowActionLoading(null);
+      setBatchLoading(false);
+    }
+  };
+
+  // Ommaviy rad etishni tasdiqlash (Batch Reject)
+  const handleConfirmBatchReject = async (reason: string) => {
+    if (selectedIds.length === 0) return;
+    const count = selectedIds.length;
+    const targetIds = [...selectedIds];
+    setBatchRejectDialogOpen(false);
+    setSelectedIds([]);
+
+    // Optimistik yangilash
+    setItems((prev) =>
+      prev.map((it) =>
+        targetIds.includes(it._id) ? { ...it, status: 'rejected', isCancel: true, cancelReason: reason } : it
+      )
+    );
+    setStats((prev) => ({
+      ...prev,
+      pending: Math.max(0, prev.pending - count),
+      rejected: prev.rejected + count
+    }));
+
+    setBatchLoading(true);
+    try {
+      const res = await api.post('/custom-data-requests/batch-reject', { ids: targetIds, reason });
+      if (res.data?.ok || res.data?.success) {
+        toast.info(res.data?.message || `${count} ta so'rov bekor qilindi`);
+      } else {
+        toast.error(res.data?.message || 'Ommaviy bekor qilishda xatolik yuz berdi');
+        fetchData(true);
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Ommaviy bekor qilishda xatolik yuz berdi');
+      fetchData(true);
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  // Qatordagi checkboxni o'zgartirish
+  const handleToggleSelectRow = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  };
+
+  // Barchasini tanlash / bekor qilish
+  const handleSelectAllPending = () => {
+    if (pendingQueue.length === 0) return;
+    if (selectedIds.length === pendingQueue.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(pendingQueue.map((item) => item._id));
     }
   };
 
@@ -324,70 +475,132 @@ const IdentityVerification: React.FC = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', pb: 5 }}>
+    <Box sx={{ width: '100%', pb: 10 }}>
       {/* Sarlavha va Asosiy Tugmalar */}
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{ alignItems: 'center', justifyContent: 'space-between', mb: { xs: 1.5, sm: 2 } }}
+      >
         <Box>
-          <Typography variant="h2" sx={{ fontWeight: 800, color: '#1a237e' }}>
-            Shaxsni tasdiqlash so'rovlari
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: 900,
+              color: 'text.primary',
+              fontSize: { xs: '1.25rem', sm: '1.65rem' }
+            }}
+          >
+            Shaxsni tasdiqlash
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            Nazoratchilar kiritgan pasport va JSHSHIR ma'lumotlarini tekshirish, tezkor solishtirish va tasdiqlash
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' }, mt: 0.2 }}>
+            Nazoratchilar kiritgan pasport va JSHSHIR ma'lumotlarini tekshirish va tasdiqlash
           </Typography>
         </Box>
 
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          {/* ⚡ Tezkor tasdiqlash navbati tugmasi */}
-          {stats.pending > 0 && (
+        <Button
+          variant="outlined"
+          color="primary"
+          size="small"
+          startIcon={<IconRefresh size={16} />}
+          onClick={() => fetchData()}
+          disabled={loading}
+          sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, py: 0.6 }}
+        >
+          Yangilash
+        </Button>
+      </Stack>
+
+      {/* 🚀 ASOSIY HERO HARAKAT: Solishtirishni boshlash banneri */}
+      {stats.pending > 0 && (
+        <Card
+          elevation={0}
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            mb: 2,
+            borderRadius: '16px',
+            bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.warning.main, 0.12) : '#fffbeb',
+            border: '2px solid',
+            borderColor: 'warning.main',
+            boxShadow: `0 4px 20px ${alpha(theme.palette.warning.main, 0.25)}`
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            sx={{ alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between' }}
+          >
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <Box
+                sx={{
+                  width: { xs: 40, sm: 46 },
+                  height: { xs: 40, sm: 46 },
+                  borderRadius: '12px',
+                  bgcolor: 'warning.main',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 4px 14px rgba(217, 119, 6, 0.35)'
+                }}
+              >
+                <IconFast size={24} />
+              </Box>
+              <Box>
+                <Typography variant="h3" sx={{ fontWeight: 900, color: 'text.primary', fontSize: { xs: '1rem', sm: '1.2rem' } }}>
+                  {stats.pending} ta so'rov kutilmoqda
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                  Ketma-ket solishtirish va tasdiqlash rejimini ishga tushirish
+                </Typography>
+              </Box>
+            </Stack>
+
             <Button
               variant="contained"
               color="warning"
-              startIcon={<IconFast size={18} />}
+              size="large"
+              startIcon={<IconPlayerPlay size={20} />}
               onClick={handleStartFastQueue}
               sx={{
-                borderRadius: '10px',
+                borderRadius: '12px',
+                fontWeight: 900,
                 textTransform: 'none',
-                fontWeight: 800,
-                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+                py: 1.2,
+                px: 3,
+                fontSize: { xs: '0.92rem', sm: '1rem' },
                 bgcolor: '#d97706',
-                '&:hover': { bgcolor: '#b45309' }
+                boxShadow: '0 4px 16px rgba(217, 119, 6, 0.4)',
+                '&:hover': { bgcolor: '#b45309' },
+                whiteSpace: 'nowrap'
               }}
             >
-              ⚡ Tezkor tasdiqlash ({stats.pending} ta)
+              Solishtirishni boshlash ({stats.pending})
             </Button>
-          )}
+          </Stack>
+        </Card>
+      )}
 
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<IconRefresh size={18} />}
-            onClick={fetchData}
-            disabled={loading}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
-          >
-            Yangilash
-          </Button>
-        </Stack>
-      </Stack>
-
-      {/* 4 Asosiy KPI Kartalari */}
-      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+      {/* 4 Asosiy KPI Kartalari (Faqat Desktopda ko'rinadi, mobilda joy tejash maqsadida yashiriladi) */}
+      <Grid container spacing={2} sx={{ mb: 2.5, display: { xs: 'none', md: 'flex' } }}>
         {/* 1. Jami so'rovlar */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <Card
+            elevation={0}
             onClick={() => {
               setStatusTab('all');
               setPage(0);
             }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: 1.5,
+              borderRadius: '14px',
               bgcolor: 'background.paper',
-              border: statusTab === 'all' ? '2px solid #1976d2' : '1px solid rgba(0,0,0,0.06)',
-              boxShadow: statusTab === 'all' ? '0 8px 24px rgba(25, 118, 210, 0.15)' : '0 4px 12px rgba(0,0,0,0.04)',
+              border: '1px solid',
+              borderColor: statusTab === 'all' ? 'primary.main' : 'divider',
+              boxShadow: statusTab === 'all' ? `0 6px 20px ${alpha(theme.palette.primary.main, 0.15)}` : 'none',
               cursor: 'pointer',
               transition: 'all 0.2s ease-in-out',
-              '&:hover': { transform: 'translateY(-3px)' }
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
@@ -395,83 +608,87 @@ const IdentityVerification: React.FC = () => {
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
                   Jami so'rovlar
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: '#1976d2', mt: 0.5 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.3 }}>
                   {stats.total.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 1.2,
-                  borderRadius: '12px',
-                  bgcolor: 'rgba(25, 118, 210, 0.1)',
-                  color: '#1976d2',
+                  p: 0.8,
+                  borderRadius: '10px',
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: 'primary.main',
                   display: 'flex'
                 }}
               >
-                <IconFileCertificate size={26} />
+                <IconFileCertificate size={22} />
               </Box>
             </Stack>
           </Card>
         </Grid>
 
         {/* 2. Kutilmoqda */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <Card
+            elevation={0}
             onClick={() => {
               setStatusTab('pending');
               setPage(0);
             }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: 1.5,
+              borderRadius: '14px',
               bgcolor: 'background.paper',
-              border: statusTab === 'pending' ? '2px solid #d97706' : '1px solid rgba(0,0,0,0.06)',
-              boxShadow: statusTab === 'pending' ? '0 8px 24px rgba(217, 119, 6, 0.15)' : '0 4px 12px rgba(0,0,0,0.04)',
+              border: '1px solid',
+              borderColor: statusTab === 'pending' ? 'warning.main' : 'divider',
+              boxShadow: statusTab === 'pending' ? `0 6px 20px ${alpha(theme.palette.warning.main, 0.2)}` : 'none',
               cursor: 'pointer',
               transition: 'all 0.2s ease-in-out',
-              '&:hover': { transform: 'translateY(-3px)' }
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Faol (Kutilmoqda)
+                  Kutilmoqda
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: '#d97706', mt: 0.5 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'warning.main', mt: 0.3 }}>
                   {stats.pending.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 1.2,
-                  borderRadius: '12px',
-                  bgcolor: 'rgba(245, 158, 11, 0.12)',
-                  color: '#d97706',
+                  p: 0.8,
+                  borderRadius: '10px',
+                  bgcolor: alpha(theme.palette.warning.main, 0.12),
+                  color: 'warning.main',
                   display: 'flex'
                 }}
               >
-                <IconClock size={26} />
+                <IconClock size={22} />
               </Box>
             </Stack>
           </Card>
         </Grid>
 
         {/* 3. Tasdiqlangan */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <Card
+            elevation={0}
             onClick={() => {
               setStatusTab('approved');
               setPage(0);
             }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: 1.5,
+              borderRadius: '14px',
               bgcolor: 'background.paper',
-              border: statusTab === 'approved' ? '2px solid #15803d' : '1px solid rgba(0,0,0,0.06)',
-              boxShadow: statusTab === 'approved' ? '0 8px 24px rgba(21, 128, 61, 0.15)' : '0 4px 12px rgba(0,0,0,0.04)',
+              border: '1px solid',
+              borderColor: statusTab === 'approved' ? 'success.main' : 'divider',
+              boxShadow: statusTab === 'approved' ? `0 6px 20px ${alpha(theme.palette.success.main, 0.15)}` : 'none',
               cursor: 'pointer',
               transition: 'all 0.2s ease-in-out',
-              '&:hover': { transform: 'translateY(-3px)' }
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
@@ -479,41 +696,43 @@ const IdentityVerification: React.FC = () => {
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
                   Tasdiqlangan
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: '#15803d', mt: 0.5 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'success.main', mt: 0.3 }}>
                   {stats.approved.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 1.2,
-                  borderRadius: '12px',
-                  bgcolor: 'rgba(34, 197, 94, 0.12)',
-                  color: '#15803d',
+                  p: 0.8,
+                  borderRadius: '10px',
+                  bgcolor: alpha(theme.palette.success.main, 0.12),
+                  color: 'success.main',
                   display: 'flex'
                 }}
               >
-                <IconCheck size={26} />
+                <IconCheck size={22} />
               </Box>
             </Stack>
           </Card>
         </Grid>
 
         {/* 4. Bekor qilingan */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <Card
+            elevation={0}
             onClick={() => {
               setStatusTab('rejected');
               setPage(0);
             }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: 1.5,
+              borderRadius: '14px',
               bgcolor: 'background.paper',
-              border: statusTab === 'rejected' ? '2px solid #dc2626' : '1px solid rgba(0,0,0,0.06)',
-              boxShadow: statusTab === 'rejected' ? '0 8px 24px rgba(220, 38, 38, 0.15)' : '0 4px 12px rgba(0,0,0,0.04)',
+              border: '1px solid',
+              borderColor: statusTab === 'rejected' ? 'error.main' : 'divider',
+              boxShadow: statusTab === 'rejected' ? `0 6px 20px ${alpha(theme.palette.error.main, 0.15)}` : 'none',
               cursor: 'pointer',
               transition: 'all 0.2s ease-in-out',
-              '&:hover': { transform: 'translateY(-3px)' }
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
@@ -521,20 +740,20 @@ const IdentityVerification: React.FC = () => {
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
                   Bekor qilingan
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: '#dc2626', mt: 0.5 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'error.main', mt: 0.3 }}>
                   {stats.rejected.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 1.2,
-                  borderRadius: '12px',
-                  bgcolor: 'rgba(239, 68, 68, 0.12)',
-                  color: '#dc2626',
+                  p: 0.8,
+                  borderRadius: '10px',
+                  bgcolor: alpha(theme.palette.error.main, 0.12),
+                  color: 'error.main',
                   display: 'flex'
                 }}
               >
-                <IconX size={26} />
+                <IconX size={22} />
               </Box>
             </Stack>
           </Card>
@@ -542,9 +761,18 @@ const IdentityVerification: React.FC = () => {
       </Grid>
 
       {/* Asosiy Kart: Filtrlash va Jadval */}
-      <Card sx={{ borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: '20px',
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          overflow: 'hidden'
+        }}
+      >
         {/* Qidiruv va Tablar satri */}
-        <Box sx={{ p: 2.5, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <Box sx={{ p: { xs: 1.5, sm: 2.5 }, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Stack
             direction={{ xs: 'column', md: 'row' }}
             spacing={2}
@@ -554,24 +782,38 @@ const IdentityVerification: React.FC = () => {
             <Tabs
               value={statusTab}
               onChange={handleTabChange}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
               sx={{
                 minHeight: 'auto',
+                '& .MuiTabs-scrollButtons': {
+                  width: { xs: 24, sm: 36 }
+                },
                 '& .MuiTab-root': {
                   textTransform: 'none',
                   fontWeight: 700,
-                  fontSize: '0.9rem',
-                  minHeight: 40,
-                  py: 0.5
+                  fontSize: { xs: '0.8rem', sm: '0.88rem' },
+                  minHeight: 38,
+                  minWidth: 'auto',
+                  px: { xs: 1.2, sm: 1.8 },
+                  py: 0.5,
+                  whiteSpace: 'nowrap'
                 }
               }}
             >
               <Tab label={`Barchasi (${stats.total})`} value="all" />
               <Tab
                 label={
-                  <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                  <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
                     <span>Kutilmoqda</span>
                     {stats.pending > 0 && (
-                      <Chip label={stats.pending} size="small" color="warning" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 800 }} />
+                      <Chip
+                        label={stats.pending}
+                        size="small"
+                        color="warning"
+                        sx={{ height: 18, fontSize: '0.7rem', fontWeight: 800 }}
+                      />
                     )}
                   </Stack>
                 }
@@ -586,14 +828,14 @@ const IdentityVerification: React.FC = () => {
               <TextField
                 size="small"
                 fullWidth
-                placeholder="Licshet, F.I.SH, PINFL, Pasport, Nazoratchi..."
+                placeholder="Licshet, F.I.SH, PINFL, Pasport..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 slotProps={{
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <IconSearch size={18} color="#9ca3af" />
+                        <IconSearch size={18} color={theme.palette.text.secondary} />
                       </InputAdornment>
                     ),
                     endAdornment: searchInput && (
@@ -617,36 +859,263 @@ const IdentityVerification: React.FC = () => {
           </Stack>
         </Box>
 
-        {/* Jadval */}
-        <TableContainer component={Paper} elevation={0}>
+        {/* 📱 MOBIL KARTALAR KO'RINISHI (Kichik ekranlar uchun qulay Card List) */}
+        <Box sx={{ display: { xs: 'block', md: 'none' }, p: 1.5 }}>
+          {/* Mobil sarlavhadagi "Barchasini tanlash" paneli */}
+          {pendingQueue.length > 0 && statusTab === 'pending' && (
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                bgcolor: alpha(theme.palette.primary.main, 0.06),
+                borderRadius: '12px',
+                p: 1,
+                mb: 1.5
+              }}
+            >
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Checkbox
+                  size="small"
+                  checked={selectedIds.length === pendingQueue.length && pendingQueue.length > 0}
+                  indeterminate={selectedIds.length > 0 && selectedIds.length < pendingQueue.length}
+                  onChange={handleSelectAllPending}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                  Barchasini belgilash ({pendingQueue.length})
+                </Typography>
+              </Stack>
+            </Stack>
+          )}
+
+          {loading ? (
+            Array.from({ length: 4 }).map((_, idx) => (
+              <Skeleton key={idx} variant="rectangular" height={130} sx={{ borderRadius: '16px', mb: 1.5 }} />
+            ))
+          ) : items.length === 0 ? (
+            <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
+              <IconShieldCheck size={48} color={theme.palette.text.secondary} />
+              <Typography variant="body1" sx={{ fontWeight: 700, mt: 1 }}>
+                So'rovlar topilmadi
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={1.5}>
+              {items.map((row) => {
+                const passportFullName =
+                  `${row.data?.last_name || ''} ${row.data?.first_name || ''} ${row.data?.middle_name || ''}`.trim() ||
+                  "Ma'lumot yo'q";
+                const billingFullName = row.billingData?.fio || row.currentAbonent?.fio || '-';
+                const isPending = !row.confirm && !row.isCancel && row.status !== 'approved' && row.status !== 'rejected';
+                const isApproved = row.confirm || row.status === 'approved';
+                const isRejected = row.isCancel || row.status === 'rejected';
+                const isFioDiff =
+                  billingFullName &&
+                  passportFullName &&
+                  billingFullName !== '-' &&
+                  billingFullName.toLowerCase().replace(/\s+/g, '') !== passportFullName.toLowerCase().replace(/\s+/g, '');
+
+                return (
+                  <Card
+                    key={row._id}
+                    elevation={0}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: '14px',
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: selectedIds.includes(row._id) ? 'primary.main' : 'divider',
+                      boxShadow: selectedIds.includes(row._id)
+                        ? `0 4px 14px ${alpha(theme.palette.primary.main, 0.15)}`
+                        : 'none'
+                    }}
+                  >
+                    <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+                      <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                        {isPending && (
+                          <Checkbox
+                            size="small"
+                            checked={selectedIds.includes(row._id)}
+                            onChange={() => handleToggleSelectRow(row._id)}
+                            sx={{ p: 0 }}
+                          />
+                        )}
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '0.95rem' }}>
+                            {row.licshet}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                            {row.inspector_name || "Noma'lum"} •{' '}
+                            {row.createdAt ? new Date(row.createdAt).toLocaleDateString('uz-UZ') : ''}
+                          </Typography>
+                        </Box>
+                      </Stack>
+
+                      {isApproved ? (
+                        <Chip label="Tasdiqlangan" color="success" size="small" sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
+                      ) : isRejected ? (
+                        <Chip label="Bekor qilingan" color="error" size="small" sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
+                      ) : (
+                        <Chip
+                          label="Kutilmoqda"
+                          size="small"
+                          color="warning"
+                          variant="outlined"
+                          sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }}
+                        />
+                      )}
+                    </Stack>
+
+                    <Divider sx={{ my: 0.8 }} />
+
+                    {/* F.I.SH va Tug'ilgan sana (Asosiy parametrlar) */}
+                    <Box sx={{ mb: 0.8 }}>
+                      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.2 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: '0.7rem' }}>
+                          Pasport egasi:
+                        </Typography>
+                        {isFioDiff && (
+                          <Chip
+                            label="F.I.SH farqli"
+                            color="warning"
+                            size="small"
+                            sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800 }}
+                          />
+                        )}
+                      </Stack>
+                      <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '0.92rem' }}>
+                        {passportFullName}
+                      </Typography>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 0.4, flexWrap: 'wrap' }}>
+                        {row.data?.birth_date && (
+                          <Stack direction="row" spacing={0.4} sx={{ alignItems: 'center', bgcolor: alpha(theme.palette.primary.main, 0.08), px: 0.8, py: 0.2, borderRadius: '6px' }}>
+                            <IconCalendar size={13} color={theme.palette.primary.main} />
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '0.75rem' }}>
+                              {row.data.birth_date}
+                            </Typography>
+                          </Stack>
+                        )}
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                          JSHSHIR: {row.data?.pinfl || '-'}
+                        </Typography>
+                      </Stack>
+                    </Box>
+
+                    <Box sx={{ mb: 1, p: 0.8, borderRadius: '8px', bgcolor: alpha(theme.palette.text.primary, 0.03) }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem', display: 'block' }}>
+                        Billing: <b>{billingFullName}</b>
+                      </Typography>
+                      {row.billingData?.mahalla && (
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem', display: 'block' }}>
+                          {row.billingData.mahalla} {row.billingData.address ? `, ${row.billingData.address}` : ''}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Tugmalar */}
+                    {isPending ? (
+                      <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                        <Button
+                          fullWidth
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          startIcon={<IconCheck size={16} />}
+                          onClick={() => handleQuickApproveRow(row._id)}
+                          sx={{
+                            borderRadius: '10px',
+                            fontWeight: 800,
+                            textTransform: 'none',
+                            bgcolor: '#16a34a',
+                            py: 0.7,
+                            fontSize: '0.82rem',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          Tasdiqlash
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleOpenRejectRowDialog(row)}
+                          sx={{ borderRadius: '10px', minWidth: 40, p: 0.7 }}
+                        >
+                          <IconX size={17} />
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => handleOpenReview(row)}
+                          sx={{ borderRadius: '10px', minWidth: 40, p: 0.7 }}
+                        >
+                          <IconEye size={17} />
+                        </Button>
+                      </Stack>
+                    ) : (
+                      <Button
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        color="inherit"
+                        startIcon={<IconEye size={16} />}
+                        onClick={() => handleOpenReview(row)}
+                        sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, py: 0.6 }}
+                      >
+                        Batafsil ko'rish
+                      </Button>
+                    )}
+                  </Card>
+                );
+              })}
+            </Stack>
+          )}
+        </Box>
+
+        {/* 💻 DESKTOP JADVAL KO'RINISHI */}
+        <TableContainer
+          component={Paper}
+          elevation={0}
+          sx={{ display: { xs: 'none', md: 'block' }, bgcolor: 'transparent' }}
+        >
           <Table sx={{ minWidth: 1000 }}>
-            <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50' }}>
+            <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.default, 0.5) : '#f8fafc' }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, py: 1.5, width: 35 }}>№</TableCell>
-                <TableCell sx={{ fontWeight: 700, py: 1.5, width: 120 }}>Abonent (Licshet)</TableCell>
-                <TableCell sx={{ fontWeight: 700, py: 1.5, minWidth: 200 }}>Pasportdagi F.I.SH va JSHSHIR</TableCell>
-                <TableCell sx={{ fontWeight: 700, py: 1.5, minWidth: 200 }}>Billingdagi F.I.SH va Manzil</TableCell>
-                <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Nazoratchi</TableCell>
-                <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Sana</TableCell>
-                <TableCell sx={{ fontWeight: 700, py: 1.5, textAlign: 'center', width: 110 }}>Holati</TableCell>
-                <TableCell sx={{ fontWeight: 700, py: 1.5, textAlign: 'center', minWidth: 180 }}>Amallar</TableCell>
+                <TableCell padding="checkbox" sx={{ pl: 2, width: 40 }}>
+                  <Checkbox
+                    size="small"
+                    checked={pendingQueue.length > 0 && selectedIds.length === pendingQueue.length}
+                    indeterminate={selectedIds.length > 0 && selectedIds.length < pendingQueue.length}
+                    onChange={handleSelectAllPending}
+                    disabled={pendingQueue.length === 0}
+                  />
+                </TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5, width: 40 }}>№</TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5, width: 130 }}>Abonent (Licshet)</TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5, minWidth: 220 }}>Pasportdagi F.I.SH va Tug'ilgan sana</TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5, minWidth: 220 }}>Billingdagi F.I.SH va Manzil</TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5 }}>Nazoratchi</TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5 }}>Sana</TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5, textAlign: 'center', width: 120 }}>Holati</TableCell>
+                <TableCell sx={{ fontWeight: 800, py: 1.5, textAlign: 'center', minWidth: 180 }}>Amallar</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, idx) => (
                   <TableRow key={idx}>
-                    <TableCell colSpan={8} sx={{ py: 1.5 }}>
-                      <Skeleton variant="rectangular" height={40} sx={{ borderRadius: '6px' }} />
+                    <TableCell colSpan={9} sx={{ py: 1.5 }}>
+                      <Skeleton variant="rectangular" height={40} sx={{ borderRadius: '8px' }} />
                     </TableCell>
                   </TableRow>
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} sx={{ py: 5, textAlign: 'center', color: 'text.secondary' }}>
+                  <TableCell colSpan={9} sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
                     <Stack spacing={1} sx={{ alignItems: 'center' }}>
-                      <IconShieldCheck size={40} color="#9ca3af" />
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      <IconShieldCheck size={44} color={theme.palette.text.secondary} />
+                      <Typography variant="body1" sx={{ fontWeight: 700 }}>
                         So'rovlar topilmadi
                       </Typography>
                       <Typography variant="caption">
@@ -658,7 +1127,8 @@ const IdentityVerification: React.FC = () => {
               ) : (
                 items.map((row, idx) => {
                   const passportFullName =
-                    `${row.data?.last_name || ''} ${row.data?.first_name || ''} ${row.data?.middle_name || ''}`.trim() || "Ma'lumot yo'q";
+                    `${row.data?.last_name || ''} ${row.data?.first_name || ''} ${row.data?.middle_name || ''}`.trim() ||
+                    "Ma'lumot yo'q";
                   const billingFullName = row.billingData?.fio || row.currentAbonent?.fio || '-';
 
                   const isPending = !row.confirm && !row.isCancel && row.status !== 'approved' && row.status !== 'rejected';
@@ -671,13 +1141,35 @@ const IdentityVerification: React.FC = () => {
                     billingFullName !== '-' &&
                     billingFullName.toLowerCase().replace(/\s+/g, '') !== passportFullName.toLowerCase().replace(/\s+/g, '');
 
+                  const isSelected = selectedIds.includes(row._id);
+
                   return (
-                    <TableRow key={row._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary', py: 1.5 }}>{page * rowsPerPage + idx + 1}</TableCell>
+                    <TableRow
+                      key={row._id}
+                      hover
+                      selected={isSelected}
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.04) : 'inherit'
+                      }}
+                    >
+                      <TableCell padding="checkbox" sx={{ pl: 2 }}>
+                        {isPending && (
+                          <Checkbox
+                            size="small"
+                            checked={isSelected}
+                            onChange={() => handleToggleSelectRow(row._id)}
+                          />
+                        )}
+                      </TableCell>
+
+                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary', py: 1.5 }}>
+                        {page * rowsPerPage + idx + 1}
+                      </TableCell>
 
                       {/* Licshet */}
                       <TableCell sx={{ py: 1.5 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1a237e' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }}>
                           {row.licshet}
                         </Typography>
                         {row.reUpdating && (
@@ -690,20 +1182,23 @@ const IdentityVerification: React.FC = () => {
                         )}
                       </TableCell>
 
-                      {/* Pasportdagi F.I.SH va PINFL */}
+                      {/* Pasportdagi F.I.SH va Tug'ilgan sana */}
                       <TableCell sx={{ py: 1.5 }}>
                         <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary' }}>
                           {passportFullName}
                         </Typography>
-                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 0.3 }}>
-                          <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 700, fontFamily: 'monospace' }}>
-                            PINFL: {row.data?.pinfl || '-'}
-                          </Typography>
-                          {row.data?.passport_serial && (
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                              ({row.data.passport_serial} {row.data.passport_number})
-                            </Typography>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 0.3, flexWrap: 'wrap' }}>
+                          {row.data?.birth_date && (
+                            <Stack direction="row" spacing={0.4} sx={{ alignItems: 'center', bgcolor: alpha(theme.palette.primary.main, 0.08), px: 0.8, py: 0.2, borderRadius: '6px' }}>
+                              <IconCalendar size={13} color={theme.palette.primary.main} />
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '0.75rem' }}>
+                                {row.data.birth_date}
+                              </Typography>
+                            </Stack>
                           )}
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                            JSHSHIR: {row.data?.pinfl || '-'}
+                          </Typography>
                         </Stack>
                       </TableCell>
 
@@ -720,7 +1215,7 @@ const IdentityVerification: React.FC = () => {
                                 size="small"
                                 color="warning"
                                 variant="outlined"
-                                sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
+                                sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800 }}
                               />
                             </Tooltip>
                           )}
@@ -746,7 +1241,9 @@ const IdentityVerification: React.FC = () => {
                           {row.createdAt ? new Date(row.createdAt).toLocaleDateString('uz-UZ') : '-'}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                          {row.createdAt ? new Date(row.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : ''}
+                          {row.createdAt
+                            ? new Date(row.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
+                            : ''}
                         </Typography>
                       </TableCell>
 
@@ -760,22 +1257,19 @@ const IdentityVerification: React.FC = () => {
                           <Chip
                             label="Kutilmoqda"
                             size="small"
-                            sx={{
-                              bgcolor: 'rgba(245, 158, 11, 0.16)',
-                              color: '#b45309',
-                              fontWeight: 700,
-                              border: '1px solid rgba(245, 158, 11, 0.3)'
-                            }}
+                            color="warning"
+                            variant="outlined"
+                            sx={{ fontWeight: 700 }}
                           />
                         )}
                       </TableCell>
 
-                      {/* Amallar: Jadvalning o'zida Tezkor Tasdiqlash / Rad etish / Solishtirish */}
+                      {/* Amallar */}
                       <TableCell sx={{ py: 1.5, textAlign: 'center' }}>
                         {isPending ? (
                           <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', justifyContent: 'center' }}>
-                            {/* To'g'ridan-to'g'ri tasdiqlash tugmasi */}
-                            <Tooltip title="Modal ochmasdan to'g'ridan-to'g'ri tasdiqlash">
+                            {/* Tezkor tasdiqlash */}
+                            <Tooltip title="To'g'ridan-to'g'ri tasdiqlash">
                               <span>
                                 <Button
                                   size="small"
@@ -795,7 +1289,7 @@ const IdentityVerification: React.FC = () => {
                                     '&:hover': { bgcolor: '#15803d' }
                                   }}
                                 >
-                                  {rowActionLoading === row._id ? '...' : 'Tasdiqlash'}
+                                  Tasdiqlash
                                 </Button>
                               </span>
                             </Tooltip>
@@ -809,7 +1303,8 @@ const IdentityVerification: React.FC = () => {
                                   onClick={() => handleOpenRejectRowDialog(row)}
                                   disabled={rowActionLoading === row._id}
                                   sx={{
-                                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                                    border: '1px solid',
+                                    borderColor: alpha(theme.palette.error.main, 0.3),
                                     borderRadius: '8px',
                                     p: 0.5
                                   }}
@@ -826,7 +1321,8 @@ const IdentityVerification: React.FC = () => {
                                 color="primary"
                                 onClick={() => handleOpenReview(row)}
                                 sx={{
-                                  border: '1px solid rgba(25, 118, 210, 0.25)',
+                                  border: '1px solid',
+                                  borderColor: alpha(theme.palette.primary.main, 0.3),
                                   borderRadius: '8px',
                                   p: 0.5
                                 }}
@@ -845,7 +1341,7 @@ const IdentityVerification: React.FC = () => {
                               onClick={() => handleOpenReview(row)}
                               sx={{
                                 textTransform: 'none',
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 borderRadius: '8px',
                                 fontSize: '0.8rem',
                                 px: 1.5
@@ -880,6 +1376,79 @@ const IdentityVerification: React.FC = () => {
         />
       </Card>
 
+      {/* 🚀 SUZUVCHI OMMAVIY AMALLAR PANELI (Floating Bulk Action Bar) */}
+      {selectedIds.length > 0 && (
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: { xs: 16, sm: 24 },
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            bgcolor: 'background.paper',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+            border: '2px solid',
+            borderColor: 'primary.main',
+            px: { xs: 2, sm: 3 },
+            py: 1.2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: { xs: 1, sm: 2 },
+            maxWidth: '92vw',
+            flexWrap: 'wrap',
+            animation: 'fadeIn 0.2s ease-in-out'
+          }}
+        >
+          <Chip
+            icon={<IconChecklist size={16} />}
+            label={`${selectedIds.length} ta tanlandi`}
+            color="primary"
+            sx={{ fontWeight: 800 }}
+          />
+
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            startIcon={<IconCheck size={18} />}
+            onClick={handleBatchApprove}
+            disabled={batchLoading}
+            sx={{
+              fontWeight: 800,
+              borderRadius: '10px',
+              textTransform: 'none',
+              bgcolor: '#16a34a',
+              '&:hover': { bgcolor: '#15803d' },
+              px: 2
+            }}
+          >
+            {batchLoading ? 'Bajarilmoqda...' : 'Barchasini tasdiqlash'}
+          </Button>
+
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            startIcon={<IconX size={18} />}
+            onClick={() => setBatchRejectDialogOpen(true)}
+            disabled={batchLoading}
+            sx={{ fontWeight: 700, borderRadius: '10px', textTransform: 'none', px: 2 }}
+          >
+            Barchasini rad etish
+          </Button>
+
+          <Button
+            size="small"
+            color="inherit"
+            onClick={() => setSelectedIds([])}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Bekor qilish
+          </Button>
+        </Box>
+      )}
+
       {/* Solishtirish va Tasdiqlash Modali (Tezkor navbat imkoniyati bilan) */}
       <VerificationModal
         open={modalOpen}
@@ -898,7 +1467,7 @@ const IdentityVerification: React.FC = () => {
         onToggleAutoAdvance={setAutoAdvance}
       />
 
-      {/* Jadvaldan to'g'ridan-to'g'ri rad etish sababi dialogi */}
+      {/* Jadvaldan to'g'ridan-to'g'ri bitta elementni rad etish dialogi */}
       <RejectReasonDialog
         open={rowRejectDialogOpen}
         onClose={() => {
@@ -908,8 +1477,17 @@ const IdentityVerification: React.FC = () => {
         onConfirm={handleConfirmRowReject}
         loading={Boolean(rowActionLoading)}
       />
+
+      {/* Ommaviy rad etish sababi dialogi */}
+      <RejectReasonDialog
+        open={batchRejectDialogOpen}
+        onClose={() => setBatchRejectDialogOpen(false)}
+        onConfirm={handleConfirmBatchReject}
+        loading={batchLoading}
+      />
     </Box>
   );
 };
 
 export default IdentityVerification;
+

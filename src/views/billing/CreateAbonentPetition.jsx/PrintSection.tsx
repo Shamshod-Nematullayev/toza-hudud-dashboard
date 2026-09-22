@@ -243,19 +243,35 @@ export default function PrintSection({
         open={showPreview}
         onClose={() => setShowPreview(false)}
         title={`${documentTitle} — Oldindan ko'rish`}
-        sx={{ '& .MuiDialog-paper': { width: '90%', maxWidth: '850px', borderRadius: '12px' } }}
+        sx={{ '& .MuiDialog-paper': { width: '90%', maxWidth: '880px', borderRadius: '12px' } }}
       >
-        <DialogContent sx={{ p: 3, display: 'flex', justifyContent: 'center', maxHeight: '70vh', overflowY: 'auto' }}>
+        <DialogContent
+          sx={{
+            p: 3,
+            maxHeight: '75vh',
+            overflowY: 'auto',
+            bgcolor: theme.palette.mode === 'dark' ? '#111928' : '#eef2f6'
+          }}
+        >
           {/* Haqiqiy A4 qog'oz ko'rinishidagi render zonasi */}
           <Box
             sx={{
-              p: '40px',
-              borderRadius: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 3,
               width: '100%',
-              maxWidth: '210mm', // A4 standart eni
-              minHeight: '297mm', // A4 standart bo'yi
-              bgcolor: '#fff',
-              color: '#000'
+              '& .page': {
+                width: '100%',
+                maxWidth: '210mm',
+                minHeight: '297mm',
+                bgcolor: '#fff',
+                color: '#000',
+                p: '40px',
+                borderRadius: '4px',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
+                boxSizing: 'border-box'
+              }
             }}
           >
             <DocumentRenderer
@@ -277,8 +293,8 @@ export default function PrintSection({
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: '24px' }}>
-          <Button variant="contained" onClick={() => printFunction()}>
+        <DialogActions sx={{ p: '16px 24px' }}>
+          <Button variant="contained" onClick={() => printFunction()} startIcon={<PrintOutlined />}>
             Chop etish
           </Button>
         </DialogActions>

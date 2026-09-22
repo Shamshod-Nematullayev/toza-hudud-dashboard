@@ -33,6 +33,7 @@ import SpecialTasksReport from 'views/billing/Reports/SpecialTasksReport';
 import MahallaTushumlarNazoratchi from 'views/billing/Reports/MahallaTushumlarNazoratchi';
 import InspectorPlanMatrix from 'views/billing/Reports/InspectorPlanMatrix';
 import MFYIncomeReport from 'views/billing/Reports/MFYIncomeReport';
+import XatlovOdamSoniReport from 'views/billing/Reports/XatlovOdamSoniReport';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
@@ -224,6 +225,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'report-mfy-income',
           element: <MFYIncomeReport />
+        },
+        {
+          path: 'report-xatlov-odam-soni',
+          element: <XatlovOdamSoniReport />
         },
         {
           path: 'pendingNewAbonents',

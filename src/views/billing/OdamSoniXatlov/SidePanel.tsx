@@ -79,7 +79,7 @@ function SidePanel() {
     if (!pdfFile) return toast.error(t('errors.pdfFileRequired'));
 
     const formData = new FormData();
-    formData.append('file', pdfFile);
+    formData.append('file', pdfFile, pdfFile.name || 'dalolatnoma.pdf');
 
     try {
       if (!silent) setIsLoading(true);
