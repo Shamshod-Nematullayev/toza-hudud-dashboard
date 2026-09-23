@@ -49,6 +49,7 @@ import { t } from 'i18next';
 import { formatPhoneNumber } from 'views/tools/formatters';
 import { Link } from 'react-router-dom';
 import { STATUS_CFG, PHONE_CFG, HET_ACCOUNT_CFG } from '../Debitors/types';
+import { ElectricityBalanceBadge } from './ElectricityBalanceBadge';
 
 interface Data extends AbonentDetails {
   photo?: string;
@@ -311,6 +312,12 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                         <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
                           {data?.electricityAccountNumber || '—'}
                         </Typography>
+                        {data?.electricityAccountNumber && (
+                          <ElectricityBalanceBadge
+                            accountNumber={data.electricityAccountNumber}
+                            coato={data.electricityCoato}
+                          />
+                        )}
                         {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
                           <Chip
                             label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
@@ -579,6 +586,12 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                           <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
                             {data?.electricityAccountNumber || '—'}
                           </Typography>
+                          {data?.electricityAccountNumber && (
+                            <ElectricityBalanceBadge
+                              accountNumber={data.electricityAccountNumber}
+                              coato={data.electricityCoato}
+                            />
+                          )}
                           {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
                             <Chip
                               label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}

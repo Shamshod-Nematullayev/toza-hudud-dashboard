@@ -11,7 +11,8 @@ import {
   HetAbonentResponse,
   IAbonentPetition,
   PermamentsResponse,
-  MvdAddress
+  MvdAddress,
+  ElectricityBalanceResponse
 } from '../types';
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
@@ -181,6 +182,7 @@ export interface IAbonentPageActionsStore {
 
   setOpenEditElectricAccountState: (open: boolean) => void;
   getHetAbonent: (params: { personalAccount: string; coato: string }) => Promise<HetAbonentResponse>;
+  getElectricityBalance: (params: { account: string; coato?: string }) => Promise<ElectricityBalanceResponse>;
 
   setHetAbonent: (hetAbonent: HETSuccessResponse | undefined) => void;
 
@@ -389,6 +391,9 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   setOpenEditElectricAccountState: (open: boolean) => set({ openEditElectricAccountState: open }),
   getHetAbonent: async (params) => {
     return (await api.get('/abonents/het-abonent', { params })).data;
+  },
+  getElectricityBalance: async (params) => {
+    return (await api.get('/abonents/electricity-balance', { params })).data;
   },
   updateElectricity: async (params) => {
     const details = get().abonentDetails;
