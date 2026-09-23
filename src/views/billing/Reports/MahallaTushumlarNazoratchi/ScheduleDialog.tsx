@@ -48,6 +48,8 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
   const [times, setTimes] = useState<string[]>(['09:00', '12:00', '15:00', '17:00', '20:00']);
   const [newTime, setNewTime] = useState('10:00');
   const [reportMode, setReportMode] = useState<'plan' | 'classic'>('plan');
+  const [groupBy, setGroupBy] = useState<'inspector' | 'mahalla'>('inspector');
+  const [paymentPartner, setPaymentPartner] = useState<'ekopay' | 'paynet' | 'both' | 'all'>('ekopay');
   const [chatId, setChatId] = useState('');
   const [defaultChatId, setDefaultChatId] = useState('');
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
@@ -67,6 +69,8 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
         setEnabled(!!sched.enabled);
         setTimes(Array.isArray(sched.times) && sched.times.length > 0 ? sched.times : ['09:00', '12:00', '15:00', '17:00', '20:00']);
         setReportMode(sched.reportMode || 'plan');
+        setGroupBy(sched.groupBy || 'inspector');
+        setPaymentPartner(sched.paymentPartner || 'ekopay');
         setChatId(sched.chatId || '');
         setDefaultChatId(res.data.defaultChatId || '');
         setLastRunAt(sched.lastRunAt || null);
@@ -109,6 +113,8 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
         enabled,
         times,
         reportMode,
+        groupBy,
+        paymentPartner,
         chatId: chatId.trim() || undefined
       });
 
@@ -184,6 +190,26 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
               <RadioGroup row value={reportMode} onChange={(e) => setReportMode(e.target.value as 'plan' | 'classic')}>
                 <FormControlLabel value="plan" control={<Radio size="small" color="secondary" />} label="Reja va bajarilish (Yangi)" />
                 <FormControlLabel value="classic" control={<Radio size="small" color="secondary" />} label="Klassik tushum" />
+              </RadioGroup>
+            </FormControl>
+
+            {/* Guruhlash (Taqsimot) */}
+            <FormControl>
+              <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 600, mb: 0.5 }}>Guruhlash (Taqsimot):</FormLabel>
+              <RadioGroup row value={groupBy} onChange={(e) => setGroupBy(e.target.value as 'inspector' | 'mahalla')}>
+                <FormControlLabel value="inspector" control={<Radio size="small" color="secondary" />} label="Faqat nazoratchi" />
+                <FormControlLabel value="mahalla" control={<Radio size="small" color="secondary" />} label="Mahalla kesimida" />
+              </RadioGroup>
+            </FormControl>
+
+            {/* To'lov hamkori */}
+            <FormControl>
+              <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 600, mb: 0.5 }}>To‘lov hamkori:</FormLabel>
+              <RadioGroup row value={paymentPartner} onChange={(e) => setPaymentPartner(e.target.value as any)}>
+                <FormControlLabel value="ekopay" control={<Radio size="small" color="secondary" />} label="EcoPay" />
+                <FormControlLabel value="paynet" control={<Radio size="small" color="secondary" />} label="Paynet" />
+                <FormControlLabel value="both" control={<Radio size="small" color="secondary" />} label="EcoPay + Paynet" />
+                <FormControlLabel value="all" control={<Radio size="small" color="secondary" />} label="Barchasi" />
               </RadioGroup>
             </FormControl>
 

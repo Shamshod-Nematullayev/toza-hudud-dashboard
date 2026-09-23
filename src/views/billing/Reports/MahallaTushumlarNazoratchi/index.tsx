@@ -50,6 +50,10 @@ import ScheduleDialog from './ScheduleDialog';
 interface IPlanRow {
   id: number;
   name: string;
+  inspectorId?: number;
+  inspectorName?: string;
+  mahallaId?: number;
+  mahallaName?: string;
   kunlikReja: number;
   bajarilishi: number;
   foiz: number;
@@ -59,6 +63,10 @@ interface IPlanRow {
 interface IClassicRow {
   id: number;
   name: string;
+  inspectorId?: number;
+  inspectorName?: string;
+  mahallaId?: number;
+  mahallaName?: string;
   tushumSoni: number;
   summasi: number;
   allSumma: number;
@@ -69,6 +77,9 @@ interface IMahallaTushumlarReportResult {
   date: string;
   displayDate: string;
   reportMode: 'plan' | 'classic';
+  paymentPartner?: 'ekopay' | 'paynet' | 'both' | 'all';
+  groupBy?: 'inspector' | 'mahalla';
+  partnerTitle?: string;
   company: {
     id: number;
     name: string;
@@ -94,6 +105,8 @@ export default function MahallaTushumlarNazoratchi() {
 
   const [date, setDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
   const [reportMode, setReportMode] = useState<'plan' | 'classic'>('plan');
+  const [paymentPartner, setPaymentPartner] = useState<'ekopay' | 'paynet' | 'both' | 'all'>('ekopay');
+  const [groupBy, setGroupBy] = useState<'inspector' | 'mahalla'>('inspector');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<IMahallaTushumlarReportResult | null>(null);
 
@@ -110,7 +123,9 @@ export default function MahallaTushumlarNazoratchi() {
       const res = await api.get('/reports/mahalla-tushumlar-nazoratchi', {
         params: {
           date,
-          reportMode
+          reportMode,
+          paymentPartner,
+          groupBy
         }
       });
       if (res.data?.data) {
@@ -122,7 +137,7 @@ export default function MahallaTushumlarNazoratchi() {
     } finally {
       setLoading(false);
     }
-  }, [date, reportMode]);
+  }, [date, reportMode, paymentPartner, groupBy]);
 
   useEffect(() => {
     fetchReport();
@@ -132,7 +147,7 @@ export default function MahallaTushumlarNazoratchi() {
     setExportingExcel(true);
     try {
       const response = await api.get('/reports/mahalla-tushumlar-nazoratchi/excel', {
-        params: { date, reportMode },
+        params: { date, reportMode, paymentPartner, groupBy },
         responseType: 'blob'
       });
       const blob = new Blob([response.data], {
@@ -141,7 +156,7 @@ export default function MahallaTushumlarNazoratchi() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Mahalla_tushumlar_${reportMode}_${date}.xlsx`);
+      link.setAttribute('download', `Mahalla_tushumlar_${reportMode}_${paymentPartner}_${groupBy}_${date}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -172,6 +187,8 @@ export default function MahallaTushumlarNazoratchi() {
       const res = await api.post('/reports/mahalla-tushumlar-nazoratchi/send-telegram', {
         date,
         reportMode,
+        paymentPartner,
+        groupBy,
         chatId: telegramChatId.trim() || undefined
       });
       if (res.data?.ok || res.data?.success) {
@@ -331,7 +348,7 @@ export default function MahallaTushumlarNazoratchi() {
                     textTransform: 'none',
                     '&.Mui-selected': {
                       backgroundColor: theme.palette.secondary.main,
-                      color: '#ffffff',
+                      color: theme.palette.common.white,
                       '&:hover': {
                         backgroundColor: theme.palette.secondary.dark
                       }
@@ -341,6 +358,64 @@ export default function MahallaTushumlarNazoratchi() {
               >
                 <ToggleButton value="plan">Reja bilan (Kunlik)</ToggleButton>
                 <ToggleButton value="classic">Klassik (Summalar)</ToggleButton>
+              </ToggleButtonGroup>
+
+              {/* Group By Toggle */}
+              <ToggleButtonGroup
+                value={groupBy}
+                exclusive
+                size="small"
+                onChange={(_, next) => {
+                  if (next) setGroupBy(next);
+                }}
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    px: 1.5,
+                    py: 0.8,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    '&.Mui-selected': {
+                      backgroundColor: theme.palette.warning.dark || '#f57c00',
+                      color: theme.palette.common.white,
+                      '&:hover': {
+                        backgroundColor: theme.palette.warning.main || '#ff9800'
+                      }
+                    }
+                  }
+                }}
+              >
+                <ToggleButton value="inspector">Faqat nazoratchi</ToggleButton>
+                <ToggleButton value="mahalla">Mahalla kesimida</ToggleButton>
+              </ToggleButtonGroup>
+
+              {/* Partner Toggle */}
+              <ToggleButtonGroup
+                value={paymentPartner}
+                exclusive
+                size="small"
+                onChange={(_, next) => {
+                  if (next) setPaymentPartner(next);
+                }}
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    px: 1.5,
+                    py: 0.8,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    '&.Mui-selected': {
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.common.white,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark
+                      }
+                    }
+                  }
+                }}
+              >
+                <ToggleButton value="ekopay">EcoPay</ToggleButton>
+                <ToggleButton value="paynet">Paynet</ToggleButton>
+                <ToggleButton value="both">EcoPay + Paynet</ToggleButton>
+                <ToggleButton value="all">Barchasi</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
 
@@ -381,7 +456,7 @@ export default function MahallaTushumlarNazoratchi() {
                   p: 2,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : '#ffffff'
+                  backgroundColor: theme.palette.background.paper
                 }}
               >
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
@@ -412,7 +487,7 @@ export default function MahallaTushumlarNazoratchi() {
                   p: 2,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : '#ffffff'
+                  backgroundColor: theme.palette.background.paper
                 }}
               >
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
@@ -428,7 +503,7 @@ export default function MahallaTushumlarNazoratchi() {
                     <TrendingUp fontSize="small" />
                   </Box>
                   <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                    JAMI BAJARILISHI
+                    JAMI BAJARILISHI ({data?.partnerTitle || 'EcoPay'})
                   </Typography>
                 </Stack>
                 <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
@@ -443,7 +518,7 @@ export default function MahallaTushumlarNazoratchi() {
                   p: 2,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : '#ffffff'
+                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : theme.palette.background.paper
                 }}
               >
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
@@ -485,7 +560,7 @@ export default function MahallaTushumlarNazoratchi() {
                   p: 2,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : '#ffffff'
+                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : theme.palette.background.paper
                 }}
               >
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
@@ -531,7 +606,7 @@ export default function MahallaTushumlarNazoratchi() {
                   p: 2,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : '#ffffff'
+                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : theme.palette.background.paper
                 }}
               >
                 <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
@@ -548,11 +623,11 @@ export default function MahallaTushumlarNazoratchi() {
                   p: 2,
                   borderRadius: 2,
                   border: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : '#ffffff'
+                  backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.7) : theme.palette.background.paper
                 }}
               >
                 <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                  JAMI TUSHUM SUMMASI
+                  JAMI {data?.partnerTitle ? data.partnerTitle.toUpperCase() : 'HAMKOR'} TUSHUM SUMMASI
                 </Typography>
                 <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.secondary.main, mt: 1 }}>
                   {classicSummary.jamiTushumSummasi.toLocaleString()} <Typography component="span" variant="caption">so‘m</Typography>
@@ -584,20 +659,26 @@ export default function MahallaTushumlarNazoratchi() {
             <Table size="small">
               <TableHead>
                 {reportMode === 'plan' ? (
-                  <TableRow sx={{ backgroundColor: theme.palette.mode === 'dark' ? alpha('#ffffff', 0.05) : '#f8fafc' }}>
+                  <TableRow sx={{ backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : theme.palette.action.hover }}>
                     <TableCell sx={{ fontWeight: 700, width: 50, py: 1.5 }}>T/r</TableCell>
                     <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Nazoratchi F.I.Sh</TableCell>
+                    {groupBy === 'mahalla' && (
+                      <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Mahalla</TableCell>
+                    )}
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Kunlik Reja (so‘m)</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Bajarilishi (so‘m)</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Bajarilishi ({data?.partnerTitle || 'EcoPay'}) (so‘m)</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 700, py: 1.5 }}>Foiz (%)</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Farqi (so‘m)</TableCell>
                   </TableRow>
                 ) : (
-                  <TableRow sx={{ backgroundColor: theme.palette.mode === 'dark' ? alpha('#ffffff', 0.05) : '#f8fafc' }}>
+                  <TableRow sx={{ backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : theme.palette.action.hover }}>
                     <TableCell sx={{ fontWeight: 700, width: 50, py: 1.5 }}>T/r</TableCell>
                     <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Nazoratchi F.I.Sh</TableCell>
+                    {groupBy === 'mahalla' && (
+                      <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Mahalla</TableCell>
+                    )}
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Tushum soni</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Ekopay summasi</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>{data?.partnerTitle || 'EcoPay'} summasi</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Jami summa (so‘m)</TableCell>
                   </TableRow>
                 )}
@@ -611,7 +692,7 @@ export default function MahallaTushumlarNazoratchi() {
                       const isMedium = row.foiz >= 60;
                       return (
                         <TableRow
-                          key={row.id}
+                          key={`${row.id}_${idx}`}
                           hover
                           sx={{
                             '&:nth-of-type(even)': {
@@ -620,7 +701,14 @@ export default function MahallaTushumlarNazoratchi() {
                           }}
                         >
                           <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>{idx + 1}</TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>{row.name}</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>
+                            {groupBy === 'mahalla' ? (row.inspectorName || row.name.split(' — ')[0]) : row.name}
+                          </TableCell>
+                          {groupBy === 'mahalla' && (
+                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                              {row.mahallaName || (row.name.includes(' — ') ? row.name.split(' — ')[1] : '-')}
+                            </TableCell>
+                          )}
                           <TableCell align="right" sx={{ fontWeight: 500 }}>
                             {row.kunlikReja.toLocaleString()}
                           </TableCell>
@@ -672,7 +760,7 @@ export default function MahallaTushumlarNazoratchi() {
                         }
                       }}
                     >
-                      <TableCell colSpan={2} sx={{ fontWeight: 700 }}>
+                      <TableCell colSpan={groupBy === 'mahalla' ? 3 : 2} sx={{ fontWeight: 700 }}>
                         JAMI
                       </TableCell>
                       <TableCell align="right">
@@ -705,7 +793,7 @@ export default function MahallaTushumlarNazoratchi() {
                   <>
                     {classicSummary.rows.map((row, idx) => (
                       <TableRow
-                        key={row.id}
+                        key={`${row.id}_${idx}`}
                         hover
                         sx={{
                           '&:nth-of-type(even)': {
@@ -714,7 +802,14 @@ export default function MahallaTushumlarNazoratchi() {
                         }}
                       >
                         <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>{idx + 1}</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>{row.name}</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>
+                          {groupBy === 'mahalla' ? (row.inspectorName || row.name.split(' — ')[0]) : row.name}
+                        </TableCell>
+                        {groupBy === 'mahalla' && (
+                          <TableCell sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                            {row.mahallaName || (row.name.includes(' — ') ? row.name.split(' — ')[1] : '-')}
+                          </TableCell>
+                        )}
                         <TableCell align="right" sx={{ fontWeight: 500 }}>
                           {row.tushumSoni.toLocaleString()}
                         </TableCell>
@@ -739,7 +834,7 @@ export default function MahallaTushumlarNazoratchi() {
                         }
                       }}
                     >
-                      <TableCell colSpan={2} sx={{ fontWeight: 700 }}>
+                      <TableCell colSpan={groupBy === 'mahalla' ? 3 : 2} sx={{ fontWeight: 700 }}>
                         JAMI
                       </TableCell>
                       <TableCell align="right">
@@ -755,7 +850,7 @@ export default function MahallaTushumlarNazoratchi() {
                   </>
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={groupBy === 'mahalla' ? 7 : 6} align="center" sx={{ py: 6 }}>
                       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                         Tanlangan sanada ma'lumotlar topilmadi
                       </Typography>
