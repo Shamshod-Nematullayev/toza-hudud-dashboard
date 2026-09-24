@@ -42,10 +42,14 @@ import {
   AccountCircleOutlined,
   LocationOnOutlined,
   BoltOutlined,
-  FlashOn
+  FlashOn,
+  ApartmentOutlined,
+  AutoFixHigh,
+  Home
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
+import { parseAddressDetails, formatFullAddress } from '../utils/addressParser';
 
 interface MvdMember {
   Id?: string;
@@ -100,6 +104,14 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
   const [selectedStreetName, setSelectedStreetName] = useState('');
   const [loadingStreets, setLoadingStreets] = useState(false);
 
+  // Building & House details states
+  const [homeNumber, setHomeNumber] = useState('');
+  const [homeIndex, setHomeIndex] = useState('');
+  const [korpus, setKorpus] = useState('');
+  const [flatNumber, setFlatNumber] = useState('');
+  const [houseType, setHouseType] = useState<'HOUSE' | 'APARTMENT'>('HOUSE');
+  const [fullAddressText, setFullAddressText] = useState('');
+
   // Inhabitants & House states
   const [members, setMembers] = useState<MvdMember[]>([]);
   const [inhabitantCount, setInhabitantCount] = useState(0);
@@ -128,7 +140,30 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
         setHouseInfo(data.houseDetails);
         setMahallas(data.mahallas || []);
 
-        // Citizen info pre-fill
+        // 1. Manzil va kadastrdan bino ma'lumotlarini (uy, harf, korpus, xonadon, tur) chuqur tahlil qilish
+        const parsed = parseAddressDetails(
+          data.houseDetails?.fullAddress || soliqRecord.fullAddress || `${soliqRecord.mahalla || ''} ${soliqRecord.street || ''}`,
+          soliqRecord.cadastreNumber || '',
+          data.houseDetails
+        );
+
+        const autoH = data.autoHouse || {};
+        const effectiveHome = autoH.homeNumber || parsed.homeNumber || '';
+        const effectiveIndex = autoH.homeIndex || parsed.homeIndex || '';
+        const effectiveKorpusVal = autoH.korpus || parsed.korpus || '';
+        const effectiveFlat = autoH.flatNumber || parsed.flatNumber || '';
+        const effectiveType: 'HOUSE' | 'APARTMENT' =
+          (autoH.houseType || parsed.houseType || (effectiveFlat ? 'APARTMENT' : 'HOUSE')) as 'HOUSE' | 'APARTMENT';
+        const effectiveAddr = data.houseDetails?.fullAddress || parsed.fullAddress || soliqRecord.fullAddress || '';
+
+        setHomeNumber(effectiveHome);
+        setHomeIndex(effectiveIndex);
+        setKorpus(effectiveKorpusVal);
+        setFlatNumber(effectiveFlat);
+        setHouseType(effectiveType);
+        setFullAddressText(effectiveAddr);
+
+        // 2. Mulkdor va shaxsiy ma'lumotlar pre-fill
         if (data.autoCitizen) {
           setCitizenLastName(data.autoCitizen.lastName || '');
           setCitizenFirstName(data.autoCitizen.firstName || '');
@@ -136,28 +171,48 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
           setCitizenPnfl(data.autoCitizen.pnfl || '');
           setCitizenPassport(data.autoCitizen.passport || '');
           setCitizenPhone(data.autoCitizen.phone || '');
+        } else if (parsed.ownerName) {
+          const nameParts = parsed.ownerName.trim().split(/\s+/);
+          setCitizenLastName(nameParts[0] || '');
+          setCitizenFirstName(nameParts[1] || '');
+          setCitizenPatronymic(nameParts.slice(2).join(' ') || '');
         }
 
-        // Mahalla pre-fill
-        if (data.autoSelectedMahalla) {
-          setSelectedMahallaId(data.autoSelectedMahalla.id);
-          setSelectedMahallaName(data.autoSelectedMahalla.name);
-        } else if (data.mahallas && data.mahallas.length > 0) {
-          setSelectedMahallaId(data.mahallas[0].id);
-          setSelectedMahallaName(data.mahallas[0].name);
+        // 3. Mahalla pre-fill
+        let targetMahalla = data.autoSelectedMahalla;
+        if (!targetMahalla && parsed.mahallaName && data.mahallas?.length) {
+          targetMahalla = data.mahallas.find((m: any) =>
+            m.name.toLowerCase().includes(parsed.mahallaName.toLowerCase()) ||
+            (m.mfyPrimaryName && m.mfyPrimaryName.toLowerCase().includes(parsed.mahallaName.toLowerCase()))
+          );
+        }
+        if (!targetMahalla && data.mahallas && data.mahallas.length > 0) {
+          targetMahalla = data.mahallas[0];
         }
 
-        // Streets pre-fill
+        if (targetMahalla) {
+          setSelectedMahallaId(targetMahalla.id);
+          setSelectedMahallaName(targetMahalla.name);
+        }
+
+        // 4. Ko'cha pre-fill
         setStreets(data.streets || []);
-        if (data.autoSelectedStreet) {
-          setSelectedStreetId(data.autoSelectedStreet.id);
-          setSelectedStreetName(data.autoSelectedStreet.name);
-        } else if (data.streets && data.streets.length > 0) {
-          setSelectedStreetId(data.streets[0].id);
-          setSelectedStreetName(data.streets[0].name);
+        let targetStreet = data.autoSelectedStreet;
+        if (!targetStreet && parsed.streetName && data.streets?.length) {
+          targetStreet = data.streets.find((s: any) =>
+            s.name.toLowerCase().includes(parsed.streetName.toLowerCase())
+          );
+        }
+        if (!targetStreet && data.streets && data.streets.length > 0) {
+          targetStreet = data.streets[0];
         }
 
-        // Members & People count
+        if (targetStreet) {
+          setSelectedStreetId(targetStreet.id);
+          setSelectedStreetName(targetStreet.name);
+        }
+
+        // 5. MVD propiska a'zolari va odam soni
         const existingMembersMap = new Map((soliqRecord.suggestedMembers || []).map((m: any) => [m.Pinpp, m.isSelected]));
 
         const loadedMembers: MvdMember[] = (data.permanentPersons || []).map((p: any) => ({
@@ -263,6 +318,32 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
     }
   };
 
+  // Quick re-parse and extract details from address text
+  const handleAutoExtractAddress = () => {
+    const textToParse = fullAddressText || houseInfo?.fullAddress || `${soliqRecord?.mahalla || ''} ${soliqRecord?.street || ''}`;
+    const parsed = parseAddressDetails(textToParse, soliqRecord?.cadastreNumber || '', houseInfo);
+
+    if (parsed.homeNumber) setHomeNumber(parsed.homeNumber);
+    if (parsed.homeIndex) setHomeIndex(parsed.homeIndex);
+    if (parsed.korpus) setKorpus(parsed.korpus);
+    if (parsed.flatNumber) setFlatNumber(parsed.flatNumber);
+    if (parsed.houseType) setHouseType(parsed.houseType);
+    if (parsed.fullAddress) setFullAddressText(parsed.fullAddress);
+
+    // Agar mahalla nomi aniqlangan bo'lsa
+    if (parsed.mahallaName && mahallas.length > 0) {
+      const m = mahallas.find((item) =>
+        item.name.toLowerCase().includes(parsed.mahallaName.toLowerCase()) ||
+        (item.mfyPrimaryName && item.mfyPrimaryName.toLowerCase().includes(parsed.mahallaName.toLowerCase()))
+      );
+      if (m && m.id !== selectedMahallaId) {
+        handleMahallaChange(m.id);
+      }
+    }
+
+    toast.info("Manzildan uy, harf, korpus, xonadon va turar joy turi qayta ajratib olindi");
+  };
+
   // 1. Save Members count only
   const handleSaveMembersOnly = async () => {
     if (!soliqRecord) return;
@@ -320,7 +401,13 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
         streetName: selectedStreetName,
         cadastr: soliqRecord.cadastreNumber,
         inhabitant_cnt: inhabitantCount,
-        selectedMembers: members
+        selectedMembers: members,
+        homeNumber: homeNumber.trim(),
+        homeIndex: homeIndex.trim(),
+        korpus: korpus.trim(),
+        flatNumber: flatNumber.trim(),
+        houseType: houseType,
+        address: fullAddressText.trim()
       };
 
       const res = await api.post(`/data-intelligence/soliq-records/${soliqRecord._id}/create-abonent`, payload);
@@ -545,18 +632,160 @@ export const CodeOpeningPreparationModal: React.FC<CodeOpeningPreparationModalPr
                   </Grid>
                 </Paper>
 
-                {/* 3. House info preview */}
-                {houseInfo && (
-                  <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, bgcolor: alpha(theme.palette.background.default, 0.6) }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      🏠 Kadastr to'liq manzili: <strong>{houseInfo.fullAddress || '—'}</strong>
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      Mulkdor: <strong>{houseInfo.owners?.[0]?.name || '—'}</strong> • Obyekt turi:{' '}
-                      {houseInfo.objectType || houseInfo.houseType || 'Turar joy'}
-                    </Typography>
-                  </Paper>
-                )}
+                {/* 3. Turar joy va Bino Ma'lumotlari (Uy, Harf, Korpus, Xonadon) Card */}
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                      <ApartmentOutlined color="primary" fontSize="small" />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        Turar joy va Bino Ma'lumotlari
+                      </Typography>
+                    </Stack>
+
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<AutoFixHigh sx={{ fontSize: 14 }} />}
+                      onClick={handleAutoExtractAddress}
+                      sx={{ textTransform: 'none', borderRadius: 2, fontSize: '0.72rem', py: 0.2 }}
+                    >
+                      Manzildan tahlil qilish
+                    </Button>
+                  </Stack>
+
+                  <Grid container spacing={1.5}>
+                    {/* Bino turi: Ko'p qavatli uy (Xonadon) yoki Yakka tartibdagi uy */}
+                    <Grid size={{ xs: 12 }}>
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>Obyekt / Turar joy turi</InputLabel>
+                        <Select
+                          value={houseType}
+                          label="Obyekt / Turar joy turi"
+                          onChange={(e) => setHouseType(e.target.value as 'HOUSE' | 'APARTMENT')}
+                        >
+                          <MenuItem value="APARTMENT">🏢 Ko'p qavatli uy (Xonadon / Kvartira)</MenuItem>
+                          <MenuItem value="HOUSE">🏡 Yakka tartibdagi uy (Hovli / Turar joy)</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    {/* Uy raqami */}
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size="small"
+                        label="Uy raqami"
+                        placeholder="26"
+                        fullWidth
+                        value={homeNumber}
+                        onChange={(e) => setHomeNumber(e.target.value)}
+                      />
+                    </Grid>
+
+                    {/* Harf / Indeks */}
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size="small"
+                        label="Harf / Indeks"
+                        placeholder="A"
+                        fullWidth
+                        value={homeIndex}
+                        onChange={(e) => setHomeIndex(e.target.value.toUpperCase())}
+                      />
+                    </Grid>
+
+                    {/* Bino / Korpus */}
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size="small"
+                        label="Bino / Korpus"
+                        placeholder="3"
+                        fullWidth
+                        value={korpus}
+                        onChange={(e) => {
+                          setKorpus(e.target.value);
+                          if (e.target.value && houseType !== 'APARTMENT') {
+                            setHouseType('APARTMENT');
+                          }
+                        }}
+                      />
+                    </Grid>
+
+                    {/* Xonadon raqami */}
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size="small"
+                        label="Xonadon raqami"
+                        placeholder="137"
+                        fullWidth
+                        value={flatNumber}
+                        onChange={(e) => {
+                          setFlatNumber(e.target.value);
+                          if (e.target.value && houseType !== 'APARTMENT') {
+                            setHouseType('APARTMENT');
+                          }
+                        }}
+                        slotProps={{
+                          input: {
+                            sx: houseType === 'APARTMENT' ? { fontWeight: 700, color: 'primary.main' } : {}
+                          }
+                        }}
+                      />
+                    </Grid>
+
+                    {/* To'liq manzil matni */}
+                    <Grid size={{ xs: 12 }}>
+                      <TextField
+                        size="small"
+                        label="To'liq manzil matni"
+                        fullWidth
+                        multiline
+                        rows={2}
+                        value={fullAddressText}
+                        onChange={(e) => setFullAddressText(e.target.value)}
+                        placeholder="Amir Temur MFY, Beklar koʼchasi, 26-А-uy, 3-Корпус, 137-xonadon"
+                        helperText={
+                          houseInfo ? (
+                            <span>
+                              Mulkdor: <strong>{houseInfo.owners?.[0]?.name || soliqRecord?.fullName || '—'}</strong> •
+                              Kadastr turi: {houseInfo.objectType || houseInfo.houseType || 'Turar joy'}
+                            </span>
+                          ) : undefined
+                        }
+                      />
+                    </Grid>
+
+                    {/* Formatlangan manzil jonli ko'rinishi */}
+                    {(homeNumber || flatNumber || korpus) && (
+                      <Grid size={{ xs: 12 }}>
+                        <Box
+                          sx={{
+                            p: 1.2,
+                            borderRadius: 1.5,
+                            bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.15 : 0.05),
+                            border: '1px dashed',
+                            borderColor: alpha(theme.palette.primary.main, 0.4)
+                          }}
+                        >
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                            <Chip
+                              size="small"
+                              color={houseType === 'APARTMENT' ? 'primary' : 'default'}
+                              label={houseType === 'APARTMENT' ? "🏢 Ko'p qavatli" : "🏡 Hovli"}
+                              sx={{ fontWeight: 600, fontSize: '0.7rem' }}
+                            />
+                            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                              {selectedMahallaName || 'Mahalla'}, {selectedStreetName || "Ko'cha"},{" "}
+                              {homeNumber ? `${homeNumber}${homeIndex ? '-' + homeIndex : ''}-uy` : ''}
+                              {korpus ? `, ${korpus}-korpus` : ''}
+                              {flatNumber ? `, ${flatNumber}-xonadon` : ''}
+                            </Typography>
+                          </Stack>
+                        </Box>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Paper>
               </Stack>
             </Grid>
 

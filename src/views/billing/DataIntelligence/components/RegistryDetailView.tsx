@@ -27,7 +27,8 @@ import {
   PlayArrowRounded,
   StopRounded,
   AutoModeRounded,
-  GroupOutlined
+  GroupOutlined,
+  PersonAddAlt1Outlined
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import api from 'utils/api';
@@ -36,6 +37,7 @@ import { ExternalRegistryItem, getGroupColor, getGroupLabel } from './RegistryMa
 import { SoliqRecordsTable } from './SoliqRecordsTable';
 import { ExcelImportBlock } from './ExcelImportBlock';
 import { MvdJobConfigModal } from './MvdJobConfigModal';
+import { AutoCreateAbonentsJobModal } from './AutoCreateAbonentsJobModal';
 
 interface RegistryDetailViewProps {
   registry: ExternalRegistryItem;
@@ -72,6 +74,9 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
   const [matchingLoading, setMatchingLoading] = useState(false);
   const [mvdJobModalOpen, setMvdJobModalOpen] = useState(false);
   const [mvdJobLoading, setMvdJobLoading] = useState(false);
+  const [autoCodeModalOpen, setAutoCodeModalOpen] = useState(false);
+  const [autoCodeLoading, setAutoCodeLoading] = useState(false);
+  const [autoCodeJobStatus, setAutoCodeJobStatus] = useState<any>(null);
 
   const [jobStatus, setJobStatus] = useState<JobStatusState>({
     isRunning: false,
@@ -144,22 +149,38 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
     } catch (e) {}
   };
 
+  // Avtomatik Hisob Ochish (Slot 1 og'ir job) holatini tekshirish
+  const fetchAutoCodeJobStatus = async () => {
+    try {
+      const res = await api.get('/data-intelligence/auto-create-abonents-job/status');
+      if (res.data?.ok) {
+        setAutoCodeJobStatus(res.data.job || null);
+        if (res.data.job?.status === 'running') {
+          reloadRegistryData();
+        }
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     reloadRegistryData();
     fetchJobStatus();
     fetchMvdJobStatus();
+    fetchAutoCodeJobStatus();
   }, [refreshTrigger]);
 
   // Jonli polling: agar biror job ishlayotgan bo'lsa har 2.5 soniyada, aks holda har 15 soniyada
   useEffect(() => {
-    const isAnyRunning = jobStatus.isRunning || mvdJobStatus.isRunning;
+    const isAutoCodeBusy = autoCodeJobStatus && (autoCodeJobStatus.status === 'running' || autoCodeJobStatus.status === 'queued');
+    const isAnyRunning = jobStatus.isRunning || mvdJobStatus.isRunning || isAutoCodeBusy;
     const intervalTime = isAnyRunning ? 2500 : 15000;
     const interval = setInterval(() => {
       fetchJobStatus();
       fetchMvdJobStatus();
+      fetchAutoCodeJobStatus();
     }, intervalTime);
     return () => clearInterval(interval);
-  }, [jobStatus.isRunning, mvdJobStatus.isRunning, currentRegistry._id]);
+  }, [jobStatus.isRunning, mvdJobStatus.isRunning, autoCodeJobStatus?.status, currentRegistry._id]);
 
   const handleImportSuccess = () => {
     setShowImport(false);
@@ -216,6 +237,21 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
       }
     } catch (e) {} finally {
       setMvdJobLoading(false);
+    }
+  };
+
+  // Avtomatik Hisob Ochish Job'ni to'xtatish
+  const handleStopAutoCodeJob = async () => {
+    setAutoCodeLoading(true);
+    try {
+      const res = await api.post('/data-intelligence/auto-create-abonents-job/stop');
+      if (res.data?.ok) {
+        toast.info(res.data.message || "Hisob ochish jarayoni to'xtatildi");
+        fetchAutoCodeJobStatus();
+        reloadRegistryData();
+      }
+    } catch (e) {} finally {
+      setAutoCodeLoading(false);
     }
   };
 
@@ -396,6 +432,24 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
                     sx={{ fontWeight: 700 }}
                   />
                 )}
+                {autoCodeJobStatus?.status === 'running' && (
+                  <Chip
+                    icon={<CircularProgress size={14} color="inherit" />}
+                    label="Hisob ochilmoqda..."
+                    color="success"
+                    size="small"
+                    sx={{ fontWeight: 700 }}
+                  />
+                )}
+                {autoCodeJobStatus?.status === 'queued' && (
+                  <Chip
+                    icon={<HourglassEmptyRounded sx={{ fontSize: 14 }} />}
+                    label={`Hisob ochish navbatda (#${autoCodeJobStatus.position || 1})`}
+                    color="warning"
+                    size="small"
+                    sx={{ fontWeight: 700 }}
+                  />
+                )}
               </Stack>
               <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                 Ro'yxat sanasi: <strong>{dayjs(currentRegistry.registryDate).format('DD.MM.YYYY')}</strong>
@@ -405,7 +459,7 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
             </Box>
           </Stack>
 
-          {/* O'ng qism: AI Solishtirish + MVD Odam Soni Job + Excel yuklash + Refresh */}
+          {/* O'ng qism: AI Solishtirish + MVD Odam Soni Job + Avtomatik Hisob Ochish + Excel yuklash + Refresh */}
           <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
             {/* 1. AI Matching Job Button */}
             {jobStatus.isRunning ? (
@@ -481,6 +535,44 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
                 }}
               >
                 MVD Odam Soni Job
+              </Button>
+            )}
+
+            {/* 3. Avtomatik Hisob Ochish (Og'ir Job) Button */}
+            {autoCodeJobStatus && (autoCodeJobStatus.status === 'running' || autoCodeJobStatus.status === 'queued') ? (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<StopRounded />}
+                onClick={handleStopAutoCodeJob}
+                disabled={autoCodeLoading}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 2.2,
+                  py: 1
+                }}
+              >
+                Hisob Ochishni To'xtatish
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<PersonAddAlt1Outlined />}
+                onClick={() => setAutoCodeModalOpen(true)}
+                disabled={total === 0 || autoCodeLoading}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 2.2,
+                  py: 1,
+                  boxShadow: `0 4px 14px ${alpha(theme.palette.success.main, 0.35)}`
+                }}
+              >
+                Avtomatik Hisob Ochish
               </Button>
             )}
 
@@ -667,6 +759,59 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
               />
             </Box>
           )}
+
+          {/* Jonli Avtomatik Hisob Ochish (Slot 1 og'ir job) Ko'rsatkichi */}
+          {autoCodeJobStatus && (autoCodeJobStatus.status === 'running' || autoCodeJobStatus.status === 'queued') && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 1.8,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.success.main, 0.05),
+                border: `1px solid ${alpha(theme.palette.success.main, 0.25)}`
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}
+              >
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <PersonAddAlt1Outlined sx={{ color: 'success.main', fontSize: 20 }} />
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    {autoCodeJobStatus.status === 'running'
+                      ? "Avtomatik hisob raqamlari ochilmoqda (Og'ir Job)..."
+                      : `Hisob ochish vazifasi navbatda (#${autoCodeJobStatus.position || 1})...`}
+                  </Typography>
+                </Stack>
+                <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main' }}>
+                  {autoCodeJobStatus.current !== undefined && autoCodeJobStatus.total !== undefined
+                    ? `${autoCodeJobStatus.current.toLocaleString()} / ${autoCodeJobStatus.total.toLocaleString()} ta yozuv (${autoCodeJobStatus.progress || 0}%)`
+                    : `${autoCodeJobStatus.progress || 0}%`}
+                </Typography>
+              </Stack>
+
+              {autoCodeJobStatus.message && (
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 1 }}>
+                  {autoCodeJobStatus.message}
+                </Typography>
+              )}
+
+              <LinearProgress
+                variant="determinate"
+                value={Math.min(100, Math.max(0, autoCodeJobStatus.progress || 0))}
+                color="success"
+                sx={{
+                  height: 7,
+                  borderRadius: 3.5,
+                  bgcolor: alpha(theme.palette.success.main, 0.1),
+                  '& .MuiLinearProgress-bar': {
+                    borderRadius: 3.5
+                  }
+                }}
+              />
+            </Box>
+          )}
         </Box>
       </Card>
 
@@ -699,6 +844,19 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
         sourceGroup={currentRegistry.group}
         onJobStarted={() => {
           fetchMvdJobStatus();
+          reloadRegistryData();
+          setRefreshTrigger((prev) => prev + 1);
+        }}
+      />
+
+      {/* 6. Avtomatik Hisob Ochish (Og'ir Job) Modali */}
+      <AutoCreateAbonentsJobModal
+        open={autoCodeModalOpen}
+        onClose={() => setAutoCodeModalOpen(false)}
+        listId={currentRegistry._id}
+        listName={currentRegistry.name}
+        onJobStarted={() => {
+          fetchAutoCodeJobStatus();
           reloadRegistryData();
           setRefreshTrigger((prev) => prev + 1);
         }}

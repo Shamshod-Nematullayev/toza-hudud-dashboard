@@ -537,7 +537,7 @@ export default function MFYIncomeReport() {
                 {Math.round(summary.jamiTushum).toLocaleString('uz-UZ')} so‘m
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {onlyEkopay ? 'Faqat EcoPay to‘lovlari' : 'Barcha to‘lov turlari jamlanmasi'}
+                {paymentPartner === 'ekopay' ? 'Faqat EcoPay to‘lovlari' : 'Barcha to‘lov turlari jamlanmasi'}
               </Typography>
             </Card>
           </Grid>

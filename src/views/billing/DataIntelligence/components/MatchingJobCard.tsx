@@ -32,10 +32,12 @@ import {
   FilterAltOutlined,
   TuneOutlined,
   ExpandMoreRounded,
-  ExpandLessRounded
+  ExpandLessRounded,
+  PersonAddAlt1Outlined
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
+import { AutoCreateAbonentsJobModal } from './AutoCreateAbonentsJobModal';
 
 interface JobStats {
   total: number;
@@ -91,6 +93,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
   const [registries, setRegistries] = useState<any[]>([]);
   const [mahallas, setMahallas] = useState<MahallaOption[]>([]);
+  const [autoCodeModalOpen, setAutoCodeModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (fixedRegistryId) {
@@ -310,6 +313,16 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
                 : "AI Solishtirishni Boshlash"}
             </Button>
           )}
+
+          <Button
+            variant="outlined"
+            color="success"
+            startIcon={<PersonAddAlt1Outlined />}
+            onClick={() => setAutoCodeModalOpen(true)}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+          >
+            Avtomatik Hisob Ochish
+          </Button>
         </Stack>
       </Stack>
 
@@ -542,6 +555,18 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
           sx={{ fontWeight: 600, fontSize: '0.8rem' }}
         />
       </Stack>
+
+      {/* Avtomatik Hisob Ochish (Og'ir Job) Modali */}
+      <AutoCreateAbonentsJobModal
+        open={autoCodeModalOpen}
+        onClose={() => setAutoCodeModalOpen(false)}
+        listId={fixedRegistryId}
+        listName={fixedRegistryName}
+        onJobStarted={() => {
+          fetchJobStatus();
+          if (onRefreshRecords) onRefreshRecords();
+        }}
+      />
     </Card>
   );
 };

@@ -224,13 +224,15 @@ export default function TelegramGroupSelect({
           );
         }}
         MenuProps={{
-          PaperProps: {
-            sx: {
-              maxHeight: 320,
-              borderRadius: 2,
-              border: '1px solid',
-              borderColor: theme.palette.divider,
-              boxShadow: theme.palette.mode === 'dark' ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(0,0,0,0.08)'
+          slotProps: {
+            paper: {
+              sx: {
+                maxHeight: 320,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: theme.palette.divider,
+                boxShadow: theme.palette.mode === 'dark' ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(0,0,0,0.08)'
+              }
             }
           }
         }}
