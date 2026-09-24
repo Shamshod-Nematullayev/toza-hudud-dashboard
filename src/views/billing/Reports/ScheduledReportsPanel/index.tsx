@@ -45,6 +45,7 @@ export interface IScheduledReportItem {
   reportMode: 'plan' | 'classic';
   paymentPartner: 'ekopay' | 'paynet' | 'both' | 'all';
   groupBy?: 'inspector' | 'mahalla';
+  taskType?: 'phone' | 'electricity' | 'both';
   chatId: string;
   defaultChatId: string;
   lastRunAt: string | null;
@@ -137,6 +138,7 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
         reportMode: item.reportMode,
         paymentPartner: item.paymentPartner,
         groupBy: item.groupBy || 'inspector',
+        taskType: item.taskType || 'both',
         chatId: item.chatId.trim() || undefined
       });
 
@@ -161,6 +163,7 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
         reportMode: item.reportMode,
         paymentPartner: item.paymentPartner,
         groupBy: item.groupBy || 'inspector',
+        taskType: item.taskType || 'both',
         chatId: item.chatId.trim() || undefined
       });
 
@@ -310,86 +313,133 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
                       />
                     </Box>
 
-                    {/* Report Mode & Partner */}
-                    <Stack spacing={2} sx={{ mb: 2.5 }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                          Hisobot formati:
-                        </Typography>
-                        <RadioGroup
-                          row
-                          value={item.reportMode}
-                          onChange={(e) => updateReportField(item.reportType, 'reportMode', e.target.value)}
-                        >
-                          <FormControlLabel
-                            value="plan"
-                            control={<Radio size="small" color="secondary" />}
-                            label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Reja va bajarilish</Typography>}
-                          />
-                          <FormControlLabel
-                            value="classic"
-                            control={<Radio size="small" color="secondary" />}
-                            label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Klassik tushum</Typography>}
-                          />
-                        </RadioGroup>
-                      </Box>
-
-                      <Box>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                          To‘lov hamkori:
-                        </Typography>
-                        <RadioGroup
-                          row
-                          value={item.paymentPartner || 'ekopay'}
-                          onChange={(e) => updateReportField(item.reportType, 'paymentPartner', e.target.value)}
-                        >
-                          <FormControlLabel
-                            value="ekopay"
-                            control={<Radio size="small" color="primary" />}
-                            label={<Typography variant="body2" sx={{ fontWeight: 500 }}>EcoPay</Typography>}
-                          />
-                          <FormControlLabel
-                            value="paynet"
-                            control={<Radio size="small" color="primary" />}
-                            label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Paynet</Typography>}
-                          />
-                          <FormControlLabel
-                            value="both"
-                            control={<Radio size="small" color="primary" />}
-                            label={<Typography variant="body2" sx={{ fontWeight: 500 }}>EcoPay + Paynet</Typography>}
-                          />
-                          <FormControlLabel
-                            value="all"
-                            control={<Radio size="small" color="primary" />}
-                            label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Barchasi</Typography>}
-                          />
-                        </RadioGroup>
-                      </Box>
-
-                      {item.reportType === 'mahallaTushumlarNazoratchiKesimida' && (
+                    {/* Report Mode & Partner OR Task Type */}
+                    {item.reportType.startsWith('specialTask') ? (
+                      <Stack spacing={2} sx={{ mb: 2.5 }}>
                         <Box>
                           <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                            Guruhlash (Taqsimot):
+                            Topshiriq yo‘nalishi:
                           </Typography>
                           <RadioGroup
                             row
-                            value={item.groupBy || 'inspector'}
-                            onChange={(e) => updateReportField(item.reportType, 'groupBy', e.target.value)}
+                            value={item.taskType || 'both'}
+                            onChange={(e) => updateReportField(item.reportType, 'taskType', e.target.value)}
                           >
                             <FormControlLabel
-                              value="inspector"
+                              value="both"
                               control={<Radio size="small" color="secondary" />}
-                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Faqat nazoratchi</Typography>}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Barchasi (Telefon + Elektr)</Typography>}
                             />
                             <FormControlLabel
-                              value="mahalla"
+                              value="phone"
                               control={<Radio size="small" color="secondary" />}
-                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Mahalla kesimida</Typography>}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Faqat Telefon</Typography>}
+                            />
+                            <FormControlLabel
+                              value="electricity"
+                              control={<Radio size="small" color="secondary" />}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Faqat Elektr (ETK)</Typography>}
                             />
                           </RadioGroup>
                         </Box>
-                      )}
-                    </Stack>
+
+                        <Box
+                          sx={{
+                            p: 1.25,
+                            borderRadius: 1.5,
+                            bgcolor: alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.15 : 0.06),
+                            border: '1px solid',
+                            borderColor: alpha(theme.palette.info.main, 0.2)
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.4 }}>
+                            {item.reportType === 'specialTaskDailyReport'
+                              ? 'ℹ️ Nazoratchilar kesimida topshiriqlarning kunlik bajarilishi va foiz ko‘rsatkichlari bo‘yicha tezkor foto-hisobot.'
+                              : 'ℹ️ Mahallalar (MFY) kesimida maxsus topshiriqlarning umumiy holati va xatlov natijalari bo‘yicha foto-hisobot.'}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    ) : (
+                      <Stack spacing={2} sx={{ mb: 2.5 }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                            Hisobot formati:
+                          </Typography>
+                          <RadioGroup
+                            row
+                            value={item.reportMode}
+                            onChange={(e) => updateReportField(item.reportType, 'reportMode', e.target.value)}
+                          >
+                            <FormControlLabel
+                              value="plan"
+                              control={<Radio size="small" color="secondary" />}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Reja va bajarilish</Typography>}
+                            />
+                            <FormControlLabel
+                              value="classic"
+                              control={<Radio size="small" color="secondary" />}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Klassik tushum</Typography>}
+                            />
+                          </RadioGroup>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                            To‘lov hamkori:
+                          </Typography>
+                          <RadioGroup
+                            row
+                            value={item.paymentPartner || 'ekopay'}
+                            onChange={(e) => updateReportField(item.reportType, 'paymentPartner', e.target.value)}
+                          >
+                            <FormControlLabel
+                              value="ekopay"
+                              control={<Radio size="small" color="primary" />}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>EcoPay</Typography>}
+                            />
+                            <FormControlLabel
+                              value="paynet"
+                              control={<Radio size="small" color="primary" />}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Paynet</Typography>}
+                            />
+                            <FormControlLabel
+                              value="both"
+                              control={<Radio size="small" color="primary" />}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>EcoPay + Paynet</Typography>}
+                            />
+                            <FormControlLabel
+                              value="all"
+                              control={<Radio size="small" color="primary" />}
+                              label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Barchasi</Typography>}
+                            />
+                          </RadioGroup>
+                        </Box>
+
+                        {item.reportType === 'mahallaTushumlarNazoratchiKesimida' && (
+                          <Box>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                              Guruhlash (Taqsimot):
+                            </Typography>
+                            <RadioGroup
+                              row
+                              value={item.groupBy || 'inspector'}
+                              onChange={(e) => updateReportField(item.reportType, 'groupBy', e.target.value)}
+                            >
+                              <FormControlLabel
+                                value="inspector"
+                                control={<Radio size="small" color="secondary" />}
+                                label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Faqat nazoratchi</Typography>}
+                              />
+                              <FormControlLabel
+                                value="mahalla"
+                                control={<Radio size="small" color="secondary" />}
+                                label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Mahalla kesimida</Typography>}
+                              />
+                            </RadioGroup>
+                          </Box>
+                        )}
+                      </Stack>
+                    )}
 
                     <Divider sx={{ my: 2 }} />
 
@@ -401,6 +451,15 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
 
                       {/* Quick Presets */}
                       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.75, mb: 1.5 }}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="inherit"
+                          onClick={() => applyPreset(item.reportType, ['09:00', '18:00'])}
+                          sx={{ textTransform: 'none', py: 0.2, fontSize: '0.75rem', borderColor: theme.palette.divider }}
+                        >
+                          2 mahal (9, 18)
+                        </Button>
                         <Button
                           size="small"
                           variant="outlined"
