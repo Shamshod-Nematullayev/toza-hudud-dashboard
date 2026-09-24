@@ -129,7 +129,7 @@ export const ImportScannedAbonentModal: React.FC<ImportScannedAbonentModalProps>
       // Backenddan arizani olamiz
       setFetchingAbonent(true);
       try {
-        const res = await api.get(`/pendingNewAbonents/${id}`);
+        const res = await api.get(`/pendingNewAbonents/get-by-id/${id}`);
         if (res.data?.ok && res.data?.data) {
           const abonent: INewAbonentItem = res.data.data;
           setDetectedAbonent(abonent);

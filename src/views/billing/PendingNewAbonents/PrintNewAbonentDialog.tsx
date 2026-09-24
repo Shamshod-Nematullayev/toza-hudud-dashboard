@@ -271,7 +271,7 @@ export const PrintNewAbonentDialog: React.FC<PrintNewAbonentDialogProps> = ({
                       Nazoratchi: <b>{printDetails.inspectorName || item.inspector_name || '-'}</b>
                     </Typography>
                     <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block' }}>
-                      Kompaniya rahbari: <b>{printDetails.company?.managerName || userCompany?.manager || '-'}</b>
+                      Kompaniya rahbari: <b>{printDetails.company?.managerName || userCompany?.managerName || '-'}</b>
                     </Typography>
                     <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mt: 0.5 }}>
                       Hujjat holati: <b>{item.document_number ? `№ ${item.document_number} (Chiqarilgan)` : 'Yangi'}</b>

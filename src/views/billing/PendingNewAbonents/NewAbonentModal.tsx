@@ -202,6 +202,7 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
   const displayEtkCaoto = selectedEtk ? selectedEtk.coatoCode : item.etkCaoto;
   const displayEtkOwner = selectedEtk ? selectedEtk.fullName : currentEtkDetails?.fullName;
   const displayEtkAddress = selectedEtk ? selectedEtk.address : currentEtkDetails?.address;
+  const fetchingEtkDetails = loadingCurrentEtk && !selectedEtk;
 
   return (
     <>

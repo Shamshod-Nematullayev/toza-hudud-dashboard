@@ -47,6 +47,7 @@ const ActiveJobsMonitor: React.FC = () => {
     const filtered = incomingJobs.filter(
       (j: ActiveJobItem) =>
         j.name !== 'sendScheduledMahallaTushumlarReport' &&
+        j.name !== 'sendScheduledMFYIncomeReport' &&
         !j.name?.toLowerCase().includes('scheduled')
     );
 

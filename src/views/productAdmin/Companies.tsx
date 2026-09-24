@@ -36,7 +36,8 @@ import {
   CalendarMonth as CalendarIcon,
   Phone as PhoneIcon,
   Home as HomeIcon,
-  Badge as BadgeIcon
+  Badge as BadgeIcon,
+  Sms as SmsIcon
 } from '@mui/icons-material';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -66,6 +67,9 @@ interface CompanyData {
   ekopayLogin?: string;
   ekopayPassword?: string;
   ekopayCompanyId?: string;
+  eskizLogin?: string;
+  eskizPassword?: string;
+  eskizAccessToken?: string;
   premium?: boolean;
 }
 
@@ -83,6 +87,9 @@ const initialCompanyState: CompanyData = {
   phone: '',
   address: '',
   tin: '',
+  eskizLogin: '',
+  eskizPassword: '',
+  eskizAccessToken: '',
   premium: false
 };
 
@@ -474,7 +481,7 @@ export default function Companies() {
                   </AccordionDetails>
                 </Accordion>
 
-                <Accordion sx={{ borderRadius: '12px !important', border: '1px solid rgba(0,0,0,0.05)' }}>
+                <Accordion sx={{ borderRadius: '12px !important', border: '1px solid rgba(0,0,0,0.05)', mb: 1 }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
                       <BadgeIcon color="action" />
@@ -523,6 +530,46 @@ export default function Companies() {
                           type="text"
                           value={form.ekopayPassword || ''}
                           onChange={(e) => setForm({ ...form, ekopayPassword: e.target.value })}
+                        />
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+
+                <Accordion sx={{ borderRadius: '12px !important', border: '1px solid rgba(0,0,0,0.05)' }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
+                      <SmsIcon color="action" />
+                      <Typography sx={{ fontWeight: 600 }}>SMS Xizmati (Eskiz SMS) Sozlamalari</Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="SMS Login (Eskiz email/login)"
+                          placeholder="masalan: info@tozahudud.uz"
+                          value={form.eskizLogin || ''}
+                          onChange={(e) => setForm({ ...form, eskizLogin: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="SMS Parol (Eskiz parol)"
+                          type="text"
+                          value={form.eskizPassword || ''}
+                          onChange={(e) => setForm({ ...form, eskizPassword: e.target.value })}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField
+                          fullWidth
+                          label="SMS Access Token (ixtiyoriy / avtomatik olinadi)"
+                          placeholder="Eskiz Bearer token"
+                          value={form.eskizAccessToken || ''}
+                          onChange={(e) => setForm({ ...form, eskizAccessToken: e.target.value })}
                         />
                       </Grid>
                     </Grid>
