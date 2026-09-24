@@ -34,6 +34,7 @@ import MahallaTushumlarNazoratchi from 'views/billing/Reports/MahallaTushumlarNa
 import InspectorPlanMatrix from 'views/billing/Reports/InspectorPlanMatrix';
 import MFYIncomeReport from 'views/billing/Reports/MFYIncomeReport';
 import XatlovOdamSoniReport from 'views/billing/Reports/XatlovOdamSoniReport';
+import ScheduledReportsPanel from 'views/billing/Reports/ScheduledReportsPanel';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
@@ -229,6 +230,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'report-xatlov-odam-soni',
           element: <XatlovOdamSoniReport />
+        },
+        {
+          path: 'scheduled-reports',
+          element: <ScheduledReportsPanel />
         },
         {
           path: 'pendingNewAbonents',

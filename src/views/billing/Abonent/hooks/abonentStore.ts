@@ -249,6 +249,10 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     if (!abonentDetails) return;
     await api.patch('/abonents/update-phone/' + get().abonentDetails?.id, { phone });
     set({ abonentDetails: { ...abonentDetails, phone } });
+    // 🌟 Bazadan yangilangan Debitor statusini (checking/Umid bor) darhol qayta yuklash:
+    if (abonentDetails.id) {
+      await get().getAbonentDebitorStatus(abonentDetails.id);
+    }
   },
 
   getResidentCadastrs: async (pnfl) => {

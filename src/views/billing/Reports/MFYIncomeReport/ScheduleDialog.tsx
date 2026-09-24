@@ -45,6 +45,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
   const [enabled, setEnabled] = useState(false);
   const [times, setTimes] = useState<string[]>(['09:00', '13:00', '18:00', '21:00']);
   const [newTime, setNewTime] = useState('12:00');
+  const [paymentPartner, setPaymentPartner] = useState<'ekopay' | 'paynet' | 'both' | 'all'>('all');
   const [reportMode, setReportMode] = useState<'plan' | 'classic'>('plan');
   const [chatId, setChatId] = useState('');
   const [defaultChatId, setDefaultChatId] = useState('');
@@ -68,6 +69,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
             ? sched.times
             : ['09:00', '13:00', '18:00', '21:00']
         );
+        setPaymentPartner(sched.paymentPartner || 'all');
         setReportMode(sched.reportMode || 'plan');
         setChatId(sched.chatId || '');
         setDefaultChatId(res.data.defaultChatId || '');
@@ -111,6 +113,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
         enabled,
         times,
         reportMode,
+        paymentPartner,
         chatId: chatId.trim() || undefined
       });
 
@@ -192,25 +195,35 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
               />
             </Box>
 
-            {/* To'lov formati */}
+            {/* To'lov hamkori */}
             <FormControl component="fieldset">
               <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 600, mb: 0.5 }}>
-                Hisobot to‘lov turi:
+                To‘lov hamkori (Partner):
               </FormLabel>
               <RadioGroup
                 row
-                value={reportMode}
-                onChange={(e) => setReportMode(e.target.value as any)}
+                value={paymentPartner}
+                onChange={(e) => setPaymentPartner(e.target.value as any)}
               >
                 <FormControlLabel
-                  value="plan"
+                  value="all"
                   control={<Radio size="small" />}
-                  label="Barcha to‘lovlar (Jami tushum)"
+                  label="Barchasi (Hammasi)"
                 />
                 <FormControlLabel
-                  value="classic"
+                  value="both"
+                  control={<Radio size="small" />}
+                  label="EcoPay + Paynet"
+                />
+                <FormControlLabel
+                  value="ekopay"
                   control={<Radio size="small" />}
                   label="Faqat EcoPay"
+                />
+                <FormControlLabel
+                  value="paynet"
+                  control={<Radio size="small" />}
+                  label="Faqat Paynet"
                 />
               </RadioGroup>
             </FormControl>

@@ -113,6 +113,8 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   const [dalolatnomaPaging, setDalolatnomaPaging] = useState({ page: 0, pageSize: 15 });
   const [dalolatnomaMeta, setDalolatnomaMeta] = useState({ rowCount: 0 });
   const [mahallalarList, setMahallalarList] = useState<any[]>([]);
+  const [dalolatnomaStatusFilter, setDalolatnomaStatusFilter] = useState<string>('all');
+  const [dalolatnomaMahallaFilter, setDalolatnomaMahallaFilter] = useState<string>('');
 
   // Preview Dialog State
   const [currentDocument, setCurrentDocument] = useState<IXatlovDocument>();
@@ -129,7 +131,10 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     totalRequests: 0,
     newRequests: 0,
     totalDocuments: 0,
-    activeDocuments: 0
+    activeDocuments: 0,
+    completedDocuments: 0,
+    pendingDocuments: 0,
+    canceledDocuments: 0
   });
 
   const fetchStats = async () => {
@@ -169,7 +174,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       const { data } = await api.get('/yashovchi-soni-xatlov/get-dalolatnomalar', {
         params: {
           page: dalolatnomaPaging.page,
-          pageSize: dalolatnomaPaging.pageSize
+          pageSize: dalolatnomaPaging.pageSize,
+          status: dalolatnomaStatusFilter !== 'all' ? dalolatnomaStatusFilter : undefined,
+          mahallaId: dalolatnomaMahallaFilter || undefined
         }
       });
       setDalolatnomaRows((data.rows || []).map((row: any, i: number) => ({ ...row, id: i + 1, date: new Date(row.date) })));
@@ -181,7 +188,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
   useEffect(() => {
     fetchDalolatnomalar();
-  }, [dalolatnomaPaging, ui.refreshToggle]);
+  }, [dalolatnomaPaging, dalolatnomaStatusFilter, dalolatnomaMahallaFilter, ui.refreshToggle]);
 
   // Tab 0 Handlers: Dalolatnoma Yaratish
   const handleCreateDalolatnoma = async () => {
@@ -265,19 +272,31 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       const { data } = await api.get('/yashovchi-soni-xatlov/get-dalolatnomalar', {
         params: {
           page: 0,
-          pageSize: 10000
+          pageSize: 10000,
+          status: dalolatnomaStatusFilter !== 'all' ? dalolatnomaStatusFilter : undefined,
+          mahallaId: dalolatnomaMahallaFilter || undefined
         }
       });
 
       const exportRows = (data.rows || []).map((row: any, i: number) => {
         const mahallaName = mahallalarList.find((m) => m.id === row.mahallaId)?.name || row.mahallaId;
+        let statusText = 'Bajarilmadi';
+        if (row.isCancel || row.status === 'bekor_qilingan') {
+          statusText = 'Bekor qilingan';
+        } else if (row.status === 'bajarildi' || row.isConfirmed) {
+          statusText = 'Bajarildi';
+        } else if (row.status === 'qisman_bajarildi') {
+          statusText = `Qisman bajarildi (${row.confirmedCount || 0}/${row.totalCount || row.request_ids?.length || 0})`;
+        }
+
         return {
           '№': i + 1,
           'Dalolatnoma raqami': row.documentNumber,
           'Mahalla': mahallaName,
           'Yaratilgan sana': row.date ? new Date(row.date).toLocaleDateString() : '-',
-          'Abonentlar soni': row.request_ids?.length || 0,
-          'Holati': row.isCancel ? 'Bekor qilingan' : 'Aktiv',
+          'Abonentlar soni': row.totalCount || row.request_ids?.length || 0,
+          'Tasdiqlangan soni': row.confirmedCount || 0,
+          'Holati': statusText,
           'Bekor qilish sababi': row.cancelDescription || ''
         };
       });
@@ -337,7 +356,13 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     }
   };
 
-  // Tab 1 Handlers: Cancel / View / Print Dalolatnoma
+  // Tab 1 Handlers: Cancel / View / Print / Confirm Dalolatnoma
+  const handleClickConfirmDalolatnoma = (doc: any) => {
+    setActiveTab(2);
+    setDalolatnomaNumber(doc.documentNumber?.toString() || '');
+    getDalolatnomaData({ _id: doc._id });
+  };
+
   const handleClickCancelDalolatnoma = async (doc: IXatlovDocument) => {
     const reason = prompt(
       `Siz haqiqatan ham ushbu (${doc.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing:`
@@ -491,77 +516,203 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
       {/* Modern KPI Stats Bar */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 48, height: 48 }}>
-                <GroupOutlinedIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {stats.totalRequests}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Jami xatlov yozuvlari
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        {activeTab === 1 ? (
+          <>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card
+                variant="outlined"
+                onClick={() => setDalolatnomaStatusFilter('all')}
+                sx={{
+                  borderRadius: 3,
+                  bgcolor: 'background.default',
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: dalolatnomaStatusFilter === 'all' ? 'primary.main' : 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: 'primary.main', transform: 'translateY(-2px)' }
+                }}
+              >
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: 48, height: 48 }}>
+                    <AssignmentOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                      {stats.totalDocuments}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Jami Dalolatnomalar
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: 48, height: 48 }}>
-                <PendingActionsOutlinedIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {stats.newRequests}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Yangi (dalolatnomasiz)
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card
+                variant="outlined"
+                onClick={() => setDalolatnomaStatusFilter('bajarildi')}
+                sx={{
+                  borderRadius: 3,
+                  bgcolor: 'background.default',
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: dalolatnomaStatusFilter === 'bajarildi' ? 'success.main' : 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: 'success.main', transform: 'translateY(-2px)' }
+                }}
+              >
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: 48, height: 48 }}>
+                    <CheckCircleOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main' }}>
+                      {stats.completedDocuments || 0}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Bajarildi (Tasdiqlangan)
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: 48, height: 48 }}>
-                <AssignmentOutlinedIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {stats.totalDocuments}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Shakllantirilgan Dalolatnomalar
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card
+                variant="outlined"
+                onClick={() => setDalolatnomaStatusFilter('bajarilmadi')}
+                sx={{
+                  borderRadius: 3,
+                  bgcolor: 'background.default',
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: dalolatnomaStatusFilter === 'bajarilmadi' ? 'warning.main' : 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: 'warning.main', transform: 'translateY(-2px)' }
+                }}
+              >
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: 48, height: 48 }}>
+                    <PendingActionsOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700, color: 'warning.main' }}>
+                      {stats.pendingDocuments || 0}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Bajarilmadi (Kutilmoqda)
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: 48, height: 48 }}>
-                <CheckCircleOutlinedIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {stats.activeDocuments}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Aktiv Dalolatnomalar
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card
+                variant="outlined"
+                onClick={() => setDalolatnomaStatusFilter('bekor_qilingan')}
+                sx={{
+                  borderRadius: 3,
+                  bgcolor: 'background.default',
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: dalolatnomaStatusFilter === 'bekor_qilingan' ? 'error.main' : 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: 'error.main', transform: 'translateY(-2px)' }
+                }}
+              >
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'error.light', color: 'error.main', width: 48, height: 48 }}>
+                    <DoDisturbAltOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700, color: 'error.main' }}>
+                      {stats.canceledDocuments || 0}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Bekor qilingan
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </>
+        ) : (
+          <>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 48, height: 48 }}>
+                    <GroupOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                      {stats.totalRequests}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Jami xatlov yozuvlari
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: 48, height: 48 }}>
+                    <PendingActionsOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                      {stats.newRequests}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Yangi (dalolatnomasiz)
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: 48, height: 48 }}>
+                    <AssignmentOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                      {stats.totalDocuments}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Shakllantirilgan Dalolatnomalar
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
+                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: 48, height: 48 }}>
+                    <CheckCircleOutlinedIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                      {stats.completedDocuments || 0}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Bajarilgan Dalolatnomalar
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </>
+        )}
       </Grid>
 
       {/* Tabs Navigation Header */}
@@ -792,12 +943,58 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               border: '1px solid',
               borderColor: 'divider',
               flexWrap: 'wrap',
-              gap: 1
+              gap: 1.5
             }}
           >
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-              Shakllantirilgan dalolatnomalar ({dalolatnomaMeta.rowCount} ta)
-            </Typography>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                Shakllantirilgan dalolatnomalar ({dalolatnomaMeta.rowCount} ta)
+              </Typography>
+
+              {/* Status Filter */}
+              <FormControl size="small" sx={{ minWidth: 170 }}>
+                <InputLabel id="dalolatnoma-status-filter-label">Holati bo'yicha</InputLabel>
+                <Select
+                  labelId="dalolatnoma-status-filter-label"
+                  label="Holati bo'yicha"
+                  value={dalolatnomaStatusFilter}
+                  onChange={(e) => {
+                    setDalolatnomaStatusFilter(e.target.value);
+                    setDalolatnomaPaging((p) => ({ ...p, page: 0 }));
+                  }}
+                  sx={{ borderRadius: 1.5 }}
+                >
+                  <MenuItem value="all">Barchasi</MenuItem>
+                  <MenuItem value="bajarildi">✅ Bajarildi</MenuItem>
+                  <MenuItem value="bajarilmadi">⏳ Bajarilmadi</MenuItem>
+                  <MenuItem value="bekor_qilingan">🚫 Bekor qilingan</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* Mahalla Filter */}
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel id="dalolatnoma-mahalla-filter-label">Mahalla bo'yicha</InputLabel>
+                <Select
+                  labelId="dalolatnoma-mahalla-filter-label"
+                  label="Mahalla bo'yicha"
+                  value={dalolatnomaMahallaFilter}
+                  onChange={(e) => {
+                    setDalolatnomaMahallaFilter(e.target.value);
+                    setDalolatnomaPaging((p) => ({ ...p, page: 0 }));
+                  }}
+                  sx={{ borderRadius: 1.5 }}
+                >
+                  <MenuItem value="">
+                    <em>Barcha mahallalar</em>
+                  </MenuItem>
+                  {mahallaOptions.map((opt: any) => (
+                    <MenuItem key={opt.mahallaId} value={opt.mahallaId}>
+                      {opt.mahallaName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
 
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Tooltip title="Yangilash">
@@ -831,48 +1028,132 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                 {
                   field: 'date',
                   headerName: 'Yaratilgan sana',
-                  width: 160,
+                  width: 150,
                   valueFormatter: (value) => (value ? new Date(value).toLocaleDateString() : '')
                 },
                 {
                   field: 'elements',
                   headerName: 'Abonentlar soni',
-                  width: 140,
-                  renderCell: ({ row }) => row.request_ids?.length || 0
+                  width: 160,
+                  renderCell: ({ row }) => {
+                    const total = row.totalCount || row.request_ids?.length || 0;
+                    const confirmed = row.confirmedCount || 0;
+                    return (
+                      <Stack direction="column" sx={{ justifyContent: 'center', height: '100%' }}>
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                          {total} ta
+                        </Typography>
+                        {confirmed > 0 && (
+                          <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600 }}>
+                            {confirmed} ta tasdiqlangan
+                          </Typography>
+                        )}
+                      </Stack>
+                    );
+                  }
                 },
                 {
                   field: 'status',
                   headerName: 'Holati',
-                  width: 160,
-                  renderCell: ({ row }) => (
-                    <Chip label={row.isCancel ? 'Bekor qilingan' : 'Aktiv'} color={row.isCancel ? 'error' : 'success'} size="small" />
-                  )
+                  width: 180,
+                  renderCell: ({ row }) => {
+                    if (row.isCancel || row.status === 'bekor_qilingan') {
+                      return (
+                        <Chip
+                          icon={<DoDisturbAltOutlinedIcon sx={{ fontSize: '16px !important' }} />}
+                          label="Bekor qilingan"
+                          color="error"
+                          size="small"
+                          sx={{ fontWeight: 600 }}
+                        />
+                      );
+                    }
+                    if (row.status === 'bajarildi' || row.isConfirmed) {
+                      return (
+                        <Chip
+                          icon={<CheckCircleOutlinedIcon sx={{ fontSize: '16px !important' }} />}
+                          label="Bajarildi"
+                          color="success"
+                          size="small"
+                          sx={{ fontWeight: 600 }}
+                        />
+                      );
+                    }
+                    if (row.status === 'qisman_bajarildi') {
+                      const total = row.totalCount || row.request_ids?.length || 0;
+                      return (
+                        <Chip
+                          label={`Qisman (${row.confirmedCount || 0}/${total})`}
+                          color="info"
+                          size="small"
+                          sx={{ fontWeight: 600 }}
+                        />
+                      );
+                    }
+                    return (
+                      <Chip
+                        icon={<PendingActionsOutlinedIcon sx={{ fontSize: '16px !important' }} />}
+                        label="Bajarilmadi"
+                        color="warning"
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    );
+                  }
                 },
                 {
                   field: 'actions',
                   headerName: 'Amallar',
-                  width: 180,
-                  renderCell: ({ row }) => (
-                    <Stack direction="row" spacing={0.5}>
-                      <Tooltip title="Bekor qilish">
-                        <span>
-                          <IconButton size="small" color="error" onClick={() => handleClickCancelDalolatnoma(row)} disabled={row.isCancel}>
-                            <DoDisturbAltOutlinedIcon fontSize="small" />
+                  width: 200,
+                  renderCell: ({ row }) => {
+                    const isPending =
+                      !row.isCancel &&
+                      row.status !== 'bekor_qilingan' &&
+                      !row.isConfirmed &&
+                      row.status !== 'bajarildi';
+                    return (
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                        {isPending && (
+                          <Tooltip title="PDF orqali tasdiqlash">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() => handleClickConfirmDalolatnoma(row)}
+                            >
+                              <DoneAllOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Bekor qilish">
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleClickCancelDalolatnoma(row)}
+                              disabled={
+                                row.isCancel ||
+                                row.status === 'bekor_qilingan' ||
+                                row.status === 'bajarildi' ||
+                                row.isConfirmed
+                              }
+                            >
+                              <DoDisturbAltOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Ko'rish">
+                          <IconButton size="small" color="info" onClick={() => handleClickViewDalolatnoma(row)}>
+                            <VisibilityIcon fontSize="small" />
                           </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Ko'rish">
-                        <IconButton size="small" color="info" onClick={() => handleClickViewDalolatnoma(row)}>
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Chop etish">
-                        <IconButton size="small" color="primary" onClick={() => handleClickPrintDalolatnoma(row)}>
-                          <PrintIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  )
+                        </Tooltip>
+                        <Tooltip title="Chop etish">
+                          <IconButton size="small" color="primary" onClick={() => handleClickPrintDalolatnoma(row)}>
+                            <PrintIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    );
+                  }
                 }
               ]}
               rows={dalolatnomaRows}

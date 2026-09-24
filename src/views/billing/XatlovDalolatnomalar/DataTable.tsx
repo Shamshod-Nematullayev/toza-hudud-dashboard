@@ -2,7 +2,9 @@ import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import api from 'utils/api';
 import DoDisturbAltOutlinedIcon from '@mui/icons-material/DoDisturbAltOutlined';
-import { IconButton, Tooltip } from '@mui/material';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
+import { Chip, IconButton, Tooltip } from '@mui/material';
 import { toast } from 'react-toastify';
 import { Print, Visibility } from '@mui/icons-material';
 import { IMultiplyRequest, IXatlovDocument } from 'types/billing';
@@ -124,7 +126,19 @@ function DataTable({
         {
           field: 'status',
           headerName: 'Holat',
-          renderCell: ({ row }) => (row.isCancel ? 'Bekor qilingan' : 'Aktiv')
+          width: 170,
+          renderCell: ({ row }) => {
+            if (row.isCancel || row.status === 'bekor_qilingan') {
+              return <Chip icon={<DoDisturbAltOutlinedIcon />} label="Bekor qilingan" color="error" size="small" />;
+            }
+            if (row.status === 'bajarildi' || row.isConfirmed) {
+              return <Chip icon={<CheckCircleOutlinedIcon />} label="Bajarildi" color="success" size="small" />;
+            }
+            if (row.status === 'qisman_bajarildi') {
+              return <Chip label={`Qisman (${row.confirmedCount || 0}/${row.totalCount || row.request_ids?.length || 0})`} color="info" size="small" />;
+            }
+            return <Chip icon={<PendingActionsOutlinedIcon />} label="Bajarilmadi" color="warning" size="small" />;
+          }
         },
         {
           field: '_',

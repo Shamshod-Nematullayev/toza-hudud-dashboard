@@ -107,7 +107,8 @@ interface IMFYReportData {
   };
   dateFrom: string;
   dateTo: string;
-  onlyEkopay: boolean;
+  onlyEkopay?: boolean;
+  paymentPartner?: 'all' | 'both' | 'ekopay' | 'paynet';
 }
 
 export default function MFYIncomeReport() {
@@ -119,7 +120,7 @@ export default function MFYIncomeReport() {
     dayjs().startOf('month').format('YYYY-MM-DD')
   );
   const [dateTo, setDateTo] = useState<string>(dayjs().format('YYYY-MM-DD'));
-  const [onlyEkopay, setOnlyEkopay] = useState<boolean>(false);
+  const [paymentPartner, setPaymentPartner] = useState<'all' | 'both' | 'ekopay' | 'paynet'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<keyof IMFYRow>('foiz');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -159,7 +160,7 @@ export default function MFYIncomeReport() {
         params: {
           dateFrom,
           dateTo,
-          onlyEkopay
+          paymentPartner
         }
       });
       if (res.data?.data) {
@@ -171,7 +172,7 @@ export default function MFYIncomeReport() {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, onlyEkopay]);
+  }, [dateFrom, dateTo, paymentPartner]);
 
   useEffect(() => {
     fetchReport();
@@ -181,7 +182,7 @@ export default function MFYIncomeReport() {
     setExportingExcel(true);
     try {
       const response = await api.get('/reports/mfy-incomes/excel', {
-        params: { dateFrom, dateTo, onlyEkopay },
+        params: { dateFrom, dateTo, paymentPartner },
         responseType: 'blob'
       });
       const blob = new Blob([response.data], {
@@ -190,7 +191,7 @@ export default function MFYIncomeReport() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `MFY_Tushumlar_${dateFrom}_${dateTo}.xlsx`);
+      link.setAttribute('download', `MFY_Tushumlar_${paymentPartner}_${dateFrom}_${dateTo}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -219,7 +220,7 @@ export default function MFYIncomeReport() {
       const res = await api.post('/reports/mfy-incomes/send-telegram', {
         dateFrom,
         dateTo,
-        onlyEkopay,
+        paymentPartner,
         chatId: telegramChatId.trim() || undefined,
         deleteLastReport
       });
@@ -431,22 +432,33 @@ export default function MFYIncomeReport() {
           </Grid>
 
           {/* To'lov turi filtri */}
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <FormControl component="fieldset" size="small">
+          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+            <FormControl component="fieldset" size="small" fullWidth>
               <RadioGroup
                 row
-                value={onlyEkopay ? 'ekopay' : 'all'}
-                onChange={(e) => setOnlyEkopay(e.target.value === 'ekopay')}
+                value={paymentPartner}
+                onChange={(e) => setPaymentPartner(e.target.value as any)}
+                sx={{ flexWrap: 'nowrap', overflowX: 'auto' }}
               >
                 <FormControlLabel
                   value="all"
                   control={<Radio size="small" />}
-                  label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Barchasi</Typography>}
+                  label={<Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>Barchasi</Typography>}
+                />
+                <FormControlLabel
+                  value="both"
+                  control={<Radio size="small" />}
+                  label={<Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>Eco+Paynet</Typography>}
                 />
                 <FormControlLabel
                   value="ekopay"
                   control={<Radio size="small" />}
-                  label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Faqat EcoPay</Typography>}
+                  label={<Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>EcoPay</Typography>}
+                />
+                <FormControlLabel
+                  value="paynet"
+                  control={<Radio size="small" />}
+                  label={<Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>Paynet</Typography>}
                 />
               </RadioGroup>
             </FormControl>
