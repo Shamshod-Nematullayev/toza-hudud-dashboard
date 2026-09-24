@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
+import TelegramGroupSelect, { ICompanyTelegramGroup } from '../components/TelegramGroupSelect';
 
 interface ScheduleDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
   const [reportMode, setReportMode] = useState<'plan' | 'classic'>('plan');
   const [chatId, setChatId] = useState('');
   const [defaultChatId, setDefaultChatId] = useState('');
+  const [companyGroups, setCompanyGroups] = useState<ICompanyTelegramGroup[]>([]);
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +75,9 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
         setReportMode(sched.reportMode || 'plan');
         setChatId(sched.chatId || '');
         setDefaultChatId(res.data.defaultChatId || '');
+        if (res.data.companyGroups && Array.isArray(res.data.companyGroups)) {
+          setCompanyGroups(res.data.companyGroups);
+        }
         setLastRunAt(sched.lastRunAt || null);
       }
     } catch (err) {
@@ -319,22 +324,15 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
               </Stack>
             </Box>
 
-            {/* Telegram Chat ID */}
+            {/* Telegram Group Selection */}
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                Telegram Guruh ID (Chat ID):
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
+              <TelegramGroupSelect
+                label="Telegram Guruh"
                 value={chatId}
-                onChange={(e) => setChatId(e.target.value)}
-                placeholder={defaultChatId || '-100xxxxxxxxx'}
-                helperText={
-                  defaultChatId
-                    ? `Standart guruh: ${defaultChatId}. Agar boshqa guruhga yubormoqchi bo‘lsangiz, ID sini kiriting.`
-                    : 'Kompaniya standart guruhi topilmadi. Guruh ID sini kiriting (masalan: -100xxxxxxxx).'
-                }
+                defaultChatId={defaultChatId}
+                companyGroups={companyGroups}
+                onChange={(selectedChatId) => setChatId(selectedChatId)}
+                helperText="Erkin guruh kiritish taqiqlangan. Hisobot faqat tashkilotning rasmiy guruhlariga yuboriladi."
               />
             </Box>
 

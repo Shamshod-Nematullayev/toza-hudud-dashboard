@@ -56,6 +56,7 @@ import api from 'utils/api';
 import MainCard from 'ui-component/cards/MainCard';
 import { toast } from 'react-toastify';
 import ScheduleDialog from './ScheduleDialog';
+import TelegramGroupSelect from '../components/TelegramGroupSelect';
 
 interface IMFYRow {
   id: number;
@@ -886,14 +887,12 @@ export default function MFYIncomeReport() {
           </Typography>
 
           <Stack spacing={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Telegram Guruh ID (Chat ID)"
+            <TelegramGroupSelect
+              label="Yuboriladigan Telegram Guruh"
               value={telegramChatId}
-              onChange={(e) => setTelegramChatId(e.target.value)}
-              placeholder="-100xxxxxxxx"
-              helperText="Bo‘sh qoldirilsa, kompaniyaning standart guruhi ishlatiladi"
+              defaultChatId={data?.company?.GROUP_ID_MANAGERS || data?.company?.GROUP_ID_NAZORATCHILAR || ''}
+              onChange={(selectedId) => setTelegramChatId(selectedId)}
+              helperText="Hisobot faqat tashkilotning rasmiy Telegram guruhlariga yuboriladi"
             />
 
             <FormControlLabel

@@ -46,6 +46,7 @@ import api from 'utils/api';
 import MainCard from 'ui-component/cards/MainCard';
 import { toast } from 'react-toastify';
 import ScheduleDialog from './ScheduleDialog';
+import TelegramGroupSelect from '../components/TelegramGroupSelect';
 
 interface IPlanRow {
   id: number;
@@ -884,18 +885,12 @@ export default function MahallaTushumlarNazoratchi() {
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
             Tanlangan sana ({date}) bo‘yicha nazoratchilar tushum hisoboti telegram guruhga matn ko‘rinishida yuboriladi.
           </Typography>
-          <TextField
-            fullWidth
-            label="Telegram Guruh ID (ixtiyoriy)"
-            size="small"
+          <TelegramGroupSelect
+            label="Yuboriladigan Telegram Guruh"
             value={telegramChatId}
-            onChange={(e) => setTelegramChatId(e.target.value)}
-            placeholder={data?.company?.GROUP_ID_NAZORATCHILAR || 'Masalan: -100123456789'}
-            helperText={
-              data?.company?.GROUP_ID_NAZORATCHILAR
-                ? `Bo‘sh qoldirilsa, tashkilotning guruhi (${data.company.GROUP_ID_NAZORATCHILAR}) ishlatiladi.`
-                : 'Telegram chat yoki guruh ID raqami'
-            }
+            defaultChatId={data?.company?.GROUP_ID_NAZORATCHILAR || ''}
+            onChange={(selectedId) => setTelegramChatId(selectedId)}
+            helperText="Hisobot faqat tashkilotning rasmiy Telegram guruhlariga yuboriladi"
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>

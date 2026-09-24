@@ -35,6 +35,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import dayjs from 'dayjs';
+import TelegramGroupSelect, { ICompanyTelegramGroup } from '../components/TelegramGroupSelect';
 
 export interface IScheduledReportItem {
   reportType: string;
@@ -61,6 +62,7 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
   const [savingType, setSavingType] = useState<string | null>(null);
   const [testingType, setTestingType] = useState<string | null>(null);
   const [reports, setReports] = useState<IScheduledReportItem[]>([]);
+  const [companyGroups, setCompanyGroups] = useState<ICompanyTelegramGroup[]>([]);
   const [newTimeMap, setNewTimeMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -73,6 +75,9 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
       const res = await api.get('/reports/schedules');
       if (res.data?.ok && Array.isArray(res.data.data)) {
         setReports(res.data.data);
+      }
+      if (res.data?.companyGroups && Array.isArray(res.data.companyGroups)) {
+        setCompanyGroups(res.data.companyGroups);
       }
     } catch (err: any) {
       console.error('Error fetching report schedules:', err);
@@ -489,22 +494,15 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
                       </Box>
                     </Box>
 
-                    {/* Telegram Chat ID */}
+                    {/* Telegram Group Selection */}
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                        Telegram Guruh ID:
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        size="small"
+                      <TelegramGroupSelect
+                        label="Yuboriladigan Telegram Guruh"
                         value={item.chatId}
-                        onChange={(e) => updateReportField(item.reportType, 'chatId', e.target.value)}
-                        placeholder={item.defaultChatId || 'Masalan: -100123456789'}
-                        helperText={
-                          item.defaultChatId
-                            ? ('Bo‘sh qoldirilsa, tashkilotning guruhi (' + item.defaultChatId + ') ishlatiladi.')
-                            : 'Telegram chat ID'
-                        }
+                        defaultChatId={item.defaultChatId}
+                        companyGroups={companyGroups}
+                        onChange={(selectedChatId) => updateReportField(item.reportType, 'chatId', selectedChatId)}
+                        helperText="Erkin guruh kiritish taqiqlangan. Hisobot faqat tashkilotning rasmiy guruhlariga yuboriladi."
                       />
                     </Box>
 

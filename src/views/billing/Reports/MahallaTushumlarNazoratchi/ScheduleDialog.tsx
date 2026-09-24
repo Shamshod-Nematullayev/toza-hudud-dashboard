@@ -32,6 +32,7 @@ import {
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import dayjs from 'dayjs';
+import TelegramGroupSelect, { ICompanyTelegramGroup } from '../components/TelegramGroupSelect';
 
 interface ScheduleDialogProps {
   open: boolean;
@@ -52,6 +53,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
   const [paymentPartner, setPaymentPartner] = useState<'ekopay' | 'paynet' | 'both' | 'all'>('ekopay');
   const [chatId, setChatId] = useState('');
   const [defaultChatId, setDefaultChatId] = useState('');
+  const [companyGroups, setCompanyGroups] = useState<ICompanyTelegramGroup[]>([]);
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +75,9 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
         setPaymentPartner(sched.paymentPartner || 'ekopay');
         setChatId(sched.chatId || '');
         setDefaultChatId(res.data.defaultChatId || '');
+        if (res.data.companyGroups && Array.isArray(res.data.companyGroups)) {
+          setCompanyGroups(res.data.companyGroups);
+        }
         setLastRunAt(sched.lastRunAt || null);
       }
     } catch (err) {
@@ -310,22 +315,15 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
               </Box>
             </Box>
 
-            {/* Telegram guruh ID */}
+            {/* Telegram Group Selection */}
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                Telegram Guruh ID (ixtiyoriy):
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
+              <TelegramGroupSelect
+                label="Telegram Guruh"
                 value={chatId}
-                onChange={(e) => setChatId(e.target.value)}
-                placeholder={defaultChatId || 'Masalan: -100123456789'}
-                helperText={
-                  defaultChatId
-                    ? `Bo‘sh qoldirilsa, tashkilotning asosiy nazoratchilar guruhi (${defaultChatId}) ishlatiladi.`
-                    : 'Telegram guruh ID raqami'
-                }
+                defaultChatId={defaultChatId}
+                companyGroups={companyGroups}
+                onChange={(selectedChatId) => setChatId(selectedChatId)}
+                helperText="Erkin guruh kiritish taqiqlangan. Hisobot faqat tashkilotning rasmiy guruhlariga yuboriladi."
               />
             </Box>
 
