@@ -34,7 +34,10 @@ const SYSTEM_FIELDS: { key: keyof ColumnMapping; label: string; required: boolea
   { key: 'pnfl', label: 'JShShIR (PNFL)', required: true, hint: '14 xonali shaxsiy identifikatsiya raqami' },
   { key: 'cadastreNumber', label: 'Kadastr raqami', required: false, hint: 'Ko`chmas mulk kadastr kodi (10:01:..)' },
   { key: 'mahalla', label: 'Mahalla (MFY)', required: false, hint: 'Mahalla fuqarolar yig`ini nomi' },
-  { key: 'street', label: "Ko'cha va uy", required: false, hint: 'Ko`cha nomi, uy va xonadon raqami' },
+  { key: 'street', label: "Ko'cha nomi / Umumiy manzil", required: false, hint: 'Ko`cha nomi yoki to`liq manzil' },
+  { key: 'houseNumber', label: 'Uy raqami', required: false, hint: 'Masalan: 12, 26, 4/1' },
+  { key: 'apartmentNumber', label: 'Xonadon raqami', required: false, hint: 'Masalan: 5, 137' },
+  { key: 'postalIndex', label: 'Uy harfi (DB Index)', required: false, hint: 'Uy harfi (A, B, V) — DB dagi index maydoni' },
   { key: 'objectType', label: 'Obyekt turi', required: false, hint: 'Aholi, Xonadon, Noturar, Do`kon' },
   { key: 'phone', label: 'Telefon raqami', required: false, hint: '+998..' },
   { key: 'tin', label: 'INN (STIR)', required: false, hint: 'Yuridik shaxs yoki YaTT STIR raqami' }
@@ -87,8 +90,15 @@ export const ColumnMappingDialog: React.FC<ColumnMappingDialogProps> = ({
 
       <DialogContent sx={{ pt: 2 }}>
         <Alert severity="info" sx={{ mb: 2.5 }}>
-          Har xil tashkilotlar Excel fayllarida ustun nomlari turlicha bo'lishi mumkin. Tizim avtomatik taxmin qildi, lekin kerak bo'lsa har
-          bir maydonni tekshirib, o'zgartirishingiz mumkin.
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+            Ustunlar avtomatik tahlil qilindi:
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+            • Agar faylingizda manzil to'liq bitta ustunda yozilgan bo'lsa (masalan: <em>"Yermachit MFY, Bunyodkor ko'chasi, 40-uy"</em>), uni <strong>"Ko'cha nomi / Umumiy manzil"</strong> ustuniga moslashtiring. Tizim mahalla, ko'cha, uy raqami va indeksni avtomatik ajratib oladi.
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block' }}>
+            • Agar alohida <em>Uy raqami</em>, <em>Uy harfi</em> yoki <em>Xonadon</em> ustunlari mavjud bo'lsa, ularni mos maydonlarga biriktirishingiz mumkin.
+          </Typography>
         </Alert>
 
         <Grid container spacing={2.5}>

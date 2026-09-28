@@ -1,4 +1,5 @@
 import { JSX, lazy } from 'react';
+import { Navigate } from 'react-router-dom';
 
 // project imports
 import MainLayout from 'layout/MainLayout';
@@ -80,6 +81,7 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+const PendingActs = Loadable(lazy(() => import('views/billing/PendingActs')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 interface MainRoutesProps {
@@ -168,12 +170,20 @@ const MainRoutes: MainRoutesProps = {
           element: <AbonentPetition />
         },
         {
+          path: 'pending-acts',
+          element: <PendingActs />
+        },
+        {
+          path: 'pendingActs',
+          element: <Navigate to="/billing/pending-acts" replace />
+        },
+        {
           path: 'deleteDublicate',
           element: <DeleteDublicate />
         },
         {
           path: 'specialMoneyTransfer',
-          element: <MonayTransfer />
+          element: <Navigate to="/billing/createAbonentAriza?type=pul_kuchirish" replace />
         },
         {
           path: 'importAbonentPetition',

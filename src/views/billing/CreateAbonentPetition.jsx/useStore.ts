@@ -127,7 +127,18 @@ interface IAktSumma {
   withoutQQSTotal: number;
 }
 
-export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza' | 'cancelContract' | null;
+export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza' | 'cancelContract' | 'pul_kuchirish' | null;
+
+export interface ITransferCreditor {
+  id: number;
+  residentId: number;
+  accountNumber: string;
+  fullName: string;
+  amount: number;
+  kSaldo: number;
+  phone?: string;
+  mahallaName?: string;
+}
 
 export interface ImgType {
   file: File;
@@ -162,6 +173,12 @@ interface StoreActionsState {
   setMoneyTransferAmount: (moneyTransferAmount: number | string) => void;
   setIsGlobalAbonent: (isGlobal: boolean) => void;
   setIsGlobalAbonent2: (isGlobal: boolean) => void;
+  setTransferReason: (reason: 'ortiqcha_tulov' | 'yanglish_tulov') => void;
+  setTransferCreditors: (creditors: ITransferCreditor[]) => void;
+  addTransferCreditor: (creditor: ITransferCreditor) => void;
+  removeTransferCreditor: (id: number) => void;
+  setSelectedApplicantId: (id: number | '') => void;
+  setTransferDebitorAmount: (amount: string) => void;
 }
 
 interface UIState {
@@ -174,6 +191,10 @@ interface StoreDataState {
   shouldBeMoneyTransfer: boolean;
   dublicateRelation: string;
   moneyTransferAmount: number | string;
+  transferReason: 'ortiqcha_tulov' | 'yanglish_tulov';
+  transferCreditors: ITransferCreditor[];
+  selectedApplicantId: number | '';
+  transferDebitorAmount: string;
   aktType: aktType;
   showPrintSection: boolean;
   rowsDhjTable: dhjRow[];
@@ -204,6 +225,10 @@ const initialStoreDataState: StoreDataState = {
   shouldBeMoneyTransfer: true,
   dublicateRelation: '',
   moneyTransferAmount: 0,
+  transferReason: 'ortiqcha_tulov',
+  transferCreditors: [],
+  selectedApplicantId: '',
+  transferDebitorAmount: '',
   aktType: null,
   abonentData: defaultAbonentData,
   abonentData2: defaultAbonentData,
@@ -247,6 +272,14 @@ type StoreState = StoreDataState & StoreActionsState;
 export const useStore = create<StoreState>((set, get) => ({
   ...initialStoreDataState,
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' },
+  setTransferReason: (reason) => set({ transferReason: reason }),
+  setTransferCreditors: (creditors) => set({ transferCreditors: creditors }),
+  addTransferCreditor: (creditor) =>
+    set((state) => ({ transferCreditors: [...state.transferCreditors, creditor] })),
+  removeTransferCreditor: (id) =>
+    set((state) => ({ transferCreditors: state.transferCreditors.filter((c) => c.id !== id) })),
+  setSelectedApplicantId: (id) => set({ selectedApplicantId: id }),
+  setTransferDebitorAmount: (amount) => set({ transferDebitorAmount: amount }),
   setDublicateRelation: (dublicateRelation: string) => set({ dublicateRelation }),
   setMoneyTransferAmount: (moneyTransferAmount: number | string) => set({ moneyTransferAmount }),
   setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) =>
@@ -292,6 +325,95 @@ export const useStore = create<StoreState>((set, get) => ({
       setShowPrintSection
     } = get();
     const { setIsLoading } = useLoaderStore.getState();
+
+    if (aktType === 'pul_kuchirish') {
+      const {
+        abonentData,
+        transferDebitorAmount,
+        transferCreditors,
+        transferReason,
+        selectedApplicantId,
+        setAriza,
+        setMahalla,
+        setShowPrintSection
+      } = get();
+
+      const debitorAmount = Number(transferDebitorAmount) || 0;
+      const totalCreditorsAmount = transferCreditors.reduce((acc, c) => acc + c.amount, 0);
+
+      if (!abonentData?.id || !abonentData.accountNumber) {
+        toast.error('Asosiy abonent (debitor) kiritilmagan');
+        return;
+      }
+      if (debitorAmount <= 0) {
+        toast.error("O'tkaziladigan summa 0 dan katta bo'lishi kerak");
+        return;
+      }
+      if (transferCreditors.length === 0) {
+        toast.error("Kamida bitta qabul qiluvchi (kreditor) hisob raqamini qo'shing");
+        return;
+      }
+      if (debitorAmount !== totalCreditorsAmount) {
+        toast.error("Debitor summasi va kreditorlar summasi bir-biriga teng bo'lishi shart");
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        let applicantRow: any = {
+          residentId: abonentData.id,
+          accountNumber: abonentData.accountNumber,
+          fullName: abonentData.fullName,
+          phone: abonentData.phone,
+          mahallaName: abonentData.mahallaName
+        };
+
+        if (transferReason === 'yanglish_tulov') {
+          const found = transferCreditors.find((r) => r.residentId === selectedApplicantId);
+          if (found) applicantRow = found;
+          else if (transferCreditors.length > 0) applicantRow = transferCreditors[0];
+        }
+
+        const debitorAct = {
+          accountNumber: abonentData.accountNumber,
+          amount: debitorAmount,
+          fullName: abonentData.fullName,
+          residentId: abonentData.id,
+          kSaldo: abonentData.balance?.kSaldo || 0,
+          phone: abonentData.phone,
+          mahallaName: abonentData.mahallaName
+        };
+
+        const result = (
+          await api.post('/arizalar/money-transfer', {
+            debitorAct,
+            creditorActs: transferCreditors,
+            transferReason,
+            applicant: {
+              residentId: applicantRow?.residentId || applicantRow?.id,
+              accountNumber: applicantRow?.accountNumber,
+              fullName: applicantRow?.fullName,
+              phone: applicantRow?.phone || '',
+              mahallaName: applicantRow?.mahallaName || ''
+            }
+          })
+        ).data.ariza;
+
+        setAriza(result);
+        if (abonentData.mahallaId) {
+          const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+          setMahalla(mahallaData);
+        }
+        setShowPrintSection(true);
+      } catch (error: any) {
+        console.error(error.message);
+        toast.error(error?.response?.data?.message || error.message || 'Xatolik kuzatildi');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput });
     setIsLoading(true);
     try {

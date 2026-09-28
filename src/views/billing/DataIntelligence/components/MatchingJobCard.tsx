@@ -85,6 +85,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
 
   // Filters State
   const [showFilters, setShowFilters] = useState(false);
+  const [algorithmMode, setAlgorithmMode] = useState<'owner' | 'address'>('owner');
   const [scope, setScope] = useState<string>('non_matched'); // 'non_matched' | 'pending' | 'unmatched' | 'conflict' | 'all'
   const [selectedMahallaId, setSelectedMahallaId] = useState<number | ''>('');
   const [hasCadastreOnly, setHasCadastreOnly] = useState(false);
@@ -141,7 +142,8 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
         hasCadastreOnly,
         enrichMvd,
         listId: fixedRegistryId || (selectedRegistryId !== 'all' ? selectedRegistryId : undefined),
-        sourceGroup: selectedGroup !== 'all' ? selectedGroup : undefined
+        sourceGroup: selectedGroup !== 'all' ? selectedGroup : undefined,
+        algorithmMode
       };
 
       const res = await api.post('/data-intelligence/job/start', payload);
@@ -345,6 +347,25 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
           </Stack>
 
           <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+            {/* Moslik algoritmi rejimi (Owner vs Address) */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Moslik algoritmi</InputLabel>
+                <Select
+                  value={algorithmMode}
+                  label="Moslik algoritmi"
+                  onChange={(e) => setAlgorithmMode(e.target.value as 'owner' | 'address')}
+                >
+                  <MenuItem value="owner">
+                    👤 Uy egasi bo‘yicha (Mavjud)
+                  </MenuItem>
+                  <MenuItem value="address">
+                    🏠 Uy manzili bo‘yicha (Yangi)
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
             {/* Scope Filter */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl size="small" fullWidth>

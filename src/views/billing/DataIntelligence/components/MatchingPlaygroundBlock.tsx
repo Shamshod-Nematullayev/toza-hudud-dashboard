@@ -16,7 +16,10 @@ import {
   Tooltip,
   useTheme,
   alpha,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   CompareArrows,
@@ -51,6 +54,8 @@ export const MatchingPlaygroundBlock: React.FC = () => {
     customWeights,
     currentMatchResult,
     isEvaluating,
+    algorithmMode,
+    setAlgorithmMode,
     setSourceA,
     setSourceB,
     setWeights,
@@ -205,7 +210,28 @@ export const MatchingPlaygroundBlock: React.FC = () => {
             </Typography>
           </Stack>
 
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 185 }}>
+              <Select
+                value={algorithmMode}
+                onChange={(e) => setAlgorithmMode(e.target.value as 'owner' | 'address')}
+                sx={{
+                  borderRadius: 2,
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  bgcolor: 'background.paper',
+                  height: 33
+                }}
+              >
+                <MenuItem value="owner" sx={{ fontSize: '0.8rem' }}>
+                  👤 Uy egasi bo‘yicha
+                </MenuItem>
+                <MenuItem value="address" sx={{ fontSize: '0.8rem' }}>
+                  🏠 Uy manzili bo‘yicha
+                </MenuItem>
+              </Select>
+            </FormControl>
+
             <Button
               size="small"
               variant="outlined"
@@ -309,11 +335,43 @@ export const MatchingPlaygroundBlock: React.FC = () => {
               <TextField
                 fullWidth
                 size="small"
-                label="Ko'cha va uy manzili"
+                label="Ko'cha nomi / Umumiy manzil"
                 value={sourceA.street || ''}
                 onChange={(e) => setSourceA({ street: e.target.value })}
                 placeholder="Muqimiy ko'chasi 14-uy"
               />
+              <Grid container spacing={1}>
+                <Grid size={{ xs: 6 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Uy raqami"
+                    value={sourceA.houseNumber || ''}
+                    onChange={(e) => setSourceA({ houseNumber: e.target.value })}
+                    placeholder="14"
+                  />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Uy harfi (DB Index)"
+                    value={sourceA.index || ''}
+                    onChange={(e) => setSourceA({ index: e.target.value })}
+                    placeholder="A"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Xonadon raqami"
+                    value={sourceA.apartmentNumber || ''}
+                    onChange={(e) => setSourceA({ apartmentNumber: e.target.value })}
+                    placeholder="5"
+                  />
+                </Grid>
+              </Grid>
               <TextField
                 fullWidth
                 size="small"
@@ -522,11 +580,43 @@ export const MatchingPlaygroundBlock: React.FC = () => {
               <TextField
                 fullWidth
                 size="small"
-                label="Ko'cha va uy"
+                label="Ko'cha nomi / Umumiy manzil"
                 value={sourceB.street || ''}
                 onChange={(e) => setSourceB({ street: e.target.value })}
                 placeholder="Muqimiy 14"
               />
+              <Grid container spacing={1}>
+                <Grid size={{ xs: 6 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Uy raqami"
+                    value={sourceB.houseNumber || ''}
+                    onChange={(e) => setSourceB({ houseNumber: e.target.value })}
+                    placeholder="14"
+                  />
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Uy harfi (DB Index)"
+                    value={sourceB.index || ''}
+                    onChange={(e) => setSourceB({ index: e.target.value })}
+                    placeholder="A"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Xonadon raqami"
+                    value={sourceB.apartmentNumber || ''}
+                    onChange={(e) => setSourceB({ apartmentNumber: e.target.value })}
+                    placeholder="5"
+                  />
+                </Grid>
+              </Grid>
               <TextField
                 fullWidth
                 size="small"

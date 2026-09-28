@@ -69,6 +69,7 @@ const ru: typeof uz = {
     createAbonentPetition: 'Создать заявление',
     importAbonentPetition: 'Ввод заявлений (Тозамакон)',
     petitions: 'Заявления',
+    pendingActs: 'Автоматические акты',
     deleteDublicates: 'Удалить дубликаты',
     printAbonentsList: 'Печать списка абонентов',
     inventory: 'Инвентаризация проживающих',

@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, IconButton, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Close, Delete, EditOutlined, UploadFileOutlined, Visibility, VisibilityOff } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -54,6 +54,171 @@ export function ArizaMode({
 }: ArizaModeProps) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+
+  if (ariza?.document_type === 'pul_kuchirish') {
+    const creditors = ariza.needMonayTransferActs || [];
+    const isYanglish = ariza.transferReason === 'yanglish_tulov';
+
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        {/* 1. Yuqori Ma'lumotlar Qismi */}
+        <Box sx={{ p: 1 }}>
+          <Stack sx={{ justifyContent: 'space-between', mb: 0.8 }} direction="row">
+            <Typography variant="body2" color="text.secondary">
+              Hujjat turi:
+            </Typography>
+            <Chip
+              label="Pul ko'chirish"
+              color="secondary"
+              size="small"
+              sx={{ fontWeight: 700 }}
+            />
+          </Stack>
+
+          <Stack sx={{ justifyContent: 'space-between', mb: 0.8 }} direction="row">
+            <Typography variant="body2" color="text.secondary">
+              Ariza sababi:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: isYanglish ? 'warning.dark' : 'text.primary' }}>
+              {isYanglish ? "⚠️ Yanglishib to'langan to'lov" : "Ortiqcha to'lov"}
+            </Typography>
+          </Stack>
+
+          <Stack sx={{ justifyContent: 'space-between', mb: 0.8 }} direction="row">
+            <Typography variant="body2" color="text.secondary">
+              Debitor hisob raqami:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {ariza?.licshet || '—'}
+            </Typography>
+          </Stack>
+
+          <Stack sx={{ justifyContent: 'space-between', mb: 0.8 }} direction="row">
+            <Typography variant="body2" color="text.secondary">
+              Debitor F.I.Sh:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {ariza?.fio || '—'}
+            </Typography>
+          </Stack>
+
+          {isYanglish && ariza?.applicantInfo?.fullName && (
+            <Stack sx={{ justifyContent: 'space-between', mb: 0.8 }} direction="row">
+              <Typography variant="body2" color="text.secondary">
+                Ariza beruvchi:
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {ariza.applicantInfo.accountNumber ? `${ariza.applicantInfo.accountNumber} - ` : ''}
+                {ariza.applicantInfo.fullName}
+              </Typography>
+            </Stack>
+          )}
+
+          <Stack direction="row" sx={{ mb: 0.8, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="body2" color="text.secondary">
+              Holat:
+            </Typography>
+            <Box
+              sx={{
+                px: 1.5,
+                py: 0.2,
+                borderRadius: 5,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                bgcolor: ariza?.status === 'akt_kiritilgan' ? 'success.main' : 'primary.main',
+                color: '#fff'
+              }}
+            >
+              {ariza?.status || 'yangi'}
+            </Box>
+          </Stack>
+
+          <Stack direction="row" sx={{ mb: 0.8, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="body2" color="text.secondary">
+              Yaratilgan sana:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—'}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row" sx={{ mt: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Jami ko'chiriladigan summa:
+            </Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main' }}>
+              {(ariza?.aktSummasi || 0).toLocaleString()} so'm
+            </Typography>
+          </Stack>
+        </Box>
+
+        {/* 2. Pul ko'chiriladigan kreditorlar jadvali */}
+        <Box sx={{ height: '45vh', width: '100%', overflowY: 'auto' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.secondary' }}>
+            Mablag' tushadigan abonentlar ({creditors.length} ta):
+          </Typography>
+          <Stack spacing={1}>
+            {creditors.map((cred: any, idx: number) => (
+              <Box
+                key={cred.accountNumber || idx}
+                sx={{
+                  p: 1.25,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'success.50',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Box>
+                  <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', color: 'text.primary' }}>
+                    {idx + 1}. {cred.accountNumber} - {cred.fullName}
+                  </Typography>
+                </Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'success.dark' }}>
+                  +{Number(cred.amount || 0).toLocaleString()} so'm
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+
+        {/* 3. Pastki Tugmalar */}
+        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+          <Button
+            id="tour-import-confirm-action"
+            startIcon={<UploadFileOutlined />}
+            sx={{ flex: 1, py: 1.2 }}
+            variant="contained"
+            color="primary"
+            onClick={handlePrimaryButtonClick}
+            disabled={!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isLoading)}
+          >
+            {t('buttons.submitEntry')}
+          </Button>
+          <Button
+            startIcon={<Close />}
+            sx={{ flex: 0.5, py: 1.2 }}
+            variant="contained"
+            color="error"
+            onClick={() => setShowDialog(true)}
+          >
+            {t('buttons.cancel')}
+          </Button>
+          <Button
+            sx={{ flex: 0.2, py: 1.2 }}
+            variant="contained"
+            color="secondary"
+            onClick={handleDeleteButtonClick}
+          >
+            <Delete />
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       {/* 1. Yuqori Ma'lumotlar Qismi */}

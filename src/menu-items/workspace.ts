@@ -109,6 +109,15 @@ const billing: MenuItem = {
       allowedRoles: ['admin', 'billing']
     },
     {
+      id: 'pendingActs',
+      title: 'pendingActs',
+      type: 'item',
+      url: '/billing/pending-acts',
+      icon: icons.ChecklistIcon,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing']
+    },
+    {
       id: 'specialActs',
       title: 'specialActs',
       type: 'collapse',
@@ -121,15 +130,6 @@ const billing: MenuItem = {
           type: 'item',
           url: '/billing/deleteDublicate',
           icon: icons.DoNotDisturbOnIcon,
-          breadcrumbs: false,
-          allowedRoles: ['admin', 'billing']
-        },
-        {
-          id: 'moneyTransfer',
-          title: 'moneyTransfer',
-          type: 'item',
-          url: '/billing/specialMoneyTransfer',
-          icon: MoveDown,
           breadcrumbs: false,
           allowedRoles: ['admin', 'billing']
         },

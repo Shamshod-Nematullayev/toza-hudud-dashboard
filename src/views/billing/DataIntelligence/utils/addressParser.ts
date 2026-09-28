@@ -183,3 +183,59 @@ export function formatFullAddress(
   }
   return parts.join(', ');
 }
+
+export interface ParsedCombinedAddress {
+  mahalla: string;
+  street: string;
+  houseNumber: string;
+  index: string; // Uy harfi / indeksi
+  apartmentNumber: string;
+}
+
+/**
+ * Bitta to'liq manzil matnidan (masalan: "Yermachit MFY, Bunyodkor ko'chasi, 40-uy" yoki "Islom Shoir MFY, Bahor ko'chasi, утар 3\"А\"-uy")
+ * Mahalla, Ko'cha, Uy raqami, Uy harfi (indeksi) va Xonadonni chuqur ajratib oluvchi yordamchi.
+ */
+export function parseCombinedAddress(rawAddress: string | undefined | null): ParsedCombinedAddress {
+  if (!rawAddress) {
+    return { mahalla: '', street: '', houseNumber: '', index: '', apartmentNumber: '' };
+  }
+
+  let text = String(rawAddress).trim();
+  let mahalla = '';
+  let street = '';
+  let houseNumber = '';
+  let index = '';
+  let apartmentNumber = '';
+
+  // 1. Mahalla ajratish (agar boshida MFY, QFY, Mahalla bo'lsa)
+  const mahallaMatch = text.match(/^([^,]+?\b(?:mfy|мфй|qfy|қфй|mahalla|маҳалла|махалла)\b)[,\s]*/i);
+  if (mahallaMatch) {
+    mahalla = mahallaMatch[1].trim();
+    text = text.slice(mahallaMatch[0].length).trim();
+  }
+
+  // 2. Xonadon ajratish (agar mavjud bo'lsa)
+  const aptMatch =
+    text.match(/(?:xonadon|хонадон|кв\.?|kv\.?)[\s:№#-]*([0-9]+[a-zа-яё]*)/i) ||
+    text.match(/([0-9]+[a-zа-яё]*)[\s-]*(?:xonadon|хонадон|кв)/i);
+  if (aptMatch) {
+    apartmentNumber = (aptMatch[1] || '').trim();
+    text = text.replace(aptMatch[0], ' ').trim();
+  }
+
+  // 3. Uy raqami va harfi/indeksini ajratish
+  // Masalan: 15 "в"-uy, 14б-uy, 9-b-uy, 3"А"-uy, 165/1-uy, 40-uy, dom 12
+  const housePattern = /(?:(?:dom|дом|uy|уй)[\s:№#-]*([0-9]+(?:\/[0-9]+)?)\s*[-_]?\s*["'«»]?\s*([a-zа-яёА-ЯЁ])?["'«»]?|([0-9]+(?:\/[0-9]+)?)\s*[-_]?\s*["'«»]?\s*([a-zа-яёА-ЯЁ])?["'«»]?\s*[-_]?\s*(?:uy|уй|dom|дом))/i;
+  const houseMatch = text.match(housePattern);
+  if (houseMatch) {
+    houseNumber = (houseMatch[1] || houseMatch[3] || '').trim();
+    index = (houseMatch[2] || houseMatch[4] || '').replace(/["'«»]/g, '').trim();
+    text = text.replace(houseMatch[0], ' ').trim();
+  }
+
+  // 4. Qolgani - Ko'cha nomi
+  street = text.replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+
+  return { mahalla, street, houseNumber, index, apartmentNumber };
+}

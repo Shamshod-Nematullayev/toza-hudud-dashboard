@@ -67,6 +67,7 @@ const uz = {
     createAbonentPetition: 'Ariza yaratish',
     importAbonentPetition: 'Arizalarni kiritish (Tozamakon)',
     petitions: 'Arizalar',
+    pendingActs: 'Avtomatik aktlar',
     deleteDublicates: "Ikkilamchilarni o'chirish",
     printAbonentsList: "Abonentlar ro'yxatini chop etish",
     inventory: 'Yashovchilar soni xatlovi',

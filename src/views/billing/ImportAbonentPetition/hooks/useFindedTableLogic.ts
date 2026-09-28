@@ -260,13 +260,20 @@ export function useFindedTableLogic() {
         url = urlMap[aktType] || CREATE_RESIDENT_ACT_URL;
       } else {
         if (!ariza) throw new Error('Ariza maʼlumotlari mavjud emas');
-        formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows, overrideShouldTransferMoney);
 
-        const urlMap: Record<string, string> = {
-          dvaynik: '/billing/create-dvaynik-akt-by-ariza',
-          cancelContract: '/billing/create-cancelcontract-act'
-        };
-        url = urlMap[ariza.document_type] || CREATE_RESIDENT_ACT_URL;
+        if (ariza.document_type === 'pul_kuchirish') {
+          formData = new FormData();
+          formData.append('file', currentFile.blob, currentFile.file.name);
+          url = `/arizalar/money-transfer-act/${ariza._id}`;
+        } else {
+          formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows, overrideShouldTransferMoney);
+
+          const urlMap: Record<string, string> = {
+            dvaynik: '/billing/create-dvaynik-akt-by-ariza',
+            cancelContract: '/billing/create-cancelcontract-act'
+          };
+          url = urlMap[ariza.document_type] || CREATE_RESIDENT_ACT_URL;
+        }
       }
 
       const { data } = await api.post(url, formData, {

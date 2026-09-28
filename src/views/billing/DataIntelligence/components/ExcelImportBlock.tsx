@@ -49,6 +49,7 @@ import {
   parseUploadedFile,
   validateAndTransformRows,
   generateSampleCsvContent,
+  downloadSampleExcelFile,
   ColumnMapping,
   ParsedSheetData,
   ParseResult
@@ -140,18 +141,27 @@ export const ExcelImportBlock: React.FC<ExcelImportBlockProps> = ({
     }
   };
 
-  // Namuna shablon yuklab olish
-  const handleDownloadSample = () => {
-    const csvData = generateSampleCsvContent();
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'soliq_import_namuna.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Namuna shablon yuklab olindi!');
+  // Namuna shablon yuklab olish (Excel .xlsx yoki CSV)
+  const handleDownloadSample = (format: 'xlsx' | 'csv' = 'xlsx') => {
+    try {
+      if (format === 'xlsx') {
+        downloadSampleExcelFile('soliq_import_namuna.xlsx');
+        toast.success('Namuna Excel (.xlsx) shabloni yuklab olindi!');
+      } else {
+        const csvData = generateSampleCsvContent();
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'soliq_import_namuna.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Namuna CSV shabloni yuklab olindi!');
+      }
+    } catch (err: any) {
+      toast.error('Shablonni yuklab olishda xatolik yuz berdi');
+    }
   };
 
   // Xaritalashni tasdiqlash
@@ -323,10 +333,20 @@ export const ExcelImportBlock: React.FC<ExcelImportBlockProps> = ({
                 variant="outlined"
                 size="small"
                 startIcon={<DownloadOutlined />}
-                onClick={handleDownloadSample}
+                onClick={() => handleDownloadSample('xlsx')}
                 sx={{ textTransform: 'none', borderRadius: 2 }}
               >
-                Namuna Excel shablonini yuklab olish
+                Namuna Excel (.xlsx) shabloni
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                color="secondary"
+                startIcon={<DownloadOutlined />}
+                onClick={() => handleDownloadSample('csv')}
+                sx={{ textTransform: 'none', borderRadius: 2 }}
+              >
+                CSV (.csv) shabloni
               </Button>
             </Stack>
 

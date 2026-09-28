@@ -35,7 +35,7 @@ export const languageOptions = [
   { value: 'ru', label: 'Русский', img: 'https://www.countryflags.com/wp-content/uploads/russia-flag-png-large.png' }
 ];
 
-export const documentTypes = ['odam_soni', 'viza', 'death', 'dvaynik', 'gps'];
+export const documentTypes = ['odam_soni', 'viza', 'death', 'dvaynik', 'gps', 'pul_kuchirish'];
 export const colors = [
   'ff0000',
   '00ff00',

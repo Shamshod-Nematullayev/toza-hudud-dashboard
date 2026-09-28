@@ -6,6 +6,7 @@ import {
   DEFAULT_WEIGHTS,
   evaluateMatch
 } from '../engine/matchingEngine';
+import { evaluateAddressMatchFrontend } from '../engine/addressMatchingEngine';
 import {
   searchGreenZoneRealApi,
   CandidateResult,
@@ -48,6 +49,8 @@ interface DataIntelligenceState {
   customWeights: WeightConfig;
   currentMatchResult: MatchingResult | null;
   isEvaluating: boolean;
+  algorithmMode: 'owner' | 'address';
+  setAlgorithmMode: (mode: 'owner' | 'address') => void;
   setSourceA: (patch: Partial<RecordSource>) => void;
   setSourceB: (patch: Partial<RecordSource>) => void;
   setWeights: (weights: WeightConfig) => void;
@@ -166,11 +169,23 @@ export const useDataIntelligenceStore = create<DataIntelligenceState>((set, get)
   customWeights: { ...DEFAULT_WEIGHTS },
   currentMatchResult: null,
   isEvaluating: false,
+  algorithmMode: 'owner',
+
+  setAlgorithmMode: (mode) => {
+    set((state) => {
+      const res = mode === 'address'
+        ? evaluateAddressMatchFrontend(state.sourceA, state.sourceB)
+        : evaluateMatch(state.sourceA, state.sourceB, state.customWeights);
+      return { algorithmMode: mode, currentMatchResult: res };
+    });
+  },
 
   setSourceA: (patch) => {
     set((state) => {
       const updatedA = { ...state.sourceA, ...patch };
-      const res = evaluateMatch(updatedA, state.sourceB, state.customWeights);
+      const res = state.algorithmMode === 'address'
+        ? evaluateAddressMatchFrontend(updatedA, state.sourceB)
+        : evaluateMatch(updatedA, state.sourceB, state.customWeights);
       return { sourceA: updatedA, currentMatchResult: res };
     });
   },
@@ -178,14 +193,20 @@ export const useDataIntelligenceStore = create<DataIntelligenceState>((set, get)
   setSourceB: (patch) => {
     set((state) => {
       const updatedB = { ...state.sourceB, ...patch };
-      const res = evaluateMatch(state.sourceA, updatedB, state.customWeights);
+      const res = state.algorithmMode === 'address'
+        ? evaluateAddressMatchFrontend(state.sourceA, updatedB)
+        : evaluateMatch(state.sourceA, updatedB, state.customWeights);
       return { sourceB: updatedB, currentMatchResult: res };
     });
   },
 
   setWeights: (weights) => {
     set((state) => {
-      const res = state.currentMatchResult ? evaluateMatch(state.sourceA, state.sourceB, weights) : null;
+      const res = state.currentMatchResult
+        ? state.algorithmMode === 'address'
+          ? evaluateAddressMatchFrontend(state.sourceA, state.sourceB)
+          : evaluateMatch(state.sourceA, state.sourceB, weights)
+        : null;
       return {
         customWeights: weights,
         currentMatchResult: res
@@ -195,7 +216,11 @@ export const useDataIntelligenceStore = create<DataIntelligenceState>((set, get)
 
   resetWeights: () => {
     set((state) => {
-      const res = state.currentMatchResult ? evaluateMatch(state.sourceA, state.sourceB, DEFAULT_WEIGHTS) : null;
+      const res = state.currentMatchResult
+        ? state.algorithmMode === 'address'
+          ? evaluateAddressMatchFrontend(state.sourceA, state.sourceB)
+          : evaluateMatch(state.sourceA, state.sourceB, DEFAULT_WEIGHTS)
+        : null;
       return {
         customWeights: { ...DEFAULT_WEIGHTS },
         currentMatchResult: res
@@ -204,17 +229,22 @@ export const useDataIntelligenceStore = create<DataIntelligenceState>((set, get)
   },
 
   runMatch: () => {
-    const { sourceA, sourceB, customWeights } = get();
+    const { sourceA, sourceB, customWeights, algorithmMode } = get();
     set({ isEvaluating: true });
     setTimeout(() => {
-      const res = evaluateMatch(sourceA, sourceB, customWeights);
+      const res = algorithmMode === 'address'
+        ? evaluateAddressMatchFrontend(sourceA, sourceB)
+        : evaluateMatch(sourceA, sourceB, customWeights);
       set({ currentMatchResult: res, isEvaluating: false });
     }, 50);
   },
 
   loadPairIntoPlayground: (recordA, recordB) => {
     const targetB = recordB || { ...get().sourceB };
-    const res = evaluateMatch(recordA, targetB, get().customWeights);
+    const { algorithmMode, customWeights } = get();
+    const res = algorithmMode === 'address'
+      ? evaluateAddressMatchFrontend(recordA, targetB)
+      : evaluateMatch(recordA, targetB, customWeights);
     set({
       sourceA: { ...recordA },
       sourceB: { ...targetB },

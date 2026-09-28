@@ -48,7 +48,11 @@ const ALLOWED_SLOT1_KEYWORDS = [
   'phoneandsms',
   'boshqa tashkilot vazifasi',
   'hisob raqami',
-  'autocreateabonents'
+  'autocreateabonents',
+  'mvd',
+  'propiska',
+  'enrichmvdpropiska',
+  'odam soni'
 ];
 
 const isSlot1Job = (job: ActiveJobItem): boolean => {
@@ -61,7 +65,7 @@ const isSlot1Job = (job: ActiveJobItem): boolean => {
   if (name.includes('aktlarni')) return false;
   if (name.includes('pendingacts')) return false;
   if (name.includes('kutilayotgan')) return false;
-  if (name.includes('abonent') && !name.includes('hisob raqami') && !name.includes('autocreateabonents')) return false;
+  if (name.includes('abonent') && !name.includes('hisob raqami') && !name.includes('autocreateabonents') && !name.includes('mvd') && !name.includes('propiska')) return false;
 
   return ALLOWED_SLOT1_KEYWORDS.some((kw) => name.includes(kw));
 };

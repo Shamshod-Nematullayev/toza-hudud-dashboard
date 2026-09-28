@@ -28,7 +28,16 @@ import { colors } from 'store/constant';
 export default function RecalculationPeriodsList() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { recalculationPeriods, setRecalculationPeriods, aktSumma } = useStore();
+  const {
+    recalculationPeriods,
+    setRecalculationPeriods,
+    aktSumma,
+    aktType,
+    transferDebitorAmount,
+    transferCreditors,
+    transferReason,
+    abonentData
+  } = useStore();
 
   const deleteItem = (index: number) => {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
@@ -36,6 +45,129 @@ export default function RecalculationPeriodsList() {
 
   const totalSum = aktSumma.total;
   const isPositive = totalSum >= 0;
+
+  if (aktType === 'pul_kuchirish') {
+    const debitorAmountNum = Number(transferDebitorAmount) || 0;
+    const totalCreditorAmount = transferCreditors.reduce((acc, c) => acc + c.amount, 0);
+    const isBalanced = debitorAmountNum > 0 && debitorAmountNum === totalCreditorAmount;
+
+    return (
+      <Card
+        id="tour-recalc-list"
+        elevation={2}
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: 3,
+          p: 2,
+          bgcolor: 'background.paper'
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <ReceiptLongOutlined color="primary" />
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              {t("O'tkazma xulosasi")}
+            </Typography>
+          </Stack>
+          <Chip
+            label={`${transferCreditors.length} ta kreditor`}
+            size="small"
+            color={isBalanced ? 'success' : 'warning'}
+            sx={{ fontWeight: 700, height: 22 }}
+          />
+        </Box>
+
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.5,
+            mb: 2,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: isBalanced ? 'success.light' : 'warning.light',
+            bgcolor:
+              theme.palette.mode === 'dark'
+                ? 'background.default'
+                : isBalanced
+                  ? 'success.50'
+                  : 'warning.50'
+          }}
+        >
+          <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, fontSize: '10px' }}>
+            {t("Jami o'tkaziladigan summa")}
+          </Typography>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              color: isBalanced ? 'success.main' : 'warning.dark',
+              mt: 0.2
+            }}
+          >
+            {debitorAmountNum.toLocaleString()} so'm
+          </Typography>
+        </Paper>
+
+        <Divider sx={{ mb: 1.5 }} />
+
+        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+          <Stack spacing={1.5}>
+            <Paper elevation={0} sx={{ p: 1.25, borderRadius: 1.5, border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" color="text.secondary">Sababi:</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: transferReason === 'yanglish_tulov' ? 'warning.dark' : 'primary.main' }}>
+                {transferReason === 'yanglish_tulov' ? "Yanglishib to'langan to'lov" : "Ortiqcha to'lov"}
+              </Typography>
+            </Paper>
+
+            <Paper elevation={0} sx={{ p: 1.25, borderRadius: 1.5, border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" color="text.secondary">Debitor (mablag' egasi):</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                {abonentData.accountNumber || '—'}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {abonentData.fullName || '—'}
+              </Typography>
+            </Paper>
+
+            <Paper elevation={0} sx={{ p: 1.25, borderRadius: 1.5, border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" color="text.secondary">Qabul qiluvchilar taqsimoti:</Typography>
+              <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, mt: 0.5 }}>
+                Jami: {totalCreditorAmount.toLocaleString()} so'm / {transferCreditors.length} ta hisob
+              </Typography>
+              {!isBalanced && debitorAmountNum > 0 && (
+                <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 700, display: 'block', mt: 0.5 }}>
+                  ⚠️ {Math.abs(debitorAmountNum - totalCreditorAmount).toLocaleString()} so'm farq bor!
+                </Typography>
+              )}
+            </Paper>
+          </Stack>
+        </Box>
+
+        <Divider sx={{ my: 1.5 }} />
+
+        <Link to="/billing/importAbonentPetition" style={{ textDecoration: 'none' }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="primary"
+            size="small"
+            startIcon={<UploadFileOutlined />}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '12px',
+              py: 0.9
+            }}
+          >
+            {t('menuItems.importAbonentPetition', 'Arizalarni kiritish (Tozamakon)')} →
+          </Button>
+        </Link>
+      </Card>
+    );
+  }
 
   return (
     <Card

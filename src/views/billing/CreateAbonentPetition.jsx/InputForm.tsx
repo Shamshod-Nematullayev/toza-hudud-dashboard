@@ -19,6 +19,8 @@ import {
   InputLabel,
   MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
   Select,
   Stack,
   Switch,
@@ -28,6 +30,7 @@ import {
   Typography,
   useTheme
 } from '@mui/material';
+import api from 'utils/api';
 import {
   AccountCircle,
   AddPhotoAlternate,
@@ -99,7 +102,17 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     moneyTransferAmount,
     setMoneyTransferAmount,
     setAbonentCardOpenState,
-    setGlobalAbonentAccountNumber
+    setGlobalAbonentAccountNumber,
+    transferReason,
+    setTransferReason,
+    transferCreditors,
+    setTransferCreditors,
+    addTransferCreditor,
+    removeTransferCreditor,
+    selectedApplicantId,
+    setSelectedApplicantId,
+    transferDebitorAmount,
+    setTransferDebitorAmount
   } = useStore();
 
   const theme = useTheme();
@@ -112,6 +125,66 @@ export default function InputForm({ onStartTour }: InputFormProps) {
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [isLoadingMain, setIsLoadingMain] = useState(false);
   const [isLoadingDublicate, setIsLoadingDublicate] = useState(false);
+
+  // Pul ko'chirish uchun lokal holat
+  const [creditorAccount, setCreditorAccount] = useState('');
+  const [creditorAmount, setCreditorAmount] = useState('');
+  const [creditorAbonent, setCreditorAbonent] = useState<any>(null);
+
+  useEffect(() => {
+    if (creditorAccount.length === 12) {
+      api
+        .get('/billing/get-abonent-data-by-licshet/' + creditorAccount)
+        .then(({ data }) => {
+          if (data?.ok && data.abonentData) {
+            setCreditorAbonent(data.abonentData);
+          } else {
+            setCreditorAbonent(null);
+          }
+        })
+        .catch(() => setCreditorAbonent(null));
+    } else {
+      setCreditorAbonent(null);
+    }
+  }, [creditorAccount]);
+
+  const handleAddCreditor = () => {
+    if (!creditorAbonent || !creditorAccount || !creditorAmount || Number(creditorAmount) <= 0) {
+      toast.error("Hisob raqami va summani to'g'ri kiriting");
+      return;
+    }
+    if (creditorAbonent.id === abonentData.id) {
+      toast.error("Debitor va kreditor bir xil hisob bo'lishi mumkin emas");
+      return;
+    }
+    if (transferCreditors.some((c) => c.residentId === creditorAbonent.id)) {
+      toast.error('Ushbu abonent allaqachon qo‘shilgan');
+      return;
+    }
+    const newCreditor = {
+      id: transferCreditors.length + 1,
+      residentId: creditorAbonent.id,
+      accountNumber: creditorAccount,
+      fullName:
+        creditorAbonent.fullName ||
+        `${creditorAbonent.citizen?.firstName || ''} ${creditorAbonent.citizen?.lastName || ''}`.trim(),
+      amount: Number(creditorAmount),
+      kSaldo: creditorAbonent.balance?.kSaldo || 0,
+      phone: creditorAbonent.phone || '',
+      mahallaName: creditorAbonent.mahallaName || ''
+    };
+    addTransferCreditor(newCreditor);
+    if (!selectedApplicantId && transferReason === 'yanglish_tulov') {
+      setSelectedApplicantId(creditorAbonent.id);
+    }
+    setCreditorAccount('');
+    setCreditorAmount('');
+    setCreditorAbonent(null);
+  };
+
+  const totalCreditorAmount = transferCreditors.reduce((acc, c) => acc + c.amount, 0);
+  const debitorAmountNum = Number(transferDebitorAmount) || 0;
+  const isAmountBalanced = debitorAmountNum > 0 && debitorAmountNum === totalCreditorAmount;
 
   useEffect(() => {
     if (abonentInputData) {
@@ -168,6 +241,13 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     setRecalculationPeriods([]);
     setImages([]);
     setAktType(null);
+    setCreditorAccount('');
+    setCreditorAmount('');
+    setCreditorAbonent(null);
+    setTransferDebitorAmount('');
+    setTransferCreditors([]);
+    setSelectedApplicantId('');
+    setTransferReason('ortiqcha_tulov');
     setClearConfirmOpen(false);
   };
 
@@ -190,7 +270,12 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     isGlobalAbonent ||
     (aktType === 'dvaynik' && !abonentData2.accountNumber) ||
     (aktType === 'dvaynik' && isGlobalAbonent2) ||
-    (aktType === 'gps' && images.length === 0);
+    (aktType === 'gps' && images.length === 0) ||
+    (aktType === 'pul_kuchirish' &&
+      (!transferDebitorAmount ||
+        Number(transferDebitorAmount) <= 0 ||
+        transferCreditors.length === 0 ||
+        !isAmountBalanced));
 
   const getCreateDisabledReason = (): string => {
     if (isGlobalAbonent)
@@ -200,6 +285,11 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (!aktType) return t('Hujjat turini tanlang') || '';
     if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t('Ikkilamchi hisob raqamini kiriting') || '';
     if (aktType === 'gps' && images.length === 0) return t('GPS arizasi uchun kamida bitta rasm biriktiring') || '';
+    if (aktType === 'pul_kuchirish') {
+      if (!transferDebitorAmount || Number(transferDebitorAmount) <= 0) return "O'tkaziladigan summani kiriting";
+      if (transferCreditors.length === 0) return "Kamida bitta qabul qiluvchi hisob raqamini qo'shing";
+      if (!isAmountBalanced) return "Debitor summasi va kreditorlar summasi teng emas";
+    }
     return '';
   };
 
@@ -655,8 +745,236 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                 </Stack>
               )}
 
+              {/* Pul ko'chirish holati */}
+              {aktType === 'pul_kuchirish' && (
+                <Stack spacing={1.5}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.25,
+                      borderRadius: 1.5,
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider'
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                      {t('Ariza sababi / turi')}:
+                    </Typography>
+                    <RadioGroup
+                      value={transferReason}
+                      onChange={(e) => setTransferReason(e.target.value as 'ortiqcha_tulov' | 'yanglish_tulov')}
+                    >
+                      <FormControlLabel
+                        value="ortiqcha_tulov"
+                        control={<Radio size="small" />}
+                        label={
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {t("Ortiqcha to'lov (Mablag' egasi arizasi)")}
+                          </Typography>
+                        }
+                      />
+                      <FormControlLabel
+                        value="yanglish_tulov"
+                        control={<Radio size="small" color="warning" />}
+                        label={
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'warning.dark' }}>
+                            ⚠️ {t("Yanglish to'lov (To'lovchi arizasi)")}
+                          </Typography>
+                        }
+                      />
+                    </RadioGroup>
+                  </Paper>
+
+                  {/* Debitor (olinadigan) summa */}
+                  <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main', display: 'block', mb: 0.8 }}>
+                      1. {t('Yechib olinadigan summa')} ({abonentData.accountNumber || 'Asosiy hisob'}dan):
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="number"
+                      label={t("Olinadigan summa (so'm)")}
+                      value={transferDebitorAmount}
+                      onChange={(e) => setTransferDebitorAmount(e.target.value)}
+                      placeholder="0"
+                      sx={{ bgcolor: 'background.paper' }}
+                    />
+                  </Box>
+
+                  {/* Kreditor qo'shish */}
+                  <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.main', display: 'block', mb: 0.8 }}>
+                      2. {t('Pul tushadigan hisob raqam(lar)')}:
+                    </Typography>
+                    <Stack spacing={1}>
+                      <AccountNumberInput
+                        label={t('Kreditor hisob raqami')}
+                        value={creditorAccount}
+                        setFunc={setCreditorAccount}
+                      />
+                      {creditorAbonent && (
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 1,
+                            borderRadius: 1.5,
+                            bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'success.50',
+                            border: '1px solid',
+                            borderColor: 'success.light'
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.dark', display: 'block' }}>
+                            {creditorAbonent.fullName || `${creditorAbonent.citizen?.firstName || ''} ${creditorAbonent.citizen?.lastName || ''}`}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                            {creditorAbonent.mahallaName} | Saldo: {((creditorAbonent.balance?.kSaldo || 0) * -1).toLocaleString()} so'm
+                          </Typography>
+                        </Paper>
+                      )}
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                        <TextField
+                          size="small"
+                          type="number"
+                          label={t('Kreditor summasi')}
+                          value={creditorAmount}
+                          onChange={(e) => setCreditorAmount(e.target.value)}
+                          placeholder="0"
+                          sx={{ flex: 1, bgcolor: 'background.paper' }}
+                        />
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          disabled={!creditorAbonent?.id || !creditorAmount || Number(creditorAmount) <= 0}
+                          onClick={handleAddCreditor}
+                          sx={{ minWidth: 40, height: 38 }}
+                        >
+                          <PersonAdd fontSize="small" />
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Box>
+
+                  {/* Kreditorlar ro'yxati */}
+                  {transferCreditors.length > 0 && (
+                    <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.8 }}>
+                        {t('Biriktirilgan qabul qiluvchilar')} ({transferCreditors.length}):
+                      </Typography>
+                      <Stack spacing={0.8}>
+                        {transferCreditors.map((cred) => (
+                          <Paper
+                            key={cred.id}
+                            elevation={0}
+                            sx={{
+                              p: 1,
+                              borderRadius: 1.5,
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                              <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
+                                {cred.accountNumber} - {cred.fullName}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 700 }}>
+                                +{cred.amount.toLocaleString()} so'm
+                              </Typography>
+                            </Box>
+                            <IconButton size="small" color="error" onClick={() => removeTransferCreditor(cred.id)}>
+                              <DeleteOutline fontSize="small" />
+                            </IconButton>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+
+                  {/* Yanglish to'lovda ariza beruvchi tanlovi */}
+                  {transferReason === 'yanglish_tulov' && transferCreditors.length > 0 && (
+                    <FormControl fullWidth size="small">
+                      <InputLabel>{t("Ariza yozuvchi (To'lovchi)")}</InputLabel>
+                      <Select
+                        value={selectedApplicantId || (transferCreditors[0] ? transferCreditors[0].residentId : '')}
+                        label={t("Ariza yozuvchi (To'lovchi)")}
+                        onChange={(e) => setSelectedApplicantId(Number(e.target.value))}
+                        sx={{ bgcolor: 'background.paper' }}
+                      >
+                        {transferCreditors.map((c) => (
+                          <MenuItem key={c.residentId} value={c.residentId}>
+                            {c.accountNumber} - {c.fullName}
+                          </MenuItem>
+                        ))}
+                        <MenuItem value={abonentData.id}>
+                          {abonentData.accountNumber} - {abonentData.fullName} (Debitor)
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+
+                  {/* Balans tekshiruv kartasi */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.25,
+                      borderRadius: 1.5,
+                      bgcolor: isAmountBalanced
+                        ? theme.palette.mode === 'dark'
+                          ? 'background.default'
+                          : 'success.50'
+                        : theme.palette.mode === 'dark'
+                          ? 'background.default'
+                          : 'error.50',
+                      border: '1px solid',
+                      borderColor: isAmountBalanced ? 'success.light' : 'error.light'
+                    }}
+                  >
+                    <Stack spacing={0.5}>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('Yechiladigan')}:
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          {debitorAmountNum.toLocaleString()} so'm
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {t('Taqsimlangan')}:
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.main' }}>
+                          {totalCreditorAmount.toLocaleString()} so'm
+                        </Typography>
+                      </Stack>
+                      <Divider sx={{ my: 0.5 }} />
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                          {t('Holat')}:
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 800,
+                            color: isAmountBalanced ? 'success.dark' : 'error.main'
+                          }}
+                        >
+                          {isAmountBalanced
+                            ? `✓ ${t('Teng taqsimlandi')}`
+                            : `${(debitorAmountNum - totalCreditorAmount).toLocaleString()} so'm ${t('farq bor')}`}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                </Stack>
+              )}
+
               {/* Akt summasi indikatori */}
-              {aktType !== 'dvaynik' && (
+              {aktType !== 'dvaynik' && aktType !== 'pul_kuchirish' && (
                 <Box
                   sx={{
                     p: 1.5,

@@ -17,6 +17,9 @@ export interface RecordSource {
   phone?: string;
   tin?: string; // INN
   source?: 'soliq' | 'greenzone' | 'manual' | 'kadastr' | 'elektr' | string;
+  houseNumber?: string;
+  apartmentNumber?: string;
+  index?: string; // Uy harfi (masalan "A", "B")
 }
 
 export type DecisionTier = 'CONFIRMED' | 'HIGH_CONFIDENCE' | 'PROPERTY_MATCH' | 'REVIEW_REQUIRED' | 'NO_MATCH';

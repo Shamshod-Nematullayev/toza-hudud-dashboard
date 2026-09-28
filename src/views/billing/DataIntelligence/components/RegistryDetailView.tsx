@@ -13,7 +13,10 @@ import {
   useTheme,
   alpha,
   LinearProgress,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   ArrowBackRounded,
@@ -57,11 +60,15 @@ interface JobStatusState {
 
 interface MvdJobStatusState {
   isRunning: boolean;
+  isQueued?: boolean;
+  position?: number;
   total: number;
   processed: number;
   enriched: number;
+  enrichedCount?: number;
   zeroCount: number;
   progressPercent: number;
+  message?: string;
 }
 
 export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry, onBack }) => {
@@ -72,6 +79,7 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [matchingLoading, setMatchingLoading] = useState(false);
+  const [algorithmMode, setAlgorithmMode] = useState<'owner' | 'address'>('owner');
   const [mvdJobModalOpen, setMvdJobModalOpen] = useState(false);
   const [mvdJobLoading, setMvdJobLoading] = useState(false);
   const [autoCodeModalOpen, setAutoCodeModalOpen] = useState(false);
@@ -141,8 +149,20 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
     try {
       const res = await api.get('/data-intelligence/mvd-job/status');
       if (res.data?.ok && res.data.job) {
-        setMvdJobStatus(res.data.job);
-        if (res.data.job.isRunning) {
+        const j = res.data.job;
+        setMvdJobStatus({
+          isRunning: Boolean(j.isRunning),
+          isQueued: Boolean(j.isQueued),
+          position: j.position,
+          total: j.total || 0,
+          processed: j.processed || 0,
+          enriched: j.enriched !== undefined ? j.enriched : (j.enrichedCount || 0),
+          enrichedCount: j.enrichedCount !== undefined ? j.enrichedCount : (j.enriched || 0),
+          zeroCount: j.zeroCount || 0,
+          progressPercent: j.progressPercent || 0,
+          message: j.message,
+        });
+        if (j.isRunning) {
           reloadRegistryData();
         }
       }
@@ -194,7 +214,8 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
     try {
       const res = await api.post('/data-intelligence/job/start', {
         listId: currentRegistry._id,
-        scope: 'non_matched'
+        scope: 'non_matched',
+        algorithmMode
       });
       if (res.data?.ok) {
         toast.success("Ushbu ro'yxat uchun AI Solishtirish boshlandi!");
@@ -480,27 +501,51 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
                 AI Jobni To'xtatish
               </Button>
             ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<PlayArrowRounded />}
-                onClick={handleStartMatching}
-                disabled={matchingLoading || total === 0}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  px: 2.2,
-                  py: 1,
-                  boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`
-                }}
-              >
-                AI Solishtirishni Boshlash
-              </Button>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <FormControl size="small" sx={{ minWidth: 195 }}>
+                  <Select
+                    value={algorithmMode}
+                    onChange={(e) => setAlgorithmMode(e.target.value as 'owner' | 'address')}
+                    sx={{
+                      borderRadius: 2,
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      bgcolor: 'background.paper',
+                      height: 40
+                    }}
+                  >
+                    <MenuItem value="owner" sx={{ fontSize: '0.82rem' }}>
+                      👤 Uy egasi bo‘yicha (Mavjud)
+                    </MenuItem>
+                    <MenuItem value="address" sx={{ fontSize: '0.82rem' }}>
+                      🏠 Uy manzili bo‘yicha (Yangi)
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<PlayArrowRounded />}
+                  onClick={handleStartMatching}
+                  disabled={matchingLoading || total === 0}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 2.2,
+                    py: 1,
+                    height: 40,
+                    boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`
+                  }}
+                >
+                  {algorithmMode === 'address' ? 'Manzil Bo‘yicha Boshlash' : 'AI Solishtirishni Boshlash'}
+                </Button>
+              </Stack>
             )}
 
             {/* 2. MVD Propiska & Odam Soni Job Button */}
-            {mvdJobStatus.isRunning ? (
+            {mvdJobStatus.isRunning || mvdJobStatus.isQueued ? (
               <Button
                 variant="outlined"
                 color="error"
@@ -719,7 +764,7 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
           )}
 
           {/* Jonli MVD Odam Soni Job Bajarilish Ko'rsatkichi */}
-          {mvdJobStatus.isRunning && (
+          {(mvdJobStatus.isRunning || mvdJobStatus.isQueued) && (
             <Box
               sx={{
                 mt: 2,
@@ -737,13 +782,22 @@ export const RegistryDetailView: React.FC<RegistryDetailViewProps> = ({ registry
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                   <GroupOutlined sx={{ color: 'secondary.main', fontSize: 20 }} />
                   <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                    MVD Propiska orqali odam soni aniqlanmoqda...
+                    {mvdJobStatus.isQueued
+                      ? `MVD Propiska vazifasi navbatda (#${mvdJobStatus.position || 1})...`
+                      : "MVD Propiska orqali odam soni aniqlanmoqda..."}
                   </Typography>
                 </Stack>
                 <Typography variant="body2" sx={{ fontWeight: 800, color: 'secondary.main' }}>
-                  {mvdJobStatus.processed} / {mvdJobStatus.total} ta ({mvdJobStatus.progressPercent}%) • {mvdJobStatus.enriched} ta propiska bor • {mvdJobStatus.zeroCount} ta 0 kishi
+                  {mvdJobStatus.processed.toLocaleString()} / {mvdJobStatus.total.toLocaleString()} ta ({mvdJobStatus.progressPercent}%) • {mvdJobStatus.enriched || 0} ta propiska bor • {mvdJobStatus.zeroCount || 0} ta 0 kishi
                 </Typography>
               </Stack>
+
+              {mvdJobStatus.message && (
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 1 }}>
+                  {mvdJobStatus.message}
+                </Typography>
+              )}
+
               <LinearProgress
                 variant="determinate"
                 value={mvdJobStatus.progressPercent}

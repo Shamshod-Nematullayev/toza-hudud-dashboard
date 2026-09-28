@@ -69,6 +69,7 @@ const uzKirill: typeof uz = {
     createAbonentPetition: 'Ариза яратиш',
     importAbonentPetition: 'Аризаларни киритиш (Тозамакон)',
     petitions: 'Аризалар',
+    pendingActs: 'Автоматик актлар',
     deleteDublicates: 'Иккиламчиларни ўчириш',
     printAbonentsList: 'Абонентлар рўйхатини чоп этиш',
     inventory: 'Яшовчилар сони хатлови',

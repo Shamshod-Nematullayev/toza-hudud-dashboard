@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { RecordSource } from './matchingEngine';
 import { StagingRecord, ValidationIssue } from '../mock/mockData';
+import { parseAddressDetails, parseCombinedAddress } from '../utils/addressParser';
 
 export interface ColumnMapping {
   fullName: string;
@@ -8,6 +9,9 @@ export interface ColumnMapping {
   cadastreNumber: string;
   mahalla: string;
   street: string;
+  houseNumber?: string;
+  apartmentNumber?: string;
+  postalIndex?: string; // Uy harfi / Indeks
   objectType?: string;
   phone?: string;
   tin?: string;
@@ -79,6 +83,9 @@ export function detectColumnMapping(headers: string[]): ColumnMapping {
     cadastreNumber: '',
     mahalla: '',
     street: '',
+    houseNumber: '',
+    apartmentNumber: '',
+    postalIndex: '',
     objectType: '',
     phone: '',
     tin: ''
@@ -88,7 +95,11 @@ export function detectColumnMapping(headers: string[]): ColumnMapping {
     h
       .toLowerCase()
       .trim()
-      .replace(/[^a-zа-яёўғқҳ0-9]/gi, '');
+      .replace(/қ/g, 'к')
+      .replace(/ғ/g, 'г')
+      .replace(/ҳ/g, 'х')
+      .replace(/ў/g, 'у')
+      .replace(/[^a-zа-яё0-9]/gi, '');
 
   headers.forEach((header) => {
     const h = cleanHeader(header);
@@ -158,6 +169,48 @@ export function detectColumnMapping(headers: string[]): ColumnMapping {
     ) {
       mapping.mahalla = header;
     }
+    // Uy raqami / House Number
+    else if (
+      !mapping.houseNumber &&
+      (h === 'uy' ||
+        h === 'dom' ||
+        h === 'дом' ||
+        h.includes('uyraqam') ||
+        h.includes('уйракам') ||
+        h.includes('номердома') ||
+        h.includes('housenumber') ||
+        h.includes('house_number'))
+    ) {
+      mapping.houseNumber = header;
+    }
+    // Xonadon raqami / Apartment / Flat / Квартира
+    else if (
+      !mapping.apartmentNumber &&
+      (h.includes('xonadon') ||
+        h.includes('хонадон') ||
+        h.includes('kvartira') ||
+        h.includes('квартира') ||
+        h === 'kv' ||
+        h === 'кв' ||
+        h.includes('flat') ||
+        h.includes('apartment'))
+    ) {
+      mapping.apartmentNumber = header;
+    }
+    // Indeks / Uy harfi / House Letter
+    else if (
+      !mapping.postalIndex &&
+      (h.includes('uyharf') ||
+        h.includes('уйхарф') ||
+        h === 'harf' ||
+        h === 'харф' ||
+        h === 'letter' ||
+        h.includes('index') ||
+        h.includes('indeks') ||
+        h.includes('индекс'))
+    ) {
+      mapping.postalIndex = header;
+    }
     // Ko'cha / Manzil / Кўча / Манзил / Адрес / Uy
     else if (
       !mapping.street &&
@@ -170,10 +223,7 @@ export function detectColumnMapping(headers: string[]): ColumnMapping {
         h.includes('адрес') ||
         h.includes('address') ||
         h.includes('street') ||
-        h.includes('uy') ||
-        h.includes('уй') ||
-        h.includes('xonadon') ||
-        h.includes('хонадон'))
+        h.includes('uy'))
     ) {
       mapping.street = header;
     }
@@ -389,6 +439,31 @@ export function validateAndTransformRows(
     else if (rowStatus === 'warning') warningCount++;
     else errorCount++;
 
+    let rawHouseNumber = mapping.houseNumber ? String(row[mapping.houseNumber] || '').trim() : '';
+    let rawApartmentNumber = mapping.apartmentNumber ? String(row[mapping.apartmentNumber] || '').trim() : '';
+    let rawIndex = mapping.postalIndex ? String(row[mapping.postalIndex] || '').trim() : '';
+    let cleanStreet = rawStreet;
+    let cleanMahalla = rawMahalla;
+
+    // Agar alohida ustunlar mavjud bo'lmasa yoki to'liq manzil bitta ustunda bo'lsa (masalan: "Yermachit MFY, Bunyodkor ko'chasi, 40-uy")
+    if ((!rawHouseNumber || !rawApartmentNumber || !rawIndex) && rawStreet) {
+      const combined = parseCombinedAddress(rawStreet);
+      if (!rawHouseNumber && combined.houseNumber) rawHouseNumber = combined.houseNumber;
+      if (!rawApartmentNumber && combined.apartmentNumber) rawApartmentNumber = combined.apartmentNumber;
+      if (!rawIndex && combined.index) rawIndex = combined.index;
+      if (!cleanMahalla && combined.mahalla) cleanMahalla = combined.mahalla;
+      if (combined.street && (rawStreet.includes('MFY') || rawStreet.includes('МФЙ') || (rawHouseNumber && rawStreet.includes(rawHouseNumber)))) {
+        cleanStreet = combined.street;
+      }
+    }
+
+    if (!rawHouseNumber && !rawApartmentNumber && !rawIndex && cleanStreet) {
+      const parsedAddr = parseAddressDetails(cleanStreet, rawCadastre, row);
+      if (parsedAddr.homeNumber) rawHouseNumber = parsedAddr.homeNumber;
+      if (parsedAddr.flatNumber) rawApartmentNumber = parsedAddr.flatNumber;
+      if (parsedAddr.homeIndex) rawIndex = parsedAddr.homeIndex;
+    }
+
     const stagingItem: StagingRecord = {
       id: `soliq_staging_${Date.now()}_${rowNumber}`,
       rowNumber,
@@ -397,8 +472,11 @@ export function validateAndTransformRows(
       fullName: rawFullName,
       pnfl: cleanPnfl || rawPnfl,
       cadastreNumber: rawCadastre,
-      mahalla: rawMahalla,
-      street: rawStreet,
+      mahalla: cleanMahalla,
+      street: cleanStreet,
+      houseNumber: rawHouseNumber,
+      apartmentNumber: rawApartmentNumber,
+      index: rawIndex,
       objectType: rawObjectType,
       phone: rawPhone,
       tin: rawTin,
@@ -421,15 +499,97 @@ export function validateAndTransformRows(
 }
 
 /**
- * Namuna test CSV fayl generatsiya qilish
+ * Namuna test CSV fayl generatsiya qilish (Alohida manzil ustunlari bilan)
  */
 export function generateSampleCsvContent(): string {
-  const headers = ['ФИО', 'ПИНФЛ', 'Кадастр рақами', 'Маҳалла', 'Кўча ва уй', 'Тариф / Объект тури', 'Телефон'];
+  const headers = [
+    'F.I.Sh',
+    'PINFL',
+    'Kadastr raqami',
+    'Mahalla',
+    "Ko'cha nomi",
+    'Uy raqami',
+    'Uy harfi (Indeks)',
+    'Xonadon raqami',
+    'Tarif / Obyekt turi',
+    'Telefon'
+  ];
   const sampleRows = [
-    ['БОЛТАЕВ ХАЙРУЛЛА ЮЛДАШЕВИЧ', '30501573920137', '14:05:01:01:01:0013', 'Истиқлол МФЙ', 'Навоий кўчаси 12-уй', 'Аҳоли', '+998901234567'],
-    ['САМАНДАРОВ ШЕРАЛИ', '31612863920098', '14:05:01:01:01:0183', 'Омонбойкўприк МФЙ', 'Хайвар 1-уй', 'Аҳоли', '+998914567890'],
-    ['КАРИМОВА ШАХНОЗА АКМАЛОВНА', '41208933920054', '14:05:02:03:01:0245', 'Дўстлик МФЙ', 'Гулистон кўчаси 4-уй', 'Аҳоли', '+998937778899']
+    ['BOLTAYEV XAYRULLA YULDASHEVICH', '30501573920137', '14:05:01:01:01:0013', 'Istiqlol MFY', 'Navoiy ko‘chasi', '12', '', '', 'Aholi', '+998901234567'],
+    ['SAMANDAROV SHERALI', '31612863920098', '14:05:01:01:01:0183', 'Omonboyko‘prik MFY', 'Xayvar ko‘chasi', '12', 'A', '', 'Aholi', '+998914567890'],
+    ['KARIMOVA SHAXNOZA AKMALOVNA', '41208933920054', '14:05:02:03:01:0245', "Do'stlik MFY", 'Guliston ko‘chasi', '4', '', '15', 'Aholi', '+998937778899'],
+    ['RAHIMOV BOTIR KARIMOVICH', '32104883920112', '14:05:02:03:01:0310', 'Yangiobod MFY', 'Amir Temur ko‘chasi', '26', 'B', '8', 'Aholi', '+998993334455']
   ];
 
   return [headers.join(','), ...sampleRows.map((r) => r.map((cell) => `"${cell}"`).join(','))].join('\n');
+}
+
+/**
+ * Namuna Excel (.xlsx) faylini to'g'ridan-to'g'ri SheetJS orqali yaratish va yuklab berish
+ * 2 ta varaq bilan ta'minlaydi: Lotincha va Kirillcha
+ */
+export function downloadSampleExcelFile(fileName: string = 'soliq_import_namuna.xlsx') {
+  const colWidths = [
+    { wch: 32 }, // F.I.Sh / ФИО
+    { wch: 18 }, // PINFL / ПИНФЛ
+    { wch: 24 }, // Kadastr / Кадастр
+    { wch: 20 }, // Mahalla / Маҳалла
+    { wch: 25 }, // Ko'cha / Кўча номи
+    { wch: 14 }, // Uy raqami / Уй рақами
+    { wch: 18 }, // Uy harfi / Уй ҳарфи (Индекс)
+    { wch: 16 }, // Xonadon / Хонадон рақами
+    { wch: 20 }, // Tarif / Тариф
+    { wch: 16 }  // Telefon / Телефон
+  ];
+
+  // 1. Lotincha varaq
+  const latinData = [
+    [
+      'F.I.Sh',
+      'PINFL',
+      'Kadastr raqami',
+      'Mahalla',
+      "Ko'cha nomi",
+      'Uy raqami',
+      'Uy harfi (Indeks)',
+      'Xonadon raqami',
+      'Tarif / Obyekt turi',
+      'Telefon'
+    ],
+    ['BOLTAYEV XAYRULLA YULDASHEVICH', '30501573920137', '14:05:01:01:01:0013', 'Istiqlol MFY', 'Navoiy ko‘chasi', '12', '', '', 'Aholi', '+998901234567'],
+    ['SAMANDAROV SHERALI', '31612863920098', '14:05:01:01:01:0183', 'Omonboyko‘prik MFY', 'Xayvar ko‘chasi', '12', 'A', '', 'Aholi', '+998914567890'],
+    ['KARIMOVA SHAXNOZA AKMALOVNA', '41208933920054', '14:05:02:03:01:0245', "Do'stlik MFY", 'Guliston ko‘chasi', '4', '', '15', 'Aholi', '+998937778899'],
+    ['RAHIMOV BOTIR KARIMOVICH', '32104883920112', '14:05:02:03:01:0310', 'Yangiobod MFY', 'Amir Temur ko‘chasi', '26', 'B', '8', 'Aholi', '+998993334455']
+  ];
+
+  // 2. Kirillcha varaq
+  const cyrillicData = [
+    [
+      'ФИО',
+      'ПИНФЛ',
+      'Кадастр рақами',
+      'Маҳалла',
+      'Кўча номи',
+      'Уй рақами',
+      'Уй ҳарфи (Индекс)',
+      'Хонадон рақами',
+      'Тариф / Объект тури',
+      'Телефон'
+    ],
+    ['БОЛТАЕВ ХАЙРУЛЛА ЮЛДАШЕВИЧ', '30501573920137', '14:05:01:01:01:0013', 'Истиқлол МФЙ', 'Навоий кўчаси', '12', '', '', 'Аҳоли', '+998901234567'],
+    ['САМАНДАРОВ ШЕРАЛИ', '31612863920098', '14:05:01:01:01:0183', 'Омонбойкўприк МФЙ', 'Хайвар кўчаси', '12', 'A', '', 'Аҳоли', '+998914567890'],
+    ['КАРИМОВА ШАХНОЗА АКМАЛОВНА', '41208933920054', '14:05:02:03:01:0245', 'Дўстлик МФЙ', 'Гулистон кўчаси', '4', '', '15', 'Аҳоли', '+998937778899'],
+    ['РАҲИМОВ БОТИР КАРИМОВИЧ', '32104883920112', '14:05:02:03:01:0310', 'Янгиобод МФЙ', 'Амир Темур кўчаси', '26', 'B', '8', 'Аҳоли', '+998993334455']
+  ];
+
+  const wsLatin = XLSX.utils.aoa_to_sheet(latinData);
+  wsLatin['!cols'] = colWidths;
+
+  const wsCyrillic = XLSX.utils.aoa_to_sheet(cyrillicData);
+  wsCyrillic['!cols'] = colWidths;
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsLatin, 'Shablon (Lotin)');
+  XLSX.utils.book_append_sheet(wb, wsCyrillic, 'Shablon (Kirill)');
+  XLSX.writeFile(wb, fileName);
 }

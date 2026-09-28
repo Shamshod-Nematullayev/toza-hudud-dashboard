@@ -1,14 +1,16 @@
 import React from 'react';
-import { Box, Button, Card, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Card, Chip, IconButton, Stack, Tab, Tabs, Tooltip, Typography } from '@mui/material';
 import {
   DeleteSweepOutlined,
   KeyboardOutlined,
+  NoteAddOutlined as NoteAddOutlinedIcon,
   NoteAltOutlined,
   PictureAsPdfOutlined,
   UploadFileOutlined
 } from '@mui/icons-material';
 import useStore from './hooks/useStore';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { TourHelpButton } from 'ui-component/tour';
 
 interface HeaderProps {
@@ -17,6 +19,7 @@ interface HeaderProps {
 
 function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { enteringMode, setEnteringMode, pdfFiles, setPdfFiles } = useStore();
 
   const handleToggleMode = () => {
@@ -44,6 +47,25 @@ function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
         gap: 1.5
       }}
     >
+      {/* 2-Bosqichli Yagona Navigatsiya */}
+      <Box sx={{ width: '100%', mb: 0.5, borderBottom: '1px solid', borderColor: 'divider', pb: 0.5 }}>
+        <Tabs value={1} textColor="primary" indicatorColor="primary" sx={{ minHeight: 36 }}>
+          <Tab
+            icon={<NoteAddOutlinedIcon fontSize="small" />}
+            iconPosition="start"
+            label={t('1. Ariza shakllantirish (Yaratish)')}
+            onClick={() => navigate('/billing/createAbonentAriza')}
+            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '13px', minHeight: 36, cursor: 'pointer' }}
+          />
+          <Tab
+            icon={<UploadFileOutlined fontSize="small" />}
+            iconPosition="start"
+            label={t('2. Arizalarni kiritish (Tozamakon ijrosi)')}
+            sx={{ textTransform: 'none', fontWeight: 700, fontSize: '13px', minHeight: 36 }}
+          />
+        </Tabs>
+      </Box>
+
       {/* Chap tomon: Sarlavha, Rejim chipi va fayllar hisoblagichi */}
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

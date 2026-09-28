@@ -37,6 +37,7 @@ import Dvaynik from './Documents/Dvaynik';
 import Gps from './Documents/Gps';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
+import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
 import { familyRelations } from './useStore';
 
 // Constants
@@ -149,6 +150,24 @@ const DocumentRenderer = ({
       return (
         <Gps {...commonProps} recalculationPeriods={recalculationPeriods} muzlatiladi={muzlatiladi} photos={photos} documentType="gps" />
       );
+    case 'pul_kuchirish': {
+      const applicantDetails = ariza.applicantInfo?.fullName
+        ? {
+            ...ariza.applicantInfo,
+            id: ariza.applicantInfo.residentId
+          }
+        : abonentData;
+
+      return (
+        <PrintSectionMonayTransferAriza
+          printComponentRef={null}
+          ariza={ariza}
+          abonentDetails={applicantDetails as any}
+          debitorDetails={abonentData}
+          transferReason={ariza.transferReason}
+        />
+      );
+    }
     default:
       return <Typography color="error">Hujjat turi aniqlanmadi</Typography>;
   }
