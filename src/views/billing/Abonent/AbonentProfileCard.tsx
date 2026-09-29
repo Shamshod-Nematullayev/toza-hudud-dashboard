@@ -71,12 +71,15 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
     fetchAbonentMvdAddress,
     ui,
     similarAbonentsByElectricity,
+    similarAbonentsByCadastr,
     getResidentCadastrs,
     abonentDebitorStatus
   } = useAbonentStore();
   const { setIsLoading } = useLoaderStore();
 
   const isDublicateElectricity = similarAbonentsByElectricity.length > 1;
+  const duplicateCadastrList = similarAbonentsByCadastr.filter((a) => a.id !== data?.id);
+  const isDublicateCadastr = duplicateCadastrList.length > 0;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const etkInfoRow = useRef<HTMLDivElement>(null);
@@ -86,6 +89,16 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const [cadastrAnchorEl, setCadastrAnchorEl] = useState<null | HTMLElement>(null);
+  const cadastrInfoRow = useRef<HTMLDivElement>(null);
+  const handleOpenCadastr = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setCadastrAnchorEl(cadastrInfoRow.current || event.currentTarget);
+  };
+
+  const handleCloseCadastr = () => {
+    setCadastrAnchorEl(null);
   };
 
   const handleClickAvatar = async () => {
@@ -242,7 +255,56 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                 <InfoRow icon="🪪" label="Паспорт raqami" value={data?.citizen.passport} isSkeleton={isLoading} />
                 <InfoRow icon="🔑" label="ЖШШИР" value={data?.citizen.pnfl} isSkeleton={isLoading} />
                 <InfoRow icon="📄" label="Шартнома raqami" value={data?.contractNumber} isSkeleton={isLoading} />
-                <InfoRow icon="🏠" label="Кадастр raqami" value={data?.house.cadastralNumber} isSkeleton={isLoading} copyable />
+                <div ref={cadastrInfoRow}>
+                  <InfoRow
+                    icon="🏠"
+                    label="Кадастр raqami"
+                    labelColor={isDublicateCadastr ? 'error.main' : undefined}
+                    value={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                        <Typography color={isDublicateCadastr ? 'error.main' : 'inherit'}>
+                          {data?.house.cadastralNumber || '—'}
+                        </Typography>
+                        {isDublicateCadastr && (
+                          <>
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              onClick={handleOpenCadastr}
+                              startIcon={<WarningIcon />}
+                              sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                            >
+                              {duplicateCadastrList.length} dublikat
+                            </Button>
+                            <Menu
+                              anchorEl={cadastrAnchorEl}
+                              open={Boolean(cadastrAnchorEl)}
+                              onClose={handleCloseCadastr}
+                              sx={{ maxHeight: 300 }}
+                            >
+                              <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
+                                O'xshash abonentlarga o'tish:
+                              </MenuItem>
+                              {duplicateCadastrList.map((sub) => (
+                                <MenuItem
+                                  key={sub.id}
+                                  component={Link}
+                                  to={`/abonent/${sub.id}/details`}
+                                  onClick={handleCloseCadastr}
+                                >
+                                  {sub.fullName} ({sub.accountNumber})
+                                </MenuItem>
+                              ))}
+                            </Menu>
+                          </>
+                        )}
+                      </Box>
+                    }
+                    isSkeleton={isLoading}
+                    copyable
+                  />
+                </div>
                 <InfoRow icon="📅" label="Шартнома sanasi" value={data?.contractDate} isSkeleton={isLoading} />
               </Stack>
             </CardContent>
@@ -515,10 +577,11 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                   <InfoRow
                     icon={CadastreIcon}
                     label="Кадастр рақами"
+                    labelColor={isDublicateCadastr ? 'error.main' : undefined}
                     value={
-                      <>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {data?.house.cadastralNumber}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: isDublicateCadastr ? 'error.main' : 'inherit' }}>
+                          {data?.house.cadastralNumber || '—'}
                           <Tooltip title={t('Nomidagi uylar')} placement="top">
                             <IconButton
                               size="small"
@@ -529,7 +592,41 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                             </IconButton>
                           </Tooltip>
                         </Typography>
-                      </>
+                        {isDublicateCadastr && (
+                          <>
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              onClick={handleOpenCadastr}
+                              startIcon={<WarningIcon />}
+                              sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                            >
+                              {duplicateCadastrList.length} dublikat
+                            </Button>
+                            <Menu
+                              anchorEl={cadastrAnchorEl}
+                              open={Boolean(cadastrAnchorEl)}
+                              onClose={handleCloseCadastr}
+                              sx={{ maxHeight: 300 }}
+                            >
+                              <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
+                                O'xshash abonentlarga o'tish:
+                              </MenuItem>
+                              {duplicateCadastrList.map((sub) => (
+                                <MenuItem
+                                  key={sub.id}
+                                  component={Link}
+                                  to={`/abonent/${sub.id}/details`}
+                                  onClick={handleCloseCadastr}
+                                >
+                                  {sub.fullName} ({sub.accountNumber})
+                                </MenuItem>
+                              ))}
+                            </Menu>
+                          </>
+                        )}
+                      </Box>
                     }
                     isSkeleton={isLoading}
                   />

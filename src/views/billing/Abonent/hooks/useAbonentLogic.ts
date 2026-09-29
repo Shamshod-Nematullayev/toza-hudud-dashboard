@@ -56,7 +56,7 @@ export function useAbonentDetailsSupplementaryData() {
   const setHetAbonent = useAbonentStore((s) => s.setHetAbonent);
   const fetchCadastrAbonent = useAbonentStore((s) => s.fetchCadastrAbonent);
   const fetchBlockReport = useAbonentStore((s) => s.fetchBlockReport);
-  const { getSimilarAbonentsByElectricity, getAbonentDebitorStatus } = useAbonentStore();
+  const { getSimilarAbonentsByElectricity, getSimilarAbonentsByCadastr, getAbonentDebitorStatus } = useAbonentStore();
   useEffect(() => {
     if (Number.isNaN(residentId)) return;
 
@@ -65,6 +65,7 @@ export function useAbonentDetailsSupplementaryData() {
         hetAbonent: undefined,
         cadastrAbonent: undefined,
         blockReport: undefined,
+        similarAbonentsByCadastr: [],
         abonentDetailsHetLoading: false,
         abonentDetailsCadastrLoading: false
       });
@@ -103,8 +104,9 @@ export function useAbonentDetailsSupplementaryData() {
       void fetchCadastrAbonent(cadastralNumber).finally(() => {
         if (!cancelled) useAbonentStore.setState({ abonentDetailsCadastrLoading: false });
       });
+      void getSimilarAbonentsByCadastr(cadastralNumber);
     } else {
-      useAbonentStore.setState({ cadastrAbonent: undefined, abonentDetailsCadastrLoading: false });
+      useAbonentStore.setState({ cadastrAbonent: undefined, abonentDetailsCadastrLoading: false, similarAbonentsByCadastr: [] });
     }
 
     void fetchBlockReport(residentId);

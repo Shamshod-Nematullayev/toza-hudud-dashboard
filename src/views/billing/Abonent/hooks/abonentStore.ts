@@ -55,6 +55,7 @@ const initialState: IAbonentPageDataStore = {
   documentLanguage: 'UZ',
   blockReport: undefined,
   similarAbonentsByElectricity: [],
+  similarAbonentsByCadastr: [],
   abonentCadastrs: [],
   abonentDebitorStatus: null,
   tozaMakonHistory: [],
@@ -99,6 +100,7 @@ interface IAbonentPageDataStore {
   abonentSupplementaryRefreshNonce: number;
   blockReport?: BlockReport;
   similarAbonentsByElectricity: IAbonent[];
+  similarAbonentsByCadastr: IAbonent[];
   abonentDebitorStatus: null | Debitor;
   tozaMakonHistory: any[];
   tozaMakonHistoryLoading: boolean;
@@ -199,6 +201,7 @@ export interface IAbonentPageActionsStore {
   fetchBlockReport: (residentId: number) => void;
   resetStore: () => void;
   getSimilarAbonentsByElectricity: (electrycityAccountNumber: string) => Promise<any>;
+  getSimilarAbonentsByCadastr: (cadastralNumber: string) => Promise<any>;
   getAbonentDebitorStatus: (residentId: number) => Promise<any>;
   getTozaMakonHistory: (residentId: number) => Promise<void>;
   setOpenTozaMakonHistoryDialog: (open: boolean) => void;
@@ -237,6 +240,9 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     }
     try {
       await api.put('/abonents/details/' + details.id, details);
+      if (details.house?.cadastralNumber) {
+        void get().getSimilarAbonentsByCadastr(details.house.cadastralNumber);
+      }
     } catch (error) {
       if (prev && get().abonentDetails?.id === prev.id) {
         set({ abonentDetails: prev });
@@ -446,6 +452,23 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     const filtered = content.filter((a) => a.electricityAccountNumber == electricityAccountNumber);
     set({ similarAbonentsByElectricity: filtered });
     return filtered;
+  },
+  getSimilarAbonentsByCadastr: async (cadastralNumber) => {
+    if (!cadastralNumber || !cadastralNumber.trim()) {
+      set({ similarAbonentsByCadastr: [] });
+      return [];
+    }
+    const cleanCadastr = cadastralNumber.trim();
+    try {
+      const { content } = await searchAbonentFromTozamakon({ cadastralNumber: cleanCadastr });
+      const filtered = (content || []).filter((a) => a.cadastralNumber?.trim() === cleanCadastr);
+      set({ similarAbonentsByCadastr: filtered });
+      return filtered;
+    } catch (e) {
+      console.error('getSimilarAbonentsByCadastr error:', e);
+      set({ similarAbonentsByCadastr: [] });
+      return [];
+    }
   },
   getAbonentDebitorStatus: async (residentId) => {
     const { data } = await api.get('/debitors/resident/' + residentId, { headers: { 'hide-error': true } });
