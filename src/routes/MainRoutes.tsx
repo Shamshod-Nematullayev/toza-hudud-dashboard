@@ -199,6 +199,10 @@ const MainRoutes: MainRoutesProps = {
           element: <SmsWarnings />
         },
         {
+          path: 'abonents',
+          element: <PrintAbonentsList />
+        },
+        {
           path: 'printAbonentsList',
           element: <PrintAbonentsList />
         },

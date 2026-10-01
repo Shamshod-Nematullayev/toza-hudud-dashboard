@@ -34,7 +34,14 @@ export interface IFilters {
   elektrAccountNumberConfirmed: string;
 }
 
+export type DataSourceMode = 'greenzone' | 'tozamakon';
+export type WorkspaceViewMode = 'registry' | 'print';
+
 export interface IPrintAbonentsStore {
+  dataSource: DataSourceMode;
+  setDataSource: (dataSource: DataSourceMode) => void;
+  viewMode: WorkspaceViewMode;
+  setViewMode: (viewMode: WorkspaceViewMode) => void;
   selectedMahalla: number | string;
   setSelectedMahalla: (mahallaId: number | string) => void;
   mahallas: IMahallaItem[];
@@ -58,6 +65,10 @@ export interface IPrintAbonentsStore {
 }
 
 const useStore = create<IPrintAbonentsStore>((set) => ({
+  dataSource: 'greenzone',
+  setDataSource: (dataSource) => set({ dataSource }),
+  viewMode: 'registry',
+  setViewMode: (viewMode) => set({ viewMode }),
   selectedMahalla: '',
   setSelectedMahalla: (selectedMahalla) => set({ selectedMahalla }),
   mahallas: [],

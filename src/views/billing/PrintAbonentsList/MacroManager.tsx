@@ -54,7 +54,7 @@ interface MacroManagerProps {
 export default function MacroManager({ printContentRef }: MacroManagerProps) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const { mahallas, minSaldo, maxSaldo } = useStore();
+  const { mahallas, minSaldo, maxSaldo, dataSource } = useStore();
 
   // Dialog & Widget holatlari
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -107,7 +107,8 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
         minSaldo: macroMinSaldo,
         maxSaldo: macroMaxSaldo,
         identified: macroFilters.identified,
-        etkStatus: macroFilters.elektrAccountNumberConfirmed
+        etkStatus: macroFilters.elektrAccountNumberConfirmed,
+        source: dataSource
       }
     });
     const blob = new Blob([response.data], {
@@ -274,7 +275,8 @@ export default function MacroManager({ printContentRef }: MacroManagerProps) {
         minSaldo: macroMinSaldo,
         maxSaldo: macroMaxSaldo,
         identified: macroFilters.identified,
-        etkStatus: macroFilters.elektrAccountNumberConfirmed
+        etkStatus: macroFilters.elektrAccountNumberConfirmed,
+        source: dataSource
       }
     });
 

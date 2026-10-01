@@ -144,7 +144,7 @@ const billing: MenuItem = {
         },
         {
           id: 'actPacks',
-          title: 'Aktlar pachkasi' as any,
+          title: 'Aktlar pachkasi',
           type: 'item',
           url: '/billing/act-packs',
           icon: ReceiptOutlined,

@@ -67,7 +67,8 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
     minSaldo,
     maxSaldo,
     setMinSaldo,
-    setMaxSaldo
+    setMaxSaldo,
+    dataSource
   } = useStore();
 
   const { printTableSettings, setPrintTableSettings } = useCustomizationStore();
@@ -264,7 +265,8 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
           minSaldo,
           maxSaldo,
           identified: filters.identified,
-          etkStatus: filters.elektrAccountNumberConfirmed
+          etkStatus: filters.elektrAccountNumberConfirmed,
+          source: dataSource
         }
       });
       const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

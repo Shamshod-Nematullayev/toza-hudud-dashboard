@@ -69,7 +69,7 @@ const uz = {
     petitions: 'Arizalar',
     pendingActs: 'Avtomatik aktlar',
     deleteDublicates: "Ikkilamchilarni o'chirish",
-    printAbonentsList: "Abonentlar ro'yxatini chop etish",
+    printAbonentsList: 'Abonentlar va chop etish',
     inventory: 'Yashovchilar soni xatlovi',
     createInventory: 'Abonentlar xatlovi',
     invertoreDocuments: 'Xatlov dalolatnomalari',
@@ -113,7 +113,8 @@ const uz = {
     dispatchSchedule: 'Jadval',
     drivers: 'Haydovchilar',
     dispatchTelegram: 'Telegram',
-    'Guruh topshiriqlari (TG)': 'Guruh topshiriqlari (TG)'
+    'Guruh topshiriqlari (TG)': 'Guruh topshiriqlari (TG)',
+    'Aktlar pachkasi': 'Aktlar pachkasi'
   },
   priority: {
     '1': 'Past',

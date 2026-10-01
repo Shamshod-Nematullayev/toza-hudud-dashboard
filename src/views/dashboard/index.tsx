@@ -31,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { TourHelpButton } from 'ui-component/tour';
 import { startAppOnboardingTour } from 'layout/MainLayout/OnboardingTour';
 import ArizalarReportWidget from './ArizalarReportWidget';
+import { useInspectorVerificationsStore } from 'layout/MainLayout/Header/InspectorSubmissionsSection/useInspectorVerificationsStore';
 
 interface IStat {
   allAbonentsCount?: number;
@@ -441,8 +442,8 @@ const Dashboard = () => {
             loading={isLoading}
           />
           <StatCard
-            title={t('dashboard.newAbonentRequests', "Yangi abonent arizalari")}
-            count={stats?.newAbonentRequestCount || 0}
+            title={t('dashboard.newAbonentRequests', 'Yangi abonent arizalari')}
+            count={useInspectorVerificationsStore.getState().counts.yangiAbonent || 0}
             icon={<IconBolt size="2.2rem" />}
             color={theme.palette.warning.main}
             loading={isLoading}
@@ -735,7 +736,7 @@ const Dashboard = () => {
                 {t('dashboard.multiplyInhabitantsTitle', "Yashovchilar sonini ko'paytirish (Xatlov)")}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {t('dashboard.multiplyInhabitantsSubtitle', 'Inspektorlar kiritgan so\'rovlar va dalolatnomalar holati')}
+                {t('dashboard.multiplyInhabitantsSubtitle', "Inspektorlar kiritgan so'rovlar va dalolatnomalar holati")}
               </Typography>
             </Box>
             <Button
@@ -890,8 +891,12 @@ const Dashboard = () => {
               <TableHead sx={{ bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 700, py: 1 }}>{t('dashboard.mahallaName', 'Mahalla nomi')}</TableCell>
-                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'center' }}>{t('dashboard.requestCount', "So'rovlar soni")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'right' }}>{t('dashboard.inhabitantsToAdd', "Qo'shiladigan kishi")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'center' }}>
+                    {t('dashboard.requestCount', "So'rovlar soni")}
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 1, textAlign: 'right' }}>
+                    {t('dashboard.inhabitantsToAdd', "Qo'shiladigan kishi")}
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -912,7 +917,9 @@ const Dashboard = () => {
                   (multiplyStats?.topMahallasByFilter?.[xatlovFilter] || multiplyStats?.topMahallas || []).map((item, idx) => (
                     <TableRow key={item._id || idx} hover>
                       <TableCell sx={{ py: 1, fontWeight: 600 }}>{item.mahallaName || t('dashboard.unknownMahalla', "Noma'lum")}</TableCell>
-                      <TableCell sx={{ py: 1, textAlign: 'center' }}>{fmt(item.requestCount ?? item.count ?? 0)} {t('dashboard.countUnit', 'ta')}</TableCell>
+                      <TableCell sx={{ py: 1, textAlign: 'center' }}>
+                        {fmt(item.requestCount ?? item.count ?? 0)} {t('dashboard.countUnit', 'ta')}
+                      </TableCell>
                       <TableCell sx={{ py: 1, textAlign: 'right', fontWeight: 700, color: 'primary.main' }}>
                         +{fmt(item.totalInhabitantsToAdd ?? item.inhabitants ?? 0)} {t('dashboard.personUnit', 'nafar')}
                       </TableCell>
@@ -962,7 +969,7 @@ const Dashboard = () => {
                 onClick={() => navigate('/billing/report-identifikatsiya')}
                 sx={{ textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}
               >
-                {t('dashboard.report', "Hisobot →")}
+                {t('dashboard.report', 'Hisobot →')}
               </Button>
             </Stack>
           </Stack>
@@ -995,7 +1002,7 @@ const Dashboard = () => {
                   {identityLoading ? '...' : fmt(identityStats?.totalRequests || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  {t('dashboard.sentFromBot', "Botdan yuborilgan")}
+                  {t('dashboard.sentFromBot', 'Botdan yuborilgan')}
                 </Typography>
               </Box>
             </Grid>
@@ -1020,13 +1027,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  {t('dashboard.activeWaiting', "Faol (Kutilmoqda)")}
+                  {t('dashboard.activeWaiting', 'Faol (Kutilmoqda)')}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: darkYellowColor, mt: 0.5 }}>
                   {identityLoading ? '...' : fmt(identityStats?.pendingCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: darkYellowColor, fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  {t('dashboard.waitingConfirmation', "Tasdiq kutilmoqda")}
+                  {t('dashboard.waitingConfirmation', 'Tasdiq kutilmoqda')}
                 </Typography>
               </Box>
             </Grid>
@@ -1051,13 +1058,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  {t('dashboard.confirmed', "Tasdiqlangan")}
+                  {t('dashboard.confirmed', 'Tasdiqlangan')}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#15803d', mt: 0.5 }}>
                   {identityLoading ? '...' : fmt(identityStats?.confirmedCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  {t('dashboard.identityVerified', "Shaxsi tekshirilgan")}
+                  {t('dashboard.identityVerified', 'Shaxsi tekshirilgan')}
                 </Typography>
               </Box>
             </Grid>
@@ -1082,13 +1089,13 @@ const Dashboard = () => {
                 }}
               >
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  {t('dashboard.canceled', "Bekor qilingan")}
+                  {t('dashboard.canceled', 'Bekor qilingan')}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: '#dc2626', mt: 0.5 }}>
                   {identityLoading ? '...' : fmt(identityStats?.canceledCount || 0)} {t('dashboard.countUnit', 'ta')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#dc2626', fontWeight: 600, display: 'block', mt: 0.5 }}>
-                  {t('dashboard.rejected', "Rad etilgan")}
+                  {t('dashboard.rejected', 'Rad etilgan')}
                 </Typography>
               </Box>
             </Grid>
@@ -1139,7 +1146,9 @@ const Dashboard = () => {
                   (identityStats?.topInspectorsByFilter?.[identityFilter] || identityStats?.topInspectors || []).map((inspector, idx) => (
                     <TableRow key={inspector._id || idx} hover>
                       <TableCell sx={{ py: 1, fontWeight: 700, color: 'text.secondary' }}>{idx + 1}</TableCell>
-                      <TableCell sx={{ py: 1, fontWeight: 600 }}>{inspector.inspectorName || t('dashboard.unknownInspector', "Noma'lum nazoratchi")}</TableCell>
+                      <TableCell sx={{ py: 1, fontWeight: 600 }}>
+                        {inspector.inspectorName || t('dashboard.unknownInspector', "Noma'lum nazoratchi")}
+                      </TableCell>
                       <TableCell
                         sx={{
                           py: 1,
@@ -1241,7 +1250,9 @@ const Dashboard = () => {
                           </TableCell>
                           <TableCell>
                             <Stack>
-                              <Typography variant="body2">{fmt(identified.count)} {t('dashboard.countUnit', 'ta')}</Typography>
+                              <Typography variant="body2">
+                                {fmt(identified.count)} {t('dashboard.countUnit', 'ta')}
+                              </Typography>
                               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                 {fmtMoney(identified.totalDebt)}
                               </Typography>
