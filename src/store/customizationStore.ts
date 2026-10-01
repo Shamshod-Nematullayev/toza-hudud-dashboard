@@ -71,6 +71,7 @@ interface CustomizationState {
     documentVariantOdamSoni: 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza';
     boshliqIshtirokida: boolean;
     mfyRaisiIshtirok: boolean;
+    fuqaroIshtirok: boolean;
   };
   printTableSettings: IPrintTableCustomization;
   setPrintTableSettings: (settings: Partial<IPrintTableCustomization>) => void;
@@ -150,7 +151,8 @@ const initialState = {
     mode: 'dark' as ThemeMode,
     documentVariantOdamSoni: 'ariza+dalolatnoma',
     boshliqIshtirokida: false,
-    mfyRaisiIshtirok: true
+    mfyRaisiIshtirok: true,
+    fuqaroIshtirok: true
   },
   printTableSettings: defaultPrintTableSettings,
   menuSettings: defaultMenuSettings,

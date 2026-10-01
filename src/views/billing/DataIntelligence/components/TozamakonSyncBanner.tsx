@@ -38,10 +38,14 @@ export const TozamakonSyncBanner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
-  // Polling interval ref
+  // Polling interval va dublikat toast himoyasi
   const intervalRef = useRef<any>(null);
+  const isFetchingRef = useRef<boolean>(false);
+  const hasNotifiedFinishRef = useRef<boolean>(false);
 
   const fetchStatus = async () => {
+    if (isFetchingRef.current) return null;
+    isFetchingRef.current = true;
     try {
       const res = await api.get('/data-intelligence/tozamakon-sync/status');
       if (res.data?.ok && res.data.status) {
@@ -50,6 +54,8 @@ export const TozamakonSyncBanner: React.FC = () => {
       }
     } catch (e) {
       console.error('Tozamakon sync status error:', e);
+    } finally {
+      isFetchingRef.current = false;
     }
     return null;
   };
@@ -60,23 +66,33 @@ export const TozamakonSyncBanner: React.FC = () => {
     fetchStatus().finally(() => setLoading(false));
   }, []);
 
-  // 2. Har 1 soniyada progressni yangilash (FAQAT job isRunning bo'lganda!)
+  // 2. Har 2 soniyada progressni yangilash (FAQAT job isRunning bo'lganda!)
   useEffect(() => {
     if (syncStatus?.isRunning) {
+      hasNotifiedFinishRef.current = false;
       if (!intervalRef.current) {
         intervalRef.current = setInterval(async () => {
           const latest = await fetchStatus();
           // Agar 100% bo'lib yakunlansa yoki xatolik bilan to'xtasa
           if (latest && !latest.isRunning) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-            if (latest.status === 'completed') {
-              toast.success('Abonentlar bazasi Tozamakondan muvaffaqiyatli yangilandi!');
-            } else if (latest.status === 'failed') {
-              toast.error(latest.error || 'Yangilanish jarayonida xatolik yuz berdi');
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
+            if (!hasNotifiedFinishRef.current) {
+              hasNotifiedFinishRef.current = true;
+              if (latest.status === 'completed') {
+                toast.success('Abonentlar bazasi Tozamakondan muvaffaqiyatli yangilandi!', {
+                  toastId: 'tozamakon-sync-completed'
+                });
+              } else if (latest.status === 'failed') {
+                toast.error(latest.error || 'Yangilanish jarayonida xatolik yuz berdi', {
+                  toastId: 'tozamakon-sync-failed'
+                });
+              }
             }
           }
-        }, 1000);
+        }, 2000);
       }
     } else {
       if (intervalRef.current) {
@@ -96,10 +112,13 @@ export const TozamakonSyncBanner: React.FC = () => {
   // Jobni ishga tushirish
   const handleStartSync = async () => {
     setIsStarting(true);
+    hasNotifiedFinishRef.current = false;
     try {
       const res = await api.post('/data-intelligence/tozamakon-sync/start');
       if (res.data?.ok) {
-        toast.info('Abonentlar bazasini yangilash boshlandi (Excel yuklab olinmoqda)...');
+        toast.info('Abonentlar bazasini yangilash boshlandi (Excel yuklab olinmoqda)...', {
+          toastId: 'tozamakon-sync-started'
+        });
         await fetchStatus();
       }
     } catch (e: any) {

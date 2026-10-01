@@ -23,33 +23,42 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
   mahalla = mahalla?.data;
   mahalla2 = mahalla2?.data;
   const { company, user, customization } = useCustomizationStore();
+  const fuqaroIshtirok = customization.fuqaroIshtirok ?? true;
   return (
     <>
-      <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
-      <br />
-
-      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
-      <br />
-      {customization.mfyRaisiIshtirok && (
+      {customization.boshliqIshtirokida && (
         <>
-          <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
-
+          <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.managerName} />
           <br />
-          {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
-            <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
-          )}
         </>
       )}
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdminName} />
+      <br />
       {gpsOperator?.fullName && (
         <>
           <ImzoJoyiRow label="GPS kuzatuv xodimi:" name={gpsOperator.fullName} />
           <br />
         </>
       )}
-      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdminName} />
+      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
       <br />
-      {customization.boshliqIshtirokida && (
-        <ImzoJoyiRow label={`${company?.name} ${company?.locationName} filial raxbari:`} name={company?.managerName} />
+      {customization.mfyRaisiIshtirok && (
+        <>
+          <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
+          <br />
+          {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
+            <>
+              <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
+              <br />
+            </>
+          )}
+        </>
+      )}
+      {fuqaroIshtirok && (
+        <>
+          <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
+          <br />
+        </>
       )}
       <p style={{ textAlign: 'left', fontSize: '12px' }}>
         Created: <b>{user?.fullName}</b>

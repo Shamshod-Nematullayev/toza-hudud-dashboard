@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Send, DescriptionOutlined, SyncOutlined, CloudDownloadOutlined } from '@mui/icons-material';
+import { Send, DescriptionOutlined, SyncOutlined, CloudDownloadOutlined, Telegram } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Stack, Tooltip, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { t } from 'i18next';
 import { useTasksStore } from './useTasksStore';
 
 function TasksToolbar() {
+  const navigate = useNavigate();
   const { setOpenSETTDialogDate, downloadExcel, triggerUpdateStatus, triggerGenerateTasks } = useTasksStore();
   const [updating, setUpdating] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -43,6 +45,16 @@ function TasksToolbar() {
       </Box>
 
       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+        <Tooltip title="Telegram guruhda /task buyrug'i orqali berilgan topshiriqlar va nazoratchilar reaksiyasini boshqarish">
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<Telegram />}
+            onClick={() => navigate('/employeers/group-tasks')}
+          >
+            Guruh Topshiriqlari (/task)
+          </Button>
+        </Tooltip>
         <Tooltip title="Debitorlar bazasidan telefon yoki elektr hisob raqami yo'q bo'lgan abonentlarni aniqlab, mahallasiga qarab nazoratchilariga yangi topshiriq sifatida yuklash">
           <span>
             <Button

@@ -1,16 +1,16 @@
 //assets
-import { Checklist, LocationCity } from '@mui/icons-material';
+import { Checklist, LocationCity, Telegram } from '@mui/icons-material';
 import BadgeIcon from '@mui/icons-material/BadgeOutlined';
 import { MenuItem } from 'menu-items';
 //contans
-const icons = { BadgeIcon, Checklist, LocationCity };
+const icons = { BadgeIcon, Checklist, LocationCity, Telegram };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
 const employeers: MenuItem = {
   id: 'employeers',
   title: 'employeers',
   type: 'group',
-  allowedRoles: ['admin', 'billing'],
+  allowedRoles: ['admin', 'billing', 'rahbar', 'murojaat_nazoratchi', 'product_admin'],
   children: [
     {
       id: 'inspectors',
@@ -19,7 +19,7 @@ const employeers: MenuItem = {
       url: '/employeers/inspectors',
       icon: icons.BadgeIcon,
       breadcrumbs: false,
-      allowedRoles: ['admin', 'billing']
+      allowedRoles: ['admin', 'billing', 'rahbar', 'product_admin']
     },
     {
       id: 'mahallas',
@@ -28,7 +28,7 @@ const employeers: MenuItem = {
       url: '/employeers/mahallas',
       icon: icons.LocationCity,
       breadcrumbs: false,
-      allowedRoles: ['admin', 'billing']
+      allowedRoles: ['admin', 'billing', 'rahbar', 'product_admin']
     },
     {
       id: 'tasks',
@@ -37,7 +37,16 @@ const employeers: MenuItem = {
       url: '/employeers/tasks',
       icon: icons.Checklist,
       breadcrumbs: false,
-      allowedRoles: ['admin', 'billing']
+      allowedRoles: ['admin', 'billing', 'rahbar', 'product_admin']
+    },
+    {
+      id: 'groupTasks',
+      title: 'Guruh topshiriqlari (TG)',
+      type: 'item',
+      url: '/employeers/group-tasks',
+      icon: icons.Telegram,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'billing', 'rahbar', 'murojaat_nazoratchi', 'product_admin']
     }
   ]
 };

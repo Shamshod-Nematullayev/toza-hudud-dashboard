@@ -11,14 +11,6 @@ export const ImzolashJoyiBlank = ({ company }: { company: Company }) => {
             justifyContent: 'space-between'
           }}
         >
-          <b>Fuqaro:</b> ______________________________
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}
-        >
           <b>{company.name} filial rahbari:</b> {fullNameToShortName(company.managerName)}
         </div>
         <div
@@ -45,7 +37,6 @@ export const ImzolashJoyiBlank = ({ company }: { company: Company }) => {
         >
           <b>Aholi nazoratchisi:</b> ______________________________
         </div>
-
         <div
           style={{
             display: 'flex',
@@ -53,6 +44,14 @@ export const ImzolashJoyiBlank = ({ company }: { company: Company }) => {
           }}
         >
           <b>__________________ MFY raisi:</b> ______________________________
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}
+        >
+          <b>Fuqaro:</b> ______________________________
         </div>
       </div>
     </>

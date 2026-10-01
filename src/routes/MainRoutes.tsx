@@ -47,6 +47,7 @@ import DebtCollectionOverview from 'views/billing/DebtCollectionCenter/DebtColle
 import WorkQueueDetail from 'views/billing/DebtCollectionCenter/WorkQueueDetail';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
 import Tasks from 'views/employeers/Tasks';
+import GroupTasksPage from 'views/employeers/GroupTasks';
 import Abonent from 'views/billing/Abonent/Abonent';
 import AbonentDetails from 'views/billing/Abonent/pages/AbonentDetails';
 import DhjTable from 'views/billing/Abonent/pages/AbonentDhjTable';
@@ -151,6 +152,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'tasks',
           element: <Tasks />
+        },
+        {
+          path: 'group-tasks',
+          element: <GroupTasksPage />
         }
       ]
     },

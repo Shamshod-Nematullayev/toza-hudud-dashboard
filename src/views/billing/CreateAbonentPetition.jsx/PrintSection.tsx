@@ -204,6 +204,8 @@ export default function PrintSection({
   const setBoshliqIshtirok = (state: boolean) => setCustomization({ boshliqIshtirokida: state });
   const raisiIshtirok = customization.mfyRaisiIshtirok;
   const setRaisiIshtirok = (state: boolean) => setCustomization({ mfyRaisiIshtirok: state });
+  const fuqaroIshtirok = customization.fuqaroIshtirok ?? true;
+  const setFuqaroIshtirok = (state: boolean) => setCustomization({ fuqaroIshtirok: state });
 
   const [showPreview, setShowPreview] = useState(false);
 
@@ -533,6 +535,36 @@ export default function PrintSection({
                 label={
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Mahalla raisi ishtirok etadimi?
+                  </Typography>
+                }
+              />
+              <Chip
+                label="Qo'shiladi"
+                size="small"
+                sx={{
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(123, 31, 162, 0.15)' : '#eedffd',
+                  color: theme.palette.mode === 'dark' ? '#d1c4e9' : '#7b1fa2',
+                  fontWeight: '500'
+                }}
+              />
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: '10px 16px',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e0e0e0',
+                borderRadius: '8px'
+              }}
+            >
+              <FormControlLabel
+                control={<Checkbox checked={fuqaroIshtirok} onChange={(e) => setFuqaroIshtirok(e.target.checked)} color="primary" />}
+                label={
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Dalolatnomaga fuqaro imzo qo&apos;yadimi?
                   </Typography>
                 }
               />

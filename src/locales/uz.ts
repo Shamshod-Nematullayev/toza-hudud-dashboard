@@ -112,7 +112,8 @@ const uz = {
     orders: 'Buyurtmalar',
     dispatchSchedule: 'Jadval',
     drivers: 'Haydovchilar',
-    dispatchTelegram: 'Telegram'
+    dispatchTelegram: 'Telegram',
+    'Guruh topshiriqlari (TG)': 'Guruh topshiriqlari (TG)'
   },
   priority: {
     '1': 'Past',
