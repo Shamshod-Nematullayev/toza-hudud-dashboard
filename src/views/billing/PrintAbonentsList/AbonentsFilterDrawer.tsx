@@ -1,22 +1,11 @@
 import React from 'react';
-import {
-  Drawer,
-  Box,
-  Stack,
-  Typography,
-  IconButton,
-  TextField,
-  MenuItem,
-  Button,
-  Grid,
-  Divider,
-  useTheme
-} from '@mui/material';
+import { Drawer, Box, Stack, Typography, IconButton, TextField, MenuItem, Button, Grid, Divider, useTheme } from '@mui/material';
 import {
   KeyboardDoubleArrowRight as KeyboardDoubleArrowRightIcon,
   Search as SearchIcon,
   DeleteOutlined as DeleteOutlineIcon
 } from '@mui/icons-material';
+import { NumericFormat } from 'react-number-format';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
 import { DataSourceMode } from './useStore';
@@ -217,7 +206,6 @@ export default function AbonentsFilterDrawer({
           label="Mahalla"
           selectedMahallaId={filters.mahallaId}
           defaultValueDisabled={false}
-          defaultValueLabel="Barchasi"
           defaultValue=""
           setSelectedMahallaId={(id) => {
             onChangeFilter('mahallaId', id ? String(id) : '');
@@ -336,23 +324,29 @@ export default function AbonentsFilterDrawer({
 
         <Grid container spacing={1}>
           <Grid size={{ xs: 6 }}>
-            <TextField
+            <NumericFormat
+              customInput={TextField}
               fullWidth
               size="small"
-              type="number"
               label="Balans (dan)"
+              placeholder="0"
+              thousandSeparator=","
+              allowNegative
               value={filters.minSaldo}
-              onChange={(e) => onChangeFilter('minSaldo', e.target.value)}
+              onValueChange={(values) => onChangeFilter('minSaldo', values.value)}
             />
           </Grid>
           <Grid size={{ xs: 6 }}>
-            <TextField
+            <NumericFormat
+              customInput={TextField}
               fullWidth
               size="small"
-              type="number"
               label="Balans (gacha)"
+              placeholder="0"
+              thousandSeparator=","
+              allowNegative
               value={filters.maxSaldo}
-              onChange={(e) => onChangeFilter('maxSaldo', e.target.value)}
+              onValueChange={(values) => onChangeFilter('maxSaldo', values.value)}
             />
           </Grid>
         </Grid>

@@ -86,7 +86,7 @@ function MahallaSelection({
           fullWidth
           {...rest} // Tashqaridan kelgan barcha qo'shimcha propslar shu yerga o'tadi
         >
-          <MenuItem disabled={defaultValueDisabled} value="">
+          <MenuItem value="" disabled={defaultValueDisabled}>
             {defaultValueLabel !== undefined ? defaultValueLabel : t('all')}
           </MenuItem>
           {sortedMahallas.map((mfy) => (

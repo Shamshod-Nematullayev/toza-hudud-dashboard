@@ -28,6 +28,7 @@ import {
   useTheme
 } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
+import { NumericFormat } from 'react-number-format';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import PrintIcon from '@mui/icons-material/PrintOutlined';
 import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
@@ -506,24 +507,28 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
           />
 
           {/* Saldo dan */}
-          <TextField
+          <NumericFormat
+            customInput={TextField}
             size="small"
             label={t('Saldo dan')}
-            type="number"
             placeholder="0"
+            thousandSeparator=","
+            allowNegative
             value={minSaldo}
-            onChange={(e) => setMinSaldo(e.target.value)}
+            onValueChange={(values) => setMinSaldo(values.value)}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
 
           {/* Saldo gacha */}
-          <TextField
+          <NumericFormat
+            customInput={TextField}
             size="small"
             label={t('Saldo gacha')}
-            type="number"
             placeholder="0"
+            thousandSeparator=","
+            allowNegative
             value={maxSaldo}
-            onChange={(e) => setMaxSaldo(e.target.value)}
+            onValueChange={(values) => setMaxSaldo(values.value)}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
 

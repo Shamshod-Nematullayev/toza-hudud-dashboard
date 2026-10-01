@@ -293,6 +293,10 @@ export default function AbonentsRegistryView({ onSwitchToPrint }: AbonentsRegist
       const found = mahallas.find((m) => String(m.id) === String(val));
       return found ? found.name : val;
     }
+    if (key === 'minSaldo' || key === 'maxSaldo') {
+      const num = Number(val);
+      return !isNaN(num) ? num.toLocaleString('en-US') : val;
+    }
     if (key === 'identified') return val === 'true' ? 'Tasdiqlangan' : 'Tasdiqlanmagan';
     if (key === 'etkStatus') return val === 'true' ? 'Tasdiqlangan' : 'Tasdiqlanmagan';
     if (key === 'isFrozen') return val === 'true' ? 'Muzlatilgan' : 'Faol';

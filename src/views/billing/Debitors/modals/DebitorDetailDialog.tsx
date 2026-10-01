@@ -79,8 +79,8 @@ const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string;
 );
 
 export default function DebitorDetailDialog({ open, onClose, debitor, onEdit }: DebitorDetailDialogProps) {
-  const statusCfg = STATUS_CFG[debitor.status];
-  const phoneCfg = PHONE_CFG[debitor.phoneStatus];
+  const statusCfg = STATUS_CFG[debitor.status] || STATUS_CFG.data_needs_attention;
+  const phoneCfg = PHONE_CFG[debitor.phoneStatus] || PHONE_CFG.new;
 
   return (
     <DraggableDialog
@@ -91,7 +91,7 @@ export default function DebitorDetailDialog({ open, onClose, debitor, onEdit }: 
       fullWidth
       slotProps={{
         paper: {
-          sx: { borderRadius: 3 }
+          sx: { borderRadius: 3, m: { xs: 1.5, sm: 2 } }
         }
       }}
     >
@@ -102,15 +102,16 @@ export default function DebitorDetailDialog({ open, onClose, debitor, onEdit }: 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          pb: 1.5
+          pb: 1.5,
+          px: { xs: 2, sm: 3 }
         }}
       >
-        <Stack direction="row" sx={{ alignItems: 'center' }} spacing={1.5}>
-          <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark', fontWeight: 500, fontSize: 13 }}>
+        <Stack direction="row" sx={{ alignItems: 'center', minWidth: 0, flex: 1 }} spacing={1.5}>
+          <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark', fontWeight: 500, fontSize: 13, flexShrink: 0 }}>
             {getInitials(debitor.fullName)}
           </Avatar>
-          <Box>
-            <Typography variant="subtitle1" sx={{ lineHeight: 1.2 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="subtitle1" sx={{ lineHeight: 1.2, wordBreak: 'break-word' }}>
               {debitor.fullName}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -118,14 +119,16 @@ export default function DebitorDetailDialog({ open, onClose, debitor, onEdit }: 
             </Typography>
           </Box>
         </Stack>
-        <div />
+        <IconButton size="small" onClick={onClose} sx={{ ml: 1 }}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
       </DialogTitle>
 
       <Divider />
 
-      <DialogContent sx={{ pt: 2 }}>
+      <DialogContent sx={{ pt: 2, px: { xs: 2, sm: 3 } }}>
         {/* Status chips */}
-        <Stack direction="row" spacing={1} sx={{ mb: 2.5, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2.5, flexWrap: 'wrap' }}>
           <Chip label={statusCfg.label} color={statusCfg.color} size="small" variant="outlined" />
           <Chip label={phoneCfg.label} color={phoneCfg.color} size="small" variant="outlined" />
         </Stack>
@@ -165,17 +168,23 @@ export default function DebitorDetailDialog({ open, onClose, debitor, onEdit }: 
           <InfoRow
             icon={<CreditCardIcon fontSize="small" />}
             label="Hisob raqami"
-            value={<Typography variant="body2">{debitor.accountNumber}</Typography>}
+            value={<Typography variant="body2">{debitor.accountNumber || '—'}</Typography>}
           />
           <InfoRow
             icon={<BusinessIcon fontSize="small" />}
             label="ETK raqami"
-            value={<Typography variant="body2">{debitor.accountNumberEtk}</Typography>}
+            value={<Typography variant="body2">{debitor.accountNumberEtk || '—'}</Typography>}
           />
           <InfoRow
             icon={<PhoneIcon fontSize="small" />}
             label="Telefon raqami"
-            value={<Typography variant="body2">{debitor.primaryPhone + ` (${debitor.primaryPhoneSource})` || '—'}</Typography>}
+            value={
+              <Typography variant="body2">
+                {debitor.primaryPhone
+                  ? `+998 ${debitor.primaryPhone}${debitor.primaryPhoneSource ? ` (${debitor.primaryPhoneSource})` : ''}`
+                  : '—'}
+              </Typography>
+            }
           />
           <InfoRow
             icon={<BadgeIcon fontSize="small" />}

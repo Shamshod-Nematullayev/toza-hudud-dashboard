@@ -208,9 +208,9 @@ export function Sidebar({
   return (
     <Box
       sx={{
-        width: 320,
-        minWidth: 260,
-        borderRight: '1px solid',
+        width: { xs: '100%', md: 320 },
+        minWidth: { xs: 0, md: 260 },
+        borderRight: { xs: 'none', md: '1px solid' },
         borderColor: 'divider',
         display: 'flex',
         flexDirection: 'column',

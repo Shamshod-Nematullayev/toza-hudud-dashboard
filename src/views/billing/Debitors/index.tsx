@@ -4,16 +4,23 @@ import {
   Alert,
   Box,
   Button,
+  Card,
   Chip,
   Divider,
+  Drawer,
   IconButton,
   InputAdornment,
+  Paper,
   Skeleton,
   Stack,
+  TablePagination,
   TextField,
   Tooltip,
   Typography,
-  Badge
+  Badge,
+  useTheme,
+  useMediaQuery,
+  alpha
 } from '@mui/material';
 
 import api from 'utils/api';
@@ -29,7 +36,11 @@ import {
   SmsOutlined,
   VisibilityOutlined,
   BoltOutlined,
-  HelpOutlineOutlined
+  HelpOutlineOutlined,
+  TuneOutlined,
+  CloseOutlined,
+  ElectricBoltOutlined,
+  PhoneAndroidOutlined
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useServerDataGrid } from 'hooks/useServerDataGrid';
@@ -200,10 +211,11 @@ function StatCard({
       onClick={onClick}
       sx={{
         flex: 1,
+        flexShrink: { xs: 0, md: 1 },
         bgcolor: 'background.default',
         borderRadius: 2,
         p: 1.5,
-        minWidth: 120,
+        minWidth: { xs: 155, md: 120 },
         minHeight: 112,
         display: 'flex',
         flexDirection: 'column',
@@ -254,10 +266,11 @@ function PhoneStatCard({
     <Box
       sx={{
         flex: 1.35,
+        flexShrink: { xs: 0, md: 1 },
         bgcolor: 'background.default',
         borderRadius: 2,
         p: 1.5,
-        minWidth: 190,
+        minWidth: { xs: 235, md: 190 },
         minHeight: 112,
         border: '1px solid',
         borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.4)' : 'rgba(220, 38, 38, 0.35)'),
@@ -420,10 +433,11 @@ function HetSyncStatCard({
     <Box
       sx={{
         flex: 1.35,
+        flexShrink: { xs: 0, md: 1 },
         bgcolor: 'background.default',
         borderRadius: 2,
         p: 1.5,
-        minWidth: 190,
+        minWidth: { xs: 235, md: 190 },
         minHeight: 112,
         border: '1px solid',
         borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251, 191, 36, 0.4)' : 'rgba(217, 119, 6, 0.35)'),
@@ -549,10 +563,11 @@ function ReadyToBlockStatCard({
     <Box
       sx={{
         flex: 1.35,
+        flexShrink: { xs: 0, md: 1 },
         bgcolor: 'background.default',
         borderRadius: 2,
         p: 1.5,
-        minWidth: 190,
+        minWidth: { xs: 235, md: 190 },
         minHeight: 112,
         border: '1px solid',
         borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.4)' : 'rgba(5, 150, 105, 0.35)'),
@@ -671,6 +686,10 @@ import { DebitorStatus, PHONE_CFG, PhoneStatus, STATUS_CFG, HET_ACCOUNT_CFG, Het
 const INIT_FILTERS = { status: [] as string[], hetAccountStatus: [] as string[], phoneStatus: [] as string[], debtFrom: '', debtTo: '' };
 
 function Debitors() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
+
   const [refreshState, setRefreshState] = React.useState(false);
   const refresh = () => setRefreshState((p) => !p);
 
@@ -683,6 +702,13 @@ function Debitors() {
   const [applied, setApplied] = React.useState(INIT_FILTERS);
   const [search, setSearch] = React.useState('');
   const [appliedSearch, setAppliedSearch] = React.useState('');
+
+  const activeFilterCount =
+    applied.status.length +
+    applied.hetAccountStatus.length +
+    applied.phoneStatus.length +
+    (applied.debtFrom ? 1 : 0) +
+    (applied.debtTo ? 1 : 0);
 
   // SMS balans
   const [smsbal, setSmsbal] = React.useState<SmsBalance | null>(null);
@@ -862,11 +888,13 @@ function Debitors() {
 
   const applyFilters = () => {
     setApplied(draft);
+    setMobileSidebarOpen(false);
     refresh();
   };
   const resetFilters = () => {
     setDraft(INIT_FILTERS);
     setApplied(INIT_FILTERS);
+    setMobileSidebarOpen(false);
     refresh();
   };
   const applySearch = () => {
@@ -1090,37 +1118,109 @@ function Debitors() {
 
   const smsEmpty = Number(smsbal?.amount) < 1000;
 
+  const sidebarElement = (
+    <Sidebar
+      status={draft.status}
+      hetAccountStatus={draft.hetAccountStatus}
+      phoneStatus={draft.phoneStatus}
+      debtFrom={draft.debtFrom}
+      debtTo={draft.debtTo}
+      onStatusChange={(v) => setDraft((p) => ({ ...p, status: v }))}
+      onHetAccountChange={(v) => setDraft((p) => ({ ...p, hetAccountStatus: v }))}
+      onPhoneChange={(v) => setDraft((p) => ({ ...p, phoneStatus: v }))}
+      onDebtFromChange={(v) => setDraft((p) => ({ ...p, debtFrom: v }))}
+      onDebtToChange={(v) => setDraft((p) => ({ ...p, debtTo: v }))}
+      onApply={applyFilters}
+      onReset={resetFilters}
+      onJobFinish={() => {
+        refresh();
+        fetchSmsBalance();
+      }}
+    />
+  );
+
+  const currentPage = dataGridProps.paginationModel?.page || 0;
+  const currentPageSize = dataGridProps.paginationModel?.pageSize || 25;
+
   return (
     <MainCard contentSX={{ padding: 0 }}>
       <Box sx={{ display: 'flex', height: '100%' }}>
-        {/* Sol panel: filtrlar + triggerlar */}
-        <Sidebar
-          status={draft.status}
-          hetAccountStatus={draft.hetAccountStatus}
-          phoneStatus={draft.phoneStatus}
-          debtFrom={draft.debtFrom}
-          debtTo={draft.debtTo}
-          onStatusChange={(v) => setDraft((p) => ({ ...p, status: v }))}
-          onHetAccountChange={(v) => setDraft((p) => ({ ...p, hetAccountStatus: v }))}
-          onPhoneChange={(v) => setDraft((p) => ({ ...p, phoneStatus: v }))}
-          onDebtFromChange={(v) => setDraft((p) => ({ ...p, debtFrom: v }))}
-          onDebtToChange={(v) => setDraft((p) => ({ ...p, debtTo: v }))}
-          onApply={applyFilters}
-          onReset={resetFilters}
-          onJobFinish={() => {
-            refresh();
-            fetchSmsBalance();
-          }}
-        />
+        {/* Sol panel: Desktopda doimiy ko'rinadi, Mobilda Drawer ichida ochiladi */}
+        {!isMobile ? (
+          sidebarElement
+        ) : (
+          <Drawer
+            anchor="left"
+            open={mobileSidebarOpen}
+            onClose={() => setMobileSidebarOpen(false)}
+            slotProps={{
+              paper: {
+                sx: {
+                  width: { xs: '88vw', sm: 340 },
+                  maxWidth: 360,
+                  bgcolor: 'background.default'
+                }
+              }
+            }}
+          >
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 2,
+                py: 1.5,
+                bgcolor: 'background.paper',
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                position: 'sticky',
+                top: 0,
+                zIndex: 2
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                Filtrlar va Job Boshqaruvi
+              </Typography>
+              <IconButton size="small" onClick={() => setMobileSidebarOpen(false)}>
+                <CloseOutlined fontSize="small" />
+              </IconButton>
+            </Stack>
+            {sidebarElement}
+          </Drawer>
+        )}
 
         {/* O'ng panel: asosiy kontent */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, p: 2, gap: 1.5 }}>
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: 0,
+            p: { xs: 1.25, sm: 1.5, md: 2 },
+            gap: { xs: 1.25, md: 1.5 }
+          }}
+        >
           {/* 1. SMS Balans banneri */}
           <SmsBanner bal={smsbal} loading={smsLoad} onRefresh={fetchSmsBalance} />
 
           {/* 2. Statistika kartalari */}
           {stats ? (
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'stretch' }}>
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{
+                alignItems: 'stretch',
+                overflowX: { xs: 'auto', md: 'visible' },
+                pb: { xs: 0.5, md: 0 },
+                mx: { xs: -1.25, sm: -1.5, md: 0 },
+                px: { xs: 1.25, sm: 1.5, md: 0 },
+                '&::-webkit-scrollbar': { height: 4 },
+                '&::-webkit-scrollbar-thumb': {
+                  bgcolor: 'divider',
+                  borderRadius: 2
+                }
+              }}
+            >
               <StatCard
                 label="Jami debitorlar"
                 value={{
@@ -1170,85 +1270,450 @@ function Debitors() {
               />
             </Stack>
           ) : (
-            <Stack direction="row" spacing={1.5}>
+            <Stack direction="row" spacing={1.5} sx={{ overflowX: { xs: 'auto', md: 'visible' } }}>
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} variant="rounded" height={64} sx={{ flex: 1 }} />
+                <Skeleton key={i} variant="rounded" height={64} sx={{ flex: 1, minWidth: { xs: 140, md: 'auto' } }} />
               ))}
             </Stack>
           )}
 
-
-
-          {/* 3. Qidiruv qatori */}
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <TextField
-              size="small"
-              placeholder="F.I.O yoki hisob raqami..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applySearch()}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchOutlined fontSize="small" />
-                    </InputAdornment>
-                  )
-                }
-              }}
-              sx={{ width: 320 }}
-            />
-            <Button size="small" variant="contained" onClick={applySearch}>
-              Qidirish
-            </Button>
-            <Box sx={{ flex: 1 }} />
-            <Tooltip title="Yangilash">
-              <IconButton size="small" onClick={refresh}>
-                <RefreshOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            {isProductAdmin && (
+          {/* 3. Qidiruv va amallar qatori */}
+          {!isMobile ? (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <TextField
+                size="small"
+                placeholder="F.I.O yoki hisob raqami..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && applySearch()}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchOutlined fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }
+                }}
+                sx={{ width: 320 }}
+              />
+              <Button size="small" variant="contained" onClick={applySearch}>
+                Qidirish
+              </Button>
+              <Box sx={{ flex: 1 }} />
+              <Tooltip title="Yangilash">
+                <IconButton size="small" onClick={refresh}>
+                  <RefreshOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              {isProductAdmin && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={() => setOpenSyncDialog(true)}
+                  startIcon={<BoltOutlined fontSize="small" />}
+                >
+                  HET Sync Script
+                </Button>
+              )}
+              <Tooltip title="Qo'llanma va Shartlar">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={() => setHelpOpen(true)}
+                  sx={{ border: '1px solid', borderColor: 'primary.main' }}
+                >
+                  <HelpOutlineOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
               <Button
                 variant="contained"
-                color="primary"
+                color="success"
                 size="small"
-                onClick={() => setOpenSyncDialog(true)}
-                startIcon={<BoltOutlined fontSize="small" />}
+                onClick={() => downloadExcel()}
+                startIcon={<DownloadOutlined fontSize="small" />}
+                loading={others.isPending}
+                loadingPosition="start"
               >
-                HET Sync Script
+                Excelga yuklash
               </Button>
-            )}
-            <Tooltip title="Qo'llanma va Shartlar">
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={() => setHelpOpen(true)}
-                sx={{ border: '1px solid', borderColor: 'primary.main' }}
-              >
-                <HelpOutlineOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Button
-              variant="contained"
-              color="success"
-              size="small"
-              onClick={() => downloadExcel()}
-              startIcon={<DownloadOutlined fontSize="small" />}
-              loading={others.isPending}
-              loadingPosition="start"
-            >
-              Excelga yuklash
-            </Button>
-          </Stack>
+            </Stack>
+          ) : (
+            <Stack spacing={1}>
+              {/* Mobil 1-qator: Qidiruv + Filtr/Job tugmasi */}
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  placeholder="F.I.O yoki hisob raqami..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applySearch()}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchOutlined fontSize="small" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: search ? (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSearch('');
+                              setAppliedSearch('');
+                              refresh();
+                            }}
+                          >
+                            <CloseOutlined sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : undefined
+                    }
+                  }}
+                />
+                <Button size="small" variant="contained" onClick={applySearch} sx={{ minWidth: 76, py: 0.85, flexShrink: 0 }}>
+                  Qidirish
+                </Button>
+                <Badge badgeContent={activeFilterCount} color="error">
+                  <Button
+                    size="small"
+                    variant={activeFilterCount > 0 ? 'contained' : 'outlined'}
+                    color={activeFilterCount > 0 ? 'primary' : 'inherit'}
+                    onClick={() => setMobileSidebarOpen(true)}
+                    startIcon={<TuneOutlined fontSize="small" />}
+                    sx={{ py: 0.85, px: 1.2, flexShrink: 0, whiteSpace: 'nowrap', borderColor: 'divider' }}
+                  >
+                    Filtr
+                  </Button>
+                </Badge>
+              </Stack>
 
-          {/* 4. DataGrid */}
-          <DataGrid
-            {...dataGridProps}
-            columns={columns}
-            getRowId={(row) => row._id}
-            rowHeight={52}
-            sx={{ flex: 1, minHeight: 400, border: 'none', maxHeight: '60vh' }}
-          />
+              {/* Mobil 2-qator: Natija soni, aktiv filtr tozalash va tezkor amallar */}
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Chip
+                    size="small"
+                    label={`Jami: ${fmt(dataGridProps.rowCount || 0)} ta`}
+                    variant="outlined"
+                    sx={{ fontWeight: 600, fontSize: 11 }}
+                  />
+                  {activeFilterCount > 0 && (
+                    <Chip
+                      size="small"
+                      label={`Filtr (${activeFilterCount}) ✕`}
+                      color="primary"
+                      onClick={resetFilters}
+                      sx={{ fontWeight: 600, fontSize: 11 }}
+                    />
+                  )}
+                </Stack>
+
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                  <IconButton
+                    size="small"
+                    onClick={refresh}
+                    sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}
+                  >
+                    <RefreshOutlined fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => setHelpOpen(true)}
+                    sx={{ border: '1px solid', borderColor: 'primary.main', borderRadius: 1.5 }}
+                  >
+                    <HelpOutlineOutlined fontSize="small" />
+                  </IconButton>
+                  {isProductAdmin && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={() => setOpenSyncDialog(true)}
+                      startIcon={<BoltOutlined fontSize="small" />}
+                      sx={{ fontSize: 11, px: 1, py: 0.5, textTransform: 'none' }}
+                    >
+                      HET Script
+                    </Button>
+                  )}
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    onClick={() => downloadExcel()}
+                    startIcon={<DownloadOutlined fontSize="small" />}
+                    loading={others.isPending}
+                    loadingPosition="start"
+                    sx={{ fontSize: 11, px: 1.2, py: 0.5, textTransform: 'none' }}
+                  >
+                    Excel
+                  </Button>
+                </Stack>
+              </Stack>
+            </Stack>
+          )}
+
+          {/* 4. Ma'lumotlar: Desktopda DataGrid, Mobilda Card ro'yxati */}
+          {!isMobile ? (
+            <DataGrid
+              {...dataGridProps}
+              columns={columns}
+              getRowId={(row) => row._id}
+              rowHeight={52}
+              sx={{ flex: 1, minHeight: 400, border: 'none', maxHeight: '60vh' }}
+            />
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+              {dataGridProps.loading ? (
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <Skeleton key={idx} variant="rounded" height={148} sx={{ borderRadius: 2.5 }} />
+                ))
+              ) : !dataGridProps.rows || dataGridProps.rows.length === 0 ? (
+                <Card
+                  elevation={0}
+                  sx={{
+                    p: 4,
+                    textAlign: 'center',
+                    borderRadius: 2.5,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                    Debitorlar topilmadi
+                  </Typography>
+                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+                    Qidiruv so'zini yoki filtrlarni o'zgartirib ko'ring
+                  </Typography>
+                </Card>
+              ) : (
+                <Stack spacing={1.25}>
+                  {(dataGridProps.rows as any[]).map((row, idx) => {
+                    const orderNum = currentPage * currentPageSize + idx + 1;
+                    const hetStatus = row.hetAccountStatus || 'new';
+                    const hetCfg = HET_ACCOUNT_CFG[hetStatus as HetAccountStatus] || HET_ACCOUNT_CFG.new;
+                    const pStatus = row.phoneStatus || 'new';
+                    const phoneCfg = PHONE_CFG[pStatus as PhoneStatus] || PHONE_CFG.new;
+                    const qKey = row.operationalQueue as OperationalQueue;
+                    const qCfg = qKey && QUEUE_CFG[qKey] ? QUEUE_CFG[qKey] : null;
+                    const sKey = row.status as DebitorStatus;
+                    const sCfg = STATUS_CFG[sKey] || STATUS_CFG.data_needs_attention;
+                    const subLabel = row.subStatus ? SUBSTATUS_MAP[row.subStatus] || row.subStatus : null;
+
+                    return (
+                      <Card
+                        key={row._id}
+                        elevation={0}
+                        onClick={() => handleClickShow(row._id)}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2.5,
+                          bgcolor: 'background.paper',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          '&:active': {
+                            transform: 'scale(0.995)',
+                            borderColor: 'primary.main'
+                          }
+                        }}
+                      >
+                        {/* Karta yuqori qismi: №, F.I.SH, Hisob raqami va Qarzdorlik */}
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', mb: 0.25 }}>
+                              <Chip
+                                size="small"
+                                label={`#${orderNum}`}
+                                sx={{
+                                  height: 18,
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1),
+                                  color: 'primary.main'
+                                }}
+                              />
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11 }}>
+                                Hisob: <strong style={{ color: theme.palette.text.primary }}>{row.accountNumber || '-'}</strong>
+                              </Typography>
+                            </Stack>
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                fontWeight: 700,
+                                color: 'text.primary',
+                                lineHeight: 1.25,
+                                wordBreak: 'break-word'
+                              }}
+                            >
+                              {row.fullName}
+                            </Typography>
+                          </Box>
+
+                          <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main', lineHeight: 1.2 }}>
+                              {fmtMoney(row.debtAmount)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10.5, display: 'block', mt: 0.2 }}>
+                              {row.debtMonths > 0 ? `${row.debtMonths} oylik qarz` : 'Yangi'}
+                            </Typography>
+                          </Box>
+                        </Stack>
+
+                        {/* Karta o'rta qismi: ETK kodi va Telefon raqami 2 ustunda */}
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: 1,
+                            p: 1,
+                            mb: 1,
+                            borderRadius: 2,
+                            bgcolor: alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.04 : 0.025),
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}
+                        >
+                          {/* ETK ustuni */}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Stack direction="row" spacing={0.4} sx={{ alignItems: 'center', mb: 0.3 }}>
+                              <ElectricBoltOutlined sx={{ fontSize: 13, color: 'warning.main' }} />
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10.5 }}>
+                                Elektr (ETK):
+                              </Typography>
+                            </Stack>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 12, mb: 0.4 }}
+                              noWrap
+                            >
+                              {row.accountNumberEtk || '-'}
+                            </Typography>
+                            <Chip
+                              label={hetCfg.label}
+                              size="small"
+                              color={hetCfg.color as any}
+                              variant="outlined"
+                              sx={{ height: 18, fontSize: 9.5, maxWidth: '100%' }}
+                            />
+                          </Box>
+
+                          {/* Telefon ustuni */}
+                          <Box sx={{ minWidth: 0, borderLeft: '1px solid', borderColor: 'divider', pl: 1 }}>
+                            <Stack direction="row" spacing={0.4} sx={{ alignItems: 'center', mb: 0.3 }}>
+                              <PhoneAndroidOutlined sx={{ fontSize: 13, color: 'info.main' }} />
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10.5 }}>
+                                Telefon:
+                              </Typography>
+                            </Stack>
+                            <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 12, mb: 0.4 }} noWrap>
+                              {row.primaryPhone ? `+998 ${row.primaryPhone}` : "Raqam yo'q"}
+                            </Typography>
+                            <Chip
+                              label={phoneCfg.label}
+                              size="small"
+                              color={phoneCfg.color as any}
+                              variant="outlined"
+                              sx={{ height: 18, fontSize: 9.5, maxWidth: '100%' }}
+                            />
+                          </Box>
+                        </Box>
+
+                        {/* Karta pastki qismi: Operatsion holat va Amallar */}
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
+                            {qCfg ? (
+                              <Chip
+                                label={qCfg.label}
+                                size="small"
+                                color={qCfg.color as any}
+                                sx={{ height: 20, fontSize: 10.5, fontWeight: 700 }}
+                              />
+                            ) : (
+                              <Chip
+                                label={sCfg.label}
+                                size="small"
+                                color={sCfg.color as any}
+                                variant="outlined"
+                                sx={{ height: 20, fontSize: 10.5 }}
+                              />
+                            )}
+                            {subLabel && (
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10.5 }}>
+                                • {subLabel}
+                              </Typography>
+                            )}
+                          </Stack>
+
+                          <Stack
+                            direction="row"
+                            spacing={0.5}
+                            onClick={(e) => e.stopPropagation()}
+                            sx={{ flexShrink: 0 }}
+                          >
+                            <IconButton size="small" onClick={() => handleClickShow(row._id)} color="primary">
+                              <VisibilityOutlined fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleClickShow(row._id)}>
+                              <EditOutlined fontSize="small" />
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                      </Card>
+                    );
+                  })}
+                </Stack>
+              )}
+
+              {/* Mobil Sahifalash (Pagination) */}
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: 'background.paper',
+                  overflow: 'hidden'
+                }}
+              >
+                <TablePagination
+                  component="div"
+                  count={dataGridProps.rowCount || 0}
+                  page={currentPage}
+                  rowsPerPage={currentPageSize}
+                  rowsPerPageOptions={[10, 25, 50, 100]}
+                  labelRowsPerPage="Qator:"
+                  onPageChange={(_, newPage) => {
+                    dataGridProps.onPaginationModelChange?.(
+                      { page: newPage, pageSize: currentPageSize },
+                      {} as any
+                    );
+                  }}
+                  onRowsPerPageChange={(e) => {
+                    const newSize = parseInt(e.target.value, 10);
+                    dataGridProps.onPaginationModelChange?.(
+                      { page: 0, pageSize: newSize },
+                      {} as any
+                    );
+                  }}
+                  sx={{
+                    '.MuiTablePagination-toolbar': {
+                      px: 1,
+                      minHeight: 44
+                    },
+                    '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+                      fontSize: 12
+                    }
+                  }}
+                />
+              </Paper>
+            </Box>
+          )}
         </Box>
       </Box>
 
