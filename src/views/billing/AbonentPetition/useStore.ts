@@ -9,6 +9,8 @@ interface ArizaStore {
   setShowModal: (showModal: boolean) => void;
   pasteImgModalOpen: boolean;
   setPasteImgModalOpen: (state: boolean) => void;
+  attachedImagesModalOpen: boolean;
+  setAttachedImagesModalOpen: (state: boolean) => void;
   updateState: boolean;
   updatePage: () => void;
 }
@@ -22,6 +24,8 @@ const useArizaStore = create<ArizaStore>((set) => ({
   setShowModal: (showModal) => set({ showModal }),
   pasteImgModalOpen: false,
   setPasteImgModalOpen: (state) => set({ pasteImgModalOpen: state }),
+  attachedImagesModalOpen: false,
+  setAttachedImagesModalOpen: (state) => set({ attachedImagesModalOpen: state }),
   updateState: false,
   updatePage: () => set((state) => ({ updateState: !state.updateState }))
 }));

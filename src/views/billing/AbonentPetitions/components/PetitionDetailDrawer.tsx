@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+  Badge,
   Box,
   Button,
   Chip,
@@ -24,7 +25,8 @@ import {
   MoveToInboxOutlined,
   CancelOutlined,
   PrintOutlined,
-  AddPhotoAlternateOutlined
+  AddPhotoAlternateOutlined,
+  CollectionsOutlined
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +35,7 @@ import api from 'utils/api';
 import useArizaStore from '../../AbonentPetition/useStore';
 import AktChangerModal from '../../AbonentPetition/AktChangerModal';
 import PasteImageDialog from '../../AbonentPetition/PasteImageDialog';
+import AttachedImagesModal from '../../AbonentPetition/AttachedImagesModal';
 import PDFViewer from '../../AbonentPetition/PDFViewer';
 import DHJTable from '../../AbonentPetition/DHJTable';
 import AktInfoCard from '../../AbonentPetition/AktInfoCard';
@@ -64,7 +67,16 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const { ariza, setAriza, aktFileURL, setAktFileURL, pasteImgModalOpen, setPasteImgModalOpen } = useArizaStore();
+  const {
+    ariza,
+    setAriza,
+    aktFileURL,
+    setAktFileURL,
+    pasteImgModalOpen,
+    setPasteImgModalOpen,
+    attachedImagesModalOpen,
+    setAttachedImagesModalOpen
+  } = useArizaStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState<'info' | 'files' | 'dhj'>('info');
@@ -96,7 +108,8 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
         if (arizaData?.aktInfo?.fileId) {
           try {
             const fileRes = await api.get('/billing/get-file/', {
-              params: { file_id: arizaData.aktInfo.fileId }
+              params: { file_id: arizaData.aktInfo.fileId },
+              headers: { 'hide-error': true }
             });
             setAktFileURL(fileRes.data?.file || null);
           } catch {
@@ -110,7 +123,8 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
         if (arizaData?.abonentId) {
           try {
             const dxjRes = await api.get('/billing/get-abonent-dxj-by-id', {
-              params: { residentId: arizaData.abonentId }
+              params: { residentId: arizaData.abonentId },
+              headers: { 'hide-error': true }
             });
             setDhjRows(
               (dxjRes.data?.rows || []).map((row: any, i: number) => ({
@@ -260,6 +274,18 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
               </>
             )}
 
+            <Tooltip title={t('recalculationDetailPage.viewImages', 'Biriktirilgan rasmlar')}>
+              <IconButton
+                size="small"
+                onClick={() => setAttachedImagesModalOpen(true)}
+                sx={{ color: 'text.secondary' }}
+              >
+                <Badge badgeContent={(ariza?.tempPhotos || []).length} color="error">
+                  <CollectionsOutlined fontSize="small" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+
             <Tooltip title="To‘liq sahifada ochish">
               <IconButton
                 size="small"
@@ -398,7 +424,31 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
               {/* Tab 2: Files & PDF Preview */}
               {currentTab === 'files' && (
                 <Stack spacing={2} sx={{ height: '100%' }}>
-                  <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                  <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end', alignItems: 'center' }}>
+                    <Tooltip title={t('recalculationDetailPage.viewImages', 'Biriktirilgan rasmlar')}>
+                      <Badge
+                        badgeContent={(ariza?.tempPhotos || []).length}
+                        color="error"
+                        showZero={false}
+                        sx={{
+                          '& .MuiBadge-badge': {
+                            fontWeight: 700,
+                            fontSize: '0.75rem'
+                          }
+                        }}
+                      >
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          color="secondary"
+                          startIcon={<CollectionsOutlined />}
+                          onClick={() => setAttachedImagesModalOpen(true)}
+                        >
+                          {t('recalculationDetailPage.images', 'Rasmlar')}
+                        </Button>
+                      </Badge>
+                    </Tooltip>
+
                     <Button
                       variant="outlined"
                       size="small"
@@ -526,6 +576,14 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
 
       {/* Paste Image Dialog */}
       <PasteImageDialog open={pasteImgModalOpen} setOpen={setPasteImgModalOpen} />
+
+      {/* Attached Images Modal */}
+      {attachedImagesModalOpen && (
+        <AttachedImagesModal
+          open={attachedImagesModalOpen}
+          onClose={() => setAttachedImagesModalOpen(false)}
+        />
+      )}
     </>
   );
 };

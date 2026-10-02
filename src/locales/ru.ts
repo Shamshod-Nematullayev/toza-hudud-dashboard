@@ -114,7 +114,9 @@ const ru: typeof uz = {
     orders: 'Заказы',
     dispatchSchedule: 'Расписание',
     drivers: 'Водители',
-    dispatchTelegram: 'Telegram'
+    dispatchTelegram: 'Telegram',
+    'Guruh topshiriqlari (TG)': 'Групповые задачи (TG)',
+    'Aktlar pachkasi': 'Пачка актов'
   },
   priority: {
     '1': 'Низкий',
@@ -997,7 +999,18 @@ const ru: typeof uz = {
     notFound: 'Заявление не найдено',
     tabDhj: 'Периодические операции (ДХЖ)',
     tabInfo: 'Данные акта',
-    tabCalc: 'Калькулятор'
+    tabCalc: 'Калькулятор',
+    viewImages: 'Прикрепленные изображения',
+    noImagesFound: 'Прикрепленные изображения отсутствуют',
+    noImagesDesc: 'К данному заявлению пока не прикреплено ни одного изображения.',
+    attachSubtitle: 'Выберите файл, перетащите или вставьте из буфера',
+    dropOrPickImage: 'Перетащите изображение сюда или выберите',
+    pasteOrPickDesc: 'Нажмите для выбора файла или вставьте из буфера (Ctrl + V)',
+    selectFile: 'Выбрать файл',
+    chooseAnother: 'Выбрать другое изображение',
+    allowedFormats: 'PNG, JPG, JPEG, WEBP (макс. 15 МБ)',
+    confirmDeleteImageTitle: 'Удаление изображения',
+    confirmDeleteImageDesc: 'Вы уверены, что хотите удалить это изображение из заявления?'
   }
 };
 

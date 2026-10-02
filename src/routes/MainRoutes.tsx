@@ -99,6 +99,10 @@ const MainRoutes: MainRoutesProps = {
       element: <DashboardDefault />
     },
     {
+      path: 'aktlar',
+      element: <Navigate to="/billing/act-packs" replace />
+    },
+    {
       path: 'dashboard',
       children: [
         {

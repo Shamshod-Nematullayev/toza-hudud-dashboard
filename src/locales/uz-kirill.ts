@@ -114,7 +114,9 @@ const uzKirill: typeof uz = {
     orders: 'Буюртмалар',
     dispatchSchedule: 'Жадвал',
     drivers: 'Ҳайдовчилар',
-    dispatchTelegram: 'Telegram'
+    dispatchTelegram: 'Telegram',
+    'Guruh topshiriqlari (TG)': 'Гуруҳ топшириқлари (TG)',
+    'Aktlar pachkasi': 'Актлар пачкаси'
   },
   priority: {
     '1': 'Паст',
@@ -1002,7 +1004,18 @@ const uzKirill: typeof uz = {
     notFound: 'Ариза топилмади',
     tabDhj: 'Даврий Ҳаракатлар (ДҲЖ)',
     tabInfo: 'Акт Маълумотлари',
-    tabCalc: 'Калькулятор'
+    tabCalc: 'Калькулятор',
+    viewImages: 'Бириктирилган расмлар',
+    noImagesFound: 'Бириктирилган расмлар мавжуд эмас',
+    noImagesDesc: 'Ушбу аризага ҳали ҳеч қандай расм бириктирилмаган.',
+    attachSubtitle: 'Файл танланг, судраб ташланг ёки clipboardдан қўйинг',
+    dropOrPickImage: 'Расмни бу ерга судраб ташланг ёки танланг',
+    pasteOrPickDesc: 'Файл танлаш учун босинг ёки расмни нусхалаб (Ctrl + V) жойлаштиринг',
+    selectFile: 'Файлни танлаш',
+    chooseAnother: 'Бошқа расм танлаш',
+    allowedFormats: 'PNG, JPG, JPEG, WEBP (максимал 15 МБ)',
+    confirmDeleteImageTitle: 'Расмни ўчириш',
+    confirmDeleteImageDesc: 'Ҳақиқатан ҳам ушбу бириктирилган расмни аризадан ўчирмоқчимисиз?'
   }
 };
 

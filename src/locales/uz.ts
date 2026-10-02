@@ -1006,7 +1006,18 @@ const uz = {
     notFound: 'Ariza topilmadi',
     tabDhj: 'Davriy Harakatlar (DHJ)',
     tabInfo: 'Akt Ma‘lumotlari',
-    tabCalc: 'Kalkulyator'
+    tabCalc: 'Kalkulyator',
+    viewImages: 'Biriktirilgan rasmlar',
+    noImagesFound: 'Biriktirilgan rasmlar mavjud emas',
+    noImagesDesc: 'Ushbu arizaga hali hech qanday rasm biriktirilmagan.',
+    attachSubtitle: 'Fayl tanlang, sudrab tashlang yoki clipboarddan qo‘ying',
+    dropOrPickImage: 'Rasmni bu yerga sudrab tashlang yoki tanlang',
+    pasteOrPickDesc: 'Kompyuterdan fayl tanlash uchun bosing yoki rasmni nusxalab (Ctrl + V) joylashtiring',
+    selectFile: 'Faylni tanlash',
+    chooseAnother: 'Boshqa rasm tanlash',
+    allowedFormats: 'PNG, JPG, JPEG, WEBP (maksimal 15 MB)',
+    confirmDeleteImageTitle: 'Rasmni o‘chirish',
+    confirmDeleteImageDesc: 'Haqiqatan ham ushbu biriktirilgan rasmni arizadan o‘chirmoqchimisiz? Bu amalni ortga qaytarib bo‘lmaydi.'
   }
 };
 

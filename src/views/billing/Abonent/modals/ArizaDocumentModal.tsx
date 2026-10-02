@@ -95,7 +95,9 @@ function ArizaDocumentModal({ relation, relationFullName }: Props) {
           onClick={() => {
             printFunction();
             closeAbonentPetitionModal();
-            handleMoveToInboxIconClick(ariza_id);
+            if (ariza?.status === 'yangi') {
+              handleMoveToInboxIconClick(ariza_id);
+            }
           }}
         >
           {t('buttons.print')}

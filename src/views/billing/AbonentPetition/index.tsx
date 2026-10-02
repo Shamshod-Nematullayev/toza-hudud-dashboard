@@ -3,9 +3,12 @@ import {
   AutoFixHigh,
   PublishedWithChanges,
   RestartAlt,
-  SearchOutlined
+  SearchOutlined,
+  CollectionsOutlined,
+  AddPhotoAlternateOutlined
 } from '@mui/icons-material';
 import {
+  Badge,
   Box,
   Button,
   Card,
@@ -35,6 +38,7 @@ import AktChangerModal from './AktChangerModal';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import PDFViewer from './PDFViewer';
 import PasteImageDialog from './PasteImageDialog';
+import AttachedImagesModal from './AttachedImagesModal';
 import { useTranslation } from 'react-i18next';
 
 function AbonentPetition() {
@@ -51,7 +55,9 @@ function AbonentPetition() {
     showModal,
     setShowModal,
     pasteImgModalOpen,
-    setPasteImgModalOpen
+    setPasteImgModalOpen,
+    attachedImagesModalOpen,
+    setAttachedImagesModalOpen
   } = useArizaStore();
 
   const [davriyHarakatlarJadvali, setDavriyHarakatlarJadvali] = useState<any[]>([]);
@@ -71,7 +77,8 @@ function AbonentPetition() {
           if (arizaRes?.aktInfo?.fileId) {
             const base64File = (
               await api.get('/billing/get-file/', {
-                params: { file_id: arizaRes.aktInfo.fileId }
+                params: { file_id: arizaRes.aktInfo.fileId },
+                headers: { 'hide-error': true }
               })
             ).data.file;
             setAktFileURL(base64File);
@@ -86,7 +93,8 @@ function AbonentPetition() {
           const dxjRes = await api.get('/billing/get-abonent-dxj-by-id', {
             params: {
               residentId: arizaRes.abonentId
-            }
+            },
+            headers: { 'hide-error': true }
           });
 
           setDavriyHarakatlarJadvali(
@@ -238,6 +246,39 @@ function AbonentPetition() {
             {t('recalculationDetailPage.reAct', 'Qayta akt qilish')}
           </Button>
 
+          <Tooltip title={t('recalculationDetailPage.viewImages', 'Biriktirilgan rasmlar')}>
+            <Badge
+              badgeContent={(ariza?.tempPhotos || []).length}
+              color="error"
+              showZero={false}
+              sx={{
+                '& .MuiBadge-badge': {
+                  fontWeight: 700,
+                  fontSize: '0.75rem'
+                }
+              }}
+            >
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                startIcon={<CollectionsOutlined />}
+                onClick={() => setAttachedImagesModalOpen(true)}
+              >
+                {t('recalculationDetailPage.images', 'Rasmlar')}
+              </Button>
+            </Badge>
+          </Tooltip>
+
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<AddPhotoAlternateOutlined />}
+            onClick={() => setPasteImgModalOpen(true)}
+          >
+            {t('recalculationDetailPage.attachImage', 'Rasm biriktirish')}
+          </Button>
+
           <Box component="form" onSubmit={handleSearchSubmit}>
             <TextField
               placeholder={t('recalculationDetailPage.searchAnother', 'Boshqa ariza №')}
@@ -317,6 +358,12 @@ function AbonentPetition() {
       {/* Modals */}
       {showModal && <AktChangerModal onClose={() => setShowModal(false)} />}
       <PasteImageDialog open={pasteImgModalOpen} setOpen={setPasteImgModalOpen} />
+      {attachedImagesModalOpen && (
+        <AttachedImagesModal
+          open={attachedImagesModalOpen}
+          onClose={() => setAttachedImagesModalOpen(false)}
+        />
+      )}
     </Box>
   );
 }

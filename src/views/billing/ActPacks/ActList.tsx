@@ -25,6 +25,7 @@ import {
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import {
   ArrowBack as ArrowBackIcon,
+  Cancel as CancelIcon,
   Delete as DeleteIcon,
   FileDownload as ExcelIcon,
   PictureAsPdf as PdfIcon,
@@ -95,6 +96,12 @@ const ActList: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
   const [selectedActToDelete, setSelectedActToDelete] = useState<ActItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+
+  // Cancel modal state
+  const [cancelModalOpen, setCancelModalOpen] = useState<boolean>(false);
+  const [selectedActToCancel, setSelectedActToCancel] = useState<ActItem | null>(null);
+  const [cancelReason, setCancelReason] = useState<string>('');
+  const [cancelLoading, setCancelLoading] = useState<boolean>(false);
 
   // Notifications
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
@@ -185,6 +192,44 @@ const ActList: React.FC = () => {
       });
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  // Cancel action
+  const confirmCancel = async () => {
+    if (!selectedActToCancel) return;
+    if (!cancelReason.trim()) {
+      setSnackbar({
+        open: true,
+        message: 'Bekor qilish sababini kiriting',
+        severity: 'info'
+      });
+      return;
+    }
+    setCancelLoading(true);
+    try {
+      const { data } = await api.post(`/acts/${selectedActToCancel.id}/cancel`, {
+        reason: cancelReason.trim(),
+        comment: cancelReason.trim()
+      });
+      setSnackbar({
+        open: true,
+        message: data?.message || 'Akt muvaffaqiyatli bekor qilindi',
+        severity: 'success'
+      });
+      setCancelModalOpen(false);
+      setSelectedActToCancel(null);
+      setCancelReason('');
+      fetchActs();
+    } catch (err: any) {
+      console.error('Error cancelling act:', err);
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || 'Aktni bekor qilishda xatolik yuz berdi',
+        severity: 'error'
+      });
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -365,12 +410,17 @@ const ActList: React.FC = () => {
       {
         field: 'actions',
         headerName: 'Amallar',
-        width: 120,
+        width: 150,
         align: 'center',
         headerAlign: 'center',
         sortable: false,
         renderCell: (params) => {
           const isNew = params.row.actStatus === 'NEW' || params.row.actStatus === 'Yangi';
+          const isAlreadyCancelled =
+            params.row.actStatus === 'CANCELLED' ||
+            params.row.actStatus === 'REJECTED' ||
+            params.row.actStatus === 'bekor_qilindi';
+
           return (
             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'center' }}>
               {params.row.fileId && (
@@ -404,6 +454,30 @@ const ActList: React.FC = () => {
                     }}
                   >
                     <DeleteIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {!isAlreadyCancelled && (
+                <Tooltip title="Aktni bekor qilish">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setSelectedActToCancel(params.row);
+                      setCancelReason('');
+                      setCancelModalOpen(true);
+                    }}
+                    sx={{
+                      color: isDark ? '#fbbf24' : '#d97706',
+                      border: '1px solid',
+                      borderColor: isDark ? 'rgba(251, 191, 36, 0.4)' : '#fde68a',
+                      borderRadius: '6px',
+                      p: '4px',
+                      '&:hover': {
+                        backgroundColor: isDark ? 'rgba(251, 191, 36, 0.15)' : '#fffbeb'
+                      }
+                    }}
+                  >
+                    <CancelIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                 </Tooltip>
               )}
@@ -743,6 +817,80 @@ const ActList: React.FC = () => {
             }}
           >
             {deleteLoading ? "O'chirilmoqda..." : "Ha, o'chirish"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Aktni bekor qilish dialogi */}
+      <Dialog
+        open={cancelModalOpen}
+        onClose={() => !cancelLoading && setCancelModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: 'warning.main' }}>
+          Aktni bekor qilish {selectedActToCancel ? `(#${selectedActToCancel.id})` : ''}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <DialogContentText sx={{ color: 'text.primary', fontSize: '0.925rem' }}>
+              Ushbu aktni bekor qilish uchun sabab yoki xulosa izohini kiriting:
+            </DialogContentText>
+            {selectedActToCancel && (
+              <Box
+                sx={{
+                  p: 1.5,
+                  backgroundColor: 'background.default',
+                  borderRadius: '8px',
+                  border: '1px solid',
+                  borderColor: 'divider'
+                }}
+              >
+                <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+                  Hisob raqam: <b>{selectedActToCancel.accountNumber}</b>
+                </Typography>
+                <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+                  Abonent: <b>{selectedActToCancel.residentFullName || '-'}</b>
+                </Typography>
+                <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+                  Summa: <b>{Number(selectedActToCancel.amount || 0).toLocaleString('uz-UZ')} so'm</b>
+                </Typography>
+              </Box>
+            )}
+            <TextField
+              autoFocus
+              fullWidth
+              multiline
+              rows={3}
+              label="Bekor qilish sababi"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              disabled={cancelLoading}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setCancelModalOpen(false)}
+            disabled={cancelLoading}
+            sx={{ textTransform: 'none', color: 'text.secondary' }}
+          >
+            Ortga
+          </Button>
+          <Button
+            onClick={confirmCancel}
+            color="warning"
+            variant="contained"
+            disabled={cancelLoading || !cancelReason.trim()}
+            startIcon={cancelLoading ? <CircularProgress size={16} color="inherit" /> : <CancelIcon />}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '8px',
+              fontWeight: 600,
+              boxShadow: 'none'
+            }}
+          >
+            {cancelLoading ? 'Bekor qilinmoqda...' : 'Bekor qilish'}
           </Button>
         </DialogActions>
       </Dialog>
