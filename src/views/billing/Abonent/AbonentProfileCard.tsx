@@ -55,6 +55,74 @@ interface Data extends AbonentDetails {
   photo?: string;
 }
 
+interface InfoRowProps {
+  icon: any;
+  label: string | number;
+  value?: string | number | ReactNode;
+  color?: string;
+  labelColor?: string;
+  fontSize?: number;
+  copyable?: boolean;
+  isSkeleton?: boolean;
+}
+
+const InfoRow = ({
+  icon: Icon,
+  label,
+  value,
+  color = 'text.primary',
+  fontSize,
+  copyable,
+  labelColor,
+  isSkeleton
+}: InfoRowProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
+
+  return (
+    <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
+      <Grid size={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {typeof Icon === 'string' ? (
+          <span style={{ fontSize: '18px', opacity: 0.9, lineHeight: 1 }}>{Icon}</span>
+        ) : (
+          <Icon sx={{ fontSize: 18, color: labelColor || 'text.secondary', opacity: 0.7 }} />
+        )}
+        <Typography variant="body2" sx={{ color: isMobile && isDark ? '#9AA3C7' : labelColor || 'text.secondary' }}>
+          {label}:
+        </Typography>
+      </Grid>
+      <Grid size={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {isSkeleton ? (
+          <Skeleton variant="text" width="80%" height={20} />
+        ) : (
+          <>
+            {React.isValidElement(value) ? (
+              value
+            ) : (
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  color: isMobile && isDark ? (color === 'text.primary' ? '#EDEFFA' : color) : color,
+                  fontSize
+                }}
+              >
+                {value || '—'}
+              </Typography>
+            )}
+            {copyable && value && typeof value === 'string' && (
+              <IconButton size="small" onClick={() => navigator.clipboard.writeText(value.toString())} sx={{ opacity: 0.8 }}>
+                <ContentCopy fontSize="small" color="primary" />
+              </IconButton>
+            )}
+          </>
+        )}
+      </Grid>
+    </Grid>
+  );
+};
+
 const AbonentProfileCard = ({ data }: { data: Data | null }) => {
   const isLoading = !data;
   const theme = useTheme();
@@ -72,6 +140,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
     ui,
     similarAbonentsByElectricity,
     similarAbonentsByCadastr,
+    similarAbonentsByPinfl,
     getResidentCadastrs,
     abonentDebitorStatus
   } = useAbonentStore();
@@ -80,25 +149,31 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
   const isDublicateElectricity = similarAbonentsByElectricity.length > 1;
   const duplicateCadastrList = similarAbonentsByCadastr.filter((a) => a.id !== data?.id);
   const isDublicateCadastr = duplicateCadastrList.length > 0;
+  const duplicatePinflList = similarAbonentsByPinfl.filter((a) => a.id !== data?.id);
+  const isDublicatePinfl = duplicatePinflList.length > 0;
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const etkInfoRow = useRef<HTMLDivElement>(null);
-  const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(etkInfoRow.current);
+  const [electricityAnchorEl, setElectricityAnchorEl] = useState<null | HTMLElement>(null);
+  const handleOpenElectricity = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setElectricityAnchorEl(event.currentTarget);
   };
-
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleCloseElectricity = () => {
+    setElectricityAnchorEl(null);
   };
 
   const [cadastrAnchorEl, setCadastrAnchorEl] = useState<null | HTMLElement>(null);
-  const cadastrInfoRow = useRef<HTMLDivElement>(null);
   const handleOpenCadastr = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setCadastrAnchorEl(cadastrInfoRow.current || event.currentTarget);
+    setCadastrAnchorEl(event.currentTarget);
   };
-
   const handleCloseCadastr = () => {
     setCadastrAnchorEl(null);
+  };
+
+  const [pinflAnchorEl, setPinflAnchorEl] = useState<null | HTMLElement>(null);
+  const handleOpenPinfl = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setPinflAnchorEl(event.currentTarget);
+  };
+  const handleClosePinfl = () => {
+    setPinflAnchorEl(null);
   };
 
   const handleClickAvatar = async () => {
@@ -118,58 +193,6 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
       setIsLoading(false);
     }
   };
-
-  const InfoRow = ({
-    icon: Icon,
-    label,
-    value,
-    color = 'text.primary',
-    fontSize,
-    copyable,
-    labelColor,
-    isSkeleton
-  }: {
-    icon: any;
-    label: string | number;
-    value?: string | number | ReactNode;
-    color?: string;
-    labelColor?: string;
-    fontSize?: number;
-    copyable?: boolean;
-    isSkeleton?: boolean;
-  }) => (
-    <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
-      <Grid size={5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {typeof Icon === 'string' ? (
-          <span style={{ fontSize: '18px', opacity: 0.9, lineHeight: 1 }}>{Icon}</span>
-        ) : (
-          <Icon sx={{ fontSize: 18, color: labelColor || 'text.secondary', opacity: 0.7 }} />
-        )}
-        <Typography variant="body2" sx={{ color: isMobile && isDark ? '#9AA3C7' : labelColor || 'text.secondary' }}>
-          {label}:
-        </Typography>
-      </Grid>
-      <Grid size={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {isSkeleton ? (
-          <Skeleton variant="text" width="80%" height={20} />
-        ) : (
-          <>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 600, color: isMobile && isDark ? (color === 'text.primary' ? '#EDEFFA' : color) : color, fontSize }}
-            >
-              {value || '—'}
-            </Typography>
-            {copyable && value && (
-              <IconButton size="small" onClick={() => navigator.clipboard.writeText(value.toString())} sx={{ opacity: 0.8 }}>
-                <ContentCopy fontSize="small" color="primary" />
-              </IconButton>
-            )}
-          </>
-        )}
-      </Grid>
-    </Grid>
-  );
 
   return (
     <>
@@ -253,58 +276,59 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                   isSkeleton={isLoading}
                 />
                 <InfoRow icon="🪪" label="Паспорт raqami" value={data?.citizen.passport} isSkeleton={isLoading} />
-                <InfoRow icon="🔑" label="ЖШШИР" value={data?.citizen.pnfl} isSkeleton={isLoading} />
+                <InfoRow
+                  icon="🔑"
+                  label="ЖШШИР"
+                  labelColor={isDublicatePinfl ? 'error.main' : undefined}
+                  value={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                      <Typography color={isDublicatePinfl ? 'error.main' : 'inherit'}>
+                        {data?.citizen.pnfl || '—'}
+                      </Typography>
+                      {isDublicatePinfl && (
+                        <Button
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          onClick={handleOpenPinfl}
+                          startIcon={<WarningIcon />}
+                          sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                        >
+                          {duplicatePinflList.length} dublikat
+                        </Button>
+                      )}
+                    </Box>
+                  }
+                  isSkeleton={isLoading}
+                  copyable
+                />
                 <InfoRow icon="📄" label="Шартнома raqami" value={data?.contractNumber} isSkeleton={isLoading} />
-                <div ref={cadastrInfoRow}>
-                  <InfoRow
-                    icon="🏠"
-                    label="Кадастр raqami"
-                    labelColor={isDublicateCadastr ? 'error.main' : undefined}
-                    value={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
-                        <Typography color={isDublicateCadastr ? 'error.main' : 'inherit'}>
-                          {data?.house.cadastralNumber || '—'}
-                        </Typography>
-                        {isDublicateCadastr && (
-                          <>
-                            <Button
-                              size="small"
-                              color="error"
-                              variant="outlined"
-                              onClick={handleOpenCadastr}
-                              startIcon={<WarningIcon />}
-                              sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
-                            >
-                              {duplicateCadastrList.length} dublikat
-                            </Button>
-                            <Menu
-                              anchorEl={cadastrAnchorEl}
-                              open={Boolean(cadastrAnchorEl)}
-                              onClose={handleCloseCadastr}
-                              sx={{ maxHeight: 300 }}
-                            >
-                              <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
-                                O'xshash abonentlarga o'tish:
-                              </MenuItem>
-                              {duplicateCadastrList.map((sub) => (
-                                <MenuItem
-                                  key={sub.id}
-                                  component={Link}
-                                  to={`/abonent/${sub.id}/details`}
-                                  onClick={handleCloseCadastr}
-                                >
-                                  {sub.fullName} ({sub.accountNumber})
-                                </MenuItem>
-                              ))}
-                            </Menu>
-                          </>
-                        )}
-                      </Box>
-                    }
-                    isSkeleton={isLoading}
-                    copyable
-                  />
-                </div>
+                <InfoRow
+                  icon="🏠"
+                  label="Кадастр raqami"
+                  labelColor={isDublicateCadastr ? 'error.main' : undefined}
+                  value={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                      <Typography color={isDublicateCadastr ? 'error.main' : 'inherit'}>
+                        {data?.house.cadastralNumber || '—'}
+                      </Typography>
+                      {isDublicateCadastr && (
+                        <Button
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          onClick={handleOpenCadastr}
+                          startIcon={<WarningIcon />}
+                          sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                        >
+                          {duplicateCadastrList.length} dublikat
+                        </Button>
+                      )}
+                    </Box>
+                  }
+                  isSkeleton={isLoading}
+                  copyable
+                />
                 <InfoRow icon="📅" label="Шартнома sanasi" value={data?.contractDate} isSkeleton={isLoading} />
               </Stack>
             </CardContent>
@@ -364,63 +388,47 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                 />
                 <InfoRow icon="☎️" label="Уй telefoni" value={formatPhoneNumber(data?.homePhone || '')} isSkeleton={isLoading} />
                 <InfoRow icon="⚡" label="Электр СОАТО" value={data?.electricityCoato} isSkeleton={isLoading} />
-                <div ref={etkInfoRow}>
-                  <InfoRow
-                    icon="🔌"
-                    label="Электр raqami"
-                    labelColor={isDublicateElectricity ? 'error.main' : undefined}
-                    value={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
-                        <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
-                          {data?.electricityAccountNumber || '—'}
-                        </Typography>
-                        {data?.electricityAccountNumber && (
-                          <ElectricityBalanceBadge
-                            accountNumber={data.electricityAccountNumber}
-                            coato={data.electricityCoato}
-                          />
-                        )}
-                        {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
-                          <Chip
-                            label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
-                            color={(HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].color as any) || 'default'}
-                            size="small"
-                            variant="outlined"
-                            sx={{ height: 20, fontSize: '0.7rem' }}
-                          />
-                        )}
+                <InfoRow
+                  icon="🔌"
+                  label="Электр raqami"
+                  labelColor={isDublicateElectricity ? 'error.main' : undefined}
+                  value={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                      <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
+                        {data?.electricityAccountNumber || '—'}
+                      </Typography>
+                      {data?.electricityAccountNumber && (
+                        <ElectricityBalanceBadge
+                          accountNumber={data.electricityAccountNumber}
+                          coato={data.electricityCoato}
+                        />
+                      )}
+                      {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
+                        <Chip
+                          label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
+                          color={(HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].color as any) || 'default'}
+                          size="small"
+                          variant="outlined"
+                          sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
+                      )}
 
-                        {isDublicateElectricity && (
-                          <>
-                            <Button
-                              size="small"
-                              color="error"
-                              variant="outlined"
-                              onClick={handleOpen}
-                              startIcon={<WarningIcon />}
-                              sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
-                            >
-                              {similarAbonentsByElectricity.length - 1} dublikat
-                            </Button>
-                            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} sx={{ maxHeight: 300 }}>
-                              <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
-                                O'xshash abonentlarga o'tish:
-                              </MenuItem>
-                              {similarAbonentsByElectricity
-                                .filter((a) => a.id !== data?.id)
-                                .map((sub) => (
-                                  <MenuItem key={sub.id} component={Link} to={`/abonent/${sub.id}/details`} onClick={handleClose}>
-                                    {sub.fullName} ({sub.accountNumber})
-                                  </MenuItem>
-                                ))}
-                            </Menu>
-                          </>
-                        )}
-                      </Box>
-                    }
-                    isSkeleton={isLoading}
-                  />
-                </div>
+                      {isDublicateElectricity && (
+                        <Button
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          onClick={handleOpenElectricity}
+                          startIcon={<WarningIcon />}
+                          sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                        >
+                          {similarAbonentsByElectricity.length - 1} dublikat
+                        </Button>
+                      )}
+                    </Box>
+                  }
+                  isSkeleton={isLoading}
+                />
               </Stack>
             </CardContent>
           </Card>
@@ -542,17 +550,17 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
 
                   <Grid container spacing={1} sx={{ py: 0.7, alignItems: 'center' }}>
                     <Grid size={{ xs: 5 }} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <JshshirIcon sx={{ fontSize: 18, color: 'text.secondary', opacity: 0.7 }} />
-                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      <JshshirIcon sx={{ fontSize: 18, color: isDublicatePinfl ? 'error.main' : 'text.secondary', opacity: 0.7 }} />
+                      <Typography variant="body2" sx={{ color: isDublicatePinfl ? 'error.main' : 'text.secondary' }}>
                         ЖШШИР:
                       </Typography>
                     </Grid>
-                    <Grid size={7} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Grid size={7} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                       {isLoading ? (
                         <Skeleton variant="text" width="80%" height={20} />
                       ) : (
                         <>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: isDublicatePinfl ? 'error.main' : 'inherit' }}>
                             {data?.citizen.pnfl || '—'}
                           </Typography>
                           <Tooltip title={t("Yashash manzili ma'lumotlari")} placement="top">
@@ -568,6 +576,18 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                               )}
                             </IconButton>
                           </Tooltip>
+                          {isDublicatePinfl && (
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              onClick={handleOpenPinfl}
+                              startIcon={<WarningIcon />}
+                              sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                            >
+                              {duplicatePinflList.length} dublikat
+                            </Button>
+                          )}
                         </>
                       )}
                     </Grid>
@@ -593,38 +613,16 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                           </Tooltip>
                         </Typography>
                         {isDublicateCadastr && (
-                          <>
-                            <Button
-                              size="small"
-                              color="error"
-                              variant="outlined"
-                              onClick={handleOpenCadastr}
-                              startIcon={<WarningIcon />}
-                              sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
-                            >
-                              {duplicateCadastrList.length} dublikat
-                            </Button>
-                            <Menu
-                              anchorEl={cadastrAnchorEl}
-                              open={Boolean(cadastrAnchorEl)}
-                              onClose={handleCloseCadastr}
-                              sx={{ maxHeight: 300 }}
-                            >
-                              <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
-                                O'xshash abonentlarga o'tish:
-                              </MenuItem>
-                              {duplicateCadastrList.map((sub) => (
-                                <MenuItem
-                                  key={sub.id}
-                                  component={Link}
-                                  to={`/abonent/${sub.id}/details`}
-                                  onClick={handleCloseCadastr}
-                                >
-                                  {sub.fullName} ({sub.accountNumber})
-                                </MenuItem>
-                              ))}
-                            </Menu>
-                          </>
+                          <Button
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            onClick={handleOpenCadastr}
+                            startIcon={<WarningIcon />}
+                            sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                          >
+                            {duplicateCadastrList.length} dublikat
+                          </Button>
                         )}
                       </Box>
                     }
@@ -673,63 +671,47 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                     isSkeleton={isLoading}
                   />
                   <InfoRow icon={SoatoIcon} label="Электр СОАТО" value={data?.electricityCoato} isSkeleton={isLoading} />
-                  <div ref={etkInfoRow}>
-                    <InfoRow
-                      icon={EnergyIcon}
-                      label="Электр рақами"
-                      labelColor={isDublicateElectricity ? 'error.main' : undefined}
-                      value={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
-                          <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
-                            {data?.electricityAccountNumber || '—'}
-                          </Typography>
-                          {data?.electricityAccountNumber && (
-                            <ElectricityBalanceBadge
-                              accountNumber={data.electricityAccountNumber}
-                              coato={data.electricityCoato}
-                            />
-                          )}
-                          {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
-                            <Chip
-                              label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
-                              color={(HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].color as any) || 'default'}
-                              size="small"
-                              variant="outlined"
-                              sx={{ height: 20, fontSize: '0.7rem' }}
-                            />
-                          )}
+                  <InfoRow
+                    icon={EnergyIcon}
+                    label="Электр рақами"
+                    labelColor={isDublicateElectricity ? 'error.main' : undefined}
+                    value={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', flexWrap: 'wrap' }}>
+                        <Typography color={isDublicateElectricity ? 'error.main' : 'inherit'}>
+                          {data?.electricityAccountNumber || '—'}
+                        </Typography>
+                        {data?.electricityAccountNumber && (
+                          <ElectricityBalanceBadge
+                            accountNumber={data.electricityAccountNumber}
+                            coato={data.electricityCoato}
+                          />
+                        )}
+                        {abonentDebitorStatus?.hetAccountStatus && HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus] && (
+                          <Chip
+                            label={HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].label}
+                            color={(HET_ACCOUNT_CFG[abonentDebitorStatus.hetAccountStatus].color as any) || 'default'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ height: 20, fontSize: '0.7rem' }}
+                          />
+                        )}
 
-                          {isDublicateElectricity && (
-                            <>
-                              <Button
-                                size="small"
-                                color="error"
-                                variant="outlined"
-                                onClick={handleOpen}
-                                startIcon={<WarningIcon />}
-                                sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
-                              >
-                                {similarAbonentsByElectricity.length - 1} dublikat
-                              </Button>
-                              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} sx={{ maxHeight: 300 }}>
-                                <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
-                                  O'xshash abonentlarga o'tish:
-                                </MenuItem>
-                                {similarAbonentsByElectricity
-                                  .filter((a) => a.id !== data?.id)
-                                  .map((sub) => (
-                                    <MenuItem key={sub.id} component={Link} to={`/abonent/${sub.id}/details`} onClick={handleClose}>
-                                      {sub.fullName} ({sub.accountNumber})
-                                    </MenuItem>
-                                  ))}
-                              </Menu>
-                            </>
-                          )}
-                        </Box>
-                      }
-                      isSkeleton={isLoading}
-                    />
-                  </div>
+                        {isDublicateElectricity && (
+                          <Button
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            onClick={handleOpenElectricity}
+                            startIcon={<WarningIcon />}
+                            sx={{ textTransform: 'none', py: 0, px: 1, fontSize: '0.75rem' }}
+                          >
+                            {similarAbonentsByElectricity.length - 1} dublikat
+                          </Button>
+                        )}
+                      </Box>
+                    }
+                    isSkeleton={isLoading}
+                  />
                   <InfoRow icon={NoteIcon} label="Изоҳ" value={data?.description || ''} isSkeleton={isLoading} />
                 </Stack>
               </Grid>
@@ -737,6 +719,120 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Dublikat abonentlar menyusi: Kadastr */}
+      <Menu
+        anchorEl={cadastrAnchorEl}
+        open={Boolean(cadastrAnchorEl)}
+        onClose={handleCloseCadastr}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left'
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: 300,
+              minWidth: 220,
+              mt: 0.5,
+              boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(0,0,0,0.15)'
+            }
+          }
+        }}
+      >
+        <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
+          O'xshash abonentlarga o'tish:
+        </MenuItem>
+        {duplicateCadastrList.map((sub) => (
+          <MenuItem
+            key={sub.id}
+            component={Link}
+            to={`/abonent/${sub.id}/details`}
+            onClick={handleCloseCadastr}
+          >
+            {sub.fullName} ({sub.accountNumber})
+          </MenuItem>
+        ))}
+      </Menu>
+
+      {/* Dublikat abonentlar menyusi: JShShIR */}
+      <Menu
+        anchorEl={pinflAnchorEl}
+        open={Boolean(pinflAnchorEl)}
+        onClose={handleClosePinfl}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left'
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: 300,
+              minWidth: 220,
+              mt: 0.5,
+              boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(0,0,0,0.15)'
+            }
+          }
+        }}
+      >
+        <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
+          O'xshash abonentlarga o'tish:
+        </MenuItem>
+        {duplicatePinflList.map((sub) => (
+          <MenuItem
+            key={sub.id}
+            component={Link}
+            to={`/abonent/${sub.id}/details`}
+            onClick={handleClosePinfl}
+          >
+            {sub.fullName} ({sub.accountNumber})
+          </MenuItem>
+        ))}
+      </Menu>
+
+      {/* Dublikat abonentlar menyusi: Elektr hisob raqami */}
+      <Menu
+        anchorEl={electricityAnchorEl}
+        open={Boolean(electricityAnchorEl)}
+        onClose={handleCloseElectricity}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left'
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: 300,
+              minWidth: 220,
+              mt: 0.5,
+              boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(0,0,0,0.15)'
+            }
+          }
+        }}
+      >
+        <MenuItem disabled sx={{ fontSize: '0.8rem' }}>
+          O'xshash abonentlarga o'tish:
+        </MenuItem>
+        {similarAbonentsByElectricity
+          .filter((a) => a.id !== data?.id)
+          .map((sub) => (
+            <MenuItem key={sub.id} component={Link} to={`/abonent/${sub.id}/details`} onClick={handleCloseElectricity}>
+              {sub.fullName} ({sub.accountNumber})
+            </MenuItem>
+          ))}
+      </Menu>
     </>
   );
 };

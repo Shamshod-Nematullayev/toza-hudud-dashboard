@@ -56,7 +56,7 @@ export function useAbonentDetailsSupplementaryData() {
   const setHetAbonent = useAbonentStore((s) => s.setHetAbonent);
   const fetchCadastrAbonent = useAbonentStore((s) => s.fetchCadastrAbonent);
   const fetchBlockReport = useAbonentStore((s) => s.fetchBlockReport);
-  const { getSimilarAbonentsByElectricity, getSimilarAbonentsByCadastr, getAbonentDebitorStatus } = useAbonentStore();
+  const { getSimilarAbonentsByElectricity, getSimilarAbonentsByCadastr, getSimilarAbonentsByPinfl, getAbonentDebitorStatus } = useAbonentStore();
   useEffect(() => {
     if (Number.isNaN(residentId)) return;
 
@@ -66,6 +66,7 @@ export function useAbonentDetailsSupplementaryData() {
         cadastrAbonent: undefined,
         blockReport: undefined,
         similarAbonentsByCadastr: [],
+        similarAbonentsByPinfl: [],
         abonentDetailsHetLoading: false,
         abonentDetailsCadastrLoading: false
       });
@@ -80,6 +81,7 @@ export function useAbonentDetailsSupplementaryData() {
     const coato = abonentDetails.electricityCoato;
     const accountNumber = abonentDetails.electricityAccountNumber;
     const cadastralNumber = abonentDetails.house?.cadastralNumber;
+    const pnfl = abonentDetails.citizen?.pnfl;
 
     if (coato && accountNumber) {
       useAbonentStore.setState({ abonentDetailsHetLoading: true });
@@ -109,6 +111,12 @@ export function useAbonentDetailsSupplementaryData() {
       useAbonentStore.setState({ cadastrAbonent: undefined, abonentDetailsCadastrLoading: false, similarAbonentsByCadastr: [] });
     }
 
+    if (pnfl && pnfl.trim().length >= 14) {
+      void getSimilarAbonentsByPinfl(pnfl.trim());
+    } else {
+      useAbonentStore.setState({ similarAbonentsByPinfl: [] });
+    }
+
     void fetchBlockReport(residentId);
     void getAbonentDebitorStatus(residentId);
 
@@ -121,6 +129,7 @@ export function useAbonentDetailsSupplementaryData() {
     abonentDetails?.electricityCoato,
     abonentDetails?.electricityAccountNumber,
     abonentDetails?.house?.cadastralNumber,
+    abonentDetails?.citizen?.pnfl,
     supplementaryRefreshNonce,
     getHetAbonent,
     setHetAbonent,

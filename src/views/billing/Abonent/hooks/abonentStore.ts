@@ -56,6 +56,7 @@ const initialState: IAbonentPageDataStore = {
   blockReport: undefined,
   similarAbonentsByElectricity: [],
   similarAbonentsByCadastr: [],
+  similarAbonentsByPinfl: [],
   abonentCadastrs: [],
   abonentDebitorStatus: null,
   tozaMakonHistory: [],
@@ -101,6 +102,7 @@ interface IAbonentPageDataStore {
   blockReport?: BlockReport;
   similarAbonentsByElectricity: IAbonent[];
   similarAbonentsByCadastr: IAbonent[];
+  similarAbonentsByPinfl: IAbonent[];
   abonentDebitorStatus: null | Debitor;
   tozaMakonHistory: any[];
   tozaMakonHistoryLoading: boolean;
@@ -202,6 +204,7 @@ export interface IAbonentPageActionsStore {
   resetStore: () => void;
   getSimilarAbonentsByElectricity: (electrycityAccountNumber: string) => Promise<any>;
   getSimilarAbonentsByCadastr: (cadastralNumber: string) => Promise<any>;
+  getSimilarAbonentsByPinfl: (pinfl: string) => Promise<any>;
   getAbonentDebitorStatus: (residentId: number) => Promise<any>;
   getTozaMakonHistory: (residentId: number) => Promise<void>;
   setOpenTozaMakonHistoryDialog: (open: boolean) => void;
@@ -242,6 +245,9 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       await api.put('/abonents/details/' + details.id, details);
       if (details.house?.cadastralNumber) {
         void get().getSimilarAbonentsByCadastr(details.house.cadastralNumber);
+      }
+      if (details.citizen?.pnfl) {
+        void get().getSimilarAbonentsByPinfl(details.citizen.pnfl);
       }
     } catch (error) {
       if (prev && get().abonentDetails?.id === prev.id) {
@@ -467,6 +473,25 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     } catch (e) {
       console.error('getSimilarAbonentsByCadastr error:', e);
       set({ similarAbonentsByCadastr: [] });
+      return [];
+    }
+  },
+  getSimilarAbonentsByPinfl: async (pinfl) => {
+    if (!pinfl || !pinfl.trim()) {
+      set({ similarAbonentsByPinfl: [] });
+      return [];
+    }
+    const cleanPinfl = pinfl.trim();
+    try {
+      const { content } = await searchAbonentFromTozamakon({ pnfl: cleanPinfl });
+      const filtered = (content || []).filter(
+        (a) => a.pinfl?.trim() === cleanPinfl || (a as any).pnfl?.trim() === cleanPinfl
+      );
+      set({ similarAbonentsByPinfl: filtered });
+      return filtered;
+    } catch (e) {
+      console.error('getSimilarAbonentsByPinfl error:', e);
+      set({ similarAbonentsByPinfl: [] });
       return [];
     }
   },

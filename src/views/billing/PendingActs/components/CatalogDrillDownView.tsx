@@ -196,7 +196,7 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
         flex: 1,
         renderCell: (params) => (
           <Chip
-            label={t(`documentTypes.${params.value}`, params.value)}
+            label={String(t(`documentTypes.${params.value}`, params.value))}
             size="small"
             variant="outlined"
             sx={{ fontWeight: 600, fontSize: '0.75rem' }}

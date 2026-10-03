@@ -240,13 +240,15 @@ const PeriodHeader: React.FC<PeriodHeaderProps> = ({
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={() => setAnchorEl(null)}
-              PaperProps={{
-                sx: {
-                  maxHeight: 380,
-                  width: 320,
-                  borderRadius: 2,
-                  mt: 0.5,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+              slotProps={{
+                paper: {
+                  sx: {
+                    maxHeight: 380,
+                    width: 320,
+                    borderRadius: 2,
+                    mt: 0.5,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+                  }
                 }
               }}
             >

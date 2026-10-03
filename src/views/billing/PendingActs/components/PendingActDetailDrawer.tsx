@@ -127,13 +127,15 @@ const PendingActDetailDrawer: React.FC<PendingActDetailDrawerProps> = ({
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: { xs: '100%', sm: 460 },
-          p: 0,
-          bgcolor: theme.palette.background.default,
-          display: 'flex',
-          flexDirection: 'column'
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: '100%', sm: 460 },
+            p: 0,
+            bgcolor: theme.palette.background.default,
+            display: 'flex',
+            flexDirection: 'column'
+          }
         }
       }}
     >
