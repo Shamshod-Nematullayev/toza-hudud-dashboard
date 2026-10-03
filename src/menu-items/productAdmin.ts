@@ -1,11 +1,12 @@
-import { AdminPanelSettingsOutlined, BusinessOutlined, PeopleAltOutlined, AnalyticsOutlined } from '@mui/icons-material';
+import { AdminPanelSettingsOutlined, BusinessOutlined, PeopleAltOutlined, AnalyticsOutlined, ManageHistoryOutlined } from '@mui/icons-material';
 import { MenuItem } from './index';
 
 const icons = {
   AdminPanelSettingsOutlined,
   BusinessOutlined,
   PeopleAltOutlined,
-  AnalyticsOutlined
+  AnalyticsOutlined,
+  ManageHistoryOutlined
 };
 
 const productAdmin: MenuItem = {
@@ -40,6 +41,15 @@ const productAdmin: MenuItem = {
       icon: icons.AnalyticsOutlined,
       breadcrumbs: false,
       allowedRoles: ['admin', 'product_admin']
+    },
+    {
+      id: 'agendaJobs',
+      title: 'agendaJobs',
+      type: 'item',
+      url: '/product-admin/agenda-jobs',
+      icon: icons.ManageHistoryOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['product_admin']
     }
   ]
 };

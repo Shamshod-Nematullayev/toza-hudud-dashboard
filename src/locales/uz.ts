@@ -105,6 +105,7 @@ const uz = {
     manageCompanies: 'Tashkilotlarni boshqarish',
     productAnalytics: 'Mahsulot Analitikasi',
     manageUsers: 'Foydalanuvchilarni boshqarish',
+    agendaJobs: 'Agenda vazifalari (Jobs)',
     companyProfile: 'Tashkilot profili',
     'AI Data Intelligence': 'AI Data Intelligence',
     dispatcher: 'Dispetcher paneli',

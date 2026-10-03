@@ -62,6 +62,7 @@ import Murojaatlar from 'views/jurist/Murojaatlar/Murojaatlar';
 import Companies from 'views/productAdmin/Companies';
 import Users from 'views/productAdmin/Users';
 import ProductAnalytics from 'views/productAdmin/ProductAnalytics';
+import AgendaJobs from 'views/productAdmin/AgendaJobs';
 import CompanyProfile from 'views/companyProfile/CompanyProfile';
 import DataIntelligencePage from 'views/billing/DataIntelligence';
 import DispatcherDashboard from 'views/dispatcher/Dashboard';
@@ -424,6 +425,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'analytics',
           element: <ProductAnalytics />
+        },
+        {
+          path: 'agenda-jobs',
+          element: <AgendaJobs />
         }
       ]
     },
