@@ -265,7 +265,7 @@ export function Sidebar({
 
         {/* Job Action Buttons */}
         <Stack spacing={1}>
-          <Tooltip title="Job 0: TozaMakon tizimidan qarzdorlarni yuklash va sinxronlash (Faqat Premium)">
+          <Tooltip title="Job 0: Mahalliy abonentlar bazasi (MongoDB) asosida debitorlarni tezkor sinxronlash (Faqat Premium)">
             <span>
               <Button
                 fullWidth
@@ -277,7 +277,7 @@ export function Sidebar({
                 disabled={isAnyJobRunning || Boolean(triggerLoading)}
                 sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
               >
-                Job 0: TozaMakon Sinxronlash
+                Job 0: Debitorlarni Sinxronlash
               </Button>
             </span>
           </Tooltip>
@@ -358,15 +358,15 @@ export function Sidebar({
         </Stack>
       </Box>
 
-      {/* JOB 0: TOZAMAKON SINXRONLASH SOZLAMALARI DIALOGI */}
+      {/* JOB 0: DEBITORLARNI SINXRONLASH SOZLAMALARI DIALOGI */}
       <Dialog open={syncConfirmOpen} onClose={() => setSyncConfirmOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <SyncOutlined color="info" />
-          <Typography variant="h5">TozaMakon Sinxronlash (Job 0)</Typography>
+          <Typography variant="h5">Debitorlarni Sinxronlash (Job 0)</Typography>
         </DialogTitle>
         <DialogContent dividers>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            TozaMakon tizimidan qarzdorlar ro'yxati (Excel) yuklanib, debitorlar bazasi yangilanadi.
+            Mahalliy abonentlar bazasi (MongoDB) asosida debitorlar ro'yxati, qarzdorlik summalari va yangi debitorlar tezkor yangilanadi.
           </Typography>
 
           <Box
