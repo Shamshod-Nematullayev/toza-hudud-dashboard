@@ -61,7 +61,7 @@ function Dvaynik({
   moneyTransferAmount?: number | string;
   shouldBeMoneyTransfer?: boolean;
 }) {
-  const { customization, company } = useCustomizationStore();
+  const { customization, company, user } = useCustomizationStore();
 
   // Vakillik mantiqini aniqlash
   const isRelative = !!vakil?.fullName;
@@ -170,7 +170,7 @@ function Dvaynik({
             Biz quyidagi imzo chekuvchilar, {company?.locationName}, {lotinga(mahalla?.data?.name)} MFY raisi{' '}
             {fullNameToShortName(mahalla?.data?.mfy_rais_name)}, {company?.name} {company?.locationName} aholi nazoratchisi{' '}
             {fullNameToShortName(mahalla?.data?.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi xodimi
-            {' ' + fullNameToShortName(company?.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish
+            {' ' + fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish
             natijasida quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:
           </p>
 
@@ -217,6 +217,7 @@ function Dvaynik({
             abonentData={{ ...abonentData, fullName: currentApplicant }}
             mahalla2={mahalla2}
             documentType={documentType}
+            ariza={ariza}
           />
 
           {customization.documentVariantOdamSoni === 'dalolatnoma' && (

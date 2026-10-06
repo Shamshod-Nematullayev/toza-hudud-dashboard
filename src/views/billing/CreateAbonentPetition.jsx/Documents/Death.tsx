@@ -72,7 +72,7 @@ function Death({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDa
             haqidagi FHDYOning dalolatnoma(lar)ni nusxalari ilova qilingan, shu xonadonda yashovchi bo'lgan shaxsni yashovchilar sonini{' '}
             {ariza.next_prescribed_cnt} kishiga kamaytirish va qayta hisob-kitob qilish maqsadga muvofiq deb hisoblaymiz.
           </p>
-          <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} />
+          <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} ariza={ariza} />
           <br />
           <br />
           {customization.documentVariantOdamSoni === 'dalolatnoma' && (

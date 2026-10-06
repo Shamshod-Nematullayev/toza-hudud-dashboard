@@ -52,7 +52,7 @@ function PrintSection() {
     documentTitle: mahalla?.name + 'xatlov',
     contentRef: printComponentRef
   });
-  const { company } = useCustomizationStore();
+  const { company, user } = useCustomizationStore();
   const date = new Date();
   return (
     <Dialog
@@ -94,7 +94,7 @@ function PrintSection() {
               Bizlar kim imzo chekuvchilar {company?.locationName} {lotinga(mahalla?.name)} MFY raisi{' '}
               {fullNameToShortName(mahalla?.mfy_rais_name) || '________________'}, {company.name} rahbari{' '}
               {fullNameToShortName(company.managerName) || '________________'} va abonentlar bilan ishlash bo‘limi xodimi{' '}
-              {fullNameToShortName(company.billingAdminName) || '________________'}
+              {fullNameToShortName((dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName) || '________________'}
               {mahalla?.biriktirilganNazoratchi?.inspector_name && (
                 <span>, aholi nazoratchisi {fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)}</span>
               )}{' '}
@@ -153,7 +153,7 @@ function PrintSection() {
             <p>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
             {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla?.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla?.mfy_rais_name)} />}
             <br />
-            <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company.billingAdminName} />
+            <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={(dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName} />
             <br />
             <ImzoJoyiRow label="Axoli nazoratchisi:" name={fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
             <br />

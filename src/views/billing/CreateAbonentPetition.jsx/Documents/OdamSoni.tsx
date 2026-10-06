@@ -117,7 +117,7 @@ function OdamSoni({
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             Fuqoro {formatName(isRelative ? relationFullName : abonentData?.fullName)}, {lotinga(mahalla.data.name || '')} MFY raisi{' '}
             {fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, {company.name} {company.locationName} aholi bo'lim boshlig'i{' '}
-            {lotinga(fullNameToShortName(company.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.
+            {lotinga(fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.
           </p>
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
@@ -136,6 +136,7 @@ function OdamSoni({
             abonentData={{ ...abonentData, fullName: isRelative ? relationFullName : abonentData?.fullName }}
             mahalla={mahalla}
             documentType={'odam_soni'}
+            ariza={ariza}
           />
           <br />
           <br />

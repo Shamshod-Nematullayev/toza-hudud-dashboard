@@ -102,6 +102,7 @@ function Viza({ ariza, abonentData, date, mahalla, vakil }: VizaProps) {
             abonentData={{ ...abonentData, fullName: isRelative ? vakil?.fullName : abonentData?.fullName }}
             mahalla={mahalla}
             documentType={'viza'}
+            ariza={ariza}
           />
 
           {/* Agar faqat dalolatnoma o'zi bo'lsa, QR kodni oxiriga qo'shamiz */}

@@ -194,10 +194,16 @@ export default function PrintSection({
   const { customization, setCustomization } = useCustomizationStore();
 
   const [olderPeriod, setOlderPeriod] = useState<Dayjs>(dayjs());
-  const [comment, setComment] = useState('');
-  const [relation, setRelation] = useState<string>(ariza.relation || '');
-  const [relationFullName, setRelationFullName] = useState(ariza.relationFullName || '');
+  const [comment, setComment] = useState<string>(ariza?.comment || '');
+  const [relation, setRelation] = useState<string>(ariza?.relation || '');
+  const [relationFullName, setRelationFullName] = useState<string>(ariza?.relationFullName || '');
   const [autoComment, setAutoComment] = useState(false);
+
+  useEffect(() => {
+    setComment(ariza?.comment || '');
+    setRelation(ariza?.relation || '');
+    setRelationFullName(ariza?.relationFullName || '');
+  }, [ariza?._id]);
 
   // Ishtirokchilar statelari (Dizayndagi yangi qism uchun)
   const boshliqIshtirok = customization.boshliqIshtirokida;
@@ -215,10 +221,34 @@ export default function PrintSection({
     contentRef: componentRef
   });
 
+  const saveArizaDetails = async () => {
+    try {
+      if (ariza?._id) {
+        ariza.comment = comment;
+        ariza.relation = relation;
+        ariza.relationFullName = relationFullName;
+
+        await api.put('/arizalar/' + ariza._id, {
+          comment,
+          relation,
+          relationFullName
+        });
+      }
+    } catch (error) {
+      console.error('Arizani saqlashda xatolik:', error);
+    }
+  };
+
+  const handlePrint = () => {
+    // Chop etish tugmasi bosilganda parallel ravishda bazaga yangilanish so'rovi ketadi
+    saveArizaDetails();
+    printFunction();
+  };
+
   const handleClose = () => {
     setShowPrintSection(false);
-    if (comment !== ariza.comment || relation !== ariza.relation || relationFullName !== ariza.relationFullName) {
-      api.put('/arizalar/' + ariza._id, { comment, relation, relationFullName });
+    if (comment !== ariza?.comment || relation !== ariza?.relation || relationFullName !== ariza?.relationFullName) {
+      saveArizaDetails();
     }
   };
 
@@ -315,7 +345,7 @@ export default function PrintSection({
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: '16px 24px' }}>
-          <Button variant="contained" onClick={() => printFunction()} startIcon={<PrintOutlined />}>
+          <Button variant="contained" onClick={handlePrint} startIcon={<PrintOutlined />}>
             Chop etish
           </Button>
         </DialogActions>
@@ -620,7 +650,7 @@ export default function PrintSection({
           {/* Faqatgina Chop etish tugmasi (Yopish butkul o'chirildi) */}
           <Button
             variant="contained"
-            onClick={() => printFunction()}
+            onClick={handlePrint}
             startIcon={<PrintOutlined />}
             color="primary"
             sx={{

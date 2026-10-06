@@ -128,6 +128,7 @@ function Gps({
             documentType={documentType}
             gpsOperator={mahalla?.company?.gpsOperator}
             mahalla2={{}}
+            ariza={ariza}
           />
 
           {customization.documentVariantOdamSoni === 'dalolatnoma' && (

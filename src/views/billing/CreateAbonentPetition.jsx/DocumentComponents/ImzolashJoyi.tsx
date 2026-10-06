@@ -17,13 +17,16 @@ interface ImzolashJoyiProps {
   mahalla2?: any;
   documentType: string;
   gpsOperator?: any;
+  creatorName?: string;
+  ariza?: any;
 }
 
-export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator }: ImzolashJoyiProps) => {
+export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gpsOperator, creatorName, ariza }: ImzolashJoyiProps) => {
   mahalla = mahalla?.data;
   mahalla2 = mahalla2?.data;
   const { company, user, customization } = useCustomizationStore();
   const fuqaroIshtirok = customization.fuqaroIshtirok ?? true;
+  const billingStaffName = creatorName || ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName;
   return (
     <>
       {customization.boshliqIshtirokida && (
@@ -32,7 +35,7 @@ export const ImzolashJoyi = ({ mahalla, abonentData, mahalla2, documentType, gps
           <br />
         </>
       )}
-      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={company?.billingAdminName} />
+      <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={billingStaffName} />
       <br />
       {gpsOperator?.fullName && (
         <>
