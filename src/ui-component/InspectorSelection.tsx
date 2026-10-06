@@ -11,6 +11,8 @@ interface Props {
   defaultValueLabel?: string;
   defaultValueDisabled?: boolean;
   setInspectors?: React.Dispatch<React.SetStateAction<{ id: number; name: string }[]>>;
+  size?: 'small' | 'medium';
+  sx?: any;
 }
 
 function InspectorSelection({
@@ -20,7 +22,9 @@ function InspectorSelection({
   defaultValueDisabled,
   defaultValueLabel,
   label,
-  setInspectors
+  setInspectors,
+  size = 'small',
+  sx
 }: Props) {
   const [inspectors, setInspectorsState] = useState<{ id: number; name: string }[]>([]);
 
@@ -34,14 +38,14 @@ function InspectorSelection({
     });
   }, []);
   return (
-    <FormControl fullWidth>
+    <FormControl fullWidth size={size} sx={sx}>
       {label && <InputLabel id={labelId}>{label}</InputLabel>}
       <Select
         labelId={labelId}
         label={label}
         defaultValue={''}
-        value={String(selectedIspectorId)}
-        onChange={(e) => setSelectedIspectorId(Number(e.target.value))}
+        value={selectedIspectorId === '' ? '' : String(selectedIspectorId)}
+        onChange={(e) => setSelectedIspectorId(e.target.value === '' ? '' : Number(e.target.value))}
         fullWidth
       >
         <MenuItem disabled={defaultValueDisabled} value={defaultValue || ''}>

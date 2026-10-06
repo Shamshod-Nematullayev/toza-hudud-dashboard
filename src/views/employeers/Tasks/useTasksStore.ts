@@ -19,6 +19,7 @@ export interface IFilters {
   type?: 'electricity' | 'phone';
   nazoratchi_id?: number;
   status?: 'completed' | 'in-progress' | 'rejected' | 'checking';
+  _nonce?: number;
 }
 
 export interface ITask {
@@ -57,6 +58,8 @@ interface ITasksStore {
   setOpenSETTDialogDate: (open: boolean) => void;
   openInfoDialog: boolean;
   setOpenInfoDialog: (open: boolean) => void;
+  openFilterDrawer: boolean;
+  setOpenFilterDrawer: (open: boolean) => void;
   file: File | null;
   setFile: (file: File) => void;
   clearFile: () => void;
@@ -68,6 +71,8 @@ interface ITasksStore {
   fetchTasks: ({ page, limit, sortField, sortDirection, filters }: FetchParams) => Promise<FetchResult<any>>;
   filters: IFilters;
   setFilters: (filters: IFilters) => void;
+  applyQuickFilter: (filterUpdate: { type?: '' | 'electricity' | 'phone'; status?: '' | 'completed' | 'in-progress' | 'rejected' | 'checking' }) => void;
+  triggerRefresh: () => void;
   downloadExcel: () => void;
   accountNumber: string;
   fullName: string;
@@ -132,6 +137,8 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
   setOpenSETTDialogDate: (open: boolean) => set({ openSETTDialogDate: open }),
   openInfoDialog: false,
   setOpenInfoDialog: (open: boolean) => set({ openInfoDialog: open }),
+  openFilterDrawer: false,
+  setOpenFilterDrawer: (open: boolean) => set({ openFilterDrawer: open }),
   file: null,
   setFile: (file: File) => set({ file: file }),
   clearFile: () => set({ file: null }),
@@ -182,7 +189,6 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
   },
   fetchTasks: async (params) => {
     try {
-      useLoaderStore.setState({ isLoading: true });
       const { data } = await api.get('/tasks', { params });
       const tasks =
         data.data.map((row: any, index: number) => ({
@@ -211,12 +217,39 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
           total: 0
         }
       };
-    } finally {
-      useLoaderStore.setState({ isLoading: false });
     }
   },
   filters: {},
-  setFilters: (filters: IFilters) => set({ filters }),
+  setFilters: (filters: IFilters) => set({ filters: { ...filters, _nonce: Date.now() } }),
+  triggerRefresh: () => {
+    const { accountNumber, fullName, mahallaId, type, nazoratchi_id, status } = get();
+    let filters: IFilters = { _nonce: Date.now() };
+    if (accountNumber) filters.accountNumber = accountNumber;
+    if (fullName) filters.fullName = fullName;
+    if (mahallaId) filters.mahallaId = Number(mahallaId);
+    if (type) filters.type = type;
+    if (nazoratchi_id) filters.nazoratchi_id = Number(nazoratchi_id);
+    if (status) filters.status = status;
+    set({ filters });
+  },
+  applyQuickFilter: (patch) => {
+    const nextType = patch.type !== undefined ? patch.type : get().type;
+    const nextStatus = patch.status !== undefined ? patch.status : get().status;
+
+    let filters: IFilters = { _nonce: Date.now() };
+    if (get().accountNumber) filters.accountNumber = get().accountNumber;
+    if (get().fullName) filters.fullName = get().fullName;
+    if (get().mahallaId) filters.mahallaId = Number(get().mahallaId);
+    if (nextType) filters.type = nextType;
+    if (get().nazoratchi_id) filters.nazoratchi_id = Number(get().nazoratchi_id);
+    if (nextStatus) filters.status = nextStatus;
+
+    set({
+      type: nextType,
+      status: nextStatus,
+      filters
+    });
+  },
   downloadExcel: () => {
     const { accountNumber, fullName, mahallaId, type, nazoratchi_id, status } = get();
     let filters: IFilters = {};
