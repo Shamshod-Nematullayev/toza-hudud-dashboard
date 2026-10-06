@@ -36,13 +36,17 @@ import {
   AssignmentTurnedInOutlined,
   CheckCircleOutlined,
   HourglassEmptyOutlined,
-  CancelOutlined
+  CancelOutlined,
+  Schedule as ScheduleIcon,
+  Telegram as TelegramIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import api from 'utils/api';
 import MainCard from 'ui-component/cards/MainCard';
 import { toast } from 'react-toastify';
+import SpecialTasksTelegramDialog from './components/SpecialTasksTelegramDialog';
+import SpecialTasksScheduleDialog from './components/SpecialTasksScheduleDialog';
 
 interface InspectorReportRow {
   inspectorId: number;
@@ -92,6 +96,9 @@ function SpecialTasksReport() {
   const [loading, setLoading] = useState<boolean>(true);
   const [exporting, setExporting] = useState<boolean>(false);
   const [reportData, setReportData] = useState<ReportResponse | null>(null);
+
+  const [telegramDialogOpen, setTelegramDialogOpen] = useState<boolean>(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState<boolean>(false);
 
   const fetchReport = async () => {
     setLoading(true);
@@ -189,16 +196,38 @@ function SpecialTasksReport() {
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          color="success"
-          startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : <FileDownloadIcon />}
-          onClick={handleExportExcel}
-          disabled={exporting || loading}
-          sx={{ borderRadius: 2.5, px: 3, py: 1, fontWeight: 700 }}
-        >
-          {exporting ? 'Yuklanmoqda...' : 'Excelga yuklab olish'}
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<ScheduleIcon />}
+            onClick={() => setScheduleDialogOpen(true)}
+            sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}
+          >
+            Rejalashtirish
+          </Button>
+
+          <Button
+            variant="outlined"
+            color="info"
+            startIcon={<TelegramIcon />}
+            onClick={() => setTelegramDialogOpen(true)}
+            sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}
+          >
+            Telegramga yuborish
+          </Button>
+
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : <FileDownloadIcon />}
+            onClick={handleExportExcel}
+            disabled={exporting || loading}
+            sx={{ borderRadius: 2.5, px: 3, py: 1, fontWeight: 700, textTransform: 'none' }}
+          >
+            {exporting ? 'Yuklanmoqda...' : 'Excelga yuklab olish'}
+          </Button>
+        </Box>
       </Box>
 
       {/* FILTER BAR & QUICK ACTION CONTROLS */}
@@ -299,7 +328,7 @@ function SpecialTasksReport() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                 Jami Nazoratchilar
               </Typography>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main' }}>
@@ -322,7 +351,7 @@ function SpecialTasksReport() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                 Jami Topshiriqlar
               </Typography>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.secondary.main, 0.1), color: 'secondary.main' }}>
@@ -335,26 +364,40 @@ function SpecialTasksReport() {
           </Card>
         </Grid>
 
+        {/* Bajarilganlar kartasi: Agar sana filtri bo'lsa Tanlangan davrni asosiy qilamiz */}
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card
             sx={{
               p: 2.5,
               borderRadius: 3,
-              border: `1px solid ${theme.palette.divider}`,
-              backgroundColor: theme.palette.background.paper
+              border: `1px solid ${(dateFrom || dateTo) ? alpha(theme.palette.success.main, 0.5) : theme.palette.divider}`,
+              backgroundColor: (dateFrom || dateTo)
+                ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.04)
+                : theme.palette.background.paper
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                Bajarilganlar
+              <Typography variant="caption" sx={{ color: (dateFrom || dateTo) ? 'success.main' : 'text.secondary', fontWeight: 700 }}>
+                {(dateFrom || dateTo)
+                  ? (dateFrom === todayStr && dateTo === todayStr ? 'Bugun Bajarilgan' : 'Davrda Bajarilgan')
+                  : 'Bajarilganlar (Jami)'}
               </Typography>
-              <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.success.main, 0.1), color: 'success.main' }}>
+              <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.success.main, 0.15), color: 'success.main' }}>
                 <CheckCircleOutlined fontSize="small" />
               </Box>
             </Box>
             <Typography variant="h3" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'success.main' }}>
-              {summary ? summary.totalCompleted.toLocaleString() : 0}
+              {summary
+                ? (dateFrom || dateTo
+                    ? summary.totalRangeCompleted.toLocaleString()
+                    : summary.totalCompleted.toLocaleString())
+                : 0}
             </Typography>
+            {(dateFrom || dateTo) && (
+              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5, fontSize: '0.75rem' }}>
+                Jami shu paytgacha: <b>{summary ? summary.totalCompleted.toLocaleString() : 0}</b>
+              </Typography>
+            )}
           </Card>
         </Grid>
 
@@ -368,7 +411,7 @@ function SpecialTasksReport() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                 Tekshirilmoqda
               </Typography>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.info.main, 0.1), color: 'info.main' }}>
@@ -391,7 +434,7 @@ function SpecialTasksReport() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                 Jarayondagilar
               </Typography>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.warning.main, 0.1), color: 'warning.main' }}>
@@ -414,7 +457,7 @@ function SpecialTasksReport() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                 Umumiy Bajarilish
               </Typography>
               <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.info.main, 0.1), color: 'info.main' }}>
@@ -454,9 +497,24 @@ function SpecialTasksReport() {
             borderBottom: `1px solid ${theme.palette.divider}`
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Nazoratchilar bo'yicha batafsil ro'yxat ({filteredRows.length})
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              Nazoratchilar bo'yicha batafsil ro'yxat ({filteredRows.length})
+            </Typography>
+            {(dateFrom || dateTo) && (
+              <Chip
+                label={
+                  dateFrom === todayStr && dateTo === todayStr
+                    ? "Bugungi hisobot (Bugun bajarilganlar bo'yicha saralangan)"
+                    : `Davr: ${dateFrom || '...'} dan ${dateTo || '...'} gacha`
+                }
+                color="success"
+                variant="outlined"
+                size="small"
+                sx={{ fontWeight: 600 }}
+              />
+            )}
+          </Box>
 
           <TextField
             size="small"
@@ -492,9 +550,20 @@ function SpecialTasksReport() {
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
                     Jami topshiriq
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                    Bajarilgan
-                  </TableCell>
+                  {(dateFrom || dateTo) ? (
+                    <>
+                      <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', color: 'success.main', bgcolor: alpha(theme.palette.success.main, 0.08) }}>
+                        {dateFrom === todayStr && dateTo === todayStr ? 'Bugun bajarildi' : 'Davrda bajarildi'}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                        Jami bajarilgan
+                      </TableCell>
+                    </>
+                  ) : (
+                    <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                      Bajarilgan
+                    </TableCell>
+                  )}
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
                     Tekshirilmoqda
                   </TableCell>
@@ -504,11 +573,6 @@ function SpecialTasksReport() {
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
                     Rad etilgan
                   </TableCell>
-                  {(dateFrom || dateTo) && (
-                    <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                      Tanlangan davrda
-                    </TableCell>
-                  )}
                   <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>
                     Bajarilish (%)
                   </TableCell>
@@ -521,7 +585,7 @@ function SpecialTasksReport() {
               <TableBody>
                 {filteredRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} align="center" sx={{ py: 5, color: 'text.secondary' }}>
+                    <TableCell colSpan={11} align="center" sx={{ py: 5, color: 'text.secondary' }}>
                       Ma'lumot topilmadi
                     </TableCell>
                   </TableRow>
@@ -546,7 +610,7 @@ function SpecialTasksReport() {
                           >
                             {row.inspectorName}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
                             ID: {row.inspectorId}
                           </Typography>
                         </TableCell>
@@ -562,9 +626,25 @@ function SpecialTasksReport() {
                             }}
                           />
                         </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'success.main' }}>
-                          {row.completedTotal}
-                        </TableCell>
+                        {(dateFrom || dateTo) ? (
+                          <>
+                            <TableCell align="right" sx={{ bgcolor: alpha(theme.palette.success.main, 0.04) }}>
+                              <Chip
+                                label={row.rangeCompleted}
+                                size="small"
+                                color="success"
+                                sx={{ fontWeight: 700, fontFamily: 'monospace' }}
+                              />
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 600, fontFamily: 'monospace', color: 'text.secondary' }}>
+                              {row.completedTotal}
+                            </TableCell>
+                          </>
+                        ) : (
+                          <TableCell align="right" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'success.main' }}>
+                            {row.completedTotal}
+                          </TableCell>
+                        )}
                         <TableCell align="right" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'info.main' }}>
                           {row.checkingTotal || 0}
                         </TableCell>
@@ -574,16 +654,6 @@ function SpecialTasksReport() {
                         <TableCell align="right" sx={{ fontWeight: 700, fontFamily: 'monospace', color: 'error.main' }}>
                           {row.rejectedTotal}
                         </TableCell>
-                        {(dateFrom || dateTo) && (
-                          <TableCell align="right">
-                            <Chip
-                              label={row.rangeCompleted}
-                              size="small"
-                              color="secondary"
-                              sx={{ fontWeight: 700, fontFamily: 'monospace' }}
-                            />
-                          </TableCell>
-                        )}
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             <Chip label={`${row.completionPct}%`} color={statusColor} size="small" sx={{ fontWeight: 700, minWidth: 62 }} />
@@ -620,6 +690,18 @@ function SpecialTasksReport() {
           </TableContainer>
         )}
       </Card>
+
+      {/* Telegramga tezkor yuborish modali */}
+      <SpecialTasksTelegramDialog
+        open={telegramDialogOpen}
+        onClose={() => setTelegramDialogOpen(false)}
+      />
+
+      {/* Telegram avtomatik rejalashtirilgan yuborish jadvali modali */}
+      <SpecialTasksScheduleDialog
+        open={scheduleDialogOpen}
+        onClose={() => setScheduleDialogOpen(false)}
+      />
     </Box>
   );
 }

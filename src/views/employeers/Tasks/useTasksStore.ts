@@ -125,8 +125,9 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
     try {
       useLoaderStore.setState({ isLoading: true });
       const { data } = await api.post('/tasks/trigger-generate-tasks');
-      toast.success(data.message || "Yangi topshiriqlar yuklandi!");
+      toast.success(data.message || "Topshiriqlar yangilandi!");
       await get().fetchStats();
+      get().triggerRefresh();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Topshiriqlarni yuklashda xatolik");
     } finally {

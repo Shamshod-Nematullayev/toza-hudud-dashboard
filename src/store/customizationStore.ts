@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import config from 'config';
+import api from 'utils/api';
+import Cookies from 'js-cookie';
 
 export enum FontFamily {
   Roboto = 'Roboto, sans-serif',
@@ -78,6 +80,11 @@ interface CustomizationState {
   menuSettings: IMenuCustomizationSettings;
   setMenuSettings: (settings: Partial<IMenuCustomizationSettings>) => void;
   resetMenuSettings: () => void;
+  favoriteReports: string[];
+  setFavoriteReports: (reports: string[]) => void;
+  toggleFavoriteReport: (reportId: string) => void;
+  applyServerCustomization: (serverData: any) => void;
+  syncCustomizationToServer: () => void;
   user: {
     fullName: string;
     avatar: string;
@@ -149,13 +156,14 @@ const initialState = {
     borderRadius: config.borderRadius,
     opened: true,
     mode: 'dark' as ThemeMode,
-    documentVariantOdamSoni: 'ariza+dalolatnoma',
+    documentVariantOdamSoni: 'ariza+dalolatnoma' as 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza',
     boshliqIshtirokida: false,
     mfyRaisiIshtirok: true,
     fuqaroIshtirok: true
   },
   printTableSettings: defaultPrintTableSettings,
   menuSettings: defaultMenuSettings,
+  favoriteReports: [] as string[],
   user: null,
   company: {
     billingAdminName: '',
@@ -171,30 +179,144 @@ const initialState = {
   customizationDrawerOpen: false
 };
 
+let syncTimer: any = null;
+
+const syncCustomizationToServerDebounced = (state: CustomizationState) => {
+  if (typeof window === 'undefined') return;
+  const token = Cookies.get('accessToken');
+  if (!token || !state.user) return;
+
+  if (syncTimer) {
+    clearTimeout(syncTimer);
+  }
+
+  syncTimer = setTimeout(async () => {
+    try {
+      await api.put('/auth/customization', {
+        customization: {
+          customization: state.customization,
+          favoriteReports: state.favoriteReports,
+          language: state.language,
+          menuSettings: state.menuSettings,
+          printTableSettings: state.printTableSettings
+        }
+      });
+    } catch (e) {
+      console.warn('Customization serverga saqlanmadi:', e);
+    }
+  }, 500);
+};
+
 const useCustomizationStore = create<CustomizationState>()(
   persist<CustomizationState>(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
       customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' },
       setCustomization: (customization) =>
-        set((state) => ({
-          customization: { ...state.customization, ...customization }
-        })),
-      setPrintTableSettings: (settings) =>
-        set((state) => ({
-          printTableSettings: { ...state.printTableSettings, ...settings }
-        })),
-      setMenuSettings: (settings) =>
-        set((state) => ({
-          menuSettings: { ...state.menuSettings, ...settings }
-        })),
-      resetMenuSettings: () =>
-        set({
-          menuSettings: defaultMenuSettings
+        set((state) => {
+          const nextState = {
+            ...state,
+            customization: { ...state.customization, ...customization }
+          };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
         }),
+      setPrintTableSettings: (settings) =>
+        set((state) => {
+          const nextState = {
+            ...state,
+            printTableSettings: { ...state.printTableSettings, ...settings }
+          };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
+        }),
+      setMenuSettings: (settings) =>
+        set((state) => {
+          const nextState = {
+            ...state,
+            menuSettings: { ...state.menuSettings, ...settings }
+          };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
+        }),
+      resetMenuSettings: () =>
+        set((state) => {
+          const nextState = {
+            ...state,
+            menuSettings: defaultMenuSettings
+          };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
+        }),
+      favoriteReports: [],
+      setFavoriteReports: (reports) =>
+        set((state) => {
+          const nextState = { ...state, favoriteReports: reports };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
+        }),
+      toggleFavoriteReport: (reportId) =>
+        set((state) => {
+          const exists = state.favoriteReports.includes(reportId);
+          const updated = exists
+            ? state.favoriteReports.filter((id) => id !== reportId)
+            : [...state.favoriteReports, reportId];
+          const nextState = { ...state, favoriteReports: updated };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
+        }),
+      applyServerCustomization: (serverData) => {
+        if (!serverData || typeof serverData !== 'object') return;
+        set((state) => {
+          const rawCust = serverData.customization ? serverData.customization : serverData;
+          const innerCust = rawCust.customization ? rawCust.customization : rawCust;
+
+          const newCustomization = {
+            ...state.customization,
+            ...(innerCust.mode ? { mode: innerCust.mode } : {}),
+            ...(innerCust.fontFamily ? { fontFamily: innerCust.fontFamily } : {}),
+            ...(innerCust.borderRadius !== undefined ? { borderRadius: innerCust.borderRadius } : {}),
+            ...(innerCust.documentVariantOdamSoni ? { documentVariantOdamSoni: innerCust.documentVariantOdamSoni } : {})
+          };
+
+          const newFavorites = Array.isArray(rawCust.favoriteReports)
+            ? rawCust.favoriteReports
+            : Array.isArray(serverData.favoriteReports)
+              ? serverData.favoriteReports
+              : state.favoriteReports;
+
+          const newLanguage = rawCust.language || serverData.language || state.language;
+          const newMenuSettings = rawCust.menuSettings || serverData.menuSettings || state.menuSettings;
+          const newPrintTableSettings = rawCust.printTableSettings || serverData.printTableSettings || state.printTableSettings;
+
+          return {
+            customization: newCustomization,
+            favoriteReports: newFavorites,
+            language: newLanguage,
+            menuSettings: newMenuSettings,
+            printTableSettings: newPrintTableSettings
+          };
+        });
+      },
+      syncCustomizationToServer: () => {
+        syncCustomizationToServerDebounced(get());
+      },
       language: 'ru',
-      setLanguage: (language) => set({ language }),
-      resetCustomization: () => set({ customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' } }),
+      setLanguage: (language) =>
+        set((state) => {
+          const nextState = { ...state, language };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
+        }),
+      resetCustomization: () =>
+        set((state) => {
+          const nextState = {
+            ...state,
+            customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' as const }
+          };
+          syncCustomizationToServerDebounced(nextState);
+          return nextState;
+        }),
       customizationDrawerOpen: false,
       setCustomizationDrawerOpen: (open) => set({ customizationDrawerOpen: open }),
       toggleCustomizationDrawer: () => set((state) => ({ customizationDrawerOpen: !state.customizationDrawerOpen })),

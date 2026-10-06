@@ -73,8 +73,8 @@ function TasksToolbar() {
           gap: 1
         }}
       >
-        {/* Avtomatik fon amali: Debitorlardan topshiriq generatsiya qilish */}
-        <Tooltip title="Debitorlar bazasidan ma'lumoti to'liq bo'lmagan abonentlar bo'yicha yangi topshiriqlar yuklash">
+        {/* Avtomatik fon amali: Debitorlardan topshiriq generatsiya qilish va qayta taqsimlash */}
+        <Tooltip title="Debitorlar bazasidan yangi topshiriqlarni yuklash hamda mahalla nazoratchilari bo'yicha topshiriqlarni qayta taqsimlash/yangilash">
           <span>
             <Button
               variant="outlined"

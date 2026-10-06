@@ -71,57 +71,58 @@ const MainLayout = () => {
   const theme = useTheme();
   const matchDownMd = useMediaQuery(theme.breakpoints.down('md'));
   // Handle left drawer
-  const { customization, setCustomization, user, company, setCompany, setUser } = useCustomizationStore();
+  const { customization, setCustomization, user, company, setCompany, setUser, applyServerCustomization } = useCustomizationStore();
   const leftDrawerOpened = customization.opened;
   const handleLeftDrawerToggle = () => {
     setCustomization({ opened: !leftDrawerOpened });
   };
 
   useEffect(() => {
-    if (!user) {
-      (async () => {
-        const user: {
-          id: string;
-          roles: string[];
-          companyId: number;
-          fullName: string;
-          login: string;
-          isTestUser?: boolean;
-        } = (await api.get('/auth/me')).data.user;
+    (async () => {
+      try {
+        const authMeRes = await api.get('/auth/me');
+        if (authMeRes.data.customization) {
+          applyServerCustomization(authMeRes.data.customization);
+        }
 
-        setUser({ ...user, isTestUser: user.isTestUser ?? false, avatar: '' });
+        if (!user && authMeRes.data.user) {
+          const fetchedUser = authMeRes.data.user;
+          setUser({ ...fetchedUser, isTestUser: fetchedUser.isTestUser ?? false, avatar: '' });
 
-        const company: {
-          id: number;
-          name: string;
-          locationName: string;
-          regionId: number;
-          type: string;
-          activeExpiresDate: string;
-          manager: Employee;
-          gpsOperator: Employee;
-          billingAdmin: Employee;
-          abonentsPrefix: string;
-          districtId: number;
-          phone: string;
-          address: string;
-          tin: string;
-          premium: boolean;
-        } = (await api.get('/auth/company')).data.company;
-        setCompany({
-          ...company,
-          billingAdminName: company.billingAdmin?.fullName,
-          gpsOperatorName: company.gpsOperator?.fullName,
-          managerName: company.manager?.fullName
-        });
+          const company: {
+            id: number;
+            name: string;
+            locationName: string;
+            regionId: number;
+            type: string;
+            activeExpiresDate: string;
+            manager: Employee;
+            gpsOperator: Employee;
+            billingAdmin: Employee;
+            abonentsPrefix: string;
+            districtId: number;
+            phone: string;
+            address: string;
+            tin: string;
+            premium: boolean;
+          } = (await api.get('/auth/company')).data.company;
+          setCompany({
+            ...company,
+            billingAdminName: company.billingAdmin?.fullName,
+            gpsOperatorName: company.gpsOperator?.fullName,
+            managerName: company.manager?.fullName
+          });
 
-        api.get('/auth/get-photo').then(({ data }) => {
-          const uint8Array = new Uint8Array(data.photo.data);
-          const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
-          setUser({ ...user, isTestUser: user.isTestUser ?? false, avatar: base64Image });
-        });
-      })();
-    }
+          api.get('/auth/get-photo').then(({ data }) => {
+            const uint8Array = new Uint8Array(data.photo.data);
+            const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
+            setUser({ ...fetchedUser, isTestUser: fetchedUser.isTestUser ?? false, avatar: base64Image });
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch auth data:', err);
+      }
+    })();
   }, []);
 
   return (

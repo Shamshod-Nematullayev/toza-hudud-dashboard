@@ -32,7 +32,7 @@ import useCustomizationStore from 'store/customizationStore';
 
 const AuthLogin = ({ ...others }) => {
   const theme = useTheme();
-  const { setCompany, setMahallalar, setUser } = useCustomizationStore();
+  const { setCompany, setMahallalar, setUser, applyServerCustomization } = useCustomizationStore();
 
   const navigate = useNavigate();
   const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
@@ -50,6 +50,15 @@ const AuthLogin = ({ ...others }) => {
         Cookies.set('accessToken', data.accessToken);
         Cookies.set('refreshToken', data.refreshToken);
         localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
+        if (data.customization) {
+          applyServerCustomization(data.customization);
+        }
+        if (data.user) {
+          setUser({ ...data.user, id: data.user._id || data.user.id || '', avatar: '' });
+        }
+        if (data.company) {
+          setCompany(data.company);
+        }
         navigate('/');
       } else {
         toast.error(data.message);
