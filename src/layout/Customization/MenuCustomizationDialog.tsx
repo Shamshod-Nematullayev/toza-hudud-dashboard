@@ -26,7 +26,9 @@ import {
   RestartAlt,
   Tune,
   FiberManualRecord,
-  NewReleasesOutlined
+  NewReleasesOutlined,
+  PushPin,
+  PushPinOutlined
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import menuItem, { MenuItem } from 'menu-items';
@@ -155,6 +157,15 @@ const MenuCustomizationDialog: React.FC<Props> = ({ open, onClose }) => {
         }
       }
     });
+  };
+
+  // 5. Sahifani Headerga biriktirish / olib tashlash
+  const handleTogglePinToHeader = (url?: string) => {
+    if (!url) return;
+    const currentPinned = menuSettings.pinnedPages || [];
+    const exists = currentPinned.includes(url);
+    const updated = exists ? currentPinned.filter((u) => u !== url) : [...currentPinned, url];
+    setMenuSettings({ pinnedPages: updated });
   };
 
   // Standart holatga qaytarish
@@ -454,6 +465,27 @@ const MenuCustomizationDialog: React.FC<Props> = ({ open, onClose }) => {
                         </span>
                       </Tooltip>
                       <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+                      {child.url && (
+                        <Tooltip
+                          title={
+                            (menuSettings.pinnedPages || []).includes(child.url)
+                              ? 'Headerdan olib tashlash'
+                              : 'Headerga biriktirish'
+                          }
+                        >
+                          <IconButton
+                            size="small"
+                            color={(menuSettings.pinnedPages || []).includes(child.url) ? 'secondary' : 'default'}
+                            onClick={() => handleTogglePinToHeader(child.url)}
+                          >
+                            {(menuSettings.pinnedPages || []).includes(child.url) ? (
+                              <PushPin fontSize="small" />
+                            ) : (
+                              <PushPinOutlined fontSize="small" />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                      )}
                       <Tooltip title={isHidden ? "Ko'rsatish" : 'Yashirish'}>
                         <IconButton
                           size="small"

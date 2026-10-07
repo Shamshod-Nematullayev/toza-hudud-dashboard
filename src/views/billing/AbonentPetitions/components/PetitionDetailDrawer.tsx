@@ -39,6 +39,7 @@ import AttachedImagesModal from '../../AbonentPetition/AttachedImagesModal';
 import PDFViewer from '../../AbonentPetition/PDFViewer';
 import DHJTable from '../../AbonentPetition/DHJTable';
 import AktInfoCard from '../../AbonentPetition/AktInfoCard';
+import { getCleanAsoslantiruvchi } from '../../CreateAbonentPetition.jsx/useStore';
 
 interface PetitionDetailDrawerProps {
   open: boolean;
@@ -403,13 +404,13 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
                         </Typography>
                       </Stack>
 
-                      {ariza?.comment && (
+                      {getCleanAsoslantiruvchi(ariza?.comment) && (
                         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            Ariza izohi:
+                            Asoslantiruvchi izoh:
                           </Typography>
                           <Typography variant="body2" sx={{ fontWeight: 500, maxWidth: '60%', textAlign: 'right' }}>
-                            {ariza.comment}
+                            {getCleanAsoslantiruvchi(ariza?.comment)}
                           </Typography>
                         </Stack>
                       )}

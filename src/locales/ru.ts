@@ -107,6 +107,7 @@ const ru: typeof uz = {
     manageCompanies: 'Управление организациями',
     productAnalytics: 'Аналитика продукта',
     manageUsers: 'Управление пользователями',
+    manageCaotos: 'Управление кодами CAOTO',
     agendaJobs: 'Фоновые задачи (Agenda)',
     companyProfile: 'Профиль организации',
     'AI Data Intelligence': 'AI Data Intelligence',

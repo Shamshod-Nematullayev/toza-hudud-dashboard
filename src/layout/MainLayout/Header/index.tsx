@@ -23,14 +23,16 @@ import InspectorSubmissionsSection from './InspectorSubmissionsSection';
 import useCustomizationStore from 'store/customizationStore';
 import CompanySelector from './CompanySelector';
 import ExtraMenuSection from './ExtraMenuSection';
+import PinnedPagesSection from './PinnedPagesSection';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
 const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void }) => {
   const theme = useTheme();
   const menuButtonRef = useRef<HTMLDivElement>(null);
-  const { user } = useCustomizationStore();
+  const { user, menuSettings } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
+  const showCompanySelector = isProductAdmin && Boolean(menuSettings.showCompanySelectorInHeader);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,16 +93,24 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       </Box>
 
       {/* header search */}
-      <Box id="tour-header-search" sx={{ display: { xs: 'none', md: 'block' } }}>
+      <Box id="tour-header-search" sx={{ display: { xs: 'none', md: 'block' }, flexShrink: 0 }}>
         <SearchSection />
       </Box>
-      <Box sx={{ flexGrow: 1 }} />
-      {isProductAdmin && (
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+
+      {/* ClickUp-style Pinned Quick Access Pages */}
+      <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', flex: 1, minWidth: 0 }}>
+        <PinnedPagesSection />
+      </Box>
+
+      {/* Mobile spacer */}
+      <Box sx={{ display: { xs: 'block', md: 'none' }, flexGrow: 1 }} />
+
+      {/* Optional Company Selector in Header (Product Admin custom toggle) */}
+      {showCompanySelector && (
+        <Box sx={{ display: { xs: 'none', md: 'block' }, maxWidth: 260, mr: 1.5, flexShrink: 0 }}>
           <CompanySelector />
         </Box>
       )}
-      <Box sx={{ flexGrow: 1 }} />
 
       {/* Abonent Izlash - Mobile va Desktop ekranlarda ko'rinadi */}
       <Box id="tour-header-search-abonent" sx={{ display: 'flex', alignItems: 'center' }}>

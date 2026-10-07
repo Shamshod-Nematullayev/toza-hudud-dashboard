@@ -431,7 +431,6 @@ export const useStore = create<StoreState>((set, get) => ({
           },
           current_prescribed_cnt: abonentData.house.inhabitantCnt,
           next_prescribed_cnt: isNaN(Number(yashovchiSoniInput)) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
-          comment: generateSummary(recalculationPeriods as IPeriod[]),
           photos: images.map((img) => img.document_id),
           recalculationPeriods,
           muzlatiladi,
@@ -654,26 +653,43 @@ function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhab
   }
 }
 
-function generateSummary(data: IPeriod[]) {
-  function formatDateToMMYYYY(dateString: string) {
-    const date = new Date(dateString);
+export function isActCalculationSummary(text?: string | null): boolean {
+  if (!text) return false;
+  const trimmed = text.trim();
+  return (
+    trimmed.includes("Umumiy yig'indisi:") ||
+    trimmed.includes('Umumiy:') ||
+    /^Davr:\s*\d{2}\.\d{4}\s*-\s*\d{2}\.\d{4},\s*Summa:/m.test(trimmed) ||
+    /^fuqaro arizasi\s+Davr:/i.test(trimmed)
+  );
+}
+
+export function getCleanAsoslantiruvchi(comment?: string | null): string {
+  if (!comment || isActCalculationSummary(comment)) return '';
+  return comment;
+}
+
+export function buildActDescriptionFromPeriods(data?: IRecalculationPeriod[] | null): string {
+  if (!data || !data.length) return '';
+
+  function formatDateToMMYYYY(dateInput: any) {
+    if (!dateInput) return '—';
+    const date = new Date(dateInput);
+    if (Number.isNaN(date.getTime())) return '—';
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${month}.${year}`;
   }
-  // Har bir elementni matn shaklida formatlash
+
   const details = data
     .map(
       (item) =>
-        `Davr: ${formatDateToMMYYYY(item.startDate.toString())} - ${formatDateToMMYYYY(item.endDate.toString())}, Summa: ${item.total}`
+        `Davr: ${formatDateToMMYYYY(item.startDate)} - ${formatDateToMMYYYY(item.endDate)}, Summa: ${item.total}`
     )
-    .join('\n'); // Har bir elementni yangi qatorga joylash
+    .join('\n');
 
-  // Umumiy yig'indini hisoblash
+  const totalSum = data.reduce((total, item) => total + (Number(item.total) || 0), 0);
 
-  const totalSum = data.reduce((total, item) => total + item.total, 0);
-
-  // Yakuniy matnni yaratish
   return `${details}\n\nUmumiy yig'indisi: ${totalSum}`;
 }
 

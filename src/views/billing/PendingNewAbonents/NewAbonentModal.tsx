@@ -88,7 +88,8 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
   const [ignoreCadastr, setIgnoreCadastr] = useState<boolean>(false);
   const [customCadastr, setCustomCadastr] = useState<string>('');
   const [isEditingCadastr, setIsEditingCadastr] = useState<boolean>(false);
-  const [customInhabitantCnt, setCustomInhabitantCnt] = useState<number>(1);
+  const [customInhabitantCnt, setCustomInhabitantCnt] = useState<number>(0);
+  const [isEditingInhabitantCnt, setIsEditingInhabitantCnt] = useState<boolean>(false);
   const [debtMonths, setDebtMonths] = useState<number>(0);
 
   // ETK (Elektr) State
@@ -105,8 +106,14 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
   useEffect(() => {
     if (item) {
       setIgnoreCadastr(false);
+      setIsEditingCadastr(false);
+      setIsEditingInhabitantCnt(false);
       setCustomCadastr(item.cadastr || '');
-      setCustomInhabitantCnt(item.inhabitant_cnt || 1);
+      setCustomInhabitantCnt(
+        item.inhabitant_cnt !== undefined && item.inhabitant_cnt !== null
+          ? Math.max(0, Number(item.inhabitant_cnt))
+          : 0
+      );
       setDebtMonths(item.debtMonths ?? 0);
       setCustomEtkCode(item.etkCustomerCode || '');
       setCustomCaoto(item.etkCaoto || '');
@@ -168,8 +175,12 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
     }
   };
 
+  const effectiveInhabitantCnt = isPending
+    ? Math.max(0, Number(customInhabitantCnt ?? 0))
+    : Math.max(0, Number(item.inhabitant_cnt ?? 0));
+
   // Hisoblangan qarzdorlik
-  const calculatedDebt = debtMonths * (item.inhabitant_cnt || 1) * tariffRate;
+  const calculatedDebt = debtMonths * effectiveInhabitantCnt * tariffRate;
 
   // Tasdiqlash
   const handleApproveCurrent = async () => {
@@ -184,7 +195,7 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
       debtMonths,
       etkCustomerCode: effectiveEtkCode || null,
       etkCaoto: effectiveEtkCaoto || null,
-      inhabitant_cnt: item.inhabitant_cnt
+      inhabitant_cnt: effectiveInhabitantCnt
     };
 
     const ok = await onApprove(item._id, payload);
@@ -532,17 +543,55 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
 
                     <Grid size={{ xs: 12 }}>
                       <Box sx={{ p: 1.5, bgcolor: isDark ? alpha(theme.palette.secondary.main, 0.12) : '#f8fafc', borderRadius: '8px' }}>
-                        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                            Yashovchilar soni:
-                          </Typography>
-                          <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
-                            <IconUsers size={18} color={theme.palette.secondary.main} />
-                            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: theme.palette.secondary.main }}>
-                              {item.inhabitant_cnt} nafar
+                        {!isEditingInhabitantCnt ? (
+                          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              Yashovchilar soni:
                             </Typography>
+                            <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
+                              <IconUsers size={18} color={theme.palette.secondary.main} />
+                              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: theme.palette.secondary.main }}>
+                                {effectiveInhabitantCnt} nafar
+                              </Typography>
+                              {isPending && (
+                                <Tooltip title="Yashovchilar sonini o'zgartirish (min: 0)">
+                                  <IconButton size="small" onClick={() => setIsEditingInhabitantCnt(true)} sx={{ p: 0.2 }}>
+                                    <IconEdit size={15} />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                            </Stack>
                           </Stack>
-                        </Stack>
+                        ) : (
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              Yashovchilar soni:
+                            </Typography>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                              <TextField
+                                size="small"
+                                type="number"
+                                value={customInhabitantCnt}
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  if (raw === '') {
+                                    setCustomInhabitantCnt(0);
+                                    return;
+                                  }
+                                  const parsed = parseInt(raw, 10);
+                                  setCustomInhabitantCnt(Number.isNaN(parsed) ? 0 : Math.max(0, parsed));
+                                }}
+                                slotProps={{
+                                  htmlInput: { min: 0 }
+                                }}
+                                sx={{ width: 100 }}
+                              />
+                              <Button size="small" variant="contained" onClick={() => setIsEditingInhabitantCnt(false)} sx={{ fontWeight: 700 }}>
+                                OK
+                              </Button>
+                            </Stack>
+                          </Stack>
+                        )}
                       </Box>
                     </Grid>
                   </Grid>
@@ -859,7 +908,7 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
                         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                           <Typography variant="caption" sx={{ fontWeight: 600, color: debtMonths > 0 ? theme.palette.warning.main : theme.palette.success.main }}>
                             {debtMonths > 0
-                              ? `Qarzdorlik: ${debtMonths} oy × ${item.inhabitant_cnt} kishi`
+                              ? `Qarzdorlik: ${debtMonths} oy × ${effectiveInhabitantCnt} kishi`
                               : 'Qarzdorliksiz (0 so‘m)'}
                           </Typography>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: debtMonths > 0 ? theme.palette.warning.main : theme.palette.success.main }}>

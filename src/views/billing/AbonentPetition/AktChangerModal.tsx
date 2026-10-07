@@ -16,7 +16,12 @@ import useArizaStore from './useStore';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import api from 'utils/api';
 import { Calculate, Image } from '@mui/icons-material';
-import { useStore } from '../CreateAbonentPetition.jsx/useStore';
+import {
+  useStore,
+  buildActDescriptionFromPeriods,
+  getCleanAsoslantiruvchi,
+  isActCalculationSummary
+} from '../CreateAbonentPetition.jsx/useStore';
 import useLoaderStore from 'store/loaderStore';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +48,8 @@ function AktChangerModal({ onClose }: AktChangerModalProps) {
       setInhabitant(String(ariza.aktInfo.currentInhabitantCount ?? 0));
       setAmountWithNDS(ariza.aktInfo.amountWithQQS ?? 0);
       setAmountWithoutNDS(ariza.aktInfo.amountWithoutQQS ?? 0);
-      setDescription(ariza.aktInfo.description ?? '');
+      const existingDesc = ariza.aktInfo.description ?? '';
+      setDescription(isActCalculationSummary(existingDesc) ? '' : existingDesc);
     } else {
       setInhabitant('0');
       setAmountWithNDS(0);
@@ -78,12 +84,20 @@ function AktChangerModal({ onClose }: AktChangerModalProps) {
     e.preventDefault();
     setIsLoading(true);
     try {
+      const periodsSource = recalculationPeriods?.length ? recalculationPeriods : ariza?.recalculationPeriods;
+      const finalDescription =
+        description.trim() ||
+        getCleanAsoslantiruvchi(ariza?.comment).trim() ||
+        buildActDescriptionFromPeriods(periodsSource) ||
+        ariza?.aktInfo?.description ||
+        'fuqaro arizasi';
+
       const formData = new FormData();
       formData.append('inhabitantCount', inhabitant);
       formData.append('amountWithQQS', String(amountWithNDS));
       formData.append('amountWithoutQQS', String(amountWithoutNDS));
       formData.append('allAmount', String(allAmount));
-      formData.append('description', description);
+      formData.append('description', finalDescription.slice(0, 250));
       formData.append('photos', JSON.stringify(ariza.tempPhotos || []));
       formData.append('actNumber', ariza.document_number);
       if (file) {

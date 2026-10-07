@@ -208,7 +208,7 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
   };
 
   // Hisoblangan qarzdorlik summasi
-  const calculatedDebt = debtMonths * (inhabitantCnt || 1) * tariffRate;
+  const calculatedDebt = debtMonths * Math.max(0, Number(inhabitantCnt ?? 0)) * tariffRate;
 
   // Yangi abonent yaratish
   const handleSubmit = async () => {
@@ -658,8 +658,17 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
                     type="number"
                     label="Yashovchilar soni"
                     value={inhabitantCnt}
-                    onChange={(e) => setInhabitantCnt(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === '') {
+                        setInhabitantCnt(0);
+                        return;
+                      }
+                      const parsed = parseInt(raw, 10);
+                      setInhabitantCnt(Number.isNaN(parsed) ? 0 : Math.max(0, parsed));
+                    }}
                     slotProps={{
+                      htmlInput: { min: 0 },
                       input: {
                         startAdornment: <IconUsers size={18} style={{ marginRight: 6, color: theme.palette.secondary.main }} />
                       }

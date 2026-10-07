@@ -3,7 +3,13 @@ import useStore from './useStore';
 import useLoaderStore from 'store/loaderStore';
 import { useTariff } from 'hooks/useTariff';
 import { useArizaData } from 'hooks/useArizaData';
-import { useStore as useRecalculatorStore, IRecalculationPeriod, aktType } from '../../CreateAbonentPetition.jsx/useStore';
+import {
+  useStore as useRecalculatorStore,
+  IRecalculationPeriod,
+  aktType,
+  buildActDescriptionFromPeriods,
+  getCleanAsoslantiruvchi
+} from '../../CreateAbonentPetition.jsx/useStore';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
@@ -37,16 +43,19 @@ export function parseAktSumExpression(raw: string): number {
 }
 
 function buildManualActDescription(periods: IRecalculationPeriod[]): string {
-  if (!periods.length) return "Qo'lda kiritilgan akt";
-  const lines = periods.map((item) => {
-    const from = item.startDate ? new Date(item.startDate as unknown as string) : null;
-    const to = item.endDate ? new Date(item.endDate as unknown as string) : null;
-    const fmt = (d: Date | null) =>
-      d && !Number.isNaN(d.getTime()) ? `${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : '—';
-    return `Davr: ${fmt(from)} - ${fmt(to)}, Summa: ${item.total}`;
-  });
-  const total = periods.reduce((s, p) => s + p.total, 0);
-  return `${lines.join('\n')}\n\nUmumiy: ${total}`;
+  const generated = buildActDescriptionFromPeriods(periods);
+  if (!generated) return "Qo'lda kiritilgan akt";
+  return generated.length <= 250 ? generated : "Qo'lda kiritilgan akt";
+}
+
+function buildArizaActDescription(a: IAriza): string {
+  const asoslantiruvchi = getCleanAsoslantiruvchi(a.comment).trim();
+  const rawText = asoslantiruvchi || buildActDescriptionFromPeriods(a.recalculationPeriods);
+  if (!rawText) return 'fuqaro arizasi';
+  const withPrefix = `fuqaro arizasi ${rawText}`;
+  if (withPrefix.length <= 250) return withPrefix;
+  if (rawText.length <= 250) return rawText;
+  return 'fuqaro arizasi';
 }
 
 // 1. Manual holat uchun FormData yig'ish
@@ -88,7 +97,7 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
   );
   formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
   formData.append('amountWithoutQQS', (Math.floor(a.aktSummCounts?.withoutQQSTotal) || 0).toString());
-  formData.append('description', (a.comment?.length ?? 0) < 150 ? 'fuqaro arizasi ' + (a.comment || '') : 'fuqaro arizasi');
+  formData.append('description', buildArizaActDescription(a));
   a.tempPhotos?.forEach((photo, index) => {
     formData.append(`photos[${index}]`, photo);
   });

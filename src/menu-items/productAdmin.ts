@@ -1,4 +1,11 @@
-import { AdminPanelSettingsOutlined, BusinessOutlined, PeopleAltOutlined, AnalyticsOutlined, ManageHistoryOutlined } from '@mui/icons-material';
+import {
+  AdminPanelSettingsOutlined,
+  BusinessOutlined,
+  PeopleAltOutlined,
+  AnalyticsOutlined,
+  ManageHistoryOutlined,
+  ElectricBoltOutlined
+} from '@mui/icons-material';
 import { MenuItem } from './index';
 
 const icons = {
@@ -6,7 +13,8 @@ const icons = {
   BusinessOutlined,
   PeopleAltOutlined,
   AnalyticsOutlined,
-  ManageHistoryOutlined
+  ManageHistoryOutlined,
+  ElectricBoltOutlined
 };
 
 const productAdmin: MenuItem = {
@@ -32,6 +40,15 @@ const productAdmin: MenuItem = {
       icon: icons.PeopleAltOutlined,
       breadcrumbs: false,
       allowedRoles: ['product_admin']
+    },
+    {
+      id: 'manageCaotos',
+      title: 'manageCaotos',
+      type: 'item',
+      url: '/product-admin/caotos',
+      icon: icons.ElectricBoltOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'product_admin']
     },
     {
       id: 'productAnalytics',

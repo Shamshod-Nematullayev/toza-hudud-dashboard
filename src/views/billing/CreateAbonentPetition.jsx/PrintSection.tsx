@@ -38,7 +38,7 @@ import Gps from './Documents/Gps';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
 import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
-import { familyRelations } from './useStore';
+import { familyRelations, getCleanAsoslantiruvchi } from './useStore';
 
 // Constants
 
@@ -106,12 +106,15 @@ const DocumentRenderer = ({
     }
   }, [recalculationPeriods, setOlderPeriod]);
 
+  const cleanAsoslantiruvchi = getCleanAsoslantiruvchi(asoslantiruvchi);
+
   const commonProps = {
     date: new Date(ariza.sana),
     abonentData,
     mahalla,
     ariza,
-    vakil
+    vakil,
+    asoslantiruvchi: cleanAsoslantiruvchi
   };
 
   switch (ariza.document_type) {
@@ -121,7 +124,7 @@ const DocumentRenderer = ({
           {...commonProps}
           aniqlanganYashovchiSoni={aniqlanganYashovchiSoni}
           olderPeriod={olderPeriod}
-          asoslantiruvchi={asoslantiruvchi}
+          asoslantiruvchi={cleanAsoslantiruvchi}
           mahalla2={mahalla2}
           documentType="odam_soni"
           relation={vakil.relation}
@@ -194,16 +197,16 @@ export default function PrintSection({
   const { customization, setCustomization } = useCustomizationStore();
 
   const [olderPeriod, setOlderPeriod] = useState<Dayjs>(dayjs());
-  const [comment, setComment] = useState<string>(ariza?.comment || '');
+  const [comment, setComment] = useState<string>(getCleanAsoslantiruvchi(ariza?.comment));
   const [relation, setRelation] = useState<string>(ariza?.relation || '');
   const [relationFullName, setRelationFullName] = useState<string>(ariza?.relationFullName || '');
   const [autoComment, setAutoComment] = useState(false);
 
   useEffect(() => {
-    setComment(ariza?.comment || '');
+    setComment(getCleanAsoslantiruvchi(ariza?.comment));
     setRelation(ariza?.relation || '');
     setRelationFullName(ariza?.relationFullName || '');
-  }, [ariza?._id]);
+  }, [ariza?._id, ariza?.comment]);
 
   // Ishtirokchilar statelari (Dizayndagi yangi qism uchun)
   const boshliqIshtirok = customization.boshliqIshtirokida;
@@ -224,12 +227,13 @@ export default function PrintSection({
   const saveArizaDetails = async () => {
     try {
       if (ariza?._id) {
-        ariza.comment = comment;
+        const cleanComment = getCleanAsoslantiruvchi(comment);
+        ariza.comment = cleanComment;
         ariza.relation = relation;
         ariza.relationFullName = relationFullName;
 
         await api.put('/arizalar/' + ariza._id, {
-          comment,
+          comment: cleanComment,
           relation,
           relationFullName
         });
@@ -247,7 +251,11 @@ export default function PrintSection({
 
   const handleClose = () => {
     setShowPrintSection(false);
-    if (comment !== ariza?.comment || relation !== ariza?.relation || relationFullName !== ariza?.relationFullName) {
+    if (
+      getCleanAsoslantiruvchi(comment) !== getCleanAsoslantiruvchi(ariza?.comment) ||
+      relation !== ariza?.relation ||
+      relationFullName !== ariza?.relationFullName
+    ) {
       saveArizaDetails();
     }
   };

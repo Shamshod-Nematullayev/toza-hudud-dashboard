@@ -1,6 +1,7 @@
 import {
   ClickAwayListener,
   Divider,
+  IconButton,
   List,
   ListItem,
   Menu,
@@ -15,7 +16,8 @@ import {
   Grid,
   Card,
   Box,
-  Typography
+  Typography,
+  alpha
 } from '@mui/material';
 import { t } from 'i18next';
 import InfoChip from 'ui-component/InfoChip';
@@ -27,7 +29,8 @@ import {
   CalculateOutlined as CalculatedIcon, // Hisoblangan (Nachisleniye)
   AccountBalanceWalletOutlined as IncomeIcon, // Tushum (Payments)
   PieChartOutlineOutlined as BalanceIcon, // Balans
-  EventRepeatOutlined as YearEndIcon // Yil oxiri balansi
+  EventRepeatOutlined as YearEndIcon, // Yil oxiri balansi
+  AutoFixHighOutlined as RoundIcon // Minglikkacha yaxlitlash
 } from '@mui/icons-material';
 import { useEffect, useRef, useState } from 'react';
 import Transitions from 'ui-component/extended/Transitions';
@@ -51,6 +54,12 @@ interface InfoChipsProps {
   balanceToYearEnd: number | null;
 }
 
+const roundToThousand = (val: number): number => {
+  const num = Number(val) || 0;
+  const rounded = Math.round(num / 1000) * 1000;
+  return Object.is(rounded, -0) ? 0 : rounded;
+};
+
 function InfoChips(props: InfoChipsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -61,8 +70,69 @@ function InfoChips(props: InfoChipsProps) {
   const calculatorRef = useRef<any>(null);
   const [openCalc, setOpenCalc] = useState(false);
 
+  const [isBalanceRounded, setIsBalanceRounded] = useState<boolean>(() => {
+    return localStorage.getItem('abonent_balance_rounded') === 'true';
+  });
+
+  const handleToggleRoundBalance = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsBalanceRounded((prev) => {
+      const next = !prev;
+      localStorage.setItem('abonent_balance_rounded', String(next));
+      return next;
+    });
+  };
+
+  const displayBalance = isBalanceRounded ? roundToThousand(props.balance) : props.balance;
+  const displayBalanceToYearEnd =
+    props.balanceToYearEnd !== null
+      ? isBalanceRounded
+        ? roundToThousand(Number(props.balanceToYearEnd))
+        : Number(props.balanceToYearEnd)
+      : null;
+
   const [toDate, setToDate] = useState<Dayjs | null>(dayjs().endOf('year'));
   const [toDateBalance, setToDateBalance] = useState(0);
+  const displayToDateBalance = isBalanceRounded ? roundToThousand(toDateBalance) : toDateBalance;
+
+  const roundToggleBtn = (
+    <Tooltip
+      title={
+        isBalanceRounded
+          ? `Asl balansni ko'rsatish (${props.balance.toLocaleString('uz-Latn')})`
+          : `Minglikkacha yaxlitlash (${roundToThousand(props.balance).toLocaleString('uz-Latn')})`
+      }
+      placement="top"
+      arrow
+    >
+      <IconButton
+        size="small"
+        onClick={handleToggleRoundBalance}
+        sx={{
+          width: 28,
+          height: 28,
+          borderRadius: '8px',
+          color: isBalanceRounded ? 'primary.main' : 'text.secondary',
+          bgcolor: isBalanceRounded
+            ? alpha(theme.palette.primary.main, isDark ? 0.22 : 0.12)
+            : 'transparent',
+          border: '1px solid',
+          borderColor: isBalanceRounded
+            ? alpha(theme.palette.primary.main, 0.35)
+            : 'transparent',
+          opacity: isBalanceRounded ? 1 : 0.65,
+          transition: 'all 0.18s ease',
+          '&:hover': {
+            opacity: 1,
+            color: 'primary.main',
+            bgcolor: alpha(theme.palette.primary.main, isDark ? 0.28 : 0.14)
+          }
+        }}
+      >
+        <RoundIcon sx={{ fontSize: 16 }} />
+      </IconButton>
+    </Tooltip>
+  );
 
   const currentYear = dayjs().year();
   const years = Array.from({ length: 6 }, (_, i) => currentYear + i);
@@ -181,16 +251,19 @@ function InfoChips(props: InfoChipsProps) {
               >
                 <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
-                    <Typography variant="h3" color={props.balance < 0 ? 'error' : 'success'} sx={{ fontWeight: 800 }}>
-                      {props.balance.toLocaleString('uz-Latn')}
-                    </Typography>
+                    <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                      <Typography variant="h3" color={props.balance < 0 ? 'error' : 'success'} sx={{ fontWeight: 800 }}>
+                        {displayBalance.toLocaleString('uz-Latn')}
+                      </Typography>
+                      <Box onClick={(e) => e.stopPropagation()}>{roundToggleBtn}</Box>
+                    </Stack>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       💳 Balans (so'm)
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="h4" color={Number(props.balanceToYearEnd) < 0 ? 'error' : 'success'} sx={{ fontWeight: 800 }}>
-                      {props.balanceToYearEnd !== null ? Number(props.balanceToYearEnd).toLocaleString('uz-Latn') : '—'}
+                      {displayBalanceToYearEnd !== null ? displayBalanceToYearEnd.toLocaleString('uz-Latn') : '—'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       📉 Yil oxiriga balans
@@ -304,13 +377,14 @@ function InfoChips(props: InfoChipsProps) {
           <InfoChip
             icon={BalanceIcon}
             label={t('tableHeaders.balance')}
-            value={props.balance.toLocaleString('uz-Latn')}
+            value={displayBalance.toLocaleString('uz-Latn')}
             valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
             onClick={() => setOpenCalc(true)}
             containerSX={{
               cursor: 'pointer'
             }}
             containerRef={calculatorRef}
+            endAction={roundToggleBtn}
           />
         </Stack>
       )}
@@ -354,7 +428,7 @@ function InfoChips(props: InfoChipsProps) {
                     <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
                       <span style={{ maxWidth: '200px' }}>{t('tableHeaders.currentDebitor')}:</span>
                       <span style={{ color: props.balance < 0 ? 'red' : 'green' }}>
-                        {props.balance.toLocaleString()}
+                        {displayBalance.toLocaleString()}
                         {' ' + t('uzs')}
                       </span>
                     </ListItem>
@@ -362,7 +436,7 @@ function InfoChips(props: InfoChipsProps) {
                     <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
                       <span style={{ maxWidth: '200px' }}>{t('tableHeaders.choosedPeriodDebitor')}:</span>
                       <span style={{ color: toDateBalance < 0 ? 'red' : 'green' }}>
-                        {toDateBalance.toLocaleString()}
+                        {displayToDateBalance.toLocaleString()}
                         {' ' + t('uzs')}
                       </span>
                     </ListItem>

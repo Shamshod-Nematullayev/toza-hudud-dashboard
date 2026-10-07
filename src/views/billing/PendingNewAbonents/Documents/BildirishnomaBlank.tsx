@@ -106,7 +106,7 @@ export const BildirishnomaBlank: React.FC<BildirishnomaBlankProps> = ({
         <b>{year}</b> йил «<b>{day}</b>» <b>{month}</b> куни хизмат кўрсатиш ҳудудимга қарашли{' '}
         <b>{item.mahallaName || '__________'}</b> МФЙ, <b>{item.streetName || '__________'}</b> кўчасида яшовчи фуқаро{' '}
         <b>{citizenFullName}</b>нинг хонадонига чиққанимда фуқаро «Тоза ҳудуд» ҳисобида йўқлиги (янги абонент) аниқланди.{' '}
-        Хонадонда <b>{item.inhabitant_cnt || 1}</b> нафар фуқаро истиқомат қилиб келмоқда.
+        Хонадонда <b>{item.inhabitant_cnt ?? 0}</b> нафар фуқаро истиқомат қилиб келмоқда.
       </div>
 
       <div style={{ textAlign: 'justify', textIndent: '40px', marginBottom: '16px' }}>

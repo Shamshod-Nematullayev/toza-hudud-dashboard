@@ -107,6 +107,7 @@ const uzKirill: typeof uz = {
     manageCompanies: 'Ташкилотларни бошқариш',
     productAnalytics: 'Маҳсулот Аналитикаси',
     manageUsers: 'Фойдаланувчиларни бошқариш',
+    manageCaotos: 'CAOTO кодларни бошқариш',
     agendaJobs: 'Agenda вазифалари (Jobs)',
     companyProfile: 'Ташкилот профили',
     'AI Data Intelligence': 'AI Data Intelligence',

@@ -10,7 +10,8 @@ const InfoChip = ({
   onClick,
   containerSX,
   containerRef,
-  loading
+  loading,
+  endAction
 }: {
   icon: React.ElementType<SvgIconProps>;
   label: string | number;
@@ -20,6 +21,7 @@ const InfoChip = ({
   onClick?: () => void;
   containerRef?: React.RefObject<HTMLDivElement>;
   loading?: boolean;
+  endAction?: React.ReactNode;
 }) => {
   return (
     <Stack
@@ -68,7 +70,7 @@ const InfoChip = ({
       </Box>
 
       {/* Matn qismi */}
-      <Box sx={{ ml: 1 }}>
+      <Box sx={{ ml: 1, flex: 1, minWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, color: valueColor, fontSize: 18 }}>
           {loading ? (
             <>
@@ -82,6 +84,15 @@ const InfoChip = ({
           {label}
         </Typography>
       </Box>
+
+      {endAction && (
+        <Box
+          sx={{ ml: 'auto', pl: 0.5, display: 'flex', alignItems: 'center', flexShrink: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {endAction}
+        </Box>
+      )}
     </Stack>
   );
 };

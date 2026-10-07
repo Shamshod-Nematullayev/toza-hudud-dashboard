@@ -124,7 +124,7 @@ export const DalolatnomaBlank: React.FC<DalolatnomaBlankProps> = ({
       </div>
 
       <div style={{ textAlign: 'justify', textIndent: '30px', marginBottom: '16px' }}>
-        Mazkur xonadonda <b>{item.inhabitant_cnt || 1}</b> nafar fuqaro istiqomat qilayotganligi inobatga olinib, fuqaroga{' '}
+        Mazkur xonadonda <b>{item.inhabitant_cnt ?? 0}</b> nafar fuqaro istiqomat qilayotganligi inobatga olinib, fuqaroga{' '}
         <b>{effectiveDebtMonths}</b> oylik to‘lov qayta hisob-kitob qilindi. Hisoblangan umumiy qarzdorlik miqdori:{' '}
         <b>{Number(effectiveNSaldo).toLocaleString('uz-UZ')}</b> (<i>{words}</i>) so‘mni tashkil etadi.
       </div>

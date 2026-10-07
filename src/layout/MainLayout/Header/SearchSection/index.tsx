@@ -283,13 +283,13 @@ const SearchAutocomplete = ({
             }
           }}
           sx={{
-            width: fullWidth ? '100%' : { md: 250, lg: 320 },
-            ml: fullWidth ? 0 : 2,
+            width: fullWidth ? '100%' : { md: 125, lg: 160 },
+            ml: fullWidth ? 0 : 1.5,
             '& .MuiOutlinedInput-root': {
               bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.50',
               borderRadius: `${customization.borderRadius}px`,
-              py: 0.5,
-              px: 1.5,
+              py: 0.25,
+              px: 1,
               '& fieldset': {
                 borderColor: theme.palette.mode === 'dark' ? theme.palette.divider : 'transparent',
                 transition: 'all 0.2s ease-in-out'
@@ -303,8 +303,8 @@ const SearchAutocomplete = ({
               }
             },
             '& input': {
-              py: 1.25,
-              fontSize: '0.875rem',
+              py: 1,
+              fontSize: '0.8125rem',
               color: theme.palette.text.primary
             }
           }}

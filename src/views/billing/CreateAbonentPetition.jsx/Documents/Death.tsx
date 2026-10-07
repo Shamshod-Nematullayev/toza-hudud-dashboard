@@ -10,7 +10,19 @@ import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import useCustomizationStore from 'store/customizationStore';
 
-function Death({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentData: AbonentDetails; date: Date; mahalla: IMahalla }) {
+function Death({
+  ariza,
+  abonentData,
+  date,
+  mahalla,
+  asoslantiruvchi
+}: {
+  ariza: IAriza;
+  abonentData: AbonentDetails;
+  date: Date;
+  mahalla: IMahalla;
+  asoslantiruvchi?: string;
+}) {
   const { customization } = useCustomizationStore();
   return (
     <>
@@ -72,6 +84,7 @@ function Death({ ariza, abonentData, date, mahalla }: { ariza: IAriza; abonentDa
             haqidagi FHDYOning dalolatnoma(lar)ni nusxalari ilova qilingan, shu xonadonda yashovchi bo'lgan shaxsni yashovchilar sonini{' '}
             {ariza.next_prescribed_cnt} kishiga kamaytirish va qayta hisob-kitob qilish maqsadga muvofiq deb hisoblaymiz.
           </p>
+          {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic' }}>{asoslantiruvchi}</p>}
           <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} ariza={ariza} />
           <br />
           <br />

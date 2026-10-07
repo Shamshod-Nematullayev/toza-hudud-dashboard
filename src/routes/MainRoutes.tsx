@@ -61,6 +61,7 @@ import CallerStart from 'views/billing/CallerWorkspace/CallerStart';
 import Murojaatlar from 'views/jurist/Murojaatlar/Murojaatlar';
 import Companies from 'views/productAdmin/Companies';
 import Users from 'views/productAdmin/Users';
+import Caotos from 'views/productAdmin/Caotos';
 import ProductAnalytics from 'views/productAdmin/ProductAnalytics';
 import AgendaJobs from 'views/productAdmin/AgendaJobs';
 import CompanyProfile from 'views/companyProfile/CompanyProfile';
@@ -421,6 +422,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'users',
           element: <Users />
+        },
+        {
+          path: 'caotos',
+          element: <Caotos />
         },
         {
           path: 'analytics',

@@ -44,6 +44,8 @@ export interface IMenuCustomizationSettings {
   groupOrder?: string[];                           // Order of main groups
   hiddenGroups?: string[];                         // Hidden group IDs
   itemsByGroup?: Record<string, IMenuItemCustomization>; // Per-group item customization
+  pinnedPages?: string[];                          // URLs of pages pinned to the Header
+  showCompanySelectorInHeader?: boolean;           // Whether CompanySelector is visible in the main Header
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -145,7 +147,9 @@ const defaultPrintTableSettings: IPrintTableCustomization = {
 export const defaultMenuSettings: IMenuCustomizationSettings = {
   groupOrder: [],
   hiddenGroups: [],
-  itemsByGroup: {}
+  itemsByGroup: {},
+  pinnedPages: [],
+  showCompanySelectorInHeader: false
 };
 
 const initialState = {

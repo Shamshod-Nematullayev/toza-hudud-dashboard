@@ -40,6 +40,7 @@ function Dvaynik({
   nextPrescribedCnt,
   currentPrescribedCnt,
   vakil,
+  asoslantiruvchi,
   dublicateRelation,
   moneyTransferAmount,
   shouldBeMoneyTransfer
@@ -57,6 +58,7 @@ function Dvaynik({
     relation: string;
     fullName: string;
   };
+  asoslantiruvchi?: string;
   dublicateRelation?: string;
   moneyTransferAmount?: number | string;
   shouldBeMoneyTransfer?: boolean;
@@ -198,6 +200,10 @@ function Dvaynik({
               </tr>
             </tbody>
           </StyledTable>
+
+          {asoslantiruvchi && (
+            <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic', marginTop: '12px' }}>{asoslantiruvchi}</p>
+          )}
 
           <p
             style={{

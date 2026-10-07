@@ -17,6 +17,7 @@ function Gps({
   recalculationPeriods,
   muzlatiladi,
   photos,
+  asoslantiruvchi,
   vakil // Vakil ma'lumotlari prop sifatida qo'shildi
 }: {
   date: Date;
@@ -27,6 +28,7 @@ function Gps({
   recalculationPeriods: any[];
   muzlatiladi: boolean;
   photos: any[];
+  asoslantiruvchi?: string;
   vakil?: {
     relation: string;
     fullName: string;
@@ -116,6 +118,7 @@ function Gps({
             xizmat ko‘rsatilmaganligi aniqlandi.{' '}
             {muzlatiladi && <>Ushbu abonentga bugungi kunda ham xizmat ko‘rsatish imkoniyati mavjud emas.</>}
           </p>
+          {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic' }}>{asoslantiruvchi}</p>}
           <p>
             Yuqoridagilarga va GPS ma’lumotlariga muvofiq, hisobga olishning yagona elektron tizimida mazkur abonent to‘g‘risidagi
             ma’lumotlarga tegishli o‘zgartirishlar kiritish hamda qayta hisob-kitob qilishni maqsadga muvofiq deb hisoblaymiz.

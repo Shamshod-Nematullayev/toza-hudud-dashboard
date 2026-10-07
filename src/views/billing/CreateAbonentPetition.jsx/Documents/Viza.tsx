@@ -15,13 +15,14 @@ interface VizaProps {
   abonentData: AbonentDetails;
   date: Date;
   mahalla: IMahalla;
+  asoslantiruvchi?: string;
   vakil?: {
     relation: string;
     fullName: string;
   };
 }
 
-function Viza({ ariza, abonentData, date, mahalla, vakil }: VizaProps) {
+function Viza({ ariza, abonentData, date, mahalla, asoslantiruvchi, vakil }: VizaProps) {
   const { customization, company } = useCustomizationStore();
 
   // Vakillik mantiqini aniqlash
@@ -96,6 +97,7 @@ function Viza({ ariza, abonentData, date, mahalla, vakil }: VizaProps) {
             tashqarida bo'lgan davrlarini inobatga olgan holda, yagona elektron tizimda qayta hisob-kitob qilishni maqsadga muvofiq deb
             hisoblaymiz.
           </p>
+          {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic' }}>{asoslantiruvchi}</p>}
 
           {/* IMZOLAR BO'LIMI */}
           <ImzolashJoyi

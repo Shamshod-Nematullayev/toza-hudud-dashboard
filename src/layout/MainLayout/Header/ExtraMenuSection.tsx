@@ -12,6 +12,7 @@ import {
   Paper,
   Popper,
   Stack,
+  Switch,
   Tooltip,
   Typography,
   useTheme
@@ -30,7 +31,7 @@ function ExtraMenuSection() {
   const anchorRef = useRef<any>(null);
   const [open, setOpen] = useState(false);
 
-  const { user } = useCustomizationStore();
+  const { user, menuSettings, setMenuSettings } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
   const roles = user?.roles || [];
   const canSearchAbonents =
@@ -188,15 +189,41 @@ function ExtraMenuSection() {
                   {/* 2. Tashkilotni o'zgartirish (Product Admin uchun) */}
                   {isProductAdmin && (
                     <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
-                      <Stack direction="row" spacing={1} sx={{ mb: 1, px: 0.5, alignItems: 'center' }}>
-                        <IconBuilding size="1.1rem" color={theme.palette.warning.main} />
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-                          TASHKILOTNI O'ZGARTIRISH
-                        </Typography>
+                      <Stack direction="row" spacing={1} sx={{ mb: 1, px: 0.5, alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                          <IconBuilding size="1.1rem" color={theme.palette.warning.main} />
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                            TASHKILOTNI O'ZGARTIRISH
+                          </Typography>
+                        </Stack>
                       </Stack>
-                      <Box sx={{ px: 0.5 }}>
+                      <Box sx={{ px: 0.5, mb: 1 }}>
                         <CompanySelector />
                       </Box>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{
+                          px: 0.75,
+                          py: 0.5,
+                          borderRadius: 1.5,
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          bgcolor: theme.palette.action.hover
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          Headerda ko'rsatish
+                        </Typography>
+                        <Switch
+                          size="small"
+                          color="warning"
+                          checked={Boolean(menuSettings.showCompanySelectorInHeader)}
+                          onChange={(e) =>
+                            setMenuSettings({ showCompanySelectorInHeader: e.target.checked })
+                          }
+                        />
+                      </Stack>
                     </Box>
                   )}
                 </Box>
