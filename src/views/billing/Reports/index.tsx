@@ -34,8 +34,8 @@ export interface IReportItem {
 const reportItems: IReportItem[] = [
   {
     id: '1',
-    name: "Abonent ma'lumotlari",
-    description: "Biriktirilgan abonentlar ro'yxati va holati",
+    name: "Abonent ma'lumotlari (Nazoratchilar xatlovi)",
+    description: "Telegram bot orqali kiritilgan ma'lumotlar (shaxsni tasdiqlash, elektr, yashovchi soni, yangi abonent, telefon) kunlik hisoboti",
     category: 'data',
     categoryLabel: 'Nazoratchilar',
     path: 'xatlov-inspectors',
