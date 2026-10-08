@@ -48,6 +48,15 @@ import { toast } from 'react-toastify';
 import ScheduleDialog from './ScheduleDialog';
 import TelegramGroupSelect from '../components/TelegramGroupSelect';
 
+interface IPlanMahallaItem {
+  id: number;
+  name: string;
+  kunlikReja: number;
+  bajarilishi: number;
+  foiz: number;
+  farqi: number;
+}
+
 interface IPlanRow {
   id: number;
   name: string;
@@ -59,6 +68,16 @@ interface IPlanRow {
   bajarilishi: number;
   foiz: number;
   farqi: number;
+  mahallas?: IPlanMahallaItem[];
+}
+
+interface IClassicMahallaItem {
+  id: number;
+  name: string;
+  tushumSoni: number;
+  summasi: number;
+  allSumma: number;
+  allCount: number;
 }
 
 interface IClassicRow {
@@ -72,6 +91,7 @@ interface IClassicRow {
   summasi: number;
   allSumma: number;
   allCount: number;
+  mahallas?: IClassicMahallaItem[];
 }
 
 interface IMahallaTushumlarReportResult {
@@ -306,7 +326,7 @@ export default function MahallaTushumlarNazoratchi() {
           sx={{
             mt: 2.5,
             p: 2,
-            backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : alpha('#f8fafc', 0.8),
+            backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : theme.palette.background.default,
             borderRadius: 2,
             border: `1px solid ${theme.palette.divider}`
           }}
@@ -657,29 +677,56 @@ export default function MahallaTushumlarNazoratchi() {
               overflow: 'hidden'
             }}
           >
-            <Table size="small">
+            <Table
+              size="small"
+              sx={{
+                '& .MuiTableCell-root': {
+                  py: 0.5,
+                  px: 1.5,
+                  fontSize: '0.92rem'
+                }
+              }}
+            >
               <TableHead>
                 {reportMode === 'plan' ? (
-                  <TableRow sx={{ backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : theme.palette.action.hover }}>
-                    <TableCell sx={{ fontWeight: 700, width: 50, py: 1.5 }}>T/r</TableCell>
-                    <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Nazoratchi F.I.Sh</TableCell>
+                  <TableRow sx={{ backgroundColor: theme.palette.action.hover }}>
+                    <TableCell sx={{ fontWeight: 700, width: 50, py: 1 }}>T/r</TableCell>
+                    <TableCell sx={{ fontWeight: 700, py: 1 }}>Nazoratchi F.I.Sh</TableCell>
                     {groupBy === 'mahalla' && (
                       <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Mahalla</TableCell>
                     )}
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Kunlik Reja (so‘m)</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Bajarilishi ({data?.partnerTitle || 'EcoPay'}) (so‘m)</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>
+                      {groupBy === 'mahalla'
+                        ? `Mahalla tushumi (${data?.partnerTitle || 'EcoPay'}) (so‘m)`
+                        : `Bajarilishi (${data?.partnerTitle || 'EcoPay'}) (so‘m)`}
+                    </TableCell>
+                    {groupBy === 'mahalla' && (
+                      <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>
+                        Umumiy tushum (Yig‘indi)
+                      </TableCell>
+                    )}
                     <TableCell align="center" sx={{ fontWeight: 700, py: 1.5 }}>Foiz (%)</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Farqi (so‘m)</TableCell>
                   </TableRow>
                 ) : (
-                  <TableRow sx={{ backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : theme.palette.action.hover }}>
+                  <TableRow sx={{ backgroundColor: theme.palette.action.hover }}>
                     <TableCell sx={{ fontWeight: 700, width: 50, py: 1.5 }}>T/r</TableCell>
                     <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Nazoratchi F.I.Sh</TableCell>
                     {groupBy === 'mahalla' && (
                       <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Mahalla</TableCell>
                     )}
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Tushum soni</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>{data?.partnerTitle || 'EcoPay'} summasi</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>
+                      {groupBy === 'mahalla'
+                        ? `Mahalla tushumi (${data?.partnerTitle || 'EcoPay'})`
+                        : `${data?.partnerTitle || 'EcoPay'} summasi`}
+                    </TableCell>
+                    {groupBy === 'mahalla' && (
+                      <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>
+                        Umumiy tushum (Yig‘indi)
+                      </TableCell>
+                    )}
                     <TableCell align="right" sx={{ fontWeight: 700, py: 1.5 }}>Jami summa (so‘m)</TableCell>
                   </TableRow>
                 )}
@@ -688,66 +735,271 @@ export default function MahallaTushumlarNazoratchi() {
               <TableBody>
                 {reportMode === 'plan' && planSummary?.rows && planSummary.rows.length > 0 ? (
                   <>
-                    {planSummary.rows.map((row, idx) => {
-                      const isHigh = row.foiz >= 100;
-                      const isMedium = row.foiz >= 60;
-                      return (
-                        <TableRow
-                          key={`${row.id}_${idx}`}
-                          hover
-                          sx={{
-                            '&:nth-of-type(even)': {
-                              backgroundColor: theme.palette.mode === 'dark' ? alpha('#ffffff', 0.02) : '#fcfcfc'
-                            }
-                          }}
-                        >
-                          <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>{idx + 1}</TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>
-                            {groupBy === 'mahalla' ? (row.inspectorName || row.name.split(' — ')[0]) : row.name}
-                          </TableCell>
-                          {groupBy === 'mahalla' && (
-                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary' }}>
-                              {row.mahallaName || (row.name.includes(' — ') ? row.name.split(' — ')[1] : '-')}
-                            </TableCell>
-                          )}
-                          <TableCell align="right" sx={{ fontWeight: 500 }}>
-                            {row.kunlikReja.toLocaleString()}
-                          </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
-                            {row.bajarilishi.toLocaleString()}
-                          </TableCell>
-                          <TableCell align="center">
-                            <Chip
-                              size="small"
-                              label={`${row.foiz}%`}
+                    {groupBy === 'mahalla'
+                      ? planSummary.rows.map((row, idx) => {
+                          const mList: IPlanMahallaItem[] = (row.mahallas || []).filter((m) => m.bajarilishi > 0);
+                          const spanCount = mList.length;
+
+                          if (spanCount === 0 || row.bajarilishi <= 0) {
+                            return (
+                              <TableRow
+                                key={`${row.id}_no_income`}
+                                sx={{
+                                  backgroundColor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.14 : 0.08),
+                                  '& td': {
+                                    borderBottom: `2px solid ${theme.palette.divider}`
+                                  }
+                                }}
+                              >
+                                <TableCell
+                                  align="center"
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 800,
+                                    borderRight: `1px solid ${theme.palette.divider}`
+                                  }}
+                                >
+                                  {idx + 1}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 700,
+                                    borderRight: `1px solid ${theme.palette.divider}`
+                                  }}
+                                >
+                                  {row.name}
+                                </TableCell>
+                                <TableCell
+                                  align="center"
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 800,
+                                    bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.22 : 0.14)
+                                  }}
+                                >
+                                  TUSHUM QILMAGAN
+                                </TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 700, color: 'error.main' }}>
+                                  {row.kunlikReja.toLocaleString()}
+                                </TableCell>
+                                <TableCell
+                                  colSpan={2}
+                                  align="center"
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 800,
+                                    bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.22 : 0.14),
+                                    borderLeft: `1px solid ${theme.palette.divider}`,
+                                    borderRight: `1px solid ${theme.palette.divider}`
+                                  }}
+                                >
+                                  TUSHUM QILMAGAN
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Chip
+                                    size="small"
+                                    label="0%"
+                                    sx={{
+                                      fontWeight: 700,
+                                      fontSize: '0.75rem',
+                                      backgroundColor: alpha(theme.palette.error.main, 0.2),
+                                      color: theme.palette.error.main
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 700, color: 'error.main' }}>
+                                  {row.farqi > 0 ? `+${row.farqi.toLocaleString()}` : row.farqi.toLocaleString()}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          }
+
+                          const isEvenGroup = idx % 2 === 1;
+                          const groupBg = isEvenGroup
+                            ? alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.03 : 0.02)
+                            : 'transparent';
+
+                          return mList.map((m, mIdx) => {
+                            const isHigh = m.foiz >= 100;
+                            const isMedium = m.foiz >= 60;
+                            const isLastInGroup = mIdx === spanCount - 1;
+                            const groupBorderBottom = isLastInGroup ? `2px solid ${theme.palette.divider}` : undefined;
+
+                            return (
+                              <TableRow
+                                key={`${row.id}_${m.id}_${mIdx}`}
+                                hover
+                                sx={{ backgroundColor: groupBg }}
+                              >
+                                {mIdx === 0 && (
+                                  <TableCell
+                                    rowSpan={spanCount}
+                                    align="center"
+                                    sx={{
+                                      color: 'text.secondary',
+                                      fontWeight: 700,
+                                      verticalAlign: 'middle',
+                                      borderRight: `1px solid ${theme.palette.divider}`,
+                                      borderBottom: `2px solid ${theme.palette.divider}`
+                                    }}
+                                  >
+                                    {idx + 1}
+                                  </TableCell>
+                                )}
+                                {mIdx === 0 && (
+                                  <TableCell
+                                    rowSpan={spanCount}
+                                    sx={{
+                                      fontWeight: 700,
+                                      verticalAlign: 'middle',
+                                      borderRight: `1px solid ${theme.palette.divider}`,
+                                      borderBottom: `2px solid ${theme.palette.divider}`
+                                    }}
+                                  >
+                                    {row.name}
+                                  </TableCell>
+                                )}
+                                <TableCell sx={{ fontWeight: 500, color: 'text.primary', borderBottom: groupBorderBottom }}>
+                                  {m.name}
+                                </TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 500, borderBottom: groupBorderBottom }}>
+                                  {m.kunlikReja.toLocaleString()}
+                                </TableCell>
+                                <TableCell
+                                  align="right"
+                                  sx={{ fontWeight: 600, color: theme.palette.success.main, borderBottom: groupBorderBottom }}
+                                >
+                                  {m.bajarilishi.toLocaleString()}
+                                </TableCell>
+                                {mIdx === 0 && (
+                                  <TableCell
+                                    rowSpan={spanCount}
+                                    align="right"
+                                    sx={{
+                                      verticalAlign: 'middle',
+                                      bgcolor: alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.14 : 0.06),
+                                      borderLeft: `1px solid ${theme.palette.divider}`,
+                                      borderRight: `1px solid ${theme.palette.divider}`,
+                                      borderBottom: `2px solid ${theme.palette.divider}`
+                                    }}
+                                  >
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'info.main', lineHeight: 1.2 }}>
+                                      {row.bajarilishi.toLocaleString()}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mt: 0.25 }}>
+                                      Reja: {row.kunlikReja.toLocaleString()} ({row.foiz}%)
+                                    </Typography>
+                                  </TableCell>
+                                )}
+                                <TableCell align="center" sx={{ borderBottom: groupBorderBottom }}>
+                                  <Chip
+                                    size="small"
+                                    label={`${m.foiz}%`}
+                                    sx={{
+                                      fontWeight: 700,
+                                      fontSize: '0.75rem',
+                                      backgroundColor: isHigh
+                                        ? alpha(theme.palette.success.main, 0.15)
+                                        : isMedium
+                                        ? alpha(theme.palette.warning.main, 0.15)
+                                        : alpha(theme.palette.error.main, 0.15),
+                                      color: isHigh
+                                        ? theme.palette.success.main
+                                        : isMedium
+                                        ? theme.palette.warning.main
+                                        : theme.palette.error.main
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell
+                                  align="right"
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: m.farqi >= 0 ? theme.palette.success.main : theme.palette.error.main,
+                                    borderBottom: groupBorderBottom
+                                  }}
+                                >
+                                  {m.farqi > 0 ? `+${m.farqi.toLocaleString()}` : m.farqi.toLocaleString()}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          });
+                        })
+                      : planSummary.rows.map((row, idx) => {
+                          const isNoIncome = row.bajarilishi <= 0;
+                          const isHigh = row.foiz >= 100;
+                          const isMedium = row.foiz >= 60;
+                          return (
+                            <TableRow
+                              key={`${row.id}_${idx}`}
+                              hover
                               sx={{
-                                fontWeight: 700,
-                                fontSize: '0.75rem',
-                                backgroundColor: isHigh
-                                  ? alpha(theme.palette.success.main, 0.15)
-                                  : isMedium
-                                  ? alpha(theme.palette.warning.main, 0.15)
-                                  : alpha(theme.palette.error.main, 0.15),
-                                color: isHigh
-                                  ? theme.palette.success.main
-                                  : isMedium
-                                  ? theme.palette.warning.main
-                                  : theme.palette.error.main
+                                backgroundColor: isNoIncome
+                                  ? alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.14 : 0.08)
+                                  : undefined,
+                                '&:nth-of-type(even)': {
+                                  backgroundColor: isNoIncome
+                                    ? alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.16 : 0.1)
+                                    : alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.03 : 0.02)
+                                }
                               }}
-                            />
-                          </TableCell>
-                          <TableCell
-                            align="right"
-                            sx={{
-                              fontWeight: 600,
-                              color: row.farqi >= 0 ? theme.palette.success.main : theme.palette.error.main
-                            }}
-                          >
-                            {row.farqi > 0 ? `+${row.farqi.toLocaleString()}` : row.farqi.toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                            >
+                              <TableCell sx={{ color: isNoIncome ? 'error.main' : 'text.secondary', fontWeight: isNoIncome ? 800 : 500 }}>
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: 700, color: isNoIncome ? 'error.main' : 'text.primary' }}>{row.name}</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 500, color: isNoIncome ? 'error.main' : 'text.primary' }}>
+                                {row.kunlikReja.toLocaleString()}
+                              </TableCell>
+                              {isNoIncome ? (
+                                <TableCell
+                                  align="center"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: 'error.main',
+                                    bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.22 : 0.14)
+                                  }}
+                                >
+                                  TUSHUM QILMAGAN
+                                </TableCell>
+                              ) : (
+                                <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
+                                  {row.bajarilishi.toLocaleString()}
+                                </TableCell>
+                              )}
+                              <TableCell align="center">
+                                <Chip
+                                  size="small"
+                                  label={`${row.foiz}%`}
+                                  sx={{
+                                    fontWeight: 700,
+                                    fontSize: '0.75rem',
+                                    backgroundColor: isHigh
+                                      ? alpha(theme.palette.success.main, 0.15)
+                                      : isMedium
+                                      ? alpha(theme.palette.warning.main, 0.15)
+                                      : alpha(theme.palette.error.main, 0.15),
+                                    color: isHigh
+                                      ? theme.palette.success.main
+                                      : isMedium
+                                      ? theme.palette.warning.main
+                                      : theme.palette.error.main
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell
+                                align="right"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: row.farqi >= 0 ? theme.palette.success.main : theme.palette.error.main
+                                }}
+                              >
+                                {row.farqi > 0 ? `+${row.farqi.toLocaleString()}` : row.farqi.toLocaleString()}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
 
                     {/* Total Summary Row */}
                     <TableRow
@@ -770,6 +1022,11 @@ export default function MahallaTushumlarNazoratchi() {
                       <TableCell align="right" sx={{ color: theme.palette.success.main }}>
                         {planSummary.jamiBajarilishi.toLocaleString()}
                       </TableCell>
+                      {groupBy === 'mahalla' && (
+                        <TableCell align="right" sx={{ color: theme.palette.info.main }}>
+                          {planSummary.jamiBajarilishi.toLocaleString()}
+                        </TableCell>
+                      )}
                       <TableCell align="center">
                         <Chip
                           size="small"
@@ -792,36 +1049,187 @@ export default function MahallaTushumlarNazoratchi() {
                   </>
                 ) : reportMode === 'classic' && classicSummary?.rows && classicSummary.rows.length > 0 ? (
                   <>
-                    {classicSummary.rows.map((row, idx) => (
-                      <TableRow
-                        key={`${row.id}_${idx}`}
-                        hover
-                        sx={{
-                          '&:nth-of-type(even)': {
-                            backgroundColor: theme.palette.mode === 'dark' ? alpha('#ffffff', 0.02) : '#fcfcfc'
+                    {groupBy === 'mahalla'
+                      ? classicSummary.rows.map((row, idx) => {
+                          const mList: IClassicMahallaItem[] = (row.mahallas || []).filter((m) => m.summasi > 0);
+                          const spanCount = mList.length;
+
+                          if (spanCount === 0 || row.summasi <= 0) {
+                            return (
+                              <TableRow
+                                key={`${row.id}_no_income`}
+                                sx={{
+                                  backgroundColor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.14 : 0.08),
+                                  '& td': {
+                                    borderBottom: `2px solid ${theme.palette.divider}`
+                                  }
+                                }}
+                              >
+                                <TableCell
+                                  align="center"
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 800,
+                                    borderRight: `1px solid ${theme.palette.divider}`
+                                  }}
+                                >
+                                  {idx + 1}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 700,
+                                    borderRight: `1px solid ${theme.palette.divider}`
+                                  }}
+                                >
+                                  {row.name}
+                                </TableCell>
+                                <TableCell
+                                  colSpan={5}
+                                  align="center"
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 800,
+                                    bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.22 : 0.14)
+                                  }}
+                                >
+                                  TUSHUM QILMAGAN
+                                </TableCell>
+                              </TableRow>
+                            );
                           }
-                        }}
-                      >
-                        <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>{idx + 1}</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>
-                          {groupBy === 'mahalla' ? (row.inspectorName || row.name.split(' — ')[0]) : row.name}
-                        </TableCell>
-                        {groupBy === 'mahalla' && (
-                          <TableCell sx={{ fontWeight: 500, color: 'text.secondary' }}>
-                            {row.mahallaName || (row.name.includes(' — ') ? row.name.split(' — ')[1] : '-')}
-                          </TableCell>
-                        )}
-                        <TableCell align="right" sx={{ fontWeight: 500 }}>
-                          {row.tushumSoni.toLocaleString()}
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
-                          {row.summasi.toLocaleString()}
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 700 }}>
-                          {row.allSumma.toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+
+                          const isEvenGroup = idx % 2 === 1;
+                          const groupBg = isEvenGroup
+                            ? alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.03 : 0.02)
+                            : 'transparent';
+
+                          return mList.map((m, mIdx) => {
+                            const isLastInGroup = mIdx === spanCount - 1;
+                            const groupBorderBottom = isLastInGroup ? `2px solid ${theme.palette.divider}` : undefined;
+
+                            return (
+                              <TableRow
+                                key={`${row.id}_${m.id}_${mIdx}`}
+                                hover
+                                sx={{ backgroundColor: groupBg }}
+                              >
+                                {mIdx === 0 && (
+                                  <TableCell
+                                    rowSpan={spanCount}
+                                    align="center"
+                                    sx={{
+                                      color: 'text.secondary',
+                                      fontWeight: 700,
+                                      verticalAlign: 'middle',
+                                      borderRight: `1px solid ${theme.palette.divider}`,
+                                      borderBottom: `2px solid ${theme.palette.divider}`
+                                    }}
+                                  >
+                                    {idx + 1}
+                                  </TableCell>
+                                )}
+                                {mIdx === 0 && (
+                                  <TableCell
+                                    rowSpan={spanCount}
+                                    sx={{
+                                      fontWeight: 700,
+                                      verticalAlign: 'middle',
+                                      borderRight: `1px solid ${theme.palette.divider}`,
+                                      borderBottom: `2px solid ${theme.palette.divider}`
+                                    }}
+                                  >
+                                    {row.name}
+                                  </TableCell>
+                                )}
+                                <TableCell sx={{ fontWeight: 500, color: 'text.primary', borderBottom: groupBorderBottom }}>
+                                  {m.name}
+                                </TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 500, borderBottom: groupBorderBottom }}>
+                                  {m.tushumSoni.toLocaleString()}
+                                </TableCell>
+                                <TableCell
+                                  align="right"
+                                  sx={{ fontWeight: 600, color: theme.palette.success.main, borderBottom: groupBorderBottom }}
+                                >
+                                  {m.summasi.toLocaleString()}
+                                </TableCell>
+                                {mIdx === 0 && (
+                                  <TableCell
+                                    rowSpan={spanCount}
+                                    align="right"
+                                    sx={{
+                                      verticalAlign: 'middle',
+                                      bgcolor: alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.14 : 0.06),
+                                      borderLeft: `1px solid ${theme.palette.divider}`,
+                                      borderRight: `1px solid ${theme.palette.divider}`,
+                                      borderBottom: `2px solid ${theme.palette.divider}`
+                                    }}
+                                  >
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'info.main', lineHeight: 1.2 }}>
+                                      {row.summasi.toLocaleString()}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mt: 0.25 }}>
+                                      {row.tushumSoni.toLocaleString()} ta to‘lov
+                                    </Typography>
+                                  </TableCell>
+                                )}
+                                <TableCell align="right" sx={{ fontWeight: 700, borderBottom: groupBorderBottom }}>
+                                  {m.allSumma.toLocaleString()}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          });
+                        })
+                      : classicSummary.rows.map((row, idx) => {
+                          const isNoIncome = row.summasi <= 0;
+                          return (
+                            <TableRow
+                              key={`${row.id}_${idx}`}
+                              hover
+                              sx={{
+                                backgroundColor: isNoIncome
+                                  ? alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.14 : 0.08)
+                                  : undefined,
+                                '&:nth-of-type(even)': {
+                                  backgroundColor: isNoIncome
+                                    ? alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.16 : 0.1)
+                                    : alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.03 : 0.02)
+                                }
+                              }}
+                            >
+                              <TableCell sx={{ color: isNoIncome ? 'error.main' : 'text.secondary', fontWeight: isNoIncome ? 800 : 500 }}>
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: 700, color: isNoIncome ? 'error.main' : 'text.primary' }}>{row.name}</TableCell>
+                              {isNoIncome ? (
+                                <TableCell
+                                  colSpan={3}
+                                  align="center"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: 'error.main',
+                                    bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.22 : 0.14)
+                                  }}
+                                >
+                                  TUSHUM QILMAGAN
+                                </TableCell>
+                              ) : (
+                                <>
+                                  <TableCell align="right" sx={{ fontWeight: 500 }}>
+                                    {row.tushumSoni.toLocaleString()}
+                                  </TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
+                                    {row.summasi.toLocaleString()}
+                                  </TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                    {row.allSumma.toLocaleString()}
+                                  </TableCell>
+                                </>
+                              )}
+                            </TableRow>
+                          );
+                        })}
 
                     {/* Classic Total Summary Row */}
                     <TableRow
@@ -844,14 +1252,19 @@ export default function MahallaTushumlarNazoratchi() {
                       <TableCell align="right" sx={{ color: theme.palette.success.main }}>
                         {classicSummary.jamiTushumSummasi.toLocaleString()}
                       </TableCell>
+                      {groupBy === 'mahalla' && (
+                        <TableCell align="right" sx={{ color: theme.palette.info.main }}>
+                          {classicSummary.jamiTushumSummasi.toLocaleString()}
+                        </TableCell>
+                      )}
                       <TableCell align="right">
-                        {classicSummary.jamiTushumSummasi.toLocaleString()}
+                        {classicSummary.rows.reduce((acc, r) => acc + (r.allSumma || 0), 0).toLocaleString()}
                       </TableCell>
                     </TableRow>
                   </>
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={groupBy === 'mahalla' ? 7 : 6} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={groupBy === 'mahalla' ? 8 : 6} align="center" sx={{ py: 6 }}>
                       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                         Tanlangan sanada ma'lumotlar topilmadi
                       </Typography>
