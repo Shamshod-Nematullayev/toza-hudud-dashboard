@@ -107,6 +107,7 @@ const uz = {
     manageUsers: 'Foydalanuvchilarni boshqarish',
     manageCaotos: 'CAOTO kodlarni boshqarish',
     agendaJobs: 'Agenda vazifalari (Jobs)',
+    productAnnouncements: "Product E'lonlar (Tips)",
     companyProfile: 'Tashkilot profili',
     'AI Data Intelligence': 'AI Data Intelligence',
     dispatcher: 'Dispetcher paneli',

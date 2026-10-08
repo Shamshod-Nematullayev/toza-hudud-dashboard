@@ -43,7 +43,7 @@ export default function SelectSyncLogDialog({ open, onClose, onJobStarted }: Sel
     setLoading(true);
     setError(null);
     try {
-      const { data } = await api.get('/product-admin/debitors/sync-logs');
+      const { data } = await api.get('/debitors/sync-logs');
       if (data.success) {
         setLogs(data.data || []);
       } else {
@@ -72,7 +72,7 @@ export default function SelectSyncLogDialog({ open, onClose, onJobStarted }: Sel
 
     setTriggering(true);
     try {
-      const { data } = await api.post('/product-admin/debitors/trigger-phone-sync', {
+      const { data } = await api.post('/debitors/trigger-phone-sync-by-log', {
         syncLogId: selectedLogId
       });
       if (data.success) {

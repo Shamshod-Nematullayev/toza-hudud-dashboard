@@ -694,8 +694,29 @@ function Debitors() {
   const refresh = () => setRefreshState((p) => !p);
 
   const [openSyncDialog, setOpenSyncDialog] = React.useState(false);
-  const { user } = useCustomizationStore();
+  const { user, company, setCompany } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
+  const hasTargetCompanyOverride = typeof window !== 'undefined' && Boolean(localStorage.getItem('targetCompanyId'));
+  const isPremiumCompany =
+    Boolean(company?.premium) || (Boolean(isProductAdmin) && !hasTargetCompanyOverride && company?.premium !== false);
+
+  React.useEffect(() => {
+    if (company?.premium === undefined) {
+      api
+        .get('/auth/company')
+        .then(({ data }) => {
+          if (data?.company) {
+            setCompany({
+              ...data.company,
+              billingAdminName: data.company.billingAdmin?.fullName,
+              gpsOperatorName: data.company.gpsOperator?.fullName,
+              managerName: data.company.manager?.fullName
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [company?.premium, setCompany]);
 
   // Filtrlar — draft (sidebar) va applied (so'rovga yuborilgan)
   const [draft, setDraft] = React.useState(INIT_FILTERS);
@@ -1306,7 +1327,7 @@ function Debitors() {
                   <RefreshOutlined fontSize="small" />
                 </IconButton>
               </Tooltip>
-              {isProductAdmin && (
+              {isPremiumCompany && (
                 <Button
                   variant="contained"
                   color="primary"
@@ -1314,7 +1335,7 @@ function Debitors() {
                   onClick={() => setOpenSyncDialog(true)}
                   startIcon={<BoltOutlined fontSize="small" />}
                 >
-                  HET Sync Script
+                  Maxsus HET script
                 </Button>
               )}
               <Tooltip title="Qo'llanma va Shartlar">
@@ -1427,7 +1448,7 @@ function Debitors() {
                   >
                     <HelpOutlineOutlined fontSize="small" />
                   </IconButton>
-                  {isProductAdmin && (
+                  {isPremiumCompany && (
                     <Button
                       variant="contained"
                       color="primary"
@@ -1436,7 +1457,7 @@ function Debitors() {
                       startIcon={<BoltOutlined fontSize="small" />}
                       sx={{ fontSize: 11, px: 1, py: 0.5, textTransform: 'none' }}
                     >
-                      HET Script
+                      Maxsus HET script
                     </Button>
                   )}
                   <Button
@@ -1728,7 +1749,9 @@ function Debitors() {
           onEdit={() => 'todo'}
         />
       )}
-      {openSyncDialog && <HetSyncScriptDialog open={openSyncDialog} onClose={() => setOpenSyncDialog(false)} />}
+      {isPremiumCompany && openSyncDialog && (
+        <HetSyncScriptDialog open={openSyncDialog} onClose={() => setOpenSyncDialog(false)} />
+      )}
     </MainCard>
   );
 }

@@ -109,6 +109,7 @@ const uzKirill: typeof uz = {
     manageUsers: 'Фойдаланувчиларни бошқариш',
     manageCaotos: 'CAOTO кодларни бошқариш',
     agendaJobs: 'Agenda вазифалари (Jobs)',
+    productAnnouncements: 'Product Эълонлар (Tips)',
     companyProfile: 'Ташкилот профили',
     'AI Data Intelligence': 'AI Data Intelligence',
     dispatcher: 'Диспетчер панели',

@@ -111,6 +111,7 @@ interface CustomizationState {
     managerName: string;
     name: string;
     phone: string;
+    premium?: boolean;
   };
   setCompany: (company: CustomizationState['company']) => void;
   mahallalar: { id: number; name: string }[];
