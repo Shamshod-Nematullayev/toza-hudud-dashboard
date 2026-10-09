@@ -83,8 +83,11 @@ export function Sidebar({
   const [triggerLoading, setTriggerLoading] = React.useState<string | null>(null);
   const wasJobRunningRef = React.useRef<boolean>(false);
   const [syncLogDialogOpen, setSyncLogDialogOpen] = React.useState(false);
-  const { user } = useCustomizationStore();
+  const { user, company } = useCustomizationStore();
   const isProductAdmin = user?.roles?.includes('product_admin');
+  const hasTargetCompanyOverride = typeof window !== 'undefined' && Boolean(localStorage.getItem('targetCompanyId'));
+  const canUsePremiumSync =
+    Boolean(company?.premium) || (Boolean(isProductAdmin) && !hasTargetCompanyOverride && company?.premium !== false);
 
   // Job 0 (TozaMakon Sync) Confirmation Dialog State
   const [syncConfirmOpen, setSyncConfirmOpen] = React.useState(false);
@@ -316,8 +319,8 @@ export function Sidebar({
             </span>
           </Tooltip>
 
-          {isProductAdmin && (
-            <Tooltip title="Chiqindi korxona bazasidagi telefonlarni yangilash">
+          {canUsePremiumSync && (
+            <Tooltip title="Chiqindi korxona bazasidagi telefonlarni yangilash (Faqat Premium)">
               <span>
                 <Button
                   fullWidth

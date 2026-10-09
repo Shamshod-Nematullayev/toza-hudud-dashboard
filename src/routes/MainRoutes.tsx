@@ -64,6 +64,7 @@ import Users from 'views/productAdmin/Users';
 import Caotos from 'views/productAdmin/Caotos';
 import ProductAnalytics from 'views/productAdmin/ProductAnalytics';
 import AgendaJobs from 'views/productAdmin/AgendaJobs';
+import ProductAnnouncements from 'views/productAdmin/ProductAnnouncements';
 import CompanyProfile from 'views/companyProfile/CompanyProfile';
 import DataIntelligencePage from 'views/billing/DataIntelligence';
 import DispatcherDashboard from 'views/dispatcher/Dashboard';
@@ -434,8 +435,16 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'agenda-jobs',
           element: <AgendaJobs />
+        },
+        {
+          path: 'announcements',
+          element: <ProductAnnouncements />
         }
       ]
+    },
+    {
+      path: 'product-announcements',
+      element: <ProductAnnouncements />
     },
     {
       path: 'company-profile',

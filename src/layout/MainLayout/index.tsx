@@ -15,6 +15,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import { drawerWidth } from 'store/constant';
 import OnboardingTour from './OnboardingTour';
 import ActiveJobsMonitor from './ActiveJobsMonitor';
+import ProductAnnouncementModal from 'ui-component/ProductAnnouncementModal';
 
 // assets
 import { IconChevronRight } from '@tabler/icons-react';
@@ -118,6 +119,20 @@ const MainLayout = () => {
             const base64Image = `data:image/png;base64,${uint8ArrayToBase64(uint8Array)}`;
             setUser({ ...fetchedUser, isTestUser: fetchedUser.isTestUser ?? false, avatar: base64Image });
           });
+        } else if (user) {
+          const currentCompany = useCustomizationStore.getState().company;
+          if (currentCompany?.premium === undefined) {
+            const companyRes = await api.get('/auth/company');
+            const fetchedCompany = companyRes.data?.company;
+            if (fetchedCompany) {
+              setCompany({
+                ...fetchedCompany,
+                billingAdminName: fetchedCompany.billingAdmin?.fullName,
+                gpsOperatorName: fetchedCompany.gpsOperator?.fullName,
+                managerName: fetchedCompany.manager?.fullName
+              });
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to fetch auth data:', err);
@@ -161,6 +176,7 @@ const MainLayout = () => {
       </Main>
       <Customization />
       <OnboardingTour />
+      <ProductAnnouncementModal />
       <ActiveJobsMonitor />
     </Box>
   );

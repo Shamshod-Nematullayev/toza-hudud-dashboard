@@ -4,7 +4,8 @@ import {
   PeopleAltOutlined,
   AnalyticsOutlined,
   ManageHistoryOutlined,
-  ElectricBoltOutlined
+  ElectricBoltOutlined,
+  CampaignOutlined
 } from '@mui/icons-material';
 import { MenuItem } from './index';
 
@@ -14,7 +15,8 @@ const icons = {
   PeopleAltOutlined,
   AnalyticsOutlined,
   ManageHistoryOutlined,
-  ElectricBoltOutlined
+  ElectricBoltOutlined,
+  CampaignOutlined
 };
 
 const productAdmin: MenuItem = {
@@ -65,6 +67,15 @@ const productAdmin: MenuItem = {
       type: 'item',
       url: '/product-admin/agenda-jobs',
       icon: icons.ManageHistoryOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['product_admin']
+    },
+    {
+      id: 'productAnnouncements',
+      title: 'productAnnouncements',
+      type: 'item',
+      url: '/product-admin/announcements',
+      icon: icons.CampaignOutlined,
       breadcrumbs: false,
       allowedRoles: ['product_admin']
     }
