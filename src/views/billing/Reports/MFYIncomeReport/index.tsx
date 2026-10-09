@@ -48,7 +48,8 @@ import {
   CalendarToday,
   LocationCity,
   Groups,
-  Payment
+  Payment,
+  UploadFile as UploadFileIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -56,6 +57,7 @@ import api from 'utils/api';
 import MainCard from 'ui-component/cards/MainCard';
 import { toast } from 'react-toastify';
 import ScheduleDialog from './ScheduleDialog';
+import PlanImportDialog from './PlanImportDialog';
 import TelegramGroupSelect from '../components/TelegramGroupSelect';
 
 interface IMFYRow {
@@ -66,6 +68,9 @@ interface IMFYRow {
   individualAccrualSum: number;
   legalAccrual: number;
   xisoblandi: number;
+  targetPlan?: number;
+  reja: number;
+  planSource?: 'hisoblandi' | 'belgilangan';
   tushum: number;
   foiz: number;
   farqi: number;
@@ -80,6 +85,7 @@ interface IMFYRow {
 interface IMFYSummary {
   totalMahallas: number;
   jamiXisoblandi: number;
+  jamiReja?: number;
   jamiTushum: number;
   jamiFoiz: number;
   jamiFarqi: number;
@@ -110,6 +116,7 @@ interface IMFYReportData {
   dateTo: string;
   onlyEkopay?: boolean;
   paymentPartner?: 'all' | 'both' | 'ekopay' | 'paynet';
+  planSource?: 'hisoblandi' | 'belgilangan';
 }
 
 export default function MFYIncomeReport() {
@@ -122,6 +129,7 @@ export default function MFYIncomeReport() {
   );
   const [dateTo, setDateTo] = useState<string>(dayjs().format('YYYY-MM-DD'));
   const [paymentPartner, setPaymentPartner] = useState<'all' | 'both' | 'ekopay' | 'paynet'>('all');
+  const [planSource, setPlanSource] = useState<'hisoblandi' | 'belgilangan'>('hisoblandi');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<keyof IMFYRow>('foiz');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -132,8 +140,10 @@ export default function MFYIncomeReport() {
 
   // Dialog states
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [planImportDialogOpen, setPlanImportDialogOpen] = useState(false);
   const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
   const [telegramChatId, setTelegramChatId] = useState('');
+  const [telegramPlanSource, setTelegramPlanSource] = useState<'hisoblandi' | 'belgilangan'>('hisoblandi');
   const [deleteLastReport, setDeleteLastReport] = useState(true);
   const [sendingTelegram, setSendingTelegram] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
@@ -161,7 +171,8 @@ export default function MFYIncomeReport() {
         params: {
           dateFrom,
           dateTo,
-          paymentPartner
+          paymentPartner,
+          planSource
         }
       });
       if (res.data?.data) {
@@ -173,7 +184,7 @@ export default function MFYIncomeReport() {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, paymentPartner]);
+  }, [dateFrom, dateTo, paymentPartner, planSource]);
 
   useEffect(() => {
     fetchReport();
@@ -183,7 +194,7 @@ export default function MFYIncomeReport() {
     setExportingExcel(true);
     try {
       const response = await api.get('/reports/mfy-incomes/excel', {
-        params: { dateFrom, dateTo, paymentPartner },
+        params: { dateFrom, dateTo, paymentPartner, planSource },
         responseType: 'blob'
       });
       const blob = new Blob([response.data], {
@@ -192,7 +203,7 @@ export default function MFYIncomeReport() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `MFY_Tushumlar_${paymentPartner}_${dateFrom}_${dateTo}.xlsx`);
+      link.setAttribute('download', `MFY_Tushumlar_${planSource}_${paymentPartner}_${dateFrom}_${dateTo}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -212,6 +223,7 @@ export default function MFYIncomeReport() {
         data.company.GROUP_ID_MANAGERS || data.company.GROUP_ID_NAZORATCHILAR || ''
       );
     }
+    setTelegramPlanSource(planSource);
     setTelegramDialogOpen(true);
   };
 
@@ -222,6 +234,7 @@ export default function MFYIncomeReport() {
         dateFrom,
         dateTo,
         paymentPartner,
+        planSource: telegramPlanSource,
         chatId: telegramChatId.trim() || undefined,
         deleteLastReport
       });
@@ -324,6 +337,16 @@ export default function MFYIncomeReport() {
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
           <Button
             variant="outlined"
+            color="secondary"
+            startIcon={<UploadFileIcon />}
+            onClick={() => setPlanImportDialogOpen(true)}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Reja import qilish
+          </Button>
+
+          <Button
+            variant="outlined"
             color="primary"
             startIcon={<ScheduleIcon />}
             onClick={() => setScheduleDialogOpen(true)}
@@ -403,7 +426,7 @@ export default function MFYIncomeReport() {
           </Grid>
 
           {/* Quick presets */}
-          <Grid size={{ xs: 12, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 12, md: 3 }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Chip
                 label="Bugun"
@@ -432,8 +455,31 @@ export default function MFYIncomeReport() {
             </Stack>
           </Grid>
 
+          {/* Reja manbai filtri */}
+          <Grid size={{ xs: 12, sm: 12, md: 4 }}>
+            <Box sx={{ p: 0.5, bgcolor: 'action.hover', borderRadius: 1.5, display: 'inline-flex', width: '100%' }}>
+              <RadioGroup
+                row
+                value={planSource}
+                onChange={(e) => setPlanSource(e.target.value as any)}
+                sx={{ width: '100%', justifyContent: 'space-around' }}
+              >
+                <FormControlLabel
+                  value="hisoblandi"
+                  control={<Radio size="small" color="primary" />}
+                  label={<Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Hisoblandi bo‘yicha</Typography>}
+                />
+                <FormControlLabel
+                  value="belgilangan"
+                  control={<Radio size="small" color="secondary" />}
+                  label={<Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Belgilangan reja</Typography>}
+                />
+              </RadioGroup>
+            </Box>
+          </Grid>
+
           {/* To'lov turi filtri */}
-          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+          <Grid size={{ xs: 12, sm: 7, md: 4.5 }}>
             <FormControl component="fieldset" size="small" fullWidth>
               <RadioGroup
                 row
@@ -466,7 +512,7 @@ export default function MFYIncomeReport() {
           </Grid>
 
           {/* Qidiruv */}
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Grid size={{ xs: 12, sm: 5, md: 3.5 }}>
             <TextField
               fullWidth
               size="small"
@@ -503,15 +549,15 @@ export default function MFYIncomeReport() {
             >
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                  JAMI REJA (HISOBLANDI)
+                  {planSource === 'belgilangan' ? 'JAMI REJA (BELGILANGAN)' : 'JAMI REJA (HISOBLANDI)'}
                 </Typography>
                 <AccountBalanceWallet sx={{ color: 'info.main', fontSize: 28 }} />
               </Stack>
               <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
-                {Math.round(summary.jamiXisoblandi).toLocaleString('uz-UZ')} so‘m
+                {Math.round(summary.jamiReja ?? summary.jamiXisoblandi).toLocaleString('uz-UZ')} so‘m
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {summary.totalMahallas} ta mahalla bo‘yicha hisoblangan summa
+                {planSource === 'belgilangan' ? 'Belgilangan target reja bo‘yicha' : `${summary.totalMahallas} ta mahalla bo‘yicha hisoblangan summa`}
               </Typography>
             </Card>
           </Grid>
@@ -740,8 +786,8 @@ export default function MFYIncomeReport() {
                   <TableCell align="right" onClick={() => handleSort('inhabitantCount')} sx={{ cursor: 'pointer' }}>
                     Aholi {sortField === 'inhabitantCount' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </TableCell>
-                  <TableCell align="right" onClick={() => handleSort('xisoblandi')} sx={{ cursor: 'pointer' }}>
-                    Reja (so‘m) {sortField === 'xisoblandi' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                  <TableCell align="right" onClick={() => handleSort('reja')} sx={{ cursor: 'pointer' }}>
+                    {planSource === 'belgilangan' ? 'Belgilangan Reja (so‘m)' : 'Reja (so‘m)'} {sortField === 'reja' || sortField === 'xisoblandi' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </TableCell>
                   <TableCell align="right" onClick={() => handleSort('tushum')} sx={{ cursor: 'pointer' }}>
                     Tushum (so‘m) {sortField === 'tushum' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
@@ -782,7 +828,7 @@ export default function MFYIncomeReport() {
                         {row.inhabitantCount.toLocaleString('uz-UZ')}
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>
-                        {Math.round(row.xisoblandi).toLocaleString('uz-UZ')}
+                        {Math.round(row.reja ?? row.xisoblandi).toLocaleString('uz-UZ')}
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700, color: 'text.primary' }}>
                         {Math.round(row.tushum).toLocaleString('uz-UZ')}
@@ -836,7 +882,7 @@ export default function MFYIncomeReport() {
                     <TableCell align="center">Σ</TableCell>
                     <TableCell>JAMI ({filteredRows.length} ta mahalla)</TableCell>
                     <TableCell align="right">{summary.jamiAholi.toLocaleString('uz-UZ')}</TableCell>
-                    <TableCell align="right">{Math.round(summary.jamiXisoblandi).toLocaleString('uz-UZ')}</TableCell>
+                    <TableCell align="right">{Math.round(summary.jamiReja ?? summary.jamiXisoblandi).toLocaleString('uz-UZ')}</TableCell>
                     <TableCell align="right">{Math.round(summary.jamiTushum).toLocaleString('uz-UZ')}</TableCell>
                     <TableCell align="center">
                       <Chip
@@ -895,6 +941,28 @@ export default function MFYIncomeReport() {
               helperText="Hisobot faqat tashkilotning rasmiy Telegram guruhlariga yuboriladi"
             />
 
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                Hisobotdagi reja parametri:
+              </Typography>
+              <RadioGroup
+                row
+                value={telegramPlanSource}
+                onChange={(e) => setTelegramPlanSource(e.target.value as any)}
+              >
+                <FormControlLabel
+                  value="hisoblandi"
+                  control={<Radio size="small" />}
+                  label={<Typography variant="body2">Hisoblandi bo‘yicha</Typography>}
+                />
+                <FormControlLabel
+                  value="belgilangan"
+                  control={<Radio size="small" />}
+                  label={<Typography variant="body2">Belgilangan reja bo‘yicha</Typography>}
+                />
+              </RadioGroup>
+            </Box>
+
             <FormControlLabel
               control={
                 <Checkbox
@@ -932,7 +1000,14 @@ export default function MFYIncomeReport() {
         </DialogActions>
       </Dialog>
 
-      {/* 7. Rejalashtirilgan Yuborishlar (Schedule) Dialogi */}
+      {/* 7. Reja Import Dialogi */}
+      <PlanImportDialog
+        open={planImportDialogOpen}
+        onClose={() => setPlanImportDialogOpen(false)}
+        onSuccess={fetchReport}
+      />
+
+      {/* 8. Rejalashtirilgan Yuborishlar (Schedule) Dialogi */}
       <ScheduleDialog
         open={scheduleDialogOpen}
         onClose={() => setScheduleDialogOpen(false)}

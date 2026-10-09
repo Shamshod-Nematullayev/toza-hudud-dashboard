@@ -48,6 +48,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
   const [newTime, setNewTime] = useState('12:00');
   const [paymentPartner, setPaymentPartner] = useState<'ekopay' | 'paynet' | 'both' | 'all'>('all');
   const [reportMode, setReportMode] = useState<'plan' | 'classic'>('plan');
+  const [planSource, setPlanSource] = useState<'hisoblandi' | 'belgilangan'>('hisoblandi');
   const [chatId, setChatId] = useState('');
   const [defaultChatId, setDefaultChatId] = useState('');
   const [companyGroups, setCompanyGroups] = useState<ICompanyTelegramGroup[]>([]);
@@ -73,6 +74,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
         );
         setPaymentPartner(sched.paymentPartner || 'all');
         setReportMode(sched.reportMode || 'plan');
+        setPlanSource(sched.planSource || 'hisoblandi');
         setChatId(sched.chatId || '');
         setDefaultChatId(res.data.defaultChatId || '');
         if (res.data.companyGroups && Array.isArray(res.data.companyGroups)) {
@@ -119,6 +121,7 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
         times,
         reportMode,
         paymentPartner,
+        planSource,
         chatId: chatId.trim() || undefined
       });
 
@@ -229,6 +232,29 @@ export default function ScheduleDialog({ open, onClose, onSuccess }: ScheduleDia
                   value="paynet"
                   control={<Radio size="small" />}
                   label="Faqat Paynet"
+                />
+              </RadioGroup>
+            </FormControl>
+
+            {/* Reja hisoblash manbai */}
+            <FormControl component="fieldset">
+              <FormLabel sx={{ fontSize: '0.875rem', fontWeight: 600, mb: 0.5 }}>
+                Reja hisoblash parametri:
+              </FormLabel>
+              <RadioGroup
+                row
+                value={planSource}
+                onChange={(e) => setPlanSource(e.target.value as any)}
+              >
+                <FormControlLabel
+                  value="hisoblandi"
+                  control={<Radio size="small" />}
+                  label="Hisoblandi bo‘yicha"
+                />
+                <FormControlLabel
+                  value="belgilangan"
+                  control={<Radio size="small" />}
+                  label="Belgilangan reja bo‘yicha (Excel)"
                 />
               </RadioGroup>
             </FormControl>

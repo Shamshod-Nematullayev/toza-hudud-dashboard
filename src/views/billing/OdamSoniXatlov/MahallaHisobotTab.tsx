@@ -18,7 +18,10 @@ import {
   Tooltip,
   Typography,
   useTheme,
-  alpha
+  alpha,
+  useMediaQuery,
+  Skeleton,
+  Divider
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import SimCardDownloadOutlinedIcon from '@mui/icons-material/SimCardDownloadOutlined';
@@ -69,6 +72,7 @@ interface MahallaHisobotTabProps {
 
 export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMahalla }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
 
   const [loading, setLoading] = useState(false);
@@ -366,8 +370,8 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
   return (
     <Stack spacing={2.5}>
       {/* KPI Cards Summary Header */}
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 2.4 }}>
           <Card
             variant="outlined"
             sx={{
@@ -378,35 +382,35 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
               boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.05)'
             }}
           >
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 44,
-                  height: 44,
+                  width: { xs: 36, sm: 44 },
+                  height: { xs: 36, sm: 44 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.1),
                   color: 'primary.main',
                   flexShrink: 0
                 }}
               >
-                <LocationCityOutlinedIcon />
+                <LocationCityOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.25rem' }}>
+                <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'text.primary' }}>
                   {summary.totalRequests}
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Jami so'rovlar ({summary.totalMahallas} MFY)
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                  Jami ({summary.totalMahallas} MFY)
                 </Typography>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 2.4 }}>
           <Card
             variant="outlined"
             sx={{
@@ -417,35 +421,35 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
               boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.05)'
             }}
           >
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 44,
-                  height: 44,
+                  width: { xs: 36, sm: 44 },
+                  height: { xs: 36, sm: 44 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.warning.main, isDark ? 0.2 : 0.1),
                   color: 'warning.main',
                   flexShrink: 0
                 }}
               >
-                <PendingActionsOutlinedIcon />
+                <PendingActionsOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'warning.main', fontSize: '1.25rem' }}>
+                <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'warning.main' }}>
                   {summary.pendingRequests}
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Kutilmoqda (Pending)
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                  Kutilmoqda
                 </Typography>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 2.4 }}>
           <Card
             variant="outlined"
             sx={{
@@ -456,27 +460,27 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
               boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.05)'
             }}
           >
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 44,
-                  height: 44,
+                  width: { xs: 36, sm: 44 },
+                  height: { xs: 36, sm: 44 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.info.main, isDark ? 0.2 : 0.1),
                   color: 'info.main',
                   flexShrink: 0
                 }}
               >
-                <AssignmentOutlinedIcon />
+                <AssignmentOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.25rem' }}>
+                <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'text.primary' }}>
                   {summary.inDocumentRequests}
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
                   Dalolatnomada
                 </Typography>
               </Box>
@@ -484,7 +488,7 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 2.4 }}>
           <Card
             variant="outlined"
             sx={{
@@ -495,27 +499,27 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
               boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.05)'
             }}
           >
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 44,
-                  height: 44,
+                  width: { xs: 36, sm: 44 },
+                  height: { xs: 36, sm: 44 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.success.main, isDark ? 0.2 : 0.1),
                   color: 'success.main',
                   flexShrink: 0
                 }}
               >
-                <CheckCircleOutlinedIcon />
+                <CheckCircleOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'success.main', fontSize: '1.25rem' }}>
+                <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'success.main' }}>
                   {summary.confirmedRequests}
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
                   Tasdiqlangan
                 </Typography>
               </Box>
@@ -523,7 +527,7 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 12, md: 2.4 }}>
           <Card
             variant="outlined"
             sx={{
@@ -534,28 +538,28 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
               boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.05)'
             }}
           >
-            <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 44,
-                  height: 44,
+                  width: { xs: 36, sm: 44 },
+                  height: { xs: 36, sm: 44 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.secondary?.main || '#7c3aed', isDark ? 0.2 : 0.1),
                   color: theme.palette.secondary?.main || '#7c3aed',
                   flexShrink: 0
                 }}
               >
-                <GroupAddOutlinedIcon />
+                <GroupAddOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.25rem' }}>
+                <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'text.primary' }}>
                   {summary.differenceInhabitants >= 0 ? `+${summary.differenceInhabitants}` : summary.differenceInhabitants}
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                  Aholi soni o'zgarishi
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                  Aholi o'zgarishi
                 </Typography>
               </Box>
             </CardContent>
@@ -567,12 +571,12 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
       <Paper
         variant="outlined"
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           borderRadius: 2,
           display: 'flex',
-          flexWrap: 'wrap',
+          flexDirection: { xs: 'column', md: 'row' },
           gap: 1.5,
-          alignItems: 'center',
+          alignItems: { xs: 'stretch', md: 'center' },
           justifyContent: 'space-between',
           bgcolor: 'background.paper',
           border: '1px solid',
@@ -580,8 +584,8 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
         }}
       >
         {/* Left Side: Status & Search & Dates */}
-        <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, alignItems: 'center' }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
             <InputLabel id="status-select-label">Status bo'yicha</InputLabel>
             <Select
               labelId="status-select-label"
@@ -590,13 +594,13 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <MenuItem value="pending">
-                <em>⏳ Kutilmoqda (Pending - Default)</em>
+                <em>⏳ Kutilmoqda</em>
               </MenuItem>
               <MenuItem value="all">
                 🌐 Barcha statuslar
               </MenuItem>
               <MenuItem value="in_document">
-                📑 Dalolatnomaga kiritilgan
+                📑 Dalolatnomada
               </MenuItem>
               <MenuItem value="confirmed">
                 ✅ Tasdiqlangan
@@ -611,7 +615,8 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
           <Box component="form" onSubmit={handleSearchSubmit} sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
             <TextField
               size="small"
-              placeholder="Mahalla yoki nazoratchi qidirish..."
+              fullWidth={isMobile}
+              placeholder="Mahalla yoki nazoratchi..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               slotProps={{
@@ -619,7 +624,7 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
                   startAdornment: <SearchIcon fontSize="small" sx={{ color: 'text.secondary', mr: 0.5 }} />
                 }
               }}
-              sx={{ width: { xs: 180, sm: 240 } }}
+              sx={{ width: { xs: '100%', sm: 220 } }}
             />
             {searchText && (
               <IconButton size="small" onClick={() => { setSearchText(''); fetchReport(); }}>
@@ -627,31 +632,10 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
               </IconButton>
             )}
           </Box>
-
-          {/* Date range inputs */}
-          <TextField
-            size="small"
-            type="date"
-            label="Boshlanish sanasi"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: 160 }}
-          />
-
-          <TextField
-            size="small"
-            type="date"
-            label="Tugash sanasi"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: 160 }}
-          />
         </Stack>
 
         {/* Right Side: Refresh & Excel Export */}
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
           <Tooltip title="Filtrlarni tozalash">
             <Button
               variant="text"
@@ -665,7 +649,7 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
           </Tooltip>
 
           <Tooltip title="Yangilash">
-            <IconButton color="primary" onClick={fetchReport} disabled={loading}>
+            <IconButton color="primary" size="small" onClick={fetchReport} disabled={loading}>
               <RefreshIcon />
             </IconButton>
           </Tooltip>
@@ -673,16 +657,119 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
           <Button
             variant="contained"
             color="success"
+            size={isMobile ? 'small' : 'medium'}
             startIcon={<SimCardDownloadOutlinedIcon />}
             onClick={handleExportExcel}
-            sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}
+            sx={{ fontWeight: 700, textTransform: 'none' }}
           >
             Excelga yuklab olish
           </Button>
         </Stack>
       </Paper>
 
-      {/* Main DataGrid */}
+      {/* Mobil Ko'rinish (Mahalla Hisoboti Kartalari) */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        {loading ? (
+          <Stack spacing={1.5}>
+            {Array.from(new Array(4)).map((_, idx) => (
+              <Paper key={idx} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Skeleton width="60%" height={24} sx={{ mb: 1 }} />
+                <Skeleton width="40%" height={18} sx={{ mb: 1 }} />
+                <Skeleton width="100%" height={36} />
+              </Paper>
+            ))}
+          </Stack>
+        ) : rows.length === 0 ? (
+          <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+              Hisobot ma'lumotlari topilmadi
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              Tanlangan parametrlar bo'yicha ma'lumot mavjud emas
+            </Typography>
+          </Paper>
+        ) : (
+          <Stack spacing={1.5}>
+            {rows.map((row) => (
+              <Paper
+                key={row.id}
+                variant="outlined"
+                sx={{
+                  p: 1.5,
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                  borderColor: row.pendingRequests > 0 ? alpha(theme.palette.warning.main, 0.4) : 'divider'
+                }}
+              >
+                <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                  <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }} noWrap>
+                      {row.mahallaName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                      Nazoratchi: {row.inspectorName || '—'}
+                    </Typography>
+                  </Box>
+
+                  {onSelectMahalla && (
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="primary"
+                      endIcon={<ArrowForwardOutlinedIcon />}
+                      onClick={() => onSelectMahalla(row.mahallaId)}
+                      sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.72rem', py: 0.4 }}
+                    >
+                      Xatlov
+                    </Button>
+                  )}
+                </Stack>
+
+                <Divider sx={{ my: 0.8 }} />
+
+                {/* 3 Ustunli statistika */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 1 }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                      Jami so'rov
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                      {row.totalRequests}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                      Kutilmoqda
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.85rem', color: row.pendingRequests > 0 ? 'warning.main' : 'text.disabled' }}>
+                      {row.pendingRequests}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                      Aholi farqi
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: '0.85rem',
+                        color: row.differenceInhabitants > 0 ? 'success.main' : row.differenceInhabitants < 0 ? 'error.main' : 'text.secondary'
+                      }}
+                    >
+                      {row.differenceInhabitants >= 0 ? `+${row.differenceInhabitants}` : row.differenceInhabitants}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            ))}
+          </Stack>
+        )}
+      </Box>
+
+      {/* Main DataGrid (Desktop) */}
       <Paper
         variant="outlined"
         sx={{
@@ -692,7 +779,8 @@ export const MahallaHisobotTab: React.FC<MahallaHisobotTabProps> = ({ onSelectMa
           bgcolor: 'background.paper',
           border: '1px solid',
           borderColor: 'divider',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          display: { xs: 'none', md: 'block' }
         }}
       >
         <DataGrid

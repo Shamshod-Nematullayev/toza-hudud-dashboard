@@ -73,7 +73,7 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
   onToggleAutoAdvance
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [zoomPhotoOpen, setZoomPhotoOpen] = useState(false);

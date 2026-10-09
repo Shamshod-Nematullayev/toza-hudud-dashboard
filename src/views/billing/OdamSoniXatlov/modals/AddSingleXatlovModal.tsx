@@ -13,8 +13,10 @@ import {
   InputAdornment,
   Stack,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
 import { toast } from 'react-toastify';
@@ -27,6 +29,8 @@ interface AddSingleXatlovModalProps {
 }
 
 export default function AddSingleXatlovModal({ open, onClose }: AddSingleXatlovModalProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { toggleRefresh } = useOdamSoniXatlovStore();
   const [accountNumber, setAccountNumber] = useState('');
   const [yashovchilar, setYashovchilar] = useState('');
@@ -106,7 +110,7 @@ export default function AddSingleXatlovModal({ open, onClose }: AddSingleXatlovM
   };
 
   return (
-    <Dialog open={open} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleCloseModal} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
         <PersonAddOutlinedIcon color="primary" />
         Xatlovga bittalab qo'shish (MultiplyRequest)

@@ -22,8 +22,11 @@ import {
   Tabs,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  useMediaQuery,
+  Skeleton
 } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
@@ -77,6 +80,9 @@ interface XatlovWorkspaceProps {
 }
 
 export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<number>(defaultTab);
 
@@ -515,10 +521,10 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       <PrintSection />
 
       {/* Modern KPI Stats Bar */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, md: 3 } }}>
         {activeTab === 1 ? (
           <>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card
                 variant="outlined"
                 onClick={() => setDalolatnomaStatusFilter('all')}
@@ -532,15 +538,15 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   '&:hover': { borderColor: 'primary.main', transform: 'translateY(-2px)' }
                 }}
               >
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: 48, height: 48 }}>
-                    <AssignmentOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <AssignmentOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800 }}>
                       {stats.totalDocuments}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
                       Jami Dalolatnomalar
                     </Typography>
                   </Box>
@@ -548,7 +554,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card
                 variant="outlined"
                 onClick={() => setDalolatnomaStatusFilter('bajarildi')}
@@ -562,23 +568,23 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   '&:hover': { borderColor: 'success.main', transform: 'translateY(-2px)' }
                 }}
               >
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: 48, height: 48 }}>
-                    <CheckCircleOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <CheckCircleOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main' }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'success.main' }}>
                       {stats.completedDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Bajarildi (Tasdiqlangan)
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                      Bajarildi
                     </Typography>
                   </Box>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card
                 variant="outlined"
                 onClick={() => setDalolatnomaStatusFilter('bajarilmadi')}
@@ -592,23 +598,23 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   '&:hover': { borderColor: 'warning.main', transform: 'translateY(-2px)' }
                 }}
               >
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: 48, height: 48 }}>
-                    <PendingActionsOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <PendingActionsOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700, color: 'warning.main' }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'warning.main' }}>
                       {stats.pendingDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Bajarilmadi (Kutilmoqda)
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                      Kutilmoqda
                     </Typography>
                   </Box>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card
                 variant="outlined"
                 onClick={() => setDalolatnomaStatusFilter('bekor_qilingan')}
@@ -622,15 +628,15 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   '&:hover': { borderColor: 'error.main', transform: 'translateY(-2px)' }
                 }}
               >
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'error.light', color: 'error.main', width: 48, height: 48 }}>
-                    <DoDisturbAltOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'error.light', color: 'error.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <DoDisturbAltOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700, color: 'error.main' }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'error.main' }}>
                       {stats.canceledDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
                       Bekor qilingan
                     </Typography>
                   </Box>
@@ -640,72 +646,72 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
           </>
         ) : (
           <>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 48, height: 48 }}>
-                    <GroupOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <GroupOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800 }}>
                       {stats.totalRequests}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Jami xatlov yozuvlari
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                      Jami xatlov
                     </Typography>
                   </Box>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: 48, height: 48 }}>
-                    <PendingActionsOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <PendingActionsOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'warning.main' }}>
                       {stats.newRequests}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Yangi (dalolatnomasiz)
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                      Yangi (hujjatsiz)
                     </Typography>
                   </Box>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: 48, height: 48 }}>
-                    <AssignmentOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <AssignmentOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800 }}>
                       {stats.totalDocuments}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Shakllantirilgan Dalolatnomalar
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                      Dalolatnomalar
                     </Typography>
                   </Box>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Card variant="outlined" sx={{ borderRadius: 3, bgcolor: 'background.default' }}>
-                <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: 48, height: 48 }}>
-                    <CheckCircleOutlinedIcon />
+                <CardContent sx={{ p: { xs: 1.2, sm: 2 }, display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                  <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 } }}>
+                    <CheckCircleOutlinedIcon fontSize={isMobile ? 'small' : 'medium'} />
                   </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'success.main' }}>
                       {stats.completedDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Bajarilgan Dalolatnomalar
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                      Bajarilgan
                     </Typography>
                   </Box>
                 </CardContent>
@@ -758,18 +764,18 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
           <Paper
             variant="outlined"
             sx={{
-              p: 2,
+              p: { xs: 1.5, sm: 2 },
               borderRadius: 2,
               display: 'flex',
-              flexWrap: 'wrap',
+              flexDirection: { xs: 'column', md: 'row' },
               gap: 1.5,
-              alignItems: 'center',
+              alignItems: { xs: 'stretch', md: 'center' },
               justifyContent: 'space-between'
             }}
           >
             {/* Mahalla Filter & Dalolatnoma Creation */}
-            <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-              <FormControl size="small" sx={{ minWidth: 240 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ gap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 240 } }}>
                 <InputLabel id="mahalla-select-label">Mahallani tanlang</InputLabel>
                 <Select
                   labelId="mahalla-select-label"
@@ -798,10 +804,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                 <Button
                   variant="contained"
                   color="secondary"
+                  fullWidth={isMobile}
                   disabled={!pagination.filter.mahallaId || rows.filter((r) => r.status === 'yangi').length === 0}
                   startIcon={<NoteAddOutlinedIcon />}
                   onClick={handleCreateDalolatnoma}
-                  sx={{ fontWeight: 700 }}
+                  sx={{ fontWeight: 700, textTransform: 'none' }}
                 >
                   Dalolatnoma yaratish
                 </Button>
@@ -809,31 +816,136 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
             </Stack>
 
             {/* Quick Import & Add Actions */}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-              <Button variant="contained" color="primary" startIcon={<PersonAddOutlinedIcon />} onClick={() => setOpenSingleModal(true)}>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-start' } }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size={isMobile ? 'small' : 'medium'}
+                startIcon={<PersonAddOutlinedIcon />}
+                onClick={() => setOpenSingleModal(true)}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
                 Bittalab qo'shish
               </Button>
 
-              <Button variant="outlined" color="primary" startIcon={<FileUploadOutlinedIcon />} onClick={() => setOpenExcelModal(true)}>
+              <Button
+                variant="outlined"
+                color="primary"
+                size={isMobile ? 'small' : 'medium'}
+                startIcon={<FileUploadOutlinedIcon />}
+                onClick={() => setOpenExcelModal(true)}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
                 Excel Import
               </Button>
 
               <Tooltip title="TozaMakondan yangilash">
-                <IconButton color="info" onClick={handleClickRefresh}>
+                <IconButton color="info" size="small" onClick={handleClickRefresh}>
                   <RefreshIcon />
                 </IconButton>
               </Tooltip>
 
               <Tooltip title="Excelga yuklab olish">
-                <IconButton color="success" onClick={handleDownloadExcel}>
+                <IconButton color="success" size="small" onClick={handleDownloadExcel}>
                   <SimCardDownloadOutlinedIcon />
                 </IconButton>
               </Tooltip>
             </Stack>
           </Paper>
 
-          {/* DataGrid Table for Abonent Records */}
-          <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2 }}>
+          {/* Mobil Ko'rinish (Tab 0: Abonentlar xatlovi kartalari) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            {ui.loading ? (
+              <Stack spacing={1.5}>
+                {Array.from(new Array(4)).map((_, idx) => (
+                  <Paper key={idx} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                    <Skeleton width="60%" height={24} sx={{ mb: 1 }} />
+                    <Skeleton width="40%" height={18} sx={{ mb: 1 }} />
+                    <Skeleton width="100%" height={32} />
+                  </Paper>
+                ))}
+              </Stack>
+            ) : rows.length === 0 ? (
+              <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  Xatlov yozuvlari topilmadi
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                  Tanlangan parametrlar bo'yicha ma'lumot mavjud emas
+                </Typography>
+              </Paper>
+            ) : (
+              <Stack spacing={1.5}>
+                {rows.map((row) => {
+                  const isNew = row.status === 'yangi';
+                  const mahallaName = typeof row.mahallaId === 'object' ? row.mahallaId?.mahallaName : row.mahallaName || '';
+
+                  return (
+                    <Paper
+                      key={row._id}
+                      variant="outlined"
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: 'background.paper',
+                        borderColor: isNew ? alpha(theme.palette.warning.main, 0.4) : 'divider'
+                      }}
+                    >
+                      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }} noWrap>
+                            {row.fio || 'Noma’lum fuqaro'}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                            Hisob: <code>{row.accountNumber || row.KOD}</code>
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={isNew ? 'Yangi' : 'Xujjat yaratilgan'}
+                          color={isNew ? 'warning' : 'success'}
+                          size="small"
+                          sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
+                        />
+                      </Stack>
+
+                      <Divider sx={{ my: 0.8 }} />
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                            Mahalla
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.78rem' }} noWrap>
+                            {mahallaName || '—'}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                            Aholi soni (Eski → Yangi)
+                          </Typography>
+                          <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', alignItems: 'center' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.78rem' }}>
+                              {row.currentInhabitantCount ?? 0}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                              →
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '0.85rem' }}>
+                              {row.YASHOVCHILAR ?? 0} nafar
+                            </Typography>
+                          </Stack>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  );
+                })}
+              </Stack>
+            )}
+          </Box>
+
+          {/* DataGrid Table for Abonent Records (Desktop) */}
+          <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
             <DataGrid
               rows={rows}
               columns={[
@@ -933,26 +1045,25 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
           <Paper
             variant="outlined"
             sx={{
-              p: 1.5,
-              px: 2,
+              p: { xs: 1.5, sm: 2 },
               borderRadius: 2,
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: { xs: 'stretch', md: 'center' },
               justifyContent: 'space-between',
               bgcolor: 'background.paper',
               border: '1px solid',
               borderColor: 'divider',
-              flexWrap: 'wrap',
               gap: 1.5
             }}
           >
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: 'wrap', gap: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                Shakllantirilgan dalolatnomalar ({dalolatnomaMeta.rowCount} ta)
+                Dalolatnomalar ({dalolatnomaMeta.rowCount} ta)
               </Typography>
 
               {/* Status Filter */}
-              <FormControl size="small" sx={{ minWidth: 170 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
                 <InputLabel id="dalolatnoma-status-filter-label">Holati bo'yicha</InputLabel>
                 <Select
                   labelId="dalolatnoma-status-filter-label"
@@ -972,7 +1083,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </FormControl>
 
               {/* Mahalla Filter */}
-              <FormControl size="small" sx={{ minWidth: 200 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
                 <InputLabel id="dalolatnoma-mahalla-filter-label">Mahalla bo'yicha</InputLabel>
                 <Select
                   labelId="dalolatnoma-mahalla-filter-label"
@@ -996,9 +1107,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </FormControl>
             </Stack>
 
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
               <Tooltip title="Yangilash">
-                <IconButton color="primary" onClick={fetchDalolatnomalar}>
+                <IconButton color="primary" size="small" onClick={fetchDalolatnomalar}>
                   <RefreshIcon />
                 </IconButton>
               </Tooltip>
@@ -1006,16 +1117,148 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               <Button
                 variant="contained"
                 color="success"
+                size={isMobile ? 'small' : 'medium'}
                 startIcon={<SimCardDownloadOutlinedIcon />}
                 onClick={handleExportDalolatnomalarExcel}
-                sx={{ fontWeight: 700 }}
+                sx={{ fontWeight: 700, textTransform: 'none' }}
               >
                 Excelga yuklab olish
               </Button>
             </Stack>
           </Paper>
 
-          <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2 }}>
+          {/* Mobil Ko'rinish (Tab 1: Dalolatnomalar kartalari) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            {dalolatnomaRows.length === 0 ? (
+              <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  Dalolatnomalar topilmadi
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                  Tanlangan parametrlar bo'yicha hech qanday dalolatnoma mavjud emas
+                </Typography>
+              </Paper>
+            ) : (
+              <Stack spacing={1.5}>
+                {dalolatnomaRows.map((row) => {
+                  const mfyName = mahallalarList.find((m) => m.id === row.mahallaId)?.name || row.mahallaId;
+                  const total = row.totalCount || row.request_ids?.length || 0;
+                  const confirmed = row.confirmedCount || 0;
+                  const isPending = !row.isCancel && row.status !== 'bekor_qilingan' && !row.isConfirmed && row.status !== 'bajarildi';
+
+                  return (
+                    <Paper
+                      key={row._id || row.id}
+                      variant="outlined"
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: 'background.paper',
+                        borderColor: isPending ? alpha(theme.palette.warning.main, 0.4) : 'divider'
+                      }}
+                    >
+                      {/* Sarlavha: № + Mahalla + Holati */}
+                      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }}>
+                            Dalolatnoma № {row.documentNumber}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                            {mfyName}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ flexShrink: 0 }}>
+                          {row.isCancel || row.status === 'bekor_qilingan' ? (
+                            <Chip label="Bekor qilingan" color="error" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
+                          ) : row.status === 'bajarildi' || row.isConfirmed ? (
+                            <Chip label="Bajarildi" color="success" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
+                          ) : row.status === 'qisman_bajarildi' ? (
+                            <Chip label={`Qisman (${confirmed}/${total})`} color="info" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
+                          ) : (
+                            <Chip label="Bajarilmadi" color="warning" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
+                          )}
+                        </Box>
+                      </Stack>
+
+                      <Divider sx={{ my: 0.8 }} />
+
+                      {/* Ma'lumotlar: Sana va Abonentlar soni */}
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                            Sana
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.78rem' }}>
+                            {row.date ? new Date(row.date).toLocaleDateString() : '—'}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                            Abonentlar soni
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.82rem', color: 'text.primary' }}>
+                            {total} ta
+                          </Typography>
+                          {confirmed > 0 && (
+                            <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                              ({confirmed} tasdiqlangan)
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+
+                      {/* Amallar paneli */}
+                      <Stack direction="row" spacing={0.8} sx={{ pt: 0.8, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        {isPending && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
+                            startIcon={<DoneAllOutlinedIcon />}
+                            onClick={() => handleClickConfirmDalolatnoma(row)}
+                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', py: 0.4 }}
+                          >
+                            Tasdiqlash
+                          </Button>
+                        )}
+
+                        <IconButton
+                          size="small"
+                          color="info"
+                          onClick={() => handleClickViewDalolatnoma(row)}
+                          sx={{ border: '1px solid', borderColor: 'divider' }}
+                        >
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleClickPrintDalolatnoma(row)}
+                          sx={{ border: '1px solid', borderColor: 'divider' }}
+                        >
+                          <PrintIcon fontSize="small" />
+                        </IconButton>
+
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleClickCancelDalolatnoma(row)}
+                          disabled={row.isCancel || row.status === 'bekor_qilingan' || row.status === 'bajarildi' || row.isConfirmed}
+                          sx={{ border: '1px solid', borderColor: 'divider' }}
+                        >
+                          <DoDisturbAltOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    </Paper>
+                  );
+                })}
+              </Stack>
+            )}
+          </Box>
+
+          <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
             <DataGrid
               columns={[
                 { field: 'documentNumber', headerName: '№', width: 70 },
@@ -1248,7 +1491,83 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </Grid>
 
               <Grid size={{ xs: 12, md: 8 }}>
-                <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2 }}>
+                {/* Mobil Ko'rinish (Tab 2: PDF Xatlov Yozuvlari) */}
+                <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                  {uploadingRows.length === 0 ? (
+                    <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+                      <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                        Fayl yuklang yoki dalolatnoma raqamini kiriting
+                      </Typography>
+                    </Paper>
+                  ) : (
+                    <Stack spacing={1.5}>
+                      {uploadingRows.map((row) => (
+                        <Paper
+                          key={row._id}
+                          variant="outlined"
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            bgcolor: 'background.paper',
+                            borderColor: 'divider'
+                          }}
+                        >
+                          <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                            <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }} noWrap>
+                                {row.fullName || row.fio || 'Noma’lum'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                                Hisob: <code>{row.accountNumber || row.KOD}</code>
+                              </Typography>
+                            </Box>
+                            <Chip
+                              label={row.status || 'Kutilmoqda'}
+                              color={row.status === 'yakunlangan' ? 'success' : 'warning'}
+                              size="small"
+                              sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
+                            />
+                          </Stack>
+
+                          <Divider sx={{ my: 0.8 }} />
+
+                          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.85rem' }}>
+                              Yashovchilar: {row.YASHOVCHILAR} nafar
+                            </Typography>
+
+                            <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="success"
+                                disabled={row.isCancel || !!row.actId}
+                                onClick={() => handleConfirmRow(row._id)}
+                                startIcon={<DoneOutlinedIcon />}
+                                sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', py: 0.4 }}
+                              >
+                                Tasdiqlash
+                              </Button>
+
+                              <IconButton
+                                size="small"
+                                color="error"
+                                disabled={row.isCancel}
+                                onClick={() => handleCancelRow(row._id)}
+                                sx={{ border: '1px solid', borderColor: 'divider' }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Stack>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
+
+                {/* Desktop DataGrid */}
+                <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
                   <DataGrid
                     rows={uploadingRows}
                     columns={[

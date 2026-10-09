@@ -18,6 +18,7 @@ import {
   Checkbox,
   Chip,
   InputAdornment,
+  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -48,6 +49,7 @@ export const ImportScannedAbonentModal: React.FC<ImportScannedAbonentModalProps>
   onSuccess,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [scanning, setScanning] = useState<boolean>(false);
@@ -209,11 +211,12 @@ export const ImportScannedAbonentModal: React.FC<ImportScannedAbonentModalProps>
       onClose={handleClose}
       maxWidth="md"
       fullWidth
+      fullScreen={isMobile}
       slotProps={{
         paper: {
           sx: {
             bgcolor: theme.palette.background.paper,
-            borderRadius: 3,
+            borderRadius: { xs: 0, sm: 3 },
           },
         },
       }}

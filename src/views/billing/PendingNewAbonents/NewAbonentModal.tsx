@@ -16,7 +16,8 @@ import {
   FormControlLabel,
   CircularProgress,
   Stack,
-  TextField
+  TextField,
+  useMediaQuery
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -79,6 +80,7 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { currentTariff } = useTariff();
   const tariffRate = currentTariff?.hisoblandi || 5000;
 
@@ -217,62 +219,78 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
 
   return (
     <>
-      <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="md" fullWidth>
+      <Dialog
+        open={open}
+        onClose={loading ? undefined : onClose}
+        maxWidth="md"
+        fullWidth
+        fullScreen={isMobile}
+      >
         {/* Modal Header */}
-        <DialogTitle sx={{ p: 2.5, bgcolor: isDark ? 'background.paper' : '#f8fafc' }}>
+        <DialogTitle sx={{ p: { xs: 1.5, sm: 2, md: 2.5 }, bgcolor: isDark ? 'background.paper' : '#f8fafc' }}>
           <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
             {/* Fuqaro FIO va Status */}
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center', minWidth: 0, flex: 1 }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 44,
-                  height: 44,
+                  width: { xs: 36, sm: 44 },
+                  height: { xs: 36, sm: 44 },
                   borderRadius: '12px',
                   bgcolor: isDark ? alpha(theme.palette.primary.main, 0.2) : '#e0f2fe',
-                  color: theme.palette.primary.main
+                  color: theme.palette.primary.main,
+                  flexShrink: 0
                 }}
               >
-                <IconUser size={24} />
+                <IconUser size={isMobile ? 20 : 24} />
               </Box>
-              <Box>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary' }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                  <Typography
+                    variant={isMobile ? 'subtitle1' : 'h3'}
+                    sx={{
+                      fontWeight: 800,
+                      color: 'text.primary',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
                     {fullName}
                   </Typography>
                   <Tooltip title="F.I.O nusxalash">
-                    <IconButton size="small" onClick={() => copyToClipboard(fullName, 'Fuqaro F.I.O')} sx={{ p: 0.5 }}>
-                      <IconCopy size={16} />
+                    <IconButton size="small" onClick={() => copyToClipboard(fullName, 'Fuqaro F.I.O')} sx={{ p: 0.3 }}>
+                      <IconCopy size={15} />
                     </IconButton>
                   </Tooltip>
                 </Stack>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.72rem' }}>
                   Yangi abonent ochish arizasi
                 </Typography>
               </Box>
 
-              {isPending && <Chip label="Kutilmoqda" size="small" color="warning" variant="filled" sx={{ fontWeight: 700 }} />}
-              {isApproved && <Chip label="Tasdiqlangan" size="small" color="success" variant="filled" sx={{ fontWeight: 700 }} />}
-              {isRejected && <Chip label="Rad etilgan" size="small" color="error" variant="filled" sx={{ fontWeight: 700 }} />}
+              {isPending && <Chip label="Kutilmoqda" size="small" color="warning" variant="filled" sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }} />}
+              {isApproved && <Chip label="Tasdiqlangan" size="small" color="success" variant="filled" sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }} />}
+              {isRejected && <Chip label="Rad etilgan" size="small" color="error" variant="filled" sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }} />}
             </Stack>
 
             {/* Queue Controls */}
             {queueLength > 1 && (
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
                 <Chip
-                  label={`So'rov ${queueIndex + 1} / ${queueLength}`}
+                  label={`${queueIndex + 1} / ${queueLength}`}
                   size="small"
                   color="primary"
                   variant="outlined"
-                  sx={{ fontWeight: 700 }}
+                  sx={{ height: 24, fontWeight: 700, fontSize: '0.72rem' }}
                 />
 
                 <Tooltip title="Oldingi so'rov">
                   <span>
-                    <IconButton size="small" onClick={onPrev} disabled={queueIndex <= 0 || loading} sx={{ border: '1px solid', borderColor: theme.palette.divider }}>
-                      <IconChevronLeft size={18} />
+                    <IconButton size="small" onClick={onPrev} disabled={queueIndex <= 0 || loading} sx={{ border: '1px solid', borderColor: theme.palette.divider, p: 0.5 }}>
+                      <IconChevronLeft size={16} />
                     </IconButton>
                   </span>
                 </Tooltip>
@@ -283,14 +301,14 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
                       size="small"
                       onClick={onNext}
                       disabled={queueIndex >= queueLength - 1 || loading}
-                      sx={{ border: '1px solid', borderColor: theme.palette.divider }}
+                      sx={{ border: '1px solid', borderColor: theme.palette.divider, p: 0.5 }}
                     >
-                      <IconChevronRight size={18} />
+                      <IconChevronRight size={16} />
                     </IconButton>
                   </span>
                 </Tooltip>
 
-                {onToggleAutoAdvance && (
+                {onToggleAutoAdvance && !isMobile && (
                   <FormControlLabel
                     control={
                       <Switch size="small" checked={autoAdvance} onChange={(e) => onToggleAutoAdvance(e.target.checked)} color="success" />
@@ -311,14 +329,14 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
         <Divider />
 
         {/* Modal Content */}
-        <DialogContent sx={{ p: 2.5, bgcolor: isDark ? 'background.default' : '#f1f5f9' }}>
-          <Grid container spacing={2.5}>
+        <DialogContent sx={{ p: { xs: 1.5, sm: 2, md: 2.5 }, bgcolor: isDark ? 'background.default' : '#f1f5f9' }}>
+          <Grid container spacing={{ xs: 1.5, sm: 2, md: 2.5 }}>
             {/* CHAP USTUN: Fuqaro va Pasport ma'lumotlari */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Paper
                 elevation={0}
                 sx={{
-                  p: 2.5,
+                  p: { xs: 1.5, sm: 2, md: 2.5 },
                   borderRadius: '12px',
                   bgcolor: 'background.paper',
                   border: '1px solid',
@@ -1017,38 +1035,65 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
         <Divider />
 
         {/* Modal Actions */}
-        <DialogActions sx={{ p: 2, bgcolor: theme.palette.background.paper, justifyContent: 'space-between' }}>
-          <Button onClick={onClose} disabled={loading} color="inherit">
+        <DialogActions
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: theme.palette.background.paper,
+            justifyContent: 'space-between',
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
+            gap: 1,
+            position: { xs: 'sticky', md: 'static' },
+            bottom: 0,
+            zIndex: 10,
+            borderTop: '1px solid',
+            borderColor: theme.palette.divider
+          }}
+        >
+          <Button
+            onClick={onClose}
+            disabled={loading}
+            color="inherit"
+            fullWidth={isMobile}
+            sx={{ textTransform: 'none' }}
+          >
             Yopish
           </Button>
 
           {isPending ? (
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              {/* Hujjat chiqarish */}
-              {onPrintClick && (
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1}
+              sx={{ alignItems: 'stretch', width: { xs: '100%', sm: 'auto' } }}
+            >
+              <Stack direction="row" spacing={1} sx={{ width: '100%' }}>
+                {/* Hujjat chiqarish */}
+                {onPrintClick && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<IconPrinter size={16} />}
+                    onClick={() => onPrintClick(item)}
+                    disabled={loading}
+                    fullWidth
+                    sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.85rem' }, py: 0.8, textTransform: 'none' }}
+                  >
+                    {isDocumentCreated ? 'Qayta chop' : 'Hujjat'}
+                  </Button>
+                )}
+
+                {/* Rad etish */}
                 <Button
                   variant="outlined"
-                  color="primary"
-                  startIcon={<IconPrinter size={18} />}
-                  onClick={() => onPrintClick(item)}
+                  color="error"
+                  startIcon={<IconX size={16} />}
+                  onClick={() => onRejectClick(item)}
                   disabled={loading}
-                  sx={{ fontWeight: 700 }}
+                  fullWidth
+                  sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.85rem' }, py: 0.8, textTransform: 'none' }}
                 >
-                  {isDocumentCreated ? 'Qayta chop etish' : 'Hujjat chiqarish'}
+                  Rad etish
                 </Button>
-              )}
-
-              {/* Rad etish */}
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<IconX size={18} />}
-                onClick={() => onRejectClick(item)}
-                disabled={loading}
-                sx={{ fontWeight: 700 }}
-              >
-                Rad etish
-              </Button>
+              </Stack>
 
               {/* Tasdiqlash */}
               <Button
@@ -1057,9 +1102,17 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
                 startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <IconCheck size={18} />}
                 onClick={handleApproveCurrent}
                 disabled={loading}
-                sx={{ fontWeight: 700, px: 3 }}
+                fullWidth
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: '0.82rem', sm: '0.875rem' },
+                  px: { xs: 2, sm: 3 },
+                  py: 0.8,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap'
+                }}
               >
-                {ignoreCadastr ? 'Kadastrsiz Tasdiqlash va Ochish' : 'Tasdiqlash va Abonent Ochish'}
+                {ignoreCadastr ? 'Kadastrsiz Tasdiqlash' : 'Tasdiqlash va Ochish'}
               </Button>
             </Stack>
           ) : (

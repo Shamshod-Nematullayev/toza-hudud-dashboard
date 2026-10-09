@@ -17,7 +17,8 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
-  Chip
+  Chip,
+  useMediaQuery
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -54,6 +55,7 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { currentTariff } = useTariff();
   const tariffRate = currentTariff?.hisoblandi || 5000;
 
@@ -276,8 +278,14 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
 
   return (
     <>
-      <Dialog open={open} onClose={submitting ? undefined : onClose} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ p: 2.5, bgcolor: isDark ? 'background.paper' : '#f8fafc' }}>
+      <Dialog
+        open={open}
+        onClose={submitting ? undefined : onClose}
+        maxWidth="md"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ p: { xs: 1.5, sm: 2, md: 2.5 }, bgcolor: isDark ? 'background.paper' : '#f8fafc' }}>
           <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
               <Box
