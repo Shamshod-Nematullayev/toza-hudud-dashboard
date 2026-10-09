@@ -30,7 +30,7 @@ function XatlovTable() {
       }));
       setMahallaOptions(options);
     });
-  }, []);
+  }, [ui.refreshToggle]);
 
   // Filter o'zgarganda store'ni yangilash
   const handleChangeFilterModel = (newModel: any) => {

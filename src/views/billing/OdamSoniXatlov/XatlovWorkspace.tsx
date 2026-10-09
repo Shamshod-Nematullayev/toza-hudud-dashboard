@@ -158,7 +158,8 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     api.get('/yashovchi-soni-xatlov/mahallas').then(({ data }) => {
       const options = (data.data || []).map((mfy: any) => ({
         mahallaId: mfy.mahallaId,
-        mahallaName: lotinga(mfy.mahallaName)
+        mahallaName: lotinga(mfy.mahallaName),
+        count: mfy.count
       }));
       setMahallaOptions(options);
     });
@@ -166,7 +167,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     api.get('/billing/get-all-active-mfy').then(({ data }) => {
       setMahallalarList(data.data || []);
     });
-  }, []);
+  }, [ui.refreshToggle]);
 
   // 2. Fetch Dalolatnomalar List (Tab 1)
   const fetchDalolatnomalar = async () => {
@@ -788,7 +789,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   </MenuItem>
                   {mahallaOptions.map((opt: any) => (
                     <MenuItem key={opt.mahallaId} value={opt.mahallaId}>
-                      {opt.mahallaName}
+                      {opt.mahallaName} {opt.count ? `(${opt.count})` : ''}
                     </MenuItem>
                   ))}
                 </Select>
@@ -987,9 +988,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   <MenuItem value="">
                     <em>Barcha mahallalar</em>
                   </MenuItem>
-                  {mahallaOptions.map((opt: any) => (
-                    <MenuItem key={opt.mahallaId} value={opt.mahallaId}>
-                      {opt.mahallaName}
+                  {mahallalarList.map((m: any) => (
+                    <MenuItem key={m.id} value={m.id}>
+                      {lotinga(m.name)}
                     </MenuItem>
                   ))}
                 </Select>

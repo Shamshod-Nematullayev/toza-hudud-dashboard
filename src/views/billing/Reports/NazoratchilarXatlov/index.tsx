@@ -299,11 +299,7 @@ export default function NazoratchilarXatlov() {
     const filtered = rawRows.filter((row) => {
       if (onlyWithActivity && (row.total || 0) <= 0) return false;
       if (!q) return true;
-      return (
-        row.name.toLowerCase().includes(q) ||
-        String(row.id).includes(q) ||
-        (row.phone && row.phone.toLowerCase().includes(q))
-      );
+      return row.name.toLowerCase().includes(q) || String(row.id).includes(q) || (row.phone && row.phone.toLowerCase().includes(q));
     });
 
     return [...filtered].sort((a, b) => {
@@ -326,9 +322,7 @@ export default function NazoratchilarXatlov() {
     return timeline
       .map((dayGroup) => {
         const matchedInspectors = dayGroup.inspectors.filter(
-          (ins) =>
-            ins.inspectorName.toLowerCase().includes(q) ||
-            String(ins.inspectorId).includes(q)
+          (ins) => ins.inspectorName.toLowerCase().includes(q) || String(ins.inspectorId).includes(q)
         );
         if (matchedInspectors.length === 0) return null;
         return {
@@ -389,12 +383,8 @@ export default function NazoratchilarXatlov() {
               borderColor: alpha(p.color, isDark ? 0.35 : 0.22)
             }}
           >
-            <Typography sx={{ fontWeight: 800, fontSize: '0.78rem', color: p.color }}>
-              {p.count} ta
-            </Typography>
-            <Typography sx={{ fontWeight: 500, fontSize: '0.76rem', color: theme.palette.text.primary }}>
-              {p.label}
-            </Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: '0.78rem', color: p.color }}>{p.count} ta</Typography>
+            <Typography sx={{ fontWeight: 500, fontSize: '0.76rem', color: theme.palette.text.primary }}>{p.label}</Typography>
           </Box>
         ))}
       </Stack>
@@ -448,7 +438,8 @@ export default function NazoratchilarXatlov() {
                 />
               </Stack>
               <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.4 }}>
-                Har bir nazoratchi bot orqali kiritgan shaxsni tasdiqlash, elektr kodi, yashovchi soni, yangi abonent va telefon ma&apos;lumotlari kunlik kesimda
+                Har bir nazoratchi bot orqali kiritgan shaxsni tasdiqlash, elektr kodi, yashovchi soni, yangi abonent va telefon
+                ma&apos;lumotlari kunlik kesimda
               </Typography>
             </Box>
           </Stack>
@@ -531,9 +522,7 @@ export default function NazoratchilarXatlov() {
             }}
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: theme.palette.text.secondary }}>
-                JAMI KIRITILGAN
-              </Typography>
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: theme.palette.text.secondary }}>JAMI KIRITILGAN</Typography>
               <PeopleIcon fontSize="small" sx={{ color: theme.palette.text.secondary }} />
             </Stack>
             <Typography sx={{ fontSize: '1.65rem', fontWeight: 800, color: theme.palette.text.primary, lineHeight: 1.15 }}>
@@ -567,9 +556,7 @@ export default function NazoratchilarXatlov() {
                   p: 2,
                   height: '100%',
                   borderRadius: 2.5,
-                  bgcolor: isSelectedSort
-                    ? alpha(cat.color, isDark ? 0.14 : 0.05)
-                    : theme.palette.background.paper,
+                  bgcolor: isSelectedSort ? alpha(cat.color, isDark ? 0.14 : 0.05) : theme.palette.background.paper,
                   border: '1px solid',
                   borderColor: isSelectedSort ? cat.color : theme.palette.divider,
                   borderLeft: `4px solid ${cat.color}`,
@@ -672,7 +659,7 @@ export default function NazoratchilarXatlov() {
                   setFromDate(e.target.value);
                   setActivePreset('custom');
                 }}
-                slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: toDate || todayStr } }}
+                slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: toDate || todayStr, min: '2026-10-09' } }}
                 sx={{ width: 150 }}
               />
 
@@ -731,9 +718,7 @@ export default function NazoratchilarXatlov() {
                 sx={{
                   fontWeight: onlyWithActivity ? 700 : 500,
                   borderRadius: 1.5,
-                  bgcolor: onlyWithActivity
-                    ? alpha(theme.palette.success.main, isDark ? 0.22 : 0.12)
-                    : 'transparent',
+                  bgcolor: onlyWithActivity ? alpha(theme.palette.success.main, isDark ? 0.22 : 0.12) : 'transparent',
                   color: onlyWithActivity ? theme.palette.success.main : theme.palette.text.secondary,
                   border: '1px solid',
                   borderColor: onlyWithActivity ? theme.palette.success.main : theme.palette.divider
@@ -937,14 +922,10 @@ export default function NazoratchilarXatlov() {
                           onClick={() => hasDaily && toggleExpandRow(row.id)}
                           sx={{
                             cursor: hasDaily ? 'pointer' : 'default',
-                            bgcolor: isExpanded
-                              ? alpha(theme.palette.primary.main, isDark ? 0.08 : 0.03)
-                              : 'inherit'
+                            bgcolor: isExpanded ? alpha(theme.palette.primary.main, isDark ? 0.08 : 0.03) : 'inherit'
                           }}
                         >
-                          <TableCell sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>
-                            {index + 1}
-                          </TableCell>
+                          <TableCell sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>{index + 1}</TableCell>
                           <TableCell>
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                               <Box>
