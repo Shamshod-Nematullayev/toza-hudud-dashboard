@@ -69,6 +69,7 @@ import { IMultiplyRequest, IXatlovDocument } from 'types/billing';
 
 const getStatusRequest = (data: IMultiplyRequest) => {
   if (data.isCancel) return 'bekor qilindi';
+  if (data.isPendingAct) return 'kutilmoqda';
   if (!data.document_id) return 'yangi';
   if (!data.actId) return 'xujjat yaratilgan';
   if (!data.confirm) return 'akt qilingan';
@@ -463,9 +464,12 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
     try {
       if (!silent) setLoading(true);
-      await api.put(`/yashovchi-soni-xatlov/confirm/${_id}`, formData, {
+      const { data: resData } = await api.put(`/yashovchi-soni-xatlov/confirm/${_id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      if (resData?.status === 'keyinroq_kiritiladigan' && !silent) {
+        toast.info(resData.message || 'Akt TozaMakon ochilganda kiritilishi uchun navbatga qo‘shildi.');
+      }
       if (!silent) await getDalolatnomaData({ _id: dalolatnoma._id });
     } catch (error) {
       if (!silent) toast.error(t('errors.somethingWentWrong'));

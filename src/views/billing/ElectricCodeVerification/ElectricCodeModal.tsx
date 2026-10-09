@@ -8,6 +8,7 @@ import {
   Typography,
   Chip,
   Box,
+  Card,
   Divider,
   Paper,
   IconButton,

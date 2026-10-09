@@ -91,11 +91,13 @@ const PendingActDetailDrawer: React.FC<PendingActDetailDrawerProps> = ({
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [ariza, setAriza] = useState<any>(null);
+  const [multiplyRequest, setMultiplyRequest] = useState<any>(null);
 
   useEffect(() => {
     if (!open || !actId) {
       setData(null);
       setAriza(null);
+      setMultiplyRequest(null);
       return;
     }
 
@@ -108,6 +110,7 @@ const PendingActDetailDrawer: React.FC<PendingActDetailDrawerProps> = ({
         if (!isMounted) return;
         setData(res.data?.data || null);
         setAriza(res.data?.ariza || null);
+        setMultiplyRequest(res.data?.multiplyRequest || null);
       })
       .catch((err) => {
         console.error(err);
@@ -338,6 +341,54 @@ const PendingActDetailDrawer: React.FC<PendingActDetailDrawerProps> = ({
                   <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                     Sana: {dayjs(ariza.sana).format('DD.MM.YYYY')}
                   </Typography>
+                </Stack>
+              </Paper>
+            ) : null}
+
+            {/* 4.1. Bog'langan xatlov dalolatnomasi */}
+            {multiplyRequest ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: theme.palette.divider,
+                  bgcolor: theme.palette.background.paper
+                }}
+              >
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    Bog‘langan xatlov
+                  </Typography>
+                  <Button
+                    size="small"
+                    endIcon={<OpenInNew sx={{ fontSize: 14 }} />}
+                    onClick={() => navigate('/billing/xatlov-dalolatnomalar')}
+                    sx={{ textTransform: 'none', fontWeight: 700, p: 0 }}
+                  >
+                    Xatlovga o‘tish
+                  </Button>
+                </Stack>
+
+                <Stack spacing={0.75}>
+                  <Typography variant="body2">
+                    Hisob raqami: <strong>{multiplyRequest.KOD}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Abonent: <strong>{multiplyRequest.fio || '-'}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    MFY: <strong>{multiplyRequest.mahallaName || '-'}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Yangi yashovchilar soni: <strong>{multiplyRequest.YASHOVCHILAR} kishi</strong>
+                  </Typography>
+                  {multiplyRequest.from?.first_name && (
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                      Kiritgan xatlovchi: {multiplyRequest.from.first_name}
+                    </Typography>
+                  )}
                 </Stack>
               </Paper>
             ) : null}
