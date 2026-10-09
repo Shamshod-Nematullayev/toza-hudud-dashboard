@@ -115,12 +115,11 @@ const AuthHeaderControls: React.FC = () => {
         }}
       >
         <Box
-          component="img"
-          src={currentLang.img}
-          alt={currentLang.label}
-          sx={{
-            width: 20,
-            height: 14,
+          component="span"
+          className={`fi fi-${currentLang.img}`}
+          style={{
+            width: 25,
+            height: 20,
             borderRadius: '2px',
             objectFit: 'cover',
             boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
@@ -193,18 +192,7 @@ const AuthHeaderControls: React.FC = () => {
             >
               <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
                 <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center' }}>
-                  <Box
-                    component="img"
-                    src={item.img}
-                    alt={item.label}
-                    sx={{
-                      width: 22,
-                      height: 15,
-                      borderRadius: '2px',
-                      objectFit: 'cover',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
-                    }}
-                  />
+                  <span className={`fi fi-${item.img}`} style={{ width: 30, height: 30, borderRadius: '2px', objectFit: 'cover', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
                   <Typography
                     variant="body2"
                     sx={{
@@ -233,8 +221,8 @@ const AuthHeaderControls: React.FC = () => {
           customization.mode === 'system'
             ? `${t('customization.systemMode', 'OS Rejimi')} (${isDarkMode ? t('customization.systemActiveDark', 'OS: Tungi') : t('customization.systemActiveLight', 'OS: Kunduzgi')})`
             : customization.mode === 'dark'
-            ? t('customization.darkMode', 'Tungi rejim')
-            : t('customization.lightMode', 'Kunduzgi rejim')
+              ? t('customization.darkMode', 'Tungi rejim')
+              : t('customization.lightMode', 'Kunduzgi rejim')
         }
       >
         <IconButton
@@ -250,22 +238,22 @@ const AuthHeaderControls: React.FC = () => {
                   ? 'rgba(124, 77, 255, 0.16)'
                   : 'rgba(124, 77, 255, 0.1)'
                 : isDarkMode
-                ? 'rgba(255, 255, 255, 0.06)'
-                : 'rgba(0, 0, 0, 0.04)',
+                  ? 'rgba(255, 255, 255, 0.06)'
+                  : 'rgba(0, 0, 0, 0.04)',
             color:
               customization.mode === 'system'
                 ? '#A78BFA'
                 : customization.mode === 'dark'
-                ? '#60A5FA'
-                : '#F59E0B',
+                  ? '#60A5FA'
+                  : '#F59E0B',
             transition: 'all 0.2s ease',
             '&:hover': {
               backgroundColor:
                 customization.mode === 'system'
                   ? 'rgba(124, 77, 255, 0.25)'
                   : isDarkMode
-                  ? 'rgba(255, 255, 255, 0.12)'
-                  : 'rgba(0, 0, 0, 0.08)',
+                    ? 'rgba(255, 255, 255, 0.12)'
+                    : 'rgba(0, 0, 0, 0.08)',
               transform: 'scale(1.05)'
             }
           }}
