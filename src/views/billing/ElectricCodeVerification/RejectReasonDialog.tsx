@@ -46,8 +46,22 @@ export const RejectReasonDialog: React.FC<RejectReasonDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
+    <Dialog
+      open={open}
+      onClose={loading ? undefined : onClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: { xs: '16px', sm: '20px' },
+            bgcolor: 'background.paper',
+            overflow: 'hidden'
+          }
+        }
+      }}
+    >
+      <DialogTitle sx={{ p: { xs: 1.5, sm: 2 } }}>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{

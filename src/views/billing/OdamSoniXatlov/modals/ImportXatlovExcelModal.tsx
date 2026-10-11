@@ -11,8 +11,10 @@ import {
   IconButton,
   Paper,
   Stack,
-  Typography
+  Typography,
+  useMediaQuery
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
@@ -29,6 +31,8 @@ interface ImportXatlovExcelModalProps {
 }
 
 export default function ImportXatlovExcelModal({ open, onClose }: ImportXatlovExcelModalProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { toggleRefresh } = useOdamSoniXatlovStore();
   const [file, setFile] = useState<File | null>(null);
   const [clearTrigger, setClearTrigger] = useState(false);
@@ -100,7 +104,7 @@ export default function ImportXatlovExcelModal({ open, onClose }: ImportXatlovEx
   };
 
   return (
-    <Dialog open={open} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleCloseModal} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
         <FileUploadOutlinedIcon color="primary" />
         Excel orqali ommaviy xatlov import qilish

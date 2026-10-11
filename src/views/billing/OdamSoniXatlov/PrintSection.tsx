@@ -1,4 +1,5 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, InputLabel } from '@mui/material';
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, InputLabel, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { lotinga } from 'helpers/lotinKiril';
 import React, { useRef, useState } from 'react';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
@@ -43,6 +44,8 @@ function stringToName(str: string) {
 }
 
 function PrintSection() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mfyRaisi, setMfyRaisi] = useState(true);
   const { dalolatnoma, ui, setPrintModal } = odamSoniXatlovStore();
   const { mahalla } = dalolatnoma;
@@ -57,10 +60,13 @@ function PrintSection() {
   return (
     <Dialog
       open={ui.isPrintModalOpen}
+      fullScreen={isMobile}
+      maxWidth="md"
+      fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          width: '80%', // kenglikni belgilash
-          maxWidth: '800px' // maksimal kenglik
+          width: { xs: '100%', sm: '85%' },
+          maxWidth: '800px'
         }
       }}
     >

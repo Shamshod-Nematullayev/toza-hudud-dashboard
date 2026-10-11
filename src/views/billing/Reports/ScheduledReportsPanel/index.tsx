@@ -46,6 +46,7 @@ export interface IScheduledReportItem {
   paymentPartner: 'ekopay' | 'paynet' | 'both' | 'all';
   groupBy?: 'inspector' | 'mahalla';
   taskType?: 'phone' | 'electricity' | 'both';
+  planSource?: 'hisoblandi' | 'belgilangan';
   chatId: string;
   defaultChatId: string;
   lastRunAt: string | null;
@@ -139,6 +140,7 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
         paymentPartner: item.paymentPartner,
         groupBy: item.groupBy || 'inspector',
         taskType: item.taskType || 'both',
+        planSource: item.planSource || 'hisoblandi',
         chatId: item.chatId.trim() || undefined
       });
 
@@ -164,6 +166,7 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
         paymentPartner: item.paymentPartner,
         groupBy: item.groupBy || 'inspector',
         taskType: item.taskType || 'both',
+        planSource: item.planSource || 'hisoblandi',
         chatId: item.chatId.trim() || undefined
       });
 
@@ -434,6 +437,30 @@ export default function ScheduledReportsPanel({ onClose }: ScheduledReportsPanel
                                 value="mahalla"
                                 control={<Radio size="small" color="secondary" />}
                                 label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Mahalla kesimida</Typography>}
+                              />
+                            </RadioGroup>
+                          </Box>
+                        )}
+
+                        {item.reportType === 'sendMFYIncomeReport' && (
+                          <Box>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                              Reja hisoblash manbai:
+                            </Typography>
+                            <RadioGroup
+                              row
+                              value={item.planSource || 'hisoblandi'}
+                              onChange={(e) => updateReportField(item.reportType, 'planSource', e.target.value)}
+                            >
+                              <FormControlLabel
+                                value="hisoblandi"
+                                control={<Radio size="small" color="secondary" />}
+                                label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Hisoblandi bo‘yicha</Typography>}
+                              />
+                              <FormControlLabel
+                                value="belgilangan"
+                                control={<Radio size="small" color="secondary" />}
+                                label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Belgilangan reja (Excel)</Typography>}
                               />
                             </RadioGroup>
                           </Box>

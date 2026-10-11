@@ -22,7 +22,9 @@ import {
   Typography,
   useTheme,
   Button,
-  Avatar
+  Avatar,
+  Divider,
+  useMediaQuery
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -57,6 +59,7 @@ import { ImportScannedAbonentModal } from './ImportScannedAbonentModal';
 export const PendingNewAbonents: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [items, setItems] = useState<INewAbonentItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -311,26 +314,37 @@ export const PendingNewAbonents: React.FC = () => {
         }}
       >
         <Box>
-          <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary' }}>
-            Yangi Abonentlarni Tasdiqlash
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: 900,
+              color: 'text.primary',
+              fontSize: { xs: '1.25rem', sm: '1.65rem' }
+            }}
+          >
+            Yangi abonent ochish so'rovlari
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' }, mt: 0.2 }}>
             Nazoratchilar bot orqali kiritgan yangi abonent ochish arizalarini ko'rib chiqish va TozaMakon billingiga kiritish
           </Typography>
         </Box>
 
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
           <Button
             variant="outlined"
             color="inherit"
-            startIcon={<IconRefresh size={18} />}
+            size="small"
+            startIcon={<IconRefresh size={16} />}
             onClick={() => fetchData()}
             disabled={loading}
             sx={{
-              fontWeight: 600,
+              fontWeight: 700,
+              borderRadius: '10px',
+              textTransform: 'none',
               bgcolor: 'background.paper',
               borderColor: theme.palette.divider,
               color: 'text.primary',
+              py: 0.6,
               '&:hover': {
                 bgcolor: 'action.hover',
                 borderColor: theme.palette.divider
@@ -343,264 +357,307 @@ export const PendingNewAbonents: React.FC = () => {
           <Button
             variant="contained"
             color="info"
-            startIcon={<IconUpload size={18} />}
+            size="small"
+            startIcon={<IconUpload size={16} />}
             onClick={() => setImportScannedModalOpen(true)}
             sx={{
               fontWeight: 700,
-              px: 2.5,
-              background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.25)'
+              borderRadius: '10px',
+              textTransform: 'none',
+              py: 0.6,
+              px: { xs: 1.2, sm: 2 },
+              fontSize: { xs: '0.8rem', sm: '0.875rem' }
             }}
           >
-            Skaner yuklash
+            Skaner
           </Button>
 
           <Button
             variant="contained"
             color="success"
-            startIcon={<IconPlus size={18} />}
+            size="small"
+            startIcon={<IconPlus size={16} />}
             onClick={() => setCreateManualOpen(true)}
             sx={{
               fontWeight: 700,
-              px: 2.5,
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+              borderRadius: '10px',
+              textTransform: 'none',
+              py: 0.6,
+              px: { xs: 1.2, sm: 2 },
+              fontSize: { xs: '0.8rem', sm: '0.875rem' }
             }}
           >
-            Yangi abonent ochish
+            Qo'lda ochish
           </Button>
 
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<IconFast size={18} />}
-            onClick={handleStartFastQueue}
-            disabled={loading || pendingQueue.length === 0}
-            sx={{
-              fontWeight: 700,
-              px: 2.5,
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)'
-            }}
-          >
-            Tezkor ko'rib chiqish ({stats.pending})
-          </Button>
+          {stats.pending > 0 && (
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              startIcon={<IconFast size={16} />}
+              onClick={handleStartFastQueue}
+              disabled={loading || pendingQueue.length === 0}
+              sx={{
+                fontWeight: 800,
+                borderRadius: '10px',
+                textTransform: 'none',
+                py: 0.6,
+                px: { xs: 1.2, sm: 2 },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                bgcolor: 'primary.main',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Tezkor ko'rib chiqish ({stats.pending})
+            </Button>
+          )}
         </Stack>
       </Stack>
 
-      {/* 2. KPI Statistik Kartalar */}
-      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+      {/* 2. KPI Statistik Kartalar (Mobilda 2x2 + 1 ixcham ko'rinish) */}
+      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, sm: 2.5 } }}>
         {/* Jami so'rovlar */}
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <Card
             elevation={0}
+            onClick={() => {
+              setStatusTab('all');
+              setPage(0);
+            }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: { xs: 1, sm: 1.5 },
+              borderRadius: '14px',
               border: '1px solid',
-              borderColor: theme.palette.divider,
+              borderColor: statusTab === 'all' ? 'primary.main' : theme.palette.divider,
               bgcolor: 'background.paper',
+              boxShadow: statusTab === 'all' ? `0 6px 20px ${alpha(theme.palette.primary.main, 0.15)}` : 'none',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                JAMI SO'ROVLAR
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
+                JAMI
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: 'text.primary' }}>
-                {loading ? <Skeleton width={60} /> : stats.total}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.disabled', mt: 0.5, display: 'block' }}>
-                Barcha arizalar
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 0.3, color: 'text.primary', fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
+                {loading ? <Skeleton width={40} /> : stats.total}
               </Typography>
             </Box>
             <Box
               sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                bgcolor: isDark ? alpha(theme.palette.primary.main, 0.2) : '#eff6ff',
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
+                borderRadius: '10px',
+                bgcolor: isDark ? alpha(theme.palette.primary.main, 0.2) : alpha(theme.palette.primary.main, 0.1),
                 color: theme.palette.primary.main,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
-              <IconUser size={26} />
+              <IconUser size={18} />
             </Box>
           </Card>
         </Grid>
 
         {/* Kutilayotgan */}
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <Card
             elevation={0}
+            onClick={() => {
+              setStatusTab('pending');
+              setPage(0);
+            }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: { xs: 1, sm: 1.5 },
+              borderRadius: '14px',
               border: '1px solid',
-              borderColor: isDark ? alpha(theme.palette.warning.main, 0.3) : '#fed7aa',
+              borderColor: statusTab === 'pending' ? 'warning.main' : isDark ? alpha(theme.palette.warning.main, 0.3) : '#fed7aa',
               bgcolor: isDark ? alpha(theme.palette.warning.main, 0.12) : '#fffaf5',
+              boxShadow: statusTab === 'pending' ? `0 6px 20px ${alpha(theme.palette.warning.main, 0.2)}` : 'none',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: theme.palette.warning.main, fontWeight: 700 }}>
-                KUTILAYOTGAN
+              <Typography variant="caption" sx={{ color: theme.palette.warning.main, fontWeight: 700, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
+                KUTILMOQDA
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.warning.main }}>
-                {loading ? <Skeleton width={60} /> : stats.pending}
-              </Typography>
-              <Typography variant="caption" sx={{ color: isDark ? theme.palette.warning.light : '#c2410c', mt: 0.5, display: 'block' }}>
-                Tasdiqlash navbatida
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 0.3, color: theme.palette.warning.main, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
+                {loading ? <Skeleton width={40} /> : stats.pending}
               </Typography>
             </Box>
             <Box
               sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                bgcolor: isDark ? alpha(theme.palette.warning.main, 0.25) : '#ffedd5',
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
+                borderRadius: '10px',
+                bgcolor: isDark ? alpha(theme.palette.warning.main, 0.25) : alpha(theme.palette.warning.main, 0.15),
                 color: theme.palette.warning.main,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
-              <IconClock size={26} />
+              <IconClock size={18} />
             </Box>
           </Card>
         </Grid>
 
         {/* Hujjat chiqarilgan */}
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <Card
             elevation={0}
+            onClick={() => {
+              setStatusTab('document_created');
+              setPage(0);
+            }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: { xs: 1, sm: 1.5 },
+              borderRadius: '14px',
               border: '1px solid',
-              borderColor: isDark ? alpha(theme.palette.info.main, 0.3) : '#bae6fd',
+              borderColor: statusTab === 'document_created' ? 'info.main' : isDark ? alpha(theme.palette.info.main, 0.3) : '#bae6fd',
               bgcolor: isDark ? alpha(theme.palette.info.main, 0.12) : '#f0f9ff',
+              boxShadow: statusTab === 'document_created' ? `0 6px 20px ${alpha(theme.palette.info.main, 0.2)}` : 'none',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: theme.palette.info.main, fontWeight: 700 }}>
-                HUJJAT CHIQARILGAN
+              <Typography variant="caption" sx={{ color: theme.palette.info.main, fontWeight: 700, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
+                HUJJAT BOR
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.info.main }}>
-                {loading ? <Skeleton width={60} /> : (stats.document_created || 0)}
-              </Typography>
-              <Typography variant="caption" sx={{ color: isDark ? theme.palette.info.light : '#0284c7', mt: 0.5, display: 'block' }}>
-                Skaner kutilmoqda
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 0.3, color: theme.palette.info.main, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
+                {loading ? <Skeleton width={40} /> : (stats.document_created || 0)}
               </Typography>
             </Box>
             <Box
               sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                bgcolor: isDark ? alpha(theme.palette.info.main, 0.25) : '#e0f2fe',
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
+                borderRadius: '10px',
+                bgcolor: isDark ? alpha(theme.palette.info.main, 0.25) : alpha(theme.palette.info.main, 0.15),
                 color: theme.palette.info.main,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
-              <IconFileText size={26} />
+              <IconFileText size={18} />
             </Box>
           </Card>
         </Grid>
 
         {/* Tasdiqlangan */}
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <Card
             elevation={0}
+            onClick={() => {
+              setStatusTab('approved');
+              setPage(0);
+            }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: { xs: 1, sm: 1.5 },
+              borderRadius: '14px',
               border: '1px solid',
-              borderColor: isDark ? alpha(theme.palette.success.main, 0.3) : '#bbf7d0',
+              borderColor: statusTab === 'approved' ? 'success.main' : isDark ? alpha(theme.palette.success.main, 0.3) : '#bbf7d0',
               bgcolor: isDark ? alpha(theme.palette.success.main, 0.12) : '#f0fdf4',
+              boxShadow: statusTab === 'approved' ? `0 6px 20px ${alpha(theme.palette.success.main, 0.2)}` : 'none',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: theme.palette.success.main, fontWeight: 700 }}>
+              <Typography variant="caption" sx={{ color: theme.palette.success.main, fontWeight: 700, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
                 TASDIQLANGAN
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.success.main }}>
-                {loading ? <Skeleton width={60} /> : stats.approved}
-              </Typography>
-              <Typography variant="caption" sx={{ color: isDark ? theme.palette.success.light : '#166534', mt: 0.5, display: 'block' }}>
-                Abonent ochilgan
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 0.3, color: theme.palette.success.main, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
+                {loading ? <Skeleton width={40} /> : stats.approved}
               </Typography>
             </Box>
             <Box
               sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                bgcolor: isDark ? alpha(theme.palette.success.main, 0.25) : '#dcfce7',
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
+                borderRadius: '10px',
+                bgcolor: isDark ? alpha(theme.palette.success.main, 0.25) : alpha(theme.palette.success.main, 0.15),
                 color: theme.palette.success.main,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
-              <IconCheck size={26} />
+              <IconCheck size={18} />
             </Box>
           </Card>
         </Grid>
 
         {/* Bekor qilingan */}
-        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 8, md: 2.4 }}>
           <Card
             elevation={0}
+            onClick={() => {
+              setStatusTab('rejected');
+              setPage(0);
+            }}
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
+              p: { xs: 1, sm: 1.5 },
+              borderRadius: '14px',
               border: '1px solid',
-              borderColor: isDark ? alpha(theme.palette.error.main, 0.3) : '#fecaca',
+              borderColor: statusTab === 'rejected' ? 'error.main' : isDark ? alpha(theme.palette.error.main, 0.3) : '#fecaca',
               bgcolor: isDark ? alpha(theme.palette.error.main, 0.12) : '#fef2f2',
+              boxShadow: statusTab === 'rejected' ? `0 6px 20px ${alpha(theme.palette.error.main, 0.2)}` : 'none',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)' }
             }}
           >
             <Box>
-              <Typography variant="caption" sx={{ color: theme.palette.error.main, fontWeight: 700 }}>
-                BEKOR QILINGAN
+              <Typography variant="caption" sx={{ color: theme.palette.error.main, fontWeight: 700, display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}>
+                RAD ETILGAN
               </Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800, mt: 0.5, color: theme.palette.error.main }}>
-                {loading ? <Skeleton width={60} /> : stats.rejected}
-              </Typography>
-              <Typography variant="caption" sx={{ color: isDark ? theme.palette.error.light : '#991b1b', mt: 0.5, display: 'block' }}>
-                Rad etilgan so'rovlar
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 0.3, color: theme.palette.error.main, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
+                {loading ? <Skeleton width={40} /> : stats.rejected}
               </Typography>
             </Box>
             <Box
               sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                bgcolor: isDark ? alpha(theme.palette.error.main, 0.25) : '#fee2e2',
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
+                borderRadius: '10px',
+                bgcolor: isDark ? alpha(theme.palette.error.main, 0.25) : alpha(theme.palette.error.main, 0.15),
                 color: theme.palette.error.main,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
-              <IconX size={26} />
+              <IconX size={18} />
             </Box>
           </Card>
         </Grid>
@@ -760,8 +817,283 @@ export const PendingNewAbonents: React.FC = () => {
           </Box>
         </Stack>
 
-        {/* 4. Asosiy Jadval */}
-        <TableContainer>
+        {/* 4. Mobil Ko'rinish (Ixcham Kartalar Ro'yxati) */}
+        <Box sx={{ display: { xs: 'block', md: 'none' }, p: { xs: 1, sm: 1.5 } }}>
+          {loading ? (
+            <Stack spacing={1.5}>
+              {Array.from(new Array(4)).map((_, idx) => (
+                <Paper key={idx} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
+                    <Skeleton variant="circular" width={40} height={40} />
+                    <Box sx={{ flex: 1 }}>
+                      <Skeleton width="60%" height={20} />
+                      <Skeleton width="40%" height={16} />
+                    </Box>
+                  </Stack>
+                  <Skeleton width="100%" height={40} sx={{ mb: 1 }} />
+                  <Skeleton width="80%" height={30} />
+                </Paper>
+              ))}
+            </Stack>
+          ) : items.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
+              <IconUser size={40} stroke={1.5} color={theme.palette.text.secondary} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 1, color: 'text.secondary' }}>
+                So'rovlar topilmadi
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.disabled', mt: 0.5, display: 'block' }}>
+                Tanlangan parametrlar bo'yicha hech qanday ariza mavjud emas
+              </Typography>
+            </Paper>
+          ) : (
+            <Stack spacing={1.5}>
+              {items.map((row, index) => {
+                const isRowPending = row.status === 'pending';
+                const isRowDocCreated = row.status === 'document_created';
+                const isRowApproved = row.status === 'approved' || row.status === 'compaleted';
+                const isRowRejected = row.status === 'rejected';
+                const isCurrentRowLoading = rowActionLoading === row._id;
+                const rowFullName = getFullName(row);
+
+                return (
+                  <Paper
+                    key={row._id}
+                    elevation={0}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: isRowPending ? alpha(theme.palette.warning.main, 0.4) : 'divider',
+                      bgcolor: isDark
+                        ? isRowPending || isRowDocCreated
+                          ? alpha(theme.palette.background.paper, 0.9)
+                          : alpha(theme.palette.background.default, 0.4)
+                        : isRowPending || isRowDocCreated
+                        ? 'background.paper'
+                        : alpha(theme.palette.background.default, 0.5),
+                      boxShadow: isRowPending ? `0 2px 8px ${alpha(theme.palette.warning.main, 0.1)}` : 'none'
+                    }}
+                  >
+                    {/* Header: Citizen Avatar + Name + Status */}
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                      <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center', minWidth: 0, flex: 1 }}>
+                        <Avatar
+                          src={row.citizen?.photo || undefined}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor: isDark ? alpha(theme.palette.primary.main, 0.2) : '#e0f2fe',
+                            color: theme.palette.primary.main,
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            flexShrink: 0
+                          }}
+                        >
+                          {rowFullName.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                fontWeight: 700,
+                                color: 'text.primary',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {rowFullName}
+                            </Typography>
+                          </Stack>
+                          <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center', mt: 0.2 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              PINFL: {row.citizen?.pnfl || '—'}
+                            </Typography>
+                            {row.citizen?.pnfl && (
+                              <Tooltip title="Nusxalash">
+                                <IconButton size="small" onClick={() => copyToClipboard(row.citizen?.pnfl, 'PINFL')} sx={{ p: 0.2 }}>
+                                  <IconCopy size={12} />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Stack>
+                        </Box>
+                      </Stack>
+                      <Box sx={{ flexShrink: 0 }}>
+                        {isRowPending && (
+                          <Chip label="Kutilmoqda" size="small" color="warning" sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }} />
+                        )}
+                        {isRowDocCreated && (
+                          <Chip
+                            label={`Hujjat № ${row.document_number || ''}`}
+                            size="small"
+                            color="info"
+                            sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }}
+                          />
+                        )}
+                        {isRowApproved && (
+                          <Chip label="Tasdiqlangan" size="small" color="success" sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }} />
+                        )}
+                        {isRowRejected && (
+                          <Chip label="Rad etilgan" size="small" color="error" sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }} />
+                        )}
+                      </Box>
+                    </Stack>
+
+                    <Divider sx={{ my: 1, borderColor: 'divider' }} />
+
+                    {/* Info rows: Address & Cadastre */}
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                          Manzil
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            color: 'text.primary',
+                            fontSize: '0.78rem',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {row.mahallaName}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'text.secondary',
+                            display: 'block',
+                            fontSize: '0.7rem',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {row.streetName}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.68rem' }}>
+                          Kadastr
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 700,
+                            color: 'text.primary',
+                            fontSize: '0.78rem',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {row.cadastr || 'Mavjud emas'}
+                        </Typography>
+                        {row.kadastr_baza_not_worked && (
+                          <Chip
+                            label="Baza ishlamagan"
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                            sx={{ height: 16, fontSize: '0.6rem', fontWeight: 700, mt: 0.2 }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+
+                    {/* Chips bar: Inhabitants + Inspector / Date */}
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
+                      <Chip
+                        icon={<IconUsers size={12} />}
+                        label={`${row.inhabitant_cnt} nafar yashovchi`}
+                        size="small"
+                        sx={{
+                          height: 22,
+                          fontWeight: 700,
+                          fontSize: '0.7rem',
+                          bgcolor: isDark ? alpha(theme.palette.secondary.main, 0.2) : '#f3e8ff',
+                          color: theme.palette.secondary.main
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                        {row.inspector_name || 'Nazoratchi'} • {row.createdAt ? new Date(row.createdAt).toLocaleDateString('uz-UZ') : ''}
+                      </Typography>
+                    </Stack>
+
+                    {/* Action buttons footer */}
+                    <Stack direction="row" spacing={1} sx={{ pt: 0.5, borderTop: '1px solid', borderColor: 'divider' }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        fullWidth
+                        startIcon={<IconEye size={15} />}
+                        onClick={() => handleOpenReview(row)}
+                        sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', py: 0.5 }}
+                      >
+                        Batafsil
+                      </Button>
+
+                      {(isRowPending || isRowDocCreated) && (
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenPrint(row)}
+                          disabled={isCurrentRowLoading}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: theme.palette.divider,
+                            color: 'info.main',
+                            bgcolor: isDark ? alpha(theme.palette.info.main, 0.15) : '#f0f9ff'
+                          }}
+                        >
+                          <IconPrinter size={16} />
+                        </IconButton>
+                      )}
+
+                      {(isRowPending || isRowDocCreated) && (
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          fullWidth
+                          startIcon={<IconCheck size={15} />}
+                          onClick={() => handleApprove(row._id)}
+                          disabled={isCurrentRowLoading}
+                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', py: 0.5 }}
+                        >
+                          Tasdiqlash
+                        </Button>
+                      )}
+
+                      {(isRowPending || isRowDocCreated) && (
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenRowReject(row)}
+                          disabled={isCurrentRowLoading}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: theme.palette.divider,
+                            color: 'error.main',
+                            bgcolor: isDark ? alpha(theme.palette.error.main, 0.15) : '#fef2f2'
+                          }}
+                        >
+                          <IconX size={16} />
+                        </IconButton>
+                      )}
+                    </Stack>
+                  </Paper>
+                );
+              })}
+            </Stack>
+          )}
+        </Box>
+
+        {/* 5. Asosiy Jadval (Faqat planshet va desktop uchun) */}
+        <TableContainer sx={{ display: { xs: 'none', md: 'block' } }}>
           <Table sx={{ minWidth: 900 }}>
             <TableHead sx={{ bgcolor: isDark ? alpha(theme.palette.background.default, 0.6) : '#f8fafc' }}>
               <TableRow>

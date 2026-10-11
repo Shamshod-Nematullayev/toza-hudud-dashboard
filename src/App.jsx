@@ -5,6 +5,7 @@ import { CssBaseline, StyledEngineProvider } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import "flag-icons/css/flag-icons.min.css";
 
 // routing
 import router from 'routes';

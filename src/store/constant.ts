@@ -30,9 +30,9 @@ export const reactToPrintDefaultOptions = {
 };
 
 export const languageOptions = [
-  { value: 'uz', label: "O'zbekcha", img: 'https://www.countryflags.com/wp-content/uploads/uzbekistan-flag-png-large.png' },
-  { value: 'uz-kirill', label: 'Ўзбекча', img: 'https://www.countryflags.com/wp-content/uploads/uzbekistan-flag-png-large.png' },
-  { value: 'ru', label: 'Русский', img: 'https://www.countryflags.com/wp-content/uploads/russia-flag-png-large.png' }
+  { value: 'uz', label: "O'zbekcha", img: 'uz' },
+  { value: 'uz-kirill', label: 'Ўзбекча', img: 'uz' },
+  { value: 'ru', label: 'Русский', img: 'ru' }
 ];
 
 export const documentTypes = ['odam_soni', 'viza', 'death', 'dvaynik', 'gps', 'pul_kuchirish'];

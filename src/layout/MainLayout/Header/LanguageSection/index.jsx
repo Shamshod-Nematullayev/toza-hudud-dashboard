@@ -112,7 +112,12 @@ const LanguageSection = () => {
                           window.location.reload();
                         }}
                       >
-                        <div
+                        <span className={"fi fi-" + item.img} style={{
+                          width: 30,
+                          height: 30,
+                          margin: '0 5px'
+                        }}></span>
+                        {/* <div
                           style={{
                             width: 30,
                             height: 30,
@@ -123,7 +128,7 @@ const LanguageSection = () => {
                             backgroundSize: 'cover',
                             backgroundRepeat: 'no-repeat'
                           }}
-                        ></div>
+                        ></div> */}
                         <Typography variant="body2">{item.label}</Typography>
                       </Button>
                     </div>

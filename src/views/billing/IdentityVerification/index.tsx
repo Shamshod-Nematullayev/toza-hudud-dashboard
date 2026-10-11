@@ -581,8 +581,8 @@ const IdentityVerification: React.FC = () => {
         </Card>
       )}
 
-      {/* 4 Asosiy KPI Kartalari (Faqat Desktopda ko'rinadi, mobilda joy tejash maqsadida yashiriladi) */}
-      <Grid container spacing={2} sx={{ mb: 2.5, display: { xs: 'none', md: 'flex' } }}>
+      {/* 4 Asosiy KPI Kartalari (Mobilda ham ixcham 2x2 shaklda ko'rinadi) */}
+      <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, sm: 2.5 } }}>
         {/* 1. Jami so'rovlar */}
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <Card
@@ -592,7 +592,7 @@ const IdentityVerification: React.FC = () => {
               setPage(0);
             }}
             sx={{
-              p: 1.5,
+              p: { xs: 1, sm: 1.5 },
               borderRadius: '14px',
               bgcolor: 'background.paper',
               border: '1px solid',
@@ -605,23 +605,23 @@ const IdentityVerification: React.FC = () => {
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                   Jami so'rovlar
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.3 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.3, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
                   {stats.total.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 0.8,
+                  p: { xs: 0.5, sm: 0.8 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.primary.main, 0.1),
                   color: 'primary.main',
                   display: 'flex'
                 }}
               >
-                <IconFileCertificate size={22} />
+                <IconFileCertificate size={20} />
               </Box>
             </Stack>
           </Card>
@@ -636,7 +636,7 @@ const IdentityVerification: React.FC = () => {
               setPage(0);
             }}
             sx={{
-              p: 1.5,
+              p: { xs: 1, sm: 1.5 },
               borderRadius: '14px',
               bgcolor: 'background.paper',
               border: '1px solid',
@@ -649,23 +649,23 @@ const IdentityVerification: React.FC = () => {
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                   Kutilmoqda
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'warning.main', mt: 0.3 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'warning.main', mt: 0.3, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
                   {stats.pending.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 0.8,
+                  p: { xs: 0.5, sm: 0.8 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.warning.main, 0.12),
                   color: 'warning.main',
                   display: 'flex'
                 }}
               >
-                <IconClock size={22} />
+                <IconClock size={20} />
               </Box>
             </Stack>
           </Card>
@@ -680,7 +680,7 @@ const IdentityVerification: React.FC = () => {
               setPage(0);
             }}
             sx={{
-              p: 1.5,
+              p: { xs: 1, sm: 1.5 },
               borderRadius: '14px',
               bgcolor: 'background.paper',
               border: '1px solid',
@@ -693,23 +693,23 @@ const IdentityVerification: React.FC = () => {
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                   Tasdiqlangan
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'success.main', mt: 0.3 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'success.main', mt: 0.3, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
                   {stats.approved.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 0.8,
+                  p: { xs: 0.5, sm: 0.8 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.success.main, 0.12),
                   color: 'success.main',
                   display: 'flex'
                 }}
               >
-                <IconCheck size={22} />
+                <IconCheck size={20} />
               </Box>
             </Stack>
           </Card>
@@ -724,7 +724,7 @@ const IdentityVerification: React.FC = () => {
               setPage(0);
             }}
             sx={{
-              p: 1.5,
+              p: { xs: 1, sm: 1.5 },
               borderRadius: '14px',
               bgcolor: 'background.paper',
               border: '1px solid',
@@ -737,23 +737,23 @@ const IdentityVerification: React.FC = () => {
           >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                   Bekor qilingan
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: 'error.main', mt: 0.3 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: 'error.main', mt: 0.3, fontSize: { xs: '0.95rem', sm: '1.25rem' } }}>
                   {stats.rejected.toLocaleString()} ta
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 0.8,
+                  p: { xs: 0.5, sm: 0.8 },
                   borderRadius: '10px',
                   bgcolor: alpha(theme.palette.error.main, 0.12),
                   color: 'error.main',
                   display: 'flex'
                 }}
               >
-                <IconX size={22} />
+                <IconX size={20} />
               </Box>
             </Stack>
           </Card>

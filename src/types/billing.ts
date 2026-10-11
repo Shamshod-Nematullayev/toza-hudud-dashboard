@@ -298,6 +298,8 @@ export interface IMultiplyRequest {
   document_id: string;
   isCancel: boolean;
   companyId: number;
+  isPendingAct?: boolean;
+  pendingActId?: string;
 }
 
 export interface EmployeeMahalla {

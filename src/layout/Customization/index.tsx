@@ -423,8 +423,8 @@ const Customization: React.FC = () => {
                         ? 'linear-gradient(145deg, #2A1B54, #1B2554)'
                         : 'linear-gradient(145deg, #F3E8FF, #EDE9FE)'
                       : isDarkMode
-                      ? '#16204A'
-                      : '#F1F5F9',
+                        ? '#16204A'
+                        : '#F1F5F9',
                     border: `2px solid ${mode === 'system' ? '#7C4DFF' : 'transparent'}`,
                     boxShadow: mode === 'system' ? '0 4px 14px rgba(124, 77, 255, 0.3)' : 'none',
                     transition: 'all 0.2s ease',
@@ -527,17 +527,16 @@ const Customization: React.FC = () => {
                             ? 'rgba(33, 150, 243, 0.15)'
                             : 'rgba(103, 58, 183, 0.08)'
                           : isDarkMode
-                          ? '#16204A'
-                          : '#F8FAFC',
-                        border: `1.5px solid ${
-                          isSelected
-                            ? isDarkMode
-                              ? '#2196F3'
-                              : '#673AB7'
-                            : isDarkMode
+                            ? '#16204A'
+                            : '#F8FAFC',
+                        border: `1.5px solid ${isSelected
+                          ? isDarkMode
+                            ? '#2196F3'
+                            : '#673AB7'
+                          : isDarkMode
                             ? 'rgba(255, 255, 255, 0.06)'
                             : 'rgba(0, 0, 0, 0.06)'
-                        }`,
+                          }`,
                         transition: 'all 0.2s ease',
                         '&:hover': {
                           borderColor: isDarkMode ? '#2196F3' : '#673AB7',
@@ -661,8 +660,8 @@ const Customization: React.FC = () => {
                             ? '#2196F3'
                             : '#673AB7'
                           : isDarkMode
-                          ? '#16204A'
-                          : '#F1F5F9',
+                            ? '#16204A'
+                            : '#F1F5F9',
                         color: isSelected ? '#FFFFFF' : isDarkMode ? '#EDEFFA' : '#121926',
                         fontWeight: 600,
                         fontSize: { xs: '0.7rem', sm: '0.75rem' },
@@ -673,8 +672,8 @@ const Customization: React.FC = () => {
                               ? '#1E88E5'
                               : '#5E35B1'
                             : isDarkMode
-                            ? '#1B2554'
-                            : '#E2E8F0'
+                              ? '#1B2554'
+                              : '#E2E8F0'
                         }
                       }}
                     >
@@ -745,17 +744,16 @@ const Customization: React.FC = () => {
                         ? 'rgba(33, 150, 243, 0.15)'
                         : 'rgba(103, 58, 183, 0.08)'
                       : isDarkMode
-                      ? '#16204A'
-                      : '#F8FAFC',
-                    border: `1.5px solid ${
-                      lineDensity === 'compact'
-                        ? isDarkMode
-                          ? '#2196F3'
-                          : '#673AB7'
-                        : isDarkMode
+                        ? '#16204A'
+                        : '#F8FAFC',
+                    border: `1.5px solid ${lineDensity === 'compact'
+                      ? isDarkMode
+                        ? '#2196F3'
+                        : '#673AB7'
+                      : isDarkMode
                         ? 'rgba(255, 255, 255, 0.06)'
                         : 'rgba(0, 0, 0, 0.06)'
-                    }`,
+                      }`,
                     transition: 'all 0.2s ease'
                   }}
                 >
@@ -790,17 +788,16 @@ const Customization: React.FC = () => {
                         ? 'rgba(33, 150, 243, 0.15)'
                         : 'rgba(103, 58, 183, 0.08)'
                       : isDarkMode
-                      ? '#16204A'
-                      : '#F8FAFC',
-                    border: `1.5px solid ${
-                      lineDensity === 'normal'
-                        ? isDarkMode
-                          ? '#2196F3'
-                          : '#673AB7'
-                        : isDarkMode
+                        ? '#16204A'
+                        : '#F8FAFC',
+                    border: `1.5px solid ${lineDensity === 'normal'
+                      ? isDarkMode
+                        ? '#2196F3'
+                        : '#673AB7'
+                      : isDarkMode
                         ? 'rgba(255, 255, 255, 0.06)'
                         : 'rgba(0, 0, 0, 0.06)'
-                    }`,
+                      }`,
                     transition: 'all 0.2s ease'
                   }}
                 >
@@ -851,17 +848,16 @@ const Customization: React.FC = () => {
                             ? 'rgba(33, 150, 243, 0.15)'
                             : 'rgba(103, 58, 183, 0.08)'
                           : isDarkMode
-                          ? '#16204A'
-                          : '#F8FAFC',
-                        border: `1.5px solid ${
-                          isSelected
-                            ? isDarkMode
-                              ? '#2196F3'
-                              : '#673AB7'
-                            : isDarkMode
+                            ? '#16204A'
+                            : '#F8FAFC',
+                        border: `1.5px solid ${isSelected
+                          ? isDarkMode
+                            ? '#2196F3'
+                            : '#673AB7'
+                          : isDarkMode
                             ? 'rgba(255, 255, 255, 0.06)'
                             : 'rgba(0, 0, 0, 0.06)'
-                        }`,
+                          }`,
                         transition: 'all 0.2s ease',
                         '&:hover': {
                           borderColor: isDarkMode ? '#2196F3' : '#673AB7'
@@ -870,17 +866,17 @@ const Customization: React.FC = () => {
                     >
                       <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center' }}>
                         <Box
-                          component="img"
-                          src={item.img}
-                          alt={item.label}
                           sx={{
-                            width: { xs: 20, sm: 24 },
-                            height: { xs: 13, sm: 16 },
                             borderRadius: '3px',
                             objectFit: 'cover',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
                           }}
                         />
+
+                        <span className={"fi fi-" + item.img} style={{
+                          width: 30,
+                          height: 30,
+                          margin: '0 5px'
+                        }}></span>
                         <Typography variant="body2" sx={{ fontWeight: isSelected ? 700 : 500, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                           {item.label}
                         </Typography>

@@ -18,6 +18,7 @@ import {
   Divider,
   Paper,
   InputAdornment,
+  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Close as CloseIcon, Print as PrintIcon, Description as DocIcon } from '@mui/icons-material';
@@ -45,6 +46,7 @@ export const PrintNewAbonentDialog: React.FC<PrintNewAbonentDialogProps> = ({
   onDocumentCreated,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { company: userCompany } = useCustomizationStore();
 
   const [documentType, setDocumentType] = useState<'bildirishnoma' | 'dalolatnoma'>('bildirishnoma');
@@ -148,12 +150,13 @@ export const PrintNewAbonentDialog: React.FC<PrintNewAbonentDialogProps> = ({
       onClose={onClose}
       maxWidth="lg"
       fullWidth
+      fullScreen={isMobile}
       slotProps={{
         paper: {
           sx: {
             bgcolor: theme.palette.background.paper,
-            borderRadius: 3,
-            maxHeight: '92vh',
+            borderRadius: { xs: 0, sm: 3 },
+            maxHeight: { xs: '100%', sm: '92vh' },
           },
         },
       }}
