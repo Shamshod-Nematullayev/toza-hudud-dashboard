@@ -37,7 +37,8 @@ import {
   RadioGroup,
   Radio,
   FormControlLabel,
-  FormLabel
+  FormLabel,
+  Switch
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -182,6 +183,7 @@ export default function OnlineMahallaSync() {
   const [startingJob, setStartingJob] = useState<boolean>(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [syncMode, setSyncMode] = useState<'all' | 'owner_only' | 'family_only'>('all');
+  const [skipIfOwnerExists, setSkipIfOwnerExists] = useState<boolean>(true);
 
   // Oila a'zolari modali
   const [familyDialogOpen, setFamilyDialogOpen] = useState<boolean>(false);
@@ -461,7 +463,8 @@ export default function OnlineMahallaSync() {
           street_name: selectedStreet.name,
           company_id: 1144,
           token: token.trim(),
-          sync_mode: syncMode
+          sync_mode: syncMode,
+          skip_if_owner_exists: skipIfOwnerExists
         },
         {
           headers: { 'x-online-mahalla-token': token.trim() }
@@ -1397,6 +1400,42 @@ export default function OnlineMahallaSync() {
                 />
               </RadioGroup>
             </FormControl>
+          </Paper>
+
+          {/* Xonadon egasi allaqachon kiritilgan bo'lsa skip qilish opsiyasi */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 2,
+              border: '1px solid',
+              borderColor: skipIfOwnerExists ? alpha(theme.palette.warning.main, 0.4) : theme.palette.divider,
+              bgcolor: skipIfOwnerExists
+                ? alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.15 : 0.05)
+                : theme.palette.background.paper,
+              borderRadius: 2
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={skipIfOwnerExists}
+                  onChange={(e) => setSkipIfOwnerExists(e.target.checked)}
+                  color="warning"
+                />
+              }
+              label={
+                <Box sx={{ ml: 0.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                    Xonadon egasi kiritilgan bo‘lsa, butunlay tashlab ketish (Skip)
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mt: 0.3 }}>
+                    Agar xonadonda egasi (F.I.Sh yoki JSHSHIR) allaqachon mavjud bo‘lsa, ma&apos;lumotlari mos kelishidan qat&apos;i nazar, ushbu xonadonga ham, uning oila a&apos;zolariga ham tegmasdan skip qilinadi.
+                  </Typography>
+                </Box>
+              }
+              sx={{ m: 0, alignItems: 'flex-start' }}
+            />
           </Paper>
 
           <Alert severity="info" sx={{ mb: 2 }}>
