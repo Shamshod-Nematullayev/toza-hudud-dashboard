@@ -5,7 +5,8 @@ import {
   AnalyticsOutlined,
   ManageHistoryOutlined,
   ElectricBoltOutlined,
-  CampaignOutlined
+  CampaignOutlined,
+  LocationCityOutlined
 } from '@mui/icons-material';
 import { MenuItem } from './index';
 
@@ -16,7 +17,8 @@ const icons = {
   AnalyticsOutlined,
   ManageHistoryOutlined,
   ElectricBoltOutlined,
-  CampaignOutlined
+  CampaignOutlined,
+  LocationCityOutlined
 };
 
 const productAdmin: MenuItem = {
@@ -76,6 +78,15 @@ const productAdmin: MenuItem = {
       type: 'item',
       url: '/product-admin/announcements',
       icon: icons.CampaignOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['product_admin']
+    },
+    {
+      id: 'onlineMahallaSync',
+      title: 'onlineMahallaSync',
+      type: 'item',
+      url: '/product-admin/online-mahalla',
+      icon: icons.LocationCityOutlined,
       breadcrumbs: false,
       allowedRoles: ['product_admin']
     }

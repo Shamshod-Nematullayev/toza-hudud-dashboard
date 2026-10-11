@@ -110,6 +110,7 @@ const ru: typeof uz = {
     manageCaotos: 'Управление кодами CAOTO',
     agendaJobs: 'Фоновые задачи (Agenda)',
     productAnnouncements: 'Объявления и советы (Tips)',
+    onlineMahallaSync: 'Интеграция Онлайн Махалла',
     companyProfile: 'Профиль организации',
     'AI Data Intelligence': 'AI Data Intelligence',
     dispatcher: 'Панель диспетчера',

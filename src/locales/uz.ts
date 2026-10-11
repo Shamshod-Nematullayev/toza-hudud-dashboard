@@ -108,6 +108,7 @@ const uz = {
     manageCaotos: 'CAOTO kodlarni boshqarish',
     agendaJobs: 'Agenda vazifalari (Jobs)',
     productAnnouncements: "Product E'lonlar (Tips)",
+    onlineMahallaSync: 'Online Mahalla Integratsiyasi',
     companyProfile: 'Tashkilot profili',
     'AI Data Intelligence': 'AI Data Intelligence',
     dispatcher: 'Dispetcher paneli',

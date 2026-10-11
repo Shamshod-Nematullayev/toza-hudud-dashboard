@@ -110,6 +110,7 @@ const uzKirill: typeof uz = {
     manageCaotos: 'CAOTO кодларни бошқариш',
     agendaJobs: 'Agenda вазифалари (Jobs)',
     productAnnouncements: 'Product Эълонлар (Tips)',
+    onlineMahallaSync: 'Онлайн Маҳалла Интеграцияси',
     companyProfile: 'Ташкилот профили',
     'AI Data Intelligence': 'AI Data Intelligence',
     dispatcher: 'Диспетчер панели',
