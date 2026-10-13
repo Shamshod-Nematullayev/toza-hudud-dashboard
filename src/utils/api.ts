@@ -57,7 +57,10 @@ api.interceptors.response.use(
       toast.error("Sizning ushbu amaliyotni bajarish uchun huquqingiz yo'q");
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Online Mahalla yoki tashqi integratsiya 401 xatosi bo'lsa, Greenzone sessiyasini buzmaslik
+    const isOnlineMahallaReq = originalRequest.url?.includes('/online-mahalla') || originalRequest.headers?.['skip-auth-redirect'];
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isOnlineMahallaReq) {
       originalRequest._retry = true;
 
       if (isRefreshing) {
@@ -99,7 +102,10 @@ api.interceptors.response.use(
       }
     }
 
-    if ((error.response?.status === 400 || error.response?.status === 404) && !Boolean(error.config?.headers['hide-error'])) {
+    if (
+      (error.response?.status === 400 || error.response?.status === 404 || (error.response?.status === 401 && isOnlineMahallaReq)) &&
+      !Boolean(error.config?.headers['hide-error'])
+    ) {
       // @ts-ignore
       toast.error(error.response?.data?.message || error.message || 'Xatolik kuzatildi');
     }
