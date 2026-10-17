@@ -46,6 +46,8 @@ import {
 import {
   Refresh as RefreshIcon,
   PlayArrow as RunJobIcon,
+  PlayArrow as PlayArrowIcon,
+  DeleteOutlined as DeleteOutlineIcon,
   Search as SearchIcon,
   Close as CloseIcon,
   CheckCircleOutlined as SuccessIcon,
@@ -83,7 +85,10 @@ import {
   Folder as FolderIcon,
   Assessment as AssessmentIcon,
   ArrowBack as ArrowBackIcon,
-  TableChart as TableChartIcon
+  TableChart as TableChartIcon,
+  CalendarToday as CalendarTodayIcon,
+  FilterList as FilterListIcon,
+  Clear as ClearFilterIcon
 } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
 import api from 'utils/api';
@@ -167,6 +172,10 @@ interface SyncJobStatus {
   failed: number;
   familyMembersAdded?: number;
   currentCadaster?: string;
+  excelFilePath?: string;
+  fileName?: string;
+  token?: string;
+  totalMembers?: number;
   errors: JobErrorInfo[];
   startTime: string;
   endTime?: string;
@@ -305,6 +314,12 @@ export default function OnlineMahallaSync() {
 
   // 3. Multi-Job monitoring
   const [allJobs, setAllJobs] = useState<SyncJobStatus[]>([]);
+  const [selectedJobDate, setSelectedJobDate] = useState<string>('all'); // 'all' | 'today' | 'yesterday' | 'YYYY-MM-DD'
+  const [customJobDate, setCustomJobDate] = useState<string>('');
+  const [jobSearchQuery, setJobSearchQuery] = useState<string>('');
+  const [jobStatusFilter, setJobStatusFilter] = useState<string>('all');
+  const [dateStats, setDateStats] = useState<Record<string, number>>({});
+  const [totalInDb, setTotalInDb] = useState<number>(0);
 
   // Tuman nomlarini erkin kiritish va boshqarish (localStorage)
   const [districtNames, setDistrictNames] = useState<Record<string, string>>(() => {
@@ -824,9 +839,14 @@ export default function OnlineMahallaSync() {
   }, [oblId, areaId, districtId]);
 
   // ── QADAM 2: Multi-Job monitoringni doimiy yangilash ──
-  const fetchAllJobs = async () => {
+  const fetchAllJobs = async (targetDate?: string) => {
     try {
-      const res = await api.get('/product-admin/online-mahalla/jobs');
+      const activeDate = targetDate !== undefined ? targetDate : selectedJobDate;
+      const params: any = {};
+      if (activeDate && activeDate !== 'all') {
+        params.date = activeDate;
+      }
+      const res = await api.get('/product-admin/online-mahalla/jobs', { params });
       if (res.data?.success && Array.isArray(res.data?.data)) {
         const sorted = [...res.data.data].sort((a, b) => {
           const timeA = new Date(a.startTime).getTime() || 0;
@@ -834,15 +854,23 @@ export default function OnlineMahallaSync() {
           return timeB - timeA;
         });
         setAllJobs(sorted);
+        if (res.data?.dateStats) {
+          setDateStats(res.data.dateStats);
+        }
+        if (typeof res.data?.totalInDb === 'number') {
+          setTotalInDb(res.data.totalInDb);
+        }
       }
     } catch (_) {}
   };
 
   useEffect(() => {
-    fetchAllJobs();
-    const timer = setInterval(fetchAllJobs, 2500);
+    fetchAllJobs(selectedJobDate);
+    const timer = setInterval(() => {
+      fetchAllJobs(selectedJobDate);
+    }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [selectedJobDate]);
 
   // Butun mahallani boshlash
   const handleStartMahallaSync = async () => {
@@ -940,8 +968,8 @@ export default function OnlineMahallaSync() {
     }
   };
 
-  // Excel oila importini ishga tushirish
-  const handleStartExcelFamilyImport = async () => {
+  // Excel oila importini ishga tushirish yoki navbatga qo'yish (Ready to Start)
+  const handleStartExcelFamilyImport = async (runImmediately: boolean = false) => {
     if (!selectedExcelFile) {
       toast.warning('Iltimos, avval Excel faylni tanlang!');
       return;
@@ -960,6 +988,7 @@ export default function OnlineMahallaSync() {
       formData.append('district_id', String(districtId));
       formData.append('mahalla_name', userProfile?.mahalla_name || `Mahalla #${districtId}`);
       formData.append('company_id', '1144');
+      formData.append('run_immediately', runImmediately ? 'true' : 'false');
 
       const res = await api.post('/product-admin/online-mahalla/import-excel-family', formData, {
         headers: {
@@ -969,7 +998,10 @@ export default function OnlineMahallaSync() {
       });
 
       if (res.data?.success && res.data?.jobId) {
-        toast.success(res.data.message || 'Excel bo‘yicha import jobi boshlandi!');
+        toast.success(
+          res.data.message ||
+            (runImmediately ? 'Excel bo‘yicha import jobi boshlandi!' : 'Job muvaffaqiyatli tayyorlandi (Boshlashga tayyor)!')
+        );
         setExcelImportDialogOpen(false);
         setSelectedExcelFile(null);
         fetchAllJobs();
@@ -978,6 +1010,64 @@ export default function OnlineMahallaSync() {
       toast.error(err.response?.data?.message || 'Excel faylni yuklashda xatolik yuz berdi');
     } finally {
       setUploadingExcel(false);
+    }
+  };
+
+  // PENDING holatdagi Jobni bitta buyruq bilan ishga tushirish (Run)
+  const [startingJobId, setStartingJobId] = useState<string | null>(null);
+  const handleStartJob = async (jobId: string) => {
+    try {
+      setStartingJobId(jobId);
+      const res = await api.post(
+        `/product-admin/online-mahalla/jobs/${jobId}/start`,
+        {},
+        {
+          headers: {
+            'x-online-mahalla-token': token.trim()
+          }
+        }
+      );
+      toast.success(res.data?.message || 'Job muvaffaqiyatli ishga tushirildi!');
+      fetchAllJobs();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Jobni ishga tushirishda xatolik yuz berdi');
+    } finally {
+      setStartingJobId(null);
+    }
+  };
+
+  // Barcha PENDING joblarni bittada ishga tushirish (Run All)
+  const [startingAllJobs, setStartingAllJobs] = useState<boolean>(false);
+  const handleStartAllPendingJobs = async () => {
+    try {
+      setStartingAllJobs(true);
+      const res = await api.post(
+        '/product-admin/online-mahalla/jobs/start-all-pending',
+        {},
+        {
+          headers: {
+            'x-online-mahalla-token': token.trim()
+          }
+        }
+      );
+      toast.success(res.data?.message || 'Barcha tayyor joblar ishga tushirildi!');
+      fetchAllJobs();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Joblarni ishga tushirishda xatolik yuz berdi');
+    } finally {
+      setStartingAllJobs(false);
+    }
+  };
+
+  // Jobni o'chirish (Delete)
+  const handleDeleteJob = async (jobId: string) => {
+    if (!window.confirm('Haqiqatan ham ushbu jobni o‘chirmoqchimisiz?')) return;
+    try {
+      const res = await api.delete(`/product-admin/online-mahalla/jobs/${jobId}`);
+      toast.success(res.data?.message || 'Job muvaffaqiyatli o‘chirildi');
+      fetchAllJobs();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Jobni o‘chirishda xatolik');
     }
   };
 
@@ -1125,6 +1215,47 @@ export default function OnlineMahallaSync() {
 
   const selectedStreetObj = useMemo(() => streets.find((s) => String(s.id) === String(selectedStreetId)), [streets, selectedStreetId]);
 
+  // Mission Control: Kunlik va holat/qidiruv bo'yicha filtrlangan joblar
+  const filteredJobs = useMemo(() => {
+    let result = allJobs;
+
+    if (jobStatusFilter !== 'all') {
+      result = result.filter((j) => {
+        if (jobStatusFilter === 'FAILED') return j.status === 'FAILED' || j.status === 'CANCELLED';
+        return j.status === jobStatusFilter;
+      });
+    }
+
+    if (jobSearchQuery.trim()) {
+      const q = jobSearchQuery.toLowerCase().trim();
+      result = result.filter(
+        (j) =>
+          (j.mahallaName && j.mahallaName.toLowerCase().includes(q)) ||
+          (j.streetName && j.streetName.toLowerCase().includes(q)) ||
+          (j.id && j.id.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [allJobs, jobStatusFilter, jobSearchQuery]);
+
+  const { todayDateStr, yesterdayDateStr, availableOtherDates } = useMemo(() => {
+    const nowUzt = new Date(Date.now() + 5 * 60 * 60 * 1000);
+    const todayStr = nowUzt.toISOString().slice(0, 10);
+    const yestUzt = new Date(Date.now() + 5 * 60 * 60 * 1000 - 24 * 60 * 60 * 1000);
+    const yestStr = yestUzt.toISOString().slice(0, 10);
+
+    const otherDates = Object.keys(dateStats)
+      .filter((d) => d !== todayStr && d !== yestStr)
+      .sort((a, b) => b.localeCompare(a));
+
+    return {
+      todayDateStr: todayStr,
+      yesterdayDateStr: yestStr,
+      availableOtherDates: otherDates
+    };
+  }, [dateStats]);
+
   // 3-Bosqich: Barcha joblar statistikasi (Yakunlandi, Jarayonda, Xatolar va h.k.)
   const jobsStats = useMemo(() => {
     let running = 0;
@@ -1135,7 +1266,7 @@ export default function OnlineMahallaSync() {
     let totalHomesTarget = 0;
     let totalErrorsCount = 0;
 
-    allJobs.forEach((j) => {
+    filteredJobs.forEach((j) => {
       if (j.status === 'RUNNING') running++;
       else if (j.status === 'COMPLETED') completed++;
       else if (j.status === 'CANCELLED') cancelled++;
@@ -1147,7 +1278,7 @@ export default function OnlineMahallaSync() {
     });
 
     return {
-      total: allJobs.length,
+      total: filteredJobs.length,
       running,
       completed,
       failed,
@@ -1156,15 +1287,15 @@ export default function OnlineMahallaSync() {
       totalHomesTarget,
       totalErrorsCount
     };
-  }, [allJobs]);
+  }, [filteredJobs]);
 
   const sortedJobs = useMemo(() => {
-    return [...allJobs].sort((a, b) => {
+    return [...filteredJobs].sort((a, b) => {
       const timeA = new Date(a.startTime).getTime() || 0;
       const timeB = new Date(b.startTime).getTime() || 0;
       return timeB - timeA;
     });
-  }, [allJobs]);
+  }, [filteredJobs]);
 
   // ── TUMANLAR BO‘YICHA GURUHLANGAN JOBLAR ("PACHKA" MONITORING) ──
   const jobsByDistrict = useMemo(() => {
@@ -1177,6 +1308,7 @@ export default function OnlineMahallaSync() {
         stats: {
           totalJobs: number;
           running: number;
+          pending: number;
           completed: number;
           failed: number;
           cancelled: number;
@@ -1191,7 +1323,7 @@ export default function OnlineMahallaSync() {
       }
     >();
 
-    for (const job of allJobs) {
+    for (const job of filteredJobs) {
       const aId = String(job.area_id || 'boshqa');
       if (!map.has(aId)) {
         map.set(aId, {
@@ -1201,6 +1333,7 @@ export default function OnlineMahallaSync() {
           stats: {
             totalJobs: 0,
             running: 0,
+            pending: 0,
             completed: 0,
             failed: 0,
             cancelled: 0,
@@ -1220,6 +1353,7 @@ export default function OnlineMahallaSync() {
       const s = grp.stats;
       s.totalJobs++;
       if (job.status === 'RUNNING') s.running++;
+      else if (job.status === 'PENDING') s.pending++;
       else if (job.status === 'COMPLETED') s.completed++;
       else if (job.status === 'CANCELLED') s.cancelled++;
       else s.failed++;
@@ -1242,7 +1376,7 @@ export default function OnlineMahallaSync() {
       if (b.stats.running !== a.stats.running) return b.stats.running - a.stats.running;
       return b.stats.totalJobs - a.stats.totalJobs;
     });
-  }, [allJobs, districtNames]);
+  }, [filteredJobs, districtNames]);
 
   // ── TUMANLAR BO‘YICHA GURUHLANGAN BAZADAGI SAQLANGAN MAHALLALAR ──
   const savedAccountsByDistrict = useMemo(() => {
@@ -2354,15 +2488,206 @@ export default function OnlineMahallaSync() {
             </Box>
 
             <CardContent sx={{ p: 2.5 }}>
-              {allJobs.length === 0 ? (
+              {/* ── KUNLIK VA SANALAR BO'YICHA FILTR PANELI ── */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 1.8,
+                  mb: 2.5,
+                  borderRadius: 2.5,
+                  border: '1px solid',
+                  borderColor: theme.palette.divider,
+                  bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : alpha(theme.palette.primary.main, 0.02)
+                }}
+              >
+                <Stack
+                  direction={{ xs: 'column', md: 'row' }}
+                  spacing={1.5}
+                  sx={{ alignItems: { xs: 'stretch', md: 'center' }, justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}
+                >
+                  {/* Chap tomon: Tezkor sana tugmalari */}
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                    <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mr: 0.5 }}>
+                      <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.primary.main }} />
+                      <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                        Sana filtri:
+                      </Typography>
+                    </Stack>
+
+                    {/* Barchasi */}
+                    <Chip
+                      label={`Barchasi (${totalInDb || allJobs.length})`}
+                      color={selectedJobDate === 'all' && !customJobDate ? 'primary' : 'default'}
+                      variant={selectedJobDate === 'all' && !customJobDate ? 'filled' : 'outlined'}
+                      onClick={() => {
+                        setSelectedJobDate('all');
+                        setCustomJobDate('');
+                      }}
+                      clickable
+                      sx={{ fontWeight: 700, borderRadius: 2 }}
+                    />
+
+                    {/* Bugun */}
+                    <Chip
+                      label={`Bugun (${dateStats[todayDateStr] || 0})`}
+                      color={selectedJobDate === 'today' || (selectedJobDate === todayDateStr && !customJobDate) ? 'primary' : 'default'}
+                      variant={selectedJobDate === 'today' || (selectedJobDate === todayDateStr && !customJobDate) ? 'filled' : 'outlined'}
+                      onClick={() => {
+                        setSelectedJobDate('today');
+                        setCustomJobDate('');
+                      }}
+                      clickable
+                      sx={{ fontWeight: 700, borderRadius: 2 }}
+                    />
+
+                    {/* Kecha */}
+                    <Chip
+                      label={`Kecha (${dateStats[yesterdayDateStr] || 0})`}
+                      color={selectedJobDate === 'yesterday' || (selectedJobDate === yesterdayDateStr && !customJobDate) ? 'primary' : 'default'}
+                      variant={selectedJobDate === 'yesterday' || (selectedJobDate === yesterdayDateStr && !customJobDate) ? 'filled' : 'outlined'}
+                      onClick={() => {
+                        setSelectedJobDate('yesterday');
+                        setCustomJobDate('');
+                      }}
+                      clickable
+                      sx={{ fontWeight: 700, borderRadius: 2 }}
+                    />
+
+                    {/* Mavjud boshqa kunlar */}
+                    {availableOtherDates.slice(0, 3).map((d) => (
+                      <Chip
+                        key={d}
+                        label={`${d.slice(5)} (${dateStats[d]})`}
+                        color={selectedJobDate === d ? 'primary' : 'default'}
+                        variant={selectedJobDate === d ? 'filled' : 'outlined'}
+                        onClick={() => {
+                          setSelectedJobDate(d);
+                          setCustomJobDate(d);
+                        }}
+                        clickable
+                        sx={{ fontWeight: 700, borderRadius: 2 }}
+                      />
+                    ))}
+
+                    {/* Kalendar / Erkin sana tanlash */}
+                    <TextField
+                      type="date"
+                      size="small"
+                      value={customJobDate}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCustomJobDate(val);
+                        if (val) {
+                          setSelectedJobDate(val);
+                        } else {
+                          setSelectedJobDate('all');
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          sx: {
+                            height: 32,
+                            fontSize: '0.8rem',
+                            borderRadius: 2,
+                            bgcolor: theme.palette.background.paper
+                          }
+                        }
+                      }}
+                    />
+
+                    {(selectedJobDate !== 'all' || customJobDate) && (
+                      <Tooltip title="Filtrni tozalash (Barchasini ko'rsatish)">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSelectedJobDate('all');
+                            setCustomJobDate('');
+                          }}
+                          sx={{ p: 0.5 }}
+                        >
+                          <ClearFilterIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Stack>
+
+                  {/* O'ng tomon: Holat va Qidiruv */}
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                    {/* Holat filtri */}
+                    <Select
+                      size="small"
+                      value={jobStatusFilter}
+                      onChange={(e) => setJobStatusFilter(e.target.value)}
+                      sx={{
+                        height: 34,
+                        borderRadius: 2,
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        bgcolor: theme.palette.background.paper
+                      }}
+                    >
+                      <MenuItem value="all">Barcha holatlar</MenuItem>
+                      <MenuItem value="RUNNING">⚡ Jarayonda</MenuItem>
+                      <MenuItem value="COMPLETED">✅ Yakunlangan</MenuItem>
+                      <MenuItem value="PENDING">⏳ Boshlashga tayyor</MenuItem>
+                      <MenuItem value="FAILED">❌ Xato / Bekor qilingan</MenuItem>
+                    </Select>
+
+                    {/* Mahalla / Ko'cha qidirish */}
+                    <TextField
+                      size="small"
+                      placeholder="Mahalla yoki ko‘cha..."
+                      value={jobSearchQuery}
+                      onChange={(e) => setJobSearchQuery(e.target.value)}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon fontSize="small" sx={{ color: theme.palette.text.secondary }} />
+                            </InputAdornment>
+                          ),
+                          sx: {
+                            height: 34,
+                            fontSize: '0.82rem',
+                            borderRadius: 2,
+                            bgcolor: theme.palette.background.paper,
+                            minWidth: 180
+                          }
+                        }
+                      }}
+                    />
+                  </Stack>
+                </Stack>
+              </Paper>
+
+              {filteredJobs.length === 0 ? (
                 <Box sx={{ py: 5, textAlign: 'center' }}>
                   <SyncIcon sx={{ fontSize: 44, color: theme.palette.text.secondary, opacity: 0.5, mb: 1 }} />
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
-                    Hozirda faol sinxronizatsiya joblari yo‘q
+                    {selectedJobDate !== 'all' || customJobDate || jobSearchQuery || jobStatusFilter !== 'all'
+                      ? 'Tanlangan sana yoki filtr bo‘yicha vazifalar topilmadi'
+                      : 'Hozirda faol sinxronizatsiya joblari yo‘q'}
                   </Typography>
                   <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mt: 0.5 }}>
-                    2-bosqichdagi "Butun Mahallani Boshlash" tugmasini bosib ishga tushirishingiz mumkin.
+                    {selectedJobDate !== 'all' || customJobDate || jobSearchQuery || jobStatusFilter !== 'all'
+                      ? 'Boshqa sanani tanlang yoki filtrni tozalang.'
+                      : '2-bosqichdagi "Butun Mahallani Boshlash" tugmasini bosib ishga tushirishingiz mumkin.'}
                   </Typography>
+                  {(selectedJobDate !== 'all' || customJobDate || jobSearchQuery || jobStatusFilter !== 'all') && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => {
+                        setSelectedJobDate('all');
+                        setCustomJobDate('');
+                        setJobSearchQuery('');
+                        setJobStatusFilter('all');
+                      }}
+                      sx={{ mt: 1.5, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+                    >
+                      Barcha joblarni ko‘rsatish
+                    </Button>
+                  )}
                 </Box>
               ) : (
                 <>
@@ -2590,6 +2915,16 @@ export default function OnlineMahallaSync() {
                                       sx={{ fontWeight: 700 }}
                                     />
                                   )}
+                                  {s.pending > 0 && (
+                                    <Chip
+                                      size="small"
+                                      color="warning"
+                                      variant="outlined"
+                                      icon={<PlayArrowIcon sx={{ fontSize: '14px !important' }} />}
+                                      label={`${s.pending} ta tayyor (Run)`}
+                                      sx={{ fontWeight: 700 }}
+                                    />
+                                  )}
                                   <Chip size="small" variant="outlined" label={`Jami: ${s.totalJobs} ta job`} sx={{ fontWeight: 600 }} />
                                   <Chip
                                     size="small"
@@ -2711,6 +3046,28 @@ export default function OnlineMahallaSync() {
 
                               {/* Quick District Badges */}
                               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                                {s.pending > 0 && (
+                                  <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={startingAllJobs ? <CircularProgress size={12} color="inherit" /> : <PlayArrowIcon />}
+                                    onClick={handleStartAllPendingJobs}
+                                    disabled={startingAllJobs}
+                                    sx={{ fontWeight: 700, textTransform: 'none', borderRadius: 2, mr: 0.5 }}
+                                  >
+                                    ▶️ Barchasini Boshlash ({s.pending} ta)
+                                  </Button>
+                                )}
+                                {s.pending > 0 && (
+                                  <Chip
+                                    size="small"
+                                    color="warning"
+                                    label={`${s.pending} ta tayyor`}
+                                    icon={<PlayArrowIcon sx={{ fontSize: '14px !important' }} />}
+                                    sx={{ fontWeight: 700 }}
+                                  />
+                                )}
                                 {s.running > 0 && (
                                   <Chip
                                     size="small"
@@ -2791,8 +3148,14 @@ export default function OnlineMahallaSync() {
                                                   ? `🏡 ${job.mahallaName || 'Mahalla'}`
                                                   : `📍 ${job.streetName || 'Ko‘cha'}`}
                                           </Typography>
-                                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                                            {new Date(job.startTime).toLocaleTimeString('uz-UZ')}
+                                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block' }}>
+                                            {(() => {
+                                              const jobDate = new Date(job.startTime);
+                                              const isToday = jobDate.toDateString() === new Date().toDateString();
+                                              const timeStr = jobDate.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+                                              const dateStr = `${jobDate.getDate().toString().padStart(2, '0')}.${(jobDate.getMonth() + 1).toString().padStart(2, '0')}.${jobDate.getFullYear()}`;
+                                              return isToday ? `Bugun, ${timeStr}` : `${dateStr}, ${timeStr}`;
+                                            })()}
                                             {job.jobType === 'mahalla' && job.currentStreetName ? ` • ${job.currentStreetName}` : ''}
                                           </Typography>
                                         </TableCell>
@@ -2802,22 +3165,27 @@ export default function OnlineMahallaSync() {
                                             label={
                                               job.status === 'RUNNING'
                                                 ? 'Jarayonda'
-                                                : job.status === 'COMPLETED'
-                                                  ? 'Yakunlandi'
-                                                  : job.status === 'CANCELLED'
-                                                    ? 'To‘xtatilgan'
-                                                    : 'Xato'
+                                                : job.status === 'PENDING'
+                                                  ? 'Boshlashga tayyor'
+                                                  : job.status === 'COMPLETED'
+                                                    ? 'Yakunlandi'
+                                                    : job.status === 'CANCELLED'
+                                                      ? 'To‘xtatilgan'
+                                                      : 'Xato'
                                             }
                                             size="small"
                                             color={
                                               job.status === 'RUNNING'
                                                 ? 'primary'
-                                                : job.status === 'COMPLETED'
-                                                  ? 'success'
-                                                  : job.status === 'CANCELLED'
-                                                    ? 'default'
-                                                    : 'error'
+                                                : job.status === 'PENDING'
+                                                  ? 'warning'
+                                                  : job.status === 'COMPLETED'
+                                                    ? 'success'
+                                                    : job.status === 'CANCELLED'
+                                                      ? 'default'
+                                                      : 'error'
                                             }
+                                            icon={job.status === 'PENDING' ? <PlayArrowIcon sx={{ fontSize: '13px !important' }} /> : undefined}
                                             sx={{ fontWeight: 700, fontSize: '0.72rem', height: 22 }}
                                           />
                                         </TableCell>
@@ -2880,6 +3248,31 @@ export default function OnlineMahallaSync() {
 
                                         <TableCell align="right">
                                           <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', alignItems: 'center' }}>
+                                            {job.status === 'PENDING' && (
+                                              <Tooltip title="Ishga tushirish (Run)">
+                                                <Button
+                                                  size="small"
+                                                  variant="contained"
+                                                  color="success"
+                                                  startIcon={
+                                                    startingJobId === job.id ? <CircularProgress size={12} color="inherit" /> : <PlayArrowIcon />
+                                                  }
+                                                  onClick={() => handleStartJob(job.id)}
+                                                  disabled={startingJobId === job.id}
+                                                  sx={{
+                                                    textTransform: 'none',
+                                                    fontWeight: 700,
+                                                    py: 0.2,
+                                                    px: 1,
+                                                    minWidth: 'auto',
+                                                    fontSize: '0.75rem',
+                                                    borderRadius: 1.5
+                                                  }}
+                                                >
+                                                  Run
+                                                </Button>
+                                              </Tooltip>
+                                            )}
                                             {job.errors && job.errors.length > 0 && (
                                               <Tooltip title="Xatolar jurnali">
                                                 <IconButton size="small" color="error" onClick={() => handleOpenErrors(job)}>
@@ -2894,6 +3287,11 @@ export default function OnlineMahallaSync() {
                                                 </IconButton>
                                               </Tooltip>
                                             )}
+                                            <Tooltip title="O‘chirish">
+                                              <IconButton size="small" color="default" onClick={() => handleDeleteJob(job.id)}>
+                                                <DeleteOutlineIcon fontSize="small" />
+                                              </IconButton>
+                                            </Tooltip>
                                           </Stack>
                                         </TableCell>
                                       </TableRow>
@@ -3940,20 +4338,32 @@ export default function OnlineMahallaSync() {
             </Button>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions sx={{ p: 2, justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
           <Button onClick={() => setExcelImportDialogOpen(false)} color="inherit" disabled={uploadingExcel}>
             Bekor qilish
           </Button>
-          <Button
-            variant="contained"
-            color="success"
-            startIcon={uploadingExcel ? <CircularProgress size={16} color="inherit" /> : <UploadFileIcon />}
-            onClick={handleStartExcelFamilyImport}
-            disabled={!selectedExcelFile || uploadingExcel}
-            sx={{ fontWeight: 700, textTransform: 'none' }}
-          >
-            {uploadingExcel ? 'Yuklanmoqda...' : 'Importni Boshlash'}
-          </Button>
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={uploadingExcel ? <CircularProgress size={16} color="inherit" /> : <PlayArrowIcon />}
+              onClick={() => handleStartExcelFamilyImport(false)}
+              disabled={!selectedExcelFile || uploadingExcel}
+              sx={{ fontWeight: 700, textTransform: 'none' }}
+            >
+              📋 Tayyorlab Qo‘yish (Ready to Start)
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={uploadingExcel ? <CircularProgress size={16} color="inherit" /> : <UploadFileIcon />}
+              onClick={() => handleStartExcelFamilyImport(true)}
+              disabled={!selectedExcelFile || uploadingExcel}
+              sx={{ fontWeight: 700, textTransform: 'none' }}
+            >
+              ⚡ Yuklash va Darhol Boshlash
+            </Button>
+          </Stack>
         </DialogActions>
       </Dialog>
 
