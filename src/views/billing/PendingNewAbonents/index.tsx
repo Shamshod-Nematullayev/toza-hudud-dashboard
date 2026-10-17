@@ -44,7 +44,8 @@ import {
   IconPlus,
   IconPrinter,
   IconUpload,
-  IconFileText
+  IconFileText,
+  IconFileSpreadsheet
 } from '@tabler/icons-react';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -53,6 +54,7 @@ import { NewAbonentModal } from './NewAbonentModal';
 import { RejectReasonDialog } from './RejectReasonDialog';
 import { RokirovkaModal } from './RokirovkaModal';
 import { CreateManualAbonentModal } from './CreateManualAbonentModal';
+import { ImportAbonentsExcelModal } from './ImportAbonentsExcelModal';
 import { PrintNewAbonentDialog } from './PrintNewAbonentDialog';
 import { ImportScannedAbonentModal } from './ImportScannedAbonentModal';
 
@@ -77,6 +79,7 @@ export const PendingNewAbonents: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<INewAbonentItem | null>(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [createManualOpen, setCreateManualOpen] = useState<boolean>(false);
+  const [excelImportOpen, setExcelImportOpen] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [rowActionLoading, setRowActionLoading] = useState<string | null>(null);
 
@@ -388,6 +391,24 @@ export const PendingNewAbonents: React.FC = () => {
             }}
           >
             Qo'lda ochish
+          </Button>
+
+          <Button
+            variant="outlined"
+            color="success"
+            size="small"
+            startIcon={<IconFileSpreadsheet size={16} />}
+            onClick={() => setExcelImportOpen(true)}
+            sx={{
+              fontWeight: 700,
+              borderRadius: '10px',
+              textTransform: 'none',
+              py: 0.6,
+              px: { xs: 1.2, sm: 2 },
+              fontSize: { xs: '0.8rem', sm: '0.875rem' }
+            }}
+          >
+            Excel orqali ochish
           </Button>
 
           {stats.pending > 0 && (
@@ -1440,6 +1461,9 @@ export const PendingNewAbonents: React.FC = () => {
         onClose={() => setCreateManualOpen(false)}
         onSuccess={fetchData}
       />
+
+      {/* Excel orqali ommaviy abonent ochish */}
+      <ImportAbonentsExcelModal open={excelImportOpen} onClose={() => setExcelImportOpen(false)} onSuccess={fetchData} />
 
       {/* Asoslantiruvchi hujjat chiqarish va chop etish dialogi */}
       <PrintNewAbonentDialog
