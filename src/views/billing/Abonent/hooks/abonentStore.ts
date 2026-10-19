@@ -18,6 +18,7 @@ import { toast } from 'react-toastify';
 import { IAriza } from 'types/models';
 import { IAbonent, searchAbonentFromTozamakon } from 'services/searchAbonentFromTozamakon';
 import { Debitor } from 'views/billing/Debitors/types';
+import { fixFileName } from 'utils/fixFileName';
 
 const initialState: IAbonentPageDataStore = {
   abonentDetails: null,
@@ -319,7 +320,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     const url = window.URL.createObjectURL(data);
     const link = document.createElement('a');
     link.href = url;
-    link.download = fileId.split('*')[0];
+    link.download = fixFileName(fileId.split('*')[0]);
     link.click();
   },
   getAbonentPetitions: async (residentId) => {
