@@ -22,6 +22,8 @@ import { Debitor } from 'views/billing/Debitors/types';
 const initialState: IAbonentPageDataStore = {
   abonentDetails: null,
   dhjRows: [],
+  dhjRowsResidentId: null,
+  dhjRowsLoading: false,
   detailsHistory: [],
   abonentDetailsFromDB: null,
   incomeStats: [],
@@ -68,6 +70,9 @@ interface IAbonentPageDataStore {
   abonentDetails: AbonentDetails | null;
   abonentCadastrs: string[];
   dhjRows: DHJRow[];
+  /** `dhjRows` qaysi abonentga tegishli — tab qayta ochilganda qayta so'rov yubormaslik uchun */
+  dhjRowsResidentId: number | null;
+  dhjRowsLoading: boolean;
   detailsHistory: AbonentDetailsHistoryRow[];
   abonentDetailsFromDB: IAbonentFromDB | null;
   incomeStats: IncomeStatRow[];
@@ -118,7 +123,8 @@ export interface IAbonentPageActionsStore {
    * TozaMakondan olinadi.
    */
   getDetails: (residentId: number) => Promise<void>;
-  getDhjRows: () => void;
+  /** DHJ ning barcha qatorlarini bir marta yuklaydi (sahifalash klient tomonda). residentId berilmasa abonentDetails.id olinadi. */
+  getDhjRows: (residentId?: number) => Promise<void>;
   getDetailsHistory: (accountNumber: number | string) => Promise<void>;
   /** * Ma'lumotlarni bevosita bazadan (MongoDB) olish.
    * TozaMakondan olinmaydi.
@@ -212,19 +218,38 @@ export interface IAbonentPageActionsStore {
 
 export type IAbonentPageStore = IAbonentPageDataStore & IAbonentPageActionsStore;
 
+let dhjRequestId = 0;
+
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   ...initialState,
   getDetails: async (residentId) => {
     const { data } = await api.get('/billing/get-abonent-details/' + residentId);
     set({ abonentDetails: { ...data, citizen: { ...data.citizen, photo: null } } });
   },
-  getDhjRows: async () => {
-    const { abonentDetails } = get();
-    if (!abonentDetails?.id) return;
+  getDhjRows: async (residentIdArg) => {
+    const residentId = residentIdArg ?? get().abonentDetails?.id;
+    if (!residentId) return;
 
-    const { data } = await api.get('/billing/get-abonent-dxj-by-id', { params: { residentId: abonentDetails.id } });
+    const size = 100;
+    const fetchPage = (page: number) =>
+      api.get('/billing/get-abonent-dxj-by-id', { params: { residentId, page, size } }).then((res) => res.data);
 
-    set({ dhjRows: data.rows });
+    const requestId = ++dhjRequestId;
+    set({ dhjRowsLoading: true });
+    try {
+      const first = await fetchPage(1);
+      let rows: DHJRow[] = first.rows;
+      const totalPages = Math.ceil((first.meta?.total ?? rows.length) / size);
+      if (totalPages > 1) {
+        const rest = await Promise.all(Array.from({ length: totalPages - 1 }, (_, i) => fetchPage(i + 2)));
+        rows = rows.concat(...rest.map((r) => r.rows));
+      }
+      // Shu orada boshqa abonent so'ralgan bo'lsa eski javobni yozmaymiz
+      if (requestId !== dhjRequestId) return;
+      set({ dhjRows: rows, dhjRowsResidentId: residentId });
+    } finally {
+      if (requestId === dhjRequestId) set({ dhjRowsLoading: false });
+    }
   },
   getDetailsHistory: async (accountNumber) => {
     if (!accountNumber) return;
