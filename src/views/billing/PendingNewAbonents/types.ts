@@ -93,3 +93,44 @@ export interface IManualCreatePayload {
   debtMonths?: number;
   nSaldo?: number;
 }
+
+export interface IAbonentImportRow {
+  rowNumber: number;
+  pnfl: string;
+  lastName?: string;
+  firstName?: string;
+  patronymic?: string;
+  passport?: string;
+  mahallaRaw?: string;
+  mahallaId?: number;
+  mahallaName?: string;
+  streetRaw?: string;
+  streetId?: number;
+  streetName?: string;
+  homeNumber?: string;
+  flatNumber?: string;
+  inhabitantCnt?: number;
+  cadastr?: string;
+  etkCustomerCode?: string;
+  etkCaoto?: string;
+  debtMonths?: number;
+  rowErrors: string[];
+  rowWarnings: string[];
+  status: 'invalid' | 'pending' | 'processing' | 'created' | 'failed' | 'skipped';
+  accountNumber?: string;
+  fullName?: string;
+  message?: string;
+}
+
+export interface IAbonentImport {
+  _id: string;
+  fileName: string;
+  status: 'draft' | 'queued' | 'running' | 'completed' | 'cancelled' | 'failed';
+  rows: IAbonentImportRow[];
+  total: number;
+  processed: number;
+  createdCount: number;
+  failedCount: number;
+  failReason?: string;
+  createdAt: string;
+}
