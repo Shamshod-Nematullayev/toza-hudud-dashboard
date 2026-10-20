@@ -22,9 +22,11 @@ import {
   Cancel,
   CheckCircleOutlined,
   DeleteOutlined,
-  PictureAsPdf
+  PictureAsPdf,
+  UploadFile
 } from '@mui/icons-material';
 import api from 'utils/api';
+import { fixFileName, hasValidFileId } from 'utils/fixFileName';
 import { toast } from 'react-toastify';
 
 function AbonentActs() {
@@ -60,6 +62,9 @@ function AbonentActs() {
     [acts, selectionModel]
   );
 
+  // Faylni qayta biriktirish state
+  const [reattachLoadingId, setReattachLoadingId] = useState<number | null>(null);
+
   useEffect(() => {
     getAbonentActs(residentId);
     setSelectionModel({ type: 'include', ids: new Set() });
@@ -79,6 +84,31 @@ function AbonentActs() {
     } finally {
       setConfirmLoading(false);
     }
+  };
+
+  const reattachActFile = (act: any) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      setReattachLoadingId(act.id);
+      try {
+        await api.put(`/billing/acts/${act.id}/file`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        toast.success('Fayl aktga biriktirildi');
+        getAbonentActs(residentId);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || 'Faylni biriktirishda xatolik yuz berdi');
+      } finally {
+        setReattachLoadingId(null);
+      }
+    };
+    input.click();
   };
 
   const confirmDeleteAct = async () => {
@@ -141,8 +171,25 @@ function AbonentActs() {
 
         return (
           <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
+            {/* Fayli buzuq yoki yo'q aktga faylni qayta biriktirish */}
+            {!hasValidFileId(row.fileId) && (
+              <Tooltip title="Faylni aktga qayta biriktirish" arrow>
+                <span>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    disabled={reattachLoadingId === row.id}
+                    onClick={() => reattachActFile(row)}
+                    sx={{ p: 0.6 }}
+                  >
+                    {reattachLoadingId === row.id ? <CircularProgress size={17} /> : <UploadFile sx={{ fontSize: 19 }} />}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+
             {/* PDF yuklab olish */}
-            {row.fileId && (
+            {hasValidFileId(row.fileId) && (
               <Tooltip title="PDF yuklab olish" arrow>
                 <span>
                   <IconButton
@@ -257,13 +304,17 @@ function AbonentActs() {
       headerName: t('tableHeaders.file'),
       width: 120,
       renderCell: ({ row }) =>
-        row.fileId ? (
+        hasValidFileId(row.fileId) ? (
           <Typography
             sx={{ cursor: 'pointer', color: 'primary.main', display: 'inline' }}
             onClick={() => downLoadActPdfFile(row.fileId)}
           >
-            {row.fileId.split('*')[0]}
+            {fixFileName(row.fileId.split('*')[0])}
           </Typography>
+        ) : row.fileId ? (
+          <Tooltip title="Fayl TozaMakonga to'g'ri yuklanmagan. Amallar ustunidan faylni qayta biriktiring." arrow>
+            <Typography sx={{ color: 'text.disabled', display: 'inline' }}>{fixFileName(row.fileId.split('*')[0])}</Typography>
+          </Tooltip>
         ) : (
           '-'
         )

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
+  Collapse,
   Card,
   Chip,
   Dialog,
@@ -21,6 +24,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
   Accordion,
   AccordionSummary,
@@ -37,7 +41,8 @@ import {
   Phone as PhoneIcon,
   Home as HomeIcon,
   Badge as BadgeIcon,
-  Sms as SmsIcon
+  Sms as SmsIcon,
+  ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -71,7 +76,24 @@ interface CompanyData {
   eskizPassword?: string;
   eskizAccessToken?: string;
   premium?: boolean;
+  paymentReminder?: PaymentReminder;
 }
+
+interface PaymentReminder {
+  dueIn: 0 | 1; // 0 = bugun, 1 = ertaga
+  dueDate: string;
+  text: string;
+  recipient: { fullName: string } | null;
+}
+
+const copyReminderText = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success('Xabar matni nusxalandi');
+  } catch {
+    toast.error('Nusxalab bo\'lmadi');
+  }
+};
 
 const initialCompanyState: CompanyData = {
   id: 0,
@@ -101,6 +123,10 @@ export default function Companies() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<CompanyData | null>(null);
   const [form, setForm] = useState<CompanyData>(initialCompanyState);
+  const [previewId, setPreviewId] = useState<number | null>(null);
+  const dueCompanies = companies
+    .filter((c) => c.paymentReminder)
+    .sort((a, b) => a.paymentReminder!.dueIn - b.paymentReminder!.dueIn);
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -130,9 +156,10 @@ export default function Companies() {
   };
 
   const handleOpenEdit = (company: CompanyData) => {
+    const { paymentReminder: _reminder, ...companyFields } = company;
     setEditingCompany(company);
     setForm({
-      ...company,
+      ...companyFields,
       activeExpiresDate: company.activeExpiresDate
         ? new Date(company.activeExpiresDate).toISOString().split('T')[0]
         : ''
@@ -182,6 +209,56 @@ export default function Companies() {
           Yangi tashkilot qo'shish (Onboarding)
         </Button>
       </Box>
+
+      {dueCompanies.length > 0 && (
+        <Stack spacing={1.5} sx={{ mb: 3 }}>
+          {dueCompanies.map((company) => {
+            const reminder = company.paymentReminder!;
+            return (
+              <Alert
+                key={company.id}
+                severity={reminder.dueIn === 0 ? 'error' : 'warning'}
+                sx={{ borderRadius: '14px', '& .MuiAlert-message': { width: '100%' } }}
+                action={
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      color="inherit"
+                      size="small"
+                      onClick={() => setPreviewId(previewId === company.id ? null : company.id)}
+                    >
+                      {previewId === company.id ? 'Yashirish' : "Ko'rish"}
+                    </Button>
+                    <Button
+                      color="inherit"
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ContentCopyIcon fontSize="small" />}
+                      onClick={() => copyReminderText(reminder.text)}
+                    >
+                      Nusxalash
+                    </Button>
+                  </Stack>
+                }
+              >
+                <AlertTitle sx={{ fontWeight: 700 }}>
+                  {company.name}: to'lov kuni {reminder.dueIn === 0 ? 'bugun' : 'ertaga'} ({reminder.dueDate})
+                </AlertTitle>
+                {reminder.recipient
+                  ? `09:00 da avtomatik eslatma ${reminder.recipient.fullName} ga Telegram orqali yuboriladi.`
+                  : "Tashkilotda Telegram ID si bor admin yo'q, avtomatik eslatma yuborilmaydi."}
+                <Collapse in={previewId === company.id}>
+                  <Typography
+                    variant="body2"
+                    sx={{ whiteSpace: 'pre-line', mt: 1.5, p: 1.5, borderRadius: '10px', bgcolor: 'background.paper', color: 'text.primary' }}
+                  >
+                    {reminder.text}
+                  </Typography>
+                </Collapse>
+              </Alert>
+            );
+          })}
+        </Stack>
+      )}
 
       <Card sx={{ borderRadius: '20px', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.05)' }}>
         <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '20px', overflow: 'hidden' }}>
@@ -264,6 +341,16 @@ export default function Companies() {
                       )}
                     </TableCell>
                     <TableCell align="right">
+                      {company.paymentReminder && (
+                        <Tooltip title="To'lov eslatmasini nusxalash">
+                          <IconButton
+                            color={company.paymentReminder.dueIn === 0 ? 'error' : 'warning'}
+                            onClick={() => copyReminderText(company.paymentReminder!.text)}
+                          >
+                            <ContentCopyIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                       <IconButton color="primary" onClick={() => handleOpenEdit(company)}>
                         <EditIcon />
                       </IconButton>
