@@ -1,5 +1,5 @@
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import React, { useEffect, useState } from 'react';
+import { DataGrid, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAbonentStore } from '../hooks/abonentStore';
 import { t } from 'i18next';
 import { useAbonentLogic } from '../hooks/useAbonentLogic';
@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import {
   Cancel,
+  CheckCircleOutlined,
   DeleteOutlined,
   PictureAsPdf
 } from '@mui/icons-material';
@@ -41,9 +42,44 @@ function AbonentActs() {
   const [cancelReason, setCancelReason] = useState<string>('');
   const [cancelLoading, setCancelLoading] = useState<boolean>(false);
 
+  // Tasdiqlash uchun belgilangan aktlar
+  const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
+  const [confirmModalOpen, setConfirmModalOpen] = useState<boolean>(false);
+  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
+
+  const isNewAct = (row: any) => row.actStatus === 'NEW' || row.actStatus === 'Yangi';
+
+  const selectedActIds = useMemo(
+    () =>
+      acts
+        .filter(isNewAct)
+        .map((a: any) => a.id)
+        .filter((id: any) =>
+          selectionModel.type === 'include' ? selectionModel.ids.has(id) : !selectionModel.ids.has(id)
+        ),
+    [acts, selectionModel]
+  );
+
   useEffect(() => {
     getAbonentActs(residentId);
+    setSelectionModel({ type: 'include', ids: new Set() });
   }, [residentId]);
+
+  const confirmSelectedActs = async () => {
+    if (!selectedActIds.length) return;
+    setConfirmLoading(true);
+    try {
+      const { data } = await api.post('/acts/confirm', { ids: selectedActIds });
+      toast.success(data?.message || 'Aktlar tasdiqlandi');
+      setConfirmModalOpen(false);
+      setSelectionModel({ type: 'include', ids: new Set() });
+      getAbonentActs(residentId);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Aktlarni tasdiqlashda xatolik yuz berdi');
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
 
   const confirmDeleteAct = async () => {
     if (!actToDelete) return;
@@ -271,9 +307,25 @@ function AbonentActs() {
   return (
     <>
       <Card>
+        <Stack direction="row" sx={{ p: 1.5, justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircleOutlined />}
+            disabled={!selectedActIds.length}
+            onClick={() => setConfirmModalOpen(true)}
+          >
+            Aktni tasdiqlash{selectedActIds.length ? ` (${selectedActIds.length})` : ''}
+          </Button>
+        </Stack>
         <DataGrid
           rows={acts}
           columns={columns}
+          checkboxSelection
+          disableRowSelectionOnClick
+          isRowSelectable={({ row }) => isNewAct(row)}
+          rowSelectionModel={selectionModel}
+          onRowSelectionModelChange={setSelectionModel}
           sx={{
             '& .MuiDataGrid-columnHeaderTitle': {
               whiteSpace: 'normal',
@@ -308,6 +360,36 @@ function AbonentActs() {
             startIcon={deleteLoading ? <CircularProgress size={16} color="inherit" /> : null}
           >
             O‘chirish
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Aktlarni tasdiqlash dialogi */}
+      <Dialog
+        open={confirmModalOpen}
+        onClose={() => !confirmLoading && setConfirmModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Aktlarni tasdiqlash</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Belgilangan {selectedActIds.length} ta aktni ({selectedActIds.map((id) => `#${id}`).join(', ')}) TozaMakon
+            tizimida tasdiqlamoqchimisiz?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmModalOpen(false)} disabled={confirmLoading}>
+            Ortga
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={confirmSelectedActs}
+            disabled={confirmLoading}
+            startIcon={confirmLoading ? <CircularProgress size={16} color="inherit" /> : null}
+          >
+            Tasdiqlash
           </Button>
         </DialogActions>
       </Dialog>
