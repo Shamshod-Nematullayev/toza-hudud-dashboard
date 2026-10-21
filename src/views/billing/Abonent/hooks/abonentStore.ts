@@ -269,6 +269,10 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     }
     try {
       await api.put('/abonents/details/' + details.id, details);
+      // Telefon o'zgargan bo'lsa, Debitor telefon statusini qayta yuklash:
+      if (details.id && details.phone !== undefined && details.phone !== prev?.phone) {
+        void get().getAbonentDebitorStatus(details.id).catch(() => {});
+      }
       if (details.house?.cadastralNumber) {
         void get().getSimilarAbonentsByCadastr(details.house.cadastralNumber);
       }
