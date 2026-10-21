@@ -44,7 +44,7 @@ function ActCkeck() {
           const base64 = URL.createObjectURL(res.data);
           setFileUrl(base64);
         });
-      api.get('/billing/get-abonent-dxj-by-id/' + act.residentId).then(({ data }) => {
+      api.get('/billing/get-abonent-dxj-by-id', { params: { residentId: act.residentId } }).then(({ data }) => {
         setDavriyHarakatlarJadvali(
           data.rows.map((row, i) => ({
             id: i + 1,
