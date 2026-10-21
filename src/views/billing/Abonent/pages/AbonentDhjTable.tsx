@@ -1,40 +1,37 @@
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useServerDataGrid } from 'hooks/useServerDataGrid';
-import api from 'utils/api';
+import { useEffect, useMemo } from 'react';
 import { useAbonentStore } from '../hooks/abonentStore';
 import { alpha, Card } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useAbonentLogic } from '../hooks/useAbonentLogic';
-import { IRowDhj } from 'types/billing';
 
 function AbonentDhjTable() {
   const { t } = useTranslation();
   const { residentId } = useAbonentLogic();
-  const { dataGridProps } = useServerDataGrid(async ({ limit, page, sortDirection, sortField }) => {
-    const data = (
-      await api.get('/billing/get-abonent-dxj-by-id', {
-        params: {
-          residentId,
-          page,
-          size: limit,
-          sortField,
-          sortDirection
-        }
-      })
-    ).data;
-    return {
-      meta: {
-        limit,
-        page: data.meta.page,
-        total: data.meta.total
-      },
-      data: data.rows.map((row: IRowDhj, index: number) => ({
-        ...row,
-        orderNumber: (page - 1) * limit + index + 1,
-        allPaymentsAmount: row.cashAmount + row.eMoneyAmount + row.munisAmount + row.q1031Amount
-      }))
-    };
-  });
+  const dhjRows = useAbonentStore((s) => s.dhjRows);
+  const dhjRowsResidentId = useAbonentStore((s) => s.dhjRowsResidentId);
+  const dhjRowsLoading = useAbonentStore((s) => s.dhjRowsLoading);
+  const getDhjRows = useAbonentStore((s) => s.getDhjRows);
+
+  // DHJ bir marta to'liq yuklanadi; sahifa almashtirish va tabga qaytish qayta so'rov yubormaydi
+  useEffect(() => {
+    if (Number.isNaN(residentId) || dhjRowsResidentId === residentId) return;
+    getDhjRows(residentId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [residentId]);
+
+  const rows = useMemo(
+    () =>
+      dhjRowsResidentId === residentId
+        ? dhjRows.map((row, index) => ({
+            ...row,
+            orderNumber: index + 1,
+            allPaymentsAmount: row.cashAmount + row.eMoneyAmount + row.munisAmount + row.q1031Amount
+          }))
+        : [],
+    [dhjRows, dhjRowsResidentId, residentId]
+  );
+
   const columns: GridColDef[] = [
     { field: 'orderNumber', headerName: '№', width: 50 },
     {
@@ -118,8 +115,10 @@ function AbonentDhjTable() {
   return (
     <Card sx={{ boxShadow: 4 }}>
       <DataGrid
-        {...dataGridProps}
+        rows={rows}
+        loading={dhjRowsLoading || dhjRowsResidentId !== residentId}
         columns={columns}
+        initialState={{ pagination: { paginationModel: { page: 0, pageSize: 15 } } }}
         pageSizeOptions={[15, 50, 100]}
         disableColumnSorting
         disableColumnMenu
