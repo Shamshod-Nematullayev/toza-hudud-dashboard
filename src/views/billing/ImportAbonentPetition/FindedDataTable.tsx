@@ -21,8 +21,7 @@ import { MoneyTransferConfirmDialog } from './MoneyTransferConfirmDialog';
 
 function FindedDataTable() {
   const { ariza, setAriza, setShowDialog, ui, pdfFiles, currentFile, enteringMode, setEnteringMode } = useStore();
-  const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData, recalculationPeriods } =
-    useRecalculatorStore();
+  const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData, recalculationPeriods } = useRecalculatorStore();
 
   const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik');
   manualActDocumentTypes.push('cancelContract');
@@ -45,6 +44,8 @@ function FindedDataTable() {
     manualAccountNumber,
     setManualAccountNumber,
     loadAbonentByAccountForManual,
+    manualAbonentLoading,
+    manualAbonentError,
     photos,
     setPhotos,
     allPaymentsSumOnDublicate,
@@ -58,9 +59,7 @@ function FindedDataTable() {
   // Adjustment calculation via custom hook
   const residentId = ariza?.abonentId || abonentData?.id;
   const nextInhabitantCount =
-    enteringMode === 'manual'
-      ? Number(yashovchiSoniInput || 0)
-      : Number(ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? 0);
+    enteringMode === 'manual' ? Number(yashovchiSoniInput || 0) : Number(ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? 0);
   const actAmount = parseAktSumExpression(aktSumm);
 
   const adjustmentData = useAdjustmentCalculation({
@@ -124,6 +123,8 @@ function FindedDataTable() {
         manualAccountNumber={manualAccountNumber}
         setManualAccountNumber={setManualAccountNumber}
         loadAbonentByAccountForManual={loadAbonentByAccountForManual}
+        manualAbonentLoading={manualAbonentLoading}
+        manualAbonentError={manualAbonentError}
         aktType={aktType}
         setAktType={setAktType}
         photos={photos}

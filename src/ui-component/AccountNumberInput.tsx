@@ -1,5 +1,5 @@
-import { SxProps, TextField } from '@mui/material';
-import { useRef } from 'react';
+import { CircularProgress, InputAdornment, SxProps, TextField } from '@mui/material';
+import { ReactNode, useRef } from 'react';
 
 function AccountNumberInput({
   value,
@@ -8,7 +8,10 @@ function AccountNumberInput({
   sx,
   disabled,
   required,
-  size
+  size,
+  loading,
+  error,
+  helperText
 }: {
   value: string;
   setFunc: (e: string) => void;
@@ -17,6 +20,10 @@ function AccountNumberInput({
   disabled?: boolean;
   required?: boolean;
   size?: 'small' | 'medium';
+  /** Abonent ma'lumotlari yuklanayotganda maydon ichida spinner ko'rsatiladi */
+  loading?: boolean;
+  error?: boolean;
+  helperText?: ReactNode;
 }) {
   const defaultValue = localStorage.getItem('abonentsPrefix') || '105120';
   const inputRef = useRef(null);
@@ -49,7 +56,20 @@ function AccountNumberInput({
       disabled={disabled}
       required={required}
       type="text"
-      slotProps={{ htmlInput: { maxLength: 12 } }}
+      error={error}
+      helperText={helperText}
+      slotProps={{
+        htmlInput: { maxLength: 12 },
+        input: loading
+          ? {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <CircularProgress size={18} color="inherit" />
+                </InputAdornment>
+              )
+            }
+          : undefined
+      }}
       onFocus={handleFocus}
       size={size}
       onBlur={(e) => {

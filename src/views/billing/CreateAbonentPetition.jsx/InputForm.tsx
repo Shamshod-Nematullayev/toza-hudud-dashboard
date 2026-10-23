@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -22,6 +23,7 @@ import {
   Radio,
   RadioGroup,
   Select,
+  Skeleton,
   Stack,
   Switch,
   TextField,
@@ -65,6 +67,46 @@ interface InputFormProps {
   onStartTour?: () => void;
 }
 
+// Hisob raqam bo'yicha abonent qidirilayotganda / xato bo'lganda ko'rsatiladigan blok
+function AbonentLookupFeedback({ loading, error, onRetry }: { loading: boolean; error?: string | null; onRetry?: () => void }) {
+  if (loading) {
+    return (
+      <Paper
+        elevation={0}
+        role="status"
+        aria-live="polite"
+        sx={{ mt: 1.5, p: 1.75, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}
+      >
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+          <CircularProgress size={16} />
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+            Abonent ma'lumotlari yuklanmoqda…
+          </Typography>
+        </Stack>
+        <Skeleton variant="text" width="60%" height={24} />
+        <Skeleton variant="text" width="85%" />
+        <Skeleton variant="text" width="40%" />
+      </Paper>
+    );
+  }
+  if (!error) return null;
+  return (
+    <Alert
+      severity="error"
+      sx={{ mt: 1.5, borderRadius: 2 }}
+      action={
+        onRetry && (
+          <Button color="inherit" size="small" onClick={onRetry} sx={{ textTransform: 'none', fontWeight: 600 }}>
+            Qayta urinish
+          </Button>
+        )
+      }
+    >
+      {error}
+    </Alert>
+  );
+}
+
 export default function InputForm({ onStartTour }: InputFormProps) {
   const {
     aktType,
@@ -87,6 +129,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     createAriza,
     updateAbonentDataByAccNum,
     searchAllAccountsAbonent,
+    cancelAbonentLookup,
+    abonentLookup,
     isGlobalAbonent,
     isGlobalAbonent2,
     notFoundInCompanyMain,
@@ -123,29 +167,44 @@ export default function InputForm({ onStartTour }: InputFormProps) {
   const [accountNumber, setAccountNumber] = useState('');
   const [accountNumber2, setAccountNumber2] = useState('');
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
-  const [isLoadingMain, setIsLoadingMain] = useState(false);
-  const [isLoadingDublicate, setIsLoadingDublicate] = useState(false);
 
   // Pul ko'chirish uchun lokal holat
   const [creditorAccount, setCreditorAccount] = useState('');
   const [creditorAmount, setCreditorAmount] = useState('');
   const [creditorAbonent, setCreditorAbonent] = useState<any>(null);
+  const [creditorLoading, setCreditorLoading] = useState(false);
+  const [creditorError, setCreditorError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (creditorAccount.length === 12) {
-      api
-        .get('/billing/get-abonent-data-by-licshet/' + creditorAccount)
-        .then(({ data }) => {
-          if (data?.ok && data.abonentData) {
-            setCreditorAbonent(data.abonentData);
-          } else {
-            setCreditorAbonent(null);
-          }
-        })
-        .catch(() => setCreditorAbonent(null));
-    } else {
-      setCreditorAbonent(null);
+    setCreditorAbonent(null);
+    setCreditorError(null);
+    if (creditorAccount.length !== 12) {
+      setCreditorLoading(false);
+      return;
     }
+    // Hisob raqam o'zgarsa eski so'rov javobi e'tiborsiz qoldiriladi
+    let cancelled = false;
+    setCreditorLoading(true);
+    api
+      .get('/billing/get-abonent-data-by-licshet/' + creditorAccount)
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (data?.ok && data.abonentData) {
+          setCreditorAbonent(data.abonentData);
+        } else {
+          setCreditorError(data?.message || 'Abonent ushbu tashkilot bazasida topilmadi');
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setCreditorError(err?.response?.data?.message || err?.message || 'Abonentni yuklashda xatolik yuz berdi');
+      })
+      .finally(() => {
+        if (!cancelled) setCreditorLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [creditorAccount]);
 
   const handleAddCreditor = () => {
@@ -165,9 +224,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
       id: transferCreditors.length + 1,
       residentId: creditorAbonent.id,
       accountNumber: creditorAccount,
-      fullName:
-        creditorAbonent.fullName ||
-        `${creditorAbonent.citizen?.firstName || ''} ${creditorAbonent.citizen?.lastName || ''}`.trim(),
+      fullName: creditorAbonent.fullName || `${creditorAbonent.citizen?.firstName || ''} ${creditorAbonent.citizen?.lastName || ''}`.trim(),
       amount: Number(creditorAmount),
       kSaldo: creditorAbonent.balance?.kSaldo || 0,
       phone: creditorAbonent.phone || '',
@@ -207,20 +264,18 @@ export default function InputForm({ onStartTour }: InputFormProps) {
 
   useEffect(() => {
     if (accountNumber.length === 12) {
-      setIsLoadingMain(true);
       updateAbonentDataByAccNum(accountNumber, 'main');
-      setTimeout(() => setIsLoadingMain(false), 500);
     } else {
+      cancelAbonentLookup('main');
       if (abonentData.accountNumber) setAbonentData(defaultAbonentData);
     }
   }, [accountNumber]);
 
   useEffect(() => {
     if (accountNumber2.length === 12) {
-      setIsLoadingDublicate(true);
       updateAbonentDataByAccNum(accountNumber2, 'dublicate');
-      setTimeout(() => setIsLoadingDublicate(false), 500);
     } else {
+      cancelAbonentLookup('dublicate');
       if (abonentData2.accountNumber) setAbonentData2(defaultAbonentData);
     }
   }, [accountNumber2]);
@@ -272,10 +327,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     (aktType === 'dvaynik' && isGlobalAbonent2) ||
     (aktType === 'gps' && images.length === 0) ||
     (aktType === 'pul_kuchirish' &&
-      (!transferDebitorAmount ||
-        Number(transferDebitorAmount) <= 0 ||
-        transferCreditors.length === 0 ||
-        !isAmountBalanced));
+      (!transferDebitorAmount || Number(transferDebitorAmount) <= 0 || transferCreditors.length === 0 || !isAmountBalanced));
 
   const getCreateDisabledReason = (): string => {
     if (isGlobalAbonent)
@@ -288,7 +340,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (aktType === 'pul_kuchirish') {
       if (!transferDebitorAmount || Number(transferDebitorAmount) <= 0) return "O'tkaziladigan summani kiriting";
       if (transferCreditors.length === 0) return "Kamida bitta qabul qiluvchi hisob raqamini qo'shing";
-      if (!isAmountBalanced) return "Debitor summasi va kreditorlar summasi teng emas";
+      if (!isAmountBalanced) return 'Debitor summasi va kreditorlar summasi teng emas';
     }
     return '';
   };
@@ -340,10 +392,24 @@ export default function InputForm({ onStartTour }: InputFormProps) {
         <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 1, display: 'block' }}>
           1. {t('Asosiy Abonent')}
         </Typography>
-        <AccountNumberInput label={t('createAbonentPetitionPage.accountNumber')} value={accountNumber} setFunc={setAccountNumber} />
+        <AccountNumberInput
+          label={t('createAbonentPetitionPage.accountNumber')}
+          value={accountNumber}
+          setFunc={setAccountNumber}
+          loading={abonentLookup.main.loading}
+          error={!abonentLookup.main.loading && !!abonentLookup.main.error && accountNumber.length === 12}
+        />
+
+        {accountNumber.length === 12 && (
+          <AbonentLookupFeedback
+            loading={abonentLookup.main.loading}
+            error={notFoundInCompanyMain ? null : abonentLookup.main.error}
+            onRetry={() => updateAbonentDataByAccNum(accountNumber, 'main')}
+          />
+        )}
 
         {/* Agar joriy tashkilotda topilmasa, O'zbekiston bo'ylab izlash tugmasi */}
-        {notFoundInCompanyMain && accountNumber.length === 12 && !abonentData.accountNumber && (
+        {notFoundInCompanyMain && !abonentLookup.main.loading && accountNumber.length === 12 && !abonentData.accountNumber && (
           <Paper
             elevation={0}
             sx={{
@@ -356,7 +422,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
             }}
           >
             <Typography variant="caption" color="warning.dark" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
-              ⚠️ Ushbu hisob raqam joriy tashkilot bazasida topilmadi.
+              ⚠️ {abonentLookup.main.error || 'Ushbu hisob raqam joriy tashkilot bazasida topilmadi.'}
             </Typography>
             <Button
               fullWidth
@@ -379,7 +445,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
         )}
 
         {/* Abonent ma'lumotlari mini-kartochkasi */}
-        {abonentData.accountNumber && (
+        {abonentData.accountNumber && !abonentLookup.main.loading && (
           <Paper
             elevation={0}
             sx={{
@@ -524,6 +590,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                         label={t('createAbonentPetitionPage.dublicateAccountNumber')}
                         value={accountNumber2}
                         setFunc={setAccountNumber2}
+                        loading={abonentLookup.dublicate.loading}
+                        error={!abonentLookup.dublicate.loading && !!abonentLookup.dublicate.error && accountNumber2.length === 12}
                       />
                     </Box>
                     <Tooltip title={t('Hisob raqamlarni almashtirish (Swap)')}>
@@ -537,40 +605,51 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     </Tooltip>
                   </Box>
 
+                  {accountNumber2.length === 12 && (
+                    <AbonentLookupFeedback
+                      loading={abonentLookup.dublicate.loading}
+                      error={notFoundInCompanyDublicate ? null : abonentLookup.dublicate.error}
+                      onRetry={() => updateAbonentDataByAccNum(accountNumber2, 'dublicate')}
+                    />
+                  )}
+
                   {/* Agar ikkilamchi hisob joriy tashkilotda topilmasa, O'zbekiston bo'ylab izlash */}
-                  {notFoundInCompanyDublicate && accountNumber2.length === 12 && !abonentData2.accountNumber && (
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        border: '1px dashed',
-                        borderColor: 'warning.main',
-                        bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
-                      }}
-                    >
-                      <Typography variant="caption" color="warning.dark" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
-                        ⚠️ Ikkilamchi hisob raqam joriy tashkilotda topilmadi.
-                      </Typography>
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        color="warning"
-                        size="small"
-                        disabled={isSearchingGlobalDublicate}
-                        onClick={() => searchAllAccountsAbonent(accountNumber2, 'dublicate')}
-                        startIcon={isSearchingGlobalDublicate ? <CircularProgress size={14} color="inherit" /> : <PublicIcon />}
+                  {notFoundInCompanyDublicate &&
+                    !abonentLookup.dublicate.loading &&
+                    accountNumber2.length === 12 &&
+                    !abonentData2.accountNumber && (
+                      <Paper
+                        elevation={0}
                         sx={{
-                          fontWeight: 700,
-                          fontSize: '12px',
-                          textTransform: 'none',
-                          borderRadius: 1.5
+                          p: 1.5,
+                          borderRadius: 2,
+                          border: '1px dashed',
+                          borderColor: 'warning.main',
+                          bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'warning.50'
                         }}
                       >
-                        {isSearchingGlobalDublicate ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
-                      </Button>
-                    </Paper>
-                  )}
+                        <Typography variant="caption" color="warning.dark" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>
+                          ⚠️ {abonentLookup.dublicate.error || 'Ikkilamchi hisob raqam joriy tashkilotda topilmadi.'}
+                        </Typography>
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          color="warning"
+                          size="small"
+                          disabled={isSearchingGlobalDublicate}
+                          onClick={() => searchAllAccountsAbonent(accountNumber2, 'dublicate')}
+                          startIcon={isSearchingGlobalDublicate ? <CircularProgress size={14} color="inherit" /> : <PublicIcon />}
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            textTransform: 'none',
+                            borderRadius: 1.5
+                          }}
+                        >
+                          {isSearchingGlobalDublicate ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
+                        </Button>
+                      </Paper>
+                    )}
 
                   {/* Ikkilamchi abonent ma'lumotlari */}
                   {abonentData2.accountNumber && (
@@ -813,7 +892,10 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                         label={t('Kreditor hisob raqami')}
                         value={creditorAccount}
                         setFunc={setCreditorAccount}
+                        loading={creditorLoading}
+                        error={!!creditorError}
                       />
+                      {creditorAccount.length === 12 && <AbonentLookupFeedback loading={creditorLoading} error={creditorError} />}
                       {creditorAbonent && (
                         <Paper
                           elevation={0}
@@ -826,7 +908,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                           }}
                         >
                           <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.dark', display: 'block' }}>
-                            {creditorAbonent.fullName || `${creditorAbonent.citizen?.firstName || ''} ${creditorAbonent.citizen?.lastName || ''}`}
+                            {creditorAbonent.fullName ||
+                              `${creditorAbonent.citizen?.firstName || ''} ${creditorAbonent.citizen?.lastName || ''}`}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                             {creditorAbonent.mahallaName} | Saldo: {((creditorAbonent.balance?.kSaldo || 0) * -1).toLocaleString()} so'm

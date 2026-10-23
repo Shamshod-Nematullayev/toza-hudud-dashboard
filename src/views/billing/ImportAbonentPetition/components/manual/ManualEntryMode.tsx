@@ -1,4 +1,4 @@
-import { Box, Button, Divider, MenuItem, Stack, TextField, Typography, useTheme } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Divider, MenuItem, Stack, TextField, Typography, useTheme } from '@mui/material';
 import { DeleteOutlined as DeleteOutlinedIcon, Photo, UploadFileOutlined as FileUploadOutlinedIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { t } from 'i18next';
@@ -20,6 +20,8 @@ interface ManualEntryModeProps {
   manualAccountNumber: string;
   setManualAccountNumber: (val: string) => void;
   loadAbonentByAccountForManual: () => Promise<void>;
+  manualAbonentLoading: boolean;
+  manualAbonentError: string | null;
   aktType: any;
   setAktType: any;
   photos: string[];
@@ -44,6 +46,8 @@ export function ManualEntryMode({
   manualAccountNumber,
   setManualAccountNumber,
   loadAbonentByAccountForManual,
+  manualAbonentLoading,
+  manualAbonentError,
   aktType,
   setAktType,
   photos,
@@ -128,11 +132,7 @@ export function ManualEntryMode({
                   color: theme.palette.primary.main,
                   outline: 'none'
                 }}
-                value={
-                  hasValidAriza(ariza)
-                    ? String(ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '')
-                    : yashovchiSoniInput
-                }
+                value={hasValidAriza(ariza) ? String(ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '') : yashovchiSoniInput}
                 onChange={(e) => {
                   const v = e.target.value;
                   if (hasValidAriza(ariza)) {
@@ -176,11 +176,7 @@ export function ManualEntryMode({
         </Stack>
       </Box>
 
-      <AdjustmentAlert
-        adjustmentData={adjustmentData}
-        aktSumm={aktSumm}
-        onApplyRecommendedSum={setAktSumm}
-      />
+      <AdjustmentAlert adjustmentData={adjustmentData} aktSumm={aktSumm} onApplyRecommendedSum={setAktSumm} />
 
       <Box
         sx={{
@@ -205,9 +201,17 @@ export function ManualEntryMode({
             value={manualAccountNumber}
             setFunc={setManualAccountNumber}
             sx={{ minWidth: 160 }}
+            loading={manualAbonentLoading}
+            error={!!manualAbonentError}
           />
-          <Button variant="contained" color="secondary" onClick={() => void loadAbonentByAccountForManual()}>
-            Yuklash
+          <Button
+            variant="contained"
+            color="secondary"
+            disabled={manualAbonentLoading}
+            startIcon={manualAbonentLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
+            onClick={() => void loadAbonentByAccountForManual()}
+          >
+            {manualAbonentLoading ? 'Yuklanmoqda…' : 'Yuklash'}
           </Button>
           <TextField
             select
@@ -248,6 +252,27 @@ export function ManualEntryMode({
             <DeleteOutlinedIcon />
           </Button>
         </Stack>
+        {manualAbonentLoading && (
+          <Stack direction="row" spacing={1} role="status" aria-live="polite" sx={{ alignItems: 'center', mt: 1.5 }}>
+            <CircularProgress size={16} />
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              Abonent ma'lumotlari yuklanmoqda…
+            </Typography>
+          </Stack>
+        )}
+        {!manualAbonentLoading && manualAbonentError && (
+          <Alert
+            severity="error"
+            sx={{ mt: 1.5, borderRadius: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={() => void loadAbonentByAccountForManual()} sx={{ textTransform: 'none' }}>
+                Qayta urinish
+              </Button>
+            }
+          >
+            {manualAbonentError}
+          </Alert>
+        )}
         {aktType && aktType !== 'cancelContract' && <RecalculatorAbonent />}
       </Box>
       <div style={{ height: '500px' }}>

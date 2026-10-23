@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useStore from './useStore';
 import useLoaderStore from 'store/loaderStore';
 import { useTariff } from 'hooks/useTariff';
@@ -115,6 +115,11 @@ export function useFindedTableLogic() {
   const [showSpoiler, setShowSpoiler] = useState(false);
   const [aktSumm, setAktSumm] = useState('0');
   const [manualAccountNumber, setManualAccountNumber] = useState('');
+  const [manualAbonentLoading, setManualAbonentLoading] = useState(false);
+  const [manualAbonentError, setManualAbonentError] = useState<string | null>(null);
+  // Hisob raqam o'zgarsa yoki qayta yuklansa, eski so'rov javobi e'tiborsiz qoldiriladi
+  const manualLookupSeq = useRef(0);
+  const manualLookupInFlight = useRef(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [moneyTransferDialogOpen, setMoneyTransferDialogOpen] = useState(false);
 
@@ -126,9 +131,7 @@ export function useFindedTableLogic() {
   const yashovchiSoniInput = useRecalculatorStore((s) => s.yashovchiSoniInput);
 
   const manualResidentIdForDh =
-    (manualEditing || enteringMode === 'manual') && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0
-      ? abonentData.id
-      : null;
+    (manualEditing || enteringMode === 'manual') && !hasValidAriza(ariza as IAriza | null) && abonentData.id > 0 ? abonentData.id : null;
 
   const {
     rows,
@@ -212,15 +215,25 @@ export function useFindedTableLogic() {
       toast.error('Hisob raqamini kiriting');
       return;
     }
-    await useRecalculatorStore.getState().updateAbonentDataByAccNum(acc, 'main');
-    const { abonentData: ad, setRowsDhjTable, setYashovchiSoniInput } = useRecalculatorStore.getState();
-    if (!ad?.id) return;
+    const seq = ++manualLookupSeq.current;
+    const isStale = () => seq !== manualLookupSeq.current;
+    manualLookupInFlight.current = true;
+    setManualAbonentLoading(true);
+    setManualAbonentError(null);
     try {
+      const ok = await useRecalculatorStore.getState().updateAbonentDataByAccNum(acc, 'main');
+      if (isStale()) return;
+      const { abonentData: ad, abonentLookup, setRowsDhjTable, setYashovchiSoniInput } = useRecalculatorStore.getState();
+      if (!ok || !ad?.id) {
+        setManualAbonentError(abonentLookup.main.error || 'Abonent topilmadi');
+        return;
+      }
       const { data } = await api.get<{ ok: boolean; message?: string; rows: any[] }>('/billing/get-abonent-dxj-by-id', {
         params: { residentId: ad.id }
       });
+      if (isStale()) return;
       if (!data.ok) {
-        toast.error(data.message || 'DHJ yuklanmadi');
+        setManualAbonentError(data.message || 'DHJ yuklanmadi');
         return;
       }
       const mapped = data.rows.map((row: any, i: number) => ({
@@ -236,10 +249,27 @@ export function useFindedTableLogic() {
       setYashovchiSoniInput(String(mapped[0].yashovchilar_soni));
       setRowsDhjTable(mapped);
       toast.success('Abonent yuklandi');
-    } catch (error) {
+    } catch (error: any) {
+      if (isStale()) return;
       console.error(error);
-      toast.error('DHJ maʼlumotini olishda xatolik');
+      setManualAbonentError(error?.response?.data?.message || error?.message || 'DHJ maʼlumotini olishda xatolik');
+    } finally {
+      if (!isStale()) {
+        manualLookupInFlight.current = false;
+        setManualAbonentLoading(false);
+      }
     }
+  }, [manualAccountNumber]);
+
+  useEffect(() => {
+    // Raqam o'zgardi: davom etayotgan yuklash bekor qilinadi va eski xato yashiriladi
+    manualLookupSeq.current++;
+    if (manualLookupInFlight.current) {
+      manualLookupInFlight.current = false;
+      useRecalculatorStore.getState().cancelAbonentLookup('main');
+    }
+    setManualAbonentLoading(false);
+    setManualAbonentError(null);
   }, [manualAccountNumber]);
 
   const executeSubmit = async (overrideShouldTransferMoney?: boolean) => {
@@ -377,6 +407,8 @@ export function useFindedTableLogic() {
     manualAccountNumber,
     setManualAccountNumber,
     loadAbonentByAccountForManual,
+    manualAbonentLoading,
+    manualAbonentError,
     photos,
     setPhotos,
     allPaymentsSumOnDublicate,

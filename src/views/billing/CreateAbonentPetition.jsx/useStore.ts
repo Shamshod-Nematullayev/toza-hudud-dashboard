@@ -140,6 +140,19 @@ export interface ITransferCreditor {
   mahallaName?: string;
 }
 
+export type AbonentLookupTarget = 'main' | 'dublicate';
+
+export interface AbonentLookupState {
+  loading: boolean;
+  /** Abonent topilmagani yoki server/tarmoq xatosi haqidagi xabar */
+  error: string | null;
+}
+
+const idleLookup: AbonentLookupState = { loading: false, error: null };
+
+// Hisob raqam o'zgarganda eski (sekin) so'rov javobi yangisini bosib ketmasligi uchun
+const abonentLookupSeq: Record<AbonentLookupTarget, number> = { main: 0, dublicate: 0 };
+
 export interface ImgType {
   file: File;
   document_id: string;
@@ -165,6 +178,7 @@ interface StoreActionsState {
   createAriza: () => void;
   updateAbonentDataByAccNum: (accountNumber: string, abonentData: 'main' | 'dublicate') => Promise<boolean>;
   searchAllAccountsAbonent: (accountNumber: string, targetType: 'main' | 'dublicate') => Promise<boolean>;
+  cancelAbonentLookup: (target: AbonentLookupTarget) => void;
   getAutoMobile: (mahallaId: number) => void;
   setAbonentCardOpenState: (abonentCardOpenState: boolean) => void;
   setGlobalAbonentAccountNumber: (globalAbonentAccountNumber: string) => void;
@@ -208,6 +222,7 @@ interface StoreDataState {
   notFoundInCompanyDublicate: boolean;
   isSearchingGlobalMain: boolean;
   isSearchingGlobalDublicate: boolean;
+  abonentLookup: Record<AbonentLookupTarget, AbonentLookupState>;
   ariza: any;
   mahalla: IMahalla;
   mahallaDublicat: any;
@@ -240,6 +255,7 @@ const initialStoreDataState: StoreDataState = {
   notFoundInCompanyDublicate: false,
   isSearchingGlobalMain: false,
   isSearchingGlobalDublicate: false,
+  abonentLookup: { main: idleLookup, dublicate: idleLookup },
   aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 },
   ariza: {},
   hisoblandiJadval: [],
@@ -274,10 +290,8 @@ export const useStore = create<StoreState>((set, get) => ({
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' },
   setTransferReason: (reason) => set({ transferReason: reason }),
   setTransferCreditors: (creditors) => set({ transferCreditors: creditors }),
-  addTransferCreditor: (creditor) =>
-    set((state) => ({ transferCreditors: [...state.transferCreditors, creditor] })),
-  removeTransferCreditor: (id) =>
-    set((state) => ({ transferCreditors: state.transferCreditors.filter((c) => c.id !== id) })),
+  addTransferCreditor: (creditor) => set((state) => ({ transferCreditors: [...state.transferCreditors, creditor] })),
+  removeTransferCreditor: (id) => set((state) => ({ transferCreditors: state.transferCreditors.filter((c) => c.id !== id) })),
   setSelectedApplicantId: (id) => set({ selectedApplicantId: id }),
   setTransferDebitorAmount: (amount) => set({ transferDebitorAmount: amount }),
   setDublicateRelation: (dublicateRelation: string) => set({ dublicateRelation }),
@@ -465,15 +479,24 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
   updateAbonentDataByAccNum: async (accountNumber: string, abonentData) => {
+    const seq = ++abonentLookupSeq[abonentData];
+    const isStale = () => seq !== abonentLookupSeq[abonentData];
+    const setLookup = (lookup: AbonentLookupState) =>
+      set((state) => ({ abonentLookup: { ...state.abonentLookup, [abonentData]: lookup } }));
+    const notFoundKey = abonentData === 'main' ? 'notFoundInCompanyMain' : 'notFoundInCompanyDublicate';
+
+    setLookup({ loading: true, error: null });
+    set({ [notFoundKey]: false } as Partial<StoreState>);
     try {
       const { data } = await api.get('/billing/get-abonent-data-by-licshet/' + accountNumber);
+      if (isStale()) return false;
       if (!data.ok) {
         if (abonentData === 'main') {
           set({ notFoundInCompanyMain: true, isGlobalAbonent: false });
         } else {
           set({ notFoundInCompanyDublicate: true, isGlobalAbonent2: false });
         }
-        toast.error(data.message || 'Abonent ushbu tashkilot bazasida topilmadi');
+        setLookup({ loading: false, error: data.message || 'Abonent ushbu tashkilot bazasida topilmadi' });
         return false;
       }
 
@@ -499,32 +522,41 @@ export const useStore = create<StoreState>((set, get) => ({
             const dxjRes = await api.get('/billing/get-abonent-dxj-by-id', {
               params: { residentId: data.abonentData.id }
             });
+            if (isStale()) return false;
             if (dxjRes.data?.ok && Array.isArray(dxjRes.data.rows)) {
-              const totalPaymentsSum = dxjRes.data.rows.reduce(
-                (acc: number, r: any) => acc + (Number(r.allPaymentsSum) || 0),
-                0
-              );
+              const totalPaymentsSum = dxjRes.data.rows.reduce((acc: number, r: any) => acc + (Number(r.allPaymentsSum) || 0), 0);
               set({ moneyTransferAmount: totalPaymentsSum });
             }
           } catch (e) {
+            if (isStale()) return false;
             console.error('Error fetching dublicate payments sum:', e);
           }
         }
       }
       set(updateObj);
+      setLookup(idleLookup);
       return true;
     } catch (err: any) {
-      if (abonentData === 'main') {
-        set({ notFoundInCompanyMain: true });
-      } else {
-        set({ notFoundInCompanyDublicate: true });
-      }
-      toast.error(err?.response?.data?.message || err?.message || 'Abonentni yuklashda xatolik yuz berdi');
+      if (isStale()) return false;
+      setLookup({
+        loading: false,
+        error: err?.response?.data?.message || err?.message || 'Abonentni yuklashda xatolik yuz berdi'
+      });
       return false;
     }
   },
 
+  cancelAbonentLookup: (target) => {
+    abonentLookupSeq[target]++;
+    set((state) => ({
+      abonentLookup: { ...state.abonentLookup, [target]: idleLookup },
+      ...(target === 'main' ? { notFoundInCompanyMain: false } : { notFoundInCompanyDublicate: false })
+    }));
+  },
+
   searchAllAccountsAbonent: async (accountNumber: string, targetType: 'main' | 'dublicate') => {
+    const seq = abonentLookupSeq[targetType];
+    const isStale = () => seq !== abonentLookupSeq[targetType];
     if (targetType === 'main') {
       set({ isSearchingGlobalMain: true });
     } else {
@@ -535,6 +567,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // 1. Respublika barcha tashkilotlar bo'yicha residentId ni qidirish
       const res = await api.get('/abonents/abonent-id-from-all-accounts/' + accountNumber);
       const residentId = res.data?.id;
+      if (isStale()) return false;
 
       if (!residentId) {
         toast.warning("O'zbekiston bo'ylab bunday hisob raqamli abonent topilmadi");
@@ -555,6 +588,7 @@ export const useStore = create<StoreState>((set, get) => ({
       });
 
       const cardData: AbonentCard = cardRes.data;
+      if (isStale()) return false;
       if (!cardData) {
         toast.warning("Abonent kartasi ma'lumotlarini yuklab bo'lmadi");
         return false;
@@ -566,7 +600,7 @@ export const useStore = create<StoreState>((set, get) => ({
         id: residentId,
         accountNumber: cardData.accountNumber,
         fullName: cardData.fullName || '—',
-        companyName: cardData.companyName || "Boshqa korxona",
+        companyName: cardData.companyName || 'Boshqa korxona',
         companyId: -1, // joriy kompaniyadan farqlash uchun
         mahallaName: cardData.mahallaName || '',
         streetName: cardData.streetName || '',
@@ -622,9 +656,11 @@ export const useStore = create<StoreState>((set, get) => ({
         }
       }
 
-      toast.success(`Abonent topildi: ${cardData.companyName || "Boshqa hudud korxonasi"}`);
+      set((state) => ({ abonentLookup: { ...state.abonentLookup, [targetType]: idleLookup } }));
+      toast.success(`Abonent topildi: ${cardData.companyName || 'Boshqa hudud korxonasi'}`);
       return true;
     } catch (e: any) {
+      if (isStale()) return false;
       toast.error(e?.response?.data?.message || e?.message || "O'zbekiston bo'ylab qidirishda xatolik yuz berdi");
       return false;
     } finally {
@@ -682,10 +718,7 @@ export function buildActDescriptionFromPeriods(data?: IRecalculationPeriod[] | n
   }
 
   const details = data
-    .map(
-      (item) =>
-        `Davr: ${formatDateToMMYYYY(item.startDate)} - ${formatDateToMMYYYY(item.endDate)}, Summa: ${item.total}`
-    )
+    .map((item) => `Davr: ${formatDateToMMYYYY(item.startDate)} - ${formatDateToMMYYYY(item.endDate)}, Summa: ${item.total}`)
     .join('\n');
 
   const totalSum = data.reduce((total, item) => total + (Number(item.total) || 0), 0);
