@@ -20,6 +20,19 @@ import { IAbonent, searchAbonentFromTozamakon } from 'services/searchAbonentFrom
 import { Debitor } from 'views/billing/Debitors/types';
 import { fixFileName } from 'utils/fixFileName';
 
+// Bizning serverga umuman yetib bormagan so'rovni (internet uzilishi) bir necha marta qayta yuboramiz.
+// Server javob bergan bo'lsa (xato bo'lsa ham) qayta yubormaymiz: navbat bilan server o'zi shug'ullanadi.
+async function sendWithNetworkRetry<T>(send: () => Promise<T>, delaysMs = [2000, 5000, 10000]): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await send();
+    } catch (error: any) {
+      if (error?.response || i >= delaysMs.length) throw error;
+      await new Promise((r) => setTimeout(r, delaysMs[i]));
+    }
+  }
+}
+
 const initialState: IAbonentPageDataStore = {
   abonentDetails: null,
   dhjRows: [],
@@ -132,7 +145,7 @@ export interface IAbonentPageActionsStore {
    */
   getDetailsFromDB: () => void;
   updateDetails: (details: Partial<AbonentDetails>) => Promise<void>;
-  updatePhone: (phone: string) => void;
+  updatePhone: (phone: string) => Promise<void>;
   updateElectricity: (params: { residentId: number; electricityAccountNumber: string; electricityCoato: string }) => void;
   getResidentCadastrs: (pnfl: string | number) => void;
   getDatasForCompare: () => void;
@@ -268,10 +281,13 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       set({ abonentDetails: { ...prev, ...details } as AbonentDetails });
     }
     try {
-      await api.put('/abonents/details/' + details.id, details);
+      const { data } = await sendWithNetworkRetry(() => api.put('/abonents/details/' + details.id, details));
+      if (data?.queued) toast.info(data.message, { autoClose: 8000 });
       // Telefon o'zgargan bo'lsa, Debitor telefon statusini qayta yuklash:
       if (details.id && details.phone !== undefined && details.phone !== prev?.phone) {
-        void get().getAbonentDebitorStatus(details.id).catch(() => {});
+        void get()
+          .getAbonentDebitorStatus(details.id)
+          .catch(() => {});
       }
       if (details.house?.cadastralNumber) {
         void get().getSimilarAbonentsByCadastr(details.house.cadastralNumber);
@@ -286,14 +302,29 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       throw error;
     }
   },
+  // Xodim kutmasligi uchun: telefon darhol ekranda yangilanadi, so'rov fonda ketadi.
+  // TozaMakon ishlamasa server o'zgarishni navbatga yozadi (202) va keyin o'zi kiritadi.
   updatePhone: async (phone: string) => {
     const abonentDetails = get().abonentDetails;
     if (!abonentDetails) return;
-    await api.patch('/abonents/update-phone/' + get().abonentDetails?.id, { phone });
+    const residentId = abonentDetails.id;
+    const prevPhone = abonentDetails.phone;
     set({ abonentDetails: { ...abonentDetails, phone } });
-    // 🌟 Bazadan yangilangan Debitor statusini (checking/Umid bor) darhol qayta yuklash:
-    if (abonentDetails.id) {
-      await get().getAbonentDebitorStatus(abonentDetails.id);
+    try {
+      const { data } = await sendWithNetworkRetry(() => api.patch('/abonents/update-phone/' + residentId, { phone }));
+      if (data?.queued) {
+        toast.info(data.message, { autoClose: 8000 });
+        return;
+      }
+      // 🌟 Bazadan yangilangan Debitor statusini (checking/Umid bor) qayta yuklash
+      void get()
+        .getAbonentDebitorStatus(residentId)
+        .catch(() => {});
+    } catch (error: any) {
+      // Faqat TozaMakon raqamni rad etganda (ma'lumot xato) eski qiymatga qaytamiz
+      const current = get().abonentDetails;
+      if (current?.id === residentId && current.phone === phone) set({ abonentDetails: { ...current, phone: prevPhone } });
+      toast.error(`Telefon saqlanmadi: ${error?.response?.data?.message || error?.message || 'xatolik'}`);
     }
   },
 
@@ -514,9 +545,7 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     const cleanPinfl = pinfl.trim();
     try {
       const { content } = await searchAbonentFromTozamakon({ pnfl: cleanPinfl });
-      const filtered = (content || []).filter(
-        (a) => a.pinfl?.trim() === cleanPinfl || (a as any).pnfl?.trim() === cleanPinfl
-      );
+      const filtered = (content || []).filter((a) => a.pinfl?.trim() === cleanPinfl || (a as any).pnfl?.trim() === cleanPinfl);
       set({ similarAbonentsByPinfl: filtered });
       return filtered;
     } catch (e) {

@@ -4,11 +4,13 @@ import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../hooks/abonentStore';
 import useCustomizationStore from 'store/customizationStore';
 import {
+  Alert,
   alertTitleClasses,
   Avatar,
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   DialogActions,
   Grid,
   IconButton,
@@ -24,7 +26,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
-import { ArrowBack, ArrowForward, AutoFixHigh, Save } from '@mui/icons-material';
+import { ArrowBack, ArrowForward, AutoFixHigh, ManageSearch, Save } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { isNumberValue } from 'utils/isNumberValue';
 import PhoneInput from 'ui-component/PhoneInput';
@@ -83,7 +85,8 @@ export function formatAddress({
 }
 
 function EditDetails() {
-  const { editDialogOpenState, setEditDialogOpenState, abonentDetails, updateDetails, getCitizensDetails } = useAbonentStore();
+  const { editDialogOpenState, setEditDialogOpenState, abonentDetails, updateDetails, getCitizensDetails, getHetAbonent } =
+    useAbonentStore();
   const { mahallalar } = useCustomizationStore();
   const isMountedRef = useRef(true);
   const isReopenedByErrorRef = useRef(false);
@@ -130,6 +133,19 @@ function EditDetails() {
 
   const [isAutoCadastr, setIsAutoCadastr] = useState(false);
 
+  // Elektr hisob raqami kimning nomida va qaysi manzilda ekanini so'rov bilan tekshirish (faqat tugma bosilganda)
+  const [hetCheck, setHetCheck] = useState<{ loading: boolean; fullName?: string; address?: string; error?: string } | null>(null);
+  const handleCheckElectricity = async () => {
+    setHetCheck({ loading: true });
+    try {
+      const res = await getHetAbonent({ coato: electricityCoato.trim(), personalAccount: electricityAccountNumber.trim() });
+      if ('code' in res) setHetCheck({ loading: false, error: res.message || 'Elektr hisob raqami topilmadi' });
+      else setHetCheck({ loading: false, fullName: res.fullName, address: res.address });
+    } catch (error: any) {
+      setHetCheck({ loading: false, error: error?.response?.data?.message || 'Tekshirib bo‘lmadi, keyinroq urinib ko‘ring' });
+    }
+  };
+
   useEffect(() => {
     if (editDialogOpenState && abonentDetails?.id) {
       if (isReopenedByErrorRef.current) {
@@ -139,6 +155,7 @@ function EditDetails() {
       }
       setTabIndex(0);
       setIsAutoCadastr(false);
+      setHetCheck(null);
       setPnfl(abonentDetails.citizen.pnfl);
       setPassport(abonentDetails.citizen.passport);
       setFirstName(abonentDetails.citizen.firstName);
@@ -280,13 +297,16 @@ function EditDetails() {
     const updatedMahallaName = selectedMahalla ? selectedMahalla.name : abonentDetails.mahallaName;
     const updatedStreetName = streetName || abonentDetails.streetName;
 
-    const finalAddress = (address || formatAddress({
-      mahallaName: updatedMahallaName,
-      streetName: updatedStreetName,
-      homeNumber: buildingId,
-      flatNumber: flatId,
-      homeType
-    })).trim();
+    const finalAddress = (
+      address ||
+      formatAddress({
+        mahallaName: updatedMahallaName,
+        streetName: updatedStreetName,
+        homeNumber: buildingId,
+        flatNumber: flatId,
+        homeType
+      })
+    ).trim();
 
     if (!finalAddress) {
       return toast.error("Manzil kiritilishi shart (Mahalla, ko'cha, uy raqami)");
@@ -340,12 +360,11 @@ function EditDetails() {
     setEditDialogOpenState(false);
     setTabIndex(0);
     setIsAutoCadastr(false);
-    toast.success("Muvaffaqiyatli saqlandi");
+    toast.success('Muvaffaqiyatli saqlandi');
 
     // Serverga so'rov fonda yuboriladi
     updateDetails(updatedDetails).catch((error: any) => {
-      const errorMsg =
-        error?.response?.data?.message || error?.message || 'Saqlashda xatolik yuz berdi';
+      const errorMsg = error?.response?.data?.message || error?.message || 'Saqlashda xatolik yuz berdi';
       toast.error(errorMsg);
 
       // Faqatgina foydalanuvchi joriy abonent sahifasidan chiqib ketmagan holdagina modal qayta ochiladi
@@ -353,8 +372,7 @@ function EditDetails() {
       const match = pathname.match(/\/abonent\/(\d+)/);
       const currentUrlResidentId = match ? Number(match[1]) : null;
       const currentStoreResidentId = useAbonentStore.getState().abonentDetails?.id;
-      const isStillOnSameAbonent =
-        currentUrlResidentId === targetResidentId && currentStoreResidentId === targetResidentId;
+      const isStillOnSameAbonent = currentUrlResidentId === targetResidentId && currentStoreResidentId === targetResidentId;
 
       if (isMountedRef.current && isStillOnSameAbonent) {
         isReopenedByErrorRef.current = true;
@@ -527,7 +545,10 @@ function EditDetails() {
                 <TextField
                   label={t('tableHeaders.electricityCoato')}
                   value={electricityCoato}
-                  onChange={(e) => setElectricityCoato(e.target.value)}
+                  onChange={(e) => {
+                    setElectricityCoato(e.target.value);
+                    setHetCheck(null);
+                  }}
                   fullWidth
                 />
               </Grid>
@@ -535,10 +556,46 @@ function EditDetails() {
                 <TextField
                   label={t('tableHeaders.electricityAccountNumber')}
                   value={electricityAccountNumber}
-                  onChange={(e) => setElectricityAccountNumber(e.target.value)}
+                  onChange={(e) => {
+                    setElectricityAccountNumber(e.target.value);
+                    setHetCheck(null);
+                  }}
                   fullWidth
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <Button
+                          size="small"
+                          onClick={handleCheckElectricity}
+                          disabled={hetCheck?.loading || !electricityCoato || !electricityAccountNumber}
+                          startIcon={hetCheck?.loading ? <CircularProgress size={14} /> : <ManageSearch />}
+                          sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                        >
+                          Tekshirish
+                        </Button>
+                      )
+                    }
+                  }}
                 />
               </Grid>
+              {hetCheck && !hetCheck.loading && (
+                <Grid size={{ xs: 12 }}>
+                  {hetCheck.error ? (
+                    <Alert severity="warning" sx={{ py: 0 }}>
+                      {hetCheck.error}
+                    </Alert>
+                  ) : (
+                    <Alert severity="info" icon={false} sx={{ py: 0.25 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {hetCheck.fullName || 'Ism ko‘rsatilmagan'}
+                      </Typography>
+                      <Typography variant="caption" component="div">
+                        {hetCheck.address || 'Manzil ko‘rsatilmagan'}
+                      </Typography>
+                    </Alert>
+                  )}
+                </Grid>
+              )}
             </>
           )}
 
@@ -642,13 +699,15 @@ function EditDetails() {
                       const selectedMahalla = mahallalar.find((m: any) => String(m.id) === String(mahallaId));
                       const mName = selectedMahalla ? selectedMahalla.name : abonentDetails?.mahallaName || '';
                       const sName = streetName || abonentDetails?.streetName || '';
-                      setAddress(formatAddress({
-                        mahallaName: mName,
-                        streetName: sName,
-                        homeNumber: buildingId,
-                        flatNumber: flatId,
-                        homeType
-                      }));
+                      setAddress(
+                        formatAddress({
+                          mahallaName: mName,
+                          streetName: sName,
+                          homeNumber: buildingId,
+                          flatNumber: flatId,
+                          homeType
+                        })
+                      );
                     }}
                     sx={{ position: 'absolute', right: 8, top: 8 }}
                   >

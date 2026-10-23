@@ -614,10 +614,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   }, [isConfirmingAll]);
 
   // Akti kiritilmagan va bekor qilinmagan qatorlarnigina rad etish mumkin
-  const cancellableRows = uploadingRows.filter((row) => !row.isCancel && !row.actId);
+  const cancellableRows = uploadingRows.filter((row) => !row.isCancel && !row.actId && row.status !== 'kutilmoqda');
   const confirmableCount = uploadingRows.filter((row) => row.status === 'xujjat yaratilgan').length;
   const doneCount = uploadingRows.filter((row) => row.status === 'yakunlangan' || row.status === 'akt qilingan').length;
   const rejectedCount = uploadingRows.filter((row) => row.isCancel).length;
+  const queuedCount = uploadingRows.filter((row) => row.status === 'kutilmoqda').length;
 
   const handleCancelRow = (row: any) =>
     setConfirmAction({
@@ -1778,6 +1779,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                           <Chip size="small" variant="outlined" label={`Jami: ${uploadingRows.length}`} />
                           <Chip size="small" variant="outlined" color="primary" label={`Kiritiladi: ${confirmableCount}`} />
                           {doneCount > 0 && <Chip size="small" variant="outlined" color="success" label={`Kiritilgan: ${doneCount}`} />}
+                          {queuedCount > 0 && <Chip size="small" variant="outlined" color="warning" label={`Navbatda: ${queuedCount}`} />}
                           {rejectedCount > 0 && <Chip size="small" variant="outlined" label={`Rad etilgan: ${rejectedCount}`} />}
                         </Stack>
                       )}
@@ -1895,7 +1897,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                 size="small"
                                 variant="contained"
                                 color="success"
-                                disabled={row.isCancel || !!row.actId || isConfirmingAll || isBusy(`row:${row._id}`)}
+                                disabled={
+                                  row.isCancel || !!row.actId || row.status === 'kutilmoqda' || isConfirmingAll || isBusy(`row:${row._id}`)
+                                }
                                 onClick={() => handleConfirmRow(row)}
                                 startIcon={isBusy(`row:${row._id}`) ? <CircularProgress size={14} color="inherit" /> : <DoneOutlinedIcon />}
                                 sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', py: 0.4 }}
@@ -1907,7 +1911,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                 size="small"
                                 color="error"
                                 aria-label="Rad etish"
-                                disabled={row.isCancel || !!row.actId || isConfirmingAll || isBusy(`row:${row._id}`)}
+                                disabled={
+                                  row.isCancel || !!row.actId || row.status === 'kutilmoqda' || isConfirmingAll || isBusy(`row:${row._id}`)
+                                }
                                 onClick={() => handleCancelRow(row)}
                                 sx={{ border: '1px solid', borderColor: 'divider' }}
                               >
@@ -1956,12 +1962,26 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                           const rowBusy = isBusy(`row:${params.row._id}`);
                           return (
                             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
-                              <Tooltip title={params.row.actId ? 'Akt allaqachon kiritilgan' : 'Akt kiritib tasdiqlash'}>
+                              <Tooltip
+                                title={
+                                  params.row.actId
+                                    ? 'Akt allaqachon kiritilgan'
+                                    : params.row.status === 'kutilmoqda'
+                                      ? 'Navbatda: TozaMakon ruxsat ochganda avtomatik kiritiladi'
+                                      : 'Akt kiritib tasdiqlash'
+                                }
+                              >
                                 <span>
                                   <IconButton
                                     size="small"
                                     color="success"
-                                    disabled={params.row.isCancel || !!params.row.actId || isConfirmingAll || rowBusy}
+                                    disabled={
+                                      params.row.isCancel ||
+                                      !!params.row.actId ||
+                                      params.row.status === 'kutilmoqda' ||
+                                      isConfirmingAll ||
+                                      rowBusy
+                                    }
                                     onClick={() => handleConfirmRow(params.row)}
                                   >
                                     {rowBusy ? <CircularProgress size={18} color="success" /> : <DoneOutlinedIcon fontSize="small" />}
@@ -1973,7 +1993,13 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                   <IconButton
                                     size="small"
                                     color="error"
-                                    disabled={params.row.isCancel || !!params.row.actId || isConfirmingAll || rowBusy}
+                                    disabled={
+                                      params.row.isCancel ||
+                                      !!params.row.actId ||
+                                      params.row.status === 'kutilmoqda' ||
+                                      isConfirmingAll ||
+                                      rowBusy
+                                    }
                                     onClick={() => handleCancelRow(params.row)}
                                   >
                                     <DeleteIcon fontSize="small" />

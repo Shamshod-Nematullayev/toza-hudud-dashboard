@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../hooks/abonentStore';
 import PhoneInput from 'ui-component/PhoneInput';
-import { onChange } from 'react-toastify/dist/core/store';
+import { toast } from 'react-toastify';
 
 function ChangePhoneDialog() {
   const { updatePhone, abonentDetails, openChangePhoneDialogState, setOpenChangePhoneDialog } = useAbonentStore();
@@ -15,10 +15,12 @@ function ChangePhoneDialog() {
     setOpenChangePhoneDialog(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await updatePhone(phoneNumber);
+    if (phoneNumber.length !== 9) return toast.warning("Telefon raqami 9 ta raqamdan iborat bo'lishi kerak");
+    // Javobni kutmaymiz: raqam darhol ekranda yangilanadi, so'rov fonda ketadi (natijasi toast orqali)
     handleClose();
+    if (phoneNumber !== abonentDetails?.phone) void updatePhone(phoneNumber);
   };
 
   const inputRef = useRef<any>(null);
