@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Avatar,
@@ -58,6 +58,7 @@ import useOdamSoniXatlovStore from './odamSoniXatlovStore';
 import AddSingleXatlovModal from './modals/AddSingleXatlovModal';
 import ImportXatlovExcelModal from './modals/ImportXatlovExcelModal';
 import MahallaHisobotTab from './MahallaHisobotTab';
+import ConfirmAllProgress, { ConfirmLogEntry, ConfirmRun } from './ConfirmAllProgress';
 import PrintSection from './PrintSection';
 import PreviewDialog from '../XatlovDalolatnomalar/PreviewDialog';
 import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
@@ -457,40 +458,108 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     }
   };
 
-  const handleConfirmRow = async (_id: string, silent = false) => {
-    if (!pdfFile) return toast.error(t('errors.pdfFileRequired'));
+  const confirmRequest = async (_id: string) => {
     const formData = new FormData();
-    formData.append('file', pdfFile, pdfFile.name || 'dalolatnoma.pdf');
+    formData.append('file', pdfFile as File, pdfFile?.name || 'dalolatnoma.pdf');
+    const { data } = await api.put(`/yashovchi-soni-xatlov/confirm/${_id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return data;
+  };
 
+  const handleConfirmRow = async (_id: string) => {
+    if (!pdfFile) return toast.error(t('errors.pdfFileRequired'));
     try {
-      if (!silent) setLoading(true);
-      const { data: resData } = await api.put(`/yashovchi-soni-xatlov/confirm/${_id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      if (resData?.status === 'keyinroq_kiritiladigan' && !silent) {
+      setLoading(true);
+      const resData = await confirmRequest(_id);
+      if (resData?.status === 'keyinroq_kiritiladigan') {
         toast.info(resData.message || 'Akt TozaMakon ochilganda kiritilishi uchun navbatga qo‘shildi.');
       }
-      if (!silent) await getDalolatnomaData({ _id: dalolatnoma._id });
-    } catch (error) {
-      if (!silent) toast.error(t('errors.somethingWentWrong'));
+      await getDalolatnomaData({ _id: dalolatnoma._id });
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || t('errors.somethingWentWrong'));
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   };
 
+  // "Barchasini qabul qilish": qatorlar ketma-ket kiritiladi, har birining natijasi jonli logda ko'rinadi
+  const [confirmRun, setConfirmRun] = useState<ConfirmRun | null>(null);
+  const stopConfirmRef = useRef(false);
+  const isConfirmingAll = Boolean(confirmRun?.running);
+
+  const updateLogEntry = (_id: string, patch: Partial<ConfirmLogEntry>) =>
+    setConfirmRun((prev) =>
+      prev ? { ...prev, log: prev.log.map((e) => (e._id === _id ? { ...e, ...patch, at: new Date() } : e)) } : prev
+    );
+
   const handleConfirmAll = async () => {
+    if (isConfirmingAll) return;
+    if (!pdfFile) return toast.error(t('errors.pdfFileRequired'));
     const targets = uploadingRows.filter((row) => row.status === 'xujjat yaratilgan');
     if (targets.length === 0) return toast.info(t('errors.noDocumentsToConfirm'));
 
-    setLoading(true);
+    stopConfirmRef.current = false;
+    setConfirmRun({ running: true, stopping: false, stopped: false, total: targets.length, log: [] });
+    const tally = { success: 0, pending: 0, error: 0 };
+
     for (const row of targets) {
-      await handleConfirmRow(row._id, true);
+      if (stopConfirmRef.current) break;
+      setConfirmRun((prev) =>
+        prev && {
+          ...prev,
+          log: [
+            ...prev.log,
+            { _id: row._id, accountNumber: row.accountNumber, fullName: row.fullName, status: 'running', at: new Date() }
+          ]
+        }
+      );
+
+      try {
+        const resData = await confirmRequest(row._id);
+        const isPending = resData?.status === 'keyinroq_kiritiladigan';
+        tally[isPending ? 'pending' : 'success'] += 1;
+        updateLogEntry(row._id, {
+          status: isPending ? 'pending' : 'success',
+          message: isPending ? resData?.message || 'TozaMakon ochilganda kiritiladi' : 'Akt kiritildi va tasdiqlandi'
+        });
+        setUploadingRows((rows) =>
+          rows.map((r) => (r._id === row._id ? { ...r, status: isPending ? 'kutilmoqda' : 'yakunlangan' } : r))
+        );
+      } catch (error: any) {
+        tally.error += 1;
+        updateLogEntry(row._id, {
+          status: 'error',
+          message: error?.response?.data?.message || error?.message || 'Noma’lum xatolik'
+        });
+      }
     }
+
+    const stopped = stopConfirmRef.current;
+    setConfirmRun((prev) => prev && { ...prev, running: false, stopping: false, stopped });
     await getDalolatnomaData({ _id: dalolatnoma._id });
     toggleRefresh();
-    setLoading(false);
-    toast.success(t('successMessages.allDocumentConfirmed'));
+
+    const summary = `Kiritildi: ${tally.success}${tally.pending ? `, navbatda: ${tally.pending}` : ''}${tally.error ? `, xato: ${tally.error}` : ''}`;
+    if (tally.error) toast.warning(`${stopped ? 'To‘xtatildi. ' : ''}${summary}. Xatolarni logda ko‘ring.`);
+    else toast.success(`${stopped ? 'To‘xtatildi. ' : ''}${summary}`);
   };
+
+  const handleStopConfirmAll = () => {
+    stopConfirmRef.current = true;
+    setConfirmRun((prev) => prev && { ...prev, stopping: true });
+  };
+
+  // Ommaviy kiritish ketayotganda sahifadan chiqib ketishdan ogohlantiramiz
+  useEffect(() => {
+    if (!isConfirmingAll) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [isConfirmingAll]);
 
   const handleCancelRow = async (_id: string) => {
     await api.put(`/yashovchi-soni-xatlov/${_id}`, { isCancel: true });
@@ -1452,10 +1521,19 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       color="success"
                       fullWidth
                       onClick={handleConfirmAll}
-                      startIcon={<DoneAllOutlinedIcon />}
+                      disabled={isConfirmingAll}
+                      startIcon={isConfirmingAll ? <CircularProgress size={16} color="inherit" /> : <DoneAllOutlinedIcon />}
                     >
-                      {t('buttons.acceptAll')}
+                      {isConfirmingAll ? 'Kiritilmoqda…' : t('buttons.acceptAll')}
                     </Button>
+
+                    {confirmRun && (
+                      <ConfirmAllProgress
+                        run={confirmRun}
+                        onStop={handleStopConfirmAll}
+                        onClose={() => setConfirmRun(null)}
+                      />
+                    )}
 
                     <Button
                       variant="contained"
@@ -1474,6 +1552,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       color="error"
                       fullWidth
                       onClick={handleCancelAll}
+                      disabled={isConfirmingAll}
                       startIcon={<DeleteOutlinedIcon />}
                     >
                       {t('buttons.rejectAll')}
@@ -1483,9 +1562,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       variant="outlined"
                       color="secondary"
                       fullWidth
+                      disabled={isConfirmingAll}
                       onClick={() => {
                         setPdfFile(null);
                         setUploadingRows([]);
+                        setConfirmRun(null);
                         setClearTrigger(!clearTrigger);
                       }}
                     >
@@ -1546,7 +1627,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                 size="small"
                                 variant="contained"
                                 color="success"
-                                disabled={row.isCancel || !!row.actId}
+                                disabled={row.isCancel || !!row.actId || isConfirmingAll}
                                 onClick={() => handleConfirmRow(row._id)}
                                 startIcon={<DoneOutlinedIcon />}
                                 sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', py: 0.4 }}
@@ -1557,7 +1638,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                               <IconButton
                                 size="small"
                                 color="error"
-                                disabled={row.isCancel}
+                                disabled={row.isCancel || isConfirmingAll}
                                 onClick={() => handleCancelRow(row._id)}
                                 sx={{ border: '1px solid', borderColor: 'divider' }}
                               >
@@ -1590,7 +1671,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                             <IconButton
                               size="small"
                               color="success"
-                              disabled={params.row.isCancel || !!params.row.actId}
+                              disabled={params.row.isCancel || !!params.row.actId || isConfirmingAll}
                               onClick={() => handleConfirmRow(params.row._id)}
                             >
                               <DoneOutlinedIcon fontSize="small" />
@@ -1598,7 +1679,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                             <IconButton
                               size="small"
                               color="error"
-                              disabled={params.row.isCancel}
+                              disabled={params.row.isCancel || isConfirmingAll}
                               onClick={() => handleCancelRow(params.row._id)}
                             >
                               <DeleteIcon fontSize="small" />
