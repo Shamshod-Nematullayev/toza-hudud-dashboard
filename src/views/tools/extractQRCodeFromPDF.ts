@@ -7,29 +7,29 @@ export const extractQRCodeFromPDF = async (pdfData: Uint8Array, pageNumber: numb
   const pdfDoc = await loadingTask.promise;
   const page = await pdfDoc.getPage(pageNumber === 'lastPage' ? pdfDoc.numPages : pageNumber); // 1-sahifani olish
 
-  const viewport = page.getViewport({ scale: 1 }); // Sahifani ko'rsatish uchun viewportni olish
-  const canvas = document.createElement('canvas'); // Yangi canvas yaratish
-  const context = canvas.getContext('2d')!;
+  // Skaner qilingan hujjatlarda QR kod 1x o'lchamda juda mayda chiqib, o'qilmay qoladi.
+  // Shuning uchun avval 1x, topilmasa kattaroq o'lchamlarda qayta urinamiz.
+  for (const scale of [1, 2, 3]) {
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d')!;
 
-  // Canvasni sahifa hajmiga moslashtirish
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
+    // Canvasni sahifa hajmiga moslashtirish
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
 
-  // Sahifani canvasga render qilish
-  await page.render({
-    canvasContext: context,
-    viewport: viewport
-  }).promise;
+    // Sahifani canvasga render qilish
+    await page.render({
+      canvasContext: context,
+      viewport: viewport
+    }).promise;
 
-  // Canvasdan tasvirni olish
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    // Canvasdan tasvirni olish va QR kodni o'qish
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
 
-  // QR kodni o'qish
-  const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-
-  if (qrCode) {
-    return { ok: true, result: qrCode.data };
-  } else {
-    return { ok: false, message: 'QR Code topilmadi.' };
+    if (qrCode) return { ok: true, result: qrCode.data };
   }
+
+  return { ok: false, message: 'QR Code topilmadi.' };
 };

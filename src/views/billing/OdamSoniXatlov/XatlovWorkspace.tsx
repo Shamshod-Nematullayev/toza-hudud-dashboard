@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Avatar,
@@ -47,6 +47,7 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
+import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { CSVDownload } from 'react-csv';
 import * as XLSX from 'xlsx';
 import { toast } from 'react-toastify';
@@ -63,6 +64,7 @@ import ConfirmAllProgress, { ConfirmLogEntry, ConfirmRun } from './ConfirmAllPro
 import ConfirmActionDialog, { ConfirmActionOptions } from './ConfirmActionDialog';
 import PrintSection from './PrintSection';
 import PreviewDialog from '../XatlovDalolatnomalar/PreviewDialog';
+import PdfViewer from '../AbonentPetition/PDFViewer';
 import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
 import { getXatlovDocumentById } from 'services/getXatlovDocumentById';
 import { getMahallaById } from 'services/getMahallaById';
@@ -154,6 +156,8 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   const [confirmAction, setConfirmAction] = useState<ConfirmActionOptions | null>(null);
   const [dalolatnomaLoading, setDalolatnomaLoading] = useState(false);
   const [scanStatus, setScanStatus] = useState<string | null>(null);
+  const [qrFailed, setQrFailed] = useState(false);
+  const dalolatnomaInputRef = useRef<HTMLInputElement>(null);
   const [refreshProgress, setRefreshProgress] = useState<{ done: number; total: number; failed: number } | null>(null);
 
   // Backend Stats State
@@ -498,6 +502,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
           abonentId: item.abonentId
         }))
       );
+      setQrFailed(false);
     } catch (error) {
       toast.error(errorText(error, 'Dalolatnoma topilmadi yoki yuklab bo‘lmadi'));
     } finally {
@@ -610,6 +615,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
   // Akti kiritilmagan va bekor qilinmagan qatorlarnigina rad etish mumkin
   const cancellableRows = uploadingRows.filter((row) => !row.isCancel && !row.actId);
+  const confirmableCount = uploadingRows.filter((row) => row.status === 'xujjat yaratilgan').length;
+  const doneCount = uploadingRows.filter((row) => row.status === 'yakunlangan' || row.status === 'akt qilingan').length;
+  const rejectedCount = uploadingRows.filter((row) => row.isCancel).length;
 
   const handleCancelRow = (row: any) =>
     setConfirmAction({
@@ -651,21 +659,48 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     });
   };
 
+  // Oldingi dalolatnoma izlari (raqam, qatorlar, log) yangi faylga o'tib qolmasin
+  const resetScan = () => {
+    setUploadingRows([]);
+    setConfirmRun(null);
+    setDalolatnomaNumber('');
+    setQrFailed(false);
+    useOdamSoniXatlovStore.setState((state) => ({ dalolatnoma: { ...state.dalolatnoma, _id: '', documentNumber: 0 } }));
+  };
+
+  const handleClearScan = () => {
+    resetScan();
+    setPdfFile(null);
+    setClearTrigger(!clearTrigger);
+  };
+
+  // Yuklangan PDF ni ko'rsatish uchun vaqtinchalik URL
+  const pdfUrl = useMemo(() => (pdfFile ? URL.createObjectURL(pdfFile) : null), [pdfFile]);
+  useEffect(
+    () => () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    },
+    [pdfUrl]
+  );
+
   useEffect(() => {
     if (pdfFile) {
+      resetScan();
       const processQR = async () => {
         setScanStatus('PDF’dan QR kod o‘qilmoqda…');
         try {
           const arrayBuffer = await pdfFile.arrayBuffer();
           const data = await extractQRCodeFromPDF(new Uint8Array(arrayBuffer), 'lastPage');
-          if (!data.ok) return toast.error(data.message);
-          const docId = data.result?.split('_')[1];
+          const docId = data.ok ? data.result?.split('_')[1] : undefined;
           if (!docId) {
-            return toast.warning('QR kodda dalolatnoma topilmadi. Dalolatnoma raqamini qo‘lda kiritib, yangilash tugmasini bosing.');
+            setQrFailed(true);
+            setTimeout(() => dalolatnomaInputRef.current?.focus(), 0);
+            return;
           }
           await getDalolatnomaData({ _id: docId });
         } catch (error) {
-          toast.error('PDF faylni o‘qib bo‘lmadi');
+          setQrFailed(true);
+          toast.error('PDF faylni o‘qib bo‘lmadi. Fayl buzilmaganini tekshiring.');
         } finally {
           setScanStatus((s) => (s === 'PDF’dan QR kod o‘qilmoqda…' ? null : s));
         }
@@ -675,7 +710,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   }, [pdfFile]);
 
   useEffect(() => {
-    setDalolatnomaNumber(dalolatnoma.documentNumber?.toString() || '');
+    setDalolatnomaNumber(dalolatnoma.documentNumber ? String(dalolatnoma.documentNumber) : '');
   }, [dalolatnoma.documentNumber]);
 
   return (
@@ -1685,101 +1720,123 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
       {/* TAB 2: PDF SCANNER & CONFIRMATION */}
       {activeTab === 2 && (
-        <Grid container spacing={2} sx={{ minHeight: '65vh' }}>
+        <Grid container spacing={2} sx={{ minHeight: '65vh', height: { md: 'calc(100vh - 330px)' } }}>
           {!pdfFile ? (
             <Grid size={12}>
               <FileInputDrop setFiles={(files) => setPdfFile(files ? files[0] : null)} clearTrigger={clearTrigger} />
             </Grid>
           ) : (
             <>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                  <Stack spacing={2}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      Dalolatnoma ma'lumotlari:
-                    </Typography>
+              <Grid size={{ xs: 12, md: 4 }} sx={{ height: { md: '100%' }, minHeight: { md: 680 } }}>
+                <Stack spacing={1.5} sx={{ height: '100%' }}>
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flexShrink: 0 }}>
+                    <Stack spacing={1.5}>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                        <PictureAsPdfOutlinedIcon color="error" fontSize="small" />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, flex: 1, minWidth: 0 }} noWrap title={pdfFile.name}>
+                          {pdfFile.name}
+                        </Typography>
+                        <Button size="small" color="inherit" onClick={handleClearScan} disabled={isConfirmingAll} sx={{ flexShrink: 0 }}>
+                          Boshqa fayl
+                        </Button>
+                      </Stack>
 
-                    <Box sx={{ position: 'relative' }}>
-                      <TextField
-                        label={t('documentNumber')}
-                        value={dalolatnomaNumber}
+                      {qrFailed && (
+                        <Alert severity="warning" sx={{ py: 0.25 }}>
+                          PDF’dagi QR kod o‘qilmadi. Dalolatnoma raqamini kiriting va Enter bosing.
+                        </Alert>
+                      )}
+
+                      <Box sx={{ position: 'relative' }}>
+                        <TextField
+                          label={t('documentNumber')}
+                          value={dalolatnomaNumber}
+                          fullWidth
+                          size="small"
+                          inputRef={dalolatnomaInputRef}
+                          onChange={(e) => setDalolatnomaNumber(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && dalolatnomaNumber.trim())
+                              getDalolatnomaData({ documentNumber: dalolatnomaNumber.trim() });
+                          }}
+                        />
+                        <Tooltip title="Dalolatnomani raqami bo‘yicha yuklash">
+                          <span style={{ position: 'absolute', right: 2, top: 0 }}>
+                            <IconButton
+                              disabled={Boolean(scanStatus) || !dalolatnomaNumber.trim()}
+                              onClick={() => getDalolatnomaData({ documentNumber: dalolatnomaNumber.trim() })}
+                            >
+                              {scanStatus ? <CircularProgress size={20} /> : <RefreshIcon />}
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Box>
+
+                      {uploadingRows.length > 0 && (
+                        <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                          <Chip size="small" label={`№ ${dalolatnoma.documentNumber || dalolatnomaNumber}`} sx={{ fontWeight: 700 }} />
+                          <Chip size="small" variant="outlined" label={`Jami: ${uploadingRows.length}`} />
+                          <Chip size="small" variant="outlined" color="primary" label={`Kiritiladi: ${confirmableCount}`} />
+                          {doneCount > 0 && <Chip size="small" variant="outlined" color="success" label={`Kiritilgan: ${doneCount}`} />}
+                          {rejectedCount > 0 && <Chip size="small" variant="outlined" label={`Rad etilgan: ${rejectedCount}`} />}
+                        </Stack>
+                      )}
+
+                      <Button
+                        variant="contained"
+                        color="success"
                         fullWidth
-                        onChange={(e) => setDalolatnomaNumber(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && dalolatnomaNumber.trim())
-                            getDalolatnomaData({ documentNumber: dalolatnomaNumber.trim() });
-                        }}
-                      />
-                      <Tooltip title="Dalolatnomani raqami bo‘yicha yuklash">
-                        <span style={{ position: 'absolute', right: 5, top: 10 }}>
-                          <IconButton
-                            disabled={Boolean(scanStatus) || !dalolatnomaNumber.trim()}
-                            onClick={() => getDalolatnomaData({ documentNumber: dalolatnomaNumber.trim() })}
-                          >
-                            {scanStatus ? <CircularProgress size={20} /> : <RefreshIcon />}
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </Box>
+                        onClick={handleConfirmAll}
+                        disabled={isConfirmingAll || confirmableCount === 0}
+                        startIcon={isConfirmingAll ? <CircularProgress size={16} color="inherit" /> : <DoneAllOutlinedIcon />}
+                      >
+                        {isConfirmingAll ? 'Kiritilmoqda…' : t('buttons.acceptAll')}
+                        {!isConfirmingAll && confirmableCount > 0 ? ` (${confirmableCount})` : ''}
+                      </Button>
 
-                    <Button
-                      variant="contained"
-                      color="success"
-                      fullWidth
-                      onClick={handleConfirmAll}
-                      disabled={isConfirmingAll}
-                      startIcon={isConfirmingAll ? <CircularProgress size={16} color="inherit" /> : <DoneAllOutlinedIcon />}
-                    >
-                      {isConfirmingAll ? 'Kiritilmoqda…' : t('buttons.acceptAll')}
-                    </Button>
+                      {confirmRun && (
+                        <ConfirmAllProgress run={confirmRun} onStop={handleStopConfirmAll} onClose={() => setConfirmRun(null)} />
+                      )}
 
-                    {confirmRun && (
-                      <ConfirmAllProgress run={confirmRun} onStop={handleStopConfirmAll} onClose={() => setConfirmRun(null)} />
-                    )}
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          fullWidth
+                          onClick={handleCancelAll}
+                          disabled={isConfirmingAll || cancellableRows.length === 0}
+                          startIcon={<DeleteOutlinedIcon />}
+                        >
+                          {t('buttons.rejectAll')}
+                          {cancellableRows.length > 0 ? ` (${cancellableRows.length})` : ''}
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="info"
+                          size="small"
+                          fullWidth
+                          disabled={uploadingRows.length === 0}
+                          onClick={handleExportScanningExcel}
+                          startIcon={<SimCardDownloadOutlinedIcon />}
+                        >
+                          Excel
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Paper>
 
-                    <Button
-                      variant="contained"
-                      color="info"
-                      fullWidth
-                      disabled={uploadingRows.length === 0}
-                      onClick={handleExportScanningExcel}
-                      startIcon={<SimCardDownloadOutlinedIcon />}
-                      sx={{ fontWeight: 700 }}
-                    >
-                      Excelga yuklab olish
-                    </Button>
-
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      fullWidth
-                      onClick={handleCancelAll}
-                      disabled={isConfirmingAll || cancellableRows.length === 0}
-                      startIcon={<DeleteOutlinedIcon />}
-                    >
-                      {t('buttons.rejectAll')}
-                      {cancellableRows.length > 0 ? ` (${cancellableRows.length})` : ''}
-                    </Button>
-
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      fullWidth
-                      disabled={isConfirmingAll}
-                      onClick={() => {
-                        setPdfFile(null);
-                        setUploadingRows([]);
-                        setConfirmRun(null);
-                        setClearTrigger(!clearTrigger);
-                      }}
-                    >
-                      {t('buttons.clear')}
-                    </Button>
-                  </Stack>
-                </Paper>
+                  {/* Yuklangan dalolatnomaning o'zi: tekshirib turib tasdiqlash uchun */}
+                  <Box sx={{ flex: 1, minHeight: { xs: '60vh', md: 280 } }}>
+                    <PdfViewer base64String={pdfUrl} />
+                  </Box>
+                </Stack>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 8 }}>
+              <Grid
+                size={{ xs: 12, md: 8 }}
+                sx={{ height: { md: '100%' }, minHeight: { md: 680 }, display: 'flex', flexDirection: 'column' }}
+              >
                 {scanStatus && (
                   <Box role="status" aria-live="polite" sx={{ mb: 1 }}>
                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
@@ -1865,7 +1922,10 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                 </Box>
 
                 {/* Desktop DataGrid */}
-                <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
+                <Paper
+                  variant="outlined"
+                  sx={{ flex: 1, minHeight: 0, width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}
+                >
                   <DataGrid
                     rows={uploadingRows}
                     columns={[
