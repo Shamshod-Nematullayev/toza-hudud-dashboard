@@ -215,6 +215,8 @@ export default function PrintSection({
   const setRaisiIshtirok = (state: boolean) => setCustomization({ mfyRaisiIshtirok: state });
   const fuqaroIshtirok = customization.fuqaroIshtirok ?? true;
   const setFuqaroIshtirok = (state: boolean) => setCustomization({ fuqaroIshtirok: state });
+  // "Faqat ariza" variantida dalolatnoma yo'q, shuning uchun imzolovchilar tanlovi o'chiriladi
+  const ishtirokchilarDisabled = customization.documentVariantOdamSoni === 'ariza';
 
   const [showPreview, setShowPreview] = useState(false);
 
@@ -526,6 +528,11 @@ export default function PrintSection({
           <Typography variant="subtitle2" sx={{ mb: 1, color: 'textSecondary', fontWeight: 600 }}>
             Hujjatda ishtirok etuvchilar
           </Typography>
+          {ishtirokchilarDisabled && (
+            <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>
+              &quot;Faqat ariza&quot; variantida imzolovchilar ishlatilmaydi.
+            </Typography>
+          )}
           <Stack spacing={1}>
             <Box
               sx={{
@@ -539,6 +546,7 @@ export default function PrintSection({
               }}
             >
               <FormControlLabel
+                disabled={ishtirokchilarDisabled}
                 control={<Checkbox checked={boshliqIshtirok} onChange={(e) => setBoshliqIshtirok(e.target.checked)} color="primary" />}
                 label={
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -547,6 +555,7 @@ export default function PrintSection({
                 }
               />
               <Chip
+                disabled={ishtirokchilarDisabled}
                 label="Qo'shiladi"
                 size="small"
                 sx={{
@@ -569,6 +578,7 @@ export default function PrintSection({
               }}
             >
               <FormControlLabel
+                disabled={ishtirokchilarDisabled}
                 control={<Checkbox checked={raisiIshtirok} onChange={(e) => setRaisiIshtirok(e.target.checked)} color="primary" />}
                 label={
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -577,6 +587,7 @@ export default function PrintSection({
                 }
               />
               <Chip
+                disabled={ishtirokchilarDisabled}
                 label="Qo'shiladi"
                 size="small"
                 sx={{
@@ -599,6 +610,7 @@ export default function PrintSection({
               }}
             >
               <FormControlLabel
+                disabled={ishtirokchilarDisabled}
                 control={<Checkbox checked={fuqaroIshtirok} onChange={(e) => setFuqaroIshtirok(e.target.checked)} color="primary" />}
                 label={
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -607,6 +619,7 @@ export default function PrintSection({
                 }
               />
               <Chip
+                disabled={ishtirokchilarDisabled}
                 label="Qo'shiladi"
                 size="small"
                 sx={{
