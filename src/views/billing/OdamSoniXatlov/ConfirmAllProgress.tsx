@@ -99,7 +99,10 @@ function ConfirmAllProgress({ run, onStop, onClose }: Props) {
 
         {current && (
           <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap>
-            Hozir: <Box component="span" sx={{ fontFamily: MONO, color: 'text.primary' }}>{current.accountNumber}</Box>{' '}
+            Hozir:{' '}
+            <Box component="span" sx={{ fontFamily: MONO, color: 'text.primary' }}>
+              {current.accountNumber}
+            </Box>{' '}
             {current.fullName}
           </Typography>
         )}

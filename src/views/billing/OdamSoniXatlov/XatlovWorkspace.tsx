@@ -24,7 +24,8 @@ import {
   Tooltip,
   Typography,
   useMediaQuery,
-  Skeleton
+  Skeleton,
+  LinearProgress
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
@@ -59,6 +60,7 @@ import AddSingleXatlovModal from './modals/AddSingleXatlovModal';
 import ImportXatlovExcelModal from './modals/ImportXatlovExcelModal';
 import MahallaHisobotTab from './MahallaHisobotTab';
 import ConfirmAllProgress, { ConfirmLogEntry, ConfirmRun } from './ConfirmAllProgress';
+import ConfirmActionDialog, { ConfirmActionOptions } from './ConfirmActionDialog';
 import PrintSection from './PrintSection';
 import PreviewDialog from '../XatlovDalolatnomalar/PreviewDialog';
 import { getRequestdocumentByIds } from 'services/getRequestdocumentByIds';
@@ -77,6 +79,14 @@ const getStatusRequest = (data: IMultiplyRequest) => {
   return 'yakunlangan';
 };
 
+const requestStatusColor = (status: string): 'success' | 'info' | 'warning' | 'default' | 'primary' => {
+  if (status === 'yakunlangan') return 'success';
+  if (status === 'akt qilingan') return 'info';
+  if (status === 'kutilmoqda') return 'warning';
+  if (status === 'bekor qilindi') return 'default';
+  return 'primary';
+};
+
 interface XatlovWorkspaceProps {
   defaultTab?: number;
 }
@@ -89,20 +99,8 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   const [activeTab, setActiveTab] = useState<number>(defaultTab);
 
   // Store references
-  const {
-    rows,
-    total,
-    pagination,
-    ui,
-    pdfFile,
-    dalolatnoma,
-    fetchRows,
-    updatePagination,
-    setLoading,
-    toggleRefresh,
-    setPrintModal,
-    setPdfFile
-  } = useOdamSoniXatlovStore();
+  const { rows, total, pagination, ui, pdfFile, dalolatnoma, fetchRows, updatePagination, toggleRefresh, setPrintModal, setPdfFile } =
+    useOdamSoniXatlovStore();
 
   // Modals state
   const [openSingleModal, setOpenSingleModal] = useState(false);
@@ -133,6 +131,30 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   const [dalolatnomaNumber, setDalolatnomaNumber] = useState('');
   const [uploadingRows, setUploadingRows] = useState<any[]>([]);
   const [clearTrigger, setClearTrigger] = useState(false);
+
+  // Qaysi amal hozir bajarilayotgani (kalit: 'create', 'excel0', 'row:<id>', 'view:<id>' ...).
+  // Umumiy ui.loading faqat 1-tab jadvalida ko'rinadi, shuning uchun har bir tugma o'z holatini ko'rsatadi.
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const isBusy = (key: string) => Boolean(busy[key]);
+  const withBusy = async <T,>(key: string, fn: () => Promise<T>): Promise<T | undefined> => {
+    if (busy[key]) return undefined;
+    setBusy((b) => ({ ...b, [key]: true }));
+    try {
+      return await fn();
+    } finally {
+      setBusy((b) => {
+        const next = { ...b };
+        delete next[key];
+        return next;
+      });
+    }
+  };
+  const errorText = (error: any, fallback: string) => error?.response?.data?.message || fallback;
+
+  const [confirmAction, setConfirmAction] = useState<ConfirmActionOptions | null>(null);
+  const [dalolatnomaLoading, setDalolatnomaLoading] = useState(false);
+  const [scanStatus, setScanStatus] = useState<string | null>(null);
+  const [refreshProgress, setRefreshProgress] = useState<{ done: number; total: number; failed: number } | null>(null);
 
   // Backend Stats State
   const [stats, setStats] = useState({
@@ -179,6 +201,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
   // 2. Fetch Dalolatnomalar List (Tab 1)
   const fetchDalolatnomalar = async () => {
+    setDalolatnomaLoading(true);
     try {
       const { data } = await api.get('/yashovchi-soni-xatlov/get-dalolatnomalar', {
         params: {
@@ -192,6 +215,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       setDalolatnomaMeta(data.meta || { rowCount: 0 });
     } catch (err) {
       console.error(err);
+      toast.error(errorText(err, 'Dalolatnomalar ro‘yxatini yuklab bo‘lmadi'));
+    } finally {
+      setDalolatnomaLoading(false);
     }
   };
 
@@ -210,122 +236,119 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     if (request_ids.length < 1) {
       return toast.warning("Tanlangan mahalla bo'yicha yangi (rasmiylashtirilmagan) xatlov yozuvlari topilmadi");
     }
+    // Ikki marta bosilsa ikkita dalolatnoma yaratilmasin
+    if (isBusy('create')) return;
 
-    try {
-      setLoading(true);
-      const { data: responseData } = await api.post('/yashovchi-soni-xatlov', {
-        request_ids,
-        mahallaId: pagination.filter.mahallaId
-      });
+    await withBusy('create', async () => {
+      try {
+        const { data: responseData } = await api.post('/yashovchi-soni-xatlov', {
+          request_ids,
+          mahallaId: pagination.filter.mahallaId
+        });
 
-      toast.success(`Dalolatnoma muvaffaqiyatli yaratildi! (№ ${responseData.data.documentNumber})`);
+        toast.success(`Dalolatnoma muvaffaqiyatli yaratildi! (№ ${responseData.data.documentNumber})`);
 
-      useOdamSoniXatlovStore.setState((state) => ({
-        dalolatnoma: {
-          ...state.dalolatnoma,
-          data: responseData.data,
-          mahalla: responseData.mahalla,
-          rows: rows.filter((row) => request_ids.includes(row._id)),
-          _id: responseData.data._id,
-          documentNumber: responseData.data.documentNumber
-        }
-      }));
+        useOdamSoniXatlovStore.setState((state) => ({
+          dalolatnoma: {
+            ...state.dalolatnoma,
+            data: responseData.data,
+            mahalla: responseData.mahalla,
+            rows: rows.filter((row) => request_ids.includes(row._id)),
+            _id: responseData.data._id,
+            documentNumber: responseData.data.documentNumber
+          }
+        }));
 
-      setPrintModal(true);
-      toggleRefresh();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Hujjat yaratishda xatolik yuz berdi');
-    } finally {
-      setLoading(false);
-    }
+        setPrintModal(true);
+        toggleRefresh();
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || 'Hujjat yaratishda xatolik yuz berdi');
+      }
+    });
   };
 
   // Tab 0 Handlers: Excel Download
-  const handleDownloadExcel = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get('/yashovchi-soni-xatlov', {
-        params: {
-          limit: 10000,
-          ...pagination.filter
-        }
-      });
+  const handleDownloadExcel = () =>
+    withBusy('excel0', async () => {
+      try {
+        const { data } = await api.get('/yashovchi-soni-xatlov', {
+          params: {
+            limit: 10000,
+            ...pagination.filter
+          }
+        });
 
-      const formatted = (data.data || []).map((row: any, i: number) => ({
-        '№': i + 1,
-        'Hisob raqam': row.KOD,
-        'F.I.O': row.fio,
-        'Joriy aholi soni': row.currentInhabitantCount,
-        'Aniqlandi (Yangi)': row.YASHOVCHILAR,
-        'Aholi farqi': (row.YASHOVCHILAR || 0) - (row.currentInhabitantCount || 0),
-        'Mahalla': row.mahallaName || (typeof row.mahallaId === 'object' ? row.mahallaId?.mahallaName : row.mahallaId) || '',
-        'Holati': !row.document_id ? 'Yangi' : 'Hujjat yaratilgan'
-      }));
+        const formatted = (data.data || []).map((row: any, i: number) => ({
+          '№': i + 1,
+          'Hisob raqam': row.KOD,
+          'F.I.O': row.fio,
+          'Joriy aholi soni': row.currentInhabitantCount,
+          'Aniqlandi (Yangi)': row.YASHOVCHILAR,
+          'Aholi farqi': (row.YASHOVCHILAR || 0) - (row.currentInhabitantCount || 0),
+          Mahalla: row.mahallaName || (typeof row.mahallaId === 'object' ? row.mahallaId?.mahallaName : row.mahallaId) || '',
+          Holati: !row.document_id ? 'Yangi' : 'Hujjat yaratilgan'
+        }));
 
-      const ws = XLSX.utils.json_to_sheet(formatted);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Abonentlar_Xatlovi');
-      XLSX.writeFile(wb, `abonentlar_xatlovi_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      toast.success('Abonentlar ro\'yxati Excelga yuklandi');
-    } catch (error) {
-      toast.error("Ma'lumotlarni yuklashda xatolik");
-    } finally {
-      setLoading(false);
-    }
-  };
+        const ws = XLSX.utils.json_to_sheet(formatted);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Abonentlar_Xatlovi');
+        XLSX.writeFile(wb, `abonentlar_xatlovi_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        toast.success("Abonentlar ro'yxati Excelga yuklandi");
+      } catch (error) {
+        toast.error(errorText(error, "Ma'lumotlarni yuklashda xatolik"));
+      }
+    });
 
   // Tab 1 Handlers: Excel Export
-  const handleExportDalolatnomalarExcel = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get('/yashovchi-soni-xatlov/get-dalolatnomalar', {
-        params: {
-          page: 0,
-          pageSize: 10000,
-          status: dalolatnomaStatusFilter !== 'all' ? dalolatnomaStatusFilter : undefined,
-          mahallaId: dalolatnomaMahallaFilter || undefined
-        }
-      });
+  const handleExportDalolatnomalarExcel = () =>
+    withBusy('excel1', async () => {
+      try {
+        const { data } = await api.get('/yashovchi-soni-xatlov/get-dalolatnomalar', {
+          params: {
+            page: 0,
+            pageSize: 10000,
+            status: dalolatnomaStatusFilter !== 'all' ? dalolatnomaStatusFilter : undefined,
+            mahallaId: dalolatnomaMahallaFilter || undefined
+          }
+        });
 
-      const exportRows = (data.rows || []).map((row: any, i: number) => {
-        const mahallaName = mahallalarList.find((m) => m.id === row.mahallaId)?.name || row.mahallaId;
-        let statusText = 'Bajarilmadi';
-        if (row.isCancel || row.status === 'bekor_qilingan') {
-          statusText = 'Bekor qilingan';
-        } else if (row.status === 'bajarildi' || row.isConfirmed) {
-          statusText = 'Bajarildi';
-        } else if (row.status === 'qisman_bajarildi') {
-          statusText = `Qisman bajarildi (${row.confirmedCount || 0}/${row.totalCount || row.request_ids?.length || 0})`;
-        }
+        const exportRows = (data.rows || []).map((row: any, i: number) => {
+          const mahallaName = mahallalarList.find((m) => m.id === row.mahallaId)?.name || row.mahallaId;
+          let statusText = 'Bajarilmadi';
+          if (row.isCancel || row.status === 'bekor_qilingan') {
+            statusText = 'Bekor qilingan';
+          } else if (row.status === 'bajarildi' || row.isConfirmed) {
+            statusText = 'Bajarildi';
+          } else if (row.status === 'qisman_bajarildi') {
+            statusText = `Qisman bajarildi (${row.confirmedCount || 0}/${row.totalCount || row.request_ids?.length || 0})`;
+          }
 
-        return {
-          '№': i + 1,
-          'Dalolatnoma raqami': row.documentNumber,
-          'Mahalla': mahallaName,
-          'Yaratilgan sana': row.date ? new Date(row.date).toLocaleDateString() : '-',
-          'Abonentlar soni': row.totalCount || row.request_ids?.length || 0,
-          'Tasdiqlangan soni': row.confirmedCount || 0,
-          'Holati': statusText,
-          'Bekor qilish sababi': row.cancelDescription || ''
-        };
-      });
+          return {
+            '№': i + 1,
+            'Dalolatnoma raqami': row.documentNumber,
+            Mahalla: mahallaName,
+            'Yaratilgan sana': row.date ? new Date(row.date).toLocaleDateString() : '-',
+            'Abonentlar soni': row.totalCount || row.request_ids?.length || 0,
+            'Tasdiqlangan soni': row.confirmedCount || 0,
+            Holati: statusText,
+            'Bekor qilish sababi': row.cancelDescription || ''
+          };
+        });
 
-      const ws = XLSX.utils.json_to_sheet(exportRows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Dalolatnomalar');
-      XLSX.writeFile(wb, `dalolatnomalar_royxati_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      toast.success('Dalolatnomalar ro\'yxati Excelga yuklandi');
-    } catch (err) {
-      toast.error('Dalolatnomalarni yuklashda xatolik');
-    } finally {
-      setLoading(false);
-    }
-  };
+        const ws = XLSX.utils.json_to_sheet(exportRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Dalolatnomalar');
+        XLSX.writeFile(wb, `dalolatnomalar_royxati_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        toast.success("Dalolatnomalar ro'yxati Excelga yuklandi");
+      } catch (err) {
+        toast.error(errorText(err, 'Dalolatnomalarni yuklashda xatolik'));
+      }
+    });
 
   // Tab 2 Handlers: Excel Export for Scanned/Loaded Rows
   const handleExportScanningExcel = () => {
     if (!uploadingRows.length) {
-      return toast.warning('Eksport qilish uchun jadvalda ma\'lumot yo\'q');
+      return toast.warning("Eksport qilish uchun jadvalda ma'lumot yo'q");
     }
 
     const exportData = uploadingRows.map((r, i) => ({
@@ -333,8 +356,8 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       'Hisob raqam': r.accountNumber,
       'F.I.O': r.fullName,
       'Aholi soni': r.YASHOVCHILAR,
-      'Holati': r.status,
-      'Bekor qilingan': r.isCancel ? 'Ha' : 'Yo\'q'
+      Holati: r.status,
+      'Bekor qilingan': r.isCancel ? 'Ha' : "Yo'q"
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -345,25 +368,34 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   };
 
   // Tab 0 Handlers: TozaMakondan yangilash
-  const handleClickRefresh = async () => {
-    if (rows.length === 0) return;
-    setLoading(true);
-    let successCount = 0;
-    try {
+  // Sahifadagi har bir yozuvni TozaMakondan yangilaydi. Bitta yozuv yiqilsa qolganlari davom etadi.
+  const handleClickRefresh = () =>
+    withBusy('refresh', async () => {
+      if (rows.length === 0) return;
+      const progress = { done: 0, total: rows.length, failed: 0 };
+      setRefreshProgress({ ...progress });
+      let lastError = '';
       for (const row of rows) {
-        await api.patch(`/yashovchi-soni-xatlov/update-from-tozamakon/${row._id}`, {
-          abonentId: row.abonentId
-        });
-        successCount++;
+        try {
+          await api.patch(`/yashovchi-soni-xatlov/update-from-tozamakon/${row._id}`, {
+            abonentId: row.abonentId
+          });
+        } catch (error) {
+          progress.failed++;
+          lastError = errorText(error, '');
+        }
+        progress.done++;
+        setRefreshProgress({ ...progress });
       }
-      toast.success(`${successCount} ta ma'lumot yangilandi`);
+      const ok = progress.total - progress.failed;
+      if (progress.failed) {
+        toast.warning(`${ok} ta yangilandi, ${progress.failed} tasida xato${lastError ? `: ${lastError}` : ''}`);
+      } else {
+        toast.success(`${ok} ta ma'lumot yangilandi`);
+      }
+      setRefreshProgress(null);
       toggleRefresh();
-    } catch (error) {
-      toast.error('Yangilash jarayonida xatolik');
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
 
   // Tab 1 Handlers: Cancel / View / Print / Confirm Dalolatnoma
   const handleClickConfirmDalolatnoma = (doc: any) => {
@@ -376,28 +408,43 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     const reason = prompt(
       `Siz haqiqatan ham ushbu (${doc.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing:`
     );
-    if (reason) {
+    if (!reason?.trim()) return;
+    await withBusy(`cancelDoc:${doc._id}`, async () => {
       try {
         await api.put('/yashovchi-soni-xatlov/cancel-document/' + doc._id, {
-          cancelDescription: reason
+          cancelDescription: reason.trim()
         });
-        toast.info('Dalolatnoma bekor qilindi');
+        toast.info(`Dalolatnoma № ${doc.documentNumber} bekor qilindi`);
         fetchDalolatnomalar();
         toggleRefresh();
       } catch (err) {
-        toast.error('Bekor qilishda xatolik');
+        toast.error(errorText(err, 'Dalolatnomani bekor qilib bo‘lmadi'));
       }
-    }
+    });
   };
 
-  const handleClickViewDalolatnoma = async (doc: IXatlovDocument) => {
-    setCurrentDocument(doc);
-    const reqDocs = await getRequestdocumentByIds(doc.request_ids);
-    setRequestDocuments(reqDocs);
-    setOpenPreviewDialog(true);
-  };
+  const handleClickViewDalolatnoma = (doc: IXatlovDocument) =>
+    withBusy(`view:${doc._id}`, async () => {
+      try {
+        const reqDocs = await getRequestdocumentByIds(doc.request_ids);
+        setCurrentDocument(doc);
+        setRequestDocuments(reqDocs);
+        setOpenPreviewDialog(true);
+      } catch (err) {
+        toast.error(errorText(err, 'Dalolatnoma tarkibini yuklab bo‘lmadi'));
+      }
+    });
 
-  const handleClickPrintDalolatnoma = async (doc: IXatlovDocument) => {
+  const handleClickPrintDalolatnoma = (doc: IXatlovDocument) =>
+    withBusy(`print:${doc._id}`, async () => {
+      try {
+        await printDalolatnoma(doc);
+      } catch (err) {
+        toast.error(errorText(err, 'Chop etish uchun ma’lumotlarni yuklab bo‘lmadi'));
+      }
+    });
+
+  const printDalolatnoma = async (doc: IXatlovDocument) => {
     const dalolatnomaData = await getXatlovDocumentById(doc._id);
     const reqDocs = await getRequestdocumentByIds(doc.request_ids);
     const mahalla = await getMahallaById(doc.mahallaId.toString());
@@ -426,7 +473,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   // Tab 2 Handlers: PDF & Confirmation
   const getDalolatnomaData = async (params: any) => {
     try {
-      setLoading(true);
+      setScanStatus('Dalolatnoma yuklanmoqda…');
       const { data: response } = await api.get('/yashovchi-soni-xatlov/get-one-dalolatnoma', { params });
       const requestRows = await getRequestdocumentByIds(response.data.request_ids);
 
@@ -452,9 +499,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
         }))
       );
     } catch (error) {
-      toast.error(t('errors.somethingWentWrong'));
+      toast.error(errorText(error, 'Dalolatnoma topilmadi yoki yuklab bo‘lmadi'));
     } finally {
-      setLoading(false);
+      setScanStatus(null);
     }
   };
 
@@ -467,21 +514,22 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     return data;
   };
 
-  const handleConfirmRow = async (_id: string) => {
-    if (!pdfFile) return toast.error(t('errors.pdfFileRequired'));
-    try {
-      setLoading(true);
-      const resData = await confirmRequest(_id);
-      if (resData?.status === 'keyinroq_kiritiladigan') {
-        toast.info(resData.message || 'Akt TozaMakon ochilganda kiritilishi uchun navbatga qo‘shildi.');
+  const handleConfirmRow = (row: any) =>
+    withBusy(`row:${row._id}`, async () => {
+      if (!pdfFile) return toast.error(t('errors.pdfFileRequired'));
+      try {
+        const resData = await confirmRequest(row._id);
+        if (resData?.status === 'keyinroq_kiritiladigan') {
+          toast.info(resData.message || 'Akt TozaMakon ochilganda kiritilishi uchun navbatga qo‘shildi.');
+        } else {
+          toast.success(`${row.accountNumber}: akt kiritildi va tasdiqlandi`);
+        }
+        await getDalolatnomaData({ _id: dalolatnoma._id });
+        toggleRefresh();
+      } catch (error: any) {
+        toast.error(`${row.accountNumber}: ${errorText(error, t('errors.somethingWentWrong'))}`);
       }
-      await getDalolatnomaData({ _id: dalolatnoma._id });
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || t('errors.somethingWentWrong'));
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
 
   // "Barchasini qabul qilish": qatorlar ketma-ket kiritiladi, har birining natijasi jonli logda ko'rinadi
   const [confirmRun, setConfirmRun] = useState<ConfirmRun | null>(null);
@@ -505,14 +553,15 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
     for (const row of targets) {
       if (stopConfirmRef.current) break;
-      setConfirmRun((prev) =>
-        prev && {
-          ...prev,
-          log: [
-            ...prev.log,
-            { _id: row._id, accountNumber: row.accountNumber, fullName: row.fullName, status: 'running', at: new Date() }
-          ]
-        }
+      setConfirmRun(
+        (prev) =>
+          prev && {
+            ...prev,
+            log: [
+              ...prev.log,
+              { _id: row._id, accountNumber: row.accountNumber, fullName: row.fullName, status: 'running', at: new Date() }
+            ]
+          }
       );
 
       try {
@@ -523,9 +572,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
           status: isPending ? 'pending' : 'success',
           message: isPending ? resData?.message || 'TozaMakon ochilganda kiritiladi' : 'Akt kiritildi va tasdiqlandi'
         });
-        setUploadingRows((rows) =>
-          rows.map((r) => (r._id === row._id ? { ...r, status: isPending ? 'kutilmoqda' : 'yakunlangan' } : r))
-        );
+        setUploadingRows((rows) => rows.map((r) => (r._id === row._id ? { ...r, status: isPending ? 'kutilmoqda' : 'yakunlangan' } : r)));
       } catch (error: any) {
         tally.error += 1;
         updateLogEntry(row._id, {
@@ -561,26 +608,67 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [isConfirmingAll]);
 
-  const handleCancelRow = async (_id: string) => {
-    await api.put(`/yashovchi-soni-xatlov/${_id}`, { isCancel: true });
-    await getDalolatnomaData({ _id: dalolatnoma._id });
-  };
+  // Akti kiritilmagan va bekor qilinmagan qatorlarnigina rad etish mumkin
+  const cancellableRows = uploadingRows.filter((row) => !row.isCancel && !row.actId);
 
-  const handleCancelAll = async () => {
-    setLoading(true);
-    await Promise.all(uploadingRows.map((row) => api.put(`/yashovchi-soni-xatlov/${row._id}`, { isCancel: true })));
-    await getDalolatnomaData({ _id: dalolatnoma._id });
-    setLoading(false);
+  const handleCancelRow = (row: any) =>
+    setConfirmAction({
+      title: 'Qatorni rad etish',
+      text: (
+        <>
+          <b>{row.accountNumber}</b> {row.fullName} yozuvi rad etiladi va dalolatnoma bo‘yicha akt kiritilmaydi.
+        </>
+      ),
+      confirmLabel: 'Rad etish',
+      color: 'error',
+      onConfirm: async () => {
+        try {
+          await api.put(`/yashovchi-soni-xatlov/${row._id}`, { isCancel: true });
+          toast.info(`${row.accountNumber} rad etildi`);
+          await getDalolatnomaData({ _id: dalolatnoma._id });
+        } catch (error) {
+          toast.error(errorText(error, 'Rad etib bo‘lmadi'));
+        }
+      }
+    });
+
+  const handleCancelAll = () => {
+    if (!cancellableRows.length) return toast.info('Rad etiladigan qator yo‘q: hammasi akt qilingan yoki bekor qilingan');
+    setConfirmAction({
+      title: 'Barchasini rad etish',
+      text: `Akti kiritilmagan ${cancellableRows.length} ta yozuv rad etiladi. Akt qilinganlariga tegilmaydi. Bu amalni ortga qaytarib bo‘lmaydi.`,
+      confirmLabel: `${cancellableRows.length} tasini rad etish`,
+      color: 'error',
+      onConfirm: async () => {
+        const results = await Promise.allSettled(
+          cancellableRows.map((row) => api.put(`/yashovchi-soni-xatlov/${row._id}`, { isCancel: true }))
+        );
+        const failed = results.filter((r) => r.status === 'rejected').length;
+        if (failed) toast.warning(`${results.length - failed} ta rad etildi, ${failed} tasida xato`);
+        else toast.info(`${results.length} ta yozuv rad etildi`);
+        await getDalolatnomaData({ _id: dalolatnoma._id });
+      }
+    });
   };
 
   useEffect(() => {
     if (pdfFile) {
       const processQR = async () => {
-        const arrayBuffer = await pdfFile.arrayBuffer();
-        const data = await extractQRCodeFromPDF(new Uint8Array(arrayBuffer), 'lastPage');
-        if (!data.ok) return toast.error(data.message);
-        const docId = data.result?.split('_')[1];
-        if (docId) await getDalolatnomaData({ _id: docId });
+        setScanStatus('PDF’dan QR kod o‘qilmoqda…');
+        try {
+          const arrayBuffer = await pdfFile.arrayBuffer();
+          const data = await extractQRCodeFromPDF(new Uint8Array(arrayBuffer), 'lastPage');
+          if (!data.ok) return toast.error(data.message);
+          const docId = data.result?.split('_')[1];
+          if (!docId) {
+            return toast.warning('QR kodda dalolatnoma topilmadi. Dalolatnoma raqamini qo‘lda kiritib, yangilash tugmasini bosing.');
+          }
+          await getDalolatnomaData({ _id: docId });
+        } catch (error) {
+          toast.error('PDF faylni o‘qib bo‘lmadi');
+        } finally {
+          setScanStatus((s) => (s === 'PDF’dan QR kod o‘qilmoqda…' ? null : s));
+        }
       };
       processQR();
     }
@@ -620,7 +708,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800 }}>
                       {stats.totalDocuments}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Jami Dalolatnomalar
                     </Typography>
                   </Box>
@@ -650,7 +742,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'success.main' }}>
                       {stats.completedDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Bajarildi
                     </Typography>
                   </Box>
@@ -680,7 +776,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'warning.main' }}>
                       {stats.pendingDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Kutilmoqda
                     </Typography>
                   </Box>
@@ -710,7 +810,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'error.main' }}>
                       {stats.canceledDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Bekor qilingan
                     </Typography>
                   </Box>
@@ -730,7 +834,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800 }}>
                       {stats.totalRequests}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Jami xatlov
                     </Typography>
                   </Box>
@@ -748,7 +856,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'warning.main' }}>
                       {stats.newRequests}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Yangi (hujjatsiz)
                     </Typography>
                   </Box>
@@ -766,7 +878,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800 }}>
                       {stats.totalDocuments}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Dalolatnomalar
                     </Typography>
                   </Box>
@@ -784,7 +900,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     <Typography variant={isMobile ? 'subtitle1' : 'h3'} sx={{ fontWeight: 800, color: 'success.main' }}>
                       {stats.completedDocuments || 0}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }} noWrap>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: { xs: '0.68rem', sm: '0.75rem' } }}
+                      noWrap
+                    >
                       Bajarilgan
                     </Typography>
                   </Box>
@@ -879,18 +999,22 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   variant="contained"
                   color="secondary"
                   fullWidth={isMobile}
-                  disabled={!pagination.filter.mahallaId || rows.filter((r) => r.status === 'yangi').length === 0}
-                  startIcon={<NoteAddOutlinedIcon />}
+                  disabled={!pagination.filter.mahallaId || rows.filter((r) => r.status === 'yangi').length === 0 || isBusy('create')}
+                  startIcon={isBusy('create') ? <CircularProgress size={16} color="inherit" /> : <NoteAddOutlinedIcon />}
                   onClick={handleCreateDalolatnoma}
                   sx={{ fontWeight: 700, textTransform: 'none' }}
                 >
-                  Dalolatnoma yaratish
+                  {isBusy('create') ? 'Yaratilmoqda…' : 'Dalolatnoma yaratish'}
                 </Button>
               </Badge>
             </Stack>
 
             {/* Quick Import & Add Actions */}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-start' } }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-start' } }}
+            >
               <Button
                 variant="contained"
                 color="primary"
@@ -913,19 +1037,43 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                 Excel Import
               </Button>
 
-              <Tooltip title="TozaMakondan yangilash">
-                <IconButton color="info" size="small" onClick={handleClickRefresh}>
-                  <RefreshIcon />
-                </IconButton>
+              <Tooltip title="Sahifadagi yozuvlarni TozaMakondan yangilash">
+                <span>
+                  <IconButton color="info" size="small" onClick={handleClickRefresh} disabled={isBusy('refresh') || rows.length === 0}>
+                    {isBusy('refresh') ? <CircularProgress size={20} /> : <RefreshIcon />}
+                  </IconButton>
+                </span>
               </Tooltip>
 
               <Tooltip title="Excelga yuklab olish">
-                <IconButton color="success" size="small" onClick={handleDownloadExcel}>
-                  <SimCardDownloadOutlinedIcon />
-                </IconButton>
+                <span>
+                  <IconButton color="success" size="small" onClick={handleDownloadExcel} disabled={isBusy('excel0')}>
+                    {isBusy('excel0') ? <CircularProgress size={20} color="success" /> : <SimCardDownloadOutlinedIcon />}
+                  </IconButton>
+                </span>
               </Tooltip>
             </Stack>
           </Paper>
+
+          {refreshProgress && (
+            <Paper variant="outlined" role="status" aria-live="polite" sx={{ px: 2, py: 1.25, borderRadius: 2 }}>
+              <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.75 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                  TozaMakondan yangilanmoqda: {refreshProgress.done} / {refreshProgress.total}
+                </Typography>
+                {refreshProgress.failed > 0 && (
+                  <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 700 }}>
+                    Xato: {refreshProgress.failed}
+                  </Typography>
+                )}
+              </Stack>
+              <LinearProgress
+                variant="determinate"
+                value={refreshProgress.total ? (refreshProgress.done / refreshProgress.total) * 100 : 0}
+                sx={{ height: 6, borderRadius: 3 }}
+              />
+            </Paper>
+          )}
 
           {/* Mobil Ko'rinish (Tab 0: Abonentlar xatlovi kartalari) */}
           <Box sx={{ display: { xs: 'block', md: 'none' } }}>
@@ -1131,7 +1279,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               gap: 1.5
             }}
           >
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: 'wrap', gap: 1 }}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.5}
+              sx={{ alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: 'wrap', gap: 1 }}
+            >
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 Dalolatnomalar ({dalolatnomaMeta.rowCount} ta)
               </Typography>
@@ -1183,27 +1335,31 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
               <Tooltip title="Yangilash">
-                <IconButton color="primary" size="small" onClick={fetchDalolatnomalar}>
-                  <RefreshIcon />
-                </IconButton>
+                <span>
+                  <IconButton color="primary" size="small" onClick={fetchDalolatnomalar} disabled={dalolatnomaLoading}>
+                    {dalolatnomaLoading ? <CircularProgress size={20} /> : <RefreshIcon />}
+                  </IconButton>
+                </span>
               </Tooltip>
 
               <Button
                 variant="contained"
                 color="success"
                 size={isMobile ? 'small' : 'medium'}
-                startIcon={<SimCardDownloadOutlinedIcon />}
+                disabled={isBusy('excel1')}
+                startIcon={isBusy('excel1') ? <CircularProgress size={16} color="inherit" /> : <SimCardDownloadOutlinedIcon />}
                 onClick={handleExportDalolatnomalarExcel}
                 sx={{ fontWeight: 700, textTransform: 'none' }}
               >
-                Excelga yuklab olish
+                {isBusy('excel1') ? 'Tayyorlanmoqda…' : 'Excelga yuklab olish'}
               </Button>
             </Stack>
           </Paper>
 
           {/* Mobil Ko'rinish (Tab 1: Dalolatnomalar kartalari) */}
           <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-            {dalolatnomaRows.length === 0 ? (
+            {dalolatnomaLoading && <LinearProgress sx={{ mb: 1, borderRadius: 2 }} />}
+            {dalolatnomaRows.length === 0 && !dalolatnomaLoading ? (
               <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.secondary' }}>
                   Dalolatnomalar topilmadi
@@ -1243,13 +1399,28 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                         </Box>
                         <Box sx={{ flexShrink: 0 }}>
                           {row.isCancel || row.status === 'bekor_qilingan' ? (
-                            <Chip label="Bekor qilingan" color="error" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
+                            <Chip
+                              label="Bekor qilingan"
+                              color="error"
+                              size="small"
+                              sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
+                            />
                           ) : row.status === 'bajarildi' || row.isConfirmed ? (
                             <Chip label="Bajarildi" color="success" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
                           ) : row.status === 'qisman_bajarildi' ? (
-                            <Chip label={`Qisman (${confirmed}/${total})`} color="info" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
+                            <Chip
+                              label={`Qisman (${confirmed}/${total})`}
+                              color="info"
+                              size="small"
+                              sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
+                            />
                           ) : (
-                            <Chip label="Bajarilmadi" color="warning" size="small" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }} />
+                            <Chip
+                              label="Bajarilmadi"
+                              color="warning"
+                              size="small"
+                              sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
+                            />
                           )}
                         </Box>
                       </Stack>
@@ -1275,7 +1446,10 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                             {total} ta
                           </Typography>
                           {confirmed > 0 && (
-                            <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                            <Typography
+                              variant="caption"
+                              sx={{ color: 'success.main', fontWeight: 700, display: 'block', fontSize: '0.7rem' }}
+                            >
                               ({confirmed} tasdiqlangan)
                             </Typography>
                           )}
@@ -1283,7 +1457,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       </Box>
 
                       {/* Amallar paneli */}
-                      <Stack direction="row" spacing={0.8} sx={{ pt: 0.8, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'flex-end', alignItems: 'center' }}>
+                      <Stack
+                        direction="row"
+                        spacing={0.8}
+                        sx={{ pt: 0.8, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'flex-end', alignItems: 'center' }}
+                      >
                         {isPending && (
                           <Button
                             size="small"
@@ -1300,29 +1478,44 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                         <IconButton
                           size="small"
                           color="info"
+                          aria-label="Ko'rish"
                           onClick={() => handleClickViewDalolatnoma(row)}
+                          disabled={isBusy(`view:${row._id}`)}
                           sx={{ border: '1px solid', borderColor: 'divider' }}
                         >
-                          <VisibilityIcon fontSize="small" />
+                          {isBusy(`view:${row._id}`) ? <CircularProgress size={18} /> : <VisibilityIcon fontSize="small" />}
                         </IconButton>
 
                         <IconButton
                           size="small"
                           color="primary"
+                          aria-label="Chop etish"
                           onClick={() => handleClickPrintDalolatnoma(row)}
+                          disabled={isBusy(`print:${row._id}`)}
                           sx={{ border: '1px solid', borderColor: 'divider' }}
                         >
-                          <PrintIcon fontSize="small" />
+                          {isBusy(`print:${row._id}`) ? <CircularProgress size={18} /> : <PrintIcon fontSize="small" />}
                         </IconButton>
 
                         <IconButton
                           size="small"
                           color="error"
+                          aria-label="Bekor qilish"
                           onClick={() => handleClickCancelDalolatnoma(row)}
-                          disabled={row.isCancel || row.status === 'bekor_qilingan' || row.status === 'bajarildi' || row.isConfirmed}
+                          disabled={
+                            row.isCancel ||
+                            row.status === 'bekor_qilingan' ||
+                            row.status === 'bajarildi' ||
+                            row.isConfirmed ||
+                            isBusy(`cancelDoc:${row._id}`)
+                          }
                           sx={{ border: '1px solid', borderColor: 'divider' }}
                         >
-                          <DoDisturbAltOutlinedIcon fontSize="small" />
+                          {isBusy(`cancelDoc:${row._id}`) ? (
+                            <CircularProgress size={18} color="error" />
+                          ) : (
+                            <DoDisturbAltOutlinedIcon fontSize="small" />
+                          )}
                         </IconButton>
                       </Stack>
                     </Paper>
@@ -1357,9 +1550,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     const confirmed = row.confirmedCount || 0;
                     return (
                       <Stack direction="column" sx={{ justifyContent: 'center', height: '100%' }}>
-                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                          {total} ta
-                        </Typography>
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>{total} ta</Typography>
                         {confirmed > 0 && (
                           <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600 }}>
                             {confirmed} ta tasdiqlangan
@@ -1399,12 +1590,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     if (row.status === 'qisman_bajarildi') {
                       const total = row.totalCount || row.request_ids?.length || 0;
                       return (
-                        <Chip
-                          label={`Qisman (${row.confirmedCount || 0}/${total})`}
-                          color="info"
-                          size="small"
-                          sx={{ fontWeight: 600 }}
-                        />
+                        <Chip label={`Qisman (${row.confirmedCount || 0}/${total})`} color="info" size="small" sx={{ fontWeight: 600 }} />
                       );
                     }
                     return (
@@ -1423,20 +1609,12 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   headerName: 'Amallar',
                   width: 200,
                   renderCell: ({ row }) => {
-                    const isPending =
-                      !row.isCancel &&
-                      row.status !== 'bekor_qilingan' &&
-                      !row.isConfirmed &&
-                      row.status !== 'bajarildi';
+                    const isPending = !row.isCancel && row.status !== 'bekor_qilingan' && !row.isConfirmed && row.status !== 'bajarildi';
                     return (
                       <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                         {isPending && (
                           <Tooltip title="PDF orqali tasdiqlash">
-                            <IconButton
-                              size="small"
-                              color="success"
-                              onClick={() => handleClickConfirmDalolatnoma(row)}
-                            >
+                            <IconButton size="small" color="success" onClick={() => handleClickConfirmDalolatnoma(row)}>
                               <DoneAllOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -1451,22 +1629,41 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                 row.isCancel ||
                                 row.status === 'bekor_qilingan' ||
                                 row.status === 'bajarildi' ||
-                                row.isConfirmed
+                                row.isConfirmed ||
+                                isBusy(`cancelDoc:${row._id}`)
                               }
                             >
-                              <DoDisturbAltOutlinedIcon fontSize="small" />
+                              {isBusy(`cancelDoc:${row._id}`) ? (
+                                <CircularProgress size={18} color="error" />
+                              ) : (
+                                <DoDisturbAltOutlinedIcon fontSize="small" />
+                              )}
                             </IconButton>
                           </span>
                         </Tooltip>
                         <Tooltip title="Ko'rish">
-                          <IconButton size="small" color="info" onClick={() => handleClickViewDalolatnoma(row)}>
-                            <VisibilityIcon fontSize="small" />
-                          </IconButton>
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="info"
+                              onClick={() => handleClickViewDalolatnoma(row)}
+                              disabled={isBusy(`view:${row._id}`)}
+                            >
+                              {isBusy(`view:${row._id}`) ? <CircularProgress size={18} /> : <VisibilityIcon fontSize="small" />}
+                            </IconButton>
+                          </span>
                         </Tooltip>
                         <Tooltip title="Chop etish">
-                          <IconButton size="small" color="primary" onClick={() => handleClickPrintDalolatnoma(row)}>
-                            <PrintIcon fontSize="small" />
-                          </IconButton>
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleClickPrintDalolatnoma(row)}
+                              disabled={isBusy(`print:${row._id}`)}
+                            >
+                              {isBusy(`print:${row._id}`) ? <CircularProgress size={18} /> : <PrintIcon fontSize="small" />}
+                            </IconButton>
+                          </span>
                         </Tooltip>
                       </Stack>
                     );
@@ -1474,6 +1671,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                 }
               ]}
               rows={dalolatnomaRows}
+              loading={dalolatnomaLoading}
               paginationMode="server"
               pageSizeOptions={[15, 30, 50]}
               rowCount={dalolatnomaMeta.rowCount}
@@ -1507,13 +1705,21 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                         value={dalolatnomaNumber}
                         fullWidth
                         onChange={(e) => setDalolatnomaNumber(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && dalolatnomaNumber.trim())
+                            getDalolatnomaData({ documentNumber: dalolatnomaNumber.trim() });
+                        }}
                       />
-                      <IconButton
-                        sx={{ position: 'absolute', right: 5, top: 10 }}
-                        onClick={() => getDalolatnomaData({ documentNumber: dalolatnomaNumber })}
-                      >
-                        <RefreshIcon />
-                      </IconButton>
+                      <Tooltip title="Dalolatnomani raqami bo‘yicha yuklash">
+                        <span style={{ position: 'absolute', right: 5, top: 10 }}>
+                          <IconButton
+                            disabled={Boolean(scanStatus) || !dalolatnomaNumber.trim()}
+                            onClick={() => getDalolatnomaData({ documentNumber: dalolatnomaNumber.trim() })}
+                          >
+                            {scanStatus ? <CircularProgress size={20} /> : <RefreshIcon />}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     </Box>
 
                     <Button
@@ -1528,11 +1734,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                     </Button>
 
                     {confirmRun && (
-                      <ConfirmAllProgress
-                        run={confirmRun}
-                        onStop={handleStopConfirmAll}
-                        onClose={() => setConfirmRun(null)}
-                      />
+                      <ConfirmAllProgress run={confirmRun} onStop={handleStopConfirmAll} onClose={() => setConfirmRun(null)} />
                     )}
 
                     <Button
@@ -1552,10 +1754,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       color="error"
                       fullWidth
                       onClick={handleCancelAll}
-                      disabled={isConfirmingAll}
+                      disabled={isConfirmingAll || cancellableRows.length === 0}
                       startIcon={<DeleteOutlinedIcon />}
                     >
                       {t('buttons.rejectAll')}
+                      {cancellableRows.length > 0 ? ` (${cancellableRows.length})` : ''}
                     </Button>
 
                     <Button
@@ -1577,12 +1780,20 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
               </Grid>
 
               <Grid size={{ xs: 12, md: 8 }}>
+                {scanStatus && (
+                  <Box role="status" aria-live="polite" sx={{ mb: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                      {scanStatus}
+                    </Typography>
+                    <LinearProgress sx={{ mt: 0.5, borderRadius: 2 }} />
+                  </Box>
+                )}
                 {/* Mobil Ko'rinish (Tab 2: PDF Xatlov Yozuvlari) */}
                 <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                   {uploadingRows.length === 0 ? (
                     <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
                       <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                        Fayl yuklang yoki dalolatnoma raqamini kiriting
+                        {scanStatus || 'Dalolatnoma topilmadi. Raqamini kiritib, yangilash tugmasini bosing.'}
                       </Typography>
                     </Paper>
                   ) : (
@@ -1609,7 +1820,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                             </Box>
                             <Chip
                               label={row.status || 'Kutilmoqda'}
-                              color={row.status === 'yakunlangan' ? 'success' : 'warning'}
+                              color={requestStatusColor(row.status)}
                               size="small"
                               sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
                             />
@@ -1627,19 +1838,20 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                 size="small"
                                 variant="contained"
                                 color="success"
-                                disabled={row.isCancel || !!row.actId || isConfirmingAll}
-                                onClick={() => handleConfirmRow(row._id)}
-                                startIcon={<DoneOutlinedIcon />}
+                                disabled={row.isCancel || !!row.actId || isConfirmingAll || isBusy(`row:${row._id}`)}
+                                onClick={() => handleConfirmRow(row)}
+                                startIcon={isBusy(`row:${row._id}`) ? <CircularProgress size={14} color="inherit" /> : <DoneOutlinedIcon />}
                                 sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', py: 0.4 }}
                               >
-                                Tasdiqlash
+                                {isBusy(`row:${row._id}`) ? 'Kiritilmoqda…' : 'Tasdiqlash'}
                               </Button>
 
                               <IconButton
                                 size="small"
                                 color="error"
-                                disabled={row.isCancel || isConfirmingAll}
-                                onClick={() => handleCancelRow(row._id)}
+                                aria-label="Rad etish"
+                                disabled={row.isCancel || !!row.actId || isConfirmingAll || isBusy(`row:${row._id}`)}
+                                onClick={() => handleCancelRow(row)}
                                 sx={{ border: '1px solid', borderColor: 'divider' }}
                               >
                                 <DeleteIcon fontSize="small" />
@@ -1661,34 +1873,61 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       { field: 'accountNumber', headerName: t('tableHeaders.accountNumber'), width: 140 },
                       { field: 'fullName', headerName: t('tableHeaders.fullName'), width: 200 },
                       { field: 'YASHOVCHILAR', headerName: 'Soni', width: 80 },
-                      { field: 'status', headerName: t('tableHeaders.status'), width: 140 },
+                      {
+                        field: 'status',
+                        headerName: t('tableHeaders.status'),
+                        width: 150,
+                        renderCell: ({ row }) => (
+                          <Chip
+                            label={row.status}
+                            color={requestStatusColor(row.status)}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontWeight: 600 }}
+                          />
+                        )
+                      },
                       {
                         field: 'actions',
                         headerName: t('tableHeaders.actions'),
                         width: 120,
-                        renderCell: (params) => (
-                          <Stack direction="row" spacing={0.5}>
-                            <IconButton
-                              size="small"
-                              color="success"
-                              disabled={params.row.isCancel || !!params.row.actId || isConfirmingAll}
-                              onClick={() => handleConfirmRow(params.row._id)}
-                            >
-                              <DoneOutlinedIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              disabled={params.row.isCancel || isConfirmingAll}
-                              onClick={() => handleCancelRow(params.row._id)}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        )
+                        sortable: false,
+                        renderCell: (params) => {
+                          const rowBusy = isBusy(`row:${params.row._id}`);
+                          return (
+                            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
+                              <Tooltip title={params.row.actId ? 'Akt allaqachon kiritilgan' : 'Akt kiritib tasdiqlash'}>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    color="success"
+                                    disabled={params.row.isCancel || !!params.row.actId || isConfirmingAll || rowBusy}
+                                    onClick={() => handleConfirmRow(params.row)}
+                                  >
+                                    {rowBusy ? <CircularProgress size={18} color="success" /> : <DoneOutlinedIcon fontSize="small" />}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title="Rad etish">
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    disabled={params.row.isCancel || !!params.row.actId || isConfirmingAll || rowBusy}
+                                    onClick={() => handleCancelRow(params.row)}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </Stack>
+                          );
+                        }
                       }
                     ]}
+                    loading={Boolean(scanStatus)}
                     hideFooter
+                    localeText={{ noRowsLabel: 'Dalolatnoma yuklanmagan' }}
                     sx={{ border: 'none' }}
                   />
                 </Paper>
@@ -1715,6 +1954,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       {readyToDownload && <CSVDownload data={csvData} filename={`xatlov_${new Date().toLocaleDateString()}.csv`} target="_blank" />}
 
       {/* Shared Modals */}
+      <ConfirmActionDialog options={confirmAction} onClose={() => setConfirmAction(null)} />
       <AddSingleXatlovModal open={openSingleModal} onClose={() => setOpenSingleModal(false)} />
       <ImportXatlovExcelModal open={openExcelModal} onClose={() => setOpenExcelModal(false)} />
       {openPreviewDialog && currentDocument && (
