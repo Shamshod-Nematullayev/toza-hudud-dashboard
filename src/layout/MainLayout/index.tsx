@@ -15,6 +15,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import { drawerWidth } from 'store/constant';
 import OnboardingTour from './OnboardingTour';
 import ActiveJobsMonitor from './ActiveJobsMonitor';
+import PendingUpdatesIndicator from './PendingUpdatesIndicator';
 import ProductAnnouncementModal from 'ui-component/ProductAnnouncementModal';
 
 // assets
@@ -178,6 +179,7 @@ const MainLayout = () => {
       <OnboardingTour />
       <ProductAnnouncementModal />
       <ActiveJobsMonitor />
+      <PendingUpdatesIndicator drawerOpen={!matchDownMd && leftDrawerOpened} />
     </Box>
   );
 };

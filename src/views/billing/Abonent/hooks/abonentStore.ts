@@ -28,15 +28,28 @@ import { IAriza } from 'types/models';
 import { IAbonent, searchAbonentFromTozamakon } from 'services/searchAbonentFromTozamakon';
 import { Debitor } from 'views/billing/Debitors/types';
 import { fixFileName } from 'utils/fixFileName';
+import { addToOutbox, OutboxItem, PENDING_UPDATES_CHANGED_EVENT } from 'utils/abonentOutbox';
 
 // Bizning serverga umuman yetib bormagan so'rovni (internet uzilishi) bir necha marta qayta yuboramiz.
+// Baribir yetmasa, o'zgarish brauzerda saqlanadi (abonentOutbox) va internet qaytganda yuboriladi.
 // Server javob bergan bo'lsa (xato bo'lsa ham) qayta yubormaymiz: navbat bilan server o'zi shug'ullanadi.
-async function sendWithNetworkRetry<T>(send: () => Promise<T>, delaysMs = [2000, 5000, 10000]): Promise<T> {
+async function sendAbonentUpdate(
+  item: Omit<OutboxItem, 'id' | 'createdAt'>,
+  delaysMs = [2000, 5000, 10000]
+): Promise<{ data: { queued?: boolean; message?: string } }> {
   for (let i = 0; ; i++) {
     try {
-      return await send();
+      const res = await api.request({ method: item.method, url: item.url, data: item.body });
+      if (res.data?.queued) window.dispatchEvent(new Event(PENDING_UPDATES_CHANGED_EVENT));
+      return res;
     } catch (error: any) {
-      if (error?.response || i >= delaysMs.length) throw error;
+      if (error?.response) throw error;
+      if (i >= delaysMs.length) {
+        addToOutbox(item);
+        return {
+          data: { queued: true, message: "Internet yo'q. O'zgarish saqlandi va internet qaytganda avtomatik yuboriladi." }
+        };
+      }
       await new Promise((r) => setTimeout(r, delaysMs[i]));
     }
   }
@@ -392,7 +405,15 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       set({ abonentDetails: { ...prev, ...details } as AbonentDetails });
     }
     try {
-      const { data } = await sendWithNetworkRetry(() => api.put('/abonents/details/' + details.id, details));
+      const { data } = await sendAbonentUpdate({
+        method: 'put',
+        url: '/abonents/details/' + details.id,
+        body: details,
+        residentId: Number(details.id),
+        accountNumber: details.accountNumber || prev?.accountNumber,
+        fullName: details.fullName || prev?.fullName,
+        type: 'details'
+      });
       if (data?.queued) toast.info(data.message, { autoClose: 8000 });
       // Telefon o'zgargan bo'lsa, Debitor telefon statusini qayta yuklash:
       if (details.id && details.phone !== undefined && details.phone !== prev?.phone) {
@@ -422,7 +443,16 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     const prevPhone = abonentDetails.phone;
     set({ abonentDetails: { ...abonentDetails, phone } });
     try {
-      const { data } = await sendWithNetworkRetry(() => api.patch('/abonents/update-phone/' + residentId, { phone }));
+      const { data } = await sendAbonentUpdate({
+        method: 'patch',
+        url: '/abonents/update-phone/' + residentId,
+        body: { phone },
+        residentId,
+        accountNumber: abonentDetails.accountNumber,
+        fullName: abonentDetails.fullName,
+        type: 'phone',
+        phone
+      });
       if (data?.queued) {
         toast.info(data.message, { autoClose: 8000 });
         return;
