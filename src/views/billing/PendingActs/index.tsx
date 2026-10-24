@@ -13,6 +13,7 @@ import PendingActDetailDrawer from './components/PendingActDetailDrawer';
 import EditPendingActDialog from './components/EditPendingActDialog';
 import Loader from 'ui-component/Loader';
 import { getCurrentPendingPeriod, getPendingPeriodRange } from './utils/periodHelper';
+import { fixFileName } from 'utils/fixFileName';
 
 const STATUS_LABELS: Record<string, string> = {
   all: 'Barchasi',
@@ -209,9 +210,18 @@ function PendingActs() {
     }
   };
 
-  const handleViewFile = (id: string) => {
-    const url = `${api.defaults.baseURL || '/api'}/pending-acts/${id}/file`;
-    window.open(url, '_blank');
+  const handleViewFile = async (fileId: string) => {
+    const { data } = await api.get('/billing/download-file-from-billing', {
+      responseType: 'blob',
+      params: {
+        file_id: fileId
+      }
+    });
+    const url = window.URL.createObjectURL(data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fixFileName(fileId.split('*')[0]);
+    link.click();
   };
 
   const categoryLabel = categoryParam ? t(`documentTypes.${categoryParam}`, categoryParam) : undefined;
@@ -224,17 +234,17 @@ function PendingActs() {
 
   const currentSummary = activeCategoryStats
     ? {
-        totalCount: activeCategoryStats.count || 0,
-        totalAmount: activeCategoryStats.totalAmount || 0,
-        pendingCount: activeCategoryStats.pendingCount || 0,
-        pendingAmount: 0,
-        processingCount: activeCategoryStats.processingCount || 0,
-        processingAmount: 0,
-        completedCount: activeCategoryStats.completedCount || 0,
-        completedAmount: 0,
-        failedCount: activeCategoryStats.failedCount || 0,
-        failedAmount: 0
-      }
+      totalCount: activeCategoryStats.count || 0,
+      totalAmount: activeCategoryStats.totalAmount || 0,
+      pendingCount: activeCategoryStats.pendingCount || 0,
+      pendingAmount: 0,
+      processingCount: activeCategoryStats.processingCount || 0,
+      processingAmount: 0,
+      completedCount: activeCategoryStats.completedCount || 0,
+      completedAmount: 0,
+      failedCount: activeCategoryStats.failedCount || 0,
+      failedAmount: 0
+    }
     : stats?.summary;
 
   return (

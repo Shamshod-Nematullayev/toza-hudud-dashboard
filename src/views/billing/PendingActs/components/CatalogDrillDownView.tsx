@@ -335,7 +335,7 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
                 color="primary"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onViewFile(params.row._id);
+                  onViewFile(params.row.fileId);
                 }}
               >
                 <PictureAsPdfOutlined fontSize="small" />
