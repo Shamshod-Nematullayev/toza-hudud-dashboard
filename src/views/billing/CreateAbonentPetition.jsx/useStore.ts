@@ -538,6 +538,8 @@ export const useStore = create<StoreState>((set, get) => ({
       return true;
     } catch (err: any) {
       if (isStale()) return false;
+      // Joriy bazada topilmasa (yoki xato bo'lsa) ham O'zbekiston bo'ylab izlash imkoni qolishi kerak
+      set({ [notFoundKey]: true } as Partial<StoreState>);
       setLookup({
         loading: false,
         error: err?.response?.data?.message || err?.message || 'Abonentni yuklashda xatolik yuz berdi'

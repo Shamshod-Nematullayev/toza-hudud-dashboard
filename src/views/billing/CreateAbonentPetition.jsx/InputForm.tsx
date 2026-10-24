@@ -441,6 +441,16 @@ export default function InputForm({ onStartTour }: InputFormProps) {
             >
               {isSearchingGlobalMain ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
             </Button>
+            <Button
+              fullWidth
+              size="small"
+              color="inherit"
+              disabled={isSearchingGlobalMain}
+              onClick={() => updateAbonentDataByAccNum(accountNumber, 'main')}
+              sx={{ mt: 0.5, fontSize: '12px', textTransform: 'none', color: 'text.secondary' }}
+            >
+              Qayta urinish
+            </Button>
           </Paper>
         )}
 
@@ -647,6 +657,16 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                           }}
                         >
                           {isSearchingGlobalDublicate ? "O'zbekiston bo'ylab izlanmoqda..." : "O'zbekiston bo'ylab izlash"}
+                        </Button>
+                        <Button
+                          fullWidth
+                          size="small"
+                          color="inherit"
+                          disabled={isSearchingGlobalDublicate}
+                          onClick={() => updateAbonentDataByAccNum(accountNumber2, 'dublicate')}
+                          sx={{ mt: 0.5, fontSize: '12px', textTransform: 'none', color: 'text.secondary' }}
+                        >
+                          Qayta urinish
                         </Button>
                       </Paper>
                     )}
