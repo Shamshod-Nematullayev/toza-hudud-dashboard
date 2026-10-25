@@ -9,6 +9,7 @@ import {
   UploadFileOutlined
 } from '@mui/icons-material';
 import useStore from './hooks/useStore';
+import useLoaderStore from 'store/loaderStore';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { TourHelpButton } from 'ui-component/tour';
@@ -21,12 +22,15 @@ function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { enteringMode, setEnteringMode, pdfFiles, setPdfFiles } = useStore();
+  const { isLoading } = useLoaderStore();
 
   const handleToggleMode = () => {
+    if (isLoading) return;
     setEnteringMode(enteringMode === 'ariza' ? 'manual' : 'ariza');
   };
 
   const handleClearAllFiles = () => {
+    if (isLoading) return;
     setPdfFiles([]);
   };
 
@@ -54,8 +58,9 @@ function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
             icon={<NoteAddOutlinedIcon fontSize="small" />}
             iconPosition="start"
             label={t('1. Ariza shakllantirish (Yaratish)')}
-            onClick={() => navigate('/billing/createAbonentAriza')}
-            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '13px', minHeight: 36, cursor: 'pointer' }}
+            onClick={() => !isLoading && navigate('/billing/createAbonentAriza')}
+            disabled={isLoading}
+            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '13px', minHeight: 36, cursor: isLoading ? 'default' : 'pointer' }}
           />
           <Tab
             icon={<UploadFileOutlined fontSize="small" />}
@@ -85,8 +90,9 @@ function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
             }
             color={enteringMode === 'ariza' ? 'primary' : 'secondary'}
             onClick={handleToggleMode}
-            clickable
-            sx={{ fontWeight: 600, cursor: 'pointer' }}
+            disabled={isLoading}
+            clickable={!isLoading}
+            sx={{ fontWeight: 600, cursor: isLoading ? 'default' : 'pointer' }}
           />
         </Box>
 
@@ -106,6 +112,7 @@ function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
           variant={enteringMode === 'manual' ? 'contained' : 'outlined'}
           color="secondary"
           size="small"
+          disabled={isLoading}
           startIcon={enteringMode === 'manual' ? <NoteAltOutlined /> : <KeyboardOutlined />}
           onClick={handleToggleMode}
           sx={{ textTransform: 'none', fontWeight: 600 }}
@@ -117,9 +124,11 @@ function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
 
         {pdfFiles.length > 0 && (
           <Tooltip title={t('importPage.clearAllFiles', 'Barcha fayllarni tozalash')}>
-            <IconButton size="small" color="error" onClick={handleClearAllFiles}>
-              <DeleteSweepOutlined />
-            </IconButton>
+            <span>
+              <IconButton size="small" color="error" disabled={isLoading} onClick={handleClearAllFiles}>
+                <DeleteSweepOutlined />
+              </IconButton>
+            </span>
           </Tooltip>
         )}
 

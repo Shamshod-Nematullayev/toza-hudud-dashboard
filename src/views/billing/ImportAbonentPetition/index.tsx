@@ -4,9 +4,11 @@ import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
 import CancelDialog from './CancelDialog';
 import DisplayFile from './DisplayFile';
-import { Box, Card, Grid } from '@mui/material';
+import { Box, Card, Grid, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
 import { useUiStore } from './hooks/useUiStore';
+import useLoaderStore from 'store/loaderStore';
 import HeaderImportAbonentPetition from './HeaderImportAbonentPetition';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import { usePageTour, getImportAbonentPetitionSteps } from 'ui-component/tour';
@@ -14,6 +16,7 @@ import { usePageTour, getImportAbonentPetitionSteps } from 'ui-component/tour';
 function ImportAbonentPetition() {
   const { pdfFiles, showDialog, setShowDialog } = useStore();
   const { pdfFileLoading } = useUiStore();
+  const { isLoading } = useLoaderStore();
 
   const { startTour } = usePageTour({
     tourKey: 'import_abonent_petition',
@@ -67,6 +70,30 @@ function ImportAbonentPetition() {
           position: 'relative'
         }}
       >
+        {isLoading && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 100,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(8px)',
+              bgcolor: (theme) => alpha(theme.palette.background.paper, 0.75),
+              borderRadius: 2,
+              gap: 2,
+              pointerEvents: 'auto'
+            }}
+          >
+            <CustomAtomLoader />
+            <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+              Akt kiritilmoqda, iltimos kuting...
+            </Typography>
+          </Box>
+        )}
+
         <Grid container spacing={1.5}>
           {/* 1. Fayllar ro'yxati ustuni (Kengaytirilgan: 2 ustun) */}
           {!isOnlyFileDrop && (

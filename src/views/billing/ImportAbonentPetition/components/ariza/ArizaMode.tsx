@@ -203,6 +203,7 @@ export function ArizaMode({
             sx={{ flex: 0.5, py: 1.2 }}
             variant="contained"
             color="error"
+            disabled={isLoading}
             onClick={() => setShowDialog(true)}
           >
             {t('buttons.cancel')}
@@ -211,6 +212,7 @@ export function ArizaMode({
             sx={{ flex: 0.2, py: 1.2 }}
             variant="contained"
             color="secondary"
+            disabled={isLoading}
             onClick={handleDeleteButtonClick}
           >
             <Delete />
@@ -228,22 +230,30 @@ export function ArizaMode({
           { label: 'F.I.Sh', value: ariza?.fio || '—' },
           {
             label: 'Yashovchilar soni',
-            value: inhabitantCountEditing ? (
-              <TextField
-                size="small"
-                type="number"
-                value={ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '0'}
-                onChange={(e) => setAriza({ ...ariza, next_prescribed_cnt: Number(e.target.value) })}
-                onBlur={() => setInhabitantCountEditing(false)}
-              />
-            ) : (
-              <>
-                <IconButton sx={{ color: 'primary.main', fontSize: '12' }}>
-                  <EditOutlined fontSize="small" onClick={() => setInhabitantCountEditing(true)} />
-                </IconButton>
-                {ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '0'}
-              </>
-            )
+            value:
+              ariza?.document_type === 'viza' ? (
+                <Typography component="span" variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                  Yashovchi soni o'zgarmaydi
+                </Typography>
+              ) : inhabitantCountEditing ? (
+                <TextField
+                  size="small"
+                  type="number"
+                  disabled={isLoading}
+                  value={ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? ''}
+                  onChange={(e) => setAriza({ ...ariza, next_prescribed_cnt: e.target.value === '' ? null : Number(e.target.value) })}
+                  onBlur={() => setInhabitantCountEditing(false)}
+                />
+              ) : (
+                <>
+                  <IconButton disabled={isLoading} sx={{ color: 'primary.main', fontSize: '12' }}>
+                    <EditOutlined fontSize="small" onClick={() => !isLoading && setInhabitantCountEditing(true)} />
+                  </IconButton>
+                  {ariza?.next_prescribed_cnt !== null && ariza?.next_prescribed_cnt !== undefined && ariza?.next_prescribed_cnt !== 0
+                    ? ariza.next_prescribed_cnt
+                    : rows[0]?.yashovchilar_soni ?? "Yashovchi soni o'zgarmaydi"}
+                </>
+              )
           },
           { label: 'Yaratilgan sana', value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—' }
         ].map((item, index) => (
@@ -284,14 +294,15 @@ export function ArizaMode({
             {aktSumEditing ? (
               <TextField
                 size="small"
+                disabled={isLoading}
                 value={aktSumm}
                 onChange={(e) => setAktSumm(e.target.value)}
                 onBlur={() => setAktSumEditing(false)}
               />
             ) : (
               <>
-                <IconButton sx={{ color: 'primary.main', fontSize: '12' }}>
-                  <EditOutlined fontSize="small" onClick={() => setAktSumEditing(true)} />
+                <IconButton disabled={isLoading} sx={{ color: 'primary.main', fontSize: '12' }}>
+                  <EditOutlined fontSize="small" onClick={() => !isLoading && setAktSumEditing(true)} />
                 </IconButton>{' '}
                 {Number(aktSumm).toLocaleString()}
               </>
@@ -309,11 +320,13 @@ export function ArizaMode({
       {/* 3. Jadval */}
       <Box sx={{ height: '55vh', width: '100%' }}>
         <Stack direction="row" spacing={1} sx={{ mb: 1, justifyContent: 'space-between' }}>
-          <Tabs value={tabIndex} onChange={handleTabChange} sx={{ minHeight: 40, mb: '5px' }}>
-            <Tab label="Asosiy jadval" sx={{ textTransform: 'none' }} />
-            <Tab label="Qo'shimcha" sx={{ textTransform: 'none' }} />
+          <Tabs value={tabIndex} onChange={!isLoading ? handleTabChange : undefined} sx={{ minHeight: 40, mb: '5px' }}>
+            <Tab label="Asosiy jadval" sx={{ textTransform: 'none' }} disabled={isLoading} />
+            <Tab label="Qo'shimcha" sx={{ textTransform: 'none' }} disabled={isLoading} />
           </Tabs>
-          <IconButton onClick={() => setShowSpoiler(!showSpoiler)}>{showSpoiler ? <Visibility /> : <VisibilityOff />}</IconButton>
+          <IconButton disabled={isLoading} onClick={() => setShowSpoiler(!showSpoiler)}>
+            {showSpoiler ? <Visibility /> : <VisibilityOff />}
+          </IconButton>
         </Stack>
         <DataGrid
           rows={showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
@@ -343,10 +356,10 @@ export function ArizaMode({
         >
           {t('buttons.submitEntry')}
         </Button>
-        <Button startIcon={<Close />} sx={{ flex: 0.5, py: 1.2 }} variant="contained" color="error" onClick={() => setShowDialog(true)}>
+        <Button startIcon={<Close />} sx={{ flex: 0.5, py: 1.2 }} variant="contained" color="error" disabled={isLoading} onClick={() => setShowDialog(true)}>
           {t('buttons.cancel')}
         </Button>
-        <Button sx={{ flex: 0.2, py: 1.2 }} variant="contained" color="secondary" onClick={handleDeleteButtonClick}>
+        <Button sx={{ flex: 0.2, py: 1.2 }} variant="contained" color="secondary" disabled={isLoading} onClick={handleDeleteButtonClick}>
           <Delete />
         </Button>
       </Stack>

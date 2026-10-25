@@ -58,15 +58,28 @@ function FindedDataTable() {
 
   // Adjustment calculation via custom hook
   const residentId = ariza?.abonentId || abonentData?.id;
-  const nextInhabitantCount =
-    enteringMode === 'manual' ? Number(yashovchiSoniInput || 0) : Number(ariza?.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? 0);
-  const actAmount = parseAktSumExpression(aktSumm);
+  const currentDocType = enteringMode === 'manual' ? aktType : ariza?.document_type;
+  const isViza = currentDocType === 'viza';
+  const nextInhabitantCount = isViza
+    ? undefined
+    : enteringMode === 'manual'
+      ? (yashovchiSoniInput !== '' && yashovchiSoniInput !== null && yashovchiSoniInput !== undefined ? Number(yashovchiSoniInput) : undefined)
+      : (ariza?.next_prescribed_cnt !== null && ariza?.next_prescribed_cnt !== undefined && ariza?.next_prescribed_cnt !== 0
+          ? Number(ariza.next_prescribed_cnt)
+          : rows[0]?.yashovchilar_soni !== undefined
+            ? Number(rows[0].yashovchilar_soni)
+            : undefined);
+  const baseActAmount =
+    enteringMode === 'manual'
+      ? recalculationPeriods.reduce((a, b) => a + b.total, 0)
+      : Number(ariza?.aktSummCounts?.total ?? (ariza as any)?.aktSummasi ?? 0);
 
   const adjustmentData = useAdjustmentCalculation({
     arizaId: ariza?._id,
     residentId,
     nextInhabitantCount,
-    actAmount
+    actAmount: baseActAmount,
+    documentType: currentDocType
   });
 
   useEffect(() => {

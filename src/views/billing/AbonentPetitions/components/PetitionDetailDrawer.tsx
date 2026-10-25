@@ -400,7 +400,9 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
                           Yashovchilar (eski / yangi):
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {ariza?.current_prescribed_cnt ?? '-'} kishi &rarr; {ariza?.next_prescribed_cnt ?? '-'} kishi
+                          {ariza?.document_type === 'viza'
+                            ? "O‘zgarmaydi"
+                            : `${ariza?.current_prescribed_cnt ?? '-'} kishi \u2192 ${ariza?.next_prescribed_cnt ?? '-'} kishi`}
                         </Typography>
                       </Stack>
 

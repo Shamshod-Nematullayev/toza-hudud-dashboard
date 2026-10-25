@@ -18,7 +18,8 @@ function Gps({
   muzlatiladi,
   photos,
   asoslantiruvchi,
-  vakil // Vakil ma'lumotlari prop sifatida qo'shildi
+  vakil, // Vakil ma'lumotlari prop sifatida qo'shildi
+  participants
 }: {
   date: Date;
   abonentData: any;
@@ -33,6 +34,7 @@ function Gps({
     relation: string;
     fullName: string;
   };
+  participants?: any[];
 }) {
   const { customization } = useCustomizationStore();
 
@@ -74,9 +76,7 @@ function Gps({
       {/* 2-SAHIFA: DALOLATNOMA */}
       {customization.documentVariantOdamSoni !== 'ariza' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-          {customization.documentVariantOdamSoni === 'dalolatnoma' && (
-            <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          )}
+          <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontWeight: 'bold' }}>
             Tegishli sifatdagi xizmat ko‘rsatilmaganligi va uning oqibatida noreal qarzdorlik vujudga kelganligi to‘g‘risidagi
             <br />
@@ -132,13 +132,12 @@ function Gps({
             gpsOperator={mahalla?.company?.gpsOperator}
             mahalla2={{}}
             ariza={ariza}
+            participants={participants}
           />
 
-          {customization.documentVariantOdamSoni === 'dalolatnoma' && (
-            <div style={{ marginTop: '20px' }}>
-              <QRSection ariza={ariza} date={date} abonentData={{ ...abonentData, fullName: currentApplicant }} />
-            </div>
-          )}
+          <div style={{ marginTop: '20px' }}>
+            <QRSection ariza={ariza} date={date} />
+          </div>
         </div>
       )}
 

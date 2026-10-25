@@ -43,7 +43,8 @@ function Dvaynik({
   asoslantiruvchi,
   dublicateRelation,
   moneyTransferAmount,
-  shouldBeMoneyTransfer
+  shouldBeMoneyTransfer,
+  participants
 }: {
   date: Date;
   abonentData: any;
@@ -62,6 +63,7 @@ function Dvaynik({
   dublicateRelation?: string;
   moneyTransferAmount?: number | string;
   shouldBeMoneyTransfer?: boolean;
+  participants?: any[];
 }) {
   const { customization, company, user } = useCustomizationStore();
 
@@ -142,9 +144,7 @@ function Dvaynik({
       {/* 2-SAHIFA: DALOLATNOMA */}
       {customization.documentVariantOdamSoni !== 'ariza' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-          {customization.documentVariantOdamSoni === 'dalolatnoma' && (
-            <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          )}
+          <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontSize: '18px', margin: '15px 0' }}>
             <b>DALOLATNOMA</b>
           </p>
@@ -224,13 +224,12 @@ function Dvaynik({
             mahalla2={mahalla2}
             documentType={documentType}
             ariza={ariza}
+            participants={participants}
           />
 
-          {customization.documentVariantOdamSoni === 'dalolatnoma' && (
-            <div style={{ marginTop: '30px' }}>
-              <QRSection ariza={ariza} date={date} />
-            </div>
-          )}
+          <div style={{ marginTop: '20px' }}>
+            <QRSection ariza={ariza} date={date} />
+          </div>
         </div>
       )}
     </>

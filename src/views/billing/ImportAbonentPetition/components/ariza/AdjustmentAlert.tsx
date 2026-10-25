@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
 import { parseAktSumExpression } from '../../hooks/useFindedTableLogic';
+import useLoaderStore from 'store/loaderStore';
 
 interface AdjustmentAlertProps {
   adjustmentData: any;
@@ -9,6 +10,7 @@ interface AdjustmentAlertProps {
 }
 
 export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum }: AdjustmentAlertProps) {
+  const { isLoading } = useLoaderStore();
   const [baseSum, setBaseSum] = useState<string | null>(null);
   const [isApplied, setIsApplied] = useState<boolean>(false);
 
@@ -22,12 +24,20 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
 
   if (!adjustmentData || adjustmentData.adjustment === 0) return null;
 
-  const recommendedSum = adjustmentData.recommendedSum;
+  const recommendedSum = Number(adjustmentData.recommendedSum);
+  const originalAmount =
+    adjustmentData.baseAmount !== undefined
+      ? Number(adjustmentData.baseAmount)
+      : baseSum !== null
+        ? parseAktSumExpression(baseSum)
+        : parseAktSumExpression(aktSumm);
+  const currentAktSumNum = parseAktSumExpression(aktSumm);
+  const isCurrentlyApplied = isApplied || currentAktSumNum === recommendedSum;
 
   const handleToggle = () => {
-    if (isApplied) {
+    if (isCurrentlyApplied) {
       // Dastlabki summaga qaytarish
-      const restore = baseSum !== null ? baseSum : '0';
+      const restore = baseSum !== null ? baseSum : String(originalAmount);
       setIsApplied(false);
       setBaseSum(null);
       onApplyRecommendedSum(restore);
@@ -64,7 +74,7 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
           </Grid>
           <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {Math.abs(parseAktSumExpression(aktSumm)).toLocaleString()} UZS
+              {Math.abs(originalAmount).toLocaleString()} UZS
             </Typography>
           </Grid>
 
@@ -87,7 +97,9 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
           </Grid>
           <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {adjustmentData.currentInhabitantCount} → {adjustmentData.nextInhabitantCount}
+              {adjustmentData.nextInhabitantCount !== undefined && adjustmentData.nextInhabitantCount !== null
+                ? `${adjustmentData.currentInhabitantCount} → ${adjustmentData.nextInhabitantCount}`
+                : "Yashovchi soni o'zgarmaydi"}
             </Typography>
           </Grid>
 
@@ -118,7 +130,7 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
           </Grid>
           <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
             <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1rem' }}>
-              {Math.abs(adjustmentData.recommendedSum).toLocaleString()} UZS
+              {Math.abs(recommendedSum).toLocaleString()} UZS
             </Typography>
           </Grid>
         </Grid>
@@ -126,11 +138,12 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
         <Button
           variant="contained"
           size="small"
-          color={isApplied ? "warning" : "primary"}
+          color={isCurrentlyApplied ? "warning" : "primary"}
           onClick={handleToggle}
+          disabled={isLoading}
           sx={{ mt: 1, textTransform: 'none', fontWeight: 600, width: 'fit-content' }}
         >
-          {isApplied ? "Dastlabki summaga qaytarish" : "Tavsiya etilgan summani qo'llash"}
+          {isCurrentlyApplied ? "Dastlabki summaga qaytarish" : "Tavsiya etilgan summani qo'llash"}
         </Button>
       </Stack>
     </Paper>

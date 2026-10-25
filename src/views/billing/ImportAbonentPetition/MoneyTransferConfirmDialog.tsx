@@ -43,6 +43,10 @@ export function MoneyTransferConfirmDialog({
 
   const formattedAmount = Number(totalAmount || 0).toLocaleString('uz-UZ');
 
+  if (Number(totalAmount || 0) <= 0) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>

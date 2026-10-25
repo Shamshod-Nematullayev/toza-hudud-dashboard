@@ -15,13 +15,15 @@ function Death({
   abonentData,
   date,
   mahalla,
-  asoslantiruvchi
+  asoslantiruvchi,
+  participants
 }: {
   ariza: IAriza;
   abonentData: AbonentDetails;
   date: Date;
   mahalla: IMahalla;
   asoslantiruvchi?: string;
+  participants?: any[];
 }) {
   const { customization } = useCustomizationStore();
   return (
@@ -50,6 +52,7 @@ function Death({
 
       {customization.documentVariantOdamSoni !== 'ariza' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+          <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center' }}>
             <b>Abonentlar bilan birga istiqomat qiluvchi shaxs(lar) vafot etilganligini aniqlash</b>
           </p>
@@ -85,15 +88,10 @@ function Death({
             {ariza.next_prescribed_cnt} kishiga kamaytirish va qayta hisob-kitob qilish maqsadga muvofiq deb hisoblaymiz.
           </p>
           {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic' }}>{asoslantiruvchi}</p>}
-          <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} ariza={ariza} />
-          <br />
-          <br />
-          {customization.documentVariantOdamSoni === 'dalolatnoma' && (
-            <>
-              <QRSection ariza={ariza} date={date} />
-              <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-            </>
-          )}
+          <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} ariza={ariza} participants={participants} />
+          <div style={{ marginTop: '20px' }}>
+            <QRSection ariza={ariza} date={date} />
+          </div>
         </div>
       )}
     </>

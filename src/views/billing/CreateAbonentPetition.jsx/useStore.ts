@@ -237,7 +237,7 @@ interface StoreDataState {
 }
 
 const initialStoreDataState: StoreDataState = {
-  shouldBeMoneyTransfer: true,
+  shouldBeMoneyTransfer: false,
   dublicateRelation: '',
   moneyTransferAmount: 0,
   transferReason: 'ortiqcha_tulov',
@@ -444,7 +444,14 @@ export const useStore = create<StoreState>((set, get) => ({
             withoutQQSTotal: aktSumma.withoutQQSTotal
           },
           current_prescribed_cnt: abonentData.house.inhabitantCnt,
-          next_prescribed_cnt: isNaN(Number(yashovchiSoniInput)) && aktType == 'gps' ? abonentData.house.inhabitantCnt : yashovchiSoniInput,
+          next_prescribed_cnt:
+            aktType === 'viza'
+              ? undefined
+              : isNaN(Number(yashovchiSoniInput)) && aktType == 'gps'
+                ? abonentData.house.inhabitantCnt
+                : yashovchiSoniInput === '' || yashovchiSoniInput === null || yashovchiSoniInput === undefined
+                  ? undefined
+                  : Number(yashovchiSoniInput),
           photos: images.map((img) => img.document_id),
           recalculationPeriods,
           muzlatiladi,
@@ -525,7 +532,10 @@ export const useStore = create<StoreState>((set, get) => ({
             if (isStale()) return false;
             if (dxjRes.data?.ok && Array.isArray(dxjRes.data.rows)) {
               const totalPaymentsSum = dxjRes.data.rows.reduce((acc: number, r: any) => acc + (Number(r.allPaymentsSum) || 0), 0);
-              set({ moneyTransferAmount: totalPaymentsSum });
+              set({
+                moneyTransferAmount: totalPaymentsSum,
+                shouldBeMoneyTransfer: totalPaymentsSum > 0
+              });
             }
           } catch (e) {
             if (isStale()) return false;
@@ -649,11 +659,14 @@ export const useStore = create<StoreState>((set, get) => ({
             rowsDhjTable: dhjMapped
           });
         } else {
+          const totalPaymentsSum = dhjMapped.reduce((acc, r) => acc + (Number(r.allPaymentsSum) || 0), 0);
           set({
             abonentData2: mappedAbonent,
             isGlobalAbonent2: true,
             globalCardDetails2: cardData,
-            notFoundInCompanyDublicate: false
+            notFoundInCompanyDublicate: false,
+            moneyTransferAmount: totalPaymentsSum,
+            shouldBeMoneyTransfer: totalPaymentsSum > 0
           });
         }
       }

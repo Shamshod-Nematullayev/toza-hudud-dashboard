@@ -20,9 +20,10 @@ interface VizaProps {
     relation: string;
     fullName: string;
   };
+  participants?: any[];
 }
 
-function Viza({ ariza, abonentData, date, mahalla, asoslantiruvchi, vakil }: VizaProps) {
+function Viza({ ariza, abonentData, date, mahalla, asoslantiruvchi, vakil, participants }: VizaProps) {
   const { customization, company } = useCustomizationStore();
 
   // Vakillik mantiqini aniqlash
@@ -56,6 +57,7 @@ function Viza({ ariza, abonentData, date, mahalla, asoslantiruvchi, vakil }: Viz
       {/* 2-SAHIFA: DALOLATNOMA */}
       {customization.documentVariantOdamSoni !== 'ariza' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+          <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontWeight: 'bold' }}>
             Abonentlar bilan birga istiqomat qiluvchi shaxslar xorijga chiqib kelganligini aniqlash
             <br />
@@ -105,15 +107,12 @@ function Viza({ ariza, abonentData, date, mahalla, asoslantiruvchi, vakil }: Viz
             mahalla={mahalla}
             documentType={'viza'}
             ariza={ariza}
+            participants={participants}
           />
 
-          {/* Agar faqat dalolatnoma o'zi bo'lsa, QR kodni oxiriga qo'shamiz */}
-          {customization.documentVariantOdamSoni === 'dalolatnoma' && (
-            <div style={{ marginTop: '30px' }}>
-              <QRSection ariza={ariza} date={date} />
-              <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-            </div>
-          )}
+          <div style={{ marginTop: '20px' }}>
+            <QRSection ariza={ariza} date={date} />
+          </div>
         </div>
       )}
     </>

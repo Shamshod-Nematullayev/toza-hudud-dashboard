@@ -91,10 +91,12 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
   formData.append('ariza_id', a._id);
   formData.append('licshet', a.licshet);
   formData.append('residentId', a.abonentId.toString());
-  formData.append(
-    'next_inhabitant_count',
-    (a.next_prescribed_cnt === null || a.next_prescribed_cnt === undefined ? rows[0].yashovchilar_soni : a.next_prescribed_cnt).toString()
-  );
+  const isViza = a.document_type === 'viza';
+  const nextInhabitant =
+    isViza || a.next_prescribed_cnt === null || a.next_prescribed_cnt === undefined || a.next_prescribed_cnt === 0
+      ? rows[0]?.yashovchilar_soni
+      : a.next_prescribed_cnt;
+  formData.append('next_inhabitant_count', String(nextInhabitant ?? 0));
   formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
   formData.append('amountWithoutQQS', (Math.floor(a.aktSummCounts?.withoutQQSTotal) || 0).toString());
   formData.append('description', buildArizaActDescription(a));
@@ -165,11 +167,16 @@ export function useFindedTableLogic() {
       let yashovchilar_soni: number;
       if (hasValidAriza(ariza as IAriza | null)) {
         const a = ariza as IAriza;
+        const isViza = a.document_type === 'viza';
         const n = a.next_prescribed_cnt;
-        yashovchilar_soni = n === null || n === undefined || Number.isNaN(Number(n)) ? first.yashovchilar_soni : Number(n);
+        yashovchilar_soni =
+          isViza || n === null || n === undefined || Number.isNaN(Number(n)) || Number(n) === 0
+            ? first.yashovchilar_soni
+            : Number(n);
       } else {
+        const isViza = useRecalculatorStore.getState().aktType === 'viza';
         const fromInput = Number(yashovchiSoniInput);
-        yashovchilar_soni = !Number.isNaN(fromInput) && fromInput > 0 ? fromInput : first.yashovchilar_soni;
+        yashovchilar_soni = !isViza && !Number.isNaN(fromInput) && fromInput > 0 ? fromInput : first.yashovchilar_soni;
       }
       const nachis = (currentTariff?.hisoblandi || 0) * yashovchilar_soni;
       const aktDelta = parseAktSumExpression(aktSumm);
@@ -342,7 +349,12 @@ export function useFindedTableLogic() {
     if (enteringMode !== 'manual' && !validAriza) return toast.error('Ariza tanlanmadi');
 
     if (enteringMode !== 'manual' && validAriza && ariza?.document_type === 'dvaynik') {
-      setMoneyTransferDialogOpen(true);
+      const transferAmount = Number(allPaymentsSumOnDublicate || 0);
+      if (transferAmount > 0) {
+        setMoneyTransferDialogOpen(true);
+        return;
+      }
+      await executeSubmit(false);
       return;
     }
 

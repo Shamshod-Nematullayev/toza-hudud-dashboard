@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import {
   Button,
   DialogContent,
@@ -15,10 +15,11 @@ import {
   Tooltip,
   IconButton,
   Card,
-  Checkbox,
-  FormControlLabel,
   Chip,
-  DialogActions
+  DialogActions,
+  ToggleButton,
+  ToggleButtonGroup,
+  alpha
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useReactToPrint } from 'react-to-print';
@@ -39,28 +40,32 @@ import Death from './Documents/Death';
 import Viza from './Documents/Viza';
 import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
 import { familyRelations, getCleanAsoslantiruvchi } from './useStore';
+import ManageActTypesDialog from './ManageActTypesDialog';
+import { ActTypeItem, resolveParticipants, ResolvedParticipant } from './participantResolver';
 
 // Constants
-
 export const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
-
 export const raqamlar = ['Nol', 'Bir', 'Ikki', 'Uch', 'To‘rt', 'Besh', 'Olti', 'Yetti', 'Sakkiz', 'To‘qqiz', 'O‘n', 'O‘n bir', 'O‘n ikki'];
 
 // Helpers & Icons
-import { DescriptionOutlined, AutoFixHigh, PrintOutlined, Close } from '@mui/icons-material';
+import {
+  DescriptionOutlined,
+  AutoFixHigh,
+  PrintOutlined,
+  Close,
+  SettingsOutlined,
+  CheckCircleOutlined,
+  DoNotDisturbAltOutlined
+} from '@mui/icons-material';
 import { IconEye } from '@tabler/icons-react';
 
 export function formatName(name: string) {
   if (!name) return '';
 
   return name
-
     .toLowerCase()
-
     .split(' ')
-
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-
     .join(' ');
 }
 
@@ -77,7 +82,8 @@ const DocumentRenderer = ({
   asoslantiruvchi,
   olderPeriod,
   setOlderPeriod,
-  vakil
+  vakil,
+  participants
 }: any) => {
   const [photos, setPhotos] = useState<string[]>([]);
 
@@ -114,7 +120,8 @@ const DocumentRenderer = ({
     mahalla,
     ariza,
     vakil,
-    asoslantiruvchi: cleanAsoslantiruvchi
+    asoslantiruvchi: cleanAsoslantiruvchi,
+    participants
   };
 
   switch (ariza.document_type) {
@@ -194,7 +201,8 @@ export default function PrintSection({
 }: any) {
   const theme = useTheme();
   const componentRef = useRef(null);
-  const { customization, setCustomization } = useCustomizationStore();
+  const { customization, setCustomization, user, company } = useCustomizationStore();
+  const isAdmin = Boolean(user?.roles?.includes('admin'));
 
   const [olderPeriod, setOlderPeriod] = useState<Dayjs>(dayjs());
   const [comment, setComment] = useState<string>(getCleanAsoslantiruvchi(ariza?.comment));
@@ -202,29 +210,98 @@ export default function PrintSection({
   const [relationFullName, setRelationFullName] = useState<string>(ariza?.relationFullName || '');
   const [autoComment, setAutoComment] = useState(false);
 
+  // Dalolatnoma turlari va ishtirokchilar statelari
+  const [actTypes, setActTypes] = useState<ActTypeItem[]>([]);
+  const [selectedActTypeId, setSelectedActTypeId] = useState<string>('');
+  const [excludedParticipantIds, setExcludedParticipantIds] = useState<string[]>([]);
+  const [openManageActTypesDialog, setOpenManageActTypesDialog] = useState(false);
+
+  // Dalolatnoma turlarini yuklash
+  const fetchActTypes = useCallback(async () => {
+    try {
+      const { data } = await api.get('/act-types');
+      if (data?.data && Array.isArray(data.data)) {
+        setActTypes(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load act types:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (show) {
+      fetchActTypes();
+    }
+  }, [show, fetchActTypes]);
+
   useEffect(() => {
     setComment(getCleanAsoslantiruvchi(ariza?.comment));
     setRelation(ariza?.relation || '');
     setRelationFullName(ariza?.relationFullName || '');
   }, [ariza?._id, ariza?.comment]);
 
-  // Ishtirokchilar statelari (Dizayndagi yangi qism uchun)
-  const boshliqIshtirok = customization.boshliqIshtirokida;
-  const setBoshliqIshtirok = (state: boolean) => setCustomization({ boshliqIshtirokida: state });
-  const raisiIshtirok = customization.mfyRaisiIshtirok;
-  const setRaisiIshtirok = (state: boolean) => setCustomization({ mfyRaisiIshtirok: state });
-  const fuqaroIshtirok = customization.fuqaroIshtirok ?? true;
-  const setFuqaroIshtirok = (state: boolean) => setCustomization({ fuqaroIshtirok: state });
-  // "Faqat ariza" variantida dalolatnoma yo'q, shuning uchun imzolovchilar tanlovi o'chiriladi
+  // Initial tanlangan turni aniqlash
+  useEffect(() => {
+    if (ariza) {
+      if (ariza.actTypeId) {
+        setSelectedActTypeId(ariza.actTypeId);
+      } else if (ariza.actTypeKey && actTypes.length > 0) {
+        const found = actTypes.find((t) => t.key === ariza.actTypeKey);
+        if (found) setSelectedActTypeId(found._id || found.key);
+      } else if (actTypes.length > 0 && !selectedActTypeId) {
+        // Standart holatda 'mahalla' turi, yoki birinchi tur
+        const def = actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
+        setSelectedActTypeId(def._id || def.key);
+      }
+
+      if (Array.isArray(ariza.excludedParticipants)) {
+        setExcludedParticipantIds(ariza.excludedParticipants);
+      }
+    }
+  }, [ariza, actTypes, selectedActTypeId]);
+
+  const selectedActType = useMemo(() => {
+    if (!actTypes.length) return null;
+    return actTypes.find((t) => t._id === selectedActTypeId || t.key === selectedActTypeId) || actTypes[0];
+  }, [actTypes, selectedActTypeId]);
+
   const ishtirokchilarDisabled = customization.documentVariantOdamSoni === 'ariza';
 
   const [showPreview, setShowPreview] = useState(false);
 
   const printFunction = useReactToPrint({
     ...reactToPrintDefaultOptions,
-    documentTitle: ariza.document_number,
+    documentTitle: ariza?.document_number,
     contentRef: componentRef
   });
+
+  const vakilData = useMemo(
+    () => ({
+      relation,
+      fullName: relationFullName
+    }),
+    [relation, relationFullName]
+  );
+
+  // Ishtirokchilarni hisoblash
+  const resolvedParticipants = useMemo(() => {
+    if (!selectedActType) return [];
+    return resolveParticipants({
+      actType: selectedActType,
+      company,
+      user,
+      abonentData: vakilData?.relation ? { ...abonentData, fullName: vakilData.fullName } : abonentData,
+      mahalla,
+      excludedIds: excludedParticipantIds,
+      creatorName: ariza?.creatorName
+    });
+  }, [selectedActType, company, user, abonentData, vakilData, mahalla, excludedParticipantIds, ariza?.creatorName]);
+
+  const handleToggleExclude = (participantId: string) => {
+    setExcludedParticipantIds((prev) =>
+      prev.includes(participantId) ? prev.filter((id) => id !== participantId) : [...prev, participantId]
+    );
+  };
 
   const saveArizaDetails = async () => {
     try {
@@ -234,11 +311,27 @@ export default function PrintSection({
         ariza.relation = relation;
         ariza.relationFullName = relationFullName;
 
-        await api.put('/arizalar/' + ariza._id, {
+        const payload: any = {
           comment: cleanComment,
           relation,
           relationFullName
-        });
+        };
+
+        if (selectedActType) {
+          payload.actTypeId = selectedActType._id;
+          payload.actTypeKey = selectedActType.key;
+          payload.actTypeName = selectedActType.name;
+          payload.excludedParticipants = excludedParticipantIds;
+          payload.participantsSnapshot = resolvedParticipants;
+
+          ariza.actTypeId = selectedActType._id;
+          ariza.actTypeKey = selectedActType.key;
+          ariza.actTypeName = selectedActType.name;
+          ariza.excludedParticipants = excludedParticipantIds;
+          ariza.participantsSnapshot = resolvedParticipants;
+        }
+
+        await api.put('/arizalar/' + ariza._id, payload);
       }
     } catch (error) {
       console.error('Arizani saqlashda xatolik:', error);
@@ -246,7 +339,6 @@ export default function PrintSection({
   };
 
   const handlePrint = () => {
-    // Chop etish tugmasi bosilganda parallel ravishda bazaga yangilanish so'rovi ketadi
     saveArizaDetails();
     printFunction();
   };
@@ -256,50 +348,46 @@ export default function PrintSection({
     if (
       getCleanAsoslantiruvchi(comment) !== getCleanAsoslantiruvchi(ariza?.comment) ||
       relation !== ariza?.relation ||
-      relationFullName !== ariza?.relationFullName
+      relationFullName !== ariza?.relationFullName ||
+      (selectedActType && selectedActType.key !== ariza?.actTypeKey)
     ) {
       saveArizaDetails();
     }
   };
 
-  const vakilData = useMemo(() => ({ relation, fullName: relationFullName }), [relation, relationFullName]);
+  const documentTitle = ariza?.document_type ? `Dalolatnoma ${ariza.document_type}` : 'Dalolatnoma';
 
-  const dvaynikRelationProp = dublicateRelation || ariza.dublicateRelation;
-  const dvaynikTransferAmountProp = moneyTransferAmount !== undefined ? moneyTransferAmount : ariza.moneyTransferAmount;
-  const dvaynikShouldTransferProp = shouldBeMoneyTransfer !== undefined ? shouldBeMoneyTransfer : ariza.shouldBeMoneyTransfer;
-
-  // Hujjat turi sarlavhasini chiroyli formatlash
-  const documentTitle = useMemo(() => {
-    switch (ariza.document_type) {
-      case 'viza':
-        return 'Pasport viza arizasi';
-      case 'odam_soni':
-        return 'Yashovchilar soni arizasi';
-      case 'death':
-        return "O'lim guvohnomasi arizasi";
-      case 'gps':
-        return 'GPS monitoring dalolatnomasi';
-      case 'dvaynik':
-        return 'Ikkilamchi kodni bekor qilish arizasi';
-      default:
-        return 'Hujjat arizasi';
-    }
-  }, [ariza.document_type]);
+  // Dvoynik rejimi uchun propertylar
+  const dvaynikRelationProp = ariza?.dublicateRelation !== undefined ? ariza.dublicateRelation : dublicateRelation;
+  const dvaynikTransferAmountProp = ariza?.moneyTransferAmount !== undefined ? ariza.moneyTransferAmount : moneyTransferAmount;
+  const dvaynikShouldTransferProp = ariza?.shouldBeMoneyTransfer !== undefined ? ariza.shouldBeMoneyTransfer : shouldBeMoneyTransfer;
 
   return (
     <DraggableDialog
       open={show}
       onClose={handleClose}
-      title={'Ariza yaratish'}
+      title={`${documentTitle} yaratildi!`}
       sx={{
         '& .MuiDialog-paper': {
-          width: '100%',
-          maxWidth: '780px',
+          width: '95%',
+          maxWidth: '680px',
           borderRadius: '16px',
+          p: 0,
           overflow: 'hidden'
         }
       }}
     >
+      {/* Admin uchun Dalolatnoma turlari dialogi */}
+      {isAdmin && (
+        <ManageActTypesDialog
+          open={openManageActTypesDialog}
+          onClose={() => setOpenManageActTypesDialog(false)}
+          actTypes={actTypes}
+          onRefresh={fetchActTypes}
+        />
+      )}
+
+      {/* Oldindan ko'rish modal oynasi */}
       <DraggableDialog
         open={showPreview}
         onClose={() => setShowPreview(false)}
@@ -314,7 +402,6 @@ export default function PrintSection({
             bgcolor: theme.palette.mode === 'dark' ? '#111928' : '#eef2f6'
           }}
         >
-          {/* Haqiqiy A4 qog'oz ko'rinishidagi render zonasi */}
           <Box
             sx={{
               display: 'flex',
@@ -351,6 +438,7 @@ export default function PrintSection({
               dublicateRelation={dvaynikRelationProp}
               moneyTransferAmount={dvaynikTransferAmountProp}
               shouldBeMoneyTransfer={dvaynikShouldTransferProp}
+              participants={resolvedParticipants}
             />
           </Box>
         </DialogContent>
@@ -360,8 +448,9 @@ export default function PrintSection({
           </Button>
         </DialogActions>
       </DraggableDialog>
+
       <DialogContent sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Pasport viza arizasi (Top Card Info) */}
+        {/* Top Card Info */}
         <Card
           elevation={0}
           sx={{
@@ -378,142 +467,161 @@ export default function PrintSection({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
               sx={{
-                p: 1.5,
-                bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#fff',
+                width: 44,
+                height: 44,
                 borderRadius: '10px',
-                border: '1px solid',
-                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e8e5dd',
-                display: 'flex'
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
-              <DescriptionOutlined sx={{ color: theme.palette.mode === 'dark' ? 'text.secondary' : '#888' }} />
+              <DescriptionOutlined />
             </Box>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.mode === 'dark' ? 'text.primary' : '#1a1a1a' }}>
-                {documentTitle}
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: '15px' }}>
+                Hujjat №: {ariza?.document_number || '—'}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {abonentData?.fullName || 'F.I.Sh aniqlanmadi'} · Hisob: {abonentData?.accountNumber || '—'}
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Abonent: <b>{abonentData?.fullName}</b> ({abonentData?.accountNumber})
               </Typography>
             </Box>
           </Box>
-          <Button
-            variant="outlined"
-            color="inherit"
-            size="large"
-            sx={{
-              borderRadius: '8px',
-              textTransform: 'none',
-              borderColor: theme.palette.mode === 'dark' ? 'divider' : '#dcd8cf',
-              bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#fff'
-            }}
-            onClick={() => setShowPreview(true)}
-          >
-            <IconEye style={{ marginRight: '8px' }} /> Ko'rish
-          </Button>
+          <Chip label="Tayyor" color="success" size="small" variant="filled" sx={{ fontWeight: 600, borderRadius: '6px' }} />
         </Card>
 
-        {/* Form Selection Row */}
-        <Grid container spacing={2}>
-          <Grid size={6}>
-            <FormControl fullWidth size="medium">
-              <InputLabel>Hujjat varianti</InputLabel>
-              <Select
-                value={customization.documentVariantOdamSoni || 'ariza+dalolatnoma'}
-                label="Hujjat varianti"
-                onChange={(e) => setCustomization({ documentVariantOdamSoni: e.target.value as any })}
-                sx={{ borderRadius: '8px' }}
-              >
-                <MenuItem value="ariza+dalolatnoma">Variant 1 (Standart)</MenuItem>
-                <MenuItem value="dalolatnoma">Variant 2 (Faqat dalolatnoma)</MenuItem>
-                <MenuItem value="ariza">Variant 3 (Faqat ariza)</MenuItem>
-              </Select>
-            </FormControl>
+        {/* Hujjat tarkibi (Chop etish rejimi) */}
+        {ariza?.document_type !== 'pul_kuchirish' && (
+          <Box>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Chop etish rejimi (Hujjat tarkibi)
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                {customization.documentVariantOdamSoni === 'dalolatnoma'
+                  ? 'Faqat Dalolatnoma (1 varaq, QR kod bilan)'
+                  : customization.documentVariantOdamSoni === 'ariza'
+                  ? 'Faqat Ariza (1 varaq)'
+                  : 'Ariza va Dalolatnoma (2 varaq)'}
+              </Typography>
+            </Stack>
+
+            <ToggleButtonGroup
+              value={customization.documentVariantOdamSoni || 'ariza+dalolatnoma'}
+              exclusive
+              onChange={(_, newVal) => {
+                if (newVal) {
+                  setCustomization({ documentVariantOdamSoni: newVal });
+                }
+              }}
+              size="small"
+              fullWidth
+              sx={{
+                bgcolor: theme.palette.mode === 'dark' ? 'background.default' : '#f4f6f8',
+                p: 0.5,
+                borderRadius: '10px',
+                border: '1px solid',
+                borderColor: 'divider',
+                '& .MuiToggleButton-root': {
+                  border: 'none',
+                  borderRadius: '8px !important',
+                  py: 0.75,
+                  fontWeight: 600,
+                  fontSize: '0.8125rem',
+                  textTransform: 'none',
+                  color: theme.palette.text.secondary,
+                  '&.Mui-selected': {
+                    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.25) : '#ffffff',
+                    color: theme.palette.primary.main,
+                    boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
+                    fontWeight: 700
+                  }
+                }
+              }}
+            >
+              <ToggleButton value="ariza+dalolatnoma">
+                📑 Ariza + Dalolatnoma
+              </ToggleButton>
+              <ToggleButton value="dalolatnoma">
+                📝 Faqat Dalolatnoma
+              </ToggleButton>
+              <ToggleButton value="ariza">
+                📄 Faqat Ariza
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        )}
+
+        {/* Vakillik qismi */}
+        <Card
+          elevation={0}
+          sx={{
+            p: 2,
+            bgcolor: theme.palette.mode === 'dark' ? 'background.default' : '#fcfcfc',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '12px'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'textSecondary', fontWeight: 600 }}>
+            Murojaatchi (Abonent nomidan vakil murojaat qilgan bo&apos;lsa)
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 5 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="relation-label">Qarindoshlik darajasi</InputLabel>
+                <Select
+                  labelId="relation-label"
+                  label="Qarindoshlik darajasi"
+                  value={relation}
+                  onChange={(e) => {
+                    const newRelation = e.target.value;
+                    setRelation(newRelation);
+                    if (!newRelation) setRelationFullName('');
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Tanlanmagan (Abonentning o&apos;zi)</em>
+                  </MenuItem>
+                  {familyRelations.map((rel: any) => (
+                    <MenuItem key={rel.name} value={rel.name}>
+                      {rel.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 7 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Vakilning F.I.Sh."
+                placeholder="Familiya Ism Sharif"
+                disabled={!relation}
+                value={relationFullName}
+                onChange={(e) => setRelationFullName(e.target.value)}
+              />
+            </Grid>
           </Grid>
-          <Grid size={6}>
-            <DatePicker
-              label="Qayta hisob boshi"
-              value={olderPeriod}
-              onChange={(v) => v && setOlderPeriod(v)}
-              format="DD.MM.YYYY"
-              slotProps={{ textField: { fullWidth: true, size: 'medium', sx: { '& .MuiOutlinedInput-root': { borderRadius: '8px' } } } }}
-            />
-          </Grid>
-        </Grid>
+        </Card>
 
         {/* Asoslantiruvchi izoh */}
         <TextField
           fullWidth
-          multiline
-          rows={3}
-          label="Asoslantiruvchi izoh"
-          placeholder="Ixtiyoriy..."
+          size="small"
+          label="Asoslantiruvchi ma'lumot (Ixtiyoriy)"
+          placeholder="Ariza va dalolatnomada alohida ko'rsatiladigan asoslar..."
           value={comment}
-          onChange={(e) => {
-            setComment(e.target.value);
-            setAutoComment(false);
-          }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '8px',
-              position: 'relative',
-              paddingRight: '44px' // Tayoqcha matn bilan to'qnashib ketmasligi uchun joy ajratildi
-            }
-          }}
+          onChange={(e) => setComment(e.target.value)}
+          multiline
+          minRows={2}
           slotProps={{
             input: {
               endAdornment: (
-                <InputAdornment
-                  position="end"
-                  sx={{
-                    position: 'absolute',
-                    right: 15,
-                    top: 'calc(50% - 12px)',
-                    margin: 0
-                  }}
-                >
-                  <Tooltip title={autoComment ? 'Avto-matn yoqilgan' : "Avto-matn bilan to'ldirish"}>
-                    <IconButton
-                      size="medium"
-                      onClick={() => {
-                        const newVal = !autoComment;
-                        setAutoComment(newVal);
-                        if (newVal) {
-                          const sana = olderPeriod?.format('DD.MM.YYYY') ?? '';
-                          const cnt = abonentData?.house?.inhabitantCnt ?? '';
-                          switch (ariza.document_type) {
-                            case 'odam_soni':
-                              setComment(
-                                `${sana} da xizmat ko'rsatuvchi tashkilotga taqdim etilgan, xatlov ma'lumotidagi xatolik sababli yashovchi soni asossiz ${cnt} kishi bo'lib qolgan.`
-                              );
-                              break;
-                            case 'viza':
-                              setComment(
-                                `Abonent yoki oila a'zosi chet elda bo'lganligi munosabati bilan taqdim etilgan pasport viza ma'lumotlari asosida qayta hisob-kitob qilish to'g'risida.`
-                              );
-                              break;
-                            case 'death':
-                              setComment(
-                                `Taqdim etilgan o'lim haqidagi guvohnoma asosida yashovchilar soni tarkibidan chiqarish va hisob-kitoblarni to'g'rilash to'g'risida.`
-                              );
-                              break;
-                            case 'gps':
-                              setComment(
-                                `Maxsus texnika xizmat ko'rsatmaganligi / GPS monitoring natijalari asosida to'xtatilgan davrlar uchun qayta hisob-kitob qilish to'g'risida.`
-                              );
-                              break;
-                            case 'dvaynik':
-                              setComment(
-                                `Mavjud ikkilamchi (dublikat) hisob raqamni bekor qilish va qoldiq to'lovlarni asosiy hisob raqamiga o'tkazish to'g'risida.`
-                              );
-                              break;
-                            default:
-                              setComment(`${sana} holatiga qayta hisob-kitob qilish to'g'risida.`);
-                          }
-                        }
-                      }}
-                      sx={{ color: autoComment ? 'primary.main' : 'text.disabled' }}
-                    >
+                <InputAdornment position="end">
+                  <Tooltip title="Avtomatik asoslantiruvchi matn yozish">
+                    <IconButton size="small" onClick={() => setAutoComment((prev) => !prev)}>
                       <AutoFixHigh fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -523,192 +631,222 @@ export default function PrintSection({
           }}
         />
 
-        {/* Hujjatda ishtirok etuvchilar */}
-        <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: 'textSecondary', fontWeight: 600 }}>
-            Hujjatda ishtirok etuvchilar
-          </Typography>
+        {/* Dalolatnoma turi va Ishtirokchilar bo'limi */}
+        <Card
+          elevation={0}
+          sx={{
+            p: 2,
+            bgcolor: theme.palette.mode === 'dark' ? 'background.default' : '#fcfcfc',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '12px'
+          }}
+        >
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                Dalolatnoma turi va ishtirokchilar
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Standart ishtirokchilar avtomatik shakllanadi
+              </Typography>
+            </Box>
+
+            {isAdmin && (
+              <Tooltip title="Dalolatnoma turlari va ishtirokchilarini sozlash (Faqat admin)">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<SettingsOutlined fontSize="small" />}
+                  onClick={() => setOpenManageActTypesDialog(true)}
+                  sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, fontSize: '0.75rem', py: 0.5 }}
+                >
+                  Turlarni sozlash
+                </Button>
+              </Tooltip>
+            )}
+          </Stack>
+
+          {/* Dalolatnoma turini tanlash dropdowni */}
+          <Box sx={{ mb: 2 }}>
+            <FormControl fullWidth size="small" disabled={ishtirokchilarDisabled}>
+              <InputLabel id="act-type-select-label">Dalolatnoma turi</InputLabel>
+              <Select
+                labelId="act-type-select-label"
+                label="Dalolatnoma turi"
+                value={selectedActTypeId}
+                onChange={(e) => setSelectedActTypeId(e.target.value)}
+              >
+                {actTypes.map((type) => (
+                  <MenuItem key={type._id || type.key} value={type._id || type.key}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {type.name}
+                      </Typography>
+                      {type.isDefault && (
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          (Standart)
+                        </Typography>
+                      )}
+                    </Stack>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
           {ishtirokchilarDisabled && (
             <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>
               &quot;Faqat ariza&quot; variantida imzolovchilar ishlatilmaydi.
             </Typography>
           )}
-          <Stack spacing={1}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: '10px 16px',
-                border: '1px solid',
-                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e0e0e0',
-                borderRadius: '8px'
-              }}
-            >
-              <FormControlLabel
-                disabled={ishtirokchilarDisabled}
-                control={<Checkbox checked={boshliqIshtirok} onChange={(e) => setBoshliqIshtirok(e.target.checked)} color="primary" />}
-                label={
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    Boshliq ishtirok etadimi?
-                  </Typography>
-                }
-              />
-              <Chip
-                disabled={ishtirokchilarDisabled}
-                label="Qo'shiladi"
-                size="small"
-                sx={{
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(123, 31, 162, 0.15)' : '#eedffd',
-                  color: theme.palette.mode === 'dark' ? '#d1c4e9' : '#7b1fa2',
-                  fontWeight: '500'
-                }}
-              />
-            </Box>
 
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: '10px 16px',
-                border: '1px solid',
-                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e0e0e0',
-                borderRadius: '8px'
-              }}
-            >
-              <FormControlLabel
-                disabled={ishtirokchilarDisabled}
-                control={<Checkbox checked={raisiIshtirok} onChange={(e) => setRaisiIshtirok(e.target.checked)} color="primary" />}
-                label={
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    Mahalla raisi ishtirok etadimi?
-                  </Typography>
-                }
-              />
-              <Chip
-                disabled={ishtirokchilarDisabled}
-                label="Qo'shiladi"
-                size="small"
-                sx={{
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(123, 31, 162, 0.15)' : '#eedffd',
-                  color: theme.palette.mode === 'dark' ? '#d1c4e9' : '#7b1fa2',
-                  fontWeight: '500'
-                }}
-              />
-            </Box>
+          {/* Ishtirokchilar ro'yxati va Istisnolar (Qatnashadi / Qatnashmaydi) */}
+          {!ishtirokchilarDisabled && (
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mb: 1 }}>
+                Ishtirokchilar ro‘yxati (Zarur bo‘lsa, aynan ushbu dalolatnoma uchun istisnolar belgilashingiz mumkin):
+              </Typography>
 
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: '10px 16px',
-                border: '1px solid',
-                borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e0e0e0',
-                borderRadius: '8px'
-              }}
-            >
-              <FormControlLabel
-                disabled={ishtirokchilarDisabled}
-                control={<Checkbox checked={fuqaroIshtirok} onChange={(e) => setFuqaroIshtirok(e.target.checked)} color="primary" />}
-                label={
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    Dalolatnomaga fuqaro imzo qo&apos;yadimi?
-                  </Typography>
-                }
-              />
-              <Chip
-                disabled={ishtirokchilarDisabled}
-                label="Qo'shiladi"
-                size="small"
-                sx={{
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(123, 31, 162, 0.15)' : '#eedffd',
-                  color: theme.palette.mode === 'dark' ? '#d1c4e9' : '#7b1fa2',
-                  fontWeight: '500'
-                }}
-              />
-            </Box>
-          </Stack>
-        </Box>
+              <Stack spacing={1}>
+                {resolvedParticipants.map((p) => {
+                  const isExcluded = p.isExcluded;
+                  return (
+                    <Box
+                      key={p.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: '9px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid',
+                        borderColor: isExcluded
+                          ? 'divider'
+                          : alpha(theme.palette.success.main, 0.4),
+                        bgcolor: isExcluded
+                          ? alpha(theme.palette.action.disabledBackground, 0.4)
+                          : alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.04),
+                        transition: 'all 0.15s ease-in-out'
+                      }}
+                    >
+                      <Box sx={{ pr: 1 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            color: isExcluded ? 'text.secondary' : 'text.primary',
+                            textDecoration: isExcluded ? 'line-through' : 'none'
+                          }}
+                        >
+                          {p.label} <span style={{ fontWeight: 500 }}>{p.name}</span>
+                        </Typography>
+                        {p.position && p.position !== p.label.replace(':', '') && (
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                            {p.position}
+                          </Typography>
+                        )}
+                      </Box>
 
-        {/* UX Dizayn Bo'yicha Footer Qismi */}
+                      <Tooltip title={isExcluded ? 'Dalolatnomaga qaytarish' : 'Ushbu dalolatnomada qatnashmaydi deb belgilash'}>
+                        <Chip
+                          label={isExcluded ? 'Qatnashmaydi' : 'Qatnashadi'}
+                          size="small"
+                          color={isExcluded ? 'default' : 'success'}
+                          variant={isExcluded ? 'outlined' : 'filled'}
+                          onClick={() => handleToggleExclude(p.id)}
+                          icon={
+                            isExcluded ? (
+                              <DoNotDisturbAltOutlined sx={{ fontSize: '14px !important' }} />
+                            ) : (
+                              <CheckCircleOutlined sx={{ fontSize: '14px !important' }} />
+                            )
+                          }
+                          sx={{
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            borderStyle: isExcluded ? 'dashed' : 'solid'
+                          }}
+                        />
+                      </Tooltip>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Box>
+          )}
+        </Card>
+
+        {/* Pastki tugmalar */}
         <Box
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            mt: 2,
-            pt: 2,
+            pt: 1,
             borderTop: '1px solid',
-            borderColor: theme.palette.mode === 'dark' ? 'divider' : '#f0f0f0'
+            borderColor: 'divider'
           }}
         >
-          {/* Vakillik ma'lumotlari (Kim orqali va Vakil F.I.Sh) */}
-          <Box sx={{ display: 'flex', gap: 1.5, width: '60%' }}>
-            <FormControl size="medium" sx={{ width: '40%' }}>
-              <Select value={relation} onChange={(e) => setRelation(e.target.value)} displayEmpty sx={{ borderRadius: '8px' }}>
-                <MenuItem value="">Kim orqali</MenuItem>
-                <MenuItem value="O'zi">Abonent o'zi</MenuItem>
-                {familyRelations.map((item) => (
-                  <MenuItem key={item} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              size="medium"
-              placeholder="Vakil F.I.Sh"
-              value={relationFullName}
-              disabled={!relation}
-              onChange={(e) => setRelationFullName(e.target.value)}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            />
-          </Box>
-
-          {/* Faqatgina Chop etish tugmasi (Yopish butkul o'chirildi) */}
           <Button
-            variant="contained"
-            onClick={handlePrint}
-            startIcon={<PrintOutlined />}
-            color="primary"
-            sx={{
-              borderRadius: '8px',
-              textTransform: 'none',
-              fontWeight: '600',
-              px: 4,
-              py: 1.2
-            }}
+            variant="text"
+            color="inherit"
+            startIcon={<Close />}
+            onClick={handleClose}
+            sx={{ fontWeight: 600, textTransform: 'none' }}
           >
-            Chop etish
+            Yopish
           </Button>
-        </Box>
 
-        {/* Yashirin Print rendereri (Faqat pechat qilish uchun) */}
-        <Box sx={{ display: 'none' }}>
-          <div ref={componentRef}>
-            <DocumentRenderer
-              ariza={ariza}
-              abonentData={abonentData}
-              abonentData2={abonentData2}
-              mahalla={mahalla}
-              mahalla2={mahalla2}
-              aniqlanganYashovchiSoni={aniqlanganYashovchiSoni}
-              recalculationPeriods={recalculationPeriods}
-              muzlatiladi={muzlatiladi}
-              asoslantiruvchi={comment}
-              olderPeriod={olderPeriod}
-              setOlderPeriod={setOlderPeriod}
-              vakil={vakilData}
-              dublicateRelation={dvaynikRelationProp}
-              moneyTransferAmount={dvaynikTransferAmountProp}
-              shouldBeMoneyTransfer={dvaynikShouldTransferProp}
-            />
-          </div>
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<IconEye size={18} />}
+              onClick={() => setShowPreview(true)}
+              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: '8px' }}
+            >
+              Ko&apos;rish
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PrintOutlined />}
+              onClick={handlePrint}
+              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: '8px', px: 3 }}
+            >
+              Chop etish
+            </Button>
+          </Stack>
         </Box>
       </DialogContent>
+
+      {/* Chop etish uchun yashirin render komponenti */}
+      <Box sx={{ display: 'none' }}>
+        <div ref={componentRef} className="print-only">
+          <DocumentRenderer
+            ariza={ariza}
+            abonentData={abonentData}
+            abonentData2={abonentData2}
+            mahalla={mahalla}
+            mahalla2={mahalla2}
+            aniqlanganYashovchiSoni={aniqlanganYashovchiSoni}
+            recalculationPeriods={recalculationPeriods}
+            muzlatiladi={muzlatiladi}
+            asoslantiruvchi={comment}
+            olderPeriod={olderPeriod}
+            setOlderPeriod={setOlderPeriod}
+            vakil={vakilData}
+            dublicateRelation={dvaynikRelationProp}
+            moneyTransferAmount={dvaynikTransferAmountProp}
+            shouldBeMoneyTransfer={dvaynikShouldTransferProp}
+            participants={resolvedParticipants}
+          />
+        </div>
+      </Box>
     </DraggableDialog>
   );
 }

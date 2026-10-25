@@ -43,9 +43,13 @@ export default function AktInfoCard() {
           <InfoRow label={t('tableHeaders.actStatus', 'Holati:')} customComponent={getActStatusChip(ariza.actStatus)} />
           <InfoRow
             label={t('recalculationDetailPage.inhabitantsAmount', 'Yashovchilar / Summa:')}
-            value={`${ariza.aktInfo?.currentInhabitantCount ?? ariza.next_prescribed_cnt ?? 0} kishi | ${
-              ariza.aktSummasi ? Number(ariza.aktSummasi).toLocaleString('uz-UZ') + ' so‘m' : '0 so‘m'
-            }`}
+            value={
+              ariza.document_type === 'viza'
+                ? `O‘zgarmaydi | ${ariza.aktSummasi ? Number(ariza.aktSummasi).toLocaleString('uz-UZ') + ' so‘m' : '0 so‘m'}`
+                : `${ariza.aktInfo?.currentInhabitantCount ?? ariza.next_prescribed_cnt ?? 0} kishi | ${
+                    ariza.aktSummasi ? Number(ariza.aktSummasi).toLocaleString('uz-UZ') + ' so‘m' : '0 so‘m'
+                  }`
+            }
           />
           {ariza.aktInfo?.description && (
             <InfoRow label={t('recalculationDetailPage.actDescription', 'Akt izohi:')} value={ariza.aktInfo.description} />

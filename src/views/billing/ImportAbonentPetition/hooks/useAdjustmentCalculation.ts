@@ -4,21 +4,23 @@ import api from 'utils/api';
 interface UseAdjustmentCalculationParams {
   arizaId?: string;
   residentId?: number;
-  nextInhabitantCount: number;
+  nextInhabitantCount?: number;
   actAmount: number;
+  documentType?: string | null;
 }
 
 export function useAdjustmentCalculation({
   arizaId,
   residentId,
   nextInhabitantCount,
-  actAmount
+  actAmount,
+  documentType
 }: UseAdjustmentCalculationParams) {
   const [adjustmentData, setAdjustmentData] = useState<any>(null);
 
   useEffect(() => {
     let active = true;
-    if (!residentId) {
+    if (!residentId || documentType === 'viza') {
       setAdjustmentData(null);
       return;
     }
@@ -27,13 +29,18 @@ export function useAdjustmentCalculation({
 
     const runCalculate = async () => {
       try {
+        const params: Record<string, any> = {
+          arizaId,
+          residentId,
+          actAmount,
+          documentType: documentType || undefined
+        };
+        if (nextInhabitantCount !== undefined && nextInhabitantCount !== null) {
+          params.nextInhabitantCount = nextInhabitantCount;
+        }
+
         const { data } = await api.get('/billing/calculate-adjustment', {
-          params: {
-            arizaId,
-            residentId,
-            nextInhabitantCount,
-            actAmount
-          },
+          params,
           signal: controller.signal
         });
         if (active && data.ok) {
@@ -53,7 +60,7 @@ export function useAdjustmentCalculation({
       controller.abort();
       clearTimeout(delay);
     };
-  }, [arizaId, residentId, nextInhabitantCount, actAmount]);
+  }, [arizaId, residentId, nextInhabitantCount, actAmount, documentType]);
 
   return adjustmentData;
 }

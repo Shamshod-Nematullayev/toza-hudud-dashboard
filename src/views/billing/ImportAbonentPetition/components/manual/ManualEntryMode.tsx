@@ -117,31 +117,39 @@ export function ManualEntryMode({
               {t('tableHeaders.inhabitantCount')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-              <input
-                type="number"
-                min={1}
-                style={{
-                  background: theme.palette.action.hover,
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '2px 8px',
-                  fontSize: '1.1rem',
-                  fontWeight: '700',
-                  width: '60px',
-                  textAlign: 'center',
-                  color: theme.palette.primary.main,
-                  outline: 'none'
-                }}
-                value={hasValidAriza(ariza) ? String(ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '') : yashovchiSoniInput}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (hasValidAriza(ariza)) {
-                    setAriza({ ...ariza, next_prescribed_cnt: v === '' ? null : Number(v) });
-                  } else {
-                    setYashovchiSoniInput(v);
-                  }
-                }}
-              />
+              {aktType === 'viza' ? (
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', py: 0.5 }}>
+                  Yashovchi soni o'zgarmaydi
+                </Typography>
+              ) : (
+                <input
+                  type="number"
+                  min={1}
+                  disabled={isLoading}
+                  style={{
+                    background: theme.palette.action.hover,
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '2px 8px',
+                    fontSize: '1.1rem',
+                    fontWeight: '700',
+                    width: '60px',
+                    textAlign: 'center',
+                    color: theme.palette.primary.main,
+                    outline: 'none',
+                    opacity: isLoading ? 0.6 : 1
+                  }}
+                  value={hasValidAriza(ariza) ? String(ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? '') : yashovchiSoniInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (hasValidAriza(ariza)) {
+                      setAriza({ ...ariza, next_prescribed_cnt: v === '' ? null : Number(v) });
+                    } else {
+                      setYashovchiSoniInput(v);
+                    }
+                  }}
+                />
+              )}
             </Box>
           </Box>
 
@@ -152,6 +160,7 @@ export function ManualEntryMode({
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
               <input
                 type="text"
+                disabled={isLoading}
                 style={{
                   background: theme.palette.action.hover,
                   border: 'none',
@@ -162,7 +171,8 @@ export function ManualEntryMode({
                   width: '120px',
                   textAlign: 'right',
                   color: theme.palette.error.main,
-                  outline: 'none'
+                  outline: 'none',
+                  opacity: isLoading ? 0.6 : 1
                 }}
                 value={aktSumm}
                 onChange={(e) => setAktSumm(e.target.value)}
@@ -203,11 +213,12 @@ export function ManualEntryMode({
             sx={{ minWidth: 160 }}
             loading={manualAbonentLoading}
             error={!!manualAbonentError}
+            disabled={isLoading}
           />
           <Button
             variant="contained"
             color="secondary"
-            disabled={manualAbonentLoading}
+            disabled={manualAbonentLoading || isLoading}
             startIcon={manualAbonentLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
             onClick={() => void loadAbonentByAccountForManual()}
           >
@@ -219,6 +230,7 @@ export function ManualEntryMode({
             value={aktType ?? ''}
             onChange={(e) => setAktType((e.target.value || null) as typeof aktType)}
             size="small"
+            disabled={isLoading}
             sx={{ minWidth: 180 }}
           >
             <MenuItem value="">
@@ -234,6 +246,7 @@ export function ManualEntryMode({
             variant="contained"
             startIcon={<FileUploadOutlinedIcon />}
             disabled={
+              isLoading ||
               (aktType === 'gps' && photos.length === 0) ||
               (!((ariza?.status === 'yangi' || ariza?.status === 'qabul qilindi') && !isLoading) && enteringMode !== 'manual')
             }
@@ -243,12 +256,12 @@ export function ManualEntryMode({
             {t('buttons.submitEntry')}
           </Button>
           {aktType === 'gps' && (
-            <Button variant="contained" color="success" onClick={() => setOpenPasteImageDialog(true)}>
+            <Button variant="contained" color="success" disabled={isLoading} onClick={() => setOpenPasteImageDialog(true)}>
               <Photo />
             </Button>
           )}
 
-          <Button variant="outlined" color="secondary" onClick={handleDeleteButtonClick}>
+          <Button variant="outlined" color="secondary" disabled={isLoading} onClick={handleDeleteButtonClick}>
             <DeleteOutlinedIcon />
           </Button>
         </Stack>

@@ -28,7 +28,7 @@ import {
   LinearProgress
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
-import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
+import { DataGrid, GridRowSelectionModel, useGridApiRef } from '@mui/x-data-grid';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -56,6 +56,7 @@ import { useTranslation } from 'react-i18next';
 import MainCard from 'ui-component/cards/MainCard';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import api from 'utils/api';
+import useCustomizationStore from 'store/customizationStore';
 import useOdamSoniXatlovStore from './odamSoniXatlovStore';
 import AddSingleXatlovModal from './modals/AddSingleXatlovModal';
 import ImportXatlovExcelModal from './modals/ImportXatlovExcelModal';
@@ -100,6 +101,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<number>(defaultTab);
 
+  const { user } = useCustomizationStore();
+  const canManage = Boolean(user?.roles?.some((r) => ['admin', 'product_admin', 'billing'].includes(r)));
+
   // Store references
   const { rows, total, pagination, ui, pdfFile, dalolatnoma, fetchRows, updatePagination, toggleRefresh, setPrintModal, setPdfFile } =
     useOdamSoniXatlovStore();
@@ -111,6 +115,19 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   // Tab 0: Abonentlar xatlovi State
   const apiRef = useGridApiRef();
   const [mahallaOptions, setMahallaOptions] = useState<any[]>([]);
+  const [selectionModelTab0, setSelectionModelTab0] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
+
+  const selectedTab0RowIds = useMemo(
+    () =>
+      rows
+        .map((r: any) => r._id)
+        .filter((id: any) =>
+          selectionModelTab0.type === 'include'
+            ? selectionModelTab0.ids.has(id)
+            : !selectionModelTab0.ids.has(id)
+        ),
+    [rows, selectionModelTab0]
+  );
 
   // CSV State
   const [readyToDownload, setReadyToDownload] = useState(false);
@@ -401,6 +418,103 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       toggleRefresh();
     });
 
+  // Tab 0 Handlers: Cancel / Delete Row & Bulk Operations
+  const handleCancelTab0Row = (row: any) => {
+    setConfirmAction({
+      title: 'So‘rovni bekor qilish',
+      text: (
+        <>
+          <b>{row.fio || row.accountNumber}</b> (Hisob: <code>{row.accountNumber}</code>) so‘rovi rostdan ham bekor qilinsinmi?
+        </>
+      ),
+      confirmLabel: 'Bekor qilish',
+      color: 'warning',
+      onConfirm: async () => {
+        setBusy((b) => ({ ...b, [`tab0:${row._id}`]: true }));
+        try {
+          await api.put(`/yashovchi-soni-xatlov/cancel-request/${row._id}`);
+          toast.info(`${row.accountNumber || row.fio} so‘rovi bekor qilindi`);
+          fetchRows();
+        } catch (error: any) {
+          toast.error(error?.response?.data?.message || 'Bekor qilib bo‘lmadi');
+        } finally {
+          setBusy((b) => ({ ...b, [`tab0:${row._id}`]: false }));
+        }
+      }
+    });
+  };
+
+  const handleDeleteTab0Row = (row: any) => {
+    setConfirmAction({
+      title: 'So‘rovni butunlay o‘chirish',
+      text: (
+        <>
+          <b>{row.fio || row.accountNumber}</b> (Hisob: <code>{row.accountNumber}</code>) so‘rovi bazadan butunlay o‘chiriladi. Bu amalni qaytarib bo‘lmaydi.
+        </>
+      ),
+      confirmLabel: 'O‘chirish',
+      color: 'error',
+      onConfirm: async () => {
+        setBusy((b) => ({ ...b, [`tab0:${row._id}`]: true }));
+        try {
+          await api.delete(`/yashovchi-soni-xatlov/${row._id}`);
+          toast.success(`${row.accountNumber || row.fio} so‘rovi muvaffaqiyatli o‘chirildi`);
+          fetchRows();
+        } catch (error: any) {
+          toast.error(error?.response?.data?.message || 'O‘chirib bo‘lmadi');
+        } finally {
+          setBusy((b) => ({ ...b, [`tab0:${row._id}`]: false }));
+        }
+      }
+    });
+  };
+
+  const handleCancelSelectedTab0Rows = () => {
+    if (!selectedTab0RowIds.length) return;
+    setConfirmAction({
+      title: 'Tanlangan so‘rovlarni bekor qilish',
+      text: `Tanlangan ${selectedTab0RowIds.length} ta xatlov so‘rovi bekor qilinadi. Davom etasizmi?`,
+      confirmLabel: `${selectedTab0RowIds.length} tasini bekor qilish`,
+      color: 'warning',
+      onConfirm: async () => {
+        setBusy((b) => ({ ...b, batchCancel0: true }));
+        try {
+          const res = await api.post('/yashovchi-soni-xatlov/cancel-many', { ids: selectedTab0RowIds });
+          toast.info(res.data?.message || `${selectedTab0RowIds.length} ta so‘rov bekor qilindi`);
+          setSelectionModelTab0({ type: 'include', ids: new Set() });
+          fetchRows();
+        } catch (error: any) {
+          toast.error(error?.response?.data?.message || 'Bekor qilishda xatolik yuz berdi');
+        } finally {
+          setBusy((b) => ({ ...b, batchCancel0: false }));
+        }
+      }
+    });
+  };
+
+  const handleDeleteSelectedTab0Rows = () => {
+    if (!selectedTab0RowIds.length) return;
+    setConfirmAction({
+      title: 'Tanlangan so‘rovlarni o‘chirish',
+      text: `Tanlangan ${selectedTab0RowIds.length} ta xatlov so‘rovi butunlay o‘chiriladi. Bu amalni qaytarib bo‘lmaydi. Davom etasizmi?`,
+      confirmLabel: `${selectedTab0RowIds.length} tasini o‘chirish`,
+      color: 'error',
+      onConfirm: async () => {
+        setBusy((b) => ({ ...b, batchDelete0: true }));
+        try {
+          const res = await api.post('/yashovchi-soni-xatlov/delete-many', { ids: selectedTab0RowIds });
+          toast.success(res.data?.message || `${selectedTab0RowIds.length} ta so‘rov o‘chirildi`);
+          setSelectionModelTab0({ type: 'include', ids: new Set() });
+          fetchRows();
+        } catch (error: any) {
+          toast.error(error?.response?.data?.message || 'O‘chirishda xatolik yuz berdi');
+        } finally {
+          setBusy((b) => ({ ...b, batchDelete0: false }));
+        }
+      }
+    });
+  };
+
   // Tab 1 Handlers: Cancel / View / Print / Confirm Dalolatnoma
   const handleClickConfirmDalolatnoma = (doc: any) => {
     setActiveTab(2);
@@ -622,40 +736,84 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
   const handleCancelRow = (row: any) =>
     setConfirmAction({
-      title: 'Qatorni rad etish',
+      title: 'Qatorni bekor qilish',
       text: (
         <>
-          <b>{row.accountNumber}</b> {row.fullName} yozuvi rad etiladi va dalolatnoma bo‘yicha akt kiritilmaydi.
+          <b>{row.accountNumber}</b> {row.fullName || row.fio} yozuvi bekor qilinadi va dalolatnoma bo‘yicha akt kiritilmaydi.
         </>
       ),
-      confirmLabel: 'Rad etish',
+      confirmLabel: 'Bekor qilish',
+      color: 'warning',
+      onConfirm: async () => {
+        try {
+          await api.put(`/yashovchi-soni-xatlov/cancel-request/${row._id}`);
+          toast.info(`${row.accountNumber} bekor qilindi`);
+          await getDalolatnomaData({ _id: dalolatnoma._id });
+        } catch (error) {
+          toast.error(errorText(error, 'Bekor qilib bo‘lmadi'));
+        }
+      }
+    });
+
+  const handleDeleteRow = (row: any) =>
+    setConfirmAction({
+      title: 'Qatorni butunlay o‘chirish',
+      text: (
+        <>
+          <b>{row.accountNumber}</b> {row.fullName || row.fio} yozuvi bazadan va dalolatnomadan butunlay o‘chiriladi. Bu amalni qaytarib bo‘lmaydi.
+        </>
+      ),
+      confirmLabel: 'O‘chirish',
       color: 'error',
       onConfirm: async () => {
         try {
-          await api.put(`/yashovchi-soni-xatlov/${row._id}`, { isCancel: true });
-          toast.info(`${row.accountNumber} rad etildi`);
+          await api.delete(`/yashovchi-soni-xatlov/${row._id}`);
+          toast.success(`${row.accountNumber} muvaffaqiyatli o‘chirildi`);
           await getDalolatnomaData({ _id: dalolatnoma._id });
         } catch (error) {
-          toast.error(errorText(error, 'Rad etib bo‘lmadi'));
+          toast.error(errorText(error, 'O‘chirib bo‘lmadi'));
         }
       }
     });
 
   const handleCancelAll = () => {
-    if (!cancellableRows.length) return toast.info('Rad etiladigan qator yo‘q: hammasi akt qilingan yoki bekor qilingan');
+    if (!cancellableRows.length) return toast.info('Bekor qilinadigan qator yo‘q: hammasi akt qilingan yoki bekor qilingan');
     setConfirmAction({
-      title: 'Barchasini rad etish',
-      text: `Akti kiritilmagan ${cancellableRows.length} ta yozuv rad etiladi. Akt qilinganlariga tegilmaydi. Bu amalni ortga qaytarib bo‘lmaydi.`,
-      confirmLabel: `${cancellableRows.length} tasini rad etish`,
+      title: 'Barchasini bekor qilish',
+      text: `Akti kiritilmagan ${cancellableRows.length} ta yozuv bekor qilinadi. Akt qilinganlariga tegilmaydi. Bu amalni ortga qaytarib bo‘lmaydi.`,
+      confirmLabel: `${cancellableRows.length} tasini bekor qilish`,
+      color: 'warning',
+      onConfirm: async () => {
+        try {
+          const res = await api.post('/yashovchi-soni-xatlov/cancel-many', {
+            ids: cancellableRows.map((r) => r._id)
+          });
+          toast.info(res.data?.message || `${cancellableRows.length} ta yozuv bekor qilindi`);
+          await getDalolatnomaData({ _id: dalolatnoma._id });
+        } catch (error) {
+          toast.error(errorText(error, 'Bekor qilishda xatolik yuz berdi'));
+        }
+      }
+    });
+  };
+
+  const handleDeleteAll = () => {
+    if (!cancellableRows.length) return toast.info('O‘chiriladigan qator yo‘q: hammasi akt qilingan');
+    setConfirmAction({
+      title: 'Barchasini butunlay o‘chirish',
+      text: `Akti kiritilmagan ${cancellableRows.length} ta yozuv bazadan va dalolatnomadan butunlay o‘chiriladi. Bu amalni ortga qaytarib bo‘lmaydi.`,
+      confirmLabel: `${cancellableRows.length} tasini o‘chirish`,
       color: 'error',
       onConfirm: async () => {
-        const results = await Promise.allSettled(
-          cancellableRows.map((row) => api.put(`/yashovchi-soni-xatlov/${row._id}`, { isCancel: true }))
-        );
-        const failed = results.filter((r) => r.status === 'rejected').length;
-        if (failed) toast.warning(`${results.length - failed} ta rad etildi, ${failed} tasida xato`);
-        else toast.info(`${results.length} ta yozuv rad etildi`);
-        await getDalolatnomaData({ _id: dalolatnoma._id });
+        try {
+          const res = await api.post('/yashovchi-soni-xatlov/delete-many', {
+            ids: cancellableRows.map((r) => r._id)
+          });
+          toast.success(res.data?.message || `${cancellableRows.length} ta yozuv o‘chirildi`);
+          await getDalolatnomaData({ _id: dalolatnoma._id });
+        } catch (error) {
+          toast.error(errorText(error, 'O‘chirishda xatolik yuz berdi'));
+        }
       }
     });
   };
@@ -1088,6 +1246,33 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                   </IconButton>
                 </span>
               </Tooltip>
+
+              {canManage && selectedTab0RowIds.length > 0 && (
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Button
+                    variant="contained"
+                    color="warning"
+                    size={isMobile ? 'small' : 'medium'}
+                    startIcon={isBusy('batchCancel0') ? <CircularProgress size={16} color="inherit" /> : <DoDisturbAltOutlinedIcon />}
+                    disabled={isBusy('batchCancel0')}
+                    onClick={handleCancelSelectedTab0Rows}
+                    sx={{ textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Bekor qilish ({selectedTab0RowIds.length})
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    size={isMobile ? 'small' : 'medium'}
+                    startIcon={isBusy('batchDelete0') ? <CircularProgress size={16} color="inherit" /> : <DeleteOutlinedIcon />}
+                    disabled={isBusy('batchDelete0')}
+                    onClick={handleDeleteSelectedTab0Rows}
+                    sx={{ textTransform: 'none', fontWeight: 600 }}
+                  >
+                    O‘chirish ({selectedTab0RowIds.length})
+                  </Button>
+                </Stack>
+              )}
             </Stack>
           </Paper>
 
@@ -1195,6 +1380,33 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                           </Stack>
                         </Box>
                       </Box>
+
+                      {canManage && (
+                        <Stack direction="row" spacing={1} sx={{ mt: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            startIcon={<DoDisturbAltOutlinedIcon fontSize="small" />}
+                            disabled={row.isCancel || isBusy(`tab0:${row._id}`)}
+                            onClick={() => handleCancelTab0Row(row)}
+                            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', py: 0.3 }}
+                          >
+                            Bekor qilish
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            startIcon={<DeleteOutlinedIcon fontSize="small" />}
+                            disabled={isBusy(`tab0:${row._id}`)}
+                            onClick={() => handleDeleteTab0Row(row)}
+                            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', py: 0.3 }}
+                          >
+                            O‘chirish
+                          </Button>
+                        </Stack>
+                      )}
                     </Paper>
                   );
                 })}
@@ -1206,6 +1418,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
           <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
             <DataGrid
               rows={rows}
+              getRowId={(row) => row._id || row.id}
               columns={[
                 { field: 'id', headerName: '№', width: 60 },
                 { field: 'accountNumber', headerName: 'Hisob raqam', width: 140 },
@@ -1258,13 +1471,59 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       />
                     );
                   }
-                }
+                },
+                ...(canManage
+                  ? [
+                      {
+                        field: 'actions',
+                        headerName: 'Amallar',
+                        width: 120,
+                        sortable: false,
+                        renderCell: (params: any) => {
+                          const row = params.row;
+                          const isRowBusy = isBusy(`tab0:${row._id}`);
+                          return (
+                            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
+                              <Tooltip title="So‘rovni bekor qilish">
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    color="warning"
+                                    disabled={row.isCancel || isRowBusy}
+                                    onClick={() => handleCancelTab0Row(row)}
+                                  >
+                                    {isRowBusy ? <CircularProgress size={16} /> : <DoDisturbAltOutlinedIcon fontSize="small" />}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title="So‘rovni butunlay o‘chirish">
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    disabled={isRowBusy}
+                                    onClick={() => handleDeleteTab0Row(row)}
+                                  >
+                                    {isRowBusy ? <CircularProgress size={16} color="error" /> : <DeleteOutlinedIcon fontSize="small" />}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </Stack>
+                          );
+                        }
+                      }
+                    ]
+                  : [])
               ]}
               rowCount={total}
               loading={ui.loading}
               paginationMode="server"
               filterMode="server"
               sortingMode="server"
+              checkboxSelection={canManage}
+              disableRowSelectionOnClick
+              rowSelectionModel={selectionModelTab0}
+              onRowSelectionModelChange={(newModel) => setSelectionModelTab0(newModel)}
               paginationModel={{
                 page: pagination.page - 1,
                 pageSize: pagination.limit
@@ -1800,24 +2059,35 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                         <ConfirmAllProgress run={confirmRun} onStop={handleStopConfirmAll} onClose={() => setConfirmRun(null)} />
                       )}
 
-                      <Stack direction="row" spacing={1}>
+                      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                        <Button
+                          variant="outlined"
+                          color="warning"
+                          size="small"
+                          sx={{ flex: 1, minWidth: 120 }}
+                          onClick={handleCancelAll}
+                          disabled={isConfirmingAll || cancellableRows.length === 0}
+                          startIcon={<DoDisturbAltOutlinedIcon />}
+                        >
+                          Bekor qilish
+                          {cancellableRows.length > 0 ? ` (${cancellableRows.length})` : ''}
+                        </Button>
                         <Button
                           variant="outlined"
                           color="error"
                           size="small"
-                          fullWidth
-                          onClick={handleCancelAll}
+                          sx={{ flex: 1, minWidth: 120 }}
+                          onClick={handleDeleteAll}
                           disabled={isConfirmingAll || cancellableRows.length === 0}
                           startIcon={<DeleteOutlinedIcon />}
                         >
-                          {t('buttons.rejectAll')}
+                          O‘chirish
                           {cancellableRows.length > 0 ? ` (${cancellableRows.length})` : ''}
                         </Button>
                         <Button
                           variant="outlined"
                           color="info"
                           size="small"
-                          fullWidth
                           disabled={uploadingRows.length === 0}
                           onClick={handleExportScanningExcel}
                           startIcon={<SimCardDownloadOutlinedIcon />}
@@ -1909,15 +2179,28 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
 
                               <IconButton
                                 size="small"
-                                color="error"
-                                aria-label="Rad etish"
+                                color="warning"
+                                aria-label="Bekor qilish"
                                 disabled={
                                   row.isCancel || !!row.actId || row.status === 'kutilmoqda' || isConfirmingAll || isBusy(`row:${row._id}`)
                                 }
                                 onClick={() => handleCancelRow(row)}
                                 sx={{ border: '1px solid', borderColor: 'divider' }}
                               >
-                                <DeleteIcon fontSize="small" />
+                                <DoDisturbAltOutlinedIcon fontSize="small" />
+                              </IconButton>
+
+                              <IconButton
+                                size="small"
+                                color="error"
+                                aria-label="O‘chirish"
+                                disabled={
+                                  !!row.actId || row.status === 'kutilmoqda' || isConfirmingAll || isBusy(`rowDelete:${row._id}`)
+                                }
+                                onClick={() => handleDeleteRow(row)}
+                                sx={{ border: '1px solid', borderColor: 'divider' }}
+                              >
+                                <DeleteOutlinedIcon fontSize="small" />
                               </IconButton>
                             </Stack>
                           </Stack>
@@ -1956,10 +2239,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                       {
                         field: 'actions',
                         headerName: t('tableHeaders.actions'),
-                        width: 120,
+                        width: 150,
                         sortable: false,
                         renderCell: (params) => {
                           const rowBusy = isBusy(`row:${params.row._id}`);
+                          const rowDeleteBusy = isBusy(`rowDelete:${params.row._id}`);
                           return (
                             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
                               <Tooltip
@@ -1988,11 +2272,11 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                   </IconButton>
                                 </span>
                               </Tooltip>
-                              <Tooltip title="Rad etish">
+                              <Tooltip title="Bekor qilish">
                                 <span>
                                   <IconButton
                                     size="small"
-                                    color="error"
+                                    color="warning"
                                     disabled={
                                       params.row.isCancel ||
                                       !!params.row.actId ||
@@ -2002,7 +2286,24 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
                                     }
                                     onClick={() => handleCancelRow(params.row)}
                                   >
-                                    <DeleteIcon fontSize="small" />
+                                    <DoDisturbAltOutlinedIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title="Butunlay o‘chirish">
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    disabled={
+                                      !!params.row.actId ||
+                                      params.row.status === 'kutilmoqda' ||
+                                      isConfirmingAll ||
+                                      rowDeleteBusy
+                                    }
+                                    onClick={() => handleDeleteRow(params.row)}
+                                  >
+                                    {rowDeleteBusy ? <CircularProgress size={18} color="error" /> : <DeleteOutlinedIcon fontSize="small" />}
                                   </IconButton>
                                 </span>
                               </Tooltip>
@@ -2044,7 +2345,12 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
       <AddSingleXatlovModal open={openSingleModal} onClose={() => setOpenSingleModal(false)} />
       <ImportXatlovExcelModal open={openExcelModal} onClose={() => setOpenExcelModal(false)} />
       {openPreviewDialog && currentDocument && (
-        <PreviewDialog document={currentDocument} requestDocuments={requestDocuments} setOpen={setOpenPreviewDialog} />
+        <PreviewDialog
+          document={currentDocument}
+          requestDocuments={requestDocuments}
+          setOpen={setOpenPreviewDialog}
+          onRefresh={() => fetchDalolatnomalar()}
+        />
       )}
     </MainCard>
   );

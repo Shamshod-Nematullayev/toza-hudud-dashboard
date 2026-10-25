@@ -2,14 +2,17 @@ import { Box, Divider, IconButton, List, ListItem, ListItemButton, TextField, Ty
 import { useEffect, useState } from 'react';
 import useStore from './hooks/useStore';
 import { useUiStore } from './hooks/useUiStore';
+import useLoaderStore from 'store/loaderStore';
 import { t } from 'i18next';
 import { Delete } from '@mui/icons-material';
 
 function FilesList() {
   const { pdfFiles, processFile, removePdfFile } = useStore();
   const { setPdfFileLoading } = useUiStore();
+  const { isLoading } = useLoaderStore();
 
   const handleListItemClick = async (file_name: string) => {
+    if (isLoading) return;
     setPdfFileLoading(true);
     await processFile(file_name);
     setPdfFileLoading(false);
@@ -28,6 +31,7 @@ function FilesList() {
         placeholder={t('tableActions.search-file') + '...'}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
+        disabled={isLoading}
         fullWidth
       />
       <Divider sx={{ mt: 1 }} />
@@ -42,9 +46,10 @@ function FilesList() {
               <IconButton
                 edge="end"
                 aria-label="delete"
+                disabled={isLoading}
                 onClick={(e) => {
                   e.stopPropagation();
-                  removePdfFile(pdfFile.file.name);
+                  if (!isLoading) removePdfFile(pdfFile.file.name);
                 }}
               >
                 <Delete />
@@ -54,6 +59,7 @@ function FilesList() {
           >
             <ListItemButton
               selected={pdfFile.active}
+              disabled={isLoading}
               sx={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', paddingRight: '48px' }}
               onClick={() => handleListItemClick(pdfFile.file.name)}
             >

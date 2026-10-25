@@ -21,7 +21,8 @@ function OdamSoni({
   documentType = 'odam_soni',
   ariza,
   relation,
-  relationFullName
+  relationFullName,
+  participants
 }: {
   date: Date;
   abonentData: AbonentDetails;
@@ -34,6 +35,7 @@ function OdamSoni({
   ariza: any;
   relation?: string;
   relationFullName?: string;
+  participants?: any[];
 }) {
   let { customization, company, user } = useCustomizationStore();
   // Dinamik mantiqiy o'zgaruvchilar
@@ -72,6 +74,7 @@ function OdamSoni({
       {/* 2-SAHIFA: DALOLATNOMA */}
       {customization.documentVariantOdamSoni !== 'ariza' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
+          <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', width: '70%', margin: '0 auto' }}>
             <b>
               Abonentlar bo‘yicha o‘zgarishlar to‘g‘risidagi ma’lumotlarga kiritilmagan va ular haqida Sanitar tozalash markaziga taqdim
@@ -115,9 +118,12 @@ function OdamSoni({
           </p>
 
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
-            Fuqoro {formatName(isRelative ? relationFullName : abonentData?.fullName)}, {lotinga(mahalla.data.name || '')} MFY raisi{' '}
-            {fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, {company.name} {company.locationName} aholi bo'lim boshlig'i{' '}
-            {lotinga(fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.
+            {participants && participants.length > 0
+              ? `${participants
+                  .filter((p: any) => !p.isExcluded && p.name)
+                  .map((p: any) => `${p.label?.replace(':', '')} ${fullNameToShortName(p.name)}`)
+                  .join(', ')}lar mazkur dalolatnomani shu haqida tuzdik.`
+              : `Fuqoro ${formatName(isRelative ? relationFullName : abonentData?.fullName)}, ${lotinga(mahalla.data.name || '')} MFY raisi ${fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, ${company.name} ${company.locationName} aholi bo'lim boshlig'i ${lotinga(fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.`}
           </p>
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
@@ -137,16 +143,11 @@ function OdamSoni({
             mahalla={mahalla}
             documentType={'odam_soni'}
             ariza={ariza}
+            participants={participants}
           />
-          <br />
-          <br />
-          <br />
-          {customization.documentVariantOdamSoni === 'dalolatnoma' && (
-            <>
-              <QRSection ariza={ariza} date={date} />
-              <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-            </>
-          )}
+          <div style={{ marginTop: '20px' }}>
+            <QRSection ariza={ariza} date={date} />
+          </div>
         </div>
       )}
     </>
