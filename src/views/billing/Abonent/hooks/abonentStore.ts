@@ -114,6 +114,7 @@ const initialState: IAbonentPageDataStore = {
   dhjRows: [],
   dhjRowsResidentId: null,
   dhjRowsLoading: false,
+  dhjPreview: null,
   detailsHistory: [],
   abonentDetailsFromDB: null,
   incomeStats: [],
@@ -170,6 +171,11 @@ interface IAbonentPageDataStore {
   /** `dhjRows` qaysi abonentga tegishli — tab qayta ochilganda qayta so'rov yubormaslik uchun */
   dhjRowsResidentId: number | null;
   dhjRowsLoading: boolean;
+  /**
+   * DHJ ning birinchi qatorlari (TozaMakondagidek 15 ta) — to'liq ro'yxat kelguncha jadvalda ko'rsatish uchun.
+   * Faqat ko'rsatish uchun: ariza va boshqa amallar to'liq `dhjRows` ni kutadi.
+   */
+  dhjPreview: { residentId: number; rows: DHJRow[]; total: number } | null;
   detailsHistory: AbonentDetailsHistoryRow[];
   abonentDetailsFromDB: IAbonentFromDB | null;
   incomeStats: IncomeStatRow[];
@@ -319,6 +325,7 @@ export interface IAbonentPageActionsStore {
 export type IAbonentPageStore = IAbonentPageDataStore & IAbonentPageActionsStore;
 
 let dhjRequestId = 0;
+export const DHJ_PREVIEW_SIZE = 15;
 
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   ...initialState,
@@ -338,11 +345,22 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     if (!residentId) return;
 
     const size = 100;
-    const fetchPage = (page: number) =>
-      api.get('/billing/get-abonent-dxj-by-id', { params: { residentId, page, size } }).then((res) => res.data);
+    const fetchPage = (page: number, pageSize = size) =>
+      api.get('/billing/get-abonent-dxj-by-id', { params: { residentId, page, size: pageSize } }).then((res) => res.data);
 
     const requestId = ++dhjRequestId;
     set({ dhjRowsLoading: true });
+
+    // Kichik sahifa TozaMakonda tez hisoblanadi — uni darhol ko'rsatamiz, to'liq ro'yxat parallel yuklanadi
+    if (get().dhjRowsResidentId !== residentId) {
+      fetchPage(1, DHJ_PREVIEW_SIZE)
+        .then((first) => {
+          if (requestId !== dhjRequestId || get().dhjRowsResidentId === residentId) return;
+          set({ dhjPreview: { residentId, rows: first.rows, total: first.meta?.total ?? first.rows.length } });
+        })
+        .catch(() => {});
+    }
+
     try {
       const first = await fetchPage(1);
       let rows: DHJRow[] = first.rows;

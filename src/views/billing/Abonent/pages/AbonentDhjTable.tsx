@@ -1,7 +1,8 @@
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useEffect, useMemo } from 'react';
-import { useAbonentStore } from '../hooks/abonentStore';
-import { alpha, Card } from '@mui/material';
+import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
+import { useEffect, useMemo, useState } from 'react';
+import { DHJ_PREVIEW_SIZE, useAbonentStore } from '../hooks/abonentStore';
+import { alpha, Card, LinearProgress } from '@mui/material';
+import { DHJRow } from 'types/billing';
 import { useTranslation } from 'react-i18next';
 import { useAbonentLogic } from '../hooks/useAbonentLogic';
 
@@ -11,7 +12,9 @@ function AbonentDhjTable() {
   const dhjRows = useAbonentStore((s) => s.dhjRows);
   const dhjRowsResidentId = useAbonentStore((s) => s.dhjRowsResidentId);
   const dhjRowsLoading = useAbonentStore((s) => s.dhjRowsLoading);
+  const dhjPreview = useAbonentStore((s) => s.dhjPreview);
   const getDhjRows = useAbonentStore((s) => s.getDhjRows);
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: DHJ_PREVIEW_SIZE });
 
   // DHJ bir marta to'liq yuklanadi; sahifa almashtirish va tabga qaytish qayta so'rov yubormaydi
   useEffect(() => {
@@ -20,17 +23,30 @@ function AbonentDhjTable() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [residentId]);
 
-  const rows = useMemo(
-    () =>
-      dhjRowsResidentId === residentId
-        ? dhjRows.map((row, index) => ({
-            ...row,
-            orderNumber: index + 1,
-            allPaymentsAmount: row.cashAmount + row.eMoneyAmount + row.munisAmount + row.q1031Amount
-          }))
-        : [],
-    [dhjRows, dhjRowsResidentId, residentId]
-  );
+  useEffect(() => {
+    setPaginationModel((prev) => ({ ...prev, page: 0 }));
+  }, [residentId]);
+
+  const isComplete = dhjRowsResidentId === residentId;
+  // To'liq ro'yxat kelguncha birinchi qatorlarni ko'rsatamiz (sahifalash server rejimida, jami soni bilan)
+  const partial = !isComplete && dhjPreview?.residentId === residentId ? dhjPreview : null;
+
+  const rows = useMemo(() => {
+    const toGridRows = (list: DHJRow[]) =>
+      list.map((row, index) => ({
+        ...row,
+        orderNumber: index + 1,
+        allPaymentsAmount: row.cashAmount + row.eMoneyAmount + row.munisAmount + row.q1031Amount
+      }));
+    if (isComplete) return toGridRows(dhjRows);
+    if (!partial) return [];
+    // Joriy sahifa birinchi qatorlar ichida bo'lsagina ko'rsatamiz, aks holda to'liq ro'yxatni kutamiz
+    const start = paginationModel.page * paginationModel.pageSize;
+    const end = Math.min(start + paginationModel.pageSize, partial.total);
+    return end <= partial.rows.length ? toGridRows(partial.rows).slice(start, end) : [];
+  }, [isComplete, dhjRows, partial, paginationModel]);
+
+  const isPartialShown = Boolean(partial) && rows.length > 0;
 
   const columns: GridColDef[] = [
     { field: 'orderNumber', headerName: '№', width: 50 },
@@ -113,12 +129,16 @@ function AbonentDhjTable() {
     }
   ];
   return (
-    <Card sx={{ boxShadow: 4 }}>
+    <Card sx={{ boxShadow: 4, position: 'relative' }}>
+      {isPartialShown && <LinearProgress color="secondary" sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, zIndex: 1 }} />}
       <DataGrid
         rows={rows}
-        loading={dhjRowsLoading || dhjRowsResidentId !== residentId}
+        loading={isPartialShown ? false : dhjRowsLoading || !isComplete}
         columns={columns}
-        initialState={{ pagination: { paginationModel: { page: 0, pageSize: 15 } } }}
+        paginationMode={partial ? 'server' : 'client'}
+        rowCount={partial ? partial.total : undefined}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
         pageSizeOptions={[15, 50, 100]}
         disableColumnSorting
         disableColumnMenu

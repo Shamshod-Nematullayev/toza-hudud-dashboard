@@ -1,6 +1,8 @@
 import i18n from 'languageConfig';
 
 export default function componentStyleOverrides(theme) {
+  // Mavzu til o'zgarganda qayta yaratiladi — matnlar aynan shu til bilan olinadi
+  const t = i18n.getFixedT(theme?.customization?.language || i18n.language);
   const bgColor = theme?.customization?.mode === 'dark' ? theme.colors.darkBackground : theme.colors?.grey50;
   return {
     MuiButton: {
@@ -188,11 +190,14 @@ export default function componentStyleOverrides(theme) {
     MuiDataGrid: {
       defaultProps: {
         localeText: {
-          noRowsLabel: i18n.t('dataGrid.noRowsLabel'),
-          footerRowSelected: (count) => i18n.t('dataGrid.footerRowSelected', { count }), //`${count} ta tanlangan`,
+          noRowsLabel: t('dataGrid.noRowsLabel'),
+          footerRowSelected: (count) => t('dataGrid.footerRowSelected', { count }), //`${count} ta tanlangan`,
+          // DataGrid v8+ sahifalash matnlarini shu kalitlardan oladi (MuiTablePagination ichidagilar e'tiborsiz qoladi)
+          paginationRowsPerPage: t('dataGrid.labelRowsPerPage'),
+          paginationDisplayedRows: ({ from, to, count }) => t('dataGrid.labelDisplayedRows', { from, to, count }),
           MuiTablePagination: {
-            labelRowsPerPage: i18n.t('dataGrid.labelRowsPerPage'), //'Sahifadagi qatorlar:',
-            labelDisplayedRows: ({ from, to, count }) => i18n.t('dataGrid.labelDisplayedRows', { from, to, count }) // ({ from, to, count }) => `${count} ta jami ${from} dan ${to gacha}`
+            labelRowsPerPage: t('dataGrid.labelRowsPerPage'), //'Sahifadagi qatorlar:',
+            labelDisplayedRows: ({ from, to, count }) => t('dataGrid.labelDisplayedRows', { from, to, count }) // ({ from, to, count }) => `${count} ta jami ${from} dan ${to gacha}`
           }
         }
       },

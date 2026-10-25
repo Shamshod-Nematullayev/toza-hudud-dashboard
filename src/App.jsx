@@ -102,8 +102,8 @@ const App = () => {
   const effectiveMode = customization.mode === 'system' ? (systemDark ? 'dark' : 'light') : customization.mode;
 
   const currentTheme = React.useMemo(() => {
-    return themes({ ...customization, mode: effectiveMode });
-  }, [customization, effectiveMode]);
+    return themes({ ...customization, mode: effectiveMode, language });
+  }, [customization, effectiveMode, language]);
 
   return (
     <QueryClientProvider client={queryClient}>
