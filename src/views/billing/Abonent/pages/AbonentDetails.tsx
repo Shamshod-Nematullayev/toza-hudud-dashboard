@@ -2,7 +2,21 @@ import InfoChips from '../InfoChips';
 import AbonentProfileCard from '../AbonentProfileCard';
 import { useAbonentStore } from '../hooks/abonentStore';
 import { useAbonentLogic } from '../hooks/useAbonentLogic';
-import { Box, Card, Chip, CircularProgress, Grid, IconButton, Skeleton, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Card,
+  Chip,
+  CircularProgress,
+  Grid,
+  IconButton,
+  LinearProgress,
+  Skeleton,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
 import { CompactKeyValue } from 'ui-component/cards/AbonentCardView';
 import { t } from 'i18next';
 import { TimelineItem, Timeline, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
@@ -15,6 +29,8 @@ function AbonentDetails() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const {
     abonentDetails,
+    abonentPreview,
+    abonentDetailsFailed,
     incomeStats,
     balancePredicts,
     hetAbonent,
@@ -24,7 +40,10 @@ function AbonentDetails() {
     detailsHistory,
     updatePhone
   } = useAbonentStore();
-  const { periodEndYear } = useAbonentLogic();
+  const { periodEndYear, residentId } = useAbonentLogic();
+  // TozaMakon javobi kelguncha qidiruvda topilgan (GreenZone) ma'lumotni ko'rsatamiz
+  const previewDetails = !abonentDetails && abonentPreview?.id === residentId ? abonentPreview : null;
+  const displayDetails = abonentDetails ?? previewDetails;
 
   const balanceToYearEnd = balancePredicts?.balancePredictItems.find((i) => i.period === periodEndYear)?.balanceAmount || null;
 
@@ -36,6 +55,7 @@ function AbonentDetails() {
     updatePhone(displayPhone);
   };
   const isLoading = !abonentDetails;
+  const isNameHistoryLoading = !displayDetails;
 
   const renderSkeletonRows = (count = 5) =>
     Array.from(new Array(count)).map((_, index) => (
@@ -46,6 +66,18 @@ function AbonentDetails() {
     ));
   return (
     <>
+      {previewDetails && abonentDetailsFailed && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          TozaMakon javob bermadi. GreenZone bazasidagi ma'lumotlar ko'rsatilmoqda — balans eskirgan bo'lishi mumkin.
+        </Alert>
+      )}
+      {previewDetails && !abonentDetailsFailed && (
+        <Alert severity="info" icon={<CircularProgress size={18} color="inherit" />} sx={{ mb: 2, position: 'relative', overflow: 'hidden' }}>
+          Abonent topildi. Balans va to'liq ma'lumotlar TozaMakon'dan yuklanmoqda…
+          <LinearProgress color="info" sx={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2 }} />
+        </Alert>
+      )}
+
       {/* 1. InfoChips - Konteyner saqlanadi */}
       {isLoading ? (
         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
@@ -69,7 +101,7 @@ function AbonentDetails() {
       )}
 
       {/* 2. Profile Card */}
-      <AbonentProfileCard data={abonentDetails} />
+      <AbonentProfileCard data={displayDetails} />
 
       <Grid container spacing={2} sx={{ mt: 1 }}>
         {/* 3. HET Abonent Card */}
@@ -134,7 +166,7 @@ function AbonentDetails() {
 
         {/* 5. Name History */}
         <Grid size={{ xs: 12, md: 4 }}>
-          {isLoading ? (
+          {isNameHistoryLoading ? (
             <Card sx={{ p: 2, height: '100%' }}>
               <Skeleton variant="rectangular" height="100%" />
             </Card>
@@ -143,8 +175,8 @@ function AbonentDetails() {
               data={[
                 ...detailsHistory,
                 {
-                  accountNumber: Number(abonentDetails?.accountNumber),
-                  fullName: abonentDetails?.fullName || '',
+                  accountNumber: Number(displayDetails?.accountNumber),
+                  fullName: displayDetails?.fullName || '',
                   date: new Date().toISOString()
                 }
               ]}

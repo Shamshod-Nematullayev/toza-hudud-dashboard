@@ -34,6 +34,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useSearchAbonentSectionStore } from './useSearchAbonentSectionStore';
 import { IAbonent } from 'types/billing';
+import { useAbonentStore } from 'views/billing/Abonent/hooks/abonentStore';
 
 export default function SearchAbonentResultDialog() {
   const theme = useTheme();
@@ -94,6 +95,8 @@ export default function SearchAbonentResultDialog() {
     if (inNewTab) {
       window.open(`/abonent/${id}/details`, '_blank');
     } else {
+      const abonent = abonents.find((a) => a.id === id);
+      if (abonent) useAbonentStore.getState().setAbonentPreview(abonent);
       navigate(`/abonent/${id}/details`);
       clearResults();
       setOpenState(false);
@@ -112,6 +115,8 @@ export default function SearchAbonentResultDialog() {
     });
 
     // Navigate to the 1st item in the current tab and close dialog
+    const first = abonents.find((a) => a.id === targets[0]);
+    if (first) useAbonentStore.getState().setAbonentPreview(first);
     navigate(`/abonent/${targets[0]}/details`);
     clearResults();
     setOpenState(false);

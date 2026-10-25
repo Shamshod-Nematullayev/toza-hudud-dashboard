@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSearchAbonentSectionStore } from '../useSearchAbonentSectionStore';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
+import { useAbonentStore } from 'views/billing/Abonent/hooks/abonentStore';
 
 export const useSearchAbonent = () => {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export const useSearchAbonent = () => {
       }
 
       if (data.content.length === 1) {
+        // Topilgan ma'lumot abonent sahifasida darhol ko'rinadi, TozaMakon javobi keyin ustiga yoziladi
+        useAbonentStore.getState().setAbonentPreview(data.content[0]);
         navigate(`/abonent/${data.content[0].id}/details`);
         setOpenState(false);
       } else {

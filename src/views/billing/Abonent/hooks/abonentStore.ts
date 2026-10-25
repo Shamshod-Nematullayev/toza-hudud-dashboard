@@ -1,4 +1,13 @@
-import { AbonentDetails, AbonentDetailsHistoryRow, DHJRow, IAbonentFromDB, IAct, IBalancePredict, IncomeStatRow } from 'types/billing';
+import {
+  AbonentDetails,
+  AbonentDetailsHistoryRow,
+  DHJRow,
+  IAbonent as IBillingAbonent,
+  IAbonentFromDB,
+  IAct,
+  IBalancePredict,
+  IncomeStatRow
+} from 'types/billing';
 import api from 'utils/api';
 import { create } from 'zustand';
 import {
@@ -33,8 +42,75 @@ async function sendWithNetworkRetry<T>(send: () => Promise<T>, delaysMs = [2000,
   }
 }
 
+/** Qidiruv natijasidagi (GreenZone) abonentni sahifa formatiga keltiradi — TozaMakon javobi kelguncha ko'rsatish uchun. */
+type SearchedAbonent = (IAbonent | IBillingAbonent) & { contractNumber?: string | null; regionName?: string | null };
+
+function abonentPreviewFromSearch(a: SearchedAbonent): AbonentDetails {
+  return {
+    id: a.id,
+    accountNumber: a.accountNumber,
+    residentType: 'INDIVIDUAL',
+    electricityAccountNumber: a.electricityAccountNumber || '',
+    electricityCoato: a.electricityCoato || '',
+    companyId: 0,
+    companyName: '',
+    streetId: a.streetId,
+    mahallaId: a.mahallaId,
+    regionId: 0,
+    streetName: a.streetName || '',
+    mahallaName: a.mahallaName || '',
+    regionName: a.regionName || '',
+    fullName: a.fullName,
+    contractNumber: a.contractNumber || null,
+    contractDate: a.contractDate || '',
+    homePhone: a.homePhone,
+    active: !a.deletedAt,
+    description: a.description,
+    phone: a.phone || null,
+    citizen: {
+      firstName: '',
+      lastName: '',
+      foreignCitizen: a.foreignCitizen,
+      patronymic: null,
+      inn: a.inn,
+      pnfl: a.pinfl || '',
+      passport: a.passport || '',
+      birthDate: a.birthDate || '',
+      passportGivenDate: a.passportGivenDate || '',
+      passportIssuer: '',
+      passportExpireDate: '',
+      email: null,
+      photo: null
+    },
+    house: {
+      id: 0,
+      type: 'HOUSE',
+      cadastralNumber: a.cadastralNumber || '',
+      homeNumber: a.homeNumber || '',
+      flatNumber: a.flatNumber ? String(a.flatNumber) : undefined,
+      homeIndex: a.homeIndex ? String(a.homeIndex) : undefined,
+      inhabitantCnt: a.inhabitantCnt || 0,
+      miaInhabitantCnt: null
+    },
+    balance: {
+      period: a.period || '',
+      kSaldo: a.ksaldo || 0,
+      frozenActAmount: 0,
+      frozenDebtSettlement: 0,
+      frozenKSaldo: 0,
+      frozenNSaldo: 0,
+      frozenRevenue: 0,
+      rate: '',
+      accrual: a.accrual || 0
+    },
+    identified: a.identified
+  };
+}
+
 const initialState: IAbonentPageDataStore = {
   abonentDetails: null,
+  abonentPreview: null,
+  abonentDetailsFailed: false,
   dhjRows: [],
   dhjRowsResidentId: null,
   dhjRowsLoading: false,
@@ -82,6 +158,13 @@ const initialState: IAbonentPageDataStore = {
 
 interface IAbonentPageDataStore {
   abonentDetails: AbonentDetails | null;
+  /**
+   * Qidiruvda topilgan (GreenZone/Mongo) qisqa ma'lumot — faqat ko'rsatish uchun.
+   * TozaMakondan `abonentDetails` kelguncha sahifa bo'sh turmasligi uchun. Tahrirlash amallarida ishlatilmaydi.
+   */
+  abonentPreview: AbonentDetails | null;
+  /** TozaMakondan batafsil ma'lumot olinmadi (preview bo'lsa shuni ko'rsatishda davom etamiz) */
+  abonentDetailsFailed: boolean;
   abonentCadastrs: string[];
   dhjRows: DHJRow[];
   /** `dhjRows` qaysi abonentga tegishli — tab qayta ochilganda qayta so'rov yubormaslik uchun */
@@ -137,6 +220,8 @@ export interface IAbonentPageActionsStore {
    * TozaMakondan olinadi.
    */
   getDetails: (residentId: number) => Promise<void>;
+  /** Qidiruv natijasini sahifaga o'tishdan oldin saqlab qo'yadi (darhol ko'rsatish uchun). */
+  setAbonentPreview: (abonent: SearchedAbonent) => void;
   /** DHJ ning barcha qatorlarini bir marta yuklaydi (sahifalash klient tomonda). residentId berilmasa abonentDetails.id olinadi. */
   getDhjRows: (residentId?: number) => Promise<void>;
   getDetailsHistory: (accountNumber: number | string) => Promise<void>;
@@ -221,7 +306,8 @@ export interface IAbonentPageActionsStore {
   refreshAbonentDetailsPage: (residentId: number, periodEndYear: string) => Promise<void>;
 
   fetchBlockReport: (residentId: number) => void;
-  resetStore: () => void;
+  /** `keepPreviewFor` berilsa va preview shu abonentga tegishli bo'lsa, preview saqlanib qoladi. */
+  resetStore: (keepPreviewFor?: number) => void;
   getSimilarAbonentsByElectricity: (electrycityAccountNumber: string) => Promise<any>;
   getSimilarAbonentsByCadastr: (cadastralNumber: string) => Promise<any>;
   getSimilarAbonentsByPinfl: (pinfl: string) => Promise<any>;
@@ -237,9 +323,16 @@ let dhjRequestId = 0;
 export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   ...initialState,
   getDetails: async (residentId) => {
-    const { data } = await api.get('/billing/get-abonent-details/' + residentId);
-    set({ abonentDetails: { ...data, citizen: { ...data.citizen, photo: null } } });
+    set({ abonentDetailsFailed: false });
+    try {
+      const { data } = await api.get('/billing/get-abonent-details/' + residentId);
+      set({ abonentDetails: { ...data, citizen: { ...data.citizen, photo: null } } });
+    } catch (error) {
+      set({ abonentDetailsFailed: true });
+      throw error;
+    }
   },
+  setAbonentPreview: (abonent) => set({ abonentPreview: abonentPreviewFromSearch(abonent) }),
   getDhjRows: async (residentIdArg) => {
     const residentId = residentIdArg ?? get().abonentDetails?.id;
     if (!residentId) return;
@@ -495,7 +588,10 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     if (!current || current.id !== residentId) return;
     set({ blockReport: data });
   },
-  resetStore: () => set(initialState),
+  resetStore: (keepPreviewFor) => {
+    const preview = get().abonentPreview;
+    set({ ...initialState, abonentPreview: keepPreviewFor && preview?.id === keepPreviewFor ? preview : null });
+  },
   closeMvdAddressModal: () => {
     const { ui } = get();
     set({ ui: { ...ui, mvdAddressModalOpenState: false } });

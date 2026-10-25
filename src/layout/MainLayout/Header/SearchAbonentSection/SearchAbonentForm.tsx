@@ -1,11 +1,10 @@
-import { Backdrop, Box, Button, Grid, Skeleton, TextField, useTheme } from '@mui/material';
+import { Button, Grid, LinearProgress, TextField } from '@mui/material';
 import { t } from 'i18next';
 import { useState } from 'react';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
 import { lotinga } from 'helpers/lotinKiril';
 import { useSearchAbonent } from './hooks/useSearchAbonent';
-import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
 
 function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => void; accountNumberInputRef: any }) {
   const [abonentId, setAbonentId] = useState('');
@@ -70,23 +69,8 @@ function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => 
 
   return (
     <>
-      {isPending && (
-        <Box
-          sx={{
-            position: 'fixed',
-            inset: -10,
-            zIndex: 20,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backdropFilter: 'blur(6px)',
-            borderRadius: 2
-          }}
-        >
-          <CustomAtomLoader />
-        </Box>
-      )}
+      {/* Ekranni bloklamaymiz — qidiruv ketayotgani yengil indikator bilan ko'rsatiladi */}
+      {isPending && <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} />}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           {/* 0-qator */}
@@ -188,7 +172,7 @@ function SearchAbonentForm({ onClose, accountNumberInputRef }: { onClose: () => 
               {' '}
               {t('buttons.close')}
             </Button>
-            <Button variant="contained" color="secondary" type="submit">
+            <Button variant="contained" color="secondary" type="submit" loading={isPending} loadingPosition="start">
               {t('search')}
             </Button>
           </Grid>

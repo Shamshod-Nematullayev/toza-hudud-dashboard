@@ -14,10 +14,6 @@ export function useAbonentLogic() {
   };
 }
 
-function awaitPromises(promises: Promise<any>[]) {
-  return Promise.all(promises);
-}
-
 /** Asosiy abonent ma'lumotlarini bitta joyda yuklash (layout). Takroriy chaqirish API ni ko'p marta urmaydi. */
 export function usePrefetchAbonentPageData() {
   const { residentId, periodEndYear } = useAbonentLogic();
@@ -25,21 +21,25 @@ export function usePrefetchAbonentPageData() {
 
   useEffect(() => {
     if (Number.isNaN(residentId)) return;
-    (async () => {
-      resetStore();
-      // End birinchi sahifada ko'rinishi kerak bo'lgan ma'lumotlar
-      await awaitPromises([getIncomePredicts(residentId, periodEndYear), getDetails(residentId), getIncomeStats(residentId)]);
+    // Qidiruvdan kelgan preview saqlanadi — sahifa TozaMakon javobini kutmasdan to'ladi
+    resetStore(residentId);
 
-      // Qo'shimcha ma'lumotlar
-      await awaitPromises([
-        getDetailsHistory(useAbonentStore.getState().abonentDetails?.accountNumber || ''),
-        getAbonentPetitions(residentId)
-      ]);
+    // Barcha so'rovlar parallel: biri sekin yoki xato bo'lsa ham qolganlari o'z vaqtida ko'rinadi
+    const detailsPromise = getDetails(residentId);
+    void detailsPromise.catch(() => {});
+    void getIncomePredicts(residentId, periodEndYear).catch(() => {});
+    void getIncomeStats(residentId).catch(() => {});
+    void getAbonentPetitions(residentId).catch(() => {});
 
-      // Qo'shimcha ma'lumotlar part 2
-      // await awaitPromises([])
-      // abonentlarni izlash elektr kodi bo'yicha
-    })();
+    // Hisob raqami previewda bo'lsa tarixni darhol so'raymiz, aks holda batafsil ma'lumotdan keyin
+    const previewAccountNumber = useAbonentStore.getState().abonentPreview?.accountNumber;
+    if (previewAccountNumber) {
+      void getDetailsHistory(previewAccountNumber).catch(() => {});
+    } else {
+      void detailsPromise
+        .then(() => getDetailsHistory(useAbonentStore.getState().abonentDetails?.accountNumber || ''))
+        .catch(() => {});
+    }
   }, [residentId]);
 }
 
@@ -50,7 +50,10 @@ export function usePrefetchAbonentPageData() {
  */
 export function useAbonentDetailsSupplementaryData() {
   const { residentId } = useAbonentLogic();
-  const abonentDetails = useAbonentStore((s) => s.abonentDetails);
+  const fullDetails = useAbonentStore((s) => s.abonentDetails);
+  const abonentPreview = useAbonentStore((s) => s.abonentPreview);
+  // TozaMakon javobi kelguncha qidiruvdagi (GreenZone) ma'lumot bilan HET/kadastr so'rovlarini oldindan boshlaymiz
+  const abonentDetails = fullDetails ?? (abonentPreview?.id === residentId ? abonentPreview : null);
   const supplementaryRefreshNonce = useAbonentStore((s) => s.abonentSupplementaryRefreshNonce);
   const getHetAbonent = useAbonentStore((s) => s.getHetAbonent);
   const setHetAbonent = useAbonentStore((s) => s.setHetAbonent);

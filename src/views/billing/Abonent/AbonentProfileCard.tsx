@@ -123,6 +123,12 @@ const InfoRow = ({
   );
 };
 
+// Qidiruvdan kelgan preview'da sana bo'sh bo'lishi mumkin — "Invalid Date" o'rniga chiziqcha
+const formatBirthDate = (date?: string) => {
+  const d = dayjs(date);
+  return date && d.isValid() ? d.format('DD.MM.YYYY') : '—';
+};
+
 const AbonentProfileCard = ({ data }: { data: Data | null }) => {
   const isLoading = !data;
   const theme = useTheme();
@@ -258,7 +264,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                     sx={{ bgcolor: 'primary.lighter', color: 'primary.main', fontWeight: 'bold', borderRadius: '6px', mt: 1 }}
                   />
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1 }}>
-                    Tug'ilgan sana: {isLoading ? <Skeleton width={60} /> : dayjs(data?.citizen.birthDate).format('DD.MM.YYYY') || ''}
+                    Tug'ilgan sana: {isLoading ? <Skeleton width={60} /> : formatBirthDate(data?.citizen.birthDate)}
                   </Typography>
                 </Box>
               </Stack>
@@ -492,7 +498,7 @@ const AbonentProfileCard = ({ data }: { data: Data | null }) => {
                   />
                 )}
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {isLoading ? <Skeleton width={60} /> : dayjs(data?.citizen.birthDate).format('DD.MM.YYYY') || ''}
+                  {isLoading ? <Skeleton width={60} /> : formatBirthDate(data?.citizen.birthDate)}
                 </Typography>
               </Grid>
 
