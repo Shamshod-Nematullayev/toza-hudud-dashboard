@@ -37,7 +37,7 @@ interface PendingActDetailDrawerProps {
   open: boolean;
   actId: string | null;
   onClose: () => void;
-  onRetry: (id: string) => void;
+  onRetry: (id: string) => Promise<any> | void;
   onEdit: (act: any) => void;
   onDelete: (id: string, hasAriza: boolean) => void;
   onViewFile: (id: string) => void;
@@ -89,6 +89,7 @@ const PendingActDetailDrawer: React.FC<PendingActDetailDrawerProps> = ({
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const [data, setData] = useState<any>(null);
   const [ariza, setAriza] = useState<any>(null);
   const [multiplyRequest, setMultiplyRequest] = useState<any>(null);
@@ -491,11 +492,19 @@ const PendingActDetailDrawer: React.FC<PendingActDetailDrawerProps> = ({
               color="warning"
               size="small"
               startIcon={<Replay />}
-              onClick={() => onRetry(data._id)}
-              disabled={data.status === 'processing'}
+              onClick={async () => {
+                setIsRetrying(true);
+                try {
+                  const updated = await onRetry(data._id);
+                  if (updated) setData(updated);
+                } finally {
+                  setIsRetrying(false);
+                }
+              }}
+              disabled={data.status === 'processing' || isRetrying}
               sx={{ textTransform: 'none', fontWeight: 700 }}
             >
-              Qayta kiritish
+              {isRetrying ? 'Kiritilmoqda...' : 'Qayta kiritish'}
             </Button>
           </Stack>
         </Box>

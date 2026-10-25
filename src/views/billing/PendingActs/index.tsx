@@ -181,9 +181,7 @@ function PendingActs() {
     updateQueryParams({ selectedId: null });
   };
 
-  const handleRetry = async (id: string) => {
-    await retryAct(id);
-  };
+  const handleRetry = (id: string) => retryAct(id);
 
   const handleBulkRetry = async () => {
     await bulkRetry();

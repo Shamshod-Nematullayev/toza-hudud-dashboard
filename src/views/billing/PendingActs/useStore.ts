@@ -66,7 +66,7 @@ interface PendingActsStore {
   setSelectedActId: (id: string | null) => void;
 
   // Actions
-  retryAct: (id: string) => Promise<boolean>;
+  retryAct: (id: string) => Promise<any>; // yangilangan akt (yoki null)
   bulkRetry: (ids?: string[]) => Promise<boolean>;
   deleteAct: (id: string, resetAriza?: boolean) => Promise<boolean>;
 }
@@ -121,15 +121,28 @@ const useStore = create<PendingActsStore>((set, get) => ({
   selectedActId: null,
   setSelectedActId: (selectedActId) => set({ selectedActId }),
 
+  // Bitta akt so'rov ichida kiritiladi (job emas), natija kelguncha kutamiz
   retryAct: async (id: string) => {
+    const toastId = toast.loading('Akt TozaMakonga kiritilmoqda...');
     try {
       const res = await api.post(`/pending-acts/${id}/retry`);
-      toast.success(res.data?.message || 'Qayta kiritish boshlandi');
+      toast.update(toastId, {
+        render: res.data?.message || 'Akt kiritildi',
+        type: 'success',
+        isLoading: false,
+        autoClose: 4000
+      });
       get().reload();
-      return true;
+      return res.data?.data || null;
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Qayta urinishda xatolik yuz berdi');
-      return false;
+      toast.update(toastId, {
+        render: err?.response?.data?.message || 'Qayta urinishda xatolik yuz berdi',
+        type: 'error',
+        isLoading: false,
+        autoClose: 8000
+      });
+      get().reload();
+      return err?.response?.data?.data || null;
     }
   },
 
