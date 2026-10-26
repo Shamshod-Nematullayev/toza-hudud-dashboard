@@ -154,8 +154,8 @@ export default function SelectSyncLogDialog({ open, onClose, onJobStarted }: Sel
       <DialogContent dividers sx={{ p: 2, maxHeight: '70vh', overflowY: 'auto' }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           1) Ishga tushirilgan skriptni tanlang. 2) Skript oxirida konsolga chiqargan muvaffaqiyatsiz ETK lar ro'yxatini (array) kiriting
-          yoki saqlangan .txt faylni yuklang. Skriptdagi qolgan debitorlar HETga muvaffaqiyatli ulangan, ro'yxatdagilar esa xatolik deb
-          belgilanadi. Telefon holati "HET sinxronizatsiya kerak" da qoladi.
+          yoki saqlangan .txt faylni yuklang. Skriptdagi qolgan debitorlar HETga muvaffaqiyatli ulangan (100% tayyor) deb belgilanadi,
+          ro'yxatdagilar esa xatolik belgisi bilan "HET sinxronizatsiya kerak" holatida qoladi.
         </Typography>
 
         {loading ? (

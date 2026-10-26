@@ -120,9 +120,10 @@ export interface Debitor {
   id: string; // DataGrid uchun tartib raqami id
 }
 
-// HET skripti natijasi (status 'needs_het_sync' da qoladi) — faqat skriptga yuborilgan raqam hali ham asosiy bo'lsa ko'rsatiladi
+// HET skripti natijasi (ulanganlar 'confirmed', xatoliklar 'needs_het_sync' da qoladi) — faqat skriptga yuborilgan raqam hali ham asosiy bo'lsa
 const getHetPhoneSyncCfg = (row: Debitor) => {
-  if (row.phoneStatus !== 'needs_het_sync' || !row.hetPhoneSync || row.hetPhoneSync.phone !== row.primaryPhone) return null;
+  if (!['needs_het_sync', 'confirmed'].includes(row.phoneStatus) || !row.hetPhoneSync || row.hetPhoneSync.phone !== row.primaryPhone)
+    return null;
   return row.hetPhoneSync.status === 'synced'
     ? { label: '✅ Skript: HETga ulandi', color: 'success' as const }
     : { label: '❌ Skript: ulanmadi', color: 'error' as const };
@@ -153,6 +154,7 @@ export const SUBSTATUS_MAP: Record<string, string> = {
   block_requested_in_het: 'HET blok so‘rovi qabul qilindi',
   unblocked_in_het: 'HET da blokdan chiqarilgan',
   sms_operator_not_allowed: 'Operatorga SMS ruxsat etilmagan',
+  het_phone_synced_by_script: 'Telefon HETga skript orqali ulandi',
   actively_blocked: 'Blokda',
   resolved: 'Hal etildi',
   ready_to_block: 'Tayyor',
