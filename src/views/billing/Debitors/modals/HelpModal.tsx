@@ -46,7 +46,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ open, onClose }) => {
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   TozaMakon bazasidan qarzdorlarni yuklaydi, yangi debitorlarni boshlang'ich qarz summasi (`initialDebtAmount`) bilan bazaga
-                  kiritadi. Qarzdorligi yopilgan abonentlarni `resolved` (hal etilgan) qiladi va qarz summasini 0 qiladi.
+                  kiritadi. Qarzdorligi yopilgan abonentlarni `resolved` (hal etilgan) qiladi va qarz summasini 0 qiladi. Har kuni tunda
+                  avtomatik bajariladi; qo'lda esa tashkilot uchun 3 soatda faqat 1 marta ishga tushirish mumkin.
                 </Typography>
               </Box>
               <Box sx={{ p: 1.5, bgcolor: 'background.default', borderRadius: 1.5 }}>
@@ -54,8 +55,9 @@ export const HelpModal: React.FC<HelpModalProps> = ({ open, onClose }) => {
                   ⚡ Job 1: HET Elektr Hisob Kodi va Bloklanish Tekshiruvi (`processDebitorsHetAccounts`)
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  HET bazasidan elektr hisob kodi (ETK) hamda amaldagi blokirovkalar holatini aniqlaydi. Blokda bo'lgan debitorlarning
-                  elektr kodi va telefon raqami avtomatik `confirmed` (tasdiqlangan) deb belgilandi.
+                  Bloklanganlar (`BLOCK`) va o'tgan oylarda bloklanganlar (`ALREADY_BLOCK`) ro'yxatini bir martada olib, blok holatini
+                  aniqlaydi. Blokda bo'lgan debitorlarning elektr kodi `confirmed` deb belgilanadi. Elektr kodi kiritilgan paytdayoq
+                  tekshiriladi — HETda faqat hali tekshirilmagan (`new`) kodlar tekshiriladi.
                 </Typography>
               </Box>
               <Box sx={{ p: 1.5, bgcolor: 'background.default', borderRadius: 1.5 }}>
@@ -63,8 +65,9 @@ export const HelpModal: React.FC<HelpModalProps> = ({ open, onClose }) => {
                   📱 Job 2: Telefon va SMS Ogohlantirish Ishlovi (`processDebitorsPhoneAndSms`)
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Bloklanmagan debitorlar uchun SMS ogohlantirishlar yuboradi va HET/TozaMakon telefon raqamlarini sinovdan o'tkazadi. SMS
-                  failed bo'lsa yoki HETda telefon xato bo'lsa, avtomatik TozaMakon telefoniga va `needs_het_sync` statusiga o'tkazadi.
+                  Bloklanmagan debitorlar uchun faqat TozaMakon telefon raqamini (sinxronlash paytida olingan) SMS orqali sinovdan
+                  o'tkazadi. HET bazasidagi telefon tekshirilmaydi. Bir raqamga takroriy SMS yuborilmaydi; SMS yetkazilgan raqam
+                  `needs_het_sync` statusiga o'tadi.
                 </Typography>
               </Box>
             </Stack>

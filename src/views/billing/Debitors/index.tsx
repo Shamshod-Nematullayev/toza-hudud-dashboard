@@ -115,9 +115,18 @@ export interface Debitor {
   __v: 0;
   phoneStatus: PhoneStatus;
   primaryPhoneSource: string | null;
+  hetPhoneSync?: { status: 'synced' | 'failed'; phone: string | null; checkedAt: string } | null;
   accountNumber: string;
   id: string; // DataGrid uchun tartib raqami id
 }
+
+// HET skripti natijasi (status 'needs_het_sync' da qoladi) — faqat skriptga yuborilgan raqam hali ham asosiy bo'lsa ko'rsatiladi
+const getHetPhoneSyncCfg = (row: Debitor) => {
+  if (row.phoneStatus !== 'needs_het_sync' || !row.hetPhoneSync || row.hetPhoneSync.phone !== row.primaryPhone) return null;
+  return row.hetPhoneSync.status === 'synced'
+    ? { label: '✅ Skript: HETga ulandi', color: 'success' as const }
+    : { label: '❌ Skript: ulanmadi', color: 'error' as const };
+};
 
 // ─── Config ───────────────────────────────────────────────────────
 
@@ -1056,6 +1065,7 @@ function Debitors() {
       renderCell: ({ row }) => {
         const pStatus = row.phoneStatus || 'new';
         const cfg = PHONE_CFG[pStatus as PhoneStatus] || PHONE_CFG.new;
+        const hetSyncCfg = getHetPhoneSyncCfg(row);
         return (
           <Stack spacing={0.3} sx={{ py: 0.5 }}>
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -1068,6 +1078,9 @@ function Debitors() {
               variant="outlined"
               sx={{ height: 18, fontSize: 10, alignSelf: 'flex-start' }}
             />
+            {hetSyncCfg && (
+              <Chip label={hetSyncCfg.label} size="small" color={hetSyncCfg.color} sx={{ height: 18, fontSize: 10, alignSelf: 'flex-start' }} />
+            )}
           </Stack>
         );
       }

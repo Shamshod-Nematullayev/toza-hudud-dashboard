@@ -99,6 +99,26 @@ export function Sidebar({
   const [skipSmsValue, setSkipSmsValue] = React.useState<boolean>(false);
   const [limitValue, setLimitValue] = React.useState<string>('');
 
+  // Job 0: oxirgi sinxron vaqti va 3 soatlik cheklov
+  const [syncInfo, setSyncInfo] = React.useState<{ lastSyncAt: string | null; nextAvailableAt: string | null; canRun: boolean } | null>(
+    null
+  );
+  const fetchSyncInfo = React.useCallback(async () => {
+    try {
+      const { data } = await api.get('/debitors/jobs/sync-info');
+      setSyncInfo(data?.data || null);
+    } catch (err) {
+      // Ignore sync info error
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchSyncInfo();
+  }, [fetchSyncInfo]);
+
+  const formatDateTime = (value: string) =>
+    new Date(value).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
   // Poll Active Job Progress
   const fetchJobProgress = React.useCallback(async () => {
     try {
@@ -117,6 +137,7 @@ export function Sidebar({
           if (wasJobRunningRef.current) {
             wasJobRunningRef.current = false;
             onJobFinish?.();
+            fetchSyncInfo();
           }
           setActiveJob(null);
         }
@@ -124,13 +145,14 @@ export function Sidebar({
         if (wasJobRunningRef.current) {
           wasJobRunningRef.current = false;
           onJobFinish?.();
+          fetchSyncInfo();
         }
         setActiveJob(null);
       }
     } catch (err) {
       // Ignore poll error
     }
-  }, [onJobFinish]);
+  }, [onJobFinish, fetchSyncInfo]);
 
   React.useEffect(() => {
     fetchJobProgress();
@@ -146,6 +168,7 @@ export function Sidebar({
       toast.success(data.message || 'Job muvaffaqiyatli ishga tushirildi!', { autoClose: 4000 });
       wasJobRunningRef.current = true;
       fetchJobProgress();
+      if (jobKey === 'job0') fetchSyncInfo();
     } catch (err: any) {
       const errMsg = err.response?.data?.message || 'Job ishga tushirishda xatolik yuz berdi.';
       toast.error(errMsg, { autoClose: 5000 });
@@ -277,13 +300,23 @@ export function Sidebar({
                 color="info"
                 startIcon={triggerLoading === 'job0' ? <CircularProgress size={14} /> : <SyncOutlined fontSize="small" />}
                 onClick={openSyncDialog}
-                disabled={isAnyJobRunning || Boolean(triggerLoading)}
+                disabled={isAnyJobRunning || Boolean(triggerLoading) || (syncInfo?.canRun === false && !isProductAdmin)}
                 sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
               >
                 Job 0: Debitorlarni Sinxronlash
               </Button>
             </span>
           </Tooltip>
+          {syncInfo && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 10.5, mt: -0.5, px: 0.5 }}>
+              🕒 Oxirgi sinxron: {syncInfo.lastSyncAt ? formatDateTime(syncInfo.lastSyncAt) : 'hali bajarilmagan'}
+              {!syncInfo.canRun && syncInfo.nextAvailableAt && (
+                <>
+                  <br />⏳ Keyingi imkoniyat: {formatDateTime(syncInfo.nextAvailableAt)} (3 soatda 1 marta)
+                </>
+              )}
+            </Typography>
+          )}
 
           <Tooltip title="Job 1: ETK elektr hisob kodi va HET bloklanishini tekshirish (Faqat Premium)">
             <span>
@@ -320,7 +353,7 @@ export function Sidebar({
           </Tooltip>
 
           {canUsePremiumSync && (
-            <Tooltip title="Chiqindi korxona bazasidagi telefonlarni yangilash (Faqat Premium)">
+            <Tooltip title="HET skripti qaytargan muvaffaqiyatsiz ETK lar ro'yxatini yuklab, skriptdagi debitorlarning HETga ulanganligini belgilash (Faqat Premium)">
               <span>
                 <Button
                   fullWidth
