@@ -152,6 +152,7 @@ export const SUBSTATUS_MAP: Record<string, string> = {
   actively_blocked_in_het: 'HET da bloklangan',
   block_requested_in_het: 'HET blok so‘rovi qabul qilindi',
   unblocked_in_het: 'HET da blokdan chiqarilgan',
+  sms_operator_not_allowed: 'Operatorga SMS ruxsat etilmagan',
   actively_blocked: 'Blokda',
   resolved: 'Hal etildi',
   ready_to_block: 'Tayyor',
