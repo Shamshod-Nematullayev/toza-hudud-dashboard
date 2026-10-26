@@ -150,6 +150,8 @@ export const SUBSTATUS_MAP: Record<string, string> = {
   previously_blocked: "Ilgari o'chirilgan",
   tozamakon_phone_needs_het_sync: 'HET ga sinxronlash kerak',
   actively_blocked_in_het: 'HET da bloklangan',
+  block_requested_in_het: 'HET blok so‘rovi qabul qilindi',
+  unblocked_in_het: 'HET da blokdan chiqarilgan',
   actively_blocked: 'Blokda',
   resolved: 'Hal etildi',
   ready_to_block: 'Tayyor',
