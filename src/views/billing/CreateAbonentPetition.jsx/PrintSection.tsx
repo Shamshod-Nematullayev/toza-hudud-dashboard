@@ -740,7 +740,14 @@ export default function PrintSection({
                             textDecoration: isExcluded ? 'line-through' : 'none'
                           }}
                         >
-                          {p.label} <span style={{ fontWeight: 500 }}>{p.name}</span>
+                          {p.label}{' '}
+                          {p.name ? (
+                            <span style={{ fontWeight: 500 }}>{p.name}</span>
+                          ) : (
+                            <span style={{ fontWeight: 400, fontStyle: 'italic', color: theme.palette.warning.main }}>
+                              (ismi kiritilmagan)
+                            </span>
+                          )}
                         </Typography>
                         {p.position && p.position !== p.label.replace(':', '') && (
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>

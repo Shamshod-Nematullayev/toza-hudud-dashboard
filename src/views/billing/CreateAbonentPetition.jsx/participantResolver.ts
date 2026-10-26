@@ -86,7 +86,12 @@ export function resolveParticipants(params: {
 
   const mahallaData = mahalla?.data || mahalla;
   const hasExplicitRais = actType.participants?.some((p) => p.key === 'mahalla_raisi');
-  const raisNameNormalized = (mahallaData?.mfy_rais_name || '').trim().toLowerCase();
+  // Rais ba'zi kompaniyalarda faqat xodimlar ro'yxatida turadi (mfy_rais_name bo'sh)
+  const raisEmployee = (mahallaData?.employees || []).find(
+    (emp: any) => emp.fullName?.trim() && matchYettilikRole(emp.position)?.roleKey === 'mahalla_raisi'
+  );
+  const raisName = (mahallaData?.mfy_rais_name || '').trim() || raisEmployee?.fullName?.trim() || '';
+  const raisNameNormalized = raisName.toLowerCase();
 
   const sortedConfigs = [...(actType.participants || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
@@ -137,34 +142,29 @@ export function resolveParticipants(params: {
         }
         break;
       }
+      // Mahalla ishtirokchilari ismi kiritilmagan bo'lsa ham imzo joyi chiqadi (qo'lda imzolanadi)
       case 'aholi_nazoratchisi': {
-        const name = mahallaData?.biriktirilganNazoratchi?.inspector_name || '';
-        if (name) {
-          list.push({
-            id: 'aholi_nazoratchisi',
-            key: 'aholi_nazoratchisi',
-            label: cfg.label || 'Aholi nazoratchisi:',
-            name,
-            position: 'Aholi nazoratchisi',
-            order: cfg.order,
-            isExcluded: excludedIds.includes('aholi_nazoratchisi')
-          });
-        }
+        list.push({
+          id: 'aholi_nazoratchisi',
+          key: 'aholi_nazoratchisi',
+          label: cfg.label || 'Aholi nazoratchisi:',
+          name: mahallaData?.biriktirilganNazoratchi?.inspector_name || '',
+          position: 'Aholi nazoratchisi',
+          order: cfg.order,
+          isExcluded: excludedIds.includes('aholi_nazoratchisi')
+        });
         break;
       }
       case 'mahalla_raisi': {
-        const name = mahallaData?.mfy_rais_name || '';
-        if (name) {
-          list.push({
-            id: 'mahalla_raisi',
-            key: 'mahalla_raisi',
-            label: cfg.label || `${mahallaData?.name || 'MFY'} raisi:`,
-            name,
-            position: 'MFY raisi',
-            order: cfg.order,
-            isExcluded: excludedIds.includes('mahalla_raisi')
-          });
-        }
+        list.push({
+          id: 'mahalla_raisi',
+          key: 'mahalla_raisi',
+          label: cfg.label || `${mahallaData?.name || 'MFY'} raisi:`,
+          name: raisName,
+          position: 'MFY raisi',
+          order: cfg.order,
+          isExcluded: excludedIds.includes('mahalla_raisi')
+        });
         break;
       }
       case 'mahalla_yettiligi': {
