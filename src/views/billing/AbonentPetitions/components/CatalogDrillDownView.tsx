@@ -233,11 +233,20 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
       {
         field: 'accountNumber',
         headerName: t('tableHeaders.accountNumber', 'Hisob raqam'),
-        width: 140,
+        width: 170,
         renderCell: (params) => (
-          <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-            {params.row.accountNumber}
-          </Typography>
+          <Stack spacing={0.2} sx={{ justifyContent: 'center', height: '100%' }}>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+              {params.row.accountNumber}
+            </Typography>
+            {params.row.ikkilamchi_licshet && (
+              <Tooltip title={t('tableHeaders.dublicateAccountNumber', 'Ikkilamchi hisob') + ': ' + params.row.ikkilamchi_licshet}>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'secondary.main', fontSize: '0.72rem', fontWeight: 600 }}>
+                  2-hisob: {params.row.ikkilamchi_licshet}
+                </Typography>
+              </Tooltip>
+            )}
+          </Stack>
         )
       },
       {
@@ -246,9 +255,16 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
         flex: 1,
         minWidth: 180,
         renderCell: (params) => (
-          <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
-            {params.row.fio || '-'}
-          </Typography>
+          <Stack spacing={0.2} sx={{ justifyContent: 'center', height: '100%' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
+              {params.row.fio || '-'}
+            </Typography>
+            {params.row.ikkilamchiFullName && (
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem' }} noWrap>
+                2-abonent: {params.row.ikkilamchiFullName}
+              </Typography>
+            )}
+          </Stack>
         )
       }
     ];

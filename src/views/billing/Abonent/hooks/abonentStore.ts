@@ -148,6 +148,7 @@ const initialState: IAbonentPageDataStore = {
   openIIBInhabitantsDialog: false,
   openAddInhabitantsDialog: false,
   abonentPetitions: [],
+  abonentPetitionsLoading: false,
   openChangePhoneDialogState: false,
   abonentMvdAddress: null,
   currentArizaId: '',
@@ -195,6 +196,7 @@ interface IAbonentPageDataStore {
   balancePredicts: IBalancePredict | null;
   acts: IAct[];
   abonentPetitions: IAriza[];
+  abonentPetitionsLoading: boolean;
   residentPhoto: string | null;
   abonentMvdAddress: MvdAddress | null;
   currentArizaId: string;
@@ -258,7 +260,7 @@ export interface IAbonentPageActionsStore {
   getIncomePredicts: (residentId: number, period: string) => Promise<void>;
   getAbonentActs: (residentId: number) => void;
   downLoadActPdfFile: (fileId: string) => void;
-  getAbonentPetitions: (residentId: number) => Promise<void>;
+  getAbonentPetitions: (residentId: number, accountNumber?: string) => Promise<void>;
 
   setEditDialogOpenState: (state: boolean) => void;
   setResidentPhoto: (photo: string) => void;
@@ -524,14 +526,29 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     link.download = fixFileName(fileId.split('*')[0]);
     link.click();
   },
-  getAbonentPetitions: async (residentId) => {
-    const { data } = await api.get('/arizalar', {
-      params: {
-        resident_id: residentId,
-        limit: 100
-      }
-    });
-    set({ abonentPetitions: data.data.map((row: any, i: number) => ({ ...row, createdAt: new Date(row.createdAt), id: i + 1 })) });
+  getAbonentPetitions: async (residentId, accountNumber) => {
+    set({ abonentPetitionsLoading: true });
+    try {
+      const accNumber = accountNumber || get().abonentDetails?.accountNumber || get().abonentPreview?.accountNumber;
+      const { data } = await api.get('/arizalar', {
+        params: {
+          resident_id: residentId,
+          ...(accNumber ? { account_number: accNumber } : {}),
+          limit: 100
+        }
+      });
+      set({
+        abonentPetitions: (data.data || []).map((row: any, i: number) => ({
+          ...row,
+          createdAt: new Date(row.createdAt),
+          id: i + 1
+        }))
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      set({ abonentPetitionsLoading: false });
+    }
   },
   setEditDialogOpenState: (state) => set({ editDialogOpenState: state }),
 

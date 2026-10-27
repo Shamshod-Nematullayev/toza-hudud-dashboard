@@ -40,9 +40,7 @@ export const ImzolashJoyi = ({
   const snapshotList = participants || ariza?.participantsSnapshot;
 
   if (snapshotList && Array.isArray(snapshotList) && snapshotList.length > 0) {
-    const activeList = snapshotList
-      .filter((p: any) => !p.isExcluded)
-      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
+    const activeList = snapshotList.filter((p: any) => !p.isExcluded).sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
 
     return (
       <>
@@ -54,15 +52,12 @@ export const ImzolashJoyi = ({
         ))}
         {documentType === 'dvaynik' && mahalla2?.data?.id && mahalla?.data?.id && mahalla2.data.id != mahalla.data.id && (
           <>
-            <ImzoJoyiRow
-              label={`${lotinga(mahalla2.data.name)} MFY raisi:`}
-              name={lotinga(mahalla2.data.mfy_rais_name)}
-            />
+            <ImzoJoyiRow label={`${lotinga(mahalla2.data.name)} MFY raisi:`} name={lotinga(mahalla2.data.mfy_rais_name)} />
             <br />
           </>
         )}
         <p style={{ textAlign: 'left', fontSize: '12px' }}>
-          Created: <b>{user?.fullName || ariza?.creatorName}</b>
+          Printed: <b>{user?.fullName || ariza?.creatorName}</b>
         </p>
       </>
     );
@@ -72,8 +67,7 @@ export const ImzolashJoyi = ({
   mahalla = mahalla?.data || mahalla;
   mahalla2 = mahalla2?.data || mahalla2;
   const fuqaroIshtirok = customization.fuqaroIshtirok ?? true;
-  const billingStaffName =
-    creatorName || ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName;
+  const billingStaffName = creatorName || ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName;
 
   return (
     <>
@@ -112,7 +106,7 @@ export const ImzolashJoyi = ({
         </>
       )}
       <p style={{ textAlign: 'left', fontSize: '12px' }}>
-        Created: <b>{user?.fullName}</b>
+        Printed: <b>{user?.fullName}</b>
       </p>
     </>
   );
