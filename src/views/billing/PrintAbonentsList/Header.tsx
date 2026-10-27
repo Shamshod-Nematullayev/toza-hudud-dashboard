@@ -42,12 +42,14 @@ import BoltOutlined from '@mui/icons-material/BoltOutlined';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import TuneOutlined from '@mui/icons-material/TuneOutlined';
 import ViewColumnOutlined from '@mui/icons-material/ViewColumnOutlined';
+import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined';
 import { toPng } from 'html-to-image';
 import { isMobile } from 'react-device-detect';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import { useTranslation } from 'react-i18next';
 import useCustomizationStore, { defaultVisibleColumns, ITableVisibleColumns } from 'store/customizationStore';
 import MacroManager from './MacroManager';
+import MoveMahallaDialog from './MoveMahallaDialog';
 import { TourHelpButton } from 'ui-component/tour';
 
 interface Props {
@@ -74,6 +76,7 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
 
   const { printTableSettings, setPrintTableSettings } = useCustomizationStore();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [moveMahallaOpen, setMoveMahallaOpen] = useState(false);
 
   const theme = useTheme();
   const { t } = useTranslation();
@@ -430,6 +433,19 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
               <MacroManager printContentRef={printContentRef} />
             </Box>
 
+            {/* Mahallani ko'chirish tugmasi */}
+            <Tooltip title="Abonentlarni mahalladan-mahallaga ommaviy ko'chirish (Toza Makon)" arrow>
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={() => setMoveMahallaOpen(true)}
+                startIcon={<DriveFileMoveOutlinedIcon />}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 1.5 }}
+              >
+                Mahallani ko'chirish
+              </Button>
+            </Tooltip>
+
             {/* Jadval sozlamalari */}
             <Tooltip title={t('Jadval sozlamalari (Shrift, Ustunlar, Rang)')} arrow>
               <IconButton
@@ -710,6 +726,17 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
           </Button>
         </DialogActions>
       </Dialog>
+
+      {moveMahallaOpen && (
+        <MoveMahallaDialog
+          open={moveMahallaOpen}
+          onClose={() => setMoveMahallaOpen(false)}
+          initialFromMahallaId={selectedMahalla}
+          onSuccess={() => {
+            getAbonents();
+          }}
+        />
+      )}
     </>
   );
 }

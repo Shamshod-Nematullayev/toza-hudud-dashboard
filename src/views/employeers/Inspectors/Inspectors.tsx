@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Button, Chip, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery, Box, Theme } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Button, Chip, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery, Box, Theme, Tooltip } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import { AddOutlined, Telegram } from '@mui/icons-material';
+import { AddOutlined, Telegram, Edit as EditIcon } from '@mui/icons-material';
 
 // Internal Imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -17,6 +17,7 @@ import useCustomizationStore from 'store/customizationStore';
 import ModalChoose from '../ModalChoose';
 import AddInspectorModal from '../AddInspectorModal';
 import ConnectTelegramModal from '../ConnectTelegramModal';
+import EditInspectorNameModal from './EditInspectorNameModal';
 import api from 'utils/api';
 
 // --- INTERFACES & TYPES ---
@@ -53,7 +54,8 @@ function Inspectors(): React.JSX.Element {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
-  const { customization } = useCustomizationStore();
+  const { customization, user } = useCustomizationStore();
+  const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
   const isXsUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'));
 
   // State Management
@@ -71,6 +73,8 @@ function Inspectors(): React.JSX.Element {
   const [openCreateInspectorModal, setOpenCreateInspectorModal] = useState<boolean>(false);
   const [openConnectTelegramModal, setOpenConnectTelegramModal] = useState<boolean>(false);
   const [selectedInspectorForTelegram, setSelectedInspectorForTelegram] = useState<InspectorRow | null>(null);
+  const [openEditNameModal, setOpenEditNameModal] = useState<boolean>(false);
+  const [selectedInspectorForEdit, setSelectedInspectorForEdit] = useState<InspectorRow | null>(null);
 
   // API Data Fetching
   const updateData = useCallback(async () => {
@@ -208,7 +212,41 @@ function Inspectors(): React.JSX.Element {
   const columns = useMemo<GridColDef<InspectorRow>[]>(() => {
     const baseColumns: GridColDef<InspectorRow>[] = [
       { field: 'id', headerName: 'ID', width: 70 },
-      { field: 'name', headerName: t('tableHeaders.fullName'), flex: 2, minWidth: 180 },
+      {
+        field: 'name',
+        headerName: t('tableHeaders.fullName'),
+        flex: 2,
+        minWidth: 180,
+        renderCell: (params: GridRenderCellParams<InspectorRow>) => (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {params.row.name}
+            </Typography>
+            {isAdmin && (
+              <Tooltip title={t('tooltips.editName') || 'Ismni tahrirlash'}>
+                <IconButton
+                  size="small"
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    setSelectedInspectorForEdit(params.row);
+                    setOpenEditNameModal(true);
+                  }}
+                  sx={{
+                    color: 'text.secondary',
+                    p: 0.5,
+                    '&:hover': {
+                      color: 'primary.main',
+                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1)
+                    }
+                  }}
+                >
+                  <EditIcon sx={{ fontSize: 17 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        )
+      },
       {
         field: 'telegram',
         headerName: 'Telegram',
@@ -269,7 +307,7 @@ function Inspectors(): React.JSX.Element {
     });
 
     return baseColumns;
-  }, [maxMahallaCount, t, isDark, rows]);
+  }, [maxMahallaCount, t, isDark, rows, isAdmin]);
 
   return (
     <MainCard contentSX={{ height: '100%' }}>
@@ -281,6 +319,19 @@ function Inspectors(): React.JSX.Element {
           inspectors={rows}
           selectedInspector={selectedInspectorForTelegram}
           onSuccess={updateData}
+        />
+      )}
+      {openEditNameModal && selectedInspectorForEdit && (
+        <EditInspectorNameModal
+          open={openEditNameModal}
+          inspector={selectedInspectorForEdit}
+          onClose={() => {
+            setOpenEditNameModal(false);
+            setSelectedInspectorForEdit(null);
+          }}
+          onSuccess={() => {
+            updateData();
+          }}
         />
       )}
       <ModalChoose

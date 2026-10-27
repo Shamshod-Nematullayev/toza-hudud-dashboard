@@ -39,6 +39,8 @@ import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import api from 'utils/api';
 import MainCard from 'ui-component/cards/MainCard';
+import useCustomizationStore from 'store/customizationStore';
+import EditInspectorNameModal from './EditInspectorNameModal';
 
 interface Profile {
   _id: string;
@@ -151,6 +153,10 @@ function Inspector360() {
   const isDark = theme.palette.mode === 'dark';
   const { inspectorId } = useParams<{ inspectorId: string }>();
   const navigate = useNavigate();
+
+  const { user } = useCustomizationStore();
+  const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
+  const [editNameModalOpen, setEditNameModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<Inspector360Data | null>(null);
@@ -418,6 +424,24 @@ function Inspector360() {
                   <Typography variant="h2" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
                     {profile.name}
                   </Typography>
+                  {isAdmin && (
+                    <Tooltip title="Nazoratchi ismini tahrirlash">
+                      <IconButton
+                        size="small"
+                        onClick={() => setEditNameModalOpen(true)}
+                        sx={{
+                          color: 'text.secondary',
+                          p: 0.5,
+                          '&:hover': {
+                            color: 'primary.main',
+                            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1)
+                          }
+                        }}
+                      >
+                        <EditIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                   <Chip
                     label={profile.status === 'active' ? 'Faol' : profile.status === 'on-leave' ? "Ta'tilda" : 'Nofaol'}
                     size="small"
@@ -1929,6 +1953,17 @@ function Inspector360() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {editNameModalOpen && profile && (
+        <EditInspectorNameModal
+          open={editNameModalOpen}
+          inspector={{ id: profile.id, _id: profile._id, name: profile.name }}
+          onClose={() => setEditNameModalOpen(false)}
+          onSuccess={(newName) => {
+            setData((prev) => (prev ? { ...prev, profile: { ...prev.profile, name: newName } } : null));
+          }}
+        />
+      )}
     </Box>
   );
 }
