@@ -27,7 +27,9 @@ import {
   PlayArrowOutlined,
   CheckCircleOutlined,
   SmsOutlined,
-  StopRounded
+  StopRounded,
+  UploadFileOutlined,
+  LockOutlined
 } from '@mui/icons-material';
 import api from 'utils/api';
 import React from 'react';
@@ -99,10 +101,8 @@ export function Sidebar({
   const [skipSmsValue, setSkipSmsValue] = React.useState<boolean>(false);
   const [limitValue, setLimitValue] = React.useState<string>('');
 
-  // Job 0: oxirgi sinxron vaqti va 3 soatlik cheklov
-  const [syncInfo, setSyncInfo] = React.useState<{ lastSyncAt: string | null; nextAvailableAt: string | null; canRun: boolean } | null>(
-    null
-  );
+  // Joblarning oxirgi ishga tushirilishi, Job 0 ning 3 soatlik cheklovi
+  const [syncInfo, setSyncInfo] = React.useState<SyncInfo | null>(null);
   const fetchSyncInfo = React.useCallback(async () => {
     try {
       const { data } = await api.get('/debitors/jobs/sync-info');
@@ -114,10 +114,10 @@ export function Sidebar({
 
   React.useEffect(() => {
     fetchSyncInfo();
+    // "N daqiqa oldin" yozuvlari va 6 soatlik cheklov eskirmasligi uchun
+    const interval = setInterval(fetchSyncInfo, 60_000);
+    return () => clearInterval(interval);
   }, [fetchSyncInfo]);
-
-  const formatDateTime = (value: string) =>
-    new Date(value).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   // Poll Active Job Progress
   const fetchJobProgress = React.useCallback(async () => {
@@ -128,7 +128,7 @@ export function Sidebar({
         if (runningJob) {
           wasJobRunningRef.current = true;
           setActiveJob({
-            jobName: runningJob.name || 'Job Process',
+            jobName: runningJob.title || runningJob.type || 'Job bajarilmoqda',
             progress: runningJob.progress,
             message: runningJob.message || 'Bajarilmoqda...',
             status: 'in-progress'
@@ -230,6 +230,20 @@ export function Sidebar({
   };
 
   const isAnyJobRunning = Boolean(activeJob);
+  const isBusy = isAnyJobRunning || Boolean(triggerLoading);
+
+  // Job 1 / Job 2 faqat debitorlar oxirgi 6 soat ichida sinxronlangan bo'lsa (eskirgan ro'yxat bilan ishlamaslik uchun)
+  const lastSyncMs = syncInfo?.lastSyncAt ? new Date(syncInfo.lastSyncAt).getTime() : 0;
+  const isSyncFresh = Boolean(lastSyncMs) && Date.now() - lastSyncMs < SYNC_FRESH_MS;
+  const staleSyncReason = !syncInfo
+    ? undefined
+    : lastSyncMs
+      ? `Debitorlar ${formatRelative(syncInfo.lastSyncAt!)} sinxronlangan. Avval 1-qadamni bajaring (6 soatdan oshmasligi kerak).`
+      : 'Debitorlar hali sinxronlanmagan. Avval 1-qadamni bajaring.';
+  const syncLockReason =
+    syncInfo && !syncInfo.canRun && !isProductAdmin && syncInfo.nextAvailableAt
+      ? `3 soatda 1 marta. Keyingi imkoniyat: ${formatDateTime(syncInfo.nextAvailableAt)}`
+      : undefined;
 
   return (
     <Box
@@ -289,91 +303,56 @@ export function Sidebar({
           </Alert>
         )}
 
-        {/* Job Action Buttons */}
+        {/* Joblar — bajarilish tartibida, har birida oxirgi ishga tushirilishi */}
         <Stack spacing={1}>
-          <Tooltip title="Job 0: Mahalliy abonentlar bazasi (MongoDB) asosida debitorlarni tezkor sinxronlash (Faqat Premium)">
-            <span>
-              <Button
-                fullWidth
-                size="small"
-                variant="outlined"
-                color="info"
-                startIcon={triggerLoading === 'job0' ? <CircularProgress size={14} /> : <SyncOutlined fontSize="small" />}
-                onClick={openSyncDialog}
-                disabled={isAnyJobRunning || Boolean(triggerLoading) || (syncInfo?.canRun === false && !isProductAdmin)}
-                sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
-              >
-                Job 0: Debitorlarni Sinxronlash
-              </Button>
-            </span>
-          </Tooltip>
-          {syncInfo && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 10.5, mt: -0.5, px: 0.5 }}>
-              🕒 Oxirgi sinxron: {syncInfo.lastSyncAt ? formatDateTime(syncInfo.lastSyncAt) : 'hali bajarilmagan'}
-              {!syncInfo.canRun && syncInfo.nextAvailableAt && (
-                <>
-                  <br />⏳ Keyingi imkoniyat: {formatDateTime(syncInfo.nextAvailableAt)} (3 soatda 1 marta)
-                </>
-              )}
-            </Typography>
-          )}
-
-          <Tooltip title="Job 1: ETK elektr hisob kodi va HET bloklanishini tekshirish (Faqat Premium)">
-            <span>
-              <Button
-                fullWidth
-                size="small"
-                variant="outlined"
-                color="warning"
-                startIcon={triggerLoading === 'job1' ? <CircularProgress size={14} /> : <FlashOnOutlined fontSize="small" />}
-                onClick={() => handleTriggerJob('/debitors/jobs/trigger-het-accounts', 'job1')}
-                disabled={isAnyJobRunning || Boolean(triggerLoading)}
-                sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
-              >
-                Job 1: ETK & Blok Tekshirish
-              </Button>
-            </span>
-          </Tooltip>
-
-          <Tooltip title="Job 2: Telefon raqamlarni solishtirish va SMS ogohlantirish (Faqat Premium)">
-            <span>
-              <Button
-                fullWidth
-                size="small"
-                variant="outlined"
-                color="success"
-                startIcon={triggerLoading === 'job2' ? <CircularProgress size={14} /> : <PhoneAndroidOutlined fontSize="small" />}
-                onClick={() => openSmsDialog('/debitors/jobs/trigger-phone-sms', 'job2')}
-                disabled={isAnyJobRunning || Boolean(triggerLoading)}
-                sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
-              >
-                Job 2: Telefon & SMS Ishlovi
-              </Button>
-            </span>
-          </Tooltip>
-
+          <JobCard
+            step={1}
+            icon={<SyncOutlined fontSize="small" />}
+            title="Debitorlarni sinxronlash"
+            description="TozaMakon bazasidan qarzdorlar ro'yxati, qarz summasi va telefonlarini yangilaydi. Har kuni tunda avtomatik."
+            run={syncInfo?.jobs?.sync}
+            loading={triggerLoading === 'job0'}
+            disabled={isBusy}
+            lockReason={syncLockReason}
+            onClick={openSyncDialog}
+          />
+          <JobCard
+            step={2}
+            icon={<FlashOnOutlined fontSize="small" />}
+            title="Elektr kodi va blok holati"
+            description="HETda bloklanganlar ro'yxati asosida blok holatini va tekshirilmagan elektr kodlarini aniqlaydi."
+            run={syncInfo?.jobs?.hetAccounts}
+            loading={triggerLoading === 'job1'}
+            disabled={isBusy}
+            lockReason={isSyncFresh ? undefined : staleSyncReason}
+            onClick={() => handleTriggerJob('/debitors/jobs/trigger-het-accounts', 'job1')}
+          />
+          <JobCard
+            step={3}
+            icon={<PhoneAndroidOutlined fontSize="small" />}
+            title="Telefon tekshiruvi va SMS"
+            description="TozaMakondagi telefonga SMS ogohlantirish yuboradi va yetkazilganini tekshiradi."
+            run={syncInfo?.jobs?.phoneSms}
+            loading={triggerLoading === 'job2'}
+            disabled={isBusy}
+            lockReason={isSyncFresh ? undefined : staleSyncReason}
+            onClick={() => openSmsDialog('/debitors/jobs/trigger-phone-sms', 'job2')}
+          />
           {canUsePremiumSync && (
-            <Tooltip title="HET skripti qaytargan muvaffaqiyatsiz ETK lar ro'yxatini yuklab, skriptdagi debitorlarning HETga ulanganligini belgilash (Faqat Premium)">
-              <span>
-                <Button
-                  fullWidth
-                  size="small"
-                  variant="outlined"
-                  color="success"
-                  startIcon={triggerLoading === 'het' ? <CircularProgress size={14} /> : <SyncOutlined fontSize="small" />}
-                  onClick={() => setSyncLogDialogOpen(true)}
-                  disabled={isAnyJobRunning || Boolean(triggerLoading)}
-                  sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 600 }}
-                >
-                  Telefonlarni yangilash
-                </Button>
-              </span>
-            </Tooltip>
+            <JobCard
+              step={4}
+              icon={<UploadFileOutlined fontSize="small" />}
+              title="HET skripti natijasini kiritish"
+              description="Telefonlarni HETga kiritgan skript natijasini yuklang — ulanganlar 100% tayyor bo'ladi."
+              actionLabel="Natijani kiritish"
+              showRun={false}
+              loading={triggerLoading === 'het'}
+              disabled={isBusy}
+              onClick={() => setSyncLogDialogOpen(true)}
+            />
           )}
 
-          <Divider sx={{ my: 0.5 }} />
-
-          <Tooltip title="To'liq avtomatlashtirilgan blocking pipeline ishga tushirish (Faqat Premium)">
+          <Tooltip title={isSyncFresh ? '2 va 3-qadamni ketma-ket bajaradi' : staleSyncReason || ''}>
             <span>
               <Button
                 fullWidth
@@ -384,10 +363,10 @@ export function Sidebar({
                   triggerLoading === 'workflow' ? <CircularProgress size={14} color="inherit" /> : <PlayArrowOutlined fontSize="small" />
                 }
                 onClick={() => openSmsDialog('/debitors/jobs/trigger-workflow', 'workflow')}
-                disabled={isAnyJobRunning || Boolean(triggerLoading)}
-                sx={{ justifyContent: 'flex-start', fontSize: 11, fontWeight: 700 }}
+                disabled={isBusy || !isSyncFresh}
+                sx={{ fontSize: 12, fontWeight: 700, textTransform: 'none', mt: 0.5 }}
               >
-                ▶️ To'liq Jarayonni Boshlash
+                2 + 3-qadamni ketma-ket bajarish
               </Button>
             </span>
           </Tooltip>
@@ -487,7 +466,7 @@ export function Sidebar({
                       🚫 Yo'q, SMS yuborilmasin (`skipSms = true`)
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Faqat HET va TozaMakon telefon raqamlari solishtiriladi, SMS yuborilmaydi.
+                      Avval yuborilgan SMS natijalari qayta ishlanadi, yangi SMS yuborilmaydi.
                     </Typography>
                   </Box>
                 }
@@ -498,7 +477,7 @@ export function Sidebar({
           <Divider sx={{ my: 2 }} />
 
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-            📊 Debitorlar soni cheklovi (Limit):
+            📊 Yangi SMS soni cheklovi (Limit):
           </Typography>
           <TextField
             fullWidth
@@ -507,7 +486,7 @@ export function Sidebar({
             placeholder="Masalan: 1000 (barchasi uchun bo'sh qoldiring)"
             value={limitValue}
             onChange={(e) => setLimitValue(e.target.value)}
-            helperText="Bo'sh qoldirilsa barcha mos debitorlar ko'rib chiqiladi."
+            helperText="Barcha debitorlar baribir ko'rib chiqiladi; limit tugagach faqat yangi SMS yuborilmaydi."
             sx={{ mb: 1.5 }}
           />
           <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
@@ -621,6 +600,174 @@ export function Sidebar({
           onJobStarted={fetchJobProgress}
         />
       )}
+    </Box>
+  );
+}
+
+// ─── Job kartasi ──────────────────────────────────────────────────
+
+interface JobRunInfo {
+  status: 'running' | 'success' | 'failed' | 'stopped';
+  startedAt: string;
+  finishedAt?: string | null;
+  message?: string;
+}
+
+interface SyncInfo {
+  lastSyncAt: string | null;
+  nextAvailableAt: string | null;
+  canRun: boolean;
+  jobs?: Partial<Record<'sync' | 'hetAccounts' | 'phoneSms', JobRunInfo>>;
+}
+
+const SYNC_FRESH_MS = 6 * 60 * 60 * 1000;
+
+const RUN_STATUS_CFG: Record<JobRunInfo['status'], { label: string; color: 'info' | 'success' | 'error' | 'default' }> = {
+  running: { label: 'Bajarilmoqda', color: 'info' },
+  success: { label: 'Muvaffaqiyatli', color: 'success' },
+  failed: { label: 'Xatolik', color: 'error' },
+  stopped: { label: "To'xtatilgan", color: 'default' }
+};
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString('uz-UZ', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function formatRelative(value: string) {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(value).getTime()) / 60_000));
+  if (minutes < 1) return 'hozirgina';
+  if (minutes < 60) return `${minutes} daqiqa oldin`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} soat oldin`;
+  return `${Math.floor(hours / 24)} kun oldin`;
+}
+
+interface JobCardProps {
+  step: number;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  run?: JobRunInfo;
+  showRun?: boolean;
+  actionLabel?: string;
+  loading?: boolean;
+  disabled?: boolean;
+  lockReason?: string;
+  onClick: () => void;
+}
+
+function JobCard({
+  step,
+  icon,
+  title,
+  description,
+  run,
+  showRun = true,
+  actionLabel = 'Ishga tushirish',
+  loading,
+  disabled,
+  lockReason,
+  onClick
+}: JobCardProps) {
+  const statusCfg = run ? RUN_STATUS_CFG[run.status] : null;
+  const runTime = run ? run.finishedAt || run.startedAt : null;
+
+  return (
+    <Box sx={{ p: 1.25, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <Box
+          sx={{
+            width: 22,
+            height: 22,
+            flexShrink: 0,
+            borderRadius: '50%',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 11,
+            fontWeight: 700,
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText'
+          }}
+        >
+          {step}
+        </Box>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', flex: 1, lineHeight: 1.3 }}>
+          {title}
+        </Typography>
+        <Box sx={{ color: 'text.secondary', display: 'flex' }}>{icon}</Box>
+      </Stack>
+
+      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5, lineHeight: 1.4 }}>
+        {description}
+      </Typography>
+
+      {/* Oxirgi ishga tushirilishi — qaysi sana qaysi jobniki ekanligi shu kartaning o'zida */}
+      {showRun && (
+      <Box sx={{ mt: 1, pt: 0.75, borderTop: '1px dashed', borderColor: 'divider' }}>
+        {run && runTime && statusCfg ? (
+          <>
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 600 }}>
+                Oxirgi marta: {formatDateTime(runTime)}
+              </Typography>
+              <Chip label={statusCfg.label} size="small" color={statusCfg.color} sx={{ height: 18, fontSize: 10, fontWeight: 600 }} />
+            </Stack>
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+              {formatRelative(runTime)}
+            </Typography>
+            {run.message && (
+              <Tooltip title={run.message}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    color: run.status === 'failed' ? 'error.main' : 'text.secondary',
+                    mt: 0.25
+                  }}
+                >
+                  {run.message}
+                </Typography>
+              </Tooltip>
+            )}
+          </>
+        ) : (
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Hali ishga tushirilmagan
+          </Typography>
+        )}
+      </Box>
+      )}
+
+      {lockReason && (
+        <Stack direction="row" spacing={0.5} sx={{ mt: 0.75, alignItems: 'flex-start', color: 'warning.main' }}>
+          <LockOutlined sx={{ fontSize: 14, mt: '1px' }} />
+          <Typography variant="caption" sx={{ color: 'inherit', fontWeight: 600, lineHeight: 1.4 }}>
+            {lockReason}
+          </Typography>
+        </Stack>
+      )}
+
+      <Button
+        fullWidth
+        size="small"
+        variant="outlined"
+        color="primary"
+        onClick={onClick}
+        disabled={disabled || Boolean(lockReason)}
+        startIcon={loading ? <CircularProgress size={14} /> : <PlayArrowOutlined fontSize="small" />}
+        sx={{ mt: 1, fontSize: 12, fontWeight: 600, textTransform: 'none' }}
+      >
+        {actionLabel}
+      </Button>
     </Box>
   );
 }
