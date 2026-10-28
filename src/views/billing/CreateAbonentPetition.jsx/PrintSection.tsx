@@ -584,11 +584,14 @@ export default function PrintSection({
                   <MenuItem value="">
                     <em>Tanlanmagan (Abonentning o&apos;zi)</em>
                   </MenuItem>
-                  {familyRelations.map((rel: any) => (
-                    <MenuItem key={rel.name} value={rel.name}>
-                      {rel.name}
-                    </MenuItem>
-                  ))}
+                  {familyRelations.map((rel) => {
+                    const relName = typeof rel === 'string' ? rel : (rel as any)?.name;
+                    return (
+                      <MenuItem key={relName} value={relName}>
+                        {relName}
+                      </MenuItem>
+                    );
+                  })}
                 </Select>
               </FormControl>
             </Grid>
