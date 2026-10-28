@@ -39,6 +39,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import BoltIcon from '@mui/icons-material/Bolt';
+import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -48,6 +49,7 @@ import AbonentsFilterDrawer, {
   initialAbonentRegistryFilters
 } from './AbonentsFilterDrawer';
 import QuickEditAbonentModal, { IAbonentRegistryItem } from './QuickEditAbonentModal';
+import MoveMahallaDialog from './MoveMahallaDialog';
 
 type QuickSearchField =
   | 'accountNumber'
@@ -130,6 +132,9 @@ export default function AbonentsRegistryView({ onSwitchToPrint }: AbonentsRegist
 
   // Tezkor Tahrirlash Modali
   const [editingAbonent, setEditingAbonent] = useState<IAbonentRegistryItem | null>(null);
+
+  // Mahallani ko'chirish modali
+  const [moveMahallaOpen, setMoveMahallaOpen] = useState<boolean>(false);
 
   // Aktiv filtrlar ro'yxati
   const activeFilterEntries = useMemo(() => {
@@ -404,6 +409,22 @@ export default function AbonentsRegistryView({ onSwitchToPrint }: AbonentsRegist
             >
               Chop etish (A4 / Makros)
             </Button>
+
+            <Tooltip title="Abonentlarni mahalladan-mahallaga ommaviy ko'chirish (Toza Makon)">
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<DriveFileMoveOutlinedIcon />}
+                onClick={() => setMoveMahallaOpen(true)}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none'
+                }}
+              >
+                Mahallani ko'chirish
+              </Button>
+            </Tooltip>
 
             <Tooltip title="Ro'yxatni yangilash">
               <IconButton
@@ -1054,6 +1075,18 @@ export default function AbonentsRegistryView({ onSwitchToPrint }: AbonentsRegist
         onSaved={handleSavedAbonent}
         onOpenProfile={(id) => navigate(`/abonent/${id}/details`)}
       />
+
+      {/* Mahalladan-mahallaga ko'chirish modali */}
+      {moveMahallaOpen && (
+        <MoveMahallaDialog
+          open={moveMahallaOpen}
+          onClose={() => setMoveMahallaOpen(false)}
+          initialFromMahallaId={appliedFilters.mahallaId}
+          onSuccess={() => {
+            fetchAbonents(page, pageSize, appliedFilters, quickValue);
+          }}
+        />
+      )}
     </Box>
   );
 }

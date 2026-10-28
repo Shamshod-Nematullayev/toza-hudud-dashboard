@@ -18,6 +18,7 @@ import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import CloudSyncOutlinedIcon from '@mui/icons-material/CloudSyncOutlined';
+import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import api from 'utils/api';
 import { lotinga } from 'helpers/lotinKiril';
@@ -27,6 +28,7 @@ import Header from './Header';
 import MahallaSidebar from './MahallaSidebar';
 import PrintSection from './PrintSection';
 import AbonentsRegistryView from './AbonentsRegistryView';
+import MoveMahallaDialog from './MoveMahallaDialog';
 import useLoaderStore from 'store/loaderStore';
 import { createGlobalStyle } from 'styled-components';
 import { usePageTour, getPrintAbonentsListSteps } from 'ui-component/tour';
@@ -71,6 +73,7 @@ export default function PrintAbonentsList() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [syncInfo, setSyncInfo] = useState<ISyncStatusSummary | null>(null);
+  const [moveMahallaOpen, setMoveMahallaOpen] = useState<boolean>(false);
 
   const { startTour } = usePageTour({
     tourKey: 'print_abonents_list',
@@ -407,6 +410,26 @@ export default function PrintAbonentsList() {
                 </Button>
               </Tooltip>
             </Stack>
+
+            {/* Mahallani ko'chirish tugmasi */}
+            <Tooltip title="Abonentlarni mahalladan-mahallaga ommaviy ko'chirish (Toza Makon)">
+              <Button
+                size="small"
+                variant="outlined"
+                color="warning"
+                startIcon={<DriveFileMoveOutlinedIcon fontSize="small" />}
+                onClick={() => setMoveMahallaOpen(true)}
+                sx={{
+                  borderRadius: 2,
+                  px: 1.5,
+                  py: 0.65,
+                  textTransform: 'none',
+                  fontWeight: 700
+                }}
+              >
+                Mahallani ko'chirish
+              </Button>
+            </Tooltip>
           </Stack>
         </Stack>
       </Paper>
@@ -466,6 +489,18 @@ export default function PrintAbonentsList() {
             </Box>
           </Grid>
         </Grid>
+      )}
+
+      {/* Mahallani ko'chirish modali */}
+      {moveMahallaOpen && (
+        <MoveMahallaDialog
+          open={moveMahallaOpen}
+          onClose={() => setMoveMahallaOpen(false)}
+          initialFromMahallaId={selectedMahalla}
+          onSuccess={() => {
+            fetchMahallas();
+          }}
+        />
       )}
     </Box>
   );
