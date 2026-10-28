@@ -100,7 +100,9 @@ function PrintSection() {
               Bizlar kim imzo chekuvchilar {company?.locationName} {lotinga(mahalla?.name)} MFY raisi{' '}
               {fullNameToShortName(mahalla?.mfy_rais_name) || '________________'}, {company.name} rahbari{' '}
               {fullNameToShortName(company.managerName) || '________________'} va abonentlar bilan ishlash bo‘limi xodimi{' '}
-              {fullNameToShortName((dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName) || '________________'}
+              {fullNameToShortName(
+                (dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName
+              ) || '________________'}
               {mahalla?.biriktirilganNazoratchi?.inspector_name && (
                 <span>, aholi nazoratchisi {fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)}</span>
               )}{' '}
@@ -157,13 +159,18 @@ function PrintSection() {
               </tbody>
             </table>
             <p>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
+            <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali rahbari:`} name={company.managerName} />
+            <br />
+            <ImzoJoyiRow
+              label="Abonentlar bilan ishlash bo‘limi xodimi:"
+              name={
+                (dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName
+              }
+            />
+            <br />
             {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla?.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla?.mfy_rais_name)} />}
             <br />
-            <ImzoJoyiRow label="Abonentlar bilan ishlash bo‘limi xodimi:" name={(dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName} />
-            <br />
             <ImzoJoyiRow label="Axoli nazoratchisi:" name={fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
-            <br />
-            <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali rahbari:`} name={company.managerName} />
             <br />
             <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas
