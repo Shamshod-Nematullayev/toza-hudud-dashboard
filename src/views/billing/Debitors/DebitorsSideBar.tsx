@@ -395,11 +395,7 @@ export function Sidebar({
           >
             <FormControlLabel
               control={
-                <Switch
-                  checked={updateExtraInfoValue}
-                  onChange={(e) => setUpdateExtraInfoValue(e.target.checked)}
-                  color="primary"
-                />
+                <Switch checked={updateExtraInfoValue} onChange={(e) => setUpdateExtraInfoValue(e.target.checked)} color="primary" />
               }
               label={
                 <Box>
@@ -407,7 +403,8 @@ export function Sidebar({
                     🏘️ Mahalla va F.I.SH yangilansinmi?
                   </Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.3 }}>
-                    Mavjud debitorlarning Mahalla ID, Mahalla nomi, F.I.SH va hisob raqamlari TozaMakon ma'lumotlari asosida to'liq yangilanadi.
+                    Mavjud debitorlarning Mahalla ID, Mahalla nomi, F.I.SH va hisob raqamlari TozaMakon ma'lumotlari asosida to'liq
+                    yangilanadi.
                   </Typography>
                 </Box>
               }
@@ -594,11 +591,7 @@ export function Sidebar({
         </Button>
       </Stack>
       {syncLogDialogOpen && (
-        <SelectSyncLogDialog
-          open={syncLogDialogOpen}
-          onClose={() => setSyncLogDialogOpen(false)}
-          onJobStarted={fetchJobProgress}
-        />
+        <SelectSyncLogDialog open={syncLogDialogOpen} onClose={() => setSyncLogDialogOpen(false)} onJobStarted={fetchJobProgress} />
       )}
     </Box>
   );
@@ -709,46 +702,46 @@ function JobCard({
 
       {/* Oxirgi ishga tushirilishi — qaysi sana qaysi jobniki ekanligi shu kartaning o'zida */}
       {showRun && (
-      <Box sx={{ mt: 1, pt: 0.75, borderTop: '1px dashed', borderColor: 'divider' }}>
-        {run && runTime && statusCfg ? (
-          <>
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-              <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 600 }}>
-                Oxirgi marta: {formatDateTime(runTime)}
-              </Typography>
-              <Chip label={statusCfg.label} size="small" color={statusCfg.color} sx={{ height: 18, fontSize: 10, fontWeight: 600 }} />
-            </Stack>
-            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-              {formatRelative(runTime)}
-            </Typography>
-            {run.message && (
-              <Tooltip title={run.message}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    color: run.status === 'failed' ? 'error.main' : 'text.secondary',
-                    mt: 0.25
-                  }}
-                >
-                  {run.message}
+        <Box sx={{ mt: 1, pt: 0.75, borderTop: '1px dashed', borderColor: 'divider' }}>
+          {run && runTime && statusCfg ? (
+            <>
+              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 600 }}>
+                  Oxirgi marta: {formatDateTime(runTime)}
                 </Typography>
-              </Tooltip>
-            )}
-          </>
-        ) : (
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Hali ishga tushirilmagan
-          </Typography>
-        )}
-      </Box>
+                <Chip label={statusCfg.label} size="small" color={statusCfg.color} sx={{ height: 18, fontSize: 10, fontWeight: 600 }} />
+              </Stack>
+              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                {formatRelative(runTime)}
+              </Typography>
+              {run.message && (
+                <Tooltip title={run.message}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      color: run.status === 'failed' ? 'error.main' : 'text.secondary',
+                      mt: 0.25
+                    }}
+                  >
+                    {run.message}
+                  </Typography>
+                </Tooltip>
+              )}
+            </>
+          ) : (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Hali ishga tushirilmagan
+            </Typography>
+          )}
+        </Box>
       )}
 
       {lockReason && (
-        <Stack direction="row" spacing={0.5} sx={{ mt: 0.75, alignItems: 'flex-start', color: 'warning.main' }}>
+        <Stack direction="row" spacing={0.5} sx={{ mt: 0.75, alignItems: 'flex-start', color: 'warning.dark' }}>
           <LockOutlined sx={{ fontSize: 14, mt: '1px' }} />
           <Typography variant="caption" sx={{ color: 'inherit', fontWeight: 600, lineHeight: 1.4 }}>
             {lockReason}

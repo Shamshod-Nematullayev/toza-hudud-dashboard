@@ -54,7 +54,13 @@ export default defineConfig({
   server: {
     host: true,
     open: false,
-    port: 3001
+    port: 3001,
+    // Tashqaridan (ngrok, LAN) ochilganda backend so'rovlari shu yerdan localhost:5001 ga uzatiladi
+    allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io'],
+    proxy: {
+      '/api': { target: 'http://localhost:5001', changeOrigin: true },
+      '/socket.io': { target: 'http://localhost:5001', changeOrigin: true, ws: true }
+    }
   },
   preview: {
     open: true,

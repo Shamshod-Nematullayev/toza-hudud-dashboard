@@ -22,6 +22,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   TextField,
   Tooltip,
   Typography,
@@ -41,7 +42,13 @@ import {
   ToggleButtonGroup,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Tabs,
+  Tab,
+  Badge,
+  ButtonBase,
+  Slider,
+  SpeedDialIcon
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -88,11 +95,327 @@ import {
   TableChart as TableChartIcon,
   CalendarToday as CalendarTodayIcon,
   FilterList as FilterListIcon,
-  Clear as ClearFilterIcon
+  Clear as ClearFilterIcon,
+  SwapHoriz as SwapHorizIcon,
+  Check as CheckIcon,
+  UnfoldMore as UnfoldMoreIcon,
+  UnfoldLess as UnfoldLessIcon,
+  Tune as TuneIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  AccountBalanceWallet as WalletIcon,
+  Paid as PaidIcon,
+  ReceiptLong as ReceiptIcon,
+  MonetizationOn as MonetizationOnIcon,
+  History as HistoryIcon,
+  Build as BuildIcon,
+  Bookmark as BookmarkIcon,
+  Save as SaveIcon,
+  Psychology as SmartIcon,
+  Work as WorkIcon,
+  CreditCard as CreditCardIcon,
+  BusinessCenter as BusinessCenterIcon,
+  School as SchoolIcon,
+  LocalGasStation as GasIcon,
+  WaterDrop as WaterDropIcon,
+  Opacity as OpacityIcon,
+  CleaningServices as SewerageIcon
 } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
 import api from 'utils/api';
+import { buildTranslitRegexSource, createSearchMatcher } from 'utils/translitSearch';
+import SmartSurveyHomesDialog from './SmartSurveyHomesDialog';
 import { toast } from 'react-toastify';
+import { DataGrid, type GridColDef, type GridPaginationModel, type GridSortModel } from '@mui/x-data-grid';
+
+export interface MahallaBillingItem {
+  district_id: number | string;
+  mahalla_name: string;
+  area_id?: number | string;
+  area_name?: string;
+  obl_id?: number | string;
+  status: 'ACTIVE' | 'EXPIRED' | 'ERROR';
+  balance: number;
+  total_paid: number;
+  total_charged: number;
+  jobsCount: number;
+  totalProcessedHomes: number;
+  totalSuccessHomes: number;
+  totalFamilyMembers: number;
+  updatedAt?: string;
+}
+
+export interface BillingSummaryData {
+  totalMahallas: number;
+  totalPrepaid: number;
+  totalDebt: number;
+  totalPaid: number;
+  totalCharged: number;
+  totalJobs: number;
+  totalProcessedHomes: number;
+}
+
+export interface BillingTransactionItem {
+  _id: string;
+  district_id: number | string;
+  mahalla_name: string;
+  area_id?: number | string;
+  type: 'PAYMENT' | 'SERVICE_CHARGE';
+  amount: number;
+  balance_before: number;
+  balance_after: number;
+  comment?: string;
+  createdAt: string;
+}
+
+export interface SurveyEmploymentSettings {
+  refreshGovDatabases: boolean;
+  preserveOfficialSector: boolean;
+  kindergartenPercent: number;
+  unofficialWorkerPercent: number;
+  selfEmployedPercent: number;
+  unemployedPercent: number;
+  studentPercent: number;
+  mode?: 'standard' | 'burgansoy' | string;
+  pensionerMode?: '4.2' | '4.7';
+  skipWorkingAge?: boolean; // Mehnat yoshidagilarga umuman teginilmaydi
+}
+
+export interface SurveySocioEconomicSettings {
+  incomeByResidents?: boolean; // Oylik daromad yashovchilar soniga ko'ra (5 gacha: 3-5 mln, 6+: 10 mln dan yuqori)
+  preserveExistingIncome?: boolean; // Daromad avval kiritilgan bo'lsa teginilmaydi
+  hasDebtPercent: number;
+  debtTypes: {
+    bankCreditPercent: number;
+    microloanPercent: number;
+    mortgagePercent: number;
+    relativesPercent: number;
+    otherPercent: number;
+  };
+  debtCausesShortage: {
+    yesPercent: number;
+    noPercent: number;
+    partiallyPercent: number;
+  };
+  overduePaymentPercent: number;
+  incomeSources: {
+    salaryPercent: number;
+    pensionPercent: number;
+    businessPercent: number;
+    agriculturePercent: number;
+    seasonalPercent: number;
+    remittancePercent: number;
+    otherPercent: number;
+  };
+  monthlyIncomes: {
+    under1mPercent: number;
+    from1mTo3mPercent: number;
+    from3mTo5mPercent: number;
+    from5mTo10mPercent: number;
+    above10mPercent: number;
+  };
+}
+
+export interface SurveyInfrastructureSettings {
+  electricityMode?: number;
+  gasMode?: number;
+  drinkingWaterMode?: number;
+  irrigationWaterMode?: number;
+  sewerageMode?: number;
+  electricity: {
+    goodPercent: number;
+    satisfactoryPercent: number;
+    unsatisfactoryPercent: number;
+  };
+  gas: {
+    naturalPercent: number;
+    cylinderPercent: number;
+    nonePercent: number;
+  };
+  drinkingWater: {
+    centralPercent: number;
+    wellSpringPercent: number;
+    deliveredPercent: number;
+  };
+}
+
+export interface SurveyBusinessWishSettings {
+  hasNeedPercent: number; // 0..100 (Masalan 18% ehtiyoji bor, 82% ehtiyoj yo'q)
+  directions: {
+    servicesPercent: number; // 1: Xizmat ko'rsatish
+    onlineBusinessPercent: number; // 2: Onlayn biznes
+    productionPercent: number; // 3: Kichik ishlab chiqarish
+    agriculturePercent: number; // 4: Qishloq xo'jaligi
+  };
+  supportTypes: {
+    creditPercent: number; // 1: Kredit
+    subsidyPercent: number; // 2: Ссуда / Субсидия
+    landPercent: number; // 3: Ер майдони
+    buildingPercent: number; // 4: Бўш бино-иншоот
+    otherPercent: number; // 5: Бошқа
+  };
+  creditAmounts: {
+    under50mPercent: number; // 1: 50 млн. сўмгача
+    from50mTo100mPercent: number; // 2: 50 млн сўмдан 100 млн сўмгача
+    from100mTo500mPercent: number; // 3: 100 млн сўмдан 500 млн сўмгача
+    from500mTo1bPercent: number; // 4: 500 млн сўмдан 1 млрд сўмгача
+    above1bPercent: number; // 5: 1 млрд сўмдан юқори
+  };
+  subsidyTypes: {
+    equipmentPercent: number; // 1: асбоб-ускуна харид қилиш учун
+    greenhousePercent: number; // 2: иссиқхона барпо этиш учун
+    cooperativePercent: number; // 3: кооператив аъзоси бўлиш учун
+    otherPercent: number; // 4: бошқалар
+  };
+}
+
+export interface SurveyEmploymentWishesSettings {
+  hasNeedPercent: number; // 0..100 (0% ehtiyoj bor => 100% "Меҳнатга ва касб-ҳунарга бўлган эхтиёж йўқ")
+}
+
+export interface SurveyActiveModules {
+  employment?: boolean;
+  employmentWishes?: boolean;
+  businessWishes?: boolean;
+  socioEconomic?: boolean;
+  infrastructure?: boolean;
+}
+
+export interface SurveySettings {
+  modules?: SurveyActiveModules;
+  employment: SurveyEmploymentSettings;
+  employmentWishes?: SurveyEmploymentWishesSettings;
+  businessWishes?: SurveyBusinessWishSettings;
+  socioEconomic: SurveySocioEconomicSettings;
+  infrastructure: SurveyInfrastructureSettings;
+}
+
+export interface SurveyPresetItem {
+  _id: string;
+  name: string;
+  description?: string;
+  isDefault?: boolean;
+  districtId?: string | number;
+  settings: SurveySettings;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+type SmartSectionKey = keyof SurveyActiveModules;
+
+const SMART_SECTIONS: Array<{ key: SmartSectionKey; icon: string; title: string }> = [
+  { key: 'employment', icon: '💼', title: 'Bandlik va ta’lim' },
+  { key: 'employmentWishes', icon: '🛠️', title: 'Kasb-hunar ehtiyoji' },
+  { key: 'businessWishes', icon: '🏪', title: 'Tadbirkorlik ehtiyoji' },
+  { key: 'socioEconomic', icon: '💰', title: 'Daromad va qarzdorlik' },
+  { key: 'infrastructure', icon: '🏠', title: 'Infratuzilma' }
+];
+
+const DEFAULT_SMART_SETTINGS: SurveySettings = {
+  modules: {
+    employment: true,
+    employmentWishes: true,
+    businessWishes: true,
+    socioEconomic: false,
+    infrastructure: true
+  },
+  employment: {
+    mode: 'burgansoy',
+    refreshGovDatabases: true,
+    preserveOfficialSector: true,
+    kindergartenPercent: 95,
+    unofficialWorkerPercent: 0,
+    selfEmployedPercent: 0,
+    unemployedPercent: 100,
+    studentPercent: 0,
+    pensionerMode: '4.2'
+  },
+  employmentWishes: {
+    hasNeedPercent: 0
+  },
+  businessWishes: {
+    hasNeedPercent: 18,
+    directions: {
+      servicesPercent: 35,
+      onlineBusinessPercent: 10,
+      productionPercent: 20,
+      agriculturePercent: 35
+    },
+    supportTypes: {
+      creditPercent: 65,
+      subsidyPercent: 25,
+      landPercent: 5,
+      buildingPercent: 3,
+      otherPercent: 2
+    },
+    creditAmounts: {
+      under50mPercent: 60,
+      from50mTo100mPercent: 30,
+      from100mTo500mPercent: 8,
+      from500mTo1bPercent: 1,
+      above1bPercent: 1
+    },
+    subsidyTypes: {
+      equipmentPercent: 65,
+      greenhousePercent: 25,
+      cooperativePercent: 7,
+      otherPercent: 3
+    }
+  },
+  socioEconomic: {
+    hasDebtPercent: 15,
+    debtTypes: {
+      bankCreditPercent: 80,
+      microloanPercent: 10,
+      mortgagePercent: 5,
+      relativesPercent: 3,
+      otherPercent: 2
+    },
+    debtCausesShortage: {
+      yesPercent: 15,
+      noPercent: 70,
+      partiallyPercent: 15
+    },
+    overduePaymentPercent: 5,
+    incomeSources: {
+      salaryPercent: 30,
+      pensionPercent: 15,
+      businessPercent: 5,
+      agriculturePercent: 42,
+      seasonalPercent: 4,
+      remittancePercent: 2,
+      otherPercent: 2
+    },
+    monthlyIncomes: {
+      under1mPercent: 5,
+      from1mTo3mPercent: 50,
+      from3mTo5mPercent: 32,
+      from5mTo10mPercent: 10,
+      above10mPercent: 3
+    }
+  },
+  infrastructure: {
+    electricityMode: 1,
+    gasMode: 0,
+    drinkingWaterMode: 1,
+    irrigationWaterMode: 1,
+    sewerageMode: 0,
+    electricity: {
+      goodPercent: 90,
+      satisfactoryPercent: 10,
+      unsatisfactoryPercent: 0
+    },
+    gas: {
+      naturalPercent: 70,
+      cylinderPercent: 30,
+      nonePercent: 0
+    },
+    drinkingWater: {
+      centralPercent: 80,
+      wellSpringPercent: 15,
+      deliveredPercent: 5
+    }
+  }
+};
 
 interface StreetItem {
   id: number;
@@ -151,7 +474,7 @@ interface StreetSyncProgress {
 
 interface SyncJobStatus {
   id: string;
-  jobType: 'mahalla' | 'street' | 'migrate_old_survey' | 'excel_family_import';
+  jobType: 'mahalla' | 'street' | 'migrate_old_survey' | 'excel_family_import' | 'smart_survey_fill';
   mahallaName?: string;
   obl_id?: number | string;
   area_id?: number | string;
@@ -171,6 +494,14 @@ interface SyncJobStatus {
   noCadastre: number;
   failed: number;
   familyMembersAdded?: number;
+  surveyHomesUpdated?: number;
+  employmentUpdated?: number;
+  businessWishesUpdated?: number;
+  surveyedHomeIds?: (number | string)[];
+  surveyedHomes?: Array<{ id: number | string; homeNum?: string; ownerName?: string; streetName?: string }>;
+  reportSummary?: any;
+  surveySettings?: any;
+  presetName?: string;
   currentCadaster?: string;
   excelFilePath?: string;
   fileName?: string;
@@ -214,10 +545,17 @@ interface SavedMahallaAccount {
   mahalla_name: string;
   obl_id?: number | string;
   area_id?: number | string;
+  area_name?: string;
   token: string;
   refreshToken?: string;
   pinfl?: string;
   full_name?: string;
+  phone?: string;
+  key_filename?: string;
+  key_path?: string;
+  balance?: number;
+  total_paid?: number;
+  total_charged?: number;
   status: 'ACTIVE' | 'EXPIRED' | 'ERROR';
   last_checked_at?: string;
   updatedAt?: string;
@@ -314,20 +652,40 @@ export default function OnlineMahallaSync() {
 
   // 3. Multi-Job monitoring
   const [allJobs, setAllJobs] = useState<SyncJobStatus[]>([]);
-  const [selectedJobDate, setSelectedJobDate] = useState<string>('all'); // 'all' | 'today' | 'yesterday' | 'YYYY-MM-DD'
+  const [selectedJobDate, setSelectedJobDate] = useState<string>('today'); // 'all' | 'today' | 'yesterday' | 'YYYY-MM-DD'
   const [customJobDate, setCustomJobDate] = useState<string>('');
   const [jobSearchQuery, setJobSearchQuery] = useState<string>('');
   const [jobStatusFilter, setJobStatusFilter] = useState<string>('all');
   const [dateStats, setDateStats] = useState<Record<string, number>>({});
   const [totalInDb, setTotalInDb] = useState<number>(0);
 
+  // Samarqand viloyati tumanlari standart nomlari
+  const DEFAULT_DISTRICT_NAMES: Record<string, string> = {
+    '1801': 'Samarqand shahri',
+    '1802': 'Kattaqo‘rg‘on shahri',
+    '1809': 'Bulung‘ur tumani',
+    '1811': 'Jomboy tumani',
+    '1812': 'Ishtixon tumani',
+    '1813': 'Kattaqo‘rg‘on tumani',
+    '1814': 'Qo‘shrabot tumani',
+    '1815': 'Oqdaryo tumani',
+    '1816': 'Payariq tumani',
+    '1817': 'Paxtachi tumani',
+    '1818': 'Pastdarg‘om tumani',
+    '1819': 'Toyloq tumani',
+    '1820': 'Samarqand tumani',
+    '1821': 'Nurobod tumani',
+    '1822': 'Urgut tumani'
+  };
+
   // Tuman nomlarini erkin kiritish va boshqarish (localStorage)
   const [districtNames, setDistrictNames] = useState<Record<string, string>>(() => {
     try {
       const saved = localStorage.getItem('online_mahalla_district_names');
-      return saved ? JSON.parse(saved) : { '1813': "Kattaqo'rg'on tumani" };
+      const parsed = saved ? JSON.parse(saved) : {};
+      return { ...DEFAULT_DISTRICT_NAMES, ...parsed };
     } catch {
-      return { '1813': "Kattaqo'rg'on tumani" };
+      return DEFAULT_DISTRICT_NAMES;
     }
   });
   const [editingDistrictId, setEditingDistrictId] = useState<string | null>(null);
@@ -351,6 +709,11 @@ export default function OnlineMahallaSync() {
   const [errorsDialogOpen, setErrorsDialogOpen] = useState<boolean>(false);
   const [selectedJobForErrors, setSelectedJobForErrors] = useState<SyncJobStatus | null>(null);
   const [errorSearchQuery, setErrorSearchQuery] = useState<string>('');
+
+  // Hisobot modali
+  const [reportDialogOpen, setReportDialogOpen] = useState<boolean>(false);
+  const [selectedJobForReport, setSelectedJobForReport] = useState<SyncJobStatus | null>(null);
+  const [selectedJobForHomeIds, setSelectedJobForHomeIds] = useState<SyncJobStatus | null>(null);
 
   // Xonadonlar draweri
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -377,8 +740,407 @@ export default function OnlineMahallaSync() {
   const [newMemberPhone, setNewMemberPhone] = useState<string>('');
   const [submittingMember, setSubmittingMember] = useState<boolean>(false);
 
-  // ── Sahifa ko'rinishi: Sinxronizatsiya vs Hisobotlar ──
-  const [activeView, setActiveView] = useState<'sync' | 'report'>('sync');
+  // ── Sahifa Tablari: Imzolar & Ulanish vs Ishga tushirish vs Monitoring vs Hisobotlar vs Moliya ──
+  type MainTab = 'accounts' | 'launch' | 'monitor' | 'report' | 'billing';
+  const [activeTab, setActiveTab] = useState<MainTab>('accounts');
+  const activeView = activeTab === 'report' ? 'report' : 'sync';
+  const setActiveView = (view: 'sync' | 'report') => {
+    setActiveTab(view === 'report' ? 'report' : 'launch');
+  };
+
+  // ── Imzolar va Mahallalar Katalogi uchun qidiruv va filtrlash holatlari ──
+  const [mahallaSearchQuery, setMahallaSearchQuery] = useState<string>('');
+  const [districtFilter, setDistrictFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [expandedDistricts, setExpandedDistricts] = useState<Record<string, boolean>>({});
+
+  // ── DataGrid Server Mode holatlari ──
+  const [paginatedAccounts, setPaginatedAccounts] = useState<SavedMahallaAccount[]>([]);
+  const [totalAccountsCount, setTotalAccountsCount] = useState<number>(0);
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 25
+  });
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'updatedAt', sort: 'desc' }]);
+
+  const handleToggleDistrict = (areaId: string) => {
+    setExpandedDistricts((prev) => ({
+      ...prev,
+      [areaId]: !prev[areaId]
+    }));
+  };
+
+  const handleToggleAllDistricts = (expand: boolean) => {
+    const next: Record<string, boolean> = {};
+    for (const d of savedAccountsByDistrict) {
+      next[d.areaId] = expand;
+    }
+    setExpandedDistricts(next);
+  };
+
+  // ── Moliya & Balans (Accounting & Billing) holatlari ──
+  const [billingList, setBillingList] = useState<MahallaBillingItem[]>([]);
+  const [billingSummary, setBillingSummary] = useState<BillingSummaryData | null>(null);
+  const [loadingBilling, setLoadingBilling] = useState<boolean>(false);
+  const [billingSearchQuery, setBillingSearchQuery] = useState<string>('');
+  const [billingDistrictFilter, setBillingDistrictFilter] = useState<string>('all');
+  const [billingStatusFilter, setBillingStatusFilter] = useState<'ALL' | 'DEBT' | 'PREPAID' | 'ZERO'>('ALL');
+  const [billingPage, setBillingPage] = useState<number>(0);
+  const [billingRowsPerPage, setBillingRowsPerPage] = useState<number>(25);
+
+  // To'lov qabul qilish modali
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState<boolean>(false);
+  const [selectedBillingMahalla, setSelectedBillingMahalla] = useState<MahallaBillingItem | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<string>('');
+  const [paymentComment, setPaymentComment] = useState<string>('');
+
+  // Xizmat kiritish modali
+  const [serviceChargeDialogOpen, setServiceChargeDialogOpen] = useState<boolean>(false);
+  const [serviceAmount, setServiceAmount] = useState<string>('');
+  const [serviceComment, setServiceComment] = useState<string>('');
+  const [submittingBilling, setSubmittingBilling] = useState<boolean>(false);
+
+  // Tranzaksiyalar tarixi modali
+  const [historyDialogOpen, setHistoryDialogOpen] = useState<boolean>(false);
+  const [historyTransactions, setHistoryTransactions] = useState<BillingTransactionItem[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
+
+  // Tumanlarni avto-nomlash holatlari
+  const [autoNamingDistrictId, setAutoNamingDistrictId] = useState<string | null>(null);
+  const [autoNamingAll, setAutoNamingAll] = useState<boolean>(false);
+
+  // Moliya ma'lumotlarini yuklash
+  const fetchBillingSummary = async () => {
+    try {
+      setLoadingBilling(true);
+      const res = await api.get('/product-admin/online-mahalla/billing/summary');
+      if (res.data?.success && res.data?.data) {
+        setBillingList(res.data.data.mahallas || []);
+        setBillingSummary(res.data.data.summary || null);
+      }
+    } catch (err: any) {
+      console.error('fetchBillingSummary error:', err);
+    } finally {
+      setLoadingBilling(false);
+    }
+  };
+
+  // To'lov yoki xizmat kiritish
+  const handleSaveBillingTransaction = async (type: 'PAYMENT' | 'SERVICE_CHARGE') => {
+    if (!selectedBillingMahalla) return;
+    const rawAmount = type === 'PAYMENT' ? paymentAmount : serviceAmount;
+    const comment = type === 'PAYMENT' ? paymentComment : serviceComment;
+    const numAmount = Number(rawAmount.replace(/[\s,]+/g, ''));
+
+    if (isNaN(numAmount) || numAmount <= 0) {
+      toast.warning('Iltimos, to‘g‘ri musbat summa kiriting!');
+      return;
+    }
+
+    try {
+      setSubmittingBilling(true);
+      const res = await api.post('/product-admin/online-mahalla/billing/transaction', {
+        district_id: selectedBillingMahalla.district_id,
+        type,
+        amount: numAmount,
+        comment: comment.trim()
+      });
+
+      if (res.data?.success) {
+        toast.success(res.data.message || 'Muvaffaqiyatli saqlandi');
+        setPaymentDialogOpen(false);
+        setServiceChargeDialogOpen(false);
+        setPaymentAmount('');
+        setPaymentComment('');
+        setServiceAmount('');
+        setServiceComment('');
+        fetchBillingSummary();
+        fetchSavedAccounts();
+      } else {
+        toast.error(res.data?.message || 'Xatolik yuz berdi');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Server xatosi');
+    } finally {
+      setSubmittingBilling(false);
+    }
+  };
+
+  // Tranzaksiyalar tarixini yuklash
+  const handleOpenBillingHistory = async (mahalla: MahallaBillingItem) => {
+    setSelectedBillingMahalla(mahalla);
+    setHistoryDialogOpen(true);
+    try {
+      setLoadingHistory(true);
+      const res = await api.get('/product-admin/online-mahalla/billing/transactions', {
+        params: { district_id: mahalla.district_id, limit: 100 }
+      });
+      if (res.data?.success) {
+        setHistoryTransactions(res.data.data || []);
+      }
+    } catch (err: any) {
+      toast.error('Tranzaksiyalar tarixini yuklashda xatolik');
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // Tuman nomini avtomatik aniqlash (bitta tuman)
+  const handleAutoNameDistrict = async (areaId: string) => {
+    if (!areaId) return;
+    try {
+      setAutoNamingDistrictId(areaId);
+      const res = await api.post('/product-admin/online-mahalla/district/auto-name', { area_id: areaId });
+      if (res.data?.success && res.data?.districtName) {
+        const realName = res.data.districtName;
+        const updated = { ...districtNames, [areaId]: realName };
+        setDistrictNames(updated);
+        localStorage.setItem('online_mahalla_district_names', JSON.stringify(updated));
+        toast.success(`Tuman nomi avtomatik aniqlandi: ${realName}`);
+        fetchSavedAccounts();
+      } else {
+        toast.error(res.data?.message || 'Tuman nomini aniqlab bo‘lmadi');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Tuman nomini aniqlashda xatolik');
+    } finally {
+      setAutoNamingDistrictId(null);
+    }
+  };
+
+  // Barcha tumanlarni ketma-ket avtomatik nomlash
+  const handleAutoNameAllDistricts = async () => {
+    try {
+      setAutoNamingAll(true);
+      let successCount = 0;
+      const currentNames = { ...districtNames };
+
+      for (const distGroup of savedAccountsByDistrict) {
+        const currentName = currentNames[distGroup.areaId] || '';
+        if (!currentName || currentName.startsWith('Tuman #') || currentName.includes('Aniqlanmagan')) {
+          try {
+            const res = await api.post('/product-admin/online-mahalla/district/auto-name', { area_id: distGroup.areaId });
+            if (res.data?.success && res.data?.districtName) {
+              currentNames[distGroup.areaId] = res.data.districtName;
+              successCount++;
+            }
+          } catch (_) {}
+        }
+      }
+
+      setDistrictNames(currentNames);
+      localStorage.setItem('online_mahalla_district_names', JSON.stringify(currentNames));
+      if (successCount > 0) {
+        toast.success(`${successCount} ta tuman nomi avtomatik aniqlandi va saqlandi!`);
+      } else {
+        toast.info('Barcha tumanlar allaqachon nomlangan');
+      }
+      fetchSavedAccounts();
+    } catch (err: any) {
+      toast.error('Barcha tumanlarni nomlashda xatolik');
+    } finally {
+      setAutoNamingAll(false);
+    }
+  };
+
+  // Moliyadan to'g'ridan-to'g'ri Job Ishga tushirishga o'tish
+  const handleLaunchJobFromBilling = (mahalla: MahallaBillingItem) => {
+    const acc = savedAccounts.find((a) => String(a.district_id) === String(mahalla.district_id));
+    if (acc) {
+      handleSelectAccount(acc);
+    } else {
+      setDistrictId(String(mahalla.district_id));
+    }
+    setActiveTab('launch');
+    toast.info(`«${mahalla.mahalla_name}» tanlandi. Ishga tushirishga o‘tildi.`);
+  };
+
+  // ── SMART XATLOV VA PRESETLAR (FOIZLAR ASOSIDA TO'LDIRISH) ──
+  const [surveyPresets, setSurveyPresets] = useState<SurveyPresetItem[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+  const [loadingPresets, setLoadingPresets] = useState<boolean>(false);
+  const [smartSettings, setSmartSettings] = useState<SurveySettings>(DEFAULT_SMART_SETTINGS);
+  const [smartSection, setSmartSection] = useState<SmartSectionKey>('employment');
+
+  // Bo'limlar menyusidagi qisqa tavsif (bo'lim ochilmasdan asosiy sozlamani ko'rish uchun)
+  const smartSectionSummary = useMemo<Record<SmartSectionKey, string>>(() => {
+    const emp = smartSettings.employment;
+    const se = smartSettings.socioEconomic;
+    const inf = smartSettings.infrastructure;
+    const yn = (v?: number) => (v === undefined ? '—' : v === 1 ? 'Ha' : 'Yo‘q');
+    const pension = (emp.pensionerMode ?? '4.2') === '4.7' ? '4.7 izoh' : '4.2.2';
+    return {
+      employment: [
+        emp.skipWorkingAge
+          ? 'Mehnat yoshi: tegilmaydi'
+          : emp.mode === 'burgansoy'
+            ? 'Burgansoy rejimi'
+            : `Norasmiy ${emp.unofficialWorkerPercent}% · Ishsiz ${emp.unemployedPercent}%`,
+        `Nafaqa: ${pension}`
+      ].join(' · '),
+      employmentWishes: `Ehtiyoj bor: ${smartSettings.employmentWishes?.hasNeedPercent ?? 0}%`,
+      businessWishes: `Ehtiyoj bor: ${smartSettings.businessWishes?.hasNeedPercent ?? 0}%`,
+      socioEconomic: [
+        `Qarz: ${se.hasDebtPercent}%`,
+        se.incomeByResidents ? 'daromad yashovchilar soniga ko‘ra' : 'daromad foizlar bo‘yicha',
+        se.preserveExistingIncome ? 'mavjudi saqlanadi' : ''
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      infrastructure: `Elektr ${yn(inf.electricityMode)} · Gaz ${yn(inf.gasMode)} · Suv ${yn(inf.drinkingWaterMode)}`
+    };
+  }, [smartSettings]);
+  const [savePresetDialogOpen, setSavePresetDialogOpen] = useState<boolean>(false);
+  const [newPresetName, setNewPresetName] = useState<string>('');
+  const [newPresetDescription, setNewPresetDescription] = useState<string>('');
+  const [savingPreset, setSavingPreset] = useState<boolean>(false);
+  const [smartConfirmDialogOpen, setSmartConfirmDialogOpen] = useState<boolean>(false);
+  const [smartTargetScope, setSmartTargetScope] = useState<'street' | 'mahalla'>('street');
+  const [startingSmartJob, setStartingSmartJob] = useState<boolean>(false);
+  const [smartSkipProcessed, setSmartSkipProcessed] = useState<boolean>(true);
+
+  // Shablonlarni serverdan yuklash
+  const fetchSurveyPresets = async () => {
+    try {
+      setLoadingPresets(true);
+      const res = await api.get('/product-admin/online-mahalla/survey-presets');
+      if (res.data?.success && Array.isArray(res.data?.presets)) {
+        setSurveyPresets(res.data.presets);
+        const defaultOne = res.data.presets.find((p: any) => p.isDefault) || res.data.presets[0];
+        if (defaultOne) {
+          setSelectedPresetId((prev) => prev || defaultOne._id);
+          setSmartSettings((prev) => (prev === DEFAULT_SMART_SETTINGS ? defaultOne.settings : prev));
+        }
+      }
+    } catch (err: any) {
+      console.error('fetchSurveyPresets error:', err);
+    } finally {
+      setLoadingPresets(false);
+    }
+  };
+
+  // Presetni tanlaganda sozlamalarni darhol shaklga yuklash
+  const handleSelectPreset = (presetId: string) => {
+    setSelectedPresetId(presetId);
+    if (presetId === 'custom') return;
+    const found = surveyPresets.find((p) => p._id === presetId);
+    if (found && found.settings) {
+      setSmartSettings(JSON.parse(JSON.stringify(found.settings)));
+      toast.info(`«${found.name}» shabloni yuklandi`);
+    }
+  };
+
+  // Yangi shablon sifatida saqlash
+  const handleSavePreset = async () => {
+    if (!newPresetName.trim()) {
+      toast.warning('Iltimos, shablon nomini kiriting!');
+      return;
+    }
+    try {
+      setSavingPreset(true);
+      const res = await api.post('/product-admin/online-mahalla/survey-presets', {
+        name: newPresetName.trim(),
+        description: newPresetDescription.trim(),
+        settings: smartSettings
+      });
+      if (res.data?.success && res.data?.preset) {
+        toast.success(`«${newPresetName}» shabloni muvaffaqiyatli saqlandi!`);
+        setSavePresetDialogOpen(false);
+        setNewPresetName('');
+        setNewPresetDescription('');
+        await fetchSurveyPresets();
+        setSelectedPresetId(res.data.preset._id);
+      }
+    } catch (err: any) {
+      toast.error('Shablonni saqlashda xatolik: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSavingPreset(false);
+    }
+  };
+
+  // Shablonni o'chirish
+  const handleDeletePreset = async (presetId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('Haqiqatan ham ushbu shablonni o‘chirmoqchimisiz?')) return;
+    try {
+      await api.delete(`/product-admin/online-mahalla/survey-presets/${presetId}`);
+      toast.info('Shablon o‘chirildi');
+      fetchSurveyPresets();
+    } catch (err: any) {
+      toast.error('O‘chirishda xatolik: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // Smart Xatlov jobini ishga tushirish (Ko'cha yoki Mahalla)
+  const handleStartSmartSurveyJob = async () => {
+    try {
+      setStartingSmartJob(true);
+      setSmartConfirmDialogOpen(false);
+      const activePreset = surveyPresets.find((p) => p._id === selectedPresetId);
+      const endpoint =
+        smartTargetScope === 'street'
+          ? '/product-admin/online-mahalla/jobs/smart-survey/street'
+          : '/product-admin/online-mahalla/jobs/smart-survey/mahalla';
+
+      const payload: any = {
+        obl_id: oblId,
+        area_id: areaId,
+        district_id: districtId,
+        mahalla_name: userProfile?.mahalla_name,
+        settings: smartSettings,
+        preset_name: activePreset?.name || 'Maxsus sozlama',
+        skip_processed: smartSkipProcessed
+      };
+
+      if (smartTargetScope === 'street') {
+        payload.street_id = selectedStreetId;
+        payload.street_name = selectedStreetObj?.name;
+      }
+
+      const res = await api.post(endpoint, payload, {
+        headers: { 'x-online-mahalla-token': token.trim() }
+      });
+
+      if (res.data?.success) {
+        toast.success(res.data.message || 'Smart Xatlov jobi muvaffaqiyatli ishga tushirildi!');
+        setActiveTab('monitor');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Jobni ishga tushirishda xatolik');
+    } finally {
+      setStartingSmartJob(false);
+    }
+  };
+
+  // Filtrlangan moliya ro'yxati
+  const filteredBillingList = useMemo(() => {
+    const q = billingSearchQuery.trim();
+    const match = createSearchMatcher(q);
+    return billingList.filter((item) => {
+      if (billingDistrictFilter !== 'all' && String(item.area_id) !== String(billingDistrictFilter)) {
+        return false;
+      }
+      if (billingStatusFilter === 'DEBT' && item.balance >= 0) return false;
+      if (billingStatusFilter === 'PREPAID' && item.balance <= 0) return false;
+      if (billingStatusFilter === 'ZERO' && item.balance !== 0) return false;
+
+      if (q) {
+        return match(item.mahalla_name) || match(item.district_id) || match(item.area_name || districtNames[String(item.area_id)]);
+      }
+      return true;
+    });
+  }, [billingList, billingSearchQuery, billingDistrictFilter, billingStatusFilter, districtNames]);
+
+  // Filtr o'zgarganda birinchi sahifaga qaytish
+  useEffect(() => {
+    setBillingPage(0);
+  }, [billingSearchQuery, billingDistrictFilter, billingStatusFilter]);
+
+  // Faqat joriy sahifadagi qatorlar chiziladi (hammasini birdan chizish sahifani qotiradi)
+  const pagedBillingList = useMemo(() => {
+    const start = billingPage * billingRowsPerPage;
+    return filteredBillingList.slice(start, start + billingRowsPerPage);
+  }, [filteredBillingList, billingPage, billingRowsPerPage]);
 
   // Mission Control: Pachkalar katalogi navigatsiyasi (Packs -> Items)
   const [selectedMonitorDistrictId, setSelectedMonitorDistrictId] = useState<string | null>(null);
@@ -485,8 +1247,8 @@ export default function OnlineMahallaSync() {
   // Qidiruv bo'yicha filtrlangan ko'chalar hisoboti
   const filteredReportStreets = useMemo(() => {
     if (!reportSearch.trim()) return reportStreets;
-    const q = reportSearch.toLowerCase();
-    return reportStreets.filter((s) => s.name?.toLowerCase().includes(q));
+    const match = createSearchMatcher(reportSearch);
+    return reportStreets.filter((s) => match(s.name));
   }, [reportStreets, reportSearch]);
 
   // Excelga eksport qilish
@@ -550,13 +1312,33 @@ export default function OnlineMahallaSync() {
     toast.success('Excel fayli muvaffaqiyatli yuklab olindi!');
   };
 
-  // ── Saqlangan hisoblarni yuklash ──
-  const fetchSavedAccounts = async () => {
+  // ── Saqlangan hisoblarni yuklash (Server Mode Pagination & Sorting) ──
+  const fetchSavedAccounts = async (
+    page = paginationModel.page,
+    pageSize = paginationModel.pageSize,
+    search = mahallaSearchQuery,
+    district = districtFilter,
+    status = statusFilter,
+    sort = sortModel
+  ) => {
     try {
       setLoadingAccounts(true);
-      const res = await api.get('/product-admin/online-mahalla/accounts');
+      const params: any = {
+        page,
+        pageSize
+      };
+      if (search && search.trim()) params.search = buildTranslitRegexSource(search.trim());
+      if (district && district !== 'all') params.area_id = district;
+      if (status && status !== 'all') params.status = status;
+      if (sort && sort.length > 0) {
+        params.sortField = sort[0].field;
+        params.sortOrder = sort[0].sort || 'desc';
+      }
+
+      const res = await api.get('/product-admin/online-mahalla/accounts', { params });
       if (res.data?.success && Array.isArray(res.data?.accounts)) {
-        setSavedAccounts(res.data.accounts);
+        setPaginatedAccounts(res.data.accounts);
+        setTotalAccountsCount(typeof res.data.total === 'number' ? res.data.total : res.data.accounts.length);
       }
     } catch (_) {
     } finally {
@@ -564,9 +1346,48 @@ export default function OnlineMahallaSync() {
     }
   };
 
+  // Tumanlar dropdowni uchun barcha hisoblarni bir marta olish
+  const fetchAllSavedAccountsForFilter = async () => {
+    try {
+      const res = await api.get('/product-admin/online-mahalla/accounts', { params: { all: 'true' } });
+      if (res.data?.success && Array.isArray(res.data?.accounts)) {
+        setSavedAccounts(res.data.accounts);
+      }
+    } catch (_) {}
+  };
+
   useEffect(() => {
-    fetchSavedAccounts();
+    fetchSavedAccounts(0, paginationModel.pageSize, '', 'all', 'all', sortModel);
+    fetchAllSavedAccountsForFilter();
+    fetchBillingSummary();
+    fetchSurveyPresets();
   }, []);
+
+  // Qidiruv yoki filter o'zgarganda birinchi sahifadan yangilash
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchSavedAccounts(0, paginationModel.pageSize, mahallaSearchQuery, districtFilter, statusFilter, sortModel);
+      setPaginationModel((prev) => ({ ...prev, page: 0 }));
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [mahallaSearchQuery, districtFilter, statusFilter]);
+
+  // Sahifa yoki Sort o'zgarganda yuklash
+  const handlePaginationModelChange = (newModel: GridPaginationModel) => {
+    setPaginationModel(newModel);
+    fetchSavedAccounts(newModel.page, newModel.pageSize, mahallaSearchQuery, districtFilter, statusFilter, sortModel);
+  };
+
+  const handleSortModelChange = (newSort: GridSortModel) => {
+    setSortModel(newSort);
+    fetchSavedAccounts(paginationModel.page, paginationModel.pageSize, mahallaSearchQuery, districtFilter, statusFilter, newSort);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'billing') {
+      fetchBillingSummary();
+    }
+  }, [activeTab]);
 
   // E-IMZO kalitlarini yuklash
   const handleOpenEimzoDialog = async () => {
@@ -865,12 +1686,14 @@ export default function OnlineMahallaSync() {
   };
 
   useEffect(() => {
-    fetchAllJobs(selectedJobDate);
-    const timer = setInterval(() => {
+    if (activeTab === 'monitor') {
       fetchAllJobs(selectedJobDate);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [selectedJobDate]);
+      const timer = setInterval(() => {
+        fetchAllJobs(selectedJobDate);
+      }, 3000);
+      return () => clearInterval(timer);
+    }
+  }, [activeTab, selectedJobDate]);
 
   // Butun mahallani boshlash
   const handleStartMahallaSync = async () => {
@@ -1176,14 +1999,8 @@ export default function OnlineMahallaSync() {
   const filteredErrors = useMemo(() => {
     if (!selectedJobForErrors?.errors) return [];
     if (!errorSearchQuery.trim()) return selectedJobForErrors.errors;
-    const q = errorSearchQuery.toLowerCase();
-    return selectedJobForErrors.errors.filter(
-      (e) =>
-        e.cadaster?.toLowerCase().includes(q) ||
-        e.streetName?.toLowerCase().includes(q) ||
-        e.ownerName?.toLowerCase().includes(q) ||
-        e.error?.toLowerCase().includes(q)
-    );
+    const match = createSearchMatcher(errorSearchQuery);
+    return selectedJobForErrors.errors.filter((e) => match(e.cadaster) || match(e.streetName) || match(e.ownerName) || match(e.error));
   }, [selectedJobForErrors, errorSearchQuery]);
 
   const handleCopyErrors = () => {
@@ -1200,17 +2017,107 @@ export default function OnlineMahallaSync() {
     toast.success('Xatoliklar nusxalandi!');
   };
 
+  // Job natijalari hisoboti
+  const handleOpenReport = (job: SyncJobStatus) => {
+    setSelectedJobForReport(job);
+    setReportDialogOpen(true);
+  };
+
+  const handleExportJobReportExcel = (job: SyncJobStatus) => {
+    if (!job) return;
+    const wb = XLSX.utils.book_new();
+    const sum = job.reportSummary || {};
+    const emp = sum.employment || {};
+    const bus = sum.businessWishes || {};
+    const se = sum.socioEconomic || {};
+    const inc = se.monthlyIncomes || {};
+    const inf = sum.infrastructure || {};
+
+    // 1-sheet: Umumiy Xulosa (Summary)
+    const summaryData = [
+      ['ONLINE MAHALLA - SMART XATLOV HISOBOTI', ''],
+      ['Mahalla:', job.mahallaName || ''],
+      ['Ko‘cha:', job.streetName || 'Barcha ko‘chalar'],
+      ['Job ID:', job.id],
+      ['Holati:', job.status],
+      ['Shablon (Preset):', job.presetName || 'Standart'],
+      ['Boshlangan vaqti:', job.startTime ? new Date(job.startTime).toLocaleString('uz-UZ') : ''],
+      ['Tugallangan vaqti:', job.endTime ? new Date(job.endTime).toLocaleString('uz-UZ') : '—'],
+      ['', ''],
+      ['ASOSIY KO‘RSATKICHLAR', 'SONI'],
+      ['Jami rejalashtirilgan xonadonlar', job.total || 0],
+      ['Ko‘rib chiqilgan xonadonlar', job.processed || 0],
+      ['Muvaffaqiyatli xatlovdan o‘tkazilgan xonadonlar', job.surveyHomesUpdated || job.success || 0],
+      ['O‘tkazib yuborilgan xonadonlar', job.skipped || 0],
+      ['Xatoliklar soni', job.failed || 0],
+      ['Bandligi shakllantirilgan fuqarolar', job.employmentUpdated || 0],
+      ['Tadbirkorlik & ko‘mak shakllantirilgan fuqarolar', job.businessWishesUpdated || 0],
+      ['', ''],
+      ['BANDLIK VA TA‘LIM TAQSIMOTI', 'FUQAROLAR SONI'],
+      ['Rasmiy band (davlat bazasidan saqlangan)', emp.officialPreserved || 0],
+      ['O‘zini o‘zi band qilgan (tomorqa / xizmat)', emp.selfEmployed || 0],
+      ['Norasmiy yollanma ishchi', emp.unofficialWorker || 0],
+      ['Maktab o‘quvchilari (7-17 yosh)', emp.schoolStudent || 0],
+      ['Bog‘cha tarbiyalanuvchisi (3-6 yosh)', emp.kindergarten || 0],
+      ['Ona tarbiyasida (0-2 yosh)', emp.motherCare || 0],
+      ['Talabalar (OTM, kollej, texnikum)', emp.student || 0],
+      ['Nafaqaxo‘rlar (keksalar)', emp.pensioner || 0],
+      ['Ishsiz fuqarolar', emp.unemployed || 0],
+      ['', ''],
+      ['TADBIRKORLIK VA MOLIYAVIY KO‘MAK (TAB 6)', 'FUQAROLAR SONI'],
+      ['Tadbirkorlik istagi bildirilganlar', bus.hasNeed || 0],
+      ['Imtiyozli kredit so‘raganlar', bus.credit || 0],
+      ['Subsidiya yoki ssuda so‘raganlar', bus.subsidy || 0],
+      ['Ehtiyoj yo‘q deb belgilanganlar', bus.noNeed || 0],
+      ['', ''],
+      ['DAROMAD VA KREDIT QARZDORLIGI', 'XONADONLAR SONI'],
+      ['Kredit qarzdorligi yo‘q', se.noDebtCount || 0],
+      ['Kredit qarzdorligi mavjud', se.hasDebtCount || 0],
+      ['1 mln so‘mgacha daromad', inc.under1m || 0],
+      ['1 - 3 mln so‘m', inc.from1mTo3m || 0],
+      ['3 - 5 mln so‘m', inc.from3mTo5m || 0],
+      ['5 - 10 mln so‘m', inc.from5mTo10m || 0],
+      ['10 mln so‘mdan yuqori', inc.above10m || 0],
+      ['', ''],
+      ['INFRATUZILMA VA KOMMUNIKATSIYA', 'XONADONLAR SONI'],
+      ['Tabiiy gaz tarmog‘i', inf.gasNatural || 0],
+      ['Suyultirilgan gaz (ballon)', inf.gasCylinder || 0],
+      ['Markaziy ichimlik suvi', inf.waterCentral || 0],
+      ['Quduq yoki boshqa manba', inf.waterWell || 0]
+    ];
+
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary['!cols'] = [{ wch: 52 }, { wch: 22 }];
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Xatlov_Hisoboti');
+
+    if (job.errors && job.errors.length > 0) {
+      const errorHeaders = ['ID', 'Kadastr', 'Ko‘cha', 'Uy raqami', 'Egasi', 'Xatolik matni', 'Vaqti'];
+      const errorRows = job.errors.map((err) => [
+        err.id,
+        err.cadaster,
+        err.streetName || '',
+        err.houseNum || '',
+        err.ownerName || '',
+        err.error,
+        err.timestamp
+      ]);
+      const wsErrors = XLSX.utils.aoa_to_sheet([errorHeaders, ...errorRows]);
+      wsErrors['!cols'] = [{ wch: 10 }, { wch: 22 }, { wch: 20 }, { wch: 10 }, { wch: 25 }, { wch: 45 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsErrors, 'Xatoliklar');
+    }
+
+    const safeMahalla = (job.mahallaName || 'Mahalla').replace(/[/\\?%*:|"<>]/g, '_');
+    const safeStreet = (job.streetName || 'Hammasi').replace(/[/\\?%*:|"<>]/g, '_');
+    const fileName = `Hisobot_${safeMahalla}_${safeStreet}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    toast.success('Excel hisobot yuklab olindi!');
+  };
+
   // Xonadonlarni qidirish
   const filteredHomes = useMemo(() => {
     if (!homeSearch.trim()) return homes;
-    const q = homeSearch.toLowerCase();
-    return homes.filter(
-      (h) =>
-        (h.full_name && h.full_name.toLowerCase().includes(q)) ||
-        (h.cadaster_number && h.cadaster_number.toLowerCase().includes(q)) ||
-        (h.home_num && String(h.home_num).includes(q)) ||
-        (h.pinfl && String(h.pinfl).includes(q))
-    );
+    const match = createSearchMatcher(homeSearch);
+    return homes.filter((h) => match(h.full_name) || match(h.cadaster_number) || match(h.home_num) || match(h.pinfl));
   }, [homes, homeSearch]);
 
   const selectedStreetObj = useMemo(() => streets.find((s) => String(s.id) === String(selectedStreetId)), [streets, selectedStreetId]);
@@ -1227,13 +2134,8 @@ export default function OnlineMahallaSync() {
     }
 
     if (jobSearchQuery.trim()) {
-      const q = jobSearchQuery.toLowerCase().trim();
-      result = result.filter(
-        (j) =>
-          (j.mahallaName && j.mahallaName.toLowerCase().includes(q)) ||
-          (j.streetName && j.streetName.toLowerCase().includes(q)) ||
-          (j.id && j.id.toLowerCase().includes(q))
-      );
+      const match = createSearchMatcher(jobSearchQuery);
+      result = result.filter((j) => match(j.mahallaName) || match(j.streetName) || match(j.id));
     }
 
     return result;
@@ -1404,64 +2306,550 @@ export default function OnlineMahallaSync() {
     return Array.from(map.values());
   }, [savedAccounts, districtNames]);
 
+  // ── Qidiruv va tuman filtri bo'yicha saralangan mahallalar ──
+  const filteredSavedAccountsByDistrict = useMemo(() => {
+    const q = mahallaSearchQuery.trim();
+    const match = createSearchMatcher(q);
+
+    return savedAccountsByDistrict
+      .filter((distGroup) => {
+        if (districtFilter !== 'all' && distGroup.areaId !== districtFilter) {
+          return false;
+        }
+        return true;
+      })
+      .map((distGroup) => {
+        if (!q) return distGroup;
+
+        const matchDistrict = match(distGroup.districtName) || match(distGroup.areaId);
+
+        if (matchDistrict) return distGroup;
+
+        const matchingAccounts = distGroup.accounts.filter((acc) => {
+          return match(acc.mahalla_name) || match(acc.full_name) || match(acc.district_id) || match(acc.pinfl);
+        });
+
+        return {
+          ...distGroup,
+          accounts: matchingAccounts
+        };
+      })
+      .filter((distGroup) => distGroup.accounts.length > 0);
+  }, [savedAccountsByDistrict, mahallaSearchQuery, districtFilter]);
+
+  const totalMatchingMahallas = useMemo(() => {
+    return filteredSavedAccountsByDistrict.reduce((acc, d) => acc + d.accounts.length, 0);
+  }, [filteredSavedAccountsByDistrict]);
+
+  const isDistrictExpanded = (areaId: string) => {
+    if (mahallaSearchQuery.trim() !== '') return true;
+    if (expandedDistricts[areaId] !== undefined) return expandedDistricts[areaId];
+    const hasSelected = String(areaId) === String(userProfile?.area_id || areaId);
+    return hasSelected || savedAccountsByDistrict.length <= 2;
+  };
+
+  // ── DataGrid Ustunlari (Server Mode Pagination & Sorting) ──
+  const accountColumns: GridColDef[] = useMemo(
+    () => [
+      {
+        field: 'mahalla_name',
+        headerName: "Mahalla Nomi & Mas'ul",
+        minWidth: 260,
+        flex: 1.3,
+        renderCell: (params) => {
+          const row = params.row as SavedMahallaAccount;
+          const isSelected = String(districtId) === String(row.district_id);
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+                  {row.mahalla_name}
+                </Typography>
+                {isSelected && (
+                  <Chip
+                    icon={<CheckCircleIcon sx={{ fontSize: '0.8rem !important' }} />}
+                    label="Ulangan"
+                    color="success"
+                    size="small"
+                    sx={{ height: 20, fontSize: '0.7rem', fontWeight: 800 }}
+                  />
+                )}
+              </Stack>
+              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                Mas'ul: {row.full_name || 'Xodim'} {row.phone ? `• ${row.phone}` : ''}
+              </Typography>
+            </Box>
+          );
+        }
+      },
+      {
+        field: 'district_id',
+        headerName: 'Mahalla ID',
+        width: 130,
+        renderCell: (params) => (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Chip
+              label={`ID: ${params.value}`}
+              size="small"
+              sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700, fontFamily: 'monospace' }}
+            />
+          </Box>
+        )
+      },
+      {
+        field: 'area_name',
+        headerName: 'Tuman / Hudud',
+        minWidth: 200,
+        flex: 1,
+        renderCell: (params) => {
+          const row = params.row as SavedMahallaAccount;
+          const dName = row.area_name || (row.area_id ? districtNames[String(row.area_id)] : '') || `Tuman #${row.area_id || ''}`;
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                {dName}
+              </Typography>
+              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontFamily: 'monospace' }}>
+                area_id: {row.area_id}
+              </Typography>
+            </Box>
+          );
+        }
+      },
+      {
+        field: 'status',
+        headerName: 'Holati',
+        width: 130,
+        renderCell: (params) => {
+          const status = String(params.value || 'ACTIVE').toUpperCase();
+          if (status === 'ACTIVE') {
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <Chip
+                  icon={<CheckCircleIcon sx={{ fontSize: '0.8rem !important' }} />}
+                  label="Faol"
+                  color="success"
+                  size="small"
+                  sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700 }}
+                />
+              </Box>
+            );
+          }
+          if (status === 'EXPIRED') {
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <Chip
+                  icon={<WarningIcon sx={{ fontSize: '0.8rem !important' }} />}
+                  label="Muddati o‘tgan"
+                  color="warning"
+                  size="small"
+                  sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700 }}
+                />
+              </Box>
+            );
+          }
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+              <Chip
+                icon={<ErrorIcon sx={{ fontSize: '0.8rem !important' }} />}
+                label="Xatolik"
+                color="error"
+                size="small"
+                sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700 }}
+              />
+            </Box>
+          );
+        }
+      },
+      {
+        field: 'key_filename',
+        headerName: 'E-IMZO Kalit & PINFL',
+        minWidth: 190,
+        flex: 0.9,
+        renderCell: (params) => {
+          const row = params.row as SavedMahallaAccount;
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+              <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
+                <KeyIcon sx={{ fontSize: 14, color: theme.palette.primary.main }} />
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 600, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {row.key_filename || (row.key_path ? 'Kalit mavjud' : 'Token')}
+                </Typography>
+              </Stack>
+              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontFamily: 'monospace' }}>
+                PINFL: {row.pinfl || '—'}
+              </Typography>
+            </Box>
+          );
+        }
+      },
+      {
+        field: 'balance',
+        headerName: 'Balans',
+        width: 170,
+        renderCell: (params) => {
+          const balance = Number(params.value || 0);
+          if (balance > 0) {
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <Chip
+                  label={`+${balance.toLocaleString()} so'm`}
+                  size="small"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.74rem',
+                    bgcolor: alpha(theme.palette.success.main, 0.12),
+                    color: theme.palette.success.main,
+                    border: '1px solid',
+                    borderColor: alpha(theme.palette.success.main, 0.3)
+                  }}
+                />
+              </Box>
+            );
+          }
+          if (balance < 0) {
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <Chip
+                  label={`${balance.toLocaleString()} so'm`}
+                  size="small"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.74rem',
+                    bgcolor: alpha(theme.palette.error.main, 0.12),
+                    color: theme.palette.error.main,
+                    border: '1px solid',
+                    borderColor: alpha(theme.palette.error.main, 0.3)
+                  }}
+                />
+              </Box>
+            );
+          }
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+              <Chip
+                label="0 so'm"
+                size="small"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.74rem',
+                  bgcolor: alpha(theme.palette.text.primary, 0.05),
+                  color: theme.palette.text.primary,
+                  border: '1px solid',
+                  borderColor: theme.palette.divider
+                }}
+              />
+            </Box>
+          );
+        }
+      },
+      {
+        field: 'actions',
+        headerName: 'Amallar',
+        minWidth: 320,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const row = params.row as SavedMahallaAccount;
+          const isSelected = String(districtId) === String(row.district_id);
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+              <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
+                {isSelected ? (
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="success"
+                    startIcon={<CheckCircleIcon sx={{ fontSize: 14 }} />}
+                    sx={{ height: 28, textTransform: 'none', fontWeight: 800, fontSize: '0.74rem', px: 1.2 }}
+                  >
+                    Ulangan
+                  </Button>
+                ) : (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => handleSelectAccount(row)}
+                    sx={{ height: 28, textTransform: 'none', fontWeight: 700, fontSize: '0.74rem', px: 1.2 }}
+                  >
+                    Ulanish
+                  </Button>
+                )}
+
+                <Tooltip title="Tuman nomini avtomatik aniqlash (Avtonomlash)">
+                  <span>
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      disabled={autoNamingDistrictId === String(row.area_id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (row.area_id) handleAutoNameDistrict(String(row.area_id));
+                      }}
+                      sx={{ p: 0.5, border: '1px solid', borderColor: alpha(theme.palette.primary.main, 0.3) }}
+                    >
+                      {autoNamingDistrictId === String(row.area_id) ? (
+                        <CircularProgress size={14} color="inherit" />
+                      ) : (
+                        <AutoAwesomeIcon sx={{ fontSize: 15 }} />
+                      )}
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="Ushbu mahalla bo'yicha Sinxronizatsiyani ishga tushirish">
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    startIcon={<PlayArrowIcon sx={{ fontSize: 14 }} />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectAccount(row);
+                      setActiveTab('launch');
+                      toast.info(`«${row.mahalla_name}» tanlandi. Ishga tushirishga o‘tildi.`);
+                    }}
+                    sx={{ height: 28, textTransform: 'none', fontWeight: 700, fontSize: '0.74rem', px: 1.2, boxShadow: 'none' }}
+                  >
+                    Job
+                  </Button>
+                </Tooltip>
+
+                <Tooltip title="Survey hisoboti">
+                  <IconButton
+                    size="small"
+                    color="secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('report');
+                      if (row.area_id) setSelectedReportDistrictId(String(row.area_id));
+                      handleOpenMahallaReport(row);
+                    }}
+                    sx={{ p: 0.5 }}
+                  >
+                    <AssessmentIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Hisobni o‘chirish">
+                  <IconButton size="small" color="error" onClick={(e) => row._id && handleDeleteAccount(row._id, e)} sx={{ p: 0.5 }}>
+                    <DeleteIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Box>
+          );
+        }
+      }
+    ],
+    [districtId, theme, districtNames, autoNamingDistrictId]
+  );
+
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3 }, maxWidth: 1400, mx: 'auto' }}>
       {/* ── Bosh Sahifa Sarlavhasi ── */}
-      <Box sx={{ mb: 3 }}>
-        <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          spacing={2}
-          sx={{ alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between' }}
-        >
+      <Box sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <StreetIcon sx={{ color: theme.palette.primary.main, fontSize: 32 }} />
           <Box>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <StreetIcon sx={{ color: theme.palette.primary.main, fontSize: 30 }} />
-              <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                Online-Mahalla Integratsiya Markazi
-              </Typography>
-              <Chip
-                label={activeView === 'sync' ? 'Sinxronizatsiya' : 'Hisobotlar (Survey)'}
-                size="small"
-                sx={{
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
-                  color: theme.palette.primary.main,
-                  fontWeight: 700
-                }}
-              />
-            </Stack>
-            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
-              Xodim profilini ulang, mahallalarni sinxronizatsiya qiling hamda aholi/xonadonlar statistik hisobotini kuzating.
+            <Typography variant="h3" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+              Online-Mahalla Integratsiya Markazi
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.2 }}>
+              Xodim profillari, E-IMZO kalitlari, avtomatik sinxronizatsiya va jonli monitoring markazi
             </Typography>
           </Box>
-
-          {/* Sahifalar almashinuvi: Sinxronizatsiya vs Hisobotlar */}
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Button
-              variant={activeView === 'sync' ? 'contained' : 'outlined'}
-              color="primary"
-              startIcon={<SyncIcon />}
-              onClick={() => setActiveView('sync')}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
-            >
-              Sinxronizatsiya & Monitor
-            </Button>
-            <Button
-              variant={activeView === 'report' ? 'contained' : 'outlined'}
-              color="primary"
-              startIcon={<AssessmentIcon />}
-              onClick={() => setActiveView('report')}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
-            >
-              📊 Hisobotlarga o‘tish (Survey Homes)
-            </Button>
-          </Stack>
         </Stack>
       </Box>
 
+      {/* ── Tab Bar in Header ── */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2.5 }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, val) => setActiveTab(val)}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            '& .MuiTab-root': {
+              minHeight: 52,
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              textTransform: 'none',
+              px: { xs: 2, sm: 3 }
+            }
+          }}
+        >
+          <Tab
+            value="accounts"
+            icon={<FingerprintIcon />}
+            iconPosition="start"
+            label={
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <span>1. Imzolar & Ulanish</span>
+                <Chip label={`${savedAccounts.length} ta`} size="small" sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700 }} />
+              </Stack>
+            }
+          />
+          <Tab
+            value="launch"
+            icon={<PlayArrowIcon />}
+            iconPosition="start"
+            label={
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <span>2. Ishga Tushirish</span>
+                {streets.length > 0 && (
+                  <Chip
+                    label={`${streets.length} ta ko‘cha`}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700 }}
+                  />
+                )}
+              </Stack>
+            }
+          />
+          <Tab
+            value="monitor"
+            icon={<JobIcon />}
+            iconPosition="start"
+            label={
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <span>3. Jonli Monitor</span>
+                {jobsStats.running > 0 ? (
+                  <Chip
+                    label={`${jobsStats.running} faol`}
+                    size="small"
+                    color="warning"
+                    sx={{ height: 20, fontSize: '0.72rem', fontWeight: 800 }}
+                  />
+                ) : (
+                  <Chip label={`${jobsStats.total} job`} size="small" sx={{ height: 20, fontSize: '0.72rem', fontWeight: 600 }} />
+                )}
+              </Stack>
+            }
+          />
+          <Tab
+            value="report"
+            icon={<AssessmentIcon />}
+            iconPosition="start"
+            label={
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <span>4. Survey Hisobotlar</span>
+                {totalInDb > 0 && <Chip label={`${totalInDb}`} size="small" sx={{ height: 20, fontSize: '0.72rem', fontWeight: 600 }} />}
+              </Stack>
+            }
+          />
+          <Tab
+            value="billing"
+            icon={<WalletIcon />}
+            iconPosition="start"
+            label={
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <span>5. Moliya & Balans</span>
+                {billingSummary && billingSummary.totalDebt > 0 ? (
+                  <Chip
+                    label={`-${billingSummary.totalDebt.toLocaleString()} so'm qarz`}
+                    size="small"
+                    color="error"
+                    sx={{ height: 20, fontSize: '0.72rem', fontWeight: 800 }}
+                  />
+                ) : (
+                  <Chip label={`${billingList.length} ta`} size="small" sx={{ height: 20, fontSize: '0.72rem', fontWeight: 600 }} />
+                )}
+              </Stack>
+            }
+          />
+        </Tabs>
+      </Box>
+
+      {/* ── Tanlangan Mahalla (Active Mahalla) Sticky / Quick Banner ── */}
+      {districtId && (
+        <Paper
+          elevation={0}
+          sx={{
+            mb: 3,
+            p: 1.5,
+            px: 2,
+            borderRadius: 2.5,
+            border: '1px solid',
+            borderColor: userProfile ? alpha(theme.palette.success.main, 0.4) : alpha(theme.palette.primary.main, 0.3),
+            bgcolor: userProfile
+              ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.1 : 0.04)
+              : alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.08 : 0.03),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1.5
+          }}
+        >
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <CheckCircleIcon color="success" sx={{ fontSize: 24 }} />
+            <Box>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+                  {userProfile?.mahalla_name ||
+                    savedAccounts.find((a) => String(a.district_id) === String(districtId))?.mahalla_name ||
+                    `Mahalla #${districtId}`}
+                </Typography>
+                <Chip label={`ID: ${districtId}`} size="small" variant="outlined" sx={{ fontWeight: 700, height: 22 }} />
+                {userProfile?.area_name && (
+                  <Chip
+                    label={userProfile.area_name}
+                    size="small"
+                    sx={{
+                      height: 22,
+                      bgcolor: alpha(theme.palette.primary.main, 0.12),
+                      color: theme.palette.primary.main,
+                      fontWeight: 700
+                    }}
+                  />
+                )}
+              </Stack>
+              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                Mas'ul: <b>{userProfile?.full_name || 'Aniqlanmagan'}</b> • Ko'chalar: <b>{streets.length} ta tayyor</b>
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            {activeTab !== 'launch' && (
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                startIcon={<PlayArrowIcon />}
+                onClick={() => setActiveTab('launch')}
+                sx={{ borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
+              >
+                Sinxronizatsiyaga O'tish
+              </Button>
+            )}
+            {activeTab !== 'accounts' && (
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                startIcon={<SwapHorizIcon />}
+                onClick={() => setActiveTab('accounts')}
+                sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}
+              >
+                Mahallani O'zgartirish
+              </Button>
+            )}
+          </Stack>
+        </Paper>
+      )}
+
       {/* ─────────────────────────────────────────────────────────── */}
-      {/* ── SINXRONIZATSIYA & BOSHQARUV REJIMI ── */}
+      {/* ── TAB 1: IMZOLAR VA XODIMNI ULANISHI ── */}
       {/* ─────────────────────────────────────────────────────────── */}
-      {activeView === 'sync' && (
+      {activeTab === 'accounts' && (
         <Box>
           {/* ─────────────────────────────────────────────────────────── */}
           {/* ── 1-BOSQICH: TOKEN & MAHALLANI ANIQLASH ── */}
@@ -1568,123 +2956,211 @@ export default function OnlineMahallaSync() {
                   </Button>
                 </Stack>
 
-                {/* Saqlangan mahallalar hisoblari ro'yxati (Tumanlar kesimida katalog) */}
-                {savedAccounts.length > 0 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
-                      <StorageIcon sx={{ fontSize: 18, color: theme.palette.text.secondary }} />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                        Bazada Saqlangan Mahallalar Katalogi ({savedAccounts.length} ta mahalla):
+                {/* Saqlangan Mahallalar & Imzolar Jadvali (DataGrid Server Mode) */}
+                <Box sx={{ mt: 3 }}>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1.5}
+                    sx={{ alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: 2 }}
+                  >
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                      <TableChartIcon sx={{ fontSize: 22, color: theme.palette.primary.main }} />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                        Saqlangan Mahallalar & Imzolar Jadvali
                       </Typography>
+                      <Chip
+                        label={`${totalAccountsCount} ta mahalla`}
+                        size="small"
+                        color="primary"
+                        sx={{ height: 24, fontSize: '0.75rem', fontWeight: 800 }}
+                      />
                     </Stack>
 
-                    <Stack spacing={1.5}>
-                      {savedAccountsByDistrict.map((distGroup) => (
-                        <Paper
-                          key={distGroup.areaId}
-                          elevation={0}
-                          sx={{
-                            p: 1.5,
-                            borderRadius: 2,
-                            border: '1px solid',
-                            borderColor: theme.palette.divider,
-                            bgcolor: alpha(theme.palette.background.default, 0.5)
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        disabled={autoNamingAll}
+                        startIcon={
+                          autoNamingAll ? <CircularProgress size={13} color="inherit" /> : <AutoAwesomeIcon sx={{ fontSize: 16 }} />
+                        }
+                        onClick={handleAutoNameAllDistricts}
+                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, fontSize: '0.8rem' }}
+                      >
+                        {autoNamingAll ? 'Tumanlar nomlanmoqda...' : 'Barcha tumanlarni avtonomlash'}
+                      </Button>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="inherit"
+                        startIcon={<RefreshIcon sx={{ fontSize: 16 }} />}
+                        onClick={() => {
+                          fetchSavedAccounts();
+                          fetchAllSavedAccountsForFilter();
+                        }}
+                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem' }}
+                      >
+                        Yangilash
+                      </Button>
+                    </Stack>
+                  </Stack>
+
+                  {/* 🔍 Qidiruv va Filtr Paneli */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      mb: 2,
+                      borderRadius: 2.5,
+                      border: '1px solid',
+                      borderColor: theme.palette.divider,
+                      bgcolor: alpha(theme.palette.background.default, 0.6)
+                    }}
+                  >
+                    <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+                      {/* Qidiruv maydoni */}
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          placeholder="Mahalla nomi, mas'ul F.I.SH, ID yoki PINFL..."
+                          value={mahallaSearchQuery}
+                          onChange={(e) => setMahallaSearchQuery(e.target.value)}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <SearchIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />
+                                </InputAdornment>
+                              ),
+                              endAdornment: mahallaSearchQuery ? (
+                                <InputAdornment position="end">
+                                  <IconButton size="small" onClick={() => setMahallaSearchQuery('')}>
+                                    <CloseIcon fontSize="small" />
+                                  </IconButton>
+                                </InputAdornment>
+                              ) : null,
+                              sx: { borderRadius: 2, bgcolor: theme.palette.background.paper }
+                            }
                           }}
-                        >
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap' }}
-                          >
-                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                              <FolderIcon sx={{ color: theme.palette.primary.main, fontSize: 18 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                {distGroup.districtName}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontFamily: 'monospace' }}>
-                                (area_id: {distGroup.areaId})
-                              </Typography>
-                              <Chip
-                                label={`${distGroup.accounts.length} ta mahalla`}
-                                size="small"
-                                sx={{ height: 20, fontSize: '0.72rem', fontWeight: 600 }}
-                              />
-                              <Tooltip title="Tuman nomini tahrirlash">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => {
-                                    setEditingDistrictId(distGroup.areaId);
-                                    setEditingDistrictName(distGroup.districtName);
-                                  }}
-                                  sx={{ p: 0.3 }}
-                                >
-                                  <EditIcon sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </Stack>
+                        />
+                      </Grid>
 
-                          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                            {distGroup.accounts.map((acc) => {
-                              const isSelected = String(districtId) === String(acc.district_id);
-                              return (
-                                <Stack
-                                  key={acc._id}
-                                  direction="row"
-                                  spacing={0.3}
-                                  sx={{
-                                    alignItems: 'center',
-                                    border: '1px solid',
-                                    borderColor: isSelected ? theme.palette.primary.main : theme.palette.divider,
-                                    borderRadius: 4,
-                                    pr: 0.6,
-                                    bgcolor: isSelected
-                                      ? alpha(theme.palette.primary.main, 0.08)
-                                      : alpha(theme.palette.background.paper, 0.8)
-                                  }}
-                                >
-                                  <Chip
-                                    label={`${acc.mahalla_name} (${acc.full_name || 'Xodim'})`}
-                                    color={isSelected ? 'primary' : 'default'}
-                                    variant={isSelected ? 'filled' : 'outlined'}
-                                    onClick={() => handleSelectAccount(acc)}
-                                    // onDelete={(e) => handleDeleteAccount(acc._id, e)}
-                                    // deleteIcon={
-                                    //   <Tooltip title="Hisobni o‘chirish">
-                                    //     <DeleteIcon fontSize="small" />
-                                    //   </Tooltip>
-                                    // }
-                                    sx={{
-                                      fontWeight: isSelected ? 700 : 500,
-                                      cursor: 'pointer',
-                                      border: 'none',
-                                      bgcolor: 'transparent'
-                                    }}
-                                  />
-                                  <Tooltip title="Ushbu mahallaning Survey Homes hisobotini ochish">
-                                    <IconButton
-                                      size="small"
-                                      color="primary"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setActiveView('report');
-                                        setSelectedReportDistrictId(distGroup.areaId);
-                                        handleOpenMahallaReport(acc);
-                                      }}
-                                      sx={{ p: 0.4 }}
-                                    >
-                                      <AssessmentIcon sx={{ fontSize: 16 }} />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Stack>
-                              );
-                            })}
-                          </Stack>
-                        </Paper>
-                      ))}
-                    </Stack>
-                  </Box>
-                )}
+                      {/* Tuman bo'yicha filtr */}
+                      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel id="district-filter-label">Tuman bo'yicha saralash</InputLabel>
+                          <Select
+                            labelId="district-filter-label"
+                            label="Tuman bo'yicha saralash"
+                            value={districtFilter}
+                            onChange={(e) => setDistrictFilter(e.target.value)}
+                            sx={{ borderRadius: 2, bgcolor: theme.palette.background.paper }}
+                          >
+                            <MenuItem value="all">
+                              <em>Barcha tumanlar ({savedAccounts.length} ta mahalla)</em>
+                            </MenuItem>
+                            {savedAccountsByDistrict.map((d) => (
+                              <MenuItem key={d.areaId} value={d.areaId}>
+                                {d.districtName} ({d.accounts.length} ta)
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+
+                      {/* Holati bo'yicha filtr */}
+                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel id="status-filter-label">Holati bo'yicha</InputLabel>
+                          <Select
+                            labelId="status-filter-label"
+                            label="Holati bo'yicha"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            sx={{ borderRadius: 2, bgcolor: theme.palette.background.paper }}
+                          >
+                            <MenuItem value="all">Barchasi</MenuItem>
+                            <MenuItem value="ACTIVE">Faol (Active)</MenuItem>
+                            <MenuItem value="EXPIRED">Muddati o‘tgan</MenuItem>
+                            <MenuItem value="ERROR">Xatolik</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+
+                    {/* Faol filtr holati va tozalash */}
+                    {(mahallaSearchQuery || districtFilter !== 'all' || statusFilter !== 'all') && (
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1.5, flexWrap: 'wrap' }}>
+                        <FilterListIcon sx={{ fontSize: 16, color: theme.palette.primary.main }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                          Filtrlangan natija: {totalAccountsCount} ta mahalla
+                        </Typography>
+                        <Button
+                          size="small"
+                          color="secondary"
+                          onClick={() => {
+                            setMahallaSearchQuery('');
+                            setDistrictFilter('all');
+                            setStatusFilter('all');
+                          }}
+                          sx={{ fontSize: '0.72rem', textTransform: 'none', py: 0, px: 1, ml: 1 }}
+                        >
+                          Filtrni tozalash
+                        </Button>
+                      </Stack>
+                    )}
+                  </Paper>
+
+                  {/* 📊 DataGrid Jadvali */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      width: '100%',
+                      minHeight: 520,
+                      borderRadius: 2.5,
+                      border: '1px solid',
+                      borderColor: theme.palette.divider,
+                      bgcolor: theme.palette.background.paper,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <DataGrid
+                      rows={paginatedAccounts}
+                      columns={accountColumns}
+                      getRowId={(row) => String(row._id || row.district_id)}
+                      rowCount={totalAccountsCount}
+                      loading={loadingAccounts}
+                      paginationMode="server"
+                      paginationModel={paginationModel}
+                      onPaginationModelChange={handlePaginationModelChange}
+                      pageSizeOptions={[10, 25, 50, 100]}
+                      sortingMode="server"
+                      sortModel={sortModel}
+                      onSortModelChange={handleSortModelChange}
+                      disableRowSelectionOnClick
+                      rowHeight={64}
+                      sx={{
+                        border: 'none',
+                        minHeight: 480,
+                        '& .MuiDataGrid-columnHeaders': {
+                          bgcolor: alpha(theme.palette.background.default, 0.7),
+                          borderBottom: '1px solid',
+                          borderColor: theme.palette.divider,
+                          fontWeight: 700
+                        },
+                        '& .MuiDataGrid-row:hover': {
+                          bgcolor: alpha(theme.palette.primary.main, 0.04)
+                        },
+                        '& .MuiDataGrid-cell': {
+                          borderColor: alpha(theme.palette.divider, 0.6)
+                        }
+                      }}
+                    />
+                  </Paper>
+                </Box>
               </Box>
 
               <Divider sx={{ my: 2 }} />
@@ -1856,10 +3332,33 @@ export default function OnlineMahallaSync() {
               </Box>
             </CardContent>
           </Card>
+        </Box>
+      )}
 
-          {/* ─────────────────────────────────────────────────────────── */}
-          {/* ── 2-BOSQICH: ISHGA TUSHIRISH (SINXRONIZATSIYA TANLOVI) ── */}
-          {/* ─────────────────────────────────────────────────────────── */}
+      {/* ─────────────────────────────────────────────────────────── */}
+      {/* ── TAB 2: SINXRONIZATSIYANI ISHGA TUSHIRISH ── */}
+      {/* ─────────────────────────────────────────────────────────── */}
+      {activeTab === 'launch' && (
+        <Box>
+          {!districtId && (
+            <Alert
+              severity="warning"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => setActiveTab('accounts')}
+                  sx={{ fontWeight: 700, textTransform: 'none' }}
+                >
+                  Mahallani Tanlash
+                </Button>
+              }
+              sx={{ mb: 3, borderRadius: 2 }}
+            >
+              Hozirda hech qanday mahalla tanlanmagan. Sinxronizatsiyani ishga tushirish uchun avval 1-tabdan kerakli mahallani tanlang.
+            </Alert>
+          )}
+
           <Card
             elevation={0}
             sx={{
@@ -2428,9 +3927,2021 @@ export default function OnlineMahallaSync() {
             </CardContent>
           </Card>
 
-          {/* ─────────────────────────────────────────────────────────── */}
-          {/* ── 3-BOSQICH: JONLI PROGRESS MONITORI & XATOLAR JURNALI ── */}
-          {/* ─────────────────────────────────────────────────────────── */}
+          {/* ══════════════════════════════════════════════════════════ */}
+          {/* 🧠 SMART XATLOV — FOIZLAR VA EHTIMOLLIKLAR ASOSIDA TO'LDIRISH */}
+          {/* ══════════════════════════════════════════════════════════ */}
+          <Card
+            elevation={0}
+            sx={{
+              mb: 3,
+              border: '2px solid',
+              borderColor: alpha(theme.palette.primary.main, 0.4),
+              borderRadius: 3,
+              bgcolor: theme.palette.background.paper,
+              overflow: 'hidden',
+              boxShadow: theme.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 20px rgba(33, 150, 243, 0.08)'
+            }}
+          >
+            {/* Header */}
+            <Box
+              sx={{
+                p: 2.5,
+                borderBottom: '1px solid',
+                borderColor: theme.palette.divider,
+                bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.04)
+              }}
+            >
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={2}
+                sx={{ alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between' }}
+              >
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 2.5,
+                      bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: theme.palette.primary.main
+                    }}
+                  >
+                    <SmartIcon sx={{ fontSize: 28 }} />
+                  </Box>
+                  <Box>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Typography variant="h4" sx={{ fontWeight: 800 }}>
+                        Smart Xatlov (Foizlar va Ehtimolliklar Asosida To‘ldirish)
+                      </Typography>
+                      <Chip label="Smart AI Engine" color="primary" size="small" sx={{ height: 22, fontWeight: 700, fontSize: '0.7rem' }} />
+                    </Stack>
+                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.3 }}>
+                      Soliq va pensiya bazalaridan yangilash, fuqarolar yoshiga ko‘ra bandlik, kredit qarzdorligi va infratuzilmani foizlar
+                      asosida to‘ldiradi.
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                {/* Preset Tanlash va Saqlash boshqaruvi */}
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  <FormControl size="small" sx={{ minWidth: 230 }}>
+                    <InputLabel id="survey-preset-select-label">Tanlangan Shablon (Preset)</InputLabel>
+                    <Select
+                      labelId="survey-preset-select-label"
+                      label="Tanlangan Shablon (Preset)"
+                      value={selectedPresetId}
+                      onChange={(e) => handleSelectPreset(e.target.value)}
+                      sx={{ borderRadius: 2, bgcolor: theme.palette.background.paper, fontWeight: 700 }}
+                    >
+                      {surveyPresets.map((p) => (
+                        <MenuItem key={p._id} value={p._id}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <span>{p.name}</span>
+                            {p.isDefault && <Chip label="Standart" size="small" color="primary" sx={{ height: 18, fontSize: '0.65rem' }} />}
+                          </Stack>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <Tooltip title="Joriy sozlamalarni yangi shablon sifatida saqlash">
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      startIcon={<SaveIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => {
+                        setNewPresetName('');
+                        setNewPresetDescription('');
+                        setSavePresetDialogOpen(true);
+                      }}
+                      sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, height: 40 }}
+                    >
+                      Shablon Saqlash
+                    </Button>
+                  </Tooltip>
+
+                  {selectedPresetId && !surveyPresets.find((p) => p._id === selectedPresetId)?.isDefault && (
+                    <Tooltip title="Ushbu maxsus shablonni o‘chirish">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={(e) => handleDeletePreset(selectedPresetId, e)}
+                        sx={{ border: '1px solid', borderColor: alpha(theme.palette.error.main, 0.3) }}
+                      >
+                        <DeleteIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Stack>
+              </Stack>
+            </Box>
+
+            <CardContent sx={{ p: 2.5 }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '270px minmax(0, 1fr)' },
+                  gap: 2.5,
+                  alignItems: 'start'
+                }}
+              >
+                {/* Bo'limlar menyusi: faqat tanlangan bo'lim sozlamalari ko'rsatiladi */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    position: { md: 'sticky' },
+                    top: { md: 88 },
+                    borderRadius: 2.5,
+                    border: '1px solid',
+                    borderColor: theme.palette.divider,
+                    overflow: 'hidden'
+                  }}
+                >
+                  {SMART_SECTIONS.map((sec) => {
+                    const enabled = smartSettings.modules?.[sec.key] !== false;
+                    const active = smartSection === sec.key;
+                    return (
+                      <ButtonBase
+                        key={sec.key}
+                        onClick={() => setSmartSection(sec.key)}
+                        sx={{
+                          display: 'flex',
+                          width: '100%',
+                          textAlign: 'left',
+                          justifyContent: 'flex-start',
+                          alignItems: 'flex-start',
+                          gap: 1.25,
+                          px: 1.75,
+                          py: 1.4,
+                          borderLeft: '3px solid',
+                          borderLeftColor: active ? theme.palette.primary.main : 'transparent',
+                          borderBottom: '1px solid',
+                          borderBottomColor: theme.palette.divider,
+                          bgcolor: active ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                          '&:hover': { bgcolor: alpha(theme.palette.primary.main, active ? 0.1 : 0.04) }
+                        }}
+                      >
+                        <Box sx={{ fontSize: 20, lineHeight: 1.2, opacity: enabled ? 1 : 0.4 }}>{sec.icon}</Box>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: active ? 800 : 700, color: enabled ? 'text.primary' : 'text.disabled' }}
+                            >
+                              {sec.title}
+                            </Typography>
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                flexShrink: 0,
+                                bgcolor: enabled ? theme.palette.success.main : theme.palette.grey[400]
+                              }}
+                            />
+                          </Stack>
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', color: theme.palette.text.secondary, lineHeight: 1.35, mt: 0.25 }}
+                          >
+                            {enabled ? smartSectionSummary[sec.key] : 'O‘chirilgan — teginilmaydi'}
+                          </Typography>
+                        </Box>
+                      </ButtonBase>
+                    );
+                  })}
+                </Paper>
+
+                <Box sx={{ minWidth: 0 }}>
+                  {/* 1-BO'LIM: BANDLIK VA TA'LIM (HAR BIR FUQARO KESIMIDA) */}
+                  {smartSection === 'employment' && (
+                    <Box>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2.5,
+                          height: '100%',
+                          borderRadius: 2.5,
+                          border: '1px solid',
+                          borderColor: theme.palette.divider,
+                          bgcolor: alpha(theme.palette.background.default, 0.5)
+                        }}
+                      >
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <WorkIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                              1. 💼 Bandlik va Ta'lim
+                            </Typography>
+                          </Stack>
+                          <Tooltip
+                            title={smartSettings.modules?.employment !== false ? "Ushbu bo'limni o'chirish" : "Ushbu bo'limni yoqish"}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  size="small"
+                                  checked={smartSettings.modules?.employment !== false}
+                                  onChange={(e) =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      modules: { ...prev.modules, employment: e.target.checked }
+                                    }))
+                                  }
+                                  color="primary"
+                                />
+                              }
+                              label={
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: smartSettings.modules?.employment !== false ? 'primary.main' : 'text.disabled'
+                                  }}
+                                >
+                                  {smartSettings.modules?.employment !== false ? 'FAOL' : "O'CHIRILGAN"}
+                                </Typography>
+                              }
+                              sx={{ m: 0 }}
+                            />
+                          </Tooltip>
+                        </Stack>
+
+                        <Box
+                          sx={{
+                            opacity: smartSettings.modules?.employment !== false ? 1 : 0.45,
+                            pointerEvents: smartSettings.modules?.employment !== false ? 'auto' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <Stack spacing={2}>
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: smartSettings.employment.skipWorkingAge ? theme.palette.warning.main : theme.palette.divider
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={smartSettings.employment.skipWorkingAge === true}
+                                    onChange={(e) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, skipWorkingAge: e.target.checked }
+                                      }))
+                                    }
+                                    color="warning"
+                                  />
+                                }
+                                label={
+                                  <Box sx={{ ml: 0.5 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                      Mehnat yoshidagilarning bandlik holatiga tegilmasin
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                      18 yoshdan pensiya yoshigacha (erkak 59, ayol 54) bo‘lganlarning bandlik holati o‘zgartirilmaydi.
+                                      Kasb-hunar va tadbirkorlik ehtiyoji hamma a’zo uchun to‘ldiriladi
+                                    </Typography>
+                                  </Box>
+                                }
+                                sx={{ m: 0 }}
+                              />
+                            </Paper>
+
+                            {smartSettings.employment.mode === 'burgansoy' && !smartSettings.employment.skipWorkingAge && (
+                              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                  ⭐ Burgansoy Maxsus Shablon Rejimi:
+                                </Typography>
+                                <Typography variant="caption" sx={{ display: 'block', mt: 0.5, lineHeight: 1.5 }}>
+                                  • Mehnat yoshidagi erkaklar: <b>4.7 "qishloq xo‘jalik ishlari bilan band"</b>
+                                  <br />• 50–54 yoshli ayollar: <b>4.7 "uy bekasi"</b>
+                                  <br />• 18–49 yoshli ayollar: <b>4.7 "qishloq xo‘jalik ishlari bilan band"</b>
+                                  <br />• 7–17 yosh o‘quvchilar: <b>4.4 (maktab/litsey)</b>
+                                  <br />• Go‘daklar (0–2): <b>4.6 (ona tarbiyasi)</b>, Bog‘cha (3–6): <b>4.5 (bog‘cha)</b>
+                                  <br />• Nafaqaxo‘rlar:{' '}
+                                  <b>
+                                    {(smartSettings.employment.pensionerMode ?? '4.2') === '4.7'
+                                      ? '4.7 (Izoh: "Nafaqada")'
+                                      : '4.2 (nafaqada)'}
+                                  </b>
+                                  <br />• <b>Tadbirkorlik (YaTT) belgilanmaydi.</b>
+                                </Typography>
+                              </Alert>
+                            )}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={smartSettings.employment.refreshGovDatabases}
+                                    onChange={(e) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, refreshGovDatabases: e.target.checked }
+                                      }))
+                                    }
+                                    color="primary"
+                                  />
+                                }
+                                label={
+                                  <Box sx={{ ml: 0.5 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                      Davlat bazalaridan yangilash (Refresh)
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                      Soliq, pensiya va boshqa bazalardan eng so'nggi ma'lumotlarni tortadi
+                                    </Typography>
+                                  </Box>
+                                }
+                                sx={{ m: 0 }}
+                              />
+                            </Paper>
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={smartSettings.employment.preserveOfficialSector}
+                                    onChange={(e) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, preserveOfficialSector: e.target.checked }
+                                      }))
+                                    }
+                                    color="success"
+                                  />
+                                }
+                                label={
+                                  <Box sx={{ ml: 0.5 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                      Rasmiy bandlarni saqlab qolish
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                      Rasmiy ishlovchilarning tashkiloti va STIRi saqlanadi, teginilmaydi
+                                    </Typography>
+                                  </Box>
+                                }
+                                sx={{ m: 0 }}
+                              />
+                            </Paper>
+
+                            {/* Bog'cha yoshidagi bolalar (3-6 yosh) */}
+                            <Box>
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  3 – 6 yosh: Bog‘cha tarbiyalanuvchisi
+                                </Typography>
+                                <Chip
+                                  label={`${smartSettings.employment.kindergartenPercent}%`}
+                                  color="primary"
+                                  size="small"
+                                  sx={{ fontWeight: 800, height: 22 }}
+                                />
+                              </Stack>
+                              <Slider
+                                value={smartSettings.employment.kindergartenPercent}
+                                onChange={(_, v) =>
+                                  setSmartSettings((prev) => ({
+                                    ...prev,
+                                    employment: { ...prev.employment, kindergartenPercent: v as number }
+                                  }))
+                                }
+                                min={0}
+                                max={100}
+                                size="small"
+                              />
+                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                Qolgan {100 - smartSettings.employment.kindergartenPercent}% bolalar «Она тарбиясида» deb belgilanadi
+                              </Typography>
+                            </Box>
+
+                            <Divider sx={{ my: 1 }} />
+
+                            {/* Mehnatga layoqatli aholi taqsimoti */}
+                            <Box
+                              sx={{
+                                opacity: smartSettings.employment.skipWorkingAge ? 0.4 : 1,
+                                pointerEvents: smartSettings.employment.skipWorkingAge ? 'none' : 'auto'
+                              }}
+                            >
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: theme.palette.primary.main, mb: 1 }}>
+                                Mehnatga layoqatli aholi taqsimoti (18–59 yosh erkak, 18–54 yosh ayol):
+                              </Typography>
+
+                              <Stack spacing={1.5}>
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      Норасмий ёлланма ишчи
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                                      {smartSettings.employment.unofficialWorkerPercent}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.employment.unofficialWorkerPercent}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, unofficialWorkerPercent: v as number }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="secondary"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      Ўзини ўзи банд қилган (Томорқа, хизмат)
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                                      {smartSettings.employment.selfEmployedPercent}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.employment.selfEmployedPercent}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, selfEmployedPercent: v as number }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="info"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      Ишсиз (Иш топа олмаган)
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 800 }}>
+                                      {smartSettings.employment.unemployedPercent}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.employment.unemployedPercent}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, unemployedPercent: v as number }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="warning"
+                                  />
+                                </Box>
+                              </Stack>
+                            </Box>
+
+                            {/* Nafaqadagi fuqarolarni belgilash uslubi (1-uslub: 4.2.2 / 2-uslub: 4.7) */}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                border: '1.5px solid',
+                                borderColor:
+                                  (smartSettings.employment.pensionerMode ?? '4.2') === '4.7'
+                                    ? theme.palette.secondary.main
+                                    : theme.palette.primary.main
+                              }}
+                            >
+                              <Stack spacing={1}>
+                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+                                    🧓 Nafaqadagilar (Erkak 60+, Ayol 55+):
+                                  </Typography>
+                                  <Chip
+                                    label={
+                                      (smartSettings.employment.pensionerMode ?? '4.2') === '4.7'
+                                        ? '4.7 (Izoh uslubi)'
+                                        : '4.2 (Standart uslub)'
+                                    }
+                                    size="small"
+                                    color={(smartSettings.employment.pensionerMode ?? '4.2') === '4.7' ? 'secondary' : 'primary'}
+                                    sx={{ fontWeight: 800, height: 22, fontSize: '0.72rem' }}
+                                  />
+                                </Stack>
+                                <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                  Online Mahalla shaklida qaysi uslubda belgilansin:
+                                </Typography>
+                                <Stack direction="row" spacing={1}>
+                                  <Button
+                                    fullWidth
+                                    size="small"
+                                    variant={(smartSettings.employment.pensionerMode ?? '4.2') === '4.2' ? 'contained' : 'outlined'}
+                                    color="primary"
+                                    onClick={() =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, pensionerMode: '4.2' }
+                                      }))
+                                    }
+                                    sx={{
+                                      py: 0.6,
+                                      fontSize: '0.73rem',
+                                      fontWeight: 800,
+                                      borderRadius: 1.5,
+                                      textTransform: 'none'
+                                    }}
+                                  >
+                                    1-uslub: 4.2.2 (Нафақада)
+                                  </Button>
+                                  <Button
+                                    fullWidth
+                                    size="small"
+                                    variant={(smartSettings.employment.pensionerMode ?? '4.2') === '4.7' ? 'contained' : 'outlined'}
+                                    color="secondary"
+                                    onClick={() =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        employment: { ...prev.employment, pensionerMode: '4.7' }
+                                      }))
+                                    }
+                                    sx={{
+                                      py: 0.6,
+                                      fontSize: '0.73rem',
+                                      fontWeight: 800,
+                                      borderRadius: 1.5,
+                                      textTransform: 'none'
+                                    }}
+                                  >
+                                    2-uslub: 4.7 Izoh ("Nafaqada")
+                                  </Button>
+                                </Stack>
+                              </Stack>
+                            </Paper>
+
+                            {/* Avtomatik qat'iy qoidalar badges */}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.2,
+                                borderRadius: 2,
+                                bgcolor: alpha(theme.palette.info.main, 0.08),
+                                border: '1px dashed',
+                                borderColor: alpha(theme.palette.info.main, 0.3)
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 700, display: 'block', mb: 0.5, color: theme.palette.info.main }}
+                              >
+                                Avtomatik qat'iy qoidalar:
+                              </Typography>
+                              <Stack direction="row" spacing={0.6} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                                <Chip
+                                  label="0–2 yosh: 100% Ona tarbiyasida"
+                                  size="small"
+                                  sx={{ height: 20, fontSize: '0.68rem', bgcolor: theme.palette.background.paper }}
+                                />
+                                <Chip
+                                  label="7–17 yosh: 100% Maktab o‘quvchisi"
+                                  size="small"
+                                  sx={{ height: 20, fontSize: '0.68rem', bgcolor: theme.palette.background.paper }}
+                                />
+                                <Chip
+                                  label={
+                                    (smartSettings.employment.pensionerMode ?? '4.2') === '4.7'
+                                      ? 'Keksalar: 4.7 ("Nafaqada")'
+                                      : 'Keksalar: 4.2 (Nafaqada)'
+                                  }
+                                  size="small"
+                                  sx={{ height: 20, fontSize: '0.68rem', bgcolor: theme.palette.background.paper }}
+                                />
+                              </Stack>
+                            </Paper>
+
+                            {/* Faoliyat sohalari aralashmasi haqida tushuntirish */}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: alpha(theme.palette.secondary.main, 0.08),
+                                border: '1px dashed',
+                                borderColor: alpha(theme.palette.secondary.main, 0.3)
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.secondary.main, display: 'block', mb: 0.5 }}
+                              >
+                                🎲 Tizim sohalarni tabiiy proporsiyada aralashtiradi:
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{ color: theme.palette.text.secondary, fontSize: '0.72rem', display: 'block' }}
+                              >
+                                • <b>Norasmiy ishchilar:</b> Qurilish, ta'mir, yuk tashish, qishloq xo'jaligi, kunlik ishchi va maishiy
+                                xizmatlar avtomatik aralashtiriladi.
+                                <br />• <b>O'zini o'zi band qilganlar:</b> Dehqonchilik (tomorqa), chorvachilik, issiqxona, usta, kosib,
+                                tikuvchi, sartarosh, santexnik kabi sohalar fuqarolarga tabiiy taqsimlanadi.
+                              </Typography>
+                            </Paper>
+                          </Stack>
+                        </Box>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* 2-BO'LIM: MEHNAT VA KASB-HUNARGA BO'LGAN EHTIYOJ (TAB 54434) */}
+                  {smartSection === 'employmentWishes' && (
+                    <Box>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2.5,
+                          height: '100%',
+                          borderRadius: 2.5,
+                          border: '1px solid',
+                          borderColor: theme.palette.divider,
+                          bgcolor: alpha(theme.palette.background.default, 0.5)
+                        }}
+                      >
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <SchoolIcon sx={{ color: theme.palette.secondary.main, fontSize: 20 }} />
+                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                              2. 🎓 Kasb-hunarga Ehtiyoj
+                            </Typography>
+                          </Stack>
+                          <Tooltip
+                            title={smartSettings.modules?.employmentWishes !== false ? "Ushbu bo'limni o'chirish" : "Ushbu bo'limni yoqish"}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  size="small"
+                                  checked={smartSettings.modules?.employmentWishes !== false}
+                                  onChange={(e) =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      modules: { ...prev.modules, employmentWishes: e.target.checked }
+                                    }))
+                                  }
+                                  color="secondary"
+                                />
+                              }
+                              label={
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: smartSettings.modules?.employmentWishes !== false ? 'secondary.main' : 'text.disabled'
+                                  }}
+                                >
+                                  {smartSettings.modules?.employmentWishes !== false ? 'FAOL' : "O'CHIRILGAN"}
+                                </Typography>
+                              }
+                              sx={{ m: 0 }}
+                            />
+                          </Tooltip>
+                        </Stack>
+
+                        <Box
+                          sx={{
+                            opacity: smartSettings.modules?.employmentWishes !== false ? 1 : 0.45,
+                            pointerEvents: smartSettings.modules?.employmentWishes !== false ? 'auto' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <Stack spacing={2}>
+                            <Alert severity="success" sx={{ borderRadius: 2 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                ⭐ 100% Ehtiyoj yo‘q qoidasi:
+                              </Typography>
+                              <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                                Online Mahalla tizimidagi 54434-tab bo‘yicha har bir fuqaroga{' '}
+                                <b>«Меҳнатга ва касб-ҳунарга бўлган эҳтиёж йўқ»</b> deb to‘ldiriladi.
+                              </Typography>
+                              <Box sx={{ mt: 1, pl: 1, borderLeft: '2px solid', borderColor: theme.palette.success.main }}>
+                                <Typography variant="caption" sx={{ display: 'block', fontSize: '0.73rem' }}>
+                                  • Ишлаш истаги: <b>Меҳнатга ва касб-ҳунарга эҳтиёж йўқ (7)</b>
+                                </Typography>
+                                <Typography variant="caption" sx={{ display: 'block', fontSize: '0.73rem' }}>
+                                  • Касб-ҳунар ўқиш: <b>Меҳнатга ва касб-ҳунарга эҳтиёж йўқ (6)</b>
+                                </Typography>
+                                <Typography variant="caption" sx={{ display: 'block', fontSize: '0.73rem' }}>
+                                  • Хорижий тил ўқиш: <b>Меҳнатга ва касб-ҳунарга эҳтиёж йўқ (7)</b>
+                                </Typography>
+                              </Box>
+                            </Alert>
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider,
+                                bgcolor: theme.palette.background.paper
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  Ehtiyoj holati:
+                                </Typography>
+                                <Chip label="100% Эҳтиёж йўқ" color="success" size="small" sx={{ fontWeight: 800 }} />
+                              </Stack>
+                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, mt: 1, display: 'block' }}>
+                                Burgansoy shabloni bo‘yicha barcha fuqarolar uchun yangi ish, kasb-hunar va chet tili o‘rganishga ehtiyoj
+                                yo‘q qilib belgilanadi.
+                              </Typography>
+                            </Paper>
+                          </Stack>
+                        </Box>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* 3-BO'LIM: TADBIRKORLIK VA MOLIYAVIY KO'MAKKA BO'LGAN EHTIYOJ */}
+                  {smartSection === 'businessWishes' && (
+                    <Box>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2.5,
+                          height: '100%',
+                          borderRadius: 2.5,
+                          border: '1px solid',
+                          borderColor: theme.palette.divider,
+                          bgcolor: alpha(theme.palette.background.default, 0.5)
+                        }}
+                      >
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <BusinessCenterIcon sx={{ color: theme.palette.secondary.main, fontSize: 20 }} />
+                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                              3. 🚀 Tadbirkorlik & Ko‘mak
+                            </Typography>
+                          </Stack>
+                          <Tooltip
+                            title={smartSettings.modules?.businessWishes !== false ? "Ushbu bo'limni o'chirish" : "Ushbu bo'limni yoqish"}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  size="small"
+                                  checked={smartSettings.modules?.businessWishes !== false}
+                                  onChange={(e) =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      modules: { ...prev.modules, businessWishes: e.target.checked }
+                                    }))
+                                  }
+                                  color="secondary"
+                                />
+                              }
+                              label={
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: smartSettings.modules?.businessWishes !== false ? 'secondary.main' : 'text.disabled'
+                                  }}
+                                >
+                                  {smartSettings.modules?.businessWishes !== false ? 'FAOL' : "O'CHIRILGAN"}
+                                </Typography>
+                              }
+                              sx={{ m: 0 }}
+                            />
+                          </Tooltip>
+                        </Stack>
+
+                        <Box
+                          sx={{
+                            opacity: smartSettings.modules?.businessWishes !== false ? 1 : 0.45,
+                            pointerEvents: smartSettings.modules?.businessWishes !== false ? 'auto' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <Stack spacing={2}>
+                            {/* Ehtiyoji bor fuqarolar foizi */}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider
+                              }}
+                            >
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                  Tadbirkorlikka ehtiyoji / istagi bor:
+                                </Typography>
+                                <Chip
+                                  label={`${smartSettings.businessWishes?.hasNeedPercent ?? 18}% BOR`}
+                                  color={(smartSettings.businessWishes?.hasNeedPercent ?? 18) > 0 ? 'secondary' : 'default'}
+                                  size="small"
+                                  sx={{ fontWeight: 800 }}
+                                />
+                              </Stack>
+                              <Slider
+                                value={smartSettings.businessWishes?.hasNeedPercent ?? 18}
+                                onChange={(_, v) =>
+                                  setSmartSettings((prev) => ({
+                                    ...prev,
+                                    businessWishes: {
+                                      ...(prev.businessWishes || DEFAULT_SMART_SETTINGS.businessWishes!),
+                                      hasNeedPercent: v as number
+                                    }
+                                  }))
+                                }
+                                min={0}
+                                max={100}
+                                size="small"
+                                color="secondary"
+                              />
+                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                Qolgan {100 - (smartSettings.businessWishes?.hasNeedPercent ?? 18)}% fuqaroga «Тадбиркорликка бўлган эҳтиёж
+                                йўқ» deb belgilanadi
+                              </Typography>
+                            </Paper>
+
+                            {/* Qaysi yo'nalishda istak bor */}
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.text.secondary, display: 'block', mb: 1 }}
+                              >
+                                Qaysi yo‘nalishda istak bor (% taqsimoti):
+                              </Typography>
+                              <Stack spacing={1}>
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Хизмат кўрсатиш</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.businessWishes?.directions?.servicesPercent ?? 35}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.businessWishes?.directions?.servicesPercent ?? 35}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        businessWishes: {
+                                          ...(prev.businessWishes || DEFAULT_SMART_SETTINGS.businessWishes!),
+                                          directions: {
+                                            ...(prev.businessWishes?.directions || DEFAULT_SMART_SETTINGS.businessWishes!.directions),
+                                            servicesPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Қишлоқ хўжалиги</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.businessWishes?.directions?.agriculturePercent ?? 35}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.businessWishes?.directions?.agriculturePercent ?? 35}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        businessWishes: {
+                                          ...(prev.businessWishes || DEFAULT_SMART_SETTINGS.businessWishes!),
+                                          directions: {
+                                            ...(prev.businessWishes?.directions || DEFAULT_SMART_SETTINGS.businessWishes!.directions),
+                                            agriculturePercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="success"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Кичик ишлаб чиқариш</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.businessWishes?.directions?.productionPercent ?? 20}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.businessWishes?.directions?.productionPercent ?? 20}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        businessWishes: {
+                                          ...(prev.businessWishes || DEFAULT_SMART_SETTINGS.businessWishes!),
+                                          directions: {
+                                            ...(prev.businessWishes?.directions || DEFAULT_SMART_SETTINGS.businessWishes!.directions),
+                                            productionPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Онлайн бизнес</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.businessWishes?.directions?.onlineBusinessPercent ?? 10}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.businessWishes?.directions?.onlineBusinessPercent ?? 10}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        businessWishes: {
+                                          ...(prev.businessWishes || DEFAULT_SMART_SETTINGS.businessWishes!),
+                                          directions: {
+                                            ...(prev.businessWishes?.directions || DEFAULT_SMART_SETTINGS.businessWishes!.directions),
+                                            onlineBusinessPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="info"
+                                  />
+                                </Box>
+                              </Stack>
+                            </Box>
+
+                            <Divider sx={{ my: 0.5 }} />
+
+                            {/* Qanday ko'mak kerak */}
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.text.secondary, display: 'block', mb: 1 }}
+                              >
+                                Kerakli ko‘mak turi (%):
+                              </Typography>
+                              <Stack spacing={1}>
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Кредит маблағи</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.businessWishes?.supportTypes?.creditPercent ?? 65}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.businessWishes?.supportTypes?.creditPercent ?? 65}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        businessWishes: {
+                                          ...(prev.businessWishes || DEFAULT_SMART_SETTINGS.businessWishes!),
+                                          supportTypes: {
+                                            ...(prev.businessWishes?.supportTypes || DEFAULT_SMART_SETTINGS.businessWishes!.supportTypes),
+                                            creditPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="warning"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Ссуда / Субсидия</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.businessWishes?.supportTypes?.subsidyPercent ?? 25}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.businessWishes?.supportTypes?.subsidyPercent ?? 25}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        businessWishes: {
+                                          ...(prev.businessWishes || DEFAULT_SMART_SETTINGS.businessWishes!),
+                                          supportTypes: {
+                                            ...(prev.businessWishes?.supportTypes || DEFAULT_SMART_SETTINGS.businessWishes!.supportTypes),
+                                            subsidyPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="success"
+                                  />
+                                </Box>
+                              </Stack>
+                            </Box>
+
+                            {/* Tushuntirish box */}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: alpha(theme.palette.secondary.main, 0.08),
+                                border: '1px dashed',
+                                borderColor: alpha(theme.palette.secondary.main, 0.3)
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.secondary.main, display: 'block', mb: 0.5 }}
+                              >
+                                💡 Davlat Standarti (TAB 6):
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{ color: theme.palette.text.secondary, fontSize: '0.72rem', display: 'block' }}
+                              >
+                                Kredit so‘rovlariga 50 mln gacha, 50–100 mln so‘m; subsidiyaga esa asbob-uskuna xaridi va issiqxona qurish
+                                taqsimlanadi. Ehtiyoj yo‘q fuqarolarga avtomatik «Эҳтиёж йўқ» belgilanadi.
+                              </Typography>
+                            </Paper>
+                          </Stack>
+                        </Box>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* 4-BO'LIM: IJTIMOIY-IQTISODIY VA KREDIT QARZDORLIGI */}
+                  {smartSection === 'socioEconomic' && (
+                    <Box>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2.5,
+                          height: '100%',
+                          borderRadius: 2.5,
+                          border: '1px solid',
+                          borderColor: theme.palette.divider,
+                          bgcolor: alpha(theme.palette.background.default, 0.5)
+                        }}
+                      >
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <CreditCardIcon sx={{ color: theme.palette.warning.main, fontSize: 20 }} />
+                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                              4. 💳 Kredit & Ijtimoiy Holat
+                            </Typography>
+                          </Stack>
+                          <Tooltip
+                            title={smartSettings.modules?.socioEconomic !== false ? "Ushbu bo'limni o'chirish" : "Ushbu bo'limni yoqish"}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  size="small"
+                                  checked={smartSettings.modules?.socioEconomic !== false}
+                                  onChange={(e) =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      modules: { ...prev.modules, socioEconomic: e.target.checked }
+                                    }))
+                                  }
+                                  color="warning"
+                                />
+                              }
+                              label={
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: smartSettings.modules?.socioEconomic !== false ? 'warning.main' : 'text.disabled'
+                                  }}
+                                >
+                                  {smartSettings.modules?.socioEconomic !== false ? 'FAOL' : "O'CHIRILGAN"}
+                                </Typography>
+                              }
+                              sx={{ m: 0 }}
+                            />
+                          </Tooltip>
+                        </Stack>
+
+                        <Box
+                          sx={{
+                            opacity: smartSettings.modules?.socioEconomic !== false ? 1 : 0.45,
+                            pointerEvents: smartSettings.modules?.socioEconomic !== false ? 'auto' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <Stack spacing={2}>
+                            {/* Kredit qarzdorligi bor foizi */}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider
+                              }}
+                            >
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                  Kredit qarzdorligi bor xonadonlar:
+                                </Typography>
+                                <Chip
+                                  label={`${smartSettings.socioEconomic.hasDebtPercent}% BOR`}
+                                  color={smartSettings.socioEconomic.hasDebtPercent > 0 ? 'warning' : 'default'}
+                                  size="small"
+                                  sx={{ fontWeight: 800 }}
+                                />
+                              </Stack>
+                              <Slider
+                                value={smartSettings.socioEconomic.hasDebtPercent}
+                                onChange={(_, v) =>
+                                  setSmartSettings((prev) => ({
+                                    ...prev,
+                                    socioEconomic: { ...prev.socioEconomic, hasDebtPercent: v as number }
+                                  }))
+                                }
+                                min={0}
+                                max={100}
+                                color="warning"
+                              />
+                              <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                  0% (Barchasi qarz yo'q)
+                                </Typography>
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
+                                  {100 - smartSettings.socioEconomic.hasDebtPercent}% Qarz yo‘q (Йўқ)
+                                </Typography>
+                              </Stack>
+                            </Paper>
+
+                            {/* Qarz turlari */}
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.text.secondary, display: 'block', mb: 1 }}
+                              >
+                                Qarz turlari taqsimoti (agar kredit mavjud bo'lsa):
+                              </Typography>
+                              <Stack spacing={1}>
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Bank krediti</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.debtTypes.bankCreditPercent}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.debtTypes.bankCreditPercent}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          debtTypes: { ...prev.socioEconomic.debtTypes, bankCreditPercent: v as number }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Ipoteka / Lizing</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.debtTypes.mortgagePercent}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.debtTypes.mortgagePercent}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          debtTypes: { ...prev.socioEconomic.debtTypes, mortgagePercent: v as number }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                  />
+                                </Box>
+                              </Stack>
+                            </Box>
+
+                            <Divider sx={{ my: 1 }} />
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: smartSettings.socioEconomic.incomeByResidents
+                                  ? theme.palette.primary.main
+                                  : theme.palette.divider
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={smartSettings.socioEconomic.incomeByResidents === true}
+                                    onChange={(e) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: { ...prev.socioEconomic, incomeByResidents: e.target.checked }
+                                      }))
+                                    }
+                                    color="primary"
+                                  />
+                                }
+                                label={
+                                  <Box sx={{ ml: 0.5 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                      Oylik daromad yashovchilar soniga qarab
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                      5 kishigacha — 3–5 mln so‘m, 6 va undan ko‘p — 10 mln so‘mdan yuqori
+                                    </Typography>
+                                  </Box>
+                                }
+                                sx={{ m: 0 }}
+                              />
+                            </Paper>
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: smartSettings.socioEconomic.preserveExistingIncome
+                                  ? theme.palette.success.main
+                                  : theme.palette.divider
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={smartSettings.socioEconomic.preserveExistingIncome === true}
+                                    onChange={(e) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: { ...prev.socioEconomic, preserveExistingIncome: e.target.checked }
+                                      }))
+                                    }
+                                    color="success"
+                                  />
+                                }
+                                label={
+                                  <Box sx={{ ml: 0.5 }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                      Avval kiritilgan daromadga tegilmasin
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                      Daromad manbai yoki oylik daromad to‘ldirilgan xonadonlarda mavjud qiymat saqlanadi
+                                    </Typography>
+                                  </Box>
+                                }
+                                sx={{ m: 0 }}
+                              />
+                            </Paper>
+
+                            {/* Asosiy daromad manbai */}
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.text.secondary, display: 'block', mb: 1 }}
+                              >
+                                Xonadonning asosiy daromad manbai taqsimoti:
+                              </Typography>
+                              <Stack spacing={1}>
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Ish haqi</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.incomeSources.salaryPercent}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.incomeSources.salaryPercent}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          incomeSources: { ...prev.socioEconomic.incomeSources, salaryPercent: v as number }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">Tomorqa va qishloq xo‘jaligi</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.incomeSources.agriculturePercent}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.incomeSources.agriculturePercent}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          incomeSources: { ...prev.socioEconomic.incomeSources, agriculturePercent: v as number }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="success"
+                                  />
+                                </Box>
+                              </Stack>
+                            </Box>
+
+                            <Divider sx={{ my: 1 }} />
+
+                            {/* Bir oylik daromad miqdori taqsimoti */}
+                            <Box
+                              sx={{
+                                opacity: smartSettings.socioEconomic.incomeByResidents ? 0.4 : 1,
+                                pointerEvents: smartSettings.socioEconomic.incomeByResidents ? 'none' : 'auto'
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.text.secondary, display: 'block', mb: 1 }}
+                              >
+                                Bir oylik daromad miqdori taqsimoti (%):
+                              </Typography>
+                              <Stack spacing={1}>
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">1 млн сўмгача (month_income_id: 1)</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.monthlyIncomes?.under1mPercent ?? 5}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.monthlyIncomes?.under1mPercent ?? 5}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          monthlyIncomes: {
+                                            ...(prev.socioEconomic.monthlyIncomes || DEFAULT_SMART_SETTINGS.socioEconomic.monthlyIncomes),
+                                            under1mPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="warning"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">1 – 3 млн сўм (month_income_id: 2)</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.monthlyIncomes?.from1mTo3mPercent ?? 50}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.monthlyIncomes?.from1mTo3mPercent ?? 50}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          monthlyIncomes: {
+                                            ...(prev.socioEconomic.monthlyIncomes || DEFAULT_SMART_SETTINGS.socioEconomic.monthlyIncomes),
+                                            from1mTo3mPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="primary"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">3 – 5 млн сўм (month_income_id: 3)</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.monthlyIncomes?.from3mTo5mPercent ?? 32}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.monthlyIncomes?.from3mTo5mPercent ?? 32}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          monthlyIncomes: {
+                                            ...(prev.socioEconomic.monthlyIncomes || DEFAULT_SMART_SETTINGS.socioEconomic.monthlyIncomes),
+                                            from3mTo5mPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="success"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">5 – 10 млн сўм (month_income_id: 4)</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.monthlyIncomes?.from5mTo10mPercent ?? 10}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.monthlyIncomes?.from5mTo10mPercent ?? 10}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          monthlyIncomes: {
+                                            ...(prev.socioEconomic.monthlyIncomes || DEFAULT_SMART_SETTINGS.socioEconomic.monthlyIncomes),
+                                            from5mTo10mPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="info"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                                    <Typography variant="caption">10 млн сўмдан юқори (month_income_id: 5)</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                      {smartSettings.socioEconomic.monthlyIncomes?.above10mPercent ?? 3}%
+                                    </Typography>
+                                  </Stack>
+                                  <Slider
+                                    value={smartSettings.socioEconomic.monthlyIncomes?.above10mPercent ?? 3}
+                                    onChange={(_, v) =>
+                                      setSmartSettings((prev) => ({
+                                        ...prev,
+                                        socioEconomic: {
+                                          ...prev.socioEconomic,
+                                          monthlyIncomes: {
+                                            ...(prev.socioEconomic.monthlyIncomes || DEFAULT_SMART_SETTINGS.socioEconomic.monthlyIncomes),
+                                            above10mPercent: v as number
+                                          }
+                                        }
+                                      }))
+                                    }
+                                    min={0}
+                                    max={100}
+                                    size="small"
+                                    color="secondary"
+                                  />
+                                </Box>
+                              </Stack>
+                            </Box>
+
+                            {/* Daromad miqdori bo'yicha tushuntirish */}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: alpha(theme.palette.warning.main, 0.08),
+                                border: '1px dashed',
+                                borderColor: alpha(theme.palette.warning.main, 0.3)
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{ fontWeight: 800, color: theme.palette.warning.main, display: 'block', mb: 0.5 }}
+                              >
+                                ℹ️ Daromad miqdori oraliqlari (Davlat standarti):
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{ color: theme.palette.text.secondary, fontSize: '0.72rem', display: 'block' }}
+                              >
+                                Online Mahalla tizimida oylik daromad aniq so'mda emas, balki rasmiy toifalar (1 mln gacha, 1–3 mln, 3–5
+                                mln, 5–10 mln, 10+ mln) shaklida qabul qilinadi. Siz belgilagan foizlar shu oraliqlarga ehtimollik bo'yicha
+                                taqsimlanadi.
+                              </Typography>
+                            </Paper>
+                          </Stack>
+                        </Box>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* 5-BO'LIM: INFRATUZILMA (XONADON TA'MINOTI - TAB 54602) */}
+                  {smartSection === 'infrastructure' && (
+                    <Box>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2.5,
+                          height: '100%',
+                          borderRadius: 2.5,
+                          border: '1px solid',
+                          borderColor: theme.palette.divider,
+                          bgcolor: alpha(theme.palette.background.default, 0.5)
+                        }}
+                      >
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <JobIcon sx={{ color: theme.palette.success.main, fontSize: 20 }} />
+                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                              5. 💡 Infratuzilma (Xonadon Ta'minoti)
+                            </Typography>
+                          </Stack>
+                          <Tooltip
+                            title={smartSettings.modules?.infrastructure !== false ? "Ushbu bo'limni o'chirish" : "Ushbu bo'limni yoqish"}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  size="small"
+                                  checked={smartSettings.modules?.infrastructure !== false}
+                                  onChange={(e) =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      modules: { ...prev.modules, infrastructure: e.target.checked }
+                                    }))
+                                  }
+                                  color="success"
+                                />
+                              }
+                              label={
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: smartSettings.modules?.infrastructure !== false ? 'success.main' : 'text.disabled'
+                                  }}
+                                >
+                                  {smartSettings.modules?.infrastructure !== false ? 'FAOL' : "O'CHIRILGAN"}
+                                </Typography>
+                              }
+                              sx={{ m: 0 }}
+                            />
+                          </Tooltip>
+                        </Stack>
+
+                        <Box
+                          sx={{
+                            opacity: smartSettings.modules?.infrastructure !== false ? 1 : 0.45,
+                            pointerEvents: smartSettings.modules?.infrastructure !== false ? 'auto' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <Stack spacing={1.5}>
+                            <Alert severity={smartSettings.employment.mode === 'burgansoy' ? 'info' : 'success'} sx={{ borderRadius: 2 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                {smartSettings.employment.mode === 'burgansoy'
+                                  ? '⭐ Burgansoy Infratuzilma Qoidasi:'
+                                  : '💡 Xonadon Infratuzilma Ko‘rsatkichlari (TAB 54602):'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                                1. Elektr: <b>{(smartSettings.infrastructure.electricityMode ?? 1) === 1 ? 'Ҳа (1)' : 'Йўқ (0)'}</b> | 2.
+                                Tabiiy gaz:{' '}
+                                <b style={{ color: (smartSettings.infrastructure.gasMode ?? 0) === 0 ? '#d32f2f' : '#2e7d32' }}>
+                                  {(smartSettings.infrastructure.gasMode ?? 0) === 1 ? 'Ҳа (1)' : 'Йўқ (0)'}
+                                </b>
+                                <br />
+                                3. Ichimlik suvi:{' '}
+                                <b>{(smartSettings.infrastructure.drinkingWaterMode ?? 1) === 1 ? 'Ҳа (1)' : 'Йўқ (0)'}</b> | 4. Sug‘orish
+                                suvi: <b>{(smartSettings.infrastructure.irrigationWaterMode ?? 1) === 1 ? 'Ҳа (1)' : 'Йўқ (0)'}</b>
+                                <br />
+                                5. Kanalizatsiya: <b>{(smartSettings.infrastructure.sewerageMode ?? 0) === 1 ? 'Ҳа (1)' : 'Йўқ (0)'}</b>
+                              </Typography>
+                            </Alert>
+
+                            {/* 1. Elektr energiyasi */}
+                            <Box
+                              sx={{
+                                p: 1.25,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 1
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+                                <JobIcon sx={{ color: 'warning.main', fontSize: 20 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                  1. Elektr energiyasi mavjudmi?
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.electricityMode ?? 1) === 1 ? 'contained' : 'outlined'}
+                                  color="success"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      infrastructure: { ...prev.infrastructure, electricityMode: 1 }
+                                    }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Ҳа
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.electricityMode ?? 1) === 0 ? 'contained' : 'outlined'}
+                                  color="error"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      infrastructure: { ...prev.infrastructure, electricityMode: 0 }
+                                    }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Йўқ
+                                </Button>
+                              </Stack>
+                            </Box>
+
+                            {/* 2. Tabiiy gaz */}
+                            <Box
+                              sx={{
+                                p: 1.25,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor:
+                                  (smartSettings.infrastructure.gasMode ?? 0) === 0
+                                    ? alpha(theme.palette.error.main, 0.4)
+                                    : theme.palette.divider,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 1
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+                                <GasIcon sx={{ color: 'error.main', fontSize: 20 }} />
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                    2. Xonadonda tabiiy gaz mavjudmi?
+                                  </Typography>
+                                  {(smartSettings.infrastructure.gasMode ?? 0) === 0 && (
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ color: 'error.main', fontWeight: 800, display: 'block', fontSize: '0.72rem' }}
+                                    >
+                                      • Tabiiy gaz: Йўқ (0) qilib kiritiladi
+                                    </Typography>
+                                  )}
+                                </Box>
+                              </Stack>
+                              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.gasMode ?? 0) === 1 ? 'contained' : 'outlined'}
+                                  color="success"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({ ...prev, infrastructure: { ...prev.infrastructure, gasMode: 1 } }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Ҳа
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.gasMode ?? 0) === 0 ? 'contained' : 'outlined'}
+                                  color="error"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({ ...prev, infrastructure: { ...prev.infrastructure, gasMode: 0 } }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Йўқ
+                                </Button>
+                              </Stack>
+                            </Box>
+
+                            {/* 3. Ichimlik suvi */}
+                            <Box
+                              sx={{
+                                p: 1.25,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 1
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+                                <WaterDropIcon sx={{ color: 'info.main', fontSize: 20 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                  3. Ichimlik suvi mavjudmi?
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.drinkingWaterMode ?? 1) === 1 ? 'contained' : 'outlined'}
+                                  color="success"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      infrastructure: { ...prev.infrastructure, drinkingWaterMode: 1 }
+                                    }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Ҳа
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.drinkingWaterMode ?? 1) === 0 ? 'contained' : 'outlined'}
+                                  color="error"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      infrastructure: { ...prev.infrastructure, drinkingWaterMode: 0 }
+                                    }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Йўқ
+                                </Button>
+                              </Stack>
+                            </Box>
+
+                            {/* 4. Sug'orish suvi */}
+                            <Box
+                              sx={{
+                                p: 1.25,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 1
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+                                <OpacityIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                  4. Sug‘orish (oqova) suvi mavjudmi?
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.irrigationWaterMode ?? 1) === 1 ? 'contained' : 'outlined'}
+                                  color="success"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      infrastructure: { ...prev.infrastructure, irrigationWaterMode: 1 }
+                                    }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Ҳа
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.irrigationWaterMode ?? 1) === 0 ? 'contained' : 'outlined'}
+                                  color="error"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({
+                                      ...prev,
+                                      infrastructure: { ...prev.infrastructure, irrigationWaterMode: 0 }
+                                    }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Йўқ
+                                </Button>
+                              </Stack>
+                            </Box>
+
+                            {/* 5. Kanalizatsiya */}
+                            <Box
+                              sx={{
+                                p: 1.25,
+                                borderRadius: 2,
+                                bgcolor: theme.palette.background.paper,
+                                border: '1px solid',
+                                borderColor: theme.palette.divider,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 1
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+                                <SewerageIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                  5. Kanalizatsiya tizimi mavjudmi?
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.sewerageMode ?? 0) === 1 ? 'contained' : 'outlined'}
+                                  color="success"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({ ...prev, infrastructure: { ...prev.infrastructure, sewerageMode: 1 } }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Ҳа
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant={(smartSettings.infrastructure.sewerageMode ?? 0) === 0 ? 'contained' : 'outlined'}
+                                  color="error"
+                                  onClick={() =>
+                                    setSmartSettings((prev) => ({ ...prev, infrastructure: { ...prev.infrastructure, sewerageMode: 0 } }))
+                                  }
+                                  sx={{ minWidth: 55, py: 0.3, px: 1, fontSize: '0.75rem', fontWeight: 700, borderRadius: 1.5 }}
+                                >
+                                  Йўқ
+                                </Button>
+                              </Stack>
+                            </Box>
+                          </Stack>
+                        </Box>
+                      </Paper>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Action tugmalari va Ishga tushirish paneli (pastda doim ko'rinib turadi) */}
+              <Paper
+                elevation={0}
+                sx={{
+                  mt: 3,
+                  p: 2,
+                  position: 'sticky',
+                  bottom: 12,
+                  zIndex: 3,
+                  borderRadius: 2.5,
+                  border: '1px solid',
+                  borderColor: alpha(theme.palette.primary.main, 0.35),
+                  bgcolor: theme.palette.background.paper,
+                  boxShadow: theme.palette.mode === 'dark' ? '0 6px 24px rgba(0,0,0,0.55)' : '0 6px 24px rgba(33, 150, 243, 0.18)'
+                }}
+              >
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                      🚀 Smart Xatlovni Ishga Tushirish
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                      Qo‘llanilayotgan Shablon: <b>{surveyPresets.find((p) => p._id === selectedPresetId)?.name || 'Maxsus sozlama'}</b> |
+                      Server xavfsiz va bir tekis sur'atda to‘ldiriladi.
+                    </Typography>
+                  </Box>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="large"
+                      disabled={startingSmartJob || !selectedStreetId}
+                      onClick={() => {
+                        setSmartTargetScope('street');
+                        setSmartConfirmDialogOpen(true);
+                      }}
+                      startIcon={<PlayArrowIcon />}
+                      sx={{ height: 46, borderRadius: 2, fontWeight: 700, textTransform: 'none', px: 3 }}
+                    >
+                      {selectedStreetObj ? `«${selectedStreetObj.name}» ko‘chasini to‘ldirish` : 'Tanlangan ko‘chani to‘ldirish'}
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="large"
+                      disabled={startingSmartJob || !districtId}
+                      onClick={() => {
+                        setSmartTargetScope('mahalla');
+                        setSmartConfirmDialogOpen(true);
+                      }}
+                      startIcon={startingSmartJob ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                      sx={{
+                        height: 46,
+                        borderRadius: 2,
+                        fontWeight: 800,
+                        textTransform: 'none',
+                        px: 3,
+                        boxShadow: '0 4px 16px rgba(25, 118, 210, 0.35)'
+                      }}
+                    >
+                      ⚡ Barcha Mahallani To‘ldirish ({streets.length} ta ko‘cha)
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Paper>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────── */}
+      {/* ── TAB 3: JONLI PROGRESS MONITORI (MISSION CONTROL) ── */}
+      {/* ─────────────────────────────────────────────────────────── */}
+      {activeTab === 'monitor' && (
+        <Box>
           <Card
             elevation={0}
             sx={{
@@ -2497,7 +6008,8 @@ export default function OnlineMahallaSync() {
                   borderRadius: 2.5,
                   border: '1px solid',
                   borderColor: theme.palette.divider,
-                  bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : alpha(theme.palette.primary.main, 0.02)
+                  bgcolor:
+                    theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : alpha(theme.palette.primary.main, 0.02)
                 }}
               >
                 <Stack
@@ -2543,8 +6055,12 @@ export default function OnlineMahallaSync() {
                     {/* Kecha */}
                     <Chip
                       label={`Kecha (${dateStats[yesterdayDateStr] || 0})`}
-                      color={selectedJobDate === 'yesterday' || (selectedJobDate === yesterdayDateStr && !customJobDate) ? 'primary' : 'default'}
-                      variant={selectedJobDate === 'yesterday' || (selectedJobDate === yesterdayDateStr && !customJobDate) ? 'filled' : 'outlined'}
+                      color={
+                        selectedJobDate === 'yesterday' || (selectedJobDate === yesterdayDateStr && !customJobDate) ? 'primary' : 'default'
+                      }
+                      variant={
+                        selectedJobDate === 'yesterday' || (selectedJobDate === yesterdayDateStr && !customJobDate) ? 'filled' : 'outlined'
+                      }
                       onClick={() => {
                         setSelectedJobDate('yesterday');
                         setCustomJobDate('');
@@ -3142,11 +6658,13 @@ export default function OnlineMahallaSync() {
                                           <Typography variant="body2" sx={{ fontWeight: 700 }}>
                                             {job.jobType === 'excel_family_import'
                                               ? `📊 Excel Oila Importi (${job.mahallaName || 'Mahalla'})`
-                                              : job.jobType === 'migrate_old_survey'
-                                                ? `📦 Eski hisobot (${job.mahallaName || 'Mahalla'})`
-                                                : job.jobType === 'mahalla'
-                                                  ? `🏡 ${job.mahallaName || 'Mahalla'}`
-                                                  : `📍 ${job.streetName || 'Ko‘cha'}`}
+                                              : job.jobType === 'smart_survey_fill'
+                                                ? `⚡ Smart Xatlov (${job.mahallaName || 'Mahalla'}${job.streetName ? ` • ${job.streetName}` : ''})`
+                                                : job.jobType === 'migrate_old_survey'
+                                                  ? `📦 Eski hisobot (${job.mahallaName || 'Mahalla'})`
+                                                  : job.jobType === 'mahalla'
+                                                    ? `🏡 ${job.mahallaName || 'Mahalla'}`
+                                                    : `📍 ${job.streetName || 'Ko‘cha'}`}
                                           </Typography>
                                           <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block' }}>
                                             {(() => {
@@ -3185,7 +6703,9 @@ export default function OnlineMahallaSync() {
                                                       ? 'default'
                                                       : 'error'
                                             }
-                                            icon={job.status === 'PENDING' ? <PlayArrowIcon sx={{ fontSize: '13px !important' }} /> : undefined}
+                                            icon={
+                                              job.status === 'PENDING' ? <PlayArrowIcon sx={{ fontSize: '13px !important' }} /> : undefined
+                                            }
                                             sx={{ fontWeight: 700, fontSize: '0.72rem', height: 22 }}
                                           />
                                         </TableCell>
@@ -3205,15 +6725,43 @@ export default function OnlineMahallaSync() {
                                         </TableCell>
 
                                         <TableCell align="center">
-                                          <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
-                                            {job.success}
-                                          </Typography>
+                                          {job.jobType === 'smart_survey_fill' && job.surveyedHomeIds?.length ? (
+                                            <Tooltip title="Xatlov qilingan xonadonlar ID ro‘yxati">
+                                              <Button
+                                                size="small"
+                                                color="success"
+                                                variant="text"
+                                                onClick={() => setSelectedJobForHomeIds(job)}
+                                                sx={{ fontWeight: 700, minWidth: 32, p: 0.2 }}
+                                              >
+                                                {job.success}
+                                              </Button>
+                                            </Tooltip>
+                                          ) : (
+                                            <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
+                                              {job.success}
+                                            </Typography>
+                                          )}
                                         </TableCell>
 
                                         <TableCell align="center">
-                                          <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.secondary.main }}>
-                                            {job.familyMembersAdded || 0}
-                                          </Typography>
+                                          {job.jobType === 'smart_survey_fill' ? (
+                                            <Tooltip
+                                              title={`Bandlik: ${job.employmentUpdated || 0} ta | Tadbirkorlik: ${job.businessWishesUpdated || 0} ta`}
+                                            >
+                                              <Chip
+                                                size="small"
+                                                label={`${(job.employmentUpdated || 0) + (job.businessWishesUpdated || 0)} ta`}
+                                                color="info"
+                                                variant="outlined"
+                                                sx={{ fontWeight: 700, fontSize: '0.72rem', height: 20 }}
+                                              />
+                                            </Tooltip>
+                                          ) : (
+                                            <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.secondary.main }}>
+                                              {job.familyMembersAdded || 0}
+                                            </Typography>
+                                          )}
                                         </TableCell>
 
                                         <TableCell align="center">
@@ -3255,7 +6803,11 @@ export default function OnlineMahallaSync() {
                                                   variant="contained"
                                                   color="success"
                                                   startIcon={
-                                                    startingJobId === job.id ? <CircularProgress size={12} color="inherit" /> : <PlayArrowIcon />
+                                                    startingJobId === job.id ? (
+                                                      <CircularProgress size={12} color="inherit" />
+                                                    ) : (
+                                                      <PlayArrowIcon />
+                                                    )
                                                   }
                                                   onClick={() => handleStartJob(job.id)}
                                                   disabled={startingJobId === job.id}
@@ -3271,6 +6823,26 @@ export default function OnlineMahallaSync() {
                                                 >
                                                   Run
                                                 </Button>
+                                              </Tooltip>
+                                            )}
+                                            {Boolean(job.jobType === 'smart_survey_fill' || job.reportSummary) && (
+                                              <Tooltip title="Batafsil xatlov hisoboti">
+                                                <IconButton
+                                                  size="small"
+                                                  color="primary"
+                                                  onClick={() => handleOpenReport(job)}
+                                                  sx={{
+                                                    bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08),
+                                                    '&:hover': {
+                                                      bgcolor: alpha(
+                                                        theme.palette.primary.main,
+                                                        theme.palette.mode === 'dark' ? 0.35 : 0.16
+                                                      )
+                                                    }
+                                                  }}
+                                                >
+                                                  <AssessmentIcon fontSize="small" />
+                                                </IconButton>
                                               </Tooltip>
                                             )}
                                             {job.errors && job.errors.length > 0 && (
@@ -3377,10 +6949,869 @@ export default function OnlineMahallaSync() {
         </Box>
       )}
 
+      {/* ── TAB 5: MOLIYA VA BALANS (ACCOUNTING & BILLING) ── */}
+      {activeTab === 'billing' && (
+        <Box>
+          {/* ── KPI Summary Cards ── */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            {/* 1. Jami Tushum (To'lovlar) */}
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2.5,
+                  border: '1px solid',
+                  borderColor: theme.palette.divider,
+                  bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.08 : 0.03)
+                }}
+              >
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 1.2,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      color: theme.palette.primary.main,
+                      display: 'flex'
+                    }}
+                  >
+                    <PaidIcon />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 700 }}>
+                      Jami Tushum (To'langan)
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.primary.main }}>
+                      {(billingSummary?.totalPaid || 0).toLocaleString()} so'm
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Grid>
+
+            {/* 2. Bajarilgan Xizmatlar */}
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2.5,
+                  border: '1px solid',
+                  borderColor: theme.palette.divider,
+                  bgcolor: alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.08 : 0.03)
+                }}
+              >
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 1.2,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.secondary.main, 0.15),
+                      color: theme.palette.secondary.main,
+                      display: 'flex'
+                    }}
+                  >
+                    <BuildIcon />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 700 }}>
+                      Ko'rsatilgan Xizmatlar
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.secondary.main }}>
+                      {(billingSummary?.totalCharged || 0).toLocaleString()} so'm
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Grid>
+
+            {/* 3. Mijozlar Haqdorligi (Oldindan to'lov) - YASHIL */}
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2.5,
+                  border: '1px solid',
+                  borderColor: alpha(theme.palette.success.main, 0.4),
+                  bgcolor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.05)
+                }}
+              >
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 1.2,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.success.main, 0.2),
+                      color: theme.palette.success.main,
+                      display: 'flex'
+                    }}
+                  >
+                    <CheckCircleIcon />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.success.main, fontWeight: 800 }}>
+                      Mijoz Haqdorligi (Prepaid)
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.success.main }}>
+                      +{(billingSummary?.totalPrepaid || 0).toLocaleString()} so'm
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Grid>
+
+            {/* 4. Mijozlar Qarzdorligi - QIZIL */}
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2.5,
+                  border: '1px solid',
+                  borderColor: alpha(theme.palette.error.main, 0.4),
+                  bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.05)
+                }}
+              >
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 1.2,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.error.main, 0.2),
+                      color: theme.palette.error.main,
+                      display: 'flex'
+                    }}
+                  >
+                    <ErrorIcon />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.error.main, fontWeight: 800 }}>
+                      Mijoz Qarzdorligi (Qarz)
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.error.main }}>
+                      -{(billingSummary?.totalDebt || 0).toLocaleString()} so'm
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Grid>
+
+            {/* 5. Umumiy Ishlar Yig'indisi */}
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2.5,
+                  border: '1px solid',
+                  borderColor: theme.palette.divider,
+                  bgcolor: theme.palette.background.paper
+                }}
+              >
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 1.2,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.info.main, 0.15),
+                      color: theme.palette.info.main,
+                      display: 'flex'
+                    }}
+                  >
+                    <JobIcon />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 700 }}>
+                      Bajarilgan Ishlar
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+                      {billingSummary?.totalJobs || 0} ta job • {(billingSummary?.totalProcessedHomes || 0).toLocaleString()} xonadon
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Grid>
+          </Grid>
+
+          {/* ── Search & Filter Controls ── */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 2.5,
+              borderRadius: 2.5,
+              border: '1px solid',
+              borderColor: theme.palette.divider,
+              bgcolor: theme.palette.background.paper
+            }}
+          >
+            <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+              {/* Qidiruv */}
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Mahalla nomi yoki ID raqami bo'yicha qidirish..."
+                  value={billingSearchQuery}
+                  onChange={(e) => setBillingSearchQuery(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: billingSearchQuery ? (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={() => setBillingSearchQuery('')}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : null,
+                      sx: { borderRadius: 2 }
+                    }
+                  }}
+                />
+              </Grid>
+
+              {/* Tuman filtri */}
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="billing-district-label">Tuman bo'yicha</InputLabel>
+                  <Select
+                    labelId="billing-district-label"
+                    label="Tuman bo'yicha"
+                    value={billingDistrictFilter}
+                    onChange={(e) => setBillingDistrictFilter(e.target.value)}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <MenuItem value="all">
+                      <em>Barcha tumanlar</em>
+                    </MenuItem>
+                    {savedAccountsByDistrict.map((d) => (
+                      <MenuItem key={d.areaId} value={d.areaId}>
+                        {d.districtName} ({d.accounts.length} ta)
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Balans holati filtri */}
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                <ToggleButtonGroup
+                  value={billingStatusFilter}
+                  exclusive
+                  onChange={(_, val) => val && setBillingStatusFilter(val)}
+                  size="small"
+                  fullWidth
+                  sx={{ borderRadius: 2 }}
+                >
+                  <ToggleButton value="ALL" sx={{ fontWeight: 700, textTransform: 'none', px: 1 }}>
+                    Barchasi ({billingList.length})
+                  </ToggleButton>
+                  <ToggleButton
+                    value="DEBT"
+                    sx={{
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      px: 1,
+                      color: billingStatusFilter === 'DEBT' ? undefined : theme.palette.error.main
+                    }}
+                  >
+                    🔴 Qarzdorlar ({billingList.filter((m) => m.balance < 0).length})
+                  </ToggleButton>
+                  <ToggleButton
+                    value="PREPAID"
+                    sx={{
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      px: 1,
+                      color: billingStatusFilter === 'PREPAID' ? undefined : theme.palette.success.main
+                    }}
+                  >
+                    🟢 Haqdorlar ({billingList.filter((m) => m.balance > 0).length})
+                  </ToggleButton>
+                  <ToggleButton value="ZERO" sx={{ fontWeight: 700, textTransform: 'none', px: 1 }}>
+                    ⚫ 0 Balans
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Grid>
+
+              {/* Yangilash tugmasi */}
+              <Grid size={{ xs: 12, md: 1 }}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  onClick={fetchBillingSummary}
+                  disabled={loadingBilling}
+                  sx={{ height: 40, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+                >
+                  {loadingBilling ? <CircularProgress size={18} /> : <RefreshIcon />}
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* ── Mahallalar Moliya Jadvali ── */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: theme.palette.divider,
+              overflow: 'hidden',
+              bgcolor: theme.palette.background.paper
+            }}
+          >
+            {loadingBilling ? (
+              <Box sx={{ p: 6, textAlign: 'center' }}>
+                <CircularProgress size={36} sx={{ mb: 2 }} />
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  Moliya va hisob-kitob ma'lumotlari yuklanmoqda...
+                </Typography>
+              </Box>
+            ) : filteredBillingList.length === 0 ? (
+              <Box sx={{ p: 6, textAlign: 'center' }}>
+                <WalletIcon sx={{ fontSize: 44, color: theme.palette.text.secondary, mb: 1.5 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  Hech qanday mahalla topilmadi
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
+                  Qidiruv so'zini yoki filtr parametrlarini o'zgartirib ko'ring.
+                </Typography>
+              </Box>
+            ) : (
+              <TableContainer sx={{ maxHeight: '72vh' }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 800, width: 50, bgcolor: theme.palette.background.default }}>#</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: theme.palette.background.default }}>Mahalla & Hudud</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: theme.palette.background.default }}>
+                        Bajarilgan Ishlar Yig'indisi
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: theme.palette.background.default, textAlign: 'right' }}>
+                        Jami To'langan
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: theme.palette.background.default, textAlign: 'right' }}>
+                        Xizmat Narxi
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: theme.palette.background.default, textAlign: 'center' }}>
+                        Sof Balans (Holati)
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: theme.palette.background.default, textAlign: 'center', width: 260 }}>
+                        Amallar
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {pagedBillingList.map((item, idx) => {
+                      const balance = Number(item.balance || 0);
+                      const isPrepaid = balance > 0;
+                      const isDebt = balance < 0;
+                      const districtName =
+                        item.area_name || (item.area_id ? districtNames[String(item.area_id)] : '') || 'Tuman aniqlanmagan';
+
+                      return (
+                        <TableRow
+                          key={String(item.district_id)}
+                          hover
+                          sx={{
+                            bgcolor: isDebt
+                              ? alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.05 : 0.02)
+                              : isPrepaid
+                                ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.05 : 0.02)
+                                : undefined,
+                            '&:last-child td, &:last-child th': { border: 0 }
+                          }}
+                        >
+                          <TableCell sx={{ color: theme.palette.text.secondary, fontWeight: 700 }}>
+                            {billingPage * billingRowsPerPage + idx + 1}
+                          </TableCell>
+
+                          <TableCell>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+                              {item.mahalla_name}
+                            </Typography>
+                            <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', mt: 0.4, flexWrap: 'wrap' }}>
+                              <Chip
+                                label={`ID: ${item.district_id}`}
+                                size="small"
+                                sx={{ height: 18, fontSize: '0.68rem', fontFamily: 'monospace' }}
+                              />
+                              <Chip
+                                label={districtName}
+                                size="small"
+                                variant="outlined"
+                                sx={{ height: 18, fontSize: '0.68rem', fontWeight: 600 }}
+                              />
+                            </Stack>
+                          </TableCell>
+
+                          {/* Bajarilgan ishlar yig'indisi */}
+                          <TableCell>
+                            {item.jobsCount > 0 ? (
+                              <Stack spacing={0.5}>
+                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                                  <Chip
+                                    icon={<JobIcon sx={{ fontSize: '0.8rem !important' }} />}
+                                    label={`${item.jobsCount} ta job`}
+                                    size="small"
+                                    color="primary"
+                                    sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700 }}
+                                  />
+                                  <Chip
+                                    icon={<HomeIcon sx={{ fontSize: '0.8rem !important' }} />}
+                                    label={`${item.totalProcessedHomes} xonadon (${item.totalSuccessHomes} muvaffaqiyatli)`}
+                                    size="small"
+                                    sx={{ height: 20, fontSize: '0.72rem', fontWeight: 600 }}
+                                  />
+                                </Stack>
+                                {item.totalFamilyMembers > 0 && (
+                                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                    👨‍👩‍👧‍👦 {item.totalFamilyMembers.toLocaleString()} ta oila a'zosi
+                                  </Typography>
+                                )}
+                              </Stack>
+                            ) : (
+                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontStyle: 'italic' }}>
+                                Hali job bajarilmagan
+                              </Typography>
+                            )}
+                          </TableCell>
+
+                          {/* Jami To'langan */}
+                          <TableCell sx={{ textAlign: 'right', fontWeight: 700, color: theme.palette.text.primary }}>
+                            {Number(item.total_paid || 0).toLocaleString()} so'm
+                          </TableCell>
+
+                          {/* Jami Xizmat ko'rsatilgan */}
+                          <TableCell sx={{ textAlign: 'right', fontWeight: 700, color: theme.palette.text.secondary }}>
+                            {Number(item.total_charged || 0).toLocaleString()} so'm
+                          </TableCell>
+
+                          {/* Sof Balans (Ranglar bo'yicha qat'iy qoida) */}
+                          <TableCell sx={{ textAlign: 'center' }}>
+                            {isPrepaid ? (
+                              <Chip
+                                label={`+${balance.toLocaleString()} so'm (Haqdor)`}
+                                size="small"
+                                sx={{
+                                  fontWeight: 800,
+                                  fontSize: '0.75rem',
+                                  bgcolor: alpha(theme.palette.success.main, 0.14),
+                                  color: theme.palette.success.main,
+                                  border: '1px solid',
+                                  borderColor: alpha(theme.palette.success.main, 0.35)
+                                }}
+                              />
+                            ) : isDebt ? (
+                              <Chip
+                                label={`${balance.toLocaleString()} so'm (Qarzdor)`}
+                                size="small"
+                                sx={{
+                                  fontWeight: 800,
+                                  fontSize: '0.75rem',
+                                  bgcolor: alpha(theme.palette.error.main, 0.14),
+                                  color: theme.palette.error.main,
+                                  border: '1px solid',
+                                  borderColor: alpha(theme.palette.error.main, 0.35)
+                                }}
+                              />
+                            ) : (
+                              <Chip
+                                label="0 so'm (Hisoblashgan)"
+                                size="small"
+                                sx={{
+                                  fontWeight: 700,
+                                  fontSize: '0.75rem',
+                                  bgcolor: alpha(theme.palette.text.primary, 0.06),
+                                  color: theme.palette.text.primary,
+                                  border: '1px solid',
+                                  borderColor: theme.palette.divider
+                                }}
+                              />
+                            )}
+                          </TableCell>
+
+                          {/* Amallar */}
+                          <TableCell sx={{ textAlign: 'center' }}>
+                            <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', justifyContent: 'center' }}>
+                              <Tooltip title="To'lov qabul qilish (Balansni oshirish)">
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="success"
+                                  startIcon={<PaidIcon sx={{ fontSize: 14 }} />}
+                                  onClick={() => {
+                                    setSelectedBillingMahalla(item);
+                                    setPaymentAmount('');
+                                    setPaymentComment('');
+                                    setPaymentDialogOpen(true);
+                                  }}
+                                  sx={{ borderRadius: 1.5, py: 0.3, px: 1, textTransform: 'none', fontWeight: 700, fontSize: '0.74rem' }}
+                                >
+                                  To'lov
+                                </Button>
+                              </Tooltip>
+
+                              <Tooltip title="Xizmat kiritish (Haqdorlikdan kamaytirish)">
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="warning"
+                                  startIcon={<BuildIcon sx={{ fontSize: 14 }} />}
+                                  onClick={() => {
+                                    setSelectedBillingMahalla(item);
+                                    setServiceAmount('');
+                                    setServiceComment('');
+                                    setServiceChargeDialogOpen(true);
+                                  }}
+                                  sx={{ borderRadius: 1.5, py: 0.3, px: 1, textTransform: 'none', fontWeight: 700, fontSize: '0.74rem' }}
+                                >
+                                  Xizmat
+                                </Button>
+                              </Tooltip>
+
+                              <Tooltip title="Tranzaksiyalar tarixi">
+                                <IconButton size="small" onClick={() => handleOpenBillingHistory(item)} sx={{ p: 0.5 }}>
+                                  <HistoryIcon sx={{ fontSize: 18, color: theme.palette.text.secondary }} />
+                                </IconButton>
+                              </Tooltip>
+
+                              <Tooltip title="Ushbu mahalla bo'yicha Sinxronizatsiyani ishga tushirish">
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  color="primary"
+                                  startIcon={<PlayArrowIcon sx={{ fontSize: 14 }} />}
+                                  onClick={() => handleLaunchJobFromBilling(item)}
+                                  sx={{
+                                    borderRadius: 1.5,
+                                    py: 0.3,
+                                    px: 1.2,
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    fontSize: '0.74rem',
+                                    boxShadow: 'none'
+                                  }}
+                                >
+                                  Job
+                                </Button>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+            {!loadingBilling && filteredBillingList.length > 0 && (
+              <TablePagination
+                component="div"
+                count={filteredBillingList.length}
+                page={Math.min(billingPage, Math.max(0, Math.ceil(filteredBillingList.length / billingRowsPerPage) - 1))}
+                onPageChange={(_, p) => setBillingPage(p)}
+                rowsPerPage={billingRowsPerPage}
+                onRowsPerPageChange={(e) => {
+                  setBillingRowsPerPage(parseInt(e.target.value, 10));
+                  setBillingPage(0);
+                }}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                labelRowsPerPage="Sahifada:"
+                labelDisplayedRows={({ from, to, count }) => `${from}–${to} / ${count}`}
+              />
+            )}
+          </Paper>
+        </Box>
+      )}
+
+      {/* ── TO'LOV QABUL QILISH DIALOGI ── */}
+      <Dialog
+        open={paymentDialogOpen}
+        onClose={() => !submittingBilling && setPaymentDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>💵 To‘lov Qabul Qilish</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+            {selectedBillingMahalla?.mahalla_name}
+          </Typography>
+          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 2 }}>
+            Joriy balans: <b>{Number(selectedBillingMahalla?.balance || 0).toLocaleString()} so'm</b> • ID:{' '}
+            {selectedBillingMahalla?.district_id}
+          </Typography>
+
+          <TextField
+            autoFocus
+            fullWidth
+            size="small"
+            label="To'lov summasi (so'm)"
+            placeholder="Masalan: 1000000"
+            value={paymentAmount}
+            onChange={(e) => setPaymentAmount(e.target.value)}
+            slotProps={{
+              input: {
+                sx: { borderRadius: 2, mb: 1.5, fontWeight: 700, fontSize: '1.05rem' }
+              }
+            }}
+          />
+
+          {/* Tezkor summalar */}
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
+            {[500000, 1000000, 2000000, 5000000].map((amt) => (
+              <Chip
+                key={amt}
+                label={`+${amt.toLocaleString()}`}
+                clickable
+                onClick={() => setPaymentAmount(String(amt))}
+                size="small"
+                variant="outlined"
+                color="success"
+                sx={{ fontWeight: 700, borderRadius: 1.5 }}
+              />
+            ))}
+          </Stack>
+
+          <TextField
+            fullWidth
+            size="small"
+            label="To'lov izohi / maqsadi"
+            placeholder="Masalan: Bank o'tkazmasi orqali, avans to'lovi"
+            value={paymentComment}
+            onChange={(e) => setPaymentComment(e.target.value)}
+            multiline
+            rows={2}
+            slotProps={{
+              input: {
+                sx: { borderRadius: 2 }
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setPaymentDialogOpen(false)}
+            disabled={submittingBilling}
+            sx={{ borderRadius: 2, textTransform: 'none' }}
+          >
+            Bekor qilish
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => handleSaveBillingTransaction('PAYMENT')}
+            disabled={submittingBilling || !paymentAmount}
+            startIcon={submittingBilling ? <CircularProgress size={16} color="inherit" /> : <PaidIcon />}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800, px: 3 }}
+          >
+            {submittingBilling ? 'Saqlanmoqda...' : 'To‘lovni Qabul Qilish'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── XIZMAT KIRITISH (HAQDORLIKDAN YECHISH) DIALOGI ── */}
+      <Dialog
+        open={serviceChargeDialogOpen}
+        onClose={() => !submittingBilling && setServiceChargeDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>🛠 Ko‘rsatilgan Xizmat Narxini Kiritish</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: theme.palette.text.primary }}>
+            {selectedBillingMahalla?.mahalla_name}
+          </Typography>
+          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 2 }}>
+            Joriy balans: <b>{Number(selectedBillingMahalla?.balance || 0).toLocaleString()} so'm</b> (bu summa haqdorlikdan kamaytiriladi)
+          </Typography>
+
+          <TextField
+            autoFocus
+            fullWidth
+            size="small"
+            label="Xizmat narxi (so'm)"
+            placeholder="Masalan: 500000"
+            value={serviceAmount}
+            onChange={(e) => setServiceAmount(e.target.value)}
+            slotProps={{
+              input: {
+                sx: { borderRadius: 2, mb: 1.5, fontWeight: 700, fontSize: '1.05rem' }
+              }
+            }}
+          />
+
+          {/* Tezkor summalar */}
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
+            {[300000, 500000, 1000000, 2000000].map((amt) => (
+              <Chip
+                key={amt}
+                label={`${amt.toLocaleString()}`}
+                clickable
+                onClick={() => setServiceAmount(String(amt))}
+                size="small"
+                variant="outlined"
+                color="warning"
+                sx={{ fontWeight: 700, borderRadius: 1.5 }}
+              />
+            ))}
+          </Stack>
+
+          <TextField
+            fullWidth
+            size="small"
+            label="Ko'rsatilgan xizmat tavsifi"
+            placeholder="Masalan: 1200 ta xonadon to'liq sinxronizatsiya qilindi"
+            value={serviceComment}
+            onChange={(e) => setServiceComment(e.target.value)}
+            multiline
+            rows={2}
+            slotProps={{
+              input: {
+                sx: { borderRadius: 2 }
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setServiceChargeDialogOpen(false)}
+            disabled={submittingBilling}
+            sx={{ borderRadius: 2, textTransform: 'none' }}
+          >
+            Bekor qilish
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={() => handleSaveBillingTransaction('SERVICE_CHARGE')}
+            disabled={submittingBilling || !serviceAmount}
+            startIcon={submittingBilling ? <CircularProgress size={16} color="inherit" /> : <BuildIcon />}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800, px: 3 }}
+          >
+            {submittingBilling ? 'Saqlanmoqda...' : 'Xizmatni Qayd Etish'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── TRANZAKSIYALAR TARIXI DIALOGI ── */}
+      <Dialog
+        open={historyDialogOpen}
+        onClose={() => setHistoryDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <HistoryIcon color="primary" />
+              <span>Tranzaksiyalar Tarixi — {selectedBillingMahalla?.mahalla_name}</span>
+            </Stack>
+            <IconButton size="small" onClick={() => setHistoryDialogOpen(false)}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 2 }}>
+          {loadingHistory ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <CircularProgress size={30} sx={{ mb: 1.5 }} />
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                Tranzaksiyalar tarixi yuklanmoqda...
+              </Typography>
+            </Box>
+          ) : historyTransactions.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <ReceiptIcon sx={{ fontSize: 40, color: theme.palette.text.secondary, mb: 1 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                Hali tranzaksiyalar mavjud emas
+              </Typography>
+              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                Ushbu mahalla bo'yicha to'lov yoki xizmat qayd qilinganida tarix shu yerda ko'rinadi.
+              </Typography>
+            </Box>
+          ) : (
+            <TableContainer sx={{ maxHeight: 400 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 800 }}>Sana & Vaqt</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Amal Turi</TableCell>
+                    <TableCell sx={{ fontWeight: 800, textAlign: 'right' }}>Summa</TableCell>
+                    <TableCell sx={{ fontWeight: 800, textAlign: 'center' }}>Balans O'zgarishi</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Izoh</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {historyTransactions.map((tx) => {
+                    const isPayment = tx.type === 'PAYMENT';
+                    return (
+                      <TableRow key={tx._id} hover>
+                        <TableCell sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+                          {tx.createdAt ? new Date(tx.createdAt).toLocaleString('uz-UZ') : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            icon={
+                              isPayment ? (
+                                <PaidIcon sx={{ fontSize: '0.85rem !important' }} />
+                              ) : (
+                                <BuildIcon sx={{ fontSize: '0.85rem !important' }} />
+                              )
+                            }
+                            label={isPayment ? "To'lov qabul qilindi" : "Xizmat ko'rsatildi"}
+                            size="small"
+                            color={isPayment ? 'success' : 'warning'}
+                            sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700 }}
+                          />
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            textAlign: 'right',
+                            fontWeight: 800,
+                            color: isPayment ? theme.palette.success.main : theme.palette.warning.main
+                          }}
+                        >
+                          {isPayment ? '+' : '-'}
+                          {Number(tx.amount || 0).toLocaleString()} so'm
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                          {Number(tx.balance_before || 0).toLocaleString()} ➔ {Number(tx.balance_after || 0).toLocaleString()}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: '0.82rem', color: theme.palette.text.primary }}>
+                          {tx.comment || <span style={{ opacity: 0.5 }}>—</span>}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button variant="outlined" onClick={() => setHistoryDialogOpen(false)} sx={{ borderRadius: 2, textTransform: 'none' }}>
+            Yopish
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* ─────────────────────────────────────────────────────────── */}
-      {/* ── ONLINE MAHALLA HISOBOTLARI (SURVEY HOMES) REJIMI ── */}
+      {/* ── TAB 4: ONLINE MAHALLA HISOBOTLARI (SURVEY HOMES) REJIMI ── */}
       {/* ─────────────────────────────────────────────────────────── */}
-      {activeView === 'report' && (
+      {activeTab === 'report' && (
         <Box>
           {/* ── Level 1: Tumanlar katalogi (Packs) ── */}
           {!selectedReportDistrictId && (
@@ -4212,6 +8643,9 @@ export default function OnlineMahallaSync() {
         </DialogActions>
       </Dialog>
 
+      {/* ── XATLOV QILINGAN XONADONLAR RO'YXATI VA FORMALARI ── */}
+      <SmartSurveyHomesDialog job={selectedJobForHomeIds} token={token} onClose={() => setSelectedJobForHomeIds(null)} />
+
       {/* ── BITTA KO'CHA UCHUN TASDIQLASH DIALOGI ── */}
       <Dialog open={streetConfirmDialogOpen} onClose={() => setStreetConfirmDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>Ko‘cha Sinxronizatsiyasini Boshlash</DialogTitle>
@@ -4463,6 +8897,697 @@ export default function OnlineMahallaSync() {
             Yopish
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* ── XATLOV HISOBOTI MODALI ── */}
+      <Dialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: theme.palette.background.paper,
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: theme.palette.divider
+            }
+          }
+        }}
+      >
+        {selectedJobForReport && (
+          <>
+            <DialogTitle sx={{ p: 2.5, pb: 1.5, borderBottom: '1px solid', borderColor: theme.palette.divider }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1),
+                      color: theme.palette.primary.main
+                    }}
+                  >
+                    <AssessmentIcon fontSize="medium" />
+                  </Box>
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>
+                      📊 Xatlov Natijalari Bo‘yicha Hisobot
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.3 }}>
+                      {selectedJobForReport.mahallaName || 'Mahalla'} • {selectedJobForReport.streetName || 'Barcha ko‘chalar kesimida'} •{' '}
+                      <Typography component="span" variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                        ID: {selectedJobForReport.id}
+                      </Typography>
+                    </Typography>
+                  </Box>
+                </Stack>
+                <IconButton onClick={() => setReportDialogOpen(false)} size="small" color="inherit">
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Stack>
+            </DialogTitle>
+
+            <DialogContent sx={{ p: 2.5, bgcolor: alpha(theme.palette.background.default, 0.5) }}>
+              {(() => {
+                const rep = selectedJobForReport.reportSummary || {};
+                const emp = rep.employment || {};
+                const bus = rep.businessWishes || {};
+                const se = rep.socioEconomic || {};
+                const inc = se.monthlyIncomes || {};
+                const inf = rep.infrastructure || {};
+
+                const totalEmp =
+                  (emp.officialPreserved || 0) +
+                  (emp.selfEmployed || 0) +
+                  (emp.unofficialWorker || 0) +
+                  (emp.schoolStudent || 0) +
+                  (emp.kindergarten || 0) +
+                  (emp.motherCare || 0) +
+                  (emp.student || 0) +
+                  (emp.pensioner || 0) +
+                  (emp.unemployed || 0);
+
+                const totalBus = (bus.hasNeed || 0) + (bus.noNeed || 0);
+
+                const totalDebtHomes = (se.noDebtCount || 0) + (se.hasDebtCount || 0);
+
+                return (
+                  <Stack spacing={2.5}>
+                    {/* Yuqori ma'lumotlar va Excel tugmasi */}
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        borderRadius: 2.5,
+                        bgcolor: theme.palette.background.paper,
+                        border: '1px solid',
+                        borderColor: theme.palette.divider
+                      }}
+                    >
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={2}
+                        sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+                      >
+                        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+                          <Chip
+                            label={
+                              selectedJobForReport.status === 'COMPLETED'
+                                ? 'Yakunlandi'
+                                : selectedJobForReport.status === 'RUNNING'
+                                  ? 'Bajarilmoqda'
+                                  : selectedJobForReport.status === 'CANCELLED'
+                                    ? 'To‘xtatilgan'
+                                    : 'Xato'
+                            }
+                            color={
+                              selectedJobForReport.status === 'COMPLETED'
+                                ? 'success'
+                                : selectedJobForReport.status === 'RUNNING'
+                                  ? 'primary'
+                                  : 'default'
+                            }
+                            size="small"
+                            sx={{ fontWeight: 700 }}
+                          />
+                          {selectedJobForReport.presetName && (
+                            <Chip
+                              label={`Shablon: ${selectedJobForReport.presetName}`}
+                              variant="outlined"
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          )}
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                            Boshlandi:{' '}
+                            {selectedJobForReport.startTime ? new Date(selectedJobForReport.startTime).toLocaleString('uz-UZ') : '—'}
+                          </Typography>
+                          {selectedJobForReport.endTime && (
+                            <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                              • Tugadi: {new Date(selectedJobForReport.endTime).toLocaleTimeString('uz-UZ')}
+                            </Typography>
+                          )}
+                        </Stack>
+
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          startIcon={<FileDownloadIcon />}
+                          onClick={() => handleExportJobReportExcel(selectedJobForReport)}
+                          sx={{ textTransform: 'none', fontWeight: 700, px: 2, borderRadius: 2 }}
+                        >
+                          Excel (.xlsx) Hisobotni Yuklab Olish
+                        </Button>
+                      </Stack>
+                    </Paper>
+
+                    {/* Asosiy xulosa metrikalari */}
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={6} sm={4} md={2}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: 'center',
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>
+                            Jami Xonadonlar
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>
+                            {selectedJobForReport.total || rep.totalHomes || 0}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+
+                      <Grid item xs={6} sm={4} md={2}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: 'center',
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>
+                            Ko‘rib Chiqildi
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>
+                            {selectedJobForReport.processed || 0}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+
+                      <Grid item xs={6} sm={4} md={2}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: 'center',
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: theme.palette.success.main, fontWeight: 600 }}>
+                            Muvaffaqiyatli
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: theme.palette.success.main, mt: 0.5 }}>
+                            {selectedJobForReport.surveyHomesUpdated || selectedJobForReport.success || 0}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+
+                      <Grid item xs={6} sm={4} md={2}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: 'center',
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: theme.palette.info.main, fontWeight: 600 }}>
+                            Bandlik Belgilandi
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: theme.palette.info.main, mt: 0.5 }}>
+                            {selectedJobForReport.employmentUpdated || totalEmp}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+
+                      <Grid item xs={6} sm={4} md={2}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: 'center',
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: theme.palette.warning.main, fontWeight: 600 }}>
+                            Biznes & Ko‘mak
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: theme.palette.warning.main, mt: 0.5 }}>
+                            {selectedJobForReport.businessWishesUpdated || totalBus}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+
+                      <Grid item xs={6} sm={4} md={2}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: 'center',
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ color: theme.palette.error.main, fontWeight: 600 }}>
+                            Xatoliklar
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: theme.palette.error.main, mt: 0.5 }}>
+                            {selectedJobForReport.failed || 0}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+
+                    {/* 4 ta To'liq Blok Grid */}
+                    <Grid container spacing={2}>
+                      {/* 1. BANDLIK VA TA'LIM STATISTIKASI */}
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          elevation={0}
+                          sx={{
+                            height: '100%',
+                            borderRadius: 2.5,
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <CardContent sx={{ p: 2.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  bgcolor: theme.palette.primary.main
+                                }}
+                              />
+                              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                                💼 Bandlik va Ta‘lim Taqsimoti
+                              </Typography>
+                            </Stack>
+
+                            <Stack spacing={1.2}>
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🏢 Rasmiy band (bazasidagi saqlangan):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {emp.officialPreserved || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🌱 O‘zini o‘zi band qilgan (tomorqa / xizmat):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
+                                  {emp.selfEmployed || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🔨 Norasmiy yollanma ishchi:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {emp.unofficialWorker || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🎒 Maktab o‘quvchilari (7-17 yosh):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {emp.schoolStudent || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🧸 Bog‘cha tarbiyalanuvchisi (3-6 yosh):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {emp.kindergarten || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🤱 Ona tarbiyasida (0-2 yosh):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {emp.motherCare || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🎓 Talabalar (OTM, litsey, texnikum):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {emp.student || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  👴 Nafaqaxo‘rlar (keksalar):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {emp.pensioner || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🔍 Ishsiz fuqarolar:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.warning.main }}>
+                                  {emp.unemployed || 0} ta
+                                </Typography>
+                              </Stack>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+
+                      {/* 2. TADBIRKORLIK VA MOLIYAVIY KO'MAK */}
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          elevation={0}
+                          sx={{
+                            height: '100%',
+                            borderRadius: 2.5,
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <CardContent sx={{ p: 2.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  bgcolor: theme.palette.secondary.main
+                                }}
+                              />
+                              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                                💡 Tadbirkorlik va Moliyaviy Ko‘mak (Tab 6)
+                              </Typography>
+                            </Stack>
+
+                            <Stack spacing={1.5}>
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  ✨ Tadbirkorlik istagi bildirilgan fuqarolar:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                                  {bus.hasNeed || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  💳 Imtiyozli kredit so‘raganlar:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
+                                  {bus.credit || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🎁 Subsidiya / Ssuda so‘raganlar:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
+                                  {bus.subsidy || 0} ta
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  ⚪ Ehtiyoj yo‘q deb belgilanganlar:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {bus.noNeed || 0} ta
+                                </Typography>
+                              </Stack>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+
+                      {/* 3. DAROMAD VA KREDIT QARZDORLIGI */}
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          elevation={0}
+                          sx={{
+                            height: '100%',
+                            borderRadius: 2.5,
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <CardContent sx={{ p: 2.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  bgcolor: theme.palette.info.main
+                                }}
+                              />
+                              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                                💰 Daromad Toifalari va Kredit Qarzdorligi
+                              </Typography>
+                            </Stack>
+
+                            <Stack spacing={1.2}>
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  ✅ Kredit qarzdorligi yo‘q:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
+                                  {se.noDebtCount || 0} xonadon{' '}
+                                  {totalDebtHomes > 0 ? `(${Math.round(((se.noDebtCount || 0) / totalDebtHomes) * 100)}%)` : ''}
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  ⚠️ Kredit qarzdorligi mavjud:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.warning.main }}>
+                                  {se.hasDebtCount || 0} xonadon{' '}
+                                  {totalDebtHomes > 0 ? `(${Math.round(((se.hasDebtCount || 0) / totalDebtHomes) * 100)}%)` : ''}
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  💵 1 mln so‘mgacha daromad:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {inc.under1m || 0} xonadon
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  💵 1 mln – 3 mln so‘m:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {inc.from1mTo3m || 0} xonadon
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  💵 3 mln – 5 mln so‘m:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {inc.from3mTo5m || 0} xonadon
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  💵 5 mln – 10 mln so‘m:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {inc.from5mTo10m || 0} xonadon
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  💵 10 mln so‘mdan yuqori:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {inc.above10m || 0} xonadon
+                                </Typography>
+                              </Stack>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+
+                      {/* 4. INFRATUZILMA VA KOMMUNIKATSIYA */}
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          elevation={0}
+                          sx={{
+                            height: '100%',
+                            borderRadius: 2.5,
+                            bgcolor: theme.palette.background.paper,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider
+                          }}
+                        >
+                          <CardContent sx={{ p: 2.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  bgcolor: theme.palette.warning.main
+                                }}
+                              />
+                              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                                🏠 Infratuzilma va Ta‘minot
+                              </Typography>
+                            </Stack>
+
+                            <Stack spacing={1.5}>
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🔥 Tabiiy gaz tarmog‘i:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                                  {inf.gasNatural || 0} xonadon
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🛢️ Suyultirilgan gaz (ballon):
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {inf.gasCylinder || 0} xonadon
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  💧 Markaziy ichimlik suvi tarmog‘i:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
+                                  {inf.waterCentral || 0} xonadon
+                                </Typography>
+                              </Stack>
+                              <Divider />
+
+                              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                  🏞️ Xususiy quduq yoki boshqa manba:
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {inf.waterWell || 0} xonadon
+                                </Typography>
+                              </Stack>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    </Grid>
+
+                    {/* Agar xatoliklar mavjud bo'lsa, pastda tezkor havola */}
+                    {selectedJobForReport.errors && selectedJobForReport.errors.length > 0 && (
+                      <Alert
+                        severity="error"
+                        action={
+                          <Button
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                              setReportDialogOpen(false);
+                              handleOpenErrors(selectedJobForReport);
+                            }}
+                          >
+                            Xatolarni Ko‘rish
+                          </Button>
+                        }
+                        sx={{ borderRadius: 2 }}
+                      >
+                        Ushbu jobda jami {selectedJobForReport.errors.length} ta xonadonda xatolik yoki cheklov qayd etilgan.
+                      </Alert>
+                    )}
+                  </Stack>
+                );
+              })()}
+            </DialogContent>
+
+            <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: theme.palette.divider }}>
+              <Button
+                variant="outlined"
+                color="success"
+                startIcon={<FileDownloadIcon />}
+                onClick={() => handleExportJobReportExcel(selectedJobForReport)}
+                sx={{ textTransform: 'none', fontWeight: 700 }}
+              >
+                Excel Yuklab Olish
+              </Button>
+              <Button onClick={() => setReportDialogOpen(false)} color="inherit" sx={{ fontWeight: 600 }}>
+                Yopish
+              </Button>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
 
       {/* ── XONADONLAR DRAWERI ── */}
@@ -5026,6 +10151,291 @@ export default function OnlineMahallaSync() {
             sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
           >
             Saqlash
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── SMART XATLOV SHABLONINI SAQLASH DIALOGI ── */}
+      <Dialog
+        open={savePresetDialogOpen}
+        onClose={() => setSavePresetDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <SaveIcon color="primary" />
+            <span>Yangi Shablon Saqlash</span>
+          </Stack>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+            Joriy slayder va foiz qiymatlarini kelgusida bir tugma bilan qo'llash uchun shablon sifatida saqlang:
+          </Typography>
+          <Stack spacing={2}>
+            <TextField
+              autoFocus
+              fullWidth
+              size="small"
+              label="Shablon Nomi *"
+              placeholder="Masalan: Paxtakor mahallasi maxsus"
+              value={newPresetName}
+              onChange={(e) => setNewPresetName(e.target.value)}
+              slotProps={{ input: { sx: { borderRadius: 2 } } }}
+            />
+            <TextField
+              fullWidth
+              size="small"
+              multiline
+              rows={2}
+              label="Tavsif (ixtiyoriy)"
+              placeholder="Masalan: Norasmiy ishchilar ko'p hududlar uchun"
+              value={newPresetDescription}
+              onChange={(e) => setNewPresetDescription(e.target.value)}
+              slotProps={{ input: { sx: { borderRadius: 2 } } }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button variant="outlined" onClick={() => setSavePresetDialogOpen(false)} sx={{ borderRadius: 2, textTransform: 'none' }}>
+            Bekor qilish
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={savingPreset || !newPresetName.trim()}
+            onClick={handleSavePreset}
+            startIcon={savingPreset ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+          >
+            {savingPreset ? 'Saqlanmoqda...' : 'Saqlash'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── SMART XATLOV ISHGA TUSHIRISH TASDIQLASH DIALOGI ── */}
+      <Dialog
+        open={smartConfirmDialogOpen}
+        onClose={() => setSmartConfirmDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <AutoAwesomeIcon color="primary" />
+            <span>Smart Xatlovni Ishga Tushirish</span>
+          </Stack>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Haqiqatan ham quyidagi parametrlar bilan Smart Xatlov jobini boshlamoqchimisiz?
+          </Typography>
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+              border: '1px solid',
+              borderColor: alpha(theme.palette.primary.main, 0.2),
+              mb: 2
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1, color: theme.palette.primary.main }}>
+              Qamrov:{' '}
+              {smartTargetScope === 'mahalla'
+                ? `Barcha Mahalla (${streets.length} ta ko'cha)`
+                : `Tanlangan ko'cha (${selectedStreet?.name || selectedStreetId})`}
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+              • Mahalla ID: <b>{districtId}</b>
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.85rem', mt: 0.5 }}>
+              • Qo'llanilayotgan Shablon: <b>{surveyPresets.find((p) => p._id === selectedPresetId)?.name || 'Maxsus sozlamalar'}</b>
+            </Typography>
+          </Paper>
+
+          <Paper elevation={0} sx={{ p: 1.5, borderRadius: 2, border: '1px solid', borderColor: theme.palette.divider, mb: 2 }}>
+            <FormControlLabel
+              control={<Switch checked={smartSkipProcessed} onChange={(e) => setSmartSkipProcessed(e.target.checked)} />}
+              label={
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    Bajarilganlarni tashlab o‘tish
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Avvalgi Smart Xatlov joblarida to‘ldirilgan xonadonlar qayta ishlanmaydi, job kelgan joyidan davom etadi
+                  </Typography>
+                </Box>
+              }
+              sx={{ m: 0, alignItems: 'flex-start', '& .MuiSwitch-root': { mt: -0.5 } }}
+            />
+          </Paper>
+
+          <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1 }}>
+            FAOL BO'LIMLAR:
+          </Typography>
+          <Stack spacing={1}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: 1,
+                borderRadius: 1.5,
+                bgcolor: theme.palette.background.paper,
+                border: '1px solid',
+                borderColor: theme.palette.divider
+              }}
+            >
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  💼 1. Bandlik va Ta'lim
+                </Typography>
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block' }}>
+                  Nafaqaxo‘rlar:{' '}
+                  {(smartSettings.employment.pensionerMode ?? '4.2') === '4.7' ? '4.7 Izoh ("Nafaqada")' : '4.2.2 Ishsiz (Нафақада)'}
+                </Typography>
+              </Box>
+              <Chip
+                label={smartSettings.modules?.employment !== false ? 'FAOL (Ishga tushadi)' : "O'CHIRILGAN (Tegilmaydi)"}
+                size="small"
+                color={smartSettings.modules?.employment !== false ? 'success' : 'default'}
+                sx={{ fontWeight: 700 }}
+              />
+            </Stack>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: 1,
+                borderRadius: 1.5,
+                bgcolor: theme.palette.background.paper,
+                border: '1px solid',
+                borderColor: theme.palette.divider
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                🎓 2. Kasb-hunarga Ehtiyoj
+              </Typography>
+              <Chip
+                label={smartSettings.modules?.employmentWishes !== false ? 'FAOL (100% Ehtiyoj yo‘q)' : "O'CHIRILGAN (Tegilmaydi)"}
+                size="small"
+                color={smartSettings.modules?.employmentWishes !== false ? 'success' : 'default'}
+                sx={{ fontWeight: 700 }}
+              />
+            </Stack>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: 1,
+                borderRadius: 1.5,
+                bgcolor: theme.palette.background.paper,
+                border: '1px solid',
+                borderColor: theme.palette.divider
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                🚀 3. Tadbirkorlik & Ko‘mak
+              </Typography>
+              <Chip
+                label={smartSettings.modules?.businessWishes !== false ? 'FAOL (Ishga tushadi)' : "O'CHIRILGAN (Tegilmaydi)"}
+                size="small"
+                color={smartSettings.modules?.businessWishes !== false ? 'secondary' : 'default'}
+                sx={{ fontWeight: 700 }}
+              />
+            </Stack>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: 1,
+                borderRadius: 1.5,
+                bgcolor: theme.palette.background.paper,
+                border: '1px solid',
+                borderColor: theme.palette.divider
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                💳 4. Kredit & Ijtimoiy Holat
+              </Typography>
+              <Chip
+                label={smartSettings.modules?.socioEconomic !== false ? 'FAOL (Ishga tushadi)' : "O'CHIRILGAN (Tegilmaydi)"}
+                size="small"
+                color={smartSettings.modules?.socioEconomic !== false ? 'success' : 'default'}
+                sx={{ fontWeight: 700 }}
+              />
+            </Stack>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: 1,
+                borderRadius: 1.5,
+                bgcolor: theme.palette.background.paper,
+                border: '1px solid',
+                borderColor: theme.palette.divider
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                💡 5. Infratuzilma
+              </Typography>
+              <Chip
+                label={smartSettings.modules?.infrastructure !== false ? 'FAOL (Ishga tushadi)' : "O'CHIRILGAN (Tegilmaydi)"}
+                size="small"
+                color={smartSettings.modules?.infrastructure !== false ? 'success' : 'default'}
+                sx={{ fontWeight: 700 }}
+              />
+            </Stack>
+          </Stack>
+
+          {smartSettings.modules?.employment === false &&
+            smartSettings.modules?.employmentWishes === false &&
+            smartSettings.modules?.businessWishes === false &&
+            smartSettings.modules?.socioEconomic === false &&
+            smartSettings.modules?.infrastructure === false && (
+              <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
+                Diqqat! Barcha bo'limlar o'chirilgan. Kamida 1 ta bo'limni faol qiling!
+              </Alert>
+            )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button variant="outlined" onClick={() => setSmartConfirmDialogOpen(false)} sx={{ borderRadius: 2, textTransform: 'none' }}>
+            Bekor qilish
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={
+              startingSmartJob ||
+              (smartSettings.modules?.employment === false &&
+                smartSettings.modules?.employmentWishes === false &&
+                smartSettings.modules?.businessWishes === false &&
+                smartSettings.modules?.socioEconomic === false &&
+                smartSettings.modules?.infrastructure === false)
+            }
+            onClick={handleStartSmartSurveyJob}
+            startIcon={startingSmartJob ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+          >
+            {startingSmartJob ? 'Ishga tushirilmoqda...' : 'Tasdiqlash va Ishga Tushirish'}
           </Button>
         </DialogActions>
       </Dialog>

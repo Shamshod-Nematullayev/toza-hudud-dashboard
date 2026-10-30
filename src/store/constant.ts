@@ -4,7 +4,15 @@ export const drawerWidth = 260;
 export const appDrawerWidth = 320;
 
 // export const SERVER_DOMAIN = process.env.NODE_ENV === 'development1' ? 'http://localhost:5000' : 'https://api.greenzone.uz'; //'http://localhost:3000'
-export const SERVER_DOMAIN = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://api.greenzone.uz'; //'http://localhost:3000'
+// Dev rejimda: localhost'da backend to'g'ridan-to'g'ri (5001), boshqa host (LAN IP, ngrok) orqali ochilganda
+// so'rovlar Vite proxy orqali o'sha origin'dan o'tadi (vite.config.mjs -> server.proxy)
+const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+export const SERVER_DOMAIN =
+  process.env.NODE_ENV === 'development'
+    ? isLocalHost
+      ? 'http://localhost:5001'
+      : window.location.origin
+    : 'https://api.greenzone.uz'; //'http://localhost:3000'
 export const SERVER_URL = SERVER_DOMAIN + '/api';
 export const actStatusOptions = [
   { value: 'NEW', label: 'Yangi' },
