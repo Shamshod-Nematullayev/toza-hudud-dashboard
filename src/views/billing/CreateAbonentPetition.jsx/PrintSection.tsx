@@ -240,25 +240,23 @@ export default function PrintSection({
     setRelationFullName(ariza?.relationFullName || '');
   }, [ariza?._id, ariza?.comment]);
 
-  // Initial tanlangan turni aniqlash
+  // Initial tanlangan turni aniqlash — har bir ariza uchun faqat bir marta,
+  // aks holda foydalanuvchi tanlovi saqlangan turga qaytarib yuboriladi
+  const initializedArizaIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (ariza) {
-      if (ariza.actTypeId) {
-        setSelectedActTypeId(ariza.actTypeId);
-      } else if (ariza.actTypeKey && actTypes.length > 0) {
-        const found = actTypes.find((t) => t.key === ariza.actTypeKey);
-        if (found) setSelectedActTypeId(found._id || found.key);
-      } else if (actTypes.length > 0 && !selectedActTypeId) {
-        // Standart holatda 'mahalla' turi, yoki birinchi tur
-        const def = actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
-        setSelectedActTypeId(def._id || def.key);
-      }
+    if (!ariza || actTypes.length === 0) return;
+    const arizaId = ariza._id || 'new';
+    if (initializedArizaIdRef.current === arizaId) return;
+    initializedArizaIdRef.current = arizaId;
 
-      if (Array.isArray(ariza.excludedParticipants)) {
-        setExcludedParticipantIds(ariza.excludedParticipants);
-      }
-    }
-  }, [ariza, actTypes, selectedActTypeId]);
+    const saved = actTypes.find(
+      (t) => (ariza.actTypeId && t._id === ariza.actTypeId) || (ariza.actTypeKey && t.key === ariza.actTypeKey)
+    );
+    // Standart holatda 'mahalla' turi, yoki birinchi tur
+    const initial = saved || actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
+    setSelectedActTypeId(initial._id || initial.key);
+    setExcludedParticipantIds(Array.isArray(ariza.excludedParticipants) ? ariza.excludedParticipants : []);
+  }, [ariza, actTypes]);
 
   const selectedActType = useMemo(() => {
     if (!actTypes.length) return null;
