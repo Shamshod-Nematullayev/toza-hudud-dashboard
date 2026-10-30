@@ -234,6 +234,7 @@ interface StoreDataState {
   hisoblandiJadval: IHisoblandiItem[];
   aktSumma: IAktSumma;
   autoMobile: AutoMobile | null;
+  isCreatingAriza: boolean;
 }
 
 const initialStoreDataState: StoreDataState = {
@@ -280,6 +281,7 @@ const initialStoreDataState: StoreDataState = {
   showPrintSection: false,
   rowsDhjTable: [],
   autoMobile: null,
+  isCreatingAriza: false,
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' }
 };
 
@@ -321,168 +323,175 @@ export const useStore = create<StoreState>((set, get) => ({
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
   setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma }),
   createAriza: async () => {
-    const {
-      aktType,
-      abonentData,
-      abonentData2,
-      aktSumma,
-      yashovchiSoniInput,
-      recalculationPeriods,
-      images,
-      muzlatiladi,
-      shouldBeMoneyTransfer,
-      dublicateRelation,
-      moneyTransferAmount,
-      setAriza,
-      setMahalla,
-      setMahallaDublicat,
-      setShowPrintSection
-    } = get();
-    const { setIsLoading } = useLoaderStore.getState();
-
-    if (aktType === 'pul_kuchirish') {
+    // Ikki marta bosishdan himoya: zustand set() sinxron, ikkinchi bosish shu yerda to'xtaydi
+    if (get().isCreatingAriza) return;
+    set({ isCreatingAriza: true });
+    try {
       const {
+        aktType,
         abonentData,
-        transferDebitorAmount,
-        transferCreditors,
-        transferReason,
-        selectedApplicantId,
+        abonentData2,
+        aktSumma,
+        yashovchiSoniInput,
+        recalculationPeriods,
+        images,
+        muzlatiladi,
+        shouldBeMoneyTransfer,
+        dublicateRelation,
+        moneyTransferAmount,
         setAriza,
         setMahalla,
+        setMahallaDublicat,
         setShowPrintSection
       } = get();
+      const { setIsLoading } = useLoaderStore.getState();
 
-      const debitorAmount = Number(transferDebitorAmount) || 0;
-      const totalCreditorsAmount = transferCreditors.reduce((acc, c) => acc + c.amount, 0);
+      if (aktType === 'pul_kuchirish') {
+        const {
+          abonentData,
+          transferDebitorAmount,
+          transferCreditors,
+          transferReason,
+          selectedApplicantId,
+          setAriza,
+          setMahalla,
+          setShowPrintSection
+        } = get();
 
-      if (!abonentData?.id || !abonentData.accountNumber) {
-        toast.error('Asosiy abonent (debitor) kiritilmagan');
-        return;
-      }
-      if (debitorAmount <= 0) {
-        toast.error("O'tkaziladigan summa 0 dan katta bo'lishi kerak");
-        return;
-      }
-      if (transferCreditors.length === 0) {
-        toast.error("Kamida bitta qabul qiluvchi (kreditor) hisob raqamini qo'shing");
-        return;
-      }
-      if (debitorAmount !== totalCreditorsAmount) {
-        toast.error("Debitor summasi va kreditorlar summasi bir-biriga teng bo'lishi shart");
-        return;
-      }
+        const debitorAmount = Number(transferDebitorAmount) || 0;
+        const totalCreditorsAmount = transferCreditors.reduce((acc, c) => acc + c.amount, 0);
 
-      setIsLoading(true);
-      try {
-        let applicantRow: any = {
-          residentId: abonentData.id,
-          accountNumber: abonentData.accountNumber,
-          fullName: abonentData.fullName,
-          phone: abonentData.phone,
-          mahallaName: abonentData.mahallaName
-        };
-
-        if (transferReason === 'yanglish_tulov') {
-          const found = transferCreditors.find((r) => r.residentId === selectedApplicantId);
-          if (found) applicantRow = found;
-          else if (transferCreditors.length > 0) applicantRow = transferCreditors[0];
+        if (!abonentData?.id || !abonentData.accountNumber) {
+          toast.error('Asosiy abonent (debitor) kiritilmagan');
+          return;
+        }
+        if (debitorAmount <= 0) {
+          toast.error("O'tkaziladigan summa 0 dan katta bo'lishi kerak");
+          return;
+        }
+        if (transferCreditors.length === 0) {
+          toast.error("Kamida bitta qabul qiluvchi (kreditor) hisob raqamini qo'shing");
+          return;
+        }
+        if (debitorAmount !== totalCreditorsAmount) {
+          toast.error("Debitor summasi va kreditorlar summasi bir-biriga teng bo'lishi shart");
+          return;
         }
 
-        const debitorAct = {
-          accountNumber: abonentData.accountNumber,
-          amount: debitorAmount,
-          fullName: abonentData.fullName,
-          residentId: abonentData.id,
-          kSaldo: abonentData.balance?.kSaldo || 0,
-          phone: abonentData.phone,
-          mahallaName: abonentData.mahallaName
-        };
+        setIsLoading(true);
+        try {
+          let applicantRow: any = {
+            residentId: abonentData.id,
+            accountNumber: abonentData.accountNumber,
+            fullName: abonentData.fullName,
+            phone: abonentData.phone,
+            mahallaName: abonentData.mahallaName
+          };
 
-        const result = (
-          await api.post('/arizalar/money-transfer', {
-            debitorAct,
-            creditorActs: transferCreditors,
-            transferReason,
-            applicant: {
-              residentId: applicantRow?.residentId || applicantRow?.id,
-              accountNumber: applicantRow?.accountNumber,
-              fullName: applicantRow?.fullName,
-              phone: applicantRow?.phone || '',
-              mahallaName: applicantRow?.mahallaName || ''
-            }
+          if (transferReason === 'yanglish_tulov') {
+            const found = transferCreditors.find((r) => r.residentId === selectedApplicantId);
+            if (found) applicantRow = found;
+            else if (transferCreditors.length > 0) applicantRow = transferCreditors[0];
+          }
+
+          const debitorAct = {
+            accountNumber: abonentData.accountNumber,
+            amount: debitorAmount,
+            fullName: abonentData.fullName,
+            residentId: abonentData.id,
+            kSaldo: abonentData.balance?.kSaldo || 0,
+            phone: abonentData.phone,
+            mahallaName: abonentData.mahallaName
+          };
+
+          const result = (
+            await api.post('/arizalar/money-transfer', {
+              debitorAct,
+              creditorActs: transferCreditors,
+              transferReason,
+              applicant: {
+                residentId: applicantRow?.residentId || applicantRow?.id,
+                accountNumber: applicantRow?.accountNumber,
+                fullName: applicantRow?.fullName,
+                phone: applicantRow?.phone || '',
+                mahallaName: applicantRow?.mahallaName || ''
+              }
+            })
+          ).data.ariza;
+
+          setAriza(result);
+          if (abonentData.mahallaId) {
+            const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+            setMahalla(mahallaData);
+          }
+          setShowPrintSection(true);
+        } catch (error: any) {
+          console.error(error.message);
+          toast.error(error?.response?.data?.message || error.message || 'Xatolik kuzatildi');
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      if (!validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput })) return;
+      setIsLoading(true);
+      try {
+        const newArizaData = (
+          await api.post('/arizalar/create', {
+            account_number: abonentData.accountNumber,
+            abonentId: abonentData.id,
+            fullName: abonentData.fullName,
+            dublicat_account_number: aktType === 'dvaynik' ? abonentData2.accountNumber : undefined,
+            document_type: aktType,
+            akt_summasi: {
+              total: aktSumma.total,
+              withQQSTotal: aktSumma.totalWithQQS,
+              withoutQQSTotal: aktSumma.withoutQQSTotal
+            },
+            current_prescribed_cnt: abonentData.house.inhabitantCnt,
+            next_prescribed_cnt:
+              aktType === 'viza'
+                ? undefined
+                : isNaN(Number(yashovchiSoniInput)) && aktType == 'gps'
+                  ? abonentData.house.inhabitantCnt
+                  : yashovchiSoniInput === '' || yashovchiSoniInput === null || yashovchiSoniInput === undefined
+                    ? undefined
+                    : Number(yashovchiSoniInput),
+            photos: images.map((img) => img.document_id),
+            recalculationPeriods,
+            muzlatiladi,
+            shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false,
+            dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
+            moneyTransferAmount: aktType === 'dvaynik' && shouldBeMoneyTransfer ? Number(moneyTransferAmount) : 0
           })
-        ).data.ariza;
+        ).data;
 
-        setAriza(result);
-        if (abonentData.mahallaId) {
-          const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
-          setMahalla(mahallaData);
+        if (!newArizaData.ok) return toast.error(newArizaData.message);
+
+        setAriza({
+          ...newArizaData.ariza,
+          dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
+          moneyTransferAmount: aktType === 'dvaynik' && shouldBeMoneyTransfer ? Number(moneyTransferAmount) : 0,
+          shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false
+        });
+
+        const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
+        setMahalla(mahallaData);
+
+        // agarda ikkilamchi akt bo'lsa ikkilamchi kod joylashgan mahalla ma'lumotlari ham olinadi
+        if (aktType === 'dvaynik') {
+          const dublicatAccountMahalla = (await api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId)).data;
+          setMahallaDublicat(dublicatAccountMahalla);
         }
         setShowPrintSection(true);
       } catch (error: any) {
         console.error(error.message);
-        toast.error(error?.response?.data?.message || error.message || 'Xatolik kuzatildi');
       } finally {
         setIsLoading(false);
       }
-      return;
-    }
-
-    validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput });
-    setIsLoading(true);
-    try {
-      const newArizaData = (
-        await api.post('/arizalar/create', {
-          account_number: abonentData.accountNumber,
-          abonentId: abonentData.id,
-          fullName: abonentData.fullName,
-          dublicat_account_number: aktType === 'dvaynik' ? abonentData2.accountNumber : undefined,
-          document_type: aktType,
-          akt_summasi: {
-            total: aktSumma.total,
-            withQQSTotal: aktSumma.totalWithQQS,
-            withoutQQSTotal: aktSumma.withoutQQSTotal
-          },
-          current_prescribed_cnt: abonentData.house.inhabitantCnt,
-          next_prescribed_cnt:
-            aktType === 'viza'
-              ? undefined
-              : isNaN(Number(yashovchiSoniInput)) && aktType == 'gps'
-                ? abonentData.house.inhabitantCnt
-                : yashovchiSoniInput === '' || yashovchiSoniInput === null || yashovchiSoniInput === undefined
-                  ? undefined
-                  : Number(yashovchiSoniInput),
-          photos: images.map((img) => img.document_id),
-          recalculationPeriods,
-          muzlatiladi,
-          shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false,
-          dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
-          moneyTransferAmount: aktType === 'dvaynik' && shouldBeMoneyTransfer ? Number(moneyTransferAmount) : 0
-        })
-      ).data;
-
-      if (!newArizaData.ok) return toast.error(newArizaData.message);
-
-      setAriza({
-        ...newArizaData.ariza,
-        dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
-        moneyTransferAmount: aktType === 'dvaynik' && shouldBeMoneyTransfer ? Number(moneyTransferAmount) : 0,
-        shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false
-      });
-
-      const mahallaData = (await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data;
-      setMahalla(mahallaData);
-
-      // agarda ikkilamchi akt bo'lsa ikkilamchi kod joylashgan mahalla ma'lumotlari ham olinadi
-      if (aktType === 'dvaynik') {
-        const dublicatAccountMahalla = (await api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId)).data;
-        setMahallaDublicat(dublicatAccountMahalla);
-      }
-      setShowPrintSection(true);
-    } catch (error: any) {
-      console.error(error.message);
     } finally {
-      setIsLoading(false);
+      set({ isCreatingAriza: false });
     }
   },
   updateAbonentDataByAccNum: async (accountNumber: string, abonentData) => {
@@ -698,10 +707,13 @@ export const useStore = create<StoreState>((set, get) => ({
   setShouldBeMoneyTransfer: (shouldBeMoneyTransfer: boolean) => set({ shouldBeMoneyTransfer })
 }));
 
-function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }) {
+/** Xato bo'lsa toast ko'rsatadi va false qaytaradi — so'rov yuborilmaydi */
+function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }): boolean {
   if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(parseInt(inhabitantCnt)))) {
-    return toast.error(t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
+    toast.error(t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
+    return false;
   }
+  return true;
 }
 
 export function isActCalculationSummary(text?: string | null): boolean {

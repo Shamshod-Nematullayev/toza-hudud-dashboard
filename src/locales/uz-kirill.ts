@@ -496,6 +496,7 @@ const uzKirill: typeof uz = {
     createAbonentPetition: 'Абонент аризаси яратиш',
     addToMultipleLivings: 'Яшовчилар сони ўзгартириш',
     editPhone: 'Телефон рақамини таҳрирлаш',
+    deletePhone: 'Телефон рақамини ўчириш',
     uploadFile: 'Файлни юклаш',
     manualEntry: 'Қўлда киритиш',
     importPhone: 'Телефон рақамини импорт қилиш',

@@ -496,6 +496,7 @@ const ru: typeof uz = {
     createAbonentPetition: 'Создать заявление абонента',
     addToMultipleLivings: 'Изменить количество проживающих',
     editPhone: 'Редактировать номер телефона',
+    deletePhone: 'Удалить номер телефона',
     uploadFile: 'Загрузить файл',
     manualEntry: 'Ручной ввод',
     importPhone: 'Импортировать номер телефона',

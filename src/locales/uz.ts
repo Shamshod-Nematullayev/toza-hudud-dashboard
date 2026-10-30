@@ -494,6 +494,7 @@ const uz = {
     createAbonentPetition: 'Abonent arizasi yaratish',
     addToMultipleLivings: "Yashovchilar soni o'zgartirish",
     editPhone: 'Telefon raqamini tahrirlash',
+    deletePhone: "Telefon raqamini o'chirish",
     uploadFile: 'Faylni yuklash',
     manualEntry: "Qo'lda kiritish",
     importPhone: 'Telefon raqamini import qilish',

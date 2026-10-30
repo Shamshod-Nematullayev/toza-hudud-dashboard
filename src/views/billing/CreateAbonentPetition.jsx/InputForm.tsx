@@ -127,6 +127,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     aktSumma,
     setAktSumma,
     createAriza,
+    isCreatingAriza,
     updateAbonentDataByAccNum,
     searchAllAccountsAbonent,
     cancelAbonentLookup,
@@ -1133,9 +1134,9 @@ export default function InputForm({ onStartTour }: InputFormProps) {
               variant="contained"
               color="primary"
               size="large"
-              disabled={isCreateDisabled}
+              disabled={isCreateDisabled || isCreatingAriza}
               onClick={createAriza}
-              startIcon={<Send />}
+              startIcon={isCreatingAriza ? <CircularProgress size={18} color="inherit" /> : <Send />}
               sx={{
                 py: 1.4,
                 borderRadius: 2.5,
@@ -1145,7 +1146,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                 boxShadow: theme.shadows[4]
               }}
             >
-              {t('Arizani shakllantirish')}
+              {isCreatingAriza ? t('Shakllantirilmoqda...') : t('Arizani shakllantirish')}
             </Button>
           </span>
         </Tooltip>
