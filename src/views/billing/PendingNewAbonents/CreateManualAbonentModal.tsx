@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -41,6 +41,7 @@ import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
 import { useTariff } from 'hooks/useTariff';
 import { ICitizen, IEtkAccount } from './types';
+import MvdInhabitantsInfo from './MvdInhabitantsInfo';
 
 interface CreateManualAbonentModalProps {
   open: boolean;
@@ -89,6 +90,8 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
   // Yashovchilar va qarzdorlik
   const [inhabitantCnt, setInhabitantCnt] = useState<number>(1);
   const [debtMonths, setDebtMonths] = useState<number>(0);
+  // Foydalanuvchi sonni qo'lda o'zgartirgan bo'lsa, MVD javobi uni bosib ketmaydi
+  const inhabitantCntTouchedRef = useRef(false);
 
   // Saqlash holati
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -112,6 +115,7 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
       setStreetId('');
       setStreetName('');
       setInhabitantCnt(1);
+      inhabitantCntTouchedRef.current = false;
       setDebtMonths(0);
       setSearching(false);
       setSubmitting(false);
@@ -127,6 +131,8 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
     }
 
     setSearching(true);
+    // Yangi fuqaro uchun son yana MVD bo'yicha qo'yiladi
+    inhabitantCntTouchedRef.current = false;
     try {
       // 1. Fuqaroni TozaMakondan olish
       const citizenRes = await api.get('/abonents/citizens', {
@@ -208,6 +214,10 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
       setSearching(false);
     }
   };
+
+  // MVD tekshiriladigan kadastr (tanlangan yoki qo'lda kiritilgan)
+  const mvdCadastr =
+    cadastrMode === 'selected' ? selectedCadastr : cadastrMode === 'custom' ? customCadastr : '';
 
   // Hisoblangan qarzdorlik summasi
   const calculatedDebt = debtMonths * Math.max(0, Number(inhabitantCnt ?? 0)) * tariffRate;
@@ -667,6 +677,7 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
                     label="Yashovchilar soni"
                     value={inhabitantCnt}
                     onChange={(e) => {
+                      inhabitantCntTouchedRef.current = true;
                       const raw = e.target.value;
                       if (raw === '') {
                         setInhabitantCnt(0);
@@ -684,6 +695,15 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
                   />
                 </Grid>
               </Grid>
+
+              {/* MVD bo'yicha kadastrda ro'yxatda turganlar */}
+              <MvdInhabitantsInfo
+                cadastr={mvdCadastr}
+                inhabitantCnt={inhabitantCnt}
+                onLoaded={(cnt) => {
+                  if (!inhabitantCntTouchedRef.current) setInhabitantCnt(cnt);
+                }}
+              />
             </Paper>
 
             {/* 4. Necha oylik qarzdorlik bilan ochilishi */}
