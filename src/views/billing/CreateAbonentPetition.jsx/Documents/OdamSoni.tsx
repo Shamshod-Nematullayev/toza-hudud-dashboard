@@ -56,7 +56,7 @@ function OdamSoni({
       {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading abonentData={abonentData} vakil={relation ? { relation, fullName: relationFullName || '' } : undefined} />
+          <ArizaHeading abonentData={abonentData} participants={participants} vakil={relation ? { relation, fullName: relationFullName || '' } : undefined} />
           <br />
           <ArizaTitle type="odam soni" />
           <br />

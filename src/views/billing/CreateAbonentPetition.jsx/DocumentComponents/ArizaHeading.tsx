@@ -24,9 +24,33 @@ interface Vakil {
 interface ArizaHeadingProps {
   abonentData: AbonentDetails;
   vakil?: Vakil;
+  participants?: { key: string; isExcluded?: boolean }[];
 }
-export function ArizaHeading({ abonentData, vakil }: ArizaHeadingProps) {
+
+/**
+ * Dalolatnomaga rahbar imzosi kerakligini bildiruvchi shartli belgi (uch nuqta).
+ * Ataylab izohsiz: faqat xabardor xodimlar tushunadi. Rahbar rezolyutsiya yozadigan
+ * yuqori chap burchakda, ariza raqamidan sal ichkarida turadi.
+ */
+function RahbarMark() {
+  return (
+    <svg
+      width="11"
+      height="10"
+      viewBox="0 0 11 10"
+      aria-hidden="true"
+      style={{ position: 'absolute', top: 34, left: 54, opacity: 0.7 }}
+    >
+      <circle cx="5.5" cy="1.6" r="1.3" fill="#333" />
+      <circle cx="1.6" cy="8.4" r="1.3" fill="#333" />
+      <circle cx="9.4" cy="8.4" r="1.3" fill="#333" />
+    </svg>
+  );
+}
+
+export function ArizaHeading({ abonentData, vakil, participants }: ArizaHeadingProps) {
   const { company } = useCustomizationStore();
+  const needsRahbarSign = !!participants?.some((p) => p.key === 'rahbar' && !p.isExcluded);
 
   // Vakil borligini tekshirish
   const hasVakil = !!vakil?.fullName;
@@ -39,7 +63,7 @@ export function ArizaHeading({ abonentData, vakil }: ArizaHeadingProps) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       {/* Chap tomon bo'sh qoladi, o'ng tomonga ma'lumotlar joylashadi */}
-      <div></div>
+      <div>{needsRahbarSign && <RahbarMark />}</div>
       <p
         style={{
           width: 320,

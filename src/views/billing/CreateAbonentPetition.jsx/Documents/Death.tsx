@@ -31,7 +31,7 @@ function Death({
       {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading abonentData={abonentData} />
+          <ArizaHeading abonentData={abonentData} participants={participants} />
           <br />
           <ArizaTitle type="oʻlim guvohnomasi" />
           <p

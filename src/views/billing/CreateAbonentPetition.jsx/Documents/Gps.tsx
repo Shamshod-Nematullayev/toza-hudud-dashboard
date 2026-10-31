@@ -57,7 +57,7 @@ function Gps({
       {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading abonentData={abonentData} vakil={vakil} />
+          <ArizaHeading abonentData={abonentData} participants={participants} vakil={vakil} />
           <br />
           <ArizaTitle type="xizmat ko'rsatilmagan" />
           <p
