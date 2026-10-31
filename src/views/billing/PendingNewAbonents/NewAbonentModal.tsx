@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -38,12 +38,16 @@ import {
   IconSearch,
   IconEdit,
   IconArrowsExchange,
-  IconPrinter
+  IconPrinter,
+  IconChevronDown,
+  IconChevronUp
 } from '@tabler/icons-react';
 import { toast } from 'react-toastify';
+import dayjs from 'dayjs';
 import api from 'utils/api';
 import { useTariff } from 'hooks/useTariff';
 import { INewAbonentItem, IApprovePayload, IEtkAccount } from './types';
+import { PermamentsResponse } from '../Abonent/types';
 
 interface NewAbonentModalProps {
   open: boolean;
@@ -104,6 +108,45 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
   const [currentEtkDetails, setCurrentEtkDetails] = useState<any>(null);
   const [loadingCurrentEtk, setLoadingCurrentEtk] = useState<boolean>(false);
 
+  // MVD (IIB) bo'yicha kadastrda ro'yxatda turganlar
+  const [mvdData, setMvdData] = useState<PermamentsResponse | null>(null);
+  const [mvdLoading, setMvdLoading] = useState<boolean>(false);
+  const [mvdError, setMvdError] = useState<string>('');
+  const [mvdCadastr, setMvdCadastr] = useState<string>('');
+  const [showMvdList, setShowMvdList] = useState<boolean>(false);
+  const mvdRequestRef = useRef(0);
+  // Foydalanuvchi sonni qo'lda o'zgartirgan bo'lsa, MVD javobi uni bosib ketmaydi
+  const inhabitantCntTouchedRef = useRef(false);
+
+  const loadMvdInhabitants = async (cadastr?: string | null) => {
+    const requestId = ++mvdRequestRef.current;
+    const cad = (cadastr || '').trim();
+    setMvdData(null);
+    setMvdError('');
+    setShowMvdList(false);
+    setMvdCadastr(cad);
+    if (!cad) {
+      setMvdLoading(false);
+      return;
+    }
+    setMvdLoading(true);
+    try {
+      const { data } = await api.get<PermamentsResponse>('/abonents/iib-inhabitants', {
+        params: { cadastralNumber: cad },
+        headers: { 'hide-error': true }
+      });
+      if (requestId !== mvdRequestRef.current) return;
+      setMvdData(data);
+      const permanentCnt = data?.Data?.PermanentPersons?.length ?? 0;
+      if (permanentCnt > 0 && !inhabitantCntTouchedRef.current) setCustomInhabitantCnt(permanentCnt);
+    } catch (err: any) {
+      if (requestId !== mvdRequestRef.current) return;
+      setMvdError(err?.response?.data?.message || "MVD ma'lumotini olib bo'lmadi");
+    } finally {
+      if (requestId === mvdRequestRef.current) setMvdLoading(false);
+    }
+  };
+
   // Modal ochilganda qiymatlarni reset qilish
   useEffect(() => {
     if (item) {
@@ -116,6 +159,12 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
           ? Math.max(0, Number(item.inhabitant_cnt))
           : 0
       );
+      inhabitantCntTouchedRef.current = false;
+      if (item.status === 'pending' || item.status === 'document_created') {
+        void loadMvdInhabitants(item.cadastr);
+      } else {
+        void loadMvdInhabitants(null);
+      }
       setDebtMonths(item.debtMonths ?? 0);
       setCustomEtkCode(item.etkCustomerCode || '');
       setCustomCaoto(item.etkCaoto || '');
@@ -183,6 +232,10 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
 
   // Hisoblangan qarzdorlik
   const calculatedDebt = debtMonths * effectiveInhabitantCnt * tariffRate;
+
+  const mvdPermanent = mvdData?.Data?.PermanentPersons || [];
+  const mvdTemporary = mvdData?.Data?.TemproaryPersons || [];
+  const formatMvdDate = (value: string) => (dayjs(value).isValid() ? dayjs(value).format('DD.MM.YYYY') : value);
 
   // Tasdiqlash
   const handleApproveCurrent = async () => {
@@ -551,7 +604,15 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
                               onChange={(e) => setCustomCadastr(e.target.value)}
                               placeholder="14:05:... yangi kadastr"
                             />
-                            <Button size="small" variant="contained" onClick={() => setIsEditingCadastr(false)} sx={{ fontWeight: 700 }}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                setIsEditingCadastr(false);
+                                if (customCadastr.trim() !== mvdCadastr) void loadMvdInhabitants(customCadastr);
+                              }}
+                              sx={{ fontWeight: 700 }}
+                            >
                               OK
                             </Button>
                           </Stack>
@@ -591,6 +652,7 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
                                 type="number"
                                 value={customInhabitantCnt}
                                 onChange={(e) => {
+                                  inhabitantCntTouchedRef.current = true;
                                   const raw = e.target.value;
                                   if (raw === '') {
                                     setCustomInhabitantCnt(0);
@@ -609,6 +671,95 @@ export const NewAbonentModal: React.FC<NewAbonentModalProps> = ({
                               </Button>
                             </Stack>
                           </Stack>
+                        )}
+
+                        {/* MVD bo'yicha kadastrda ro'yxatda turganlar */}
+                        {isPending && (mvdLoading || mvdError || mvdData) && (
+                          <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed', borderColor: theme.palette.divider }}>
+                            {mvdLoading ? (
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                                <CircularProgress size={14} />
+                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                  MVD ma'lumoti yuklanmoqda...
+                                </Typography>
+                              </Stack>
+                            ) : mvdError ? (
+                              <Typography variant="caption" sx={{ color: theme.palette.warning.main, fontWeight: 600 }}>
+                                {mvdError}
+                              </Typography>
+                            ) : (
+                              <>
+                                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                                    MVD bo'yicha doimiy ro'yxatda: <b>{mvdPermanent.length} kishi</b>
+                                    {mvdTemporary.length > 0 && `, vaqtincha: ${mvdTemporary.length}`}
+                                  </Typography>
+                                  {mvdPermanent.length + mvdTemporary.length > 0 && (
+                                    <Button
+                                      size="small"
+                                      variant="text"
+                                      endIcon={showMvdList ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
+                                      onClick={() => setShowMvdList((v) => !v)}
+                                      sx={{ fontSize: '0.72rem', py: 0, fontWeight: 700, textTransform: 'none', whiteSpace: 'nowrap' }}
+                                    >
+                                      {showMvdList ? 'Yashirish' : 'Kimlar?'}
+                                    </Button>
+                                  )}
+                                </Stack>
+                                {mvdPermanent.length === 0 ? (
+                                  <Typography variant="caption" sx={{ color: theme.palette.warning.main, display: 'block' }}>
+                                    Kadastrda doimiy ro'yxatda hech kim yo'q, son arizadagicha qoldirildi
+                                  </Typography>
+                                ) : (
+                                  effectiveInhabitantCnt !== mvdPermanent.length && (
+                                    <Typography variant="caption" sx={{ color: theme.palette.warning.main, display: 'block' }}>
+                                      Kiritilgan son MVD dagidan farq qiladi
+                                    </Typography>
+                                  )
+                                )}
+                                {showMvdList && (
+                                  <Stack spacing={0.5} sx={{ mt: 1 }}>
+                                    {[
+                                      ...mvdPermanent.map((p) => ({ p, temporary: false })),
+                                      ...mvdTemporary.map((p) => ({ p, temporary: true }))
+                                    ].map(({ p, temporary }, i) => (
+                                      <Stack
+                                        key={`${p.Id || p.Pinpp}-${i}`}
+                                        direction="row"
+                                        sx={{
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          gap: 1,
+                                          p: 0.8,
+                                          borderRadius: '6px',
+                                          bgcolor: 'background.paper',
+                                          border: '1px solid',
+                                          borderColor: theme.palette.divider
+                                        }}
+                                      >
+                                        <Box sx={{ minWidth: 0 }}>
+                                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block' }}>
+                                            {i + 1}. {p.Person}
+                                          </Typography>
+                                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                                            {[
+                                              p.DateBirth && `Tug'ilgan: ${formatMvdDate(p.DateBirth)}`,
+                                              p.RegistrationDate && `Ro'yxatga olingan: ${formatMvdDate(p.RegistrationDate)}`
+                                            ]
+                                              .filter(Boolean)
+                                              .join(' · ')}
+                                          </Typography>
+                                        </Box>
+                                        {temporary && (
+                                          <Chip label="Vaqtincha" size="small" color="info" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
+                                        )}
+                                      </Stack>
+                                    ))}
+                                  </Stack>
+                                )}
+                              </>
+                            )}
+                          </Box>
                         )}
                       </Box>
                     </Grid>
