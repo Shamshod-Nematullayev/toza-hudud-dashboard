@@ -335,6 +335,34 @@ export interface IAbonentPageActionsStore {
   getAbonentDebitorStatus: (residentId: number) => Promise<any>;
   getTozaMakonHistory: (residentId: number) => Promise<void>;
   setOpenTozaMakonHistoryDialog: (open: boolean) => void;
+  searchSimilarStreets: (params: { mahallaId: number; name: string }, signal?: AbortSignal) => Promise<SimilarStreetsResponse>;
+  assignStreetToMahalla: (params: { mahallaId: number; streetId: number; streetName: string }) => Promise<CreatedStreet>;
+  createStreet: (params: { mahallaId: number; force?: boolean } & StreetNameVariants) => Promise<CreatedStreet>;
+}
+
+/** Ko'cha nomining uchala yozilishi (tozamakon translates: UZ, UZ-CYRL, RU) */
+export interface StreetNameVariants {
+  uz: string;
+  uzCyrl: string;
+  ru: string;
+}
+
+export interface SimilarStreet {
+  id: number;
+  name: string;
+  score: number;
+  /** Ko'cha allaqachon shu mahallaga biriktirilgan */
+  inMahalla: boolean;
+}
+
+export interface SimilarStreetsResponse {
+  variants: StreetNameVariants;
+  similar: SimilarStreet[];
+}
+
+export interface CreatedStreet {
+  id: number;
+  name: string;
 }
 
 export type IAbonentPageStore = IAbonentPageDataStore & IAbonentPageActionsStore;
@@ -736,5 +764,18 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
       set({ tozaMakonHistoryLoading: false });
     }
   },
-  setOpenTozaMakonHistoryDialog: (open) => set({ openTozaMakonHistoryDialogState: open })
+  setOpenTozaMakonHistoryDialog: (open) => set({ openTozaMakonHistoryDialogState: open }),
+  searchSimilarStreets: async (params, signal) => {
+    const { data } = await api.get<SimilarStreetsResponse>('/billing/streets/similar', { params, signal });
+    return data;
+  },
+  assignStreetToMahalla: async (params) => {
+    const { data } = await api.post<CreatedStreet>('/billing/streets/assign', params);
+    return { id: data.id, name: data.name || params.streetName };
+  },
+  createStreet: async (params) => {
+    // 409 (bunday ko'cha bor) xatosini dialogning o'zi ko'rsatadi
+    const { data } = await api.post<CreatedStreet>('/billing/streets', params, { headers: { 'hide-error': true } });
+    return data;
+  }
 }));

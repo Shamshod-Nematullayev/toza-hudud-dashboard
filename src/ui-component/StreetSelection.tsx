@@ -12,6 +12,10 @@ interface Props {
   defaultValueDisabled?: boolean;
   required?: boolean;
   onStreetChange?: (street: Street | undefined) => void;
+  /** O'zgarsa ro'yxat qayta yuklanadi (masalan, mahallaga yangi ko'cha qo'shilganda) */
+  refreshKey?: number;
+  /** Hozirgina qo'shilgan ko'cha: TozaMakon ro'yxatida hali ko'rinmasa ham tanlovda turadi */
+  pendingStreet?: Street;
 }
 
 interface Street {
@@ -19,7 +23,17 @@ interface Street {
   name: string;
 }
 
-function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisabled, required, onStreetChange }: Props) {
+function StreetSelection({
+  mahallaId,
+  value,
+  onChange,
+  native,
+  defaultValueDisabled,
+  required,
+  onStreetChange,
+  refreshKey,
+  pendingStreet
+}: Props) {
   const [streets, setStreets] = useState<Street[]>([]);
   useEffect(() => {
     if (mahallaId) {
@@ -29,7 +43,8 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
             mahallaId
           }
         })
-        .then(({ data }) => {
+        .then(({ data }: { data: Street[] }) => {
+          if (pendingStreet && !data.some((s) => s.id === pendingStreet.id)) data = [pendingStreet, ...data];
           setStreets(data);
           if (value && onStreetChange) {
             const current = data.find((s: Street) => String(s.id) === String(value));
@@ -37,7 +52,7 @@ function StreetSelection({ mahallaId, value, onChange, native, defaultValueDisab
           }
         });
     }
-  }, [mahallaId]);
+  }, [mahallaId, refreshKey]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     onChange(e);

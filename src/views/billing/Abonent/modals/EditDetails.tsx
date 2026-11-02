@@ -16,21 +16,24 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Stack,
   Tab,
   Tabs,
   TextareaAutosize,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
-import { ArrowBack, ArrowForward, AutoFixHigh, ManageSearch, Save } from '@mui/icons-material';
+import { AddLocationAlt, ArrowBack, ArrowForward, AutoFixHigh, ManageSearch, Save } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { isNumberValue } from 'utils/isNumberValue';
 import PhoneInput from 'ui-component/PhoneInput';
 import { PatternFormat, patternFormatter } from 'react-number-format';
+import AddStreetDialog from './AddStreetDialog';
 
 export function extractBirthDateString(jshshir: string) {
   if (!/^\d{14}$/.test(jshshir)) {
@@ -116,6 +119,11 @@ function EditDetails() {
   const [mahallaId, setMahallaId] = useState('');
   const [streetId, setStreetId] = useState('');
   const [streetName, setStreetName] = useState('');
+  const [addStreetOpen, setAddStreetOpen] = useState(false);
+  const [streetsRefreshKey, setStreetsRefreshKey] = useState(0);
+  const [addedStreet, setAddedStreet] = useState<{ id: number; name: string }>();
+  // Qo'shilgan ko'cha faqat o'sha mahalla ro'yxatiga qo'shib ko'rsatiladi
+  useEffect(() => setAddedStreet(undefined), [mahallaId, editDialogOpenState]);
   const [active, setActive] = useState(false);
   const [accountNumber, setAccountNumber] = useState('');
   const [homeType, setHomeType] = useState<'HOUSE' | 'APARTMENT' | ''>('');
@@ -614,14 +622,27 @@ function EditDetails() {
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <StreetSelection
-                  value={streetId}
-                  onChange={(e) => setStreetId(e.target.value)}
-                  onStreetChange={(s) => setStreetName(s?.name || '')}
-                  mahallaId={Number(mahallaId)}
-                  defaultValueDisabled
-                  required
-                />
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <StreetSelection
+                      value={streetId}
+                      onChange={(e) => setStreetId(e.target.value)}
+                      onStreetChange={(s) => setStreetName(s?.name || '')}
+                      mahallaId={Number(mahallaId)}
+                      refreshKey={streetsRefreshKey}
+                      pendingStreet={addedStreet}
+                      defaultValueDisabled
+                      required
+                    />
+                  </Box>
+                  <Tooltip title="Ro'yxatda yo'q ko'chani qo'shish">
+                    <span>
+                      <IconButton color="primary" disabled={!mahallaId} onClick={() => setAddStreetOpen(true)}>
+                        <AddLocationAlt />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Stack>
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <TextField
@@ -760,6 +781,20 @@ function EditDetails() {
           )}
         </DialogActions>
       </form>
+      {mahallaId && (
+        <AddStreetDialog
+          open={addStreetOpen}
+          onClose={() => setAddStreetOpen(false)}
+          mahallaId={Number(mahallaId)}
+          mahallaName={mahallalar.find((m: any) => String(m.id) === String(mahallaId))?.name || abonentDetails?.mahallaName}
+          onStreetReady={(street) => {
+            setAddedStreet(street);
+            setStreetId(String(street.id));
+            setStreetName(street.name);
+            setStreetsRefreshKey((k) => k + 1);
+          }}
+        />
+      )}
     </DraggableDialog>
   );
 }
