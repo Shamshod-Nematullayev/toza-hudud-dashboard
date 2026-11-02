@@ -1,17 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  Chip,
-  Grid,
-  Paper,
-  Stack,
-  Tooltip,
-  Typography,
-  alpha,
-  useTheme
-} from '@mui/material';
+import { Box, Button, Card, Chip, Grid, Paper, Stack, Tooltip, Typography, alpha, useTheme } from '@mui/material';
 import StorageOutlinedIcon from '@mui/icons-material/StorageOutlined';
 import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
@@ -116,11 +104,7 @@ export default function PrintAbonentsList() {
           const mahallalar = data.mahallalar.map((mfy: any) => ({
             ...mfy,
             name: lotinga(mfy.name),
-            inspectorName:
-              mfy.inspectorName ||
-              inspectorMap.get(Number(mfy.id)) ||
-              mfy.biriktirilganNazoratchi?.inspector_name ||
-              ''
+            inspectorName: mfy.inspectorName || inspectorMap.get(Number(mfy.id)) || mfy.biriktirilganNazoratchi?.inspector_name || ''
           }));
           setMahallas(mahallalar);
         }
@@ -212,10 +196,7 @@ export default function PrintAbonentsList() {
         p: { xs: 0.5, sm: 1 },
         borderRadius: 3,
         transition: 'background-color 0.3s ease',
-        bgcolor:
-          theme.palette.mode === 'dark'
-            ? alpha(accentColor, 0.04)
-            : alpha(accentColor, 0.025)
+        bgcolor: theme.palette.mode === 'dark' ? alpha(accentColor, 0.04) : alpha(accentColor, 0.025)
       }}
     >
       <CustomStyle />
@@ -253,18 +234,8 @@ export default function PrintAbonentsList() {
                 </Typography>
                 <Chip
                   size="small"
-                  icon={
-                    isGreenZone ? (
-                      <BoltOutlinedIcon sx={{ fontSize: 15 }} />
-                    ) : (
-                      <LanguageOutlinedIcon sx={{ fontSize: 15 }} />
-                    )
-                  }
-                  label={
-                    isGreenZone
-                      ? 'GreenZone • Vaqtinchalik tezkor baza'
-                      : 'Toza Makon • Doimiy tashqi baza'
-                  }
+                  icon={isGreenZone ? <BoltOutlinedIcon sx={{ fontSize: 15 }} /> : <LanguageOutlinedIcon sx={{ fontSize: 15 }} />}
+                  label={isGreenZone ? 'GreenZone • Vaqtinchalik tezkor baza' : 'Toza Makon • Doimiy tashqi baza'}
                   color={isGreenZone ? 'success' : 'info'}
                   variant="outlined"
                   sx={{ fontWeight: 700, fontSize: '0.73rem' }}
@@ -273,9 +244,7 @@ export default function PrintAbonentsList() {
               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.3 }}>
                 {isGreenZone
                   ? `MongoDB (billing_abonents) orqali tezkor qidiruv, tahrirlash va chop etish${
-                      syncInfo?.totalAbonents
-                        ? ` • Bazada: ${syncInfo.totalAbonents.toLocaleString('ru-RU')} ta abonent`
-                        : ''
+                      syncInfo?.totalAbonents ? ` • Bazada: ${syncInfo.totalAbonents.toLocaleString('ru-RU')} ta abonent` : ''
                     }`
                   : 'Toza Makon (api.tozamakon.eco) serveridan to‘g‘ridan-to‘g‘ri jonli ma’lumot olish'}
               </Typography>
@@ -360,10 +329,7 @@ export default function PrintAbonentsList() {
                 borderRadius: 2.5,
                 border: '1px solid',
                 borderColor: alpha(accentColor, 0.4),
-                bgcolor:
-                  theme.palette.mode === 'dark'
-                    ? alpha(accentColor, 0.12)
-                    : alpha(accentColor, 0.06)
+                bgcolor: theme.palette.mode === 'dark' ? alpha(accentColor, 0.12) : alpha(accentColor, 0.06)
               }}
             >
               <Tooltip title="GreenZone vaqtinchalik/tezkor bazasi (MongoDB billing_abonents)">
@@ -410,26 +376,6 @@ export default function PrintAbonentsList() {
                 </Button>
               </Tooltip>
             </Stack>
-
-            {/* Mahallani ko'chirish tugmasi */}
-            <Tooltip title="Abonentlarni mahalladan-mahallaga ommaviy ko'chirish (Toza Makon)">
-              <Button
-                size="small"
-                variant="outlined"
-                color="warning"
-                startIcon={<DriveFileMoveOutlinedIcon fontSize="small" />}
-                onClick={() => setMoveMahallaOpen(true)}
-                sx={{
-                  borderRadius: 2,
-                  px: 1.5,
-                  py: 0.65,
-                  textTransform: 'none',
-                  fontWeight: 700
-                }}
-              >
-                Mahallani ko'chirish
-              </Button>
-            </Tooltip>
           </Stack>
         </Stack>
       </Paper>
@@ -491,7 +437,6 @@ export default function PrintAbonentsList() {
         </Grid>
       )}
 
-      {/* Mahallani ko'chirish modali */}
       {moveMahallaOpen && (
         <MoveMahallaDialog
           open={moveMahallaOpen}

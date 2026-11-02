@@ -12,6 +12,7 @@ import { useAbonentLogic } from '../hooks/useAbonentLogic';
 import { toast } from 'react-toastify';
 import { PermamentsResponse } from '../types';
 import { CustomAtomLoader } from 'ui-component/loaders/CustomAtomLoader';
+import IntegrationErrorState, { IntegrationError, toIntegrationError } from './IntegrationErrorState';
 
 // Eski import: import styled from 'styled-components'; -> BUNI O'CHIRING
 import { styled } from '@mui/material/styles'; // MUI'nikidan olasiz
@@ -41,6 +42,7 @@ function IIBInhabitants() {
   } = useAbonentStore();
   const [details, setDetails] = useState<PermamentsResponse>();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<IntegrationError | null>(null);
   const { residentId } = useAbonentLogic();
 
   const handleAddInhabitantsByIIB = async () => {
@@ -66,25 +68,25 @@ function IIBInhabitants() {
     contentRef: printSectionRef
   });
 
-  useEffect(() => {
-    if (open) {
-      setDetails(undefined);
-      if (abonentDetails) {
-        setLoading(true);
-        (async () => {
-          try {
-            const res = await getIIBInhabitants(abonentDetails.house.cadastralNumber, residentId);
-            setDetails(res);
-          } catch (err) {
-            console.error('Error fetching IIB inhabitants:', err);
-          } finally {
-            setLoading(false);
-          }
-        })();
-      }
-    } else {
-      setDetails(undefined);
+  const loadInhabitants = async () => {
+    if (!abonentDetails) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getIIBInhabitants(abonentDetails.house.cadastralNumber, residentId);
+      setDetails(res);
+    } catch (err) {
+      console.error('Error fetching IIB inhabitants:', err);
+      setError(toIntegrationError(err));
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    setDetails(undefined);
+    setError(null);
+    if (open) loadInhabitants();
   }, [open, abonentDetails, residentId]);
   return (
     <DraggableDialog
@@ -100,7 +102,9 @@ function IIBInhabitants() {
       }}
     >
       <div className="page" ref={printSectionRef} style={{ minHeight: 350, position: 'relative', padding: '20px' }}>
-        {loading && !details ? (
+        {error && !details ? (
+          <IntegrationErrorState error={error} loading={loading} onRetry={loadInhabitants} />
+        ) : loading && !details ? (
           <Box
             sx={{
               display: 'flex',

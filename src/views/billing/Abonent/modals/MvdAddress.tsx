@@ -3,6 +3,7 @@ import { t } from 'i18next';
 import { Button, DialogActions, DialogContent, Grid, Typography, Divider, Box } from '@mui/material';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../hooks/abonentStore';
+import IntegrationErrorState from './IntegrationErrorState';
 
 // Ma'lumotlarni qatorma-qator ko'rsatish uchun yordamchi komponent
 const InfoRow = ({ label, value }: { label: string; value?: string | number }) => (
@@ -21,7 +22,8 @@ const InfoRow = ({ label, value }: { label: string; value?: string | number }) =
 );
 
 function MvdAddress() {
-  const { ui, closeMvdAddressModal, abonentMvdAddress } = useAbonentStore();
+  const { ui, closeMvdAddressModal, abonentMvdAddress, abonentMvdAddressError, abonentMvdAddressPnfl, fetchAbonentMvdAddress } =
+    useAbonentStore();
 
   // Ma'lumotlarni qisqaroq o'zgaruvchiga olamiz
   const addressInfo = abonentMvdAddress?.PermanentRegistration;
@@ -35,7 +37,13 @@ function MvdAddress() {
       fullWidth
     >
       <DialogContent dividers>
-        {addressInfo ? (
+        {abonentMvdAddressError ? (
+          <IntegrationErrorState
+            error={abonentMvdAddressError}
+            loading={ui.mvdAddressLoading}
+            onRetry={() => fetchAbonentMvdAddress(abonentMvdAddressPnfl)}
+          />
+        ) : addressInfo ? (
           <Box sx={{ p: 1 }}>
             <Typography variant="h6" gutterBottom color="primary">
               {t("Yashash manzili ma'lumotlari")}
@@ -59,7 +67,7 @@ function MvdAddress() {
             </Grid>
           </Box>
         ) : (
-          <Typography align="center" color="error">
+          <Typography align="center" sx={{ py: 4, color: 'text.secondary' }}>
             {t('errors.notFoundData')}
           </Typography>
         )}

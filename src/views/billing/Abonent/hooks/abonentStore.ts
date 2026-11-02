@@ -29,6 +29,7 @@ import { IAbonent, searchAbonentFromTozamakon } from 'services/searchAbonentFrom
 import { Debitor } from 'views/billing/Debitors/types';
 import { fixFileName } from 'utils/fixFileName';
 import { addToOutbox, OutboxItem, PENDING_UPDATES_CHANGED_EVENT } from 'utils/abonentOutbox';
+import { IntegrationError, toIntegrationError } from '../modals/IntegrationErrorState';
 
 // Bizning serverga umuman yetib bormagan so'rovni (internet uzilishi) bir necha marta qayta yuboramiz.
 // Baribir yetmasa, o'zgarish brauzerda saqlanadi (abonentOutbox) va internet qaytganda yuboriladi.
@@ -151,6 +152,8 @@ const initialState: IAbonentPageDataStore = {
   abonentPetitionsLoading: false,
   openChangePhoneDialogState: false,
   abonentMvdAddress: null,
+  abonentMvdAddressError: null,
+  abonentMvdAddressPnfl: '',
   currentArizaId: '',
   ui: {
     mvdAddressLoading: false,
@@ -199,6 +202,10 @@ interface IAbonentPageDataStore {
   abonentPetitionsLoading: boolean;
   residentPhoto: string | null;
   abonentMvdAddress: MvdAddress | null;
+  /** IIB integratsiyasi xatosi (bo'sh natijadan farqli) — modalda alohida ko'rsatiladi */
+  abonentMvdAddressError: IntegrationError | null;
+  /** Oxirgi so'ralgan PINFL — modaldagi "Qayta urinish" uchun */
+  abonentMvdAddressPnfl: string;
   currentArizaId: string;
   ui: {
     mvdAddressLoading: boolean;
@@ -626,7 +633,8 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
   },
   setOpenIIBInhabitantsDialog: (open: boolean) => set({ openIIBInhabitantsDialog: open }),
   getIIBInhabitants: async (cadastralNumber, residentId) => {
-    const { data } = await api.get('/abonents/iib-inhabitants', { params: { cadastralNumber, residentId } });
+    // Xato modalning o'zida ko'rsatiladi, global toast takrorlanmasin
+    const { data } = await api.get('/abonents/iib-inhabitants', { params: { cadastralNumber, residentId }, headers: { 'hide-error': true } });
     return data;
   },
   addInhabitantsToAbonent: async (residentId, inhabitantCount, file) => {
@@ -690,16 +698,19 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ ui: { ...ui, mvdAddressModalOpenState: false } });
   },
   fetchAbonentMvdAddress: async (pnfl) => {
-    const { ui, abonentMvdAddress } = get();
-    set({ ui: { ...ui, mvdAddressLoading: true } });
-    try {
-      if (abonentMvdAddress) return set({ ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
-      const { data } = await api.get('/abonents/mvd-address/' + pnfl);
-      return set({ abonentMvdAddress: data, ui: { ...ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error?.message);
-      set({ ui: { ...ui, mvdAddressLoading: false } });
+    const { abonentMvdAddress, abonentMvdAddressPnfl } = get();
+    if (abonentMvdAddress && abonentMvdAddressPnfl === pnfl) {
+      return set({ ui: { ...get().ui, mvdAddressModalOpenState: true } });
     }
+    set({ abonentMvdAddressPnfl: pnfl, ui: { ...get().ui, mvdAddressLoading: true } });
+    try {
+      // Xato modalning o'zida ko'rsatiladi, global toast takrorlanmasin
+      const { data } = await api.get('/abonents/mvd-address/' + pnfl, { headers: { 'hide-error': true } });
+      set({ abonentMvdAddress: data || null, abonentMvdAddressError: null });
+    } catch (error) {
+      set({ abonentMvdAddress: null, abonentMvdAddressError: toIntegrationError(error) });
+    }
+    set({ ui: { ...get().ui, mvdAddressLoading: false, mvdAddressModalOpenState: true } });
   },
   closeAbonentPetitionModal: () => set({ ui: { ...get().ui, abonentPetitionModalOpenState: false }, currentArizaId: '' }),
   openAbonentPetitionModal: (ariza_id) => set({ ui: { ...get().ui, abonentPetitionModalOpenState: true }, currentArizaId: ariza_id }),

@@ -433,19 +433,6 @@ export default function Header({ printContentRef, getAbonents, filters, setFilte
               <MacroManager printContentRef={printContentRef} />
             </Box>
 
-            {/* Mahallani ko'chirish tugmasi */}
-            <Tooltip title="Abonentlarni mahalladan-mahallaga ommaviy ko'chirish (Toza Makon)" arrow>
-              <Button
-                variant="outlined"
-                color="warning"
-                onClick={() => setMoveMahallaOpen(true)}
-                startIcon={<DriveFileMoveOutlinedIcon />}
-                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 1.5 }}
-              >
-                Mahallani ko'chirish
-              </Button>
-            </Tooltip>
-
             {/* Jadval sozlamalari */}
             <Tooltip title={t('Jadval sozlamalari (Shrift, Ustunlar, Rang)')} arrow>
               <IconButton
