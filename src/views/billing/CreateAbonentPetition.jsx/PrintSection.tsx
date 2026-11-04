@@ -39,7 +39,7 @@ import Gps from './Documents/Gps';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
 import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
-import { familyRelations, getCleanAsoslantiruvchi } from './useStore';
+import { buildAutoAsoslantiruvchi, familyRelations, getCleanAsoslantiruvchi } from './useStore';
 import ManageActTypesDialog from './ManageActTypesDialog';
 import { ActTypeItem, resolveParticipants, ResolvedParticipant } from './participantResolver';
 
@@ -208,7 +208,6 @@ export default function PrintSection({
   const [comment, setComment] = useState<string>(getCleanAsoslantiruvchi(ariza?.comment));
   const [relation, setRelation] = useState<string>(ariza?.relation || '');
   const [relationFullName, setRelationFullName] = useState<string>(ariza?.relationFullName || '');
-  const [autoComment, setAutoComment] = useState(false);
 
   // Dalolatnoma turlari va ishtirokchilar statelari
   const [actTypes, setActTypes] = useState<ActTypeItem[]>([]);
@@ -622,7 +621,19 @@ export default function PrintSection({
               endAdornment: (
                 <InputAdornment position="end">
                   <Tooltip title="Avtomatik asoslantiruvchi matn yozish">
-                    <IconButton size="small" onClick={() => setAutoComment((prev) => !prev)}>
+                    <IconButton size="small" onClick={() =>
+                        setComment(
+                          buildAutoAsoslantiruvchi({
+                            ariza,
+                            abonentData,
+                            abonentData2,
+                            aniqlanganYashovchiSoni,
+                            recalculationPeriods,
+                            muzlatiladi,
+                            vakil: vakilData
+                          })
+                        )
+                      }>
                       <AutoFixHigh fontSize="small" />
                     </IconButton>
                   </Tooltip>

@@ -732,6 +732,100 @@ export function getCleanAsoslantiruvchi(comment?: string | null): string {
   return comment;
 }
 
+/**
+ * Ariza turi va abonent ma'lumotlaridan "Asoslantiruvchi ma'lumot" matnini tuzadi.
+ * Matn isActCalculationSummary filtriga tushmasligi kerak (Davr:/Summa:/Umumiy: ishlatilmaydi).
+ */
+export function buildAutoAsoslantiruvchi({
+  ariza,
+  abonentData,
+  abonentData2,
+  aniqlanganYashovchiSoni,
+  recalculationPeriods,
+  muzlatiladi,
+  vakil
+}: {
+  ariza: any;
+  abonentData?: any;
+  abonentData2?: any;
+  aniqlanganYashovchiSoni?: number | string;
+  recalculationPeriods?: IRecalculationPeriod[] | null;
+  muzlatiladi?: boolean;
+  vakil?: { relation?: string; fullName?: string };
+}): string {
+  if (!ariza) return '';
+
+  const fmt = (d: any) => {
+    const date = d ? new Date(d) : null;
+    return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('ru-RU') : '';
+  };
+
+  const currentCnt = Number(abonentData?.house?.inhabitantCnt ?? ariza.current_prescribed_cnt);
+  const nextCnt = Number(aniqlanganYashovchiSoni ?? ariza.next_prescribed_cnt);
+  const hasCnt = Number.isFinite(currentCnt) && Number.isFinite(nextCnt);
+
+  const periods = (recalculationPeriods || ariza.recalculationPeriods || []).filter((p: any) => p?.startDate || p?.endDate);
+  const sortedStarts = periods.map((p: any) => new Date(p.startDate).getTime()).filter((n: number) => !Number.isNaN(n));
+  const sortedEnds = periods.map((p: any) => new Date(p.endDate).getTime()).filter((n: number) => !Number.isNaN(n));
+  const periodFrom = sortedStarts.length ? fmt(Math.min(...sortedStarts)) : '';
+  const periodTo = sortedEnds.length ? fmt(Math.max(...sortedEnds)) : '';
+  const periodText = periodFrom && periodTo ? `${periodFrom} yildan ${periodTo} yilgacha bo'lgan davr` : '';
+
+  const sentences: string[] = [];
+
+  if (vakil?.relation && vakil?.fullName) {
+    sentences.push(`Ariza abonentning vakili — ${vakil.relation} ${vakil.fullName} tomonidan taqdim etildi.`);
+  }
+
+  switch (ariza.document_type) {
+    case 'odam_soni':
+      if (hasCnt) {
+        sentences.push(
+          `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, amalda ${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
+        );
+      } else {
+        sentences.push(`Xonadonda joyida o'rganish o'tkazildi va amalda istiqomat qiluvchi shaxslar soni MFY ma'lumotlari bilan tasdiqlandi.`);
+      }
+      break;
+    case 'death':
+      sentences.push(
+        `Xonadonda ro'yxatda turgan shaxsning vafot etganligi FHDYO organi tomonidan berilgan o'lim haqidagi guvohnoma nusxasi bilan tasdiqlanadi${
+          hasCnt ? `, natijada yashovchilar soni ${currentCnt} nafardan ${nextCnt} nafarga kamayadi` : ''
+        }.`
+      );
+      break;
+    case 'viza':
+      sentences.push(
+        `Xonadonda ro'yxatda turgan shaxslarning O'zbekiston hududidan tashqarida bo'lganligi xorijga chiqish pasporti nusxalari va chegaradan o'tish muhrlari bilan tasdiqlanadi.`
+      );
+      break;
+    case 'gps':
+      sentences.push(
+        `GPS monitoring tizimi ma'lumotlariga ko'ra${periodText ? ` ${periodText}da` : ''} maxsus transport abonent manziliga kirmagan va chiqindi olib ketilmagan.`
+      );
+      if (muzlatiladi) sentences.push(`Hozirgi kunda ham ushbu manzilga xizmat ko'rsatish imkoniyati mavjud emas, shu sababli hisob raqam muzlatiladi.`);
+      break;
+    case 'dvaynik': {
+      const first = abonentData?.accountNumber || ariza.licshet;
+      const second = abonentData2?.accountNumber || ariza.ikkilamchi_licshet;
+      sentences.push(
+        `${first && second ? `${first} va ${second} raqamli shaxsiy hisob raqamlari` : 'Shaxsiy hisob raqamlari'} bitta xonadonga ochilganligi (takroriy hisob raqam) aniqlandi${
+          ariza.dublicateRelation ? `, abonentlar o'zaro "${ariza.dublicateRelation}" hisoblanadi` : ''
+        }.`
+      );
+      break;
+    }
+    default:
+      break;
+  }
+
+  if (periodText && ariza.document_type !== 'gps') {
+    sentences.push(`Qayta hisob-kitob ${periodText} uchun amalga oshiriladi.`);
+  }
+
+  return sentences.join(' ');
+}
+
 export function buildActDescriptionFromPeriods(data?: IRecalculationPeriod[] | null): string {
   if (!data || !data.length) return '';
 
