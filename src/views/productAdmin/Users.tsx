@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -136,7 +137,7 @@ export default function Users() {
   };
 
   const handleDelete = async (user: UserData) => {
-    if (!window.confirm(`${user.fullName} foydalanuvchisini o'chirishni tasdiqlaysizmi?`)) {
+    if (!(await confirmDialog({ message: `${user.fullName} foydalanuvchisini o'chirishni tasdiqlaysizmi?`, color: 'error' }))) {
       return;
     }
     try {

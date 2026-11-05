@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -204,7 +205,12 @@ export const RegistryManagerModal: React.FC<RegistryManagerModalProps> = ({
   };
 
   const handleDeleteRegistry = async (id: string, name: string) => {
-    if (!window.confirm(`Haqiqatan ham "${name}" ro'yxatini va unga tegishli barcha yozuvlarni o'chirmoqchimisiz?`)) {
+    if (
+      !(await confirmDialog({
+        message: `Haqiqatan ham "${name}" ro'yxatini va unga tegishli barcha yozuvlarni o'chirmoqchimisiz?`,
+        color: 'error'
+      }))
+    ) {
       return;
     }
 

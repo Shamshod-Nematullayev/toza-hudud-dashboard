@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState } from 'react';
 import {
   Card,
@@ -175,7 +176,7 @@ export const MatchingJobCard: React.FC<MatchingJobCardProps> = ({
   };
 
   const handleClearDb = async () => {
-    if (!window.confirm("Barcha Soliq yozuvlarini bazadan o'chirmoqchimisiz?")) return;
+    if (!(await confirmDialog({ message: "Barcha Soliq yozuvlarini bazadan o'chirmoqchimisiz?", color: 'error' }))) return;
     try {
       await api.delete('/data-intelligence/soliq-records');
       toast.info("Soliq bazasi tozalandi");

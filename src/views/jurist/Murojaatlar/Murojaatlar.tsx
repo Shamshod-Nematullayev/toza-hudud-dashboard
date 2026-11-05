@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Grid } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
@@ -307,7 +308,10 @@ function Murojaatlar() {
                 color="warning"
                 title="Mas'ul xodimga bildirishnoma va eslatma yuborish"
                 onClick={async () => {
-                  const ok = window.confirm("Mas'ul xodimga Telegram orqali topshiriq bildirishnomasi va eslatma qayta yuborilsinmi?");
+                  const ok = await confirmDialog({
+                    message: "Mas'ul xodimga Telegram orqali topshiriq bildirishnomasi va eslatma qayta yuborilsinmi?",
+                    confirmText: 'Yuborish'
+                  });
                   if (!ok) return;
 
                   try {
@@ -373,7 +377,7 @@ function Murojaatlar() {
               <IconButton
                 size="small"
                 onClick={async () => {
-                  const ok = window.confirm('Shu murojaatni o‘chirasizmi?');
+                  const ok = await confirmDialog({ message: 'Shu murojaatni o‘chirasizmi?', color: 'error' });
                   if (!ok) return;
 
                   await api.delete(`/murojaatlar/${row._id}`);

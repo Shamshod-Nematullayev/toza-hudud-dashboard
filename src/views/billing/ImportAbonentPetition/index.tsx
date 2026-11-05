@@ -13,6 +13,9 @@ import HeaderImportAbonentPetition from './HeaderImportAbonentPetition';
 import FileInputDrop from 'ui-component/FileInputDrop';
 import { usePageTour, getImportAbonentPetitionSteps } from 'ui-component/tour';
 
+// Uchala ustun bir xil balandlikda — sahifa ekranga sig'adi va scroll bo'lmaydi
+const COLUMN_HEIGHT = 'calc(100vh - 220px)';
+
 function ImportAbonentPetition() {
   const { pdfFiles, showDialog, setShowDialog } = useStore();
   const { pdfFileLoading } = useUiStore();
@@ -97,7 +100,7 @@ function ImportAbonentPetition() {
         <Grid container spacing={1.5}>
           {/* 1. Fayllar ro'yxati ustuni (Kengaytirilgan: 2 ustun) */}
           {!isOnlyFileDrop && (
-            <Grid size={{ xs: 12, md: 3, lg: 2.2 }}>
+            <Grid size={{ xs: 12, md: 3, lg: 2.2 }} sx={{ height: { md: COLUMN_HEIGHT } }}>
               <FilesList />
             </Grid>
           )}
@@ -105,7 +108,7 @@ function ImportAbonentPetition() {
           {/* 2. Dinamik o'lchamli PDF Ko'rsatuvchi/Drop ustun */}
           <Grid
             size={{ xs: 12, md: isOnlyFileDrop ? 12 : 4.5, lg: isOnlyFileDrop ? 12 : 4.8 }}
-            sx={{ position: 'relative', minHeight: 'calc(100vh - 220px)', maxHeight: 'calc(100vh - 220px)' }}
+            sx={{ position: 'relative', minHeight: COLUMN_HEIGHT, maxHeight: COLUMN_HEIGHT }}
           >
             {pdfFileLoading && (
               <Box
@@ -135,7 +138,7 @@ function ImportAbonentPetition() {
 
           {/* 3. Topilgan ma'lumotlar jadvali ustuni */}
           {!isOnlyFileDrop && (
-            <Grid size={{ xs: 12, md: 4.5, lg: 5 }}>
+            <Grid size={{ xs: 12, md: 4.5, lg: 5 }} sx={{ height: { md: COLUMN_HEIGHT }, overflowY: 'auto', overflowX: 'hidden' }}>
               <FindedDataTable />
             </Grid>
           )}

@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import useStore from './hooks/useStore';
 import { documentTypes } from 'store/constant';
 import { useStore as useRecalculatorStore } from '../CreateAbonentPetition.jsx/useStore';
-import { parseAktSumExpression, useFindedTableLogic } from './hooks/useFindedTableLogic';
+import { getArizaNextInhabitant, useFindedTableLogic } from './hooks/useFindedTableLogic';
 import { AnimatePresence } from 'framer-motion';
 import useLoaderStore from 'store/loaderStore';
 import { useUiStore } from './hooks/useUiStore';
@@ -41,6 +41,7 @@ function FindedDataTable() {
     setAktSumm,
     setManualEditing,
     rows,
+    rowsDublicate,
     manualAccountNumber,
     setManualAccountNumber,
     loadAbonentByAccountForManual,
@@ -64,11 +65,8 @@ function FindedDataTable() {
     ? undefined
     : enteringMode === 'manual'
       ? (yashovchiSoniInput !== '' && yashovchiSoniInput !== null && yashovchiSoniInput !== undefined ? Number(yashovchiSoniInput) : undefined)
-      : (ariza?.next_prescribed_cnt !== null && ariza?.next_prescribed_cnt !== undefined && ariza?.next_prescribed_cnt !== 0
-          ? Number(ariza.next_prescribed_cnt)
-          : rows[0]?.yashovchilar_soni !== undefined
-            ? Number(rows[0].yashovchilar_soni)
-            : undefined);
+      : (getArizaNextInhabitant(ariza, rows[0]?.yashovchilar_soni) ??
+          (rows[0]?.yashovchilar_soni !== undefined ? Number(rows[0].yashovchilar_soni) : undefined));
   const baseActAmount =
     enteringMode === 'manual'
       ? recalculationPeriods.reduce((a, b) => a + b.total, 0)
@@ -185,6 +183,8 @@ function FindedDataTable() {
         handlePrimaryButtonClick={handlePrimaryButtonClick}
         handleDeleteButtonClick={handleDeleteButtonClick}
         setShowDialog={setShowDialog}
+        rowsDublicate={rowsDublicate}
+        allPaymentsSumOnDublicate={allPaymentsSumOnDublicate}
       />
     );
   }
@@ -206,7 +206,7 @@ function FindedDataTable() {
       />
       <AnimatePresence>
         {page && (
-          <Box id="tour-import-analysis-table" key="content-box" sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box id="tour-import-analysis-table" key="content-box" sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
             {page}
           </Box>
         )}

@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Box, Typography, Button, Chip, Stack, TextField, InputAdornment, IconButton, Tooltip } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -54,7 +55,7 @@ export default function OrdersPage() {
         ? t('dispatcherPages.orders.deleteConfirmSimple', { id: order._id?.slice(-6).toUpperCase() })
         : t('dispatcherPages.orders.deleteConfirmWarning', { status: statusText });
 
-    if (!window.confirm(confirmText)) return;
+    if (!(await confirmDialog({ message: confirmText, color: 'error' }))) return;
 
     try {
       await api.delete(`/orders/${order._id}`);

@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Box, Typography, Stack, Button, LinearProgress, Chip, CircularProgress, Tooltip, useTheme, alpha } from '@mui/material';
 import {
@@ -132,7 +133,14 @@ export const TozamakonSyncBanner: React.FC = () => {
 
   // Jobni bekor qilish
   const handleCancelSync = async () => {
-    if (!window.confirm('Haqiqatan ham sinxronizatsiya jarayonini bekor qilmoqchimisiz?')) {
+    if (
+      !(await confirmDialog({
+        message: 'Haqiqatan ham sinxronizatsiya jarayonini bekor qilmoqchimisiz?',
+        confirmText: 'Ha, bekor qilish',
+        cancelText: 'Davom etsin',
+        color: 'warning'
+      }))
+    ) {
       return;
     }
     setIsCanceling(true);

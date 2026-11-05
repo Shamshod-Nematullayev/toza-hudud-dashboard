@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Box,
@@ -197,7 +198,7 @@ function GroupTasksPage() {
   };
 
   const handleDeleteTask = async (task: IGroupTaskItem) => {
-    if (!window.confirm('Ushbu topshiriqni o‘chirishni tasdiqlaysizmi?')) return;
+    if (!(await confirmDialog({ message: 'Ushbu topshiriqni o‘chirishni tasdiqlaysizmi?', color: 'error' }))) return;
     setActionLoadingId(`del_${task._id}`);
     try {
       const res = await api.delete(`/group-tasks/${task._id}`);

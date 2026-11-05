@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
@@ -51,7 +52,7 @@ export default function DriversPage() {
   }, [fetchDrivers]);
 
   const handleDeleteDriver = async (driver: DriverRow) => {
-    if (!window.confirm(t('dispatcherPages.drivers.deleteConfirm', { name: driver.name }))) return;
+    if (!(await confirmDialog({ message: t('dispatcherPages.drivers.deleteConfirm', { name: driver.name }), color: 'error' }))) return;
     try {
       await api.delete(`/drivers/${driver._id}`);
       toast.success(t('dispatcherPages.drivers.driverDeleted'));

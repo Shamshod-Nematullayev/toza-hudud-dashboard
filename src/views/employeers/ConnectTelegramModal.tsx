@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
@@ -117,7 +118,13 @@ function ConnectTelegramModal({
 
   const handleUnlink = async () => {
     if (!currentInspectorId) return;
-    if (!window.confirm('Haqiqatan ham ushbu nazoratchining Telegram hisobini uzmoqchimisiz?')) {
+    if (
+      !(await confirmDialog({
+        message: 'Haqiqatan ham ushbu nazoratchining Telegram hisobini uzmoqchimisiz?',
+        confirmText: 'Uzish',
+        color: 'warning'
+      }))
+    ) {
       return;
     }
     setUnlinking(true);

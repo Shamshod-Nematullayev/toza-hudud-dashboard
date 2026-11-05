@@ -1,3 +1,4 @@
+import { promptDialog } from 'ui-component/ConfirmDialog';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useStore from './useStore';
 import useLoaderStore from 'store/loaderStore';
@@ -33,6 +34,23 @@ export function hasValidAriza(ariza: IAriza | null): ariza is IAriza {
   return Boolean(ariza && typeof (ariza as IAriza)._id === 'string' && Number((ariza as IAriza).abonentId) > 0);
 }
 
+/**
+ * Ariza bo'yicha yangi yashovchi sonini aniqlaydi.
+ * undefined — yashovchi soni o'zgarmaydi (viza, ko'rsatilmagan yoki dvaynikda joriy bilan bir xil).
+ * 0 — haqiqiy qiymat: "0 kishi" kiritilgan bo'lsa 0 qoladi.
+ */
+export function getArizaNextInhabitant(a: Partial<IAriza> | null | undefined, currentCnt?: number): number | undefined {
+  if (!a || a.document_type === 'viza') return undefined;
+  const n = a.next_prescribed_cnt as number | null | undefined | string;
+  if (n === null || n === undefined || (n as any) === '' || Number.isNaN(Number(n))) return undefined;
+  const next = Number(n);
+  if (a.document_type === 'dvaynik') {
+    const current = a.current_prescribed_cnt ?? currentCnt;
+    if (current !== undefined && current !== null && Number(current) === next) return undefined;
+  }
+  return next;
+}
+
 export function parseAktSumExpression(raw: string): number {
   try {
     // eslint-disable-next-line no-eval
@@ -59,7 +77,7 @@ function buildArizaActDescription(a: IAriza): string {
 }
 
 // 1. Manual holat uchun FormData yig'ish
-const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: string, photos: string[]) => {
+const prepareManualFormData = async (currentFile: any, aktSumm: string, aktType: string, photos: string[]): Promise<FormData | null> => {
   const { abonentData: ad, recalculationPeriods, yashovchiSoniInput } = useRecalculatorStore.getState();
   const nextInhabitantRaw = Number(yashovchiSoniInput);
   const next_inhabitant_count = !Number.isNaN(nextInhabitantRaw) ? nextInhabitantRaw : (ad.house?.inhabitantCnt ?? 1);
@@ -73,9 +91,18 @@ const prepareManualFormData = (currentFile: any, aktSumm: string, aktType: strin
   formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
   formData.append('amountWithoutQQS', String(withoutQQS));
 
-  if (aktType === 'cancelContract')
-    formData.append('description', prompt('Shartnoma bekor qilish akti uchun izoh kiriting') || 'Shartnoma bekor qilish akti');
-  else formData.append('description', buildManualActDescription(recalculationPeriods));
+  if (aktType === 'cancelContract') {
+    const izoh = await promptDialog({
+      title: 'Shartnoma bekor qilish akti',
+      label: 'Akt uchun izoh',
+      placeholder: 'Shartnoma bekor qilish akti',
+      multiline: true,
+      confirmText: 'Aktni kiritish'
+    });
+    // Oyna yopilsa akt kiritilmaydi
+    if (izoh === null) return null;
+    formData.append('description', izoh.trim() || 'Shartnoma bekor qilish akti');
+  } else formData.append('description', buildManualActDescription(recalculationPeriods));
 
   photos.forEach((photo, index) => {
     formData.append(`photos[${index}]`, photo);
@@ -91,11 +118,7 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
   formData.append('ariza_id', a._id);
   formData.append('licshet', a.licshet);
   formData.append('residentId', a.abonentId.toString());
-  const isViza = a.document_type === 'viza';
-  const nextInhabitant =
-    isViza || a.next_prescribed_cnt === null || a.next_prescribed_cnt === undefined || a.next_prescribed_cnt === 0
-      ? rows[0]?.yashovchilar_soni
-      : a.next_prescribed_cnt;
+  const nextInhabitant = getArizaNextInhabitant(a, rows[0]?.yashovchilar_soni) ?? rows[0]?.yashovchilar_soni;
   formData.append('next_inhabitant_count', String(nextInhabitant ?? 0));
   formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
   formData.append('amountWithoutQQS', (Math.floor(a.aktSummCounts?.withoutQQSTotal) || 0).toString());
@@ -166,17 +189,12 @@ export function useFindedTableLogic() {
     if (showSpoiler) {
       let yashovchilar_soni: number;
       if (hasValidAriza(ariza as IAriza | null)) {
-        const a = ariza as IAriza;
-        const isViza = a.document_type === 'viza';
-        const n = a.next_prescribed_cnt;
-        yashovchilar_soni =
-          isViza || n === null || n === undefined || Number.isNaN(Number(n)) || Number(n) === 0
-            ? first.yashovchilar_soni
-            : Number(n);
+        yashovchilar_soni = getArizaNextInhabitant(ariza as IAriza, first.yashovchilar_soni) ?? first.yashovchilar_soni;
       } else {
         const isViza = useRecalculatorStore.getState().aktType === 'viza';
         const fromInput = Number(yashovchiSoniInput);
-        yashovchilar_soni = !isViza && !Number.isNaN(fromInput) && fromInput > 0 ? fromInput : first.yashovchilar_soni;
+        yashovchilar_soni =
+          !isViza && yashovchiSoniInput !== '' && !Number.isNaN(fromInput) && fromInput >= 0 ? fromInput : first.yashovchilar_soni;
       }
       const nachis = (currentTariff?.hisoblandi || 0) * yashovchilar_soni;
       const aktDelta = parseAktSumExpression(aktSumm);
@@ -286,8 +304,6 @@ export function useFindedTableLogic() {
     if (enteringMode !== 'manual' && !validAriza) return toast.error('Ariza tanlanmadi');
 
     try {
-      setIsLoading(true);
-
       let formData: FormData;
       let url: string;
 
@@ -298,7 +314,9 @@ export function useFindedTableLogic() {
         if (!aktType) throw new Error('Akt (hujjat) turini tanlang');
         if (aktType === 'dvaynik') throw new Error('Ikkilamchi kod akti uchun ariza talab qilinadi');
 
-        formData = prepareManualFormData(currentFile, aktSumm, aktType, photos);
+        const manualFormData = await prepareManualFormData(currentFile, aktSumm, aktType, photos);
+        if (!manualFormData) return;
+        formData = manualFormData;
         const urlMap: Record<string, string> = {
           dvaynik: '/billing/create-dvaynik-akt',
           cancelContract: '/billing/create-cancelcontract-act'
@@ -322,6 +340,8 @@ export function useFindedTableLogic() {
         }
       }
 
+      // Izoh oynasi ochiq turganda yuklanish pardasi chiqmasligi uchun faqat so'rov oldidan yoqiladi
+      setIsLoading(true);
       const { data } = await api.post(url, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });

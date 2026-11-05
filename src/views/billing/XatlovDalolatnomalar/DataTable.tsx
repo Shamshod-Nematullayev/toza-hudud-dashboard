@@ -1,3 +1,4 @@
+import { promptDialog } from 'ui-component/ConfirmDialog';
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import api from 'utils/api';
@@ -43,14 +44,19 @@ function DataTable({
 
   const handleClickCancelButton = async (document: any) => {
     try {
-      const asos = prompt(
-        `Siz haqiqatan ham ushbu (${document.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing`
-      );
-      if (asos) {
+      const asos = await promptDialog({
+        title: 'Dalolatnomani bekor qilish',
+        message: `№ ${document.documentNumber} dalolatnoma bekor qilinadi.`,
+        label: 'Bekor qilish sababi',
+        required: true,
+        multiline: true,
+        confirmText: 'Bekor qilish',
+        cancelText: 'Yopish',
+        color: 'warning'
+      });
+      if (asos?.trim()) {
         await api.put('/yashovchi-soni-xatlov/cancel-document/' + document._id, {
-          body: {
-            cancelDescription: asos
-          }
+          cancelDescription: asos.trim()
         });
         const newRows = rows.map((row) => {
           if (row._id === document._id) {

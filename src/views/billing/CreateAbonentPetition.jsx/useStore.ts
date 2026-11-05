@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { t } from 'i18next';
@@ -435,6 +436,17 @@ export const useStore = create<StoreState>((set, get) => ({
       }
 
       if (!validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput })) return;
+      if (
+        aktType === 'odam_soni' &&
+        Number(yashovchiSoniInput) === Number(abonentData.house?.inhabitantCnt) &&
+        !(await confirmDialog({
+          title: "Yashovchi soni o'zgarmayapti",
+          message: `Aniqlangan yashovchi soni (${yashovchiSoniInput} nafar) tizimdagi joriy yashovchi soni bilan bir xil. Haqiqatan ham shu holatda ariza yaratmoqchimisiz?`,
+          confirmText: 'Ha, yaratish',
+          color: 'warning'
+        }))
+      )
+        return;
       setIsLoading(true);
       try {
         const newArizaData = (

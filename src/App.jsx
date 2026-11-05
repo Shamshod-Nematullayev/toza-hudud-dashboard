@@ -18,6 +18,7 @@ import { ToastContainer } from 'react-toastify';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Loader from 'ui-component/Loader';
+import { ConfirmDialogHost } from 'ui-component/ConfirmDialog';
 import useLoaderStore from 'store/loaderStore';
 import SettingsModal from 'layout/MainLayout/SettingsModal';
 import { useUserStore } from 'store/userStore';
@@ -116,6 +117,7 @@ const App = () => {
               {isLoading && <Loader />}
               {settingsModalOpenState && <SettingsModal />}
               <RouterProvider router={router} />
+              <ConfirmDialogHost />
             </NavigationScroll>
           </LocalizationProvider>
         </ThemeProvider>

@@ -1,3 +1,4 @@
+import { promptDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
@@ -523,9 +524,16 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   };
 
   const handleClickCancelDalolatnoma = async (doc: IXatlovDocument) => {
-    const reason = prompt(
-      `Siz haqiqatan ham ushbu (${doc.documentNumber}) dalolatnomani bekor qilmoqchimisiz? Bekor qilish sababini yozing:`
-    );
+    const reason = await promptDialog({
+      title: 'Dalolatnomani bekor qilish',
+      message: `№ ${doc.documentNumber} dalolatnoma bekor qilinadi.`,
+      label: 'Bekor qilish sababi',
+      required: true,
+      multiline: true,
+      confirmText: 'Bekor qilish',
+      cancelText: 'Yopish',
+      color: 'warning'
+    });
     if (!reason?.trim()) return;
     await withBusy(`cancelDoc:${doc._id}`, async () => {
       try {

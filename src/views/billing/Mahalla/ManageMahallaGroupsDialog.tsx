@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -122,7 +123,12 @@ export const ManageMahallaGroupsDialog: React.FC<Props> = ({
   };
 
   const handleDeleteGroup = async (groupId: string, gName: string) => {
-    if (!window.confirm(`"${gName}" guruhini o'chirishni tasdiqlaysizmi? Unga tegishli mahallalar guruhsizlanadi.`)) {
+    if (
+      !(await confirmDialog({
+        message: `"${gName}" guruhini o'chirishni tasdiqlaysizmi? Unga tegishli mahallalar guruhsizlanadi.`,
+        color: 'error'
+      }))
+    ) {
       return;
     }
     try {

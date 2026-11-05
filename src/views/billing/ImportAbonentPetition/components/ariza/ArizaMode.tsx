@@ -1,10 +1,21 @@
 import { Box, Button, Chip, IconButton, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { Close, Delete, EditOutlined, UploadFileOutlined, Visibility, VisibilityOff } from '@mui/icons-material';
+import { alpha, useTheme } from '@mui/material/styles';
+import {
+  ArrowDownward,
+  CheckCircleOutlined,
+  Close,
+  Delete,
+  EditOutlined,
+  HighlightOff,
+  UploadFileOutlined,
+  Visibility,
+  VisibilityOff
+} from '@mui/icons-material';
+import { ReactNode } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { t } from 'i18next';
 import useCustomizationStore from 'store/customizationStore';
-import { IRow } from '../../hooks/useFindedTableLogic';
+import { getArizaNextInhabitant, IRow } from '../../hooks/useFindedTableLogic';
 import { AdjustmentAlert } from './AdjustmentAlert';
 
 interface ArizaModeProps {
@@ -28,6 +39,91 @@ interface ArizaModeProps {
   handlePrimaryButtonClick: (e: any) => Promise<any>;
   handleDeleteButtonClick: () => Promise<any>;
   setShowDialog: (val: boolean) => void;
+  rowsDublicate?: any[];
+  allPaymentsSumOnDublicate?: number;
+}
+
+/** Ariza kiritishda DHJ jadvalidan faqat oxirgi oylar ko'rsatiladi — sahifa cho'zilmasligi uchun */
+const DHJ_VISIBLE_MONTHS = 5;
+
+function InfoCell({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>
+        {label}
+      </Typography>
+      <Box sx={{ fontWeight: 700, fontSize: '0.875rem', display: 'flex', alignItems: 'center', minHeight: 26, minWidth: 0 }}>{children}</Box>
+    </Box>
+  );
+}
+
+function DvaynikMergePanel({ ariza, rowsDublicate, transferAmount }: { ariza: any; rowsDublicate: any[]; transferAmount: number }) {
+  const theme = useTheme();
+  const shouldTransfer = Boolean(ariza?.shouldBeMoneyTransfer);
+  const dublicateSaldo = rowsDublicate[0]?.saldo_k;
+
+  const accountBox = (kind: 'remove' | 'keep') => {
+    const isRemove = kind === 'remove';
+    const color = isRemove ? theme.palette.error.main : theme.palette.success.main;
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 1.25,
+          py: 0.75,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: alpha(color, 0.5),
+          bgcolor: alpha(color, theme.palette.mode === 'dark' ? 0.2 : 0.06)
+        }}
+      >
+        {isRemove ? <HighlightOff sx={{ color }} /> : <CheckCircleOutlined sx={{ color }} />}
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 800, color, textDecoration: isRemove ? 'line-through' : 'none', textDecorationThickness: '2px' }}
+          >
+            {isRemove ? ariza?.ikkilamchi_licshet || '—' : ariza?.licshet || '—'}
+          </Typography>
+          <Typography variant="caption" noWrap sx={{ display: 'block', color: 'text.secondary', textDecoration: isRemove ? 'line-through' : 'none' }}>
+            {isRemove ? ariza?.ikkilamchiFullName || 'Ikkilamchi abonent' : ariza?.fio || 'Asosiy abonent'}
+            {isRemove && dublicateSaldo !== undefined ? ` · saldo: ${Number(dublicateSaldo).toLocaleString()}` : ''}
+          </Typography>
+        </Box>
+        <Chip
+          size="small"
+          label={isRemove ? "O'chiriladi" : 'Qoladi'}
+          color={isRemove ? 'error' : 'success'}
+          variant={isRemove ? 'outlined' : 'filled'}
+          sx={{ fontWeight: 700 }}
+        />
+      </Box>
+    );
+  };
+
+  const willTransfer = shouldTransfer && transferAmount > 0;
+
+  return (
+    <Box sx={{ px: 1 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75 }}>
+        Ikkilamchi kodni birlashtirish
+      </Typography>
+      {accountBox('remove')}
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1, py: 0.5, pl: 2 }}>
+        <ArrowDownward fontSize="small" sx={{ color: willTransfer ? 'primary.main' : 'text.disabled' }} />
+        <Typography variant="body2" sx={{ fontWeight: willTransfer ? 700 : 500, color: willTransfer ? 'primary.main' : 'text.secondary' }}>
+          {transferAmount <= 0
+            ? "Ikkilamchi hisobda to'lov yo'q — pul ko'chirilmaydi"
+            : willTransfer
+              ? `${transferAmount.toLocaleString()} so'm haqiqiy hisob raqamga ko'chib o'tadi`
+              : `${transferAmount.toLocaleString()} so'm to'lov bor — arizada ko'chirish so'ralmagan`}
+        </Typography>
+      </Stack>
+      {accountBox('keep')}
+    </Box>
+  );
 }
 
 export function ArizaMode({
@@ -50,7 +146,9 @@ export function ArizaMode({
   isLoading,
   handlePrimaryButtonClick,
   handleDeleteButtonClick,
-  setShowDialog
+  setShowDialog,
+  rowsDublicate = [],
+  allPaymentsSumOnDublicate = 0
 }: ArizaModeProps) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -221,60 +319,63 @@ export function ArizaMode({
       </Box>
     );
   }
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      {/* 1. Yuqori Ma'lumotlar Qismi */}
-      <Box sx={{ p: 1 }}>
-        {[
-          { label: 'Hisob raqami', value: ariza?.licshet || '—' },
-          { label: 'F.I.Sh', value: ariza?.fio || '—' },
-          {
-            label: 'Yashovchilar soni',
-            value:
-              ariza?.document_type === 'viza' ? (
-                <Typography component="span" variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                  Yashovchi soni o'zgarmaydi
-                </Typography>
-              ) : inhabitantCountEditing ? (
-                <TextField
-                  size="small"
-                  type="number"
-                  disabled={isLoading}
-                  value={ariza.next_prescribed_cnt ?? rows[0]?.yashovchilar_soni ?? ''}
-                  onChange={(e) => setAriza({ ...ariza, next_prescribed_cnt: e.target.value === '' ? null : Number(e.target.value) })}
-                  onBlur={() => setInhabitantCountEditing(false)}
-                />
-              ) : (
-                <>
-                  <IconButton disabled={isLoading} sx={{ color: 'primary.main', fontSize: '12' }}>
-                    <EditOutlined fontSize="small" onClick={() => !isLoading && setInhabitantCountEditing(true)} />
-                  </IconButton>
-                  {ariza?.next_prescribed_cnt !== null && ariza?.next_prescribed_cnt !== undefined && ariza?.next_prescribed_cnt !== 0
-                    ? ariza.next_prescribed_cnt
-                    : rows[0]?.yashovchilar_soni ?? "Yashovchi soni o'zgarmaydi"}
-                </>
-              )
-          },
-          { label: 'Yaratilgan sana', value: ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—' }
-        ].map((item, index) => (
-          <Stack key={index} sx={{ justifyContent: 'space-between', mb: 0.5 }} direction="row">
-            <Typography variant="body2" color="text.secondary">
-              {item.label}
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
-              {item.value}
-            </Typography>
-          </Stack>
-        ))}
+  const isDvaynik = ariza?.document_type === 'dvaynik';
+  const isViza = ariza?.document_type === 'viza';
+  const currentInhabitant = ariza?.current_prescribed_cnt ?? rows[0]?.yashovchilar_soni;
+  const nextInhabitant = getArizaNextInhabitant(ariza, rows[0]?.yashovchilar_soni);
+  const visibleRows = (showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows).slice(0, DHJ_VISIBLE_MONTHS);
 
-        <Stack direction="row" sx={{ mb: 0.5, alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="body2" color="text.secondary">
-            Holat
-          </Typography>
+  const handleApplyAdjustment = (sum: string) => {
+    setAktSumm(sum);
+    // Yangi summa DHJ da darhol ko'rinishi uchun "akt kiritilgandan keyingi holat" yoqiladi
+    setShowSpoiler(true);
+  };
+
+  const unchangedText = (
+    <Typography component="span" variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+      Yashovchi soni o'zgarmaydi
+    </Typography>
+  );
+
+  const inhabitantValue = isViza ? (
+    unchangedText
+  ) : inhabitantCountEditing ? (
+    <TextField
+      size="small"
+      type="number"
+      autoFocus
+      disabled={isLoading}
+      value={ariza.next_prescribed_cnt ?? currentInhabitant ?? ''}
+      onChange={(e) => setAriza({ ...ariza, next_prescribed_cnt: e.target.value === '' ? null : Number(e.target.value) })}
+      onBlur={() => {
+        setInhabitantCountEditing(false);
+        setShowSpoiler(true);
+      }}
+      sx={{ width: 90, '& input': { py: 0.5 } }}
+    />
+  ) : (
+    <>
+      <IconButton size="small" disabled={isLoading} sx={{ color: 'primary.main', p: 0.25, mr: 0.5 }} onClick={() => setInhabitantCountEditing(true)}>
+        <EditOutlined fontSize="small" />
+      </IconButton>
+      {nextInhabitant === undefined
+        ? unchangedText
+        : currentInhabitant !== undefined && currentInhabitant !== null && Number(currentInhabitant) !== nextInhabitant
+          ? `${currentInhabitant} → ${nextInhabitant}`
+          : nextInhabitant}
+    </>
+  );
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: '100%', minHeight: 0 }}>
+      {/* 1. Yuqori Ma'lumotlar Qismi — ixcham 2 ustunli */}
+      <Box sx={{ px: 1, pt: 0.5, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 2, rowGap: 0.75 }}>
+        <InfoCell label="Hisob raqami">{ariza?.licshet || '—'}</InfoCell>
+        <InfoCell label="Holat">
           <Box
             sx={{
-              px: 1.5,
-              py: 0.2,
+              px: 1.25,
+              py: 0.1,
               borderRadius: 5,
               fontSize: '0.75rem',
               fontWeight: 600,
@@ -284,71 +385,75 @@ export function ArizaMode({
           >
             {ariza?.status || 'yangi'}
           </Box>
-        </Stack>
-
-        <Stack direction="row" sx={{ mt: 1, justifyContent: 'space-between' }}>
-          <Typography variant="body2" color="text.secondary">
-            Akt summa
-          </Typography>
-          <Typography variant="body2" sx={{ borderBottom: '1px dotted', borderColor: 'divider', fontWeight: 700 }}>
-            {aktSumEditing ? (
-              <TextField
-                size="small"
-                disabled={isLoading}
-                value={aktSumm}
-                onChange={(e) => setAktSumm(e.target.value)}
-                onBlur={() => setAktSumEditing(false)}
-              />
-            ) : (
-              <>
-                <IconButton disabled={isLoading} sx={{ color: 'primary.main', fontSize: '12' }}>
-                  <EditOutlined fontSize="small" onClick={() => !isLoading && setAktSumEditing(true)} />
-                </IconButton>{' '}
-                {Number(aktSumm).toLocaleString()}
-              </>
-            )}
-          </Typography>
-        </Stack>
+        </InfoCell>
+        <Box sx={{ gridColumn: '1 / -1' }}>
+          <InfoCell label="F.I.Sh">
+            <Typography variant="body2" noWrap sx={{ fontWeight: 700 }}>
+              {ariza?.fio || '—'}
+            </Typography>
+          </InfoCell>
+        </Box>
+        <InfoCell label="Yashovchilar soni">{inhabitantValue}</InfoCell>
+        <InfoCell label="Yaratilgan sana">{ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—'}</InfoCell>
+        <InfoCell label="Akt summa">
+          {aktSumEditing ? (
+            <TextField
+              size="small"
+              autoFocus
+              disabled={isLoading}
+              value={aktSumm}
+              onChange={(e) => setAktSumm(e.target.value)}
+              onBlur={() => setAktSumEditing(false)}
+              sx={{ width: 140, '& input': { py: 0.5 } }}
+            />
+          ) : (
+            <>
+              <IconButton size="small" disabled={isLoading} sx={{ color: 'primary.main', p: 0.25, mr: 0.5 }} onClick={() => setAktSumEditing(true)}>
+                <EditOutlined fontSize="small" />
+              </IconButton>
+              {Number(aktSumm).toLocaleString()}
+            </>
+          )}
+        </InfoCell>
       </Box>
 
-      <AdjustmentAlert
-        adjustmentData={adjustmentData}
-        aktSumm={aktSumm}
-        onApplyRecommendedSum={setAktSumm}
-      />
+      {isDvaynik && <DvaynikMergePanel ariza={ariza} rowsDublicate={rowsDublicate} transferAmount={Number(allPaymentsSumOnDublicate) || 0} />}
 
-      {/* 3. Jadval */}
-      <Box sx={{ height: '55vh', width: '100%' }}>
-        <Stack direction="row" spacing={1} sx={{ mb: 1, justifyContent: 'space-between' }}>
-          <Tabs value={tabIndex} onChange={!isLoading ? handleTabChange : undefined} sx={{ minHeight: 40, mb: '5px' }}>
+      <AdjustmentAlert adjustmentData={adjustmentData} aktSumm={aktSumm} onApplyRecommendedSum={handleApplyAdjustment} />
+
+      {/* 3. Jadval — faqat oxirgi oylar */}
+      <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+          <Tabs
+            value={tabIndex}
+            onChange={!isLoading ? handleTabChange : undefined}
+            sx={{ minHeight: 34, '& .MuiTab-root': { minHeight: 34, py: 0 } }}
+          >
             <Tab label="Asosiy jadval" sx={{ textTransform: 'none' }} disabled={isLoading} />
             <Tab label="Qo'shimcha" sx={{ textTransform: 'none' }} disabled={isLoading} />
           </Tabs>
-          <IconButton disabled={isLoading} onClick={() => setShowSpoiler(!showSpoiler)}>
-            {showSpoiler ? <Visibility /> : <VisibilityOff />}
+          <IconButton size="small" disabled={isLoading} onClick={() => setShowSpoiler(!showSpoiler)} title="Akt kiritilgandan keyingi holat">
+            {showSpoiler ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
           </IconButton>
         </Stack>
         <DataGrid
-          rows={showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows}
+          rows={visibleRows}
           columns={columns}
           hideFooter
           density="compact"
           disableColumnMenu
           getRowId={(row) => row.id}
-          sx={{
-            height: '90%',
-            '.first-row': { bgcolor: isDark ? 'warning.dark' : 'warning.light' }
-          }}
+          sx={{ flex: 1, minHeight: 0, '.first-row': { bgcolor: isDark ? 'warning.dark' : 'warning.light' } }}
           getRowClassName={(params) => (params.indexRelativeToCurrentPage === 0 ? 'first-row' : '')}
         />
       </Box>
 
       {/* 4. Pastki Tugmalar */}
-      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+      <Stack direction="row" spacing={1}>
         <Button
           id="tour-import-confirm-action"
           startIcon={<UploadFileOutlined />}
-          sx={{ flex: 1, py: 1.2 }}
+          sx={{ flex: 1, py: 1 }}
           variant="contained"
           color="primary"
           onClick={handlePrimaryButtonClick}
@@ -356,10 +461,10 @@ export function ArizaMode({
         >
           {t('buttons.submitEntry')}
         </Button>
-        <Button startIcon={<Close />} sx={{ flex: 0.5, py: 1.2 }} variant="contained" color="error" disabled={isLoading} onClick={() => setShowDialog(true)}>
+        <Button startIcon={<Close />} sx={{ flex: 0.5, py: 1 }} variant="contained" color="error" disabled={isLoading} onClick={() => setShowDialog(true)}>
           {t('buttons.cancel')}
         </Button>
-        <Button sx={{ flex: 0.2, py: 1.2 }} variant="contained" color="secondary" disabled={isLoading} onClick={handleDeleteButtonClick}>
+        <Button sx={{ flex: 0.2, py: 1 }} variant="contained" color="secondary" disabled={isLoading} onClick={handleDeleteButtonClick}>
           <Delete />
         </Button>
       </Stack>

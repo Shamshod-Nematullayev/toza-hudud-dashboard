@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Box,
@@ -249,7 +250,7 @@ const AgendaJobs: React.FC = () => {
 
   // Delete job
   const handleDeleteJob = async (jobId: string) => {
-    if (!window.confirm("Haqiqatan ham bu jobni bazadan butunlay o'chirmoqchimisiz?")) return;
+    if (!(await confirmDialog({ message: "Haqiqatan ham bu jobni bazadan butunlay o'chirmoqchimisiz?", color: 'error' }))) return;
     try {
       setActionLoadingId(jobId);
       const res = await api.delete(`/jobs/admin/${jobId}`);

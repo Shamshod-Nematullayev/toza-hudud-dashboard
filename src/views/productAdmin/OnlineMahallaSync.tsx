@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   Box,
@@ -1061,7 +1062,7 @@ export default function OnlineMahallaSync() {
   // Shablonni o'chirish
   const handleDeletePreset = async (presetId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('Haqiqatan ham ushbu shablonni o‘chirmoqchimisiz?')) return;
+    if (!(await confirmDialog({ message: 'Haqiqatan ham ushbu shablonni o‘chirmoqchimisiz?', color: 'error' }))) return;
     try {
       await api.delete(`/product-admin/online-mahalla/survey-presets/${presetId}`);
       toast.info('Shablon o‘chirildi');
@@ -1884,7 +1885,7 @@ export default function OnlineMahallaSync() {
 
   // Jobni o'chirish (Delete)
   const handleDeleteJob = async (jobId: string) => {
-    if (!window.confirm('Haqiqatan ham ushbu jobni o‘chirmoqchimisiz?')) return;
+    if (!(await confirmDialog({ message: 'Haqiqatan ham ushbu jobni o‘chirmoqchimisiz?', color: 'error' }))) return;
     try {
       const res = await api.delete(`/product-admin/online-mahalla/jobs/${jobId}`);
       toast.success(res.data?.message || 'Job muvaffaqiyatli o‘chirildi');

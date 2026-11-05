@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import { IconButton } from '@mui/material';
 import { DataGrid, GridDeleteIcon } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
@@ -30,7 +31,13 @@ function DatatableCourtNotes() {
       });
   }, [page, pageSize, filters]);
   const handleClickDeleteButton = async (row) => {
-    if (confirm(`Haqiqatdan ham ${row.fullName} (${row.accountNumber})ni bekor qilmoqchimisiz?`)) {
+    if (
+      await confirmDialog({
+        message: `Haqiqatdan ham ${row.fullName} (${row.accountNumber})ni bekor qilmoqchimisiz?`,
+        confirmText: 'Ha, bekor qilish',
+        color: 'warning'
+      })
+    ) {
       setIsLoading(true);
       try {
         await api.patch('/targets/cancel/' + row._id);

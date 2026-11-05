@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import { useState } from 'react';
 import {
   Drawer,
@@ -54,7 +55,7 @@ export default function OrderDetailDrawer({ open, row, onClose, onSuccess }: Pro
         ? t('dispatcherPages.orders.deleteConfirmSimple', { id: row._id?.slice(-6).toUpperCase() })
         : t('dispatcherPages.orders.deleteConfirmDrawer', { status: statusText });
 
-    if (!window.confirm(confirmText)) return;
+    if (!(await confirmDialog({ message: confirmText, color: 'error' }))) return;
 
     setLoading(true);
     try {

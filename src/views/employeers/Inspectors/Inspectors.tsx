@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Button, Chip, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery, Box, Theme, Tooltip } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
@@ -145,7 +146,13 @@ function Inspectors(): React.JSX.Element {
 
       const currentStatus = targetRow.activ;
       if (currentStatus) {
-        if (!window.confirm('Nazoratchini faolsizlantirishni tasdiqlaysizmi?')) {
+        if (
+          !(await confirmDialog({
+            message: 'Nazoratchini faolsizlantirishni tasdiqlaysizmi?',
+            confirmText: 'Faolsizlantirish',
+            color: 'warning'
+          }))
+        ) {
           return;
         }
       }

@@ -1,3 +1,4 @@
+import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useState } from 'react';
 import {
   AddOutlined,
@@ -160,7 +161,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
       toast.warning('Standart dalolatnoma turini o‘chirib bo‘lmaydi!');
       return;
     }
-    if (!window.confirm(`"${item.name}" dalolatnoma turini o‘chirmoqchimisiz?`)) return;
+    if (!(await confirmDialog({ message: `"${item.name}" dalolatnoma turini o‘chirmoqchimisiz?`, color: 'error' }))) return;
 
     try {
       await api.delete(`/act-types/${item._id}`);
