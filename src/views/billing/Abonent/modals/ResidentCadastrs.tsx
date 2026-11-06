@@ -83,7 +83,7 @@ async function fetchHouseByCadastr(cadastralNumber: string): Promise<House> {
   return (await api.get('/abonents/cadastr-details', { params: { cadastralNumber } })).data as House;
 }
 
-function parseAddress(text: string) {
+export function parseAddress(text: string) {
   const parts = text.split(',').map((s) => s.trim());
 
   let mfy = null,
