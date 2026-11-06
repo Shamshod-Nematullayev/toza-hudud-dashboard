@@ -1,5 +1,6 @@
 import { promptDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useFillViewportHeight } from 'hooks/useFillViewportHeight';
 import {
   Alert,
   Avatar,
@@ -137,6 +138,9 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
   // Tab 1: Dalolatnomalar list State
   const [dalolatnomaRows, setDalolatnomaRows] = useState<any[]>([]);
   const [dalolatnomaPaging, setDalolatnomaPaging] = useState({ page: 0, pageSize: 15 });
+  // Jadvallar ekran pastigacha cho'ziladi: sahifa scroll bo'lmaydi, pagination tugmalari doim ko'rinadi
+  const abonentGridBox = useFillViewportHeight<HTMLDivElement>();
+  const dalolatnomaGridBox = useFillViewportHeight<HTMLDivElement>();
   const [dalolatnomaMeta, setDalolatnomaMeta] = useState({ rowCount: 0 });
   const [mahallalarList, setMahallalarList] = useState<any[]>([]);
   const [dalolatnomaStatusFilter, setDalolatnomaStatusFilter] = useState<string>('all');
@@ -1423,7 +1427,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
           </Box>
 
           {/* DataGrid Table for Abonent Records (Desktop) */}
-          <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
+          <Paper ref={abonentGridBox.ref} variant="outlined" sx={{ height: abonentGridBox.height, width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
             <DataGrid
               rows={rows}
               getRowId={(row) => row._id || row.id}
@@ -1828,7 +1832,7 @@ export default function XatlovWorkspace({ defaultTab = 0 }: XatlovWorkspaceProps
             )}
           </Box>
 
-          <Paper variant="outlined" sx={{ height: '65vh', width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
+          <Paper ref={dalolatnomaGridBox.ref} variant="outlined" sx={{ height: dalolatnomaGridBox.height, width: '100%', borderRadius: 2, display: { xs: 'none', md: 'block' } }}>
             <DataGrid
               columns={[
                 { field: 'documentNumber', headerName: '№', width: 70 },
