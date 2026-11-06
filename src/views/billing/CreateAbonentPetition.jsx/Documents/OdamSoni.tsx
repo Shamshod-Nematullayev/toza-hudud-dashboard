@@ -1,7 +1,7 @@
 import { lotinga } from 'helpers/lotinKiril';
 import { formatName, oylar, raqamlar } from '../PrintSection';
 import { Dayjs } from 'dayjs';
-import { IMahalla } from '../useStore';
+import { bosqichDavri, IBosqich, IMahalla } from '../useStore';
 import useCustomizationStore from 'store/customizationStore';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import { AbonentDetails } from 'types/billing';
@@ -9,6 +9,9 @@ import { QRSection } from '../DocumentComponents/QRSection';
 import { ImzoJoyiRow, ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
+
+const cell = { border: '1px solid #000', padding: '4px 8px' } as const;
+const nafar = (n: number) => `${n} (${raqamlar[n] ?? n}) nafar`;
 
 function OdamSoni({
   date,
@@ -38,6 +41,8 @@ function OdamSoni({
   participants?: any[];
 }) {
   let { customization, company, user } = useCustomizationStore();
+  // Ko'p bosqichli qayta hisob: davrlar va kishi soni ko'rsatiladi, summalar emas
+  const bosqichlar: IBosqich[] | undefined = ariza?.bosqichlar?.length ? ariza.bosqichlar : undefined;
   // Dinamik mantiqiy o'zgaruvchilar
   const isRelative = !!relation && !!relationFullName;
   const currentApplicant = isRelative ? relationFullName : abonentData?.fullName;
@@ -112,10 +117,32 @@ function OdamSoni({
               </b>
             </p>
           )}
+          {bosqichlar ? (
+            <>
+              <p>Yashovchilar soni davrlar bo'yicha quyidagicha aniqlandi:</p>
+              <table style={{ width: '100%', borderCollapse: 'collapse', margin: '4px 0 12px' }}>
+                <thead>
+                  <tr>
+                    <th style={cell}>Davr</th>
+                    <th style={cell}>Istiqomat qilgan shaxslar soni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bosqichlar.map((b, i) => (
+                    <tr key={i} style={{ fontWeight: b.hozirgacha ? 'bold' : undefined }}>
+                      <td style={cell}>{bosqichDavri(b)}</td>
+                      <td style={{ ...cell, textAlign: 'center' }}>{nafar(b.count)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : (
           <p>
             Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.year()} yilning “
             {olderPeriod.date()}” {lotinga(oylar[olderPeriod.month()])} oyidan buyon birga istiqomat qilishi aniqlandi.
           </p>
+          )}
 
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             {participants && participants.length > 0
@@ -127,8 +154,24 @@ function OdamSoni({
           </p>
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
-            {abonentData.house.inhabitantCnt} nafar ko'rsatilgan. O'rganish natijasida {olderPeriod.year()} yil «{olderPeriod.date()}»{' '}
-            {oylar[olderPeriod.month()]}dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
+            {abonentData.house.inhabitantCnt} nafar ko'rsatilgan.{' '}
+            {bosqichlar ? (
+              <>
+                O'rganish natijasida{' '}
+                {bosqichlar.map((b, i) => (
+                  <span key={i} style={{ fontWeight: b.hozirgacha ? 'bold' : undefined }}>
+                    {i > 0 && ', '}
+                    {bosqichDavri(b)} {nafar(b.count)}
+                  </span>
+                ))}{' '}
+                oila a'zolari istiqomat qilishi aniqlandi.
+              </>
+            ) : (
+              <>
+                O'rganish natijasida {olderPeriod.year()} yil «{olderPeriod.date()}» {oylar[olderPeriod.month()]}dan boshlab{' '}
+                {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
+              </>
+            )}
           </p>
           {asoslantiruvchi && <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic' }}>{asoslantiruvchi}</p>}
 

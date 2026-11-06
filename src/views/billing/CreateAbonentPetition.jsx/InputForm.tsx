@@ -27,6 +27,8 @@ import {
   Stack,
   Switch,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Badge,
   Tooltip,
   Typography,
@@ -109,6 +111,8 @@ function AbonentLookupFeedback({ loading, error, onRetry }: { loading: boolean; 
 
 export default function InputForm({ onStartTour }: InputFormProps) {
   const {
+    recalcMode,
+    setRecalcMode,
     aktType,
     setAktType,
     abonentData,
@@ -569,6 +573,34 @@ export default function InputForm({ onStartTour }: InputFormProps) {
           <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: 'action.hover' }}>
             <Stack spacing={2}>
               {/* Odam soni / Vafot holati */}
+              {aktType === 'odam_soni' && (
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                    {t('Qayta hisob turi')}
+                  </Typography>
+                  <ToggleButtonGroup
+                    exclusive
+                    fullWidth
+                    size="small"
+                    color="primary"
+                    value={recalcMode}
+                    onChange={(_, mode) => mode && setRecalcMode(mode)}
+                    sx={{ bgcolor: 'background.paper' }}
+                  >
+                    <ToggleButton value="oddiy" sx={{ textTransform: 'none', fontWeight: 600 }}>
+                      {t('Oddiy')}
+                    </ToggleButton>
+                    <ToggleButton value="kop_bosqichli" sx={{ textTransform: 'none', fontWeight: 600 }}>
+                      {t("Ko'p bosqichli")}
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                  {recalcMode === 'kop_bosqichli' && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                      {t("Masalan: 05.2025–05.2026 da 1 kishi, 06.2026 dan hozirgacha 6 kishi. Bosqichlar DHJ ustidagi panelda kiritiladi, summa avtomatik hisoblanadi.")}
+                    </Typography>
+                  )}
+                </Box>
+              )}
               {(aktType === 'odam_soni' || aktType === 'death') && (
                 <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                   <TextField
@@ -585,7 +617,9 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     helperText={
                       aktType === 'death'
                         ? t('Vafot etganligi sababli 1 kishi avtomatik kamaytiriladi')
-                        : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                        : recalcMode === 'kop_bosqichli'
+                          ? `Yangi soni (oxirgi bosqich) · tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                          : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
                     }
                     sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
                   />

@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /pages/login/login
+
+Disallow: /dashboard/
+Disallow: /billing/
+Disallow: /jurist/
+Disallow: /stm/
+Disallow: /product-admin/
+Disallow: /dispatcher/
+
+Sitemap: https://greenzone.uz/sitemap.xml

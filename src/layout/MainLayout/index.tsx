@@ -23,6 +23,7 @@ import { IconChevronRight } from '@tabler/icons-react';
 import useCustomizationStore from 'store/customizationStore';
 import { useEffect } from 'react';
 import api from 'utils/api';
+import Cookies from 'js-cookie';
 import { Employee } from 'types/billing';
 
 const uint8ArrayToBase64 = (uint8Array: Uint8Array) => {
@@ -80,6 +81,12 @@ const MainLayout = () => {
   };
 
   useEffect(() => {
+    const token = Cookies.get('accessToken');
+    if (!token) {
+      window.location.href = '/pages/login/login';
+      return;
+    }
+
     (async () => {
       try {
         const authMeRes = await api.get('/auth/me');

@@ -34,8 +34,13 @@ export interface IRecalculationPeriod {
   total: number;
   withQQSTotal: number;
   withoutQQSTotal: number;
+  /** Ko'p bosqichli: shu davrda necha kishiga hisoblanadi (mutlaq son) */
   yashovchilar_soni?: number;
+  /** Kalkulyator (oddiy, viza, o'lim): davr bitta kishilik summa — kreditor −1 kishi, debitor +1 kishi */
+  yashovchiDelta?: number;
   periodType?: 'debitor' | 'kreditor';
+  /** DHJ va ro'yxatdagi rang (hex, '#' siz). Ko'p bosqichlida bosqich rangi bilan bir xil */
+  color?: string;
   startDate: Dayjs;
   endDate: Dayjs;
 }
@@ -141,6 +146,145 @@ export interface ITransferCreditor {
   mahallaName?: string;
 }
 
+/** Odam soni arizasidagi qayta hisob turi */
+export type RecalcMode = 'oddiy' | 'kop_bosqichli';
+
+/** Ko'p bosqichli qayta hisobning bitta bosqichi (formadagi holat) */
+export interface IStageInput {
+  /** Boshlanish oyi */
+  from: Dayjs | null;
+  /** Tugash oyi (shu oy ham kiradi). Joriy oy tanlansa — "hozirgacha", soni yashovchiSoniInput ga bog'lanadi */
+  to: Dayjs | null;
+  /** Shu davrda yashagan kishilar soni */
+  count: string;
+}
+
+/** Arizada saqlanadigan bosqich (dalolatnomada summasiz ko'rsatiladi). Oylar MM.YYYY */
+export interface IBosqich {
+  from: string;
+  to: string;
+  count: number;
+  /** Bosqich ariza yaratilgan oygacha davom etadi: dalolatnomada "... oyidan boshlab" deb yoziladi */
+  hozirgacha?: boolean;
+}
+
+export const emptyStage = (): IStageInput => ({ from: null, to: null, count: '' });
+
+/** DHJ dagi davr ("MM.YYYY") ni oy boshiga aylantiradi */
+export function davrToMonth(davr: string): Dayjs | null {
+  const [month, year] = String(davr || '').split('.').map(Number);
+  if (!month || !year) return null;
+  return dayjs(new Date(year, month - 1, 1));
+}
+
+/** DHJ dagi eng birinchi oy (abonent ochilgan oy): undan oldingi davrni qayta hisoblab bo'lmaydi */
+export function getDhjFirstMonth(rows: Pick<dhjRow, 'davr'>[]): Dayjs | null {
+  let first: Dayjs | null = null;
+  for (const row of rows) {
+    const d = davrToMonth(row.davr);
+    if (d && (!first || d.isBefore(first))) first = d;
+  }
+  return first;
+}
+
+/** Qayta hisob qilinadigan oxirgi oy: joriy oy hali hisoblanmagan, u yangi yashovchi soni bilan hisoblanadi */
+export function getLastClosedMonth(): Dayjs {
+  return dayjs().startOf('month').subtract(1, 'month');
+}
+
+/** Bosqich joriy oygacha yetib boradimi (u holda soni = yangi yashovchi soni) */
+export const isCurrentStage = (stage: IStageInput) => !!stage.to?.isValid() && stage.to.isSame(dayjs(), 'month');
+
+/** Bosqichning amaldagi kishi soni: joriy oygacha boradigan bosqichda — formadagi yangi yashovchi soni */
+export const stageCount = (stage: IStageInput, nextCount: string) => (isCurrentStage(stage) ? nextCount : stage.count);
+
+/**
+ * Har bir bosqichni tekshiradi. Natija: bosqichlar bo'yicha xato matnlari (null — xato yo'q).
+ * Davrlari kesishgan bosqichlarning ikkalasi ham xato deb belgilanadi.
+ */
+export function validateStages(stages: IStageInput[], nextCount: string, dhjFirstMonth: Dayjs | null): (string | null)[] {
+  const now = dayjs();
+  const errors: (string | null)[] = stages.map((stage, i) => {
+    const n = i + 1;
+    const { from, to } = stage;
+    const count = stageCount(stage, nextCount);
+    if (!from?.isValid() || !to?.isValid()) return `${n}-bosqich: dan va gacha oylarini kiriting`;
+    if (from.isAfter(to, 'month')) return `${n}-bosqich: boshlanish oyi tugash oyidan keyin bo'lishi mumkin emas`;
+    if (dhjFirstMonth && from.isBefore(dhjFirstMonth, 'month'))
+      return `${n}-bosqich: abonent DHJ si ${dhjFirstMonth.format('MM.YYYY')} dan boshlanadi, undan oldingi davrni qayta hisoblab bo'lmaydi`;
+    if (to.isAfter(now, 'month')) return `${n}-bosqich: kelajakdagi oyni tanlab bo'lmaydi`;
+    if (count === '' || isNaN(Number(count)) || Number(count) < 0 || !Number.isInteger(Number(count)))
+      return `${n}-bosqich: yashovchi sonini kiriting`;
+    return null;
+  });
+
+  // Kesishishlarni tekshirish (to'liq kiritilgan bosqichlar orasida)
+  for (let i = 0; i < stages.length; i++) {
+    for (let j = i + 1; j < stages.length; j++) {
+      const a = stages[i];
+      const b = stages[j];
+      if (!a.from?.isValid() || !a.to?.isValid() || !b.from?.isValid() || !b.to?.isValid()) continue;
+      const overlap = !a.from.isAfter(b.to, 'month') && !b.from.isAfter(a.to, 'month');
+      if (overlap) {
+        const msg = `${i + 1}- va ${j + 1}-bosqich davrlari kesishib ketgan`;
+        errors[i] = errors[i] || msg;
+        errors[j] = errors[j] || msg;
+      }
+    }
+  }
+  return errors;
+}
+
+/**
+ * [from, to] oylari uchun DHJ dagi har oyni `count` kishiga qayta hisoblaydi.
+ * Akt summasi = (DHJ dagi o'sha oy soni − haqiqiy soni) × tarif:
+ * kam kishi yashagan bo'lsa ortiqcha hisoblangan — musbat (kreditor, qarz kamayadi),
+ * ko'p kishi yashagan bo'lsa kam hisoblangan — manfiy (debitor, qarz qo'shiladi).
+ * DHJ da yo'q oy (abonent ochilmagan davr) hisobga kirmaydi.
+ */
+export function calcStagePeriod(
+  rows: dhjRow[],
+  jadval: IHisoblandiItem[],
+  from: Dayjs,
+  to: Dayjs,
+  count: number
+): IRecalculationPeriod | null {
+  let total = 0;
+  let withQQSTotal = 0;
+  let months = 0;
+  for (const row of rows) {
+    const d = davrToMonth(row.davr);
+    if (!d || d.isBefore(from, 'month') || d.isAfter(to, 'month')) continue;
+    const tariff = jadval.find((r) => r.year === d.year() && r.month === d.month() + 1);
+    if (!tariff) continue;
+    const diff = ((Number(row.yashovchilar_soni) || 0) - count) * tariff.hisoblandi;
+    total += diff;
+    if (tariff.withQQS) withQQSTotal += diff;
+    months++;
+  }
+  if (!months) return null;
+  return {
+    startDate: from.startOf('month'),
+    endDate: to.endOf('month'),
+    total,
+    withQQSTotal,
+    withoutQQSTotal: total - withQQSTotal,
+    yashovchilar_soni: count,
+    periodType: total >= 0 ? 'kreditor' : 'debitor'
+  };
+}
+
+/** Qayta hisob davri qaysi oylarni qamraydi (kalkulyatordagi qoida: 15-sanadan keyin boshlansa keyingi oydan, 15-gacha tugasa oldingi oygacha) */
+export function periodMonthRange(period: Pick<IRecalculationPeriod, 'startDate' | 'endDate'>): { from: Dayjs; to: Dayjs } | null {
+  const start = dayjs(period.startDate);
+  const end = dayjs(period.endDate);
+  if (!start.isValid() || !end.isValid()) return null;
+  return {
+    from: (start.date() > 15 ? start.add(1, 'month') : start).startOf('month'),
+    to: (end.date() > 15 ? end : end.subtract(1, 'month')).startOf('month')
+  };
+}
+
 export type AbonentLookupTarget = 'main' | 'dublicate';
 
 export interface AbonentLookupState {
@@ -194,6 +338,8 @@ interface StoreActionsState {
   removeTransferCreditor: (id: number) => void;
   setSelectedApplicantId: (id: number | '') => void;
   setTransferDebitorAmount: (amount: string) => void;
+  setRecalcMode: (mode: RecalcMode) => void;
+  setStages: (stages: IStageInput[]) => void;
 }
 
 interface UIState {
@@ -236,6 +382,8 @@ interface StoreDataState {
   aktSumma: IAktSumma;
   autoMobile: AutoMobile | null;
   isCreatingAriza: boolean;
+  recalcMode: RecalcMode;
+  stages: IStageInput[];
 }
 
 const initialStoreDataState: StoreDataState = {
@@ -283,6 +431,8 @@ const initialStoreDataState: StoreDataState = {
   rowsDhjTable: [],
   autoMobile: null,
   isCreatingAriza: false,
+  recalcMode: 'oddiy',
+  stages: [emptyStage()],
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' }
 };
 
@@ -307,7 +457,18 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   setIsGlobalAbonent: (isGlobal: boolean) => set({ isGlobalAbonent: isGlobal }),
   setIsGlobalAbonent2: (isGlobal: boolean) => set({ isGlobalAbonent2: isGlobal }),
-  setAktType: (aktType) => set({ aktType }),
+  // Ikki bosqichli rejim faqat odam soni uchun: boshqa turga o'tilsa oddiyga qaytadi
+  setAktType: (aktType) =>
+    set(aktType === 'odam_soni' ? { aktType } : { aktType, recalcMode: 'oddiy', stages: [emptyStage()] }),
+  // Rejim almashganda avvalgi rejimda qo'shilgan davrlar arizaga aralashib ketmasin
+  setRecalcMode: (mode) =>
+    set({
+      recalcMode: mode,
+      stages: [emptyStage()],
+      recalculationPeriods: [],
+      aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 }
+    }),
+  setStages: (stages) => set({ stages }),
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => set({ rowsDhjTable }),
   setAbonentData: (data) => set({ abonentData: data }),
@@ -436,8 +597,27 @@ export const useStore = create<StoreState>((set, get) => ({
       }
 
       if (!validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput })) return;
+
+      const { recalcMode, stages, rowsDhjTable } = get();
+      let bosqichlar: IBosqich[] | undefined;
+      if (aktType === 'odam_soni' && recalcMode === 'kop_bosqichli') {
+        const error = validateStages(stages, yashovchiSoniInput, getDhjFirstMonth(rowsDhjTable)).find(Boolean);
+        if (error) {
+          toast.error(error);
+          return;
+        }
+        bosqichlar = [...stages]
+          .sort((a, b) => a.from!.valueOf() - b.from!.valueOf())
+          .map((stage) => ({
+            from: stage.from!.format('MM.YYYY'),
+            to: stage.to!.format('MM.YYYY'),
+            count: Number(stageCount(stage, yashovchiSoniInput)),
+            hozirgacha: isCurrentStage(stage)
+          }));
+      }
       if (
         aktType === 'odam_soni' &&
+        !bosqichlar &&
         Number(yashovchiSoniInput) === Number(abonentData.house?.inhabitantCnt) &&
         !(await confirmDialog({
           title: "Yashovchi soni o'zgarmayapti",
@@ -472,6 +652,7 @@ export const useStore = create<StoreState>((set, get) => ({
                     : Number(yashovchiSoniInput),
             photos: images.map((img) => img.document_id),
             recalculationPeriods,
+            bosqichlar,
             muzlatiladi,
             shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false,
             dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
@@ -791,7 +972,12 @@ export function buildAutoAsoslantiruvchi({
 
   switch (ariza.document_type) {
     case 'odam_soni':
-      if (hasCnt) {
+      if (ariza.bosqichlar?.length) {
+        const parts = (ariza.bosqichlar as IBosqich[]).map((b) => `${bosqichDavri(b)} ${b.count} nafar`);
+        sentences.push(
+          `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra ${parts.join(', ')} shaxs istiqomat qilishi tasdiqlandi.`
+        );
+      } else if (hasCnt) {
         sentences.push(
           `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, amalda ${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
         );
@@ -836,6 +1022,11 @@ export function buildAutoAsoslantiruvchi({
   }
 
   return sentences.join(' ');
+}
+
+/** Bosqich davrining matni: "05.2025 oyidan 05.2026 oyigacha" yoki "06.2026 oyidan boshlab" */
+export function bosqichDavri(b: IBosqich): string {
+  return b.hozirgacha ? `${b.from} oyidan boshlab` : `${b.from} oyidan ${b.to} oyigacha`;
 }
 
 export function buildActDescriptionFromPeriods(data?: IRecalculationPeriod[] | null): string {

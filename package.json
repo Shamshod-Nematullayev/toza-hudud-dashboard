@@ -1,13 +1,12 @@
 {
-  "name": "berry-free-material-react",
-  "version": "3.5.0",
+  "name": "greenzone-frontend",
+  "version": "1.0.0",
   "private": true,
   "author": {
-    "name": "CodedThemes",
-    "email": "CodedThemes@gmail.com",
-    "url": "https://codedthemes.com/"
+    "name": "GreenZone",
+    "url": "https://greenzone.uz"
   },
-  "homepage": "https://toza-hudud-dashboard.netlify.app/startpage",
+  "homepage": "https://greenzone.uz",
   "scripts": {
     "start": "env-cmd -f .env vite",
     "dev": "env-cmd -f .env vite",

@@ -14,7 +14,7 @@ import {
 
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { useStore } from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
+import { getDhjFirstMonth, useStore } from '../../views/billing/CreateAbonentPetition.jsx/useStore.js';
 import { toast } from 'react-toastify';
 import api from 'utils/api.js';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +37,32 @@ function RecalculatorAbonent() {
   const [withQQS, setWithQQS] = useState(0);
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(dayjs().startOf('month'));
+
+  // DHJ da yo'q davrni (abonent ochilishidan oldingi) qayta hisoblab bo'lmaydi: masalan abonent 01.05.2026 da ochilgan,
+  // o'lim guvohnomasi esa 01.02.2026 ga — eng erta sana 01.05.2026, undan oldingisi xato bo'lib turadi
+  const minDate = getDhjFirstMonth(rowsDhjTable) ?? dayjs('2019-01-01');
+  const maxDate = dayjs();
+
+  /** Xato bo'lsa toast ko'rsatadi va false qaytaradi */
+  const checkDates = () => {
+    if (!startDate?.isValid() || !endDate?.isValid()) {
+      toast.error('Sanalarni kiriting');
+      return false;
+    }
+    if (startDate.isBefore(minDate, 'day')) {
+      toast.error(`Abonent DHJ si ${minDate.format('MM.YYYY')} dan boshlanadi: undan oldingi davrni qayta hisoblab bo'lmaydi`);
+      return false;
+    }
+    if (endDate.isAfter(maxDate, 'day')) {
+      toast.error("Tugash sanasi bugundan keyin bo'lishi mumkin emas");
+      return false;
+    }
+    if (startDate.isAfter(endDate, 'day')) {
+      toast.error("Boshlanish sanasi tugash sanasidan keyin bo'lishi mumkin emas");
+      return false;
+    }
+    return true;
+  };
 
   // Qayta hisoblash mantiqiy funksiyasi
   const qaytaHisob = ({
@@ -128,13 +154,17 @@ function RecalculatorAbonent() {
 
   // Minus (kreditor) tugmasi bosilganda
   const handleRemoveButtonClick = () => {
+    if (!checkDates()) return;
     if (currentTotal === 0) return toast.info(t('recalculator.noValue'));
     const newEntry = {
       withQQSTotal: withQQS,
       withoutQQSTotal: currentTotal - withQQS,
       total: currentTotal,
       startDate,
-      endDate
+      endDate,
+      periodType: 'kreditor' as const,
+      // Bitta kishilik summa: shu davrda 1 kishi kam hisoblanadi (GPS da kishi soni o'zgarmaydi)
+      yashovchiDelta: aktType === 'gps' ? undefined : -1
     };
     if (aktType === 'gps') return setRecalculationPeriods([newEntry]);
     setRecalculationPeriods([...recalculationPeriods, newEntry]);
@@ -142,13 +172,16 @@ function RecalculatorAbonent() {
 
   // Plus (debitor) tugmasi bosilganda
   const handleAddButtonClick = () => {
+    if (!checkDates()) return;
     if (currentTotal === 0) return toast.info(t('recalculator.noValue'));
     const newEntry = {
       withQQSTotal: withQQS * -1,
       withoutQQSTotal: (currentTotal - withQQS) * -1,
       total: currentTotal * -1,
       startDate,
-      endDate
+      endDate,
+      periodType: 'debitor' as const,
+      yashovchiDelta: aktType === 'gps' ? undefined : 1
     };
     if (aktType === 'gps') return setRecalculationPeriods([newEntry]);
     setRecalculationPeriods([...recalculationPeriods, newEntry]);
@@ -172,8 +205,8 @@ function RecalculatorAbonent() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <DatePicker
                 views={['year', 'month', 'day']}
-                minDate={dayjs('2019-01-01')}
-                maxDate={dayjs()}
+                minDate={minDate}
+                maxDate={endDate?.isValid() && endDate.isBefore(maxDate) ? endDate : maxDate}
                 label={t('recalculator.from')}
                 format="DD.MM.YY"
                 value={startDate}
@@ -194,8 +227,8 @@ function RecalculatorAbonent() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <DatePicker
                 views={['year', 'month', 'day']}
-                minDate={dayjs('2019-01-01')}
-                maxDate={dayjs()}
+                minDate={startDate?.isValid() && startDate.isAfter(minDate) ? startDate : minDate}
+                maxDate={maxDate}
                 label={t('recalculator.to')}
                 format="DD.MM.YY"
                 value={endDate}
@@ -220,7 +253,7 @@ function RecalculatorAbonent() {
         {/* Debitor / Kreditor tugmalari */}
         <Grid size={{ xs: 12, sm: 3.2, md: 3.4 }} id="tour-debitor-kreditor">
           <Stack direction="row" spacing={1}>
-            <Tooltip title={`${t('recalculator.debitor')} — Qarzni kamaytirish (Manfiy summa)`} arrow>
+            <Tooltip title={`${t('recalculator.debitor')} — Qarz qo'shiladi (manfiy summa)`} arrow>
               <Button
                 variant="contained"
                 color="error"
@@ -241,7 +274,7 @@ function RecalculatorAbonent() {
               </Button>
             </Tooltip>
 
-            <Tooltip title={`${t('recalculator.kreditor')} — Qarzni oshirish (Musbat summa)`} arrow>
+            <Tooltip title={`${t('recalculator.kreditor')} — Qarz kamayadi (musbat summa)`} arrow>
               <Button
                 variant="contained"
                 color="success"

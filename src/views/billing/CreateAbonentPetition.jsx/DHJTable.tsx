@@ -1,8 +1,8 @@
 import { DataGrid } from '@mui/x-data-grid';
-import React, { useEffect, useId, useState } from 'react';
-import { useStore } from './useStore';
+import React, { useEffect, useMemo, useState } from 'react';
+import { davrToMonth, periodMonthRange, useStore } from './useStore';
 import api from 'utils/api';
-import { Box, Chip, IconButton, Stack, Table, Toolbar, Tooltip, Typography } from '@mui/material';
+import { alpha, Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { colors } from 'store/constant';
@@ -23,6 +23,8 @@ interface IRow {
   yashovchilar_soni: number;
   allPaymentsSum: number;
 }
+
+const fmt = (v: unknown) => (typeof v === 'number' ? v.toLocaleString('ru-RU') : String(v ?? ''));
 
 interface DHJTableProps {
   abonentData: AbonentDetails;
@@ -167,6 +169,53 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
     abonentData?.house?.inhabitantCnt
   ]);
 
+  // Har oy uchun: qaysi qayta hisob davrlariga tushadi (rang) va qancha kishiga qayta hisoblanadi
+  const marksByMonth = useMemo(() => {
+    const map = new Map<string, { color: string; count?: number; delta?: number }[]>();
+    store.recalculationPeriods.forEach((period, index) => {
+      const range = periodMonthRange(period);
+      if (!range) return;
+      for (let m = range.from; !m.isAfter(range.to, 'month'); m = m.add(1, 'month')) {
+        const key = m.format('M.YYYY');
+        map.set(key, [
+          ...(map.get(key) || []),
+          { color: period.color || colors[index % colors.length], count: period.yashovchilar_soni, delta: period.yashovchiDelta }
+        ]);
+      }
+    });
+    return map;
+  }, [store.recalculationPeriods]);
+
+  const monthMarks = (davr: string) => {
+    const d = davrToMonth(davr);
+    return (d && marksByMonth.get(d.format('M.YYYY'))) || [];
+  };
+
+  /**
+   * Qayta hisobdan keyin oy qanday hisoblanishi (oldindan ko'rish):
+   * - ko'p bosqichli: davrdagi mutlaq kishi soni;
+   * - kalkulyator (oddiy odam soni, viza, o'lim): har davr ±1 kishi, ustma-ust davrlar qo'shiladi;
+   * - GPS: oy hisoblanganining hammasi qaytariladi, kishi soni o'zgarmaydi.
+   */
+  const previewFor = (row: IRow) => {
+    const marks = monthMarks(row.davr);
+    const d = davrToMonth(row.davr);
+    if (!marks.length || !d) return null;
+    const oldCount = Number(row.yashovchilar_soni) || 0;
+
+    if (store.aktType === 'gps') {
+      return { count: oldCount, oldCount, newNachis: 0, diff: Number(row.nachis) || 0 };
+    }
+
+    const tariff = store.hisoblandiJadval.find((r) => r.year === d.year() && r.month === d.month() + 1);
+    if (!tariff) return null;
+    const absolute = marks.find((m) => m.count !== undefined && m.count !== null);
+    const delta = marks.reduce((a, m) => a + (Number(m.delta) || 0), 0);
+    if (!absolute && !delta) return null;
+    const count = absolute ? Number(absolute.count) : oldCount + delta;
+    return { count, oldCount, newNachis: count * tariff.hisoblandi, diff: (oldCount - count) * tariff.hisoblandi };
+  };
+
   if (!abonentData?.accountNumber) {
     return (
       <Box
@@ -268,133 +317,89 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
             {
               field: 'id',
               headerName: t('tableHeaders.period'),
-              renderCell: (params) => params.row.davr
+              flex: 0.9,
+              minWidth: 86,
+              renderCell: (params) => {
+                const marks = monthMarks(params.row.davr);
+                return (
+                  <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', gap: 0.75 }}>
+                    {/* Qayta hisob davriga tushgan oy chap tomonda davr rangi bilan belgilanadi */}
+                    <Box sx={{ display: 'flex', gap: '2px', height: '70%', width: 4 * Math.max(marks.length, 1) }}>
+                      {marks.map((m, i) => (
+                        <Box key={i} sx={{ width: 4, borderRadius: 1, bgcolor: '#' + m.color }} />
+                      ))}
+                    </Box>
+                    <span>{params.row.davr}</span>
+                  </Box>
+                );
+              }
             },
-            { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number' },
+            { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number', flex: 1, minWidth: 80, valueFormatter: fmt },
             {
               field: 'nachis',
               headerName: t('tableHeaders.nachis'),
               type: 'number',
+              flex: 1.2,
+              minWidth: 96,
               renderCell: (params) => {
-                // Har bir davrga mos rangli indikatorlar
-                const matchedColors = store.recalculationPeriods
-                  .map(({ startDate, endDate }, index) => {
-                    const fromMoon = startDate.date() > 15 ? startDate.month() + 1 : startDate.month();
-                    const fromYear = startDate.year();
-                    const toMoon = endDate.date() > 15 ? endDate.month() : endDate.month() - 1;
-                    const toYear = endDate.year();
-
-                    const [oy, yil] = params.row.davr.split('.').map(Number);
-                    if (
-                      ((oy - 1 >= fromMoon && yil == fromYear) || yil > fromYear) &&
-                      ((oy - 1 <= toMoon && yil == toYear) || yil < toYear)
-                    ) {
-                      return '#' + colors[index] + '50';
-                    }
-
-                    const inRange =
-                      (yil > fromYear || (yil === fromYear && oy >= fromMoon)) && (yil < toYear || (yil === toYear && oy <= toMoon));
-
-                    return inRange ? colors[index] : null;
-                  })
-                  .filter(Boolean);
-
+                const preview = previewFor(params.row);
+                if (!preview) return fmt(params.row.nachis);
                 return (
-                  <div style={{ display: 'flex', position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}>
-                    <div style={{ zIndex: 1 }}>{params.row.nachis}</div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row-reverse',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        zIndex: 0,
-                        height: '100%',
-                        width: '100%'
-                      }}
-                    >
-                      {matchedColors.map((item, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            backgroundColor: item!,
-                            // width: '100%',
-                            height: '100%',
-                            flex: 1
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <Tooltip
+                    arrow
+                    title={`${
+                      store.aktType === 'gps' ? 'Xizmat ko\'rsatilmagan oy' : `${preview.oldCount} kishi o'rniga ${preview.count} kishi`
+                    } · qayta hisob: ${preview.diff > 0 ? '+' : ''}${fmt(preview.diff)}`}
+                  >
+                    <Box sx={{ lineHeight: 1.15, textAlign: 'right' }}>
+                      <Box component="span" sx={{ fontWeight: 700, color: preview.diff > 0 ? 'success.main' : preview.diff < 0 ? 'error.main' : 'text.primary' }}>
+                        {fmt(preview.newNachis)}
+                      </Box>
+                      <Box component="span" sx={{ display: 'block', fontSize: '10px', color: 'text.disabled', textDecoration: 'line-through' }}>
+                        {fmt(params.row.nachis)}
+                      </Box>
+                    </Box>
+                  </Tooltip>
                 );
               }
             },
-            { field: 'saldo_k', headerName: t('tableHeaders.kSaldo'), type: 'number' },
-            {
-              field: 'akt',
-              headerName: t('tableHeaders.act'),
-              type: 'number',
-              flex: 1
-            },
-            {
-              field: 'allPaymentsSum',
-              headerName: t('tableHeaders.income'),
-              type: 'number'
-            },
+            { field: 'saldo_k', headerName: t('tableHeaders.kSaldo'), type: 'number', flex: 1, minWidth: 80, valueFormatter: fmt },
+            { field: 'akt', headerName: t('tableHeaders.act'), type: 'number', flex: 0.8, minWidth: 64, valueFormatter: fmt },
+            { field: 'allPaymentsSum', headerName: t('tableHeaders.income'), type: 'number', flex: 1, minWidth: 80, valueFormatter: fmt },
             {
               field: 'yashovchilar_soni',
               headerName: t('tableHeaders.inhabitantCount'),
-              type: 'number',
-              width: 70,
-              align: 'center'
+              width: 84,
+              align: 'center',
+              headerAlign: 'center',
+              renderCell: (params) => {
+                const preview = previewFor(params.row);
+                if (!preview || preview.count === preview.oldCount) return params.row.yashovchilar_soni;
+                return (
+                  <Box component="span" sx={{ whiteSpace: 'nowrap' }}>
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      {preview.oldCount}
+                    </Box>
+                    {' → '}
+                    <Box component="span" sx={{ fontWeight: 700, color: preview.count < preview.oldCount ? 'success.main' : 'error.main' }}>
+                      {preview.count}
+                    </Box>
+                  </Box>
+                );
+              }
             }
           ]}
           disableColumnFilter
           disableColumnSorting
+          disableColumnMenu
           hideFooter
           rows={rowsPreviewTable}
           getRowId={(row) => row.id}
+          getRowClassName={(params) => (previewFor(params.row) ? 'recalc-row' : '')}
           sx={{
             width: '100%',
             height: '100%',
-            '.bg-ff0000': {
-              backgroundColor: '#ff000050'
-            },
-            '.bg-00ff00': {
-              backgroundColor: '#00ff0050'
-            },
-            '.bg-0000ff': {
-              backgroundColor: '#0000ff50'
-            },
-            '.bg-ff8000': {
-              backgroundColor: '#ff800050'
-            },
-            '.bg-ffff00': {
-              backgroundColor: '#ffff0050'
-            },
-            '.bg-80ff00': {
-              backgroundColor: '#80ff0050'
-            },
-
-            '.bg-00ff80': {
-              backgroundColor: '#00ff8050'
-            },
-            '.bg-00ffff': {
-              backgroundColor: '#00ffff50'
-            },
-            '.bg-0080ff': {
-              backgroundColor: '#0080ff50'
-            },
-            '.bg-8000ff': {
-              backgroundColor: '#8000ff50'
-            },
-            '.bg-ff00ff': {
-              backgroundColor: '#ff00ff50'
-            },
-            '.bg-ff0080': {
-              backgroundColor: '#ff008050'
-            }
+            '& .recalc-row': { bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.08 : 0.04) }
           }}
         />
       </Box>

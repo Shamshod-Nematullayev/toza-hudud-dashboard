@@ -17,12 +17,13 @@ import {
   DeleteOutlineOutlined,
   CalendarToday,
   ReceiptLongOutlined,
-  UploadFileOutlined
+  UploadFileOutlined,
+  GroupOutlined
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useStore } from './useStore';
+import { periodMonthRange, useStore } from './useStore';
 import { colors } from 'store/constant';
 
 export default function RecalculationPeriodsList() {
@@ -36,8 +37,10 @@ export default function RecalculationPeriodsList() {
     transferDebitorAmount,
     transferCreditors,
     transferReason,
-    abonentData
+    abonentData,
+    recalcMode
   } = useStore();
+  const isMultiStage = aktType === 'odam_soni' && recalcMode === 'kop_bosqichli';
 
   const deleteItem = (index: number) => {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
@@ -261,14 +264,11 @@ export default function RecalculationPeriodsList() {
         ) : (
           <Stack spacing={1.2}>
             {recalculationPeriods.map((period, idx) => {
-              const startFormatted = dayjs()
-                .set('year', period.startDate?.year())
-                .set('month', period.startDate?.date() > 20 ? period.startDate?.month() + 1 : period.startDate?.month())
-                .format('MM.YYYY');
-              const endFormatted = dayjs()
-                .set('year', period.endDate?.year())
-                .set('month', period.endDate?.date() > 15 ? period.endDate?.month() : period.endDate?.month() - 1)
-                .format('MM.YYYY');
+              // DHJ jadvali va hisob bilan bir xil qoida bo'yicha qamralgan oylar
+              const range = periodMonthRange(period);
+              const startFormatted = range ? range.from.format('MM.YYYY') : '—';
+              const endFormatted = range ? range.to.format('MM.YYYY') : '—';
+              const hasCount = period.yashovchilar_soni !== undefined && period.yashovchilar_soni !== null;
 
               const isItemPositive = period.total >= 0;
 
@@ -297,7 +297,7 @@ export default function RecalculationPeriodsList() {
                             width: 10,
                             height: 10,
                             borderRadius: '50%',
-                            bgcolor: '#' + (colors[idx] || '2196f3')
+                            bgcolor: '#' + (period.color || colors[idx] || '2196f3')
                           }}
                         />
                         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -305,16 +305,19 @@ export default function RecalculationPeriodsList() {
                         </Typography>
                       </Stack>
 
-                      <Tooltip title={t("buttons.clear")}>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => deleteItem(idx)}
-                          sx={{ p: 0.3, '&:hover': { bgcolor: 'error.50' } }}
-                        >
-                          <DeleteOutlineOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      {/* Ko'p bosqichlida davrlar bosqichlar panelidan boshqariladi */}
+                      {!isMultiStage && (
+                        <Tooltip title={t("buttons.clear")}>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteItem(idx)}
+                            sx={{ p: 0.3, '&:hover': { bgcolor: 'error.50' } }}
+                          >
+                            <DeleteOutlineOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
 
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
@@ -323,6 +326,28 @@ export default function RecalculationPeriodsList() {
                         {startFormatted} — {endFormatted}
                       </Typography>
                     </Stack>
+
+                    {!hasCount && !!period.yashovchiDelta && (
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                        <GroupOutlined sx={{ fontSize: 14, color: 'text.disabled' }} />
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>
+                          {t('Yashovchi')}:{' '}
+                          <Box component="b" sx={{ color: period.yashovchiDelta < 0 ? 'success.main' : 'error.main' }}>
+                            {period.yashovchiDelta > 0 ? '+' : '−'}
+                            {Math.abs(period.yashovchiDelta)} kishi
+                          </Box>
+                        </Typography>
+                      </Stack>
+                    )}
+
+                    {hasCount && (
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                        <GroupOutlined sx={{ fontSize: 14, color: 'text.disabled' }} />
+                        <Typography variant="body2" sx={{ fontSize: '12px' }}>
+                          {t('Hisoblandi')}: <b>{period.yashovchilar_soni} kishiga</b>
+                        </Typography>
+                      </Stack>
+                    )}
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.3 }}>
                       <Typography variant="caption" color="text.secondary">

@@ -31,6 +31,7 @@ import InputForm from './InputForm';
 import DHJTable from './DHJTable';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import RecalculationPeriodsList from './RecalculationPeriodsList';
+import MultiStageRecalculator from './MultiStageRecalculator';
 import PrintSection from './PrintSection';
 import PasteImageDialog from './PasteImageDialog';
 import PrintAbonentCard from '../Abonent/modals/PrintAbonentCard';
@@ -69,7 +70,8 @@ function CreateAbonentPetition() {
     transferCreditors,
     transferDebitorAmount,
     transferReason,
-    removeTransferCreditor
+    removeTransferCreditor,
+    recalcMode
   } = useStore();
 
   const theme = useTheme();
@@ -353,7 +355,7 @@ function CreateAbonentPetition() {
               <>
                 {/* Tepada: Sana tanlash va Debitor/Kreditor paneli */}
                 <Box sx={{ flexShrink: 0 }}>
-                  <Recalculate />
+                  {aktType === 'odam_soni' && recalcMode === 'kop_bosqichli' ? <MultiStageRecalculator /> : <Recalculate />}
                 </Box>
 
                 <Divider />

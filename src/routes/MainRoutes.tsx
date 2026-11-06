@@ -1,5 +1,6 @@
 import { JSX, lazy } from 'react';
 import { Navigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 // project imports
 import MainLayout from 'layout/MainLayout';
@@ -88,6 +89,14 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const PendingActs = Loadable(lazy(() => import('views/billing/PendingActs')));
 
+const RootPage = () => {
+  const token = Cookies.get('accessToken');
+  if (!token) {
+    return <Navigate to="/pages/login/login" replace />;
+  }
+  return <DashboardDefault />;
+};
+
 // ==============================|| MAIN ROUTING ||============================== //
 interface MainRoutesProps {
   path: string;
@@ -100,7 +109,7 @@ const MainRoutes: MainRoutesProps = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: <RootPage />
     },
     {
       path: 'aktlar',
