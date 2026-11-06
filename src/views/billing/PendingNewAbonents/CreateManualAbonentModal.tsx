@@ -40,6 +40,7 @@ import api from 'utils/api';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
 import { useTariff } from 'hooks/useTariff';
+import useCustomizationStore from 'store/customizationStore';
 import { ICitizen, IEtkAccount } from './types';
 import MvdInhabitantsInfo from './MvdInhabitantsInfo';
 
@@ -58,6 +59,8 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
   const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { currentTariff } = useTariff();
+  // MahallaSelection faqat id qaytaradi — nomini store'dan olamiz
+  const { mahallalar } = useCustomizationStore();
   const tariffRate = currentTariff?.hisoblandi || 5000;
 
   // Qidiruv holati
@@ -653,6 +656,7 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
                     selectedMahallaId={mahallaId}
                     setSelectedMahallaId={(id) => {
                       setMahallaId(id);
+                      setMahallaName(mahallalar.find((m) => String(m.id) === String(id))?.name || '');
                       setStreetId('');
                       setStreetName('');
                     }}
