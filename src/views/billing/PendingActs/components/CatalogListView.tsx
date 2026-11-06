@@ -30,7 +30,8 @@ import {
   FolderOpenOutlined,
   CheckCircleOutlineOutlined,
   ErrorOutlineOutlined,
-  HourglassEmptyOutlined
+  HourglassEmptyOutlined,
+  TransferWithinAStationOutlined
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { PendingActByDocumentType } from '../useStore';
@@ -46,6 +47,11 @@ const DOCUMENT_TYPE_METADATA: Record<string, { title: string; desc: string; icon
     title: "Yashovchi soni o'zgartirish",
     desc: 'Oila a‘zolari sonini oshirish yoki kamaytirish aktlari',
     icon: <PeopleAltOutlined sx={{ color: 'primary.main' }} />
+  },
+  yashovchi_kuchirish: {
+    title: "Yashovchi ko'chirish",
+    desc: "Kishini bir xonadondan boshqasiga o'tkazish: biriga −N, boshqasiga +N",
+    icon: <TransferWithinAStationOutlined sx={{ color: 'info.main' }} />
   },
   pul_kuchirish: {
     title: 'Pul ko‘chirish',

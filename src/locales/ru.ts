@@ -178,6 +178,7 @@ const ru: typeof uz = {
       viza: 'Перерасчёт (Виза)',
       dvaynik: 'Дублирующий лицевой счёт',
       pul_kuchirish: 'Перевод средств',
+      yashovchi_kuchirish: 'Перевод жильцов',
       death: 'Свидетельство о смерти',
       gps: 'GPS акт'
     },
@@ -455,7 +456,8 @@ const ru: typeof uz = {
     dvaynik: 'Дублирующий код',
     gps: 'Техника не обслуживала',
     cancelContract: 'Расторжение договора',
-    pul_kuchirish: 'Перевод средств'
+    pul_kuchirish: 'Перевод средств',
+    yashovchi_kuchirish: 'Перевод жильцов'
   },
   buttons: {
     create: 'Создать',

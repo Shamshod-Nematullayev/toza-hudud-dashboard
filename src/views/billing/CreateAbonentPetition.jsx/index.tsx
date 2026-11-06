@@ -32,6 +32,7 @@ import DHJTable from './DHJTable';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import RecalculationPeriodsList from './RecalculationPeriodsList';
 import MultiStageRecalculator from './MultiStageRecalculator';
+import { InhabitantTransferSummary } from './InhabitantTransfer';
 import PrintSection from './PrintSection';
 import PasteImageDialog from './PasteImageDialog';
 import PrintAbonentCard from '../Abonent/modals/PrintAbonentCard';
@@ -351,6 +352,8 @@ function CreateAbonentPetition() {
                   )}
                 </Box>
               </>
+            ) : aktType === 'yashovchi_kuchirish' ? (
+              <InhabitantTransferSummary />
             ) : (
               <>
                 {/* Tepada: Sana tanlash va Debitor/Kreditor paneli */}

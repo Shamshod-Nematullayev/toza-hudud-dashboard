@@ -256,6 +256,7 @@ export const packNames = {
   odam_soni: 'ODAM SONI',
   dvaynik: 'IKKILAMCHI KODLAR',
   pul_kuchirish: "PUL KO'CHIRISH",
+  yashovchi_kuchirish: "YASHOVCHI KO'CHIRISH",
   death: "O'LIM GUVOHNOMA",
   gps: 'GPS XULOSA'
 };
@@ -264,6 +265,7 @@ export const packTypes = {
   odam_soni: 'INVENTORY',
   dvaynik: 'CANCEL_CONTRACT',
   pul_kuchirish: 'SIMPLE',
+  yashovchi_kuchirish: 'INVENTORY',
   death: 'INVENTORY',
   gps: 'INVENTORY'
 };

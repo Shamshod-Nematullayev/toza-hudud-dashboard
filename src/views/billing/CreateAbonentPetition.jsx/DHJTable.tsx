@@ -1,6 +1,6 @@
 import { DataGrid } from '@mui/x-data-grid';
 import React, { useEffect, useMemo, useState } from 'react';
-import { davrToMonth, periodMonthRange, useStore } from './useStore';
+import { davrToMonth, IRecalculationPeriod, periodMonthRange, useStore } from './useStore';
 import api from 'utils/api';
 import { alpha, Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
@@ -29,13 +29,21 @@ const fmt = (v: unknown) => (typeof v === 'number' ? v.toLocaleString('ru-RU') :
 interface DHJTableProps {
   abonentData: AbonentDetails;
   label?: string;
+  /**
+   * Ikkinchi abonent jadvali (yashovchi ko'chirishda qabul qiluvchi): oldindan ko'rish store dagi asosiy
+   * abonent ma'lumotlaridan emas, shu yerdan olinadi va store.rowsDhjTable ga yozilmaydi.
+   */
+  preview?: { periods: IRecalculationPeriod[]; inhabitant: number; aktTotal: number };
 }
 
-function DHJTable({ abonentData, label }: DHJTableProps) {
+function DHJTable({ abonentData, label, preview }: DHJTableProps) {
   const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
   const [rowsPreviewTable, setRowsPreviewTable] = useState<IRow[]>([]);
   const store = useStore();
   const { t } = useTranslation();
+  const periods = preview ? preview.periods : store.recalculationPeriods;
+  const inhabitantInput = preview ? String(preview.inhabitant) : store.yashovchiSoniInput;
+  const aktTotal = preview ? preview.aktTotal : store.aktSumma.total;
 
   const [show, setShow] = useState(false);
 
@@ -103,11 +111,11 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
             allPaymentsSum: row.allPaymentsSum
           }));
           setRowsDhjTable(mappedRows);
-          store.setRowsDhjTable(mappedRows);
+          if (!preview) store.setRowsDhjTable(mappedRows);
         });
     } else {
       setRowsDhjTable([]);
-      store.setRowsDhjTable([]);
+      if (!preview) store.setRowsDhjTable([]);
     }
   }, [abonentData, store.isGlobalAbonent, store.isGlobalAbonent2]);
 
@@ -123,25 +131,23 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
       const isViza = store.aktType === 'viza';
       const hasInhabitantInput =
         !isViza &&
-        store.yashovchiSoniInput !== '' &&
-        store.yashovchiSoniInput !== null &&
-        store.yashovchiSoniInput !== undefined &&
-        !isNaN(Number(store.yashovchiSoniInput));
+        inhabitantInput !== '' &&
+        inhabitantInput !== null &&
+        inhabitantInput !== undefined &&
+        !isNaN(Number(inhabitantInput));
 
       const previewYashovchilar = hasInhabitantInput
-        ? Number(store.yashovchiSoniInput)
+        ? Number(inhabitantInput)
         : (rowsDhjTable[0].yashovchilar_soni ?? abonentData?.house?.inhabitantCnt ?? 0);
 
-      const previewNachis = hasInhabitantInput
-        ? Number(store.yashovchiSoniInput) * hisoblandi
-        : rowsDhjTable[0].nachis;
+      const previewNachis = hasInhabitantInput ? Number(inhabitantInput) * hisoblandi : rowsDhjTable[0].nachis;
 
       const kSaldo =
         previewNachis +
         rowsDhjTable[0].saldo_n -
         rowsDhjTable[0].allPaymentsSum -
         rowsDhjTable[0].akt -
-        store.aktSumma.total;
+        aktTotal;
 
       setRowsPreviewTable([
         {
@@ -150,7 +156,7 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
           saldo_n: rowsDhjTable[0].saldo_n,
           nachis: previewNachis,
           saldo_k: kSaldo,
-          akt: -(rowsDhjTable[0].akt + store.aktSumma.total),
+          akt: -(rowsDhjTable[0].akt + aktTotal),
           yashovchilar_soni: previewYashovchilar,
           allPaymentsSum: rowsDhjTable[0].allPaymentsSum
         },
@@ -163,8 +169,8 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
     show,
     rowsDhjTable,
     store.aktType,
-    store.yashovchiSoniInput,
-    store.aktSumma.total,
+    inhabitantInput,
+    aktTotal,
     store.hisoblandiJadval,
     abonentData?.house?.inhabitantCnt
   ]);
@@ -172,7 +178,7 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
   // Har oy uchun: qaysi qayta hisob davrlariga tushadi (rang) va qancha kishiga qayta hisoblanadi
   const marksByMonth = useMemo(() => {
     const map = new Map<string, { color: string; count?: number; delta?: number }[]>();
-    store.recalculationPeriods.forEach((period, index) => {
+    periods.forEach((period, index) => {
       const range = periodMonthRange(period);
       if (!range) return;
       for (let m = range.from; !m.isAfter(range.to, 'month'); m = m.add(1, 'month')) {
@@ -184,7 +190,7 @@ function DHJTable({ abonentData, label }: DHJTableProps) {
       }
     });
     return map;
-  }, [store.recalculationPeriods]);
+  }, [periods]);
 
   const monthMarks = (davr: string) => {
     const d = davrToMonth(davr);

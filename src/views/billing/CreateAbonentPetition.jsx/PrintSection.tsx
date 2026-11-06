@@ -38,6 +38,7 @@ import Dvaynik from './Documents/Dvaynik';
 import Gps from './Documents/Gps';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
+import YashovchiKuchirish from './Documents/YashovchiKuchirish';
 import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
 import { buildAutoAsoslantiruvchi, familyRelations, getCleanAsoslantiruvchi } from './useStore';
 import ManageActTypesDialog from './ManageActTypesDialog';
@@ -152,6 +153,8 @@ const DocumentRenderer = ({
           shouldBeMoneyTransfer={ariza.shouldBeMoneyTransfer}
         />
       );
+    case 'yashovchi_kuchirish':
+      return <YashovchiKuchirish {...commonProps} abonentData2={abonentData2} mahalla2={mahalla2} />;
     case 'viza':
       return <Viza {...commonProps} />;
     case 'death':

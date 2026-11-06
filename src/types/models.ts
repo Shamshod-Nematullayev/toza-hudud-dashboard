@@ -1,6 +1,6 @@
 import { IAct } from './billing';
 
-export const arizaDocumentTypes = ['dvaynik', 'odam_soni', 'viza', 'death', 'gps', 'pul_kuchirish'] as const;
+export const arizaDocumentTypes = ['dvaynik', 'odam_soni', 'viza', 'death', 'gps', 'pul_kuchirish', 'yashovchi_kuchirish'] as const;
 
 export interface INeedMoneyTransfer {
   accountNumber: string;
@@ -31,6 +31,21 @@ export interface IAriza {
   status: 'yangi' | 'qabul qilindi' | 'tasdiqlangan' | 'bekor qilindi' | 'akt_kiritilgan' | 'qayta_akt_kiritilgan' | 'keyinroq_kiritiladigan';
   // photos: string[];
   recalculationPeriods: any[];
+  /** Yashovchi soni ko'chirish (licshet → ikkilamchi_licshet) */
+  kuchirish?: {
+    soni: number;
+    sabab: string;
+    shaxslar?: string;
+    oy: string;
+    fromCurrentCnt: number;
+    fromNextCnt: number;
+    toAbonentId: number;
+    toLicshet: string;
+    toFio: string;
+    toCurrentCnt: number;
+    toNextCnt: number;
+    toAktSumma: { total: number; withQQSTotal: number; withoutQQSTotal: number };
+  };
   muzlatiladi: boolean;
   is_canceled: boolean;
   acceptedDate: Date;

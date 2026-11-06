@@ -178,6 +178,7 @@ const uzKirill: typeof uz = {
       viza: 'Қайта ҳисоб-китоб (Виза)',
       dvaynik: 'Дубликат лицсчёт',
       pul_kuchirish: 'Пул кўчириш',
+      yashovchi_kuchirish: 'Яшовчи кўчириш',
       death: 'Вафот этганлик',
       gps: 'GPS далолатнома'
     },
@@ -455,7 +456,8 @@ const uzKirill: typeof uz = {
     dvaynik: 'Иккиламчи код',
     gps: 'Техника хизмат кўрсатмаган',
     cancelContract: 'Шартнома бекор қилиш',
-    pul_kuchirish: 'Пул кўчириш'
+    pul_kuchirish: 'Пул кўчириш',
+    yashovchi_kuchirish: 'Яшовчи сони кўчириш'
   },
   buttons: {
     create: 'Яратиш',

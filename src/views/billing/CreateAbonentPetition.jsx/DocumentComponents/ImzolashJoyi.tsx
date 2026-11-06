@@ -50,7 +50,7 @@ export const ImzolashJoyi = ({
             <br />
           </React.Fragment>
         ))}
-        {documentType === 'dvaynik' && mahalla2?.data?.id && mahalla?.data?.id && mahalla2.data.id != mahalla.data.id && (
+        {(documentType === 'dvaynik' || documentType === 'yashovchi_kuchirish') && mahalla2?.data?.id && mahalla?.data?.id && mahalla2.data.id != mahalla.data.id && (
           <>
             <ImzoJoyiRow label={`${lotinga(mahalla2.data.name)} MFY raisi:`} name={lotinga(mahalla2.data.mfy_rais_name)} />
             <br />
@@ -91,7 +91,7 @@ export const ImzolashJoyi = ({
         <>
           <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
           <br />
-          {documentType === 'dvaynik' && mahalla2?.id != mahalla?.id && (
+          {(documentType === 'dvaynik' || documentType === 'yashovchi_kuchirish') && mahalla2?.id != mahalla?.id && (
             <>
               <ImzoJoyiRow label={`${lotinga(mahalla2?.name)} MFY raisi:`} name={lotinga(mahalla2?.mfy_rais_name)} />
               <br />

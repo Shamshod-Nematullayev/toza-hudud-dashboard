@@ -33,7 +33,8 @@ import {
   SwapHorizOutlined,
   GpsFixedOutlined,
   PersonRemoveOutlined,
-  ArrowForward
+  ArrowForward,
+  TransferWithinAStationOutlined
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from 'utils/api';
@@ -98,6 +99,13 @@ const docTypeMeta: Record<string, { labelKey: string; defaultLabel: string; icon
     icon: <ContentCopyOutlined sx={{ fontSize: 20 }} />,
     color: '#d97706',
     bgColor: 'rgba(217, 119, 6, 0.08)'
+  },
+  yashovchi_kuchirish: {
+    labelKey: 'dashboard.docTypes.yashovchi_kuchirish',
+    defaultLabel: "Yashovchi ko'chirish",
+    icon: <TransferWithinAStationOutlined sx={{ fontSize: 20 }} />,
+    color: '#0284c7',
+    bgColor: 'rgba(2, 132, 199, 0.08)'
   },
   pul_kuchirish: {
     labelKey: 'dashboard.docTypes.pul_kuchirish',

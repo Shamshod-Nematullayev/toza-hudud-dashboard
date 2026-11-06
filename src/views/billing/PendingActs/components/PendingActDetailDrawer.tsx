@@ -339,6 +339,12 @@ const PendingActDetailDrawer: React.FC<PendingActDetailDrawerProps> = ({
                   <Typography variant="body2">
                     Ariza holati: <strong>{ariza.status}</strong>
                   </Typography>
+                  {ariza.document_type === 'yashovchi_kuchirish' && ariza.kuchirish && (
+                    <Typography variant="body2">
+                      Ko'chirish: <strong>{ariza.kuchirish.soni} kishi</strong> {ariza.licshet} ({ariza.kuchirish.fromCurrentCnt}→
+                      {ariza.kuchirish.fromNextCnt}) → {ariza.kuchirish.toLicshet} ({ariza.kuchirish.toCurrentCnt}→{ariza.kuchirish.toNextCnt})
+                    </Typography>
+                  )}
                   <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                     Sana: {dayjs(ariza.sana).format('DD.MM.YYYY')}
                   </Typography>

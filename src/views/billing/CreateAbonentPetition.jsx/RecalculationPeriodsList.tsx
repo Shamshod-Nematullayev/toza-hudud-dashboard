@@ -40,7 +40,8 @@ export default function RecalculationPeriodsList() {
     abonentData,
     recalcMode
   } = useStore();
-  const isMultiStage = aktType === 'odam_soni' && recalcMode === 'kop_bosqichli';
+  // Davrlar avtomatik hisoblanadi (ko'p bosqichli, yashovchi ko'chirish): ro'yxatdan qo'lda o'chirilmaydi
+  const isMultiStage = (aktType === 'odam_soni' && recalcMode === 'kop_bosqichli') || aktType === 'yashovchi_kuchirish';
 
   const deleteItem = (index: number) => {
     setRecalculationPeriods(recalculationPeriods.filter((_, i) => i !== index));
