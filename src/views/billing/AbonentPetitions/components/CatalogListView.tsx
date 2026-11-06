@@ -25,7 +25,8 @@ import {
   LocationOffOutlined,
   CurrencyExchangeOutlined,
   DescriptionOutlined,
-  FolderOpenOutlined
+  FolderOpenOutlined,
+  TransferWithinAStationOutlined
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
@@ -73,6 +74,11 @@ const DOCUMENT_TYPE_METADATA: Record<string, { title: string; desc: string; icon
     title: "Texnika xizmat ko'rsatmagan",
     desc: 'Chiqindi tashish xizmati bajarilmagan davrlar',
     icon: <LocationOffOutlined sx={{ color: 'secondary.main' }} />
+  },
+  yashovchi_kuchirish: {
+    title: "Yashovchi ko'chirish",
+    desc: "Kishini bir xonadondan boshqasiga o'tkazish: biriga −N, boshqasiga +N",
+    icon: <TransferWithinAStationOutlined sx={{ color: 'info.main' }} />
   },
   pul_kuchirish: {
     title: 'Pul ko‘chirish',

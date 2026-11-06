@@ -176,6 +176,7 @@ const uz = {
       viza: 'Qayta hisob-kitob (Viza)',
       dvaynik: 'Dublikat litseshyot',
       pul_kuchirish: "Pul ko'chirish",
+      yashovchi_kuchirish: "Yashovchi ko'chirish",
       death: 'Vafot etganlik',
       gps: 'GPS dalolatnoma'
     },
@@ -453,7 +454,8 @@ const uz = {
     dvaynik: 'Ikkilamchi kod',
     gps: "Texnika xizmat ko'rsatmagan",
     cancelContract: 'Shartnoma bekor qilish',
-    pul_kuchirish: 'Pul kuchirish'
+    pul_kuchirish: 'Pul kuchirish',
+    yashovchi_kuchirish: "Yashovchi soni ko'chirish"
   },
   buttons: {
     create: 'Yaratish',

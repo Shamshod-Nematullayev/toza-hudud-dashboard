@@ -126,6 +126,69 @@ function DvaynikMergePanel({ ariza, rowsDublicate, transferAmount }: { ariza: an
   );
 }
 
+/** Yashovchi ko'chirish: qaysi xonadondan qaysi xonadonga necha kishi o'tadi va ikkala akt summasi */
+function KuchirishPanel({ ariza }: { ariza: any }) {
+  const theme = useTheme();
+  const k = ariza?.kuchirish;
+  if (!k) return null;
+  const side = (kind: 'from' | 'to') => {
+    const isFrom = kind === 'from';
+    const color = isFrom ? theme.palette.warning.main : theme.palette.primary.main;
+    const total = Number(isFrom ? ariza.aktSummasi : k.toAktSumma?.total) || 0;
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 1.25,
+          py: 0.75,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: alpha(color, 0.5),
+          bgcolor: alpha(color, theme.palette.mode === 'dark' ? 0.2 : 0.06)
+        }}
+      >
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+            {isFrom ? ariza.licshet : k.toLicshet}
+          </Typography>
+          <Typography variant="caption" noWrap sx={{ display: 'block', color: 'text.secondary' }}>
+            {isFrom ? ariza.fio : k.toFio}
+            {total ? ` · qayta hisob: ${total > 0 ? '+' : ''}${total.toLocaleString()}` : ''}
+          </Typography>
+        </Box>
+        <Chip
+          size="small"
+          label={`${isFrom ? k.fromCurrentCnt : k.toCurrentCnt} → ${isFrom ? k.fromNextCnt : k.toNextCnt} kishi`}
+          color={isFrom ? 'warning' : 'primary'}
+          sx={{ fontWeight: 700 }}
+        />
+      </Box>
+    );
+  };
+  return (
+    <Box sx={{ px: 1 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75 }}>
+        Yashovchi ko'chirish · {k.oy} oyidan
+      </Typography>
+      {side('from')}
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 1, py: 0.5, pl: 2 }}>
+        <ArrowDownward fontSize="small" sx={{ color: 'primary.main' }} />
+        <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+          {k.shaxslar ? `${k.shaxslar} · ` : ''}
+          {k.soni} kishi o'tadi ({String(k.sabab || '').toLowerCase()})
+        </Typography>
+      </Stack>
+      {side('to')}
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+        Ikkala akt bitta fayl bilan kiritiladi. Kishi soni kiritish paytidagi TozaMakon sonidan hisoblanadi, joriy oy farqi summaga
+        avtomatik qo'shiladi.
+      </Typography>
+    </Box>
+  );
+}
+
 export function ArizaMode({
   ariza,
   setAriza,
@@ -319,7 +382,9 @@ export function ArizaMode({
       </Box>
     );
   }
-  const isDvaynik = ariza?.document_type === 'dvaynik';
+  const isKuchirish = ariza?.document_type === 'yashovchi_kuchirish';
+  // Ikkinchi abonent yorlig'i: dvaynikda o'chiriladigan, ko'chirishda qabul qiluvchi hisob raqam DHJ si
+  const isDvaynik = ariza?.document_type === 'dvaynik' || isKuchirish;
   const isViza = ariza?.document_type === 'viza';
   const currentInhabitant = ariza?.current_prescribed_cnt ?? rows[0]?.yashovchilar_soni;
   const nextInhabitant = getArizaNextInhabitant(ariza, rows[0]?.yashovchilar_soni);
@@ -341,7 +406,9 @@ export function ArizaMode({
     </Typography>
   );
 
-  const inhabitantValue = isViza ? (
+  const inhabitantValue = isKuchirish ? (
+    `${ariza.kuchirish?.fromCurrentCnt ?? currentInhabitant} → ${ariza.kuchirish?.fromNextCnt ?? nextInhabitant}`
+  ) : isViza ? (
     unchangedText
   ) : inhabitantCountEditing ? (
     <TextField
@@ -400,7 +467,9 @@ export function ArizaMode({
         <InfoCell label="Yashovchilar soni">{inhabitantValue}</InfoCell>
         <InfoCell label="Yaratilgan sana">{ariza?.sana ? new Date(ariza.sana).toLocaleDateString() : '—'}</InfoCell>
         <InfoCell label="Akt summa">
-          {aktSumEditing ? (
+          {isKuchirish ? (
+            Number(ariza.aktSummasi || 0).toLocaleString()
+          ) : aktSumEditing ? (
             <TextField
               size="small"
               autoFocus
@@ -421,9 +490,10 @@ export function ArizaMode({
         </InfoCell>
       </Box>
 
-      {isDvaynik && <DvaynikMergePanel ariza={ariza} rowsDublicate={rowsDublicate} transferAmount={Number(allPaymentsSumOnDublicate) || 0} />}
+      {isKuchirish && <KuchirishPanel ariza={ariza} />}
+      {isDvaynik && !isKuchirish && <DvaynikMergePanel ariza={ariza} rowsDublicate={rowsDublicate} transferAmount={Number(allPaymentsSumOnDublicate) || 0} />}
 
-      <AdjustmentAlert adjustmentData={adjustmentData} aktSumm={aktSumm} onApplyRecommendedSum={handleApplyAdjustment} />
+      {!isKuchirish && <AdjustmentAlert adjustmentData={adjustmentData} aktSumm={aktSumm} onApplyRecommendedSum={handleApplyAdjustment} />}
 
       {/* 3. Jadval — faqat oxirgi oylar */}
       <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -433,10 +503,14 @@ export function ArizaMode({
             onChange={!isLoading ? handleTabChange : undefined}
             sx={{ minHeight: 34, '& .MuiTab-root': { minHeight: 34, py: 0 } }}
           >
-            <Tab label={isDvaynik ? `Asosiy · ${ariza.licshet}` : 'DHJ'} sx={{ textTransform: 'none' }} disabled={isLoading} />
+            <Tab
+              label={isKuchirish ? `Chiqib ketadi · ${ariza.licshet}` : isDvaynik ? `Asosiy · ${ariza.licshet}` : 'DHJ'}
+              sx={{ textTransform: 'none' }}
+              disabled={isLoading}
+            />
             {isDvaynik && (
               <Tab
-                label={`Ikkilamchi · ${ariza.ikkilamchi_licshet || ''}`}
+                label={`${isKuchirish ? 'Qabul qiladi' : 'Ikkilamchi'} · ${ariza.ikkilamchi_licshet || ''}`}
                 sx={{ textTransform: 'none', '&.Mui-selected': { color: 'error.main' } }}
                 disabled={isLoading}
               />

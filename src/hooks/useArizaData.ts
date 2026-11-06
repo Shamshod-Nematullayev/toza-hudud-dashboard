@@ -66,7 +66,7 @@ export function useArizaData(ariza: IAriza | null, manualResidentId?: number | n
       const mappedRows = transformRows(rows);
 
       setRows(mappedRows);
-      if (ariza?.document_type === 'dvaynik' && ariza.ikkilamchi_licshet) {
+      if ((ariza?.document_type === 'dvaynik' || ariza?.document_type === 'yashovchi_kuchirish') && ariza.ikkilamchi_licshet) {
         const abonentData = await getAbonentDataByAccountnumber(ariza.ikkilamchi_licshet);
         const responseDublicateRows = await getAbonentDxjByResidentId(abonentData.id);
         const mappedRowsDublicate = transformRows(responseDublicateRows);

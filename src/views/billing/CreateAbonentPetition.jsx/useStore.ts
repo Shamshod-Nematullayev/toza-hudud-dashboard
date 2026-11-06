@@ -133,7 +133,87 @@ interface IAktSumma {
   withoutQQSTotal: number;
 }
 
-export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza' | 'cancelContract' | 'pul_kuchirish' | null;
+export type aktType = 'odam_soni' | 'dvaynik' | 'gps' | 'death' | 'viza' | 'cancelContract' | 'pul_kuchirish' | 'yashovchi_kuchirish' | null;
+
+/** Yashovchi ko'chirish sabablari (dalolatnomaga yoziladi) */
+export const kuchirishSabablari = [
+  'Turmushga chiqqanligi sababli',
+  'Uylanib alohida yashayotganligi sababli',
+  "Boshqa xonadonga ko'chib o'tganligi sababli",
+  "Qarindoshinikiga ko'chib o'tganligi sababli",
+  "Yangi uy-joy sotib olganligi sababli",
+  'Ijaraga ko\'chib o\'tganligi sababli'
+] as const;
+
+/** Yashovchi ko'chirish formasi: asosiy abonentdan (abonentData) qabul qiluvchiga (abonentData2) */
+export interface IKuchirishInput {
+  soni: string;
+  sabab: string;
+  /** Ko'chirilgan shaxs(lar) F.I.Sh */
+  shaxslar: string;
+  /** Ko'chgan oy: undan keyingi yopilgan oylar ikkala abonentda qayta hisoblanadi */
+  oy: Dayjs | null;
+  /** Qabul qiluvchining qayta hisob davri va summasi (asosiyniki — recalculationPeriods/aktSumma) */
+  toPeriods: IRecalculationPeriod[];
+  toAktSumma: IAktSumma;
+}
+
+/** Arizada saqlanadigan ko'chirish ma'lumoti (backend IKuchirish) */
+export interface IKuchirish {
+  soni: number;
+  sabab: string;
+  shaxslar?: string;
+  oy: string;
+  fromCurrentCnt: number;
+  fromNextCnt: number;
+  toAbonentId: number;
+  toLicshet: string;
+  toFio: string;
+  toCurrentCnt: number;
+  toNextCnt: number;
+  toAktSumma: { total: number; withQQSTotal: number; withoutQQSTotal: number };
+}
+
+export const emptyKuchirish = (): IKuchirishInput => ({
+  soni: '1',
+  sabab: kuchirishSabablari[0],
+  shaxslar: '',
+  oy: dayjs().startOf('month'),
+  toPeriods: [],
+  toAktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 }
+});
+
+/**
+ * [from, to] oylarida yashovchi soni `delta` ga o'zgargandek qayta hisob (yashovchi ko'chirish).
+ * Kishi ayrilsa (delta < 0) ortiqcha hisoblangan — musbat (kreditor), qo'shilsa — manfiy (debitor).
+ * Oyda yashovchi `delta` dan kam bo'lsa, faqat borini ayiradi. DHJ da yo'q oy hisobga kirmaydi.
+ */
+export function calcDeltaPeriod(rows: dhjRow[], jadval: IHisoblandiItem[], from: Dayjs, to: Dayjs, delta: number): IRecalculationPeriod | null {
+  let total = 0;
+  let withQQSTotal = 0;
+  let months = 0;
+  for (const row of rows) {
+    const d = davrToMonth(row.davr);
+    if (!d || d.isBefore(from, 'month') || d.isAfter(to, 'month')) continue;
+    const tariff = jadval.find((r) => r.year === d.year() && r.month === d.month() + 1);
+    if (!tariff) continue;
+    const effective = Math.max(delta, -(Number(row.yashovchilar_soni) || 0));
+    const diff = -effective * tariff.hisoblandi;
+    total += diff;
+    if (tariff.withQQS) withQQSTotal += diff;
+    months++;
+  }
+  if (!months) return null;
+  return {
+    startDate: from.startOf('month'),
+    endDate: to.endOf('month'),
+    total,
+    withQQSTotal,
+    withoutQQSTotal: total - withQQSTotal,
+    yashovchiDelta: delta,
+    periodType: total >= 0 ? 'kreditor' : 'debitor'
+  };
+}
 
 export interface ITransferCreditor {
   id: number;
@@ -340,6 +420,7 @@ interface StoreActionsState {
   setTransferDebitorAmount: (amount: string) => void;
   setRecalcMode: (mode: RecalcMode) => void;
   setStages: (stages: IStageInput[]) => void;
+  setKuchirish: (patch: Partial<IKuchirishInput>) => void;
 }
 
 interface UIState {
@@ -384,6 +465,7 @@ interface StoreDataState {
   isCreatingAriza: boolean;
   recalcMode: RecalcMode;
   stages: IStageInput[];
+  kuchirish: IKuchirishInput;
 }
 
 const initialStoreDataState: StoreDataState = {
@@ -433,6 +515,7 @@ const initialStoreDataState: StoreDataState = {
   isCreatingAriza: false,
   recalcMode: 'oddiy',
   stages: [emptyStage()],
+  kuchirish: emptyKuchirish(),
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' }
 };
 
@@ -459,7 +542,12 @@ export const useStore = create<StoreState>((set, get) => ({
   setIsGlobalAbonent2: (isGlobal: boolean) => set({ isGlobalAbonent2: isGlobal }),
   // Ikki bosqichli rejim faqat odam soni uchun: boshqa turga o'tilsa oddiyga qaytadi
   setAktType: (aktType) =>
-    set(aktType === 'odam_soni' ? { aktType } : { aktType, recalcMode: 'oddiy', stages: [emptyStage()] }),
+    set({
+      aktType,
+      kuchirish: emptyKuchirish(),
+      ...(aktType === 'odam_soni' ? {} : { recalcMode: 'oddiy' as RecalcMode, stages: [emptyStage()] })
+    }),
+  setKuchirish: (patch) => set((state) => ({ kuchirish: { ...state.kuchirish, ...patch } })),
   // Rejim almashganda avvalgi rejimda qo'shilgan davrlar arizaga aralashib ketmasin
   setRecalcMode: (mode) =>
     set({
@@ -481,7 +569,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setPasteImageDialogOpen: (pasteImageDialogOpen) => set({ pasteImageDialogOpen }),
   setImages: (images) => set({ images }),
   setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi }),
-  setInitialState: () => set(initialStoreDataState),
+  setInitialState: () => set({ ...initialStoreDataState, kuchirish: emptyKuchirish() }),
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
   setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma }),
   createAriza: async () => {
@@ -589,6 +677,67 @@ export const useStore = create<StoreState>((set, get) => ({
           setShowPrintSection(true);
         } catch (error: any) {
           console.error(error.message);
+          toast.error(error?.response?.data?.message || error.message || 'Xatolik kuzatildi');
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      if (aktType === 'yashovchi_kuchirish') {
+        const { kuchirish } = get();
+        const error = validateKuchirish(abonentData, abonentData2, kuchirish, get().isGlobalAbonent2);
+        if (error) {
+          toast.error(error);
+          return;
+        }
+        const soni = Number(kuchirish.soni);
+        const fromCurrent = Number(abonentData.house?.inhabitantCnt) || 0;
+        const toCurrent = Number(abonentData2.house?.inhabitantCnt) || 0;
+        const payload: IKuchirish = {
+          soni,
+          sabab: kuchirish.sabab.trim(),
+          shaxslar: kuchirish.shaxslar.trim() || undefined,
+          oy: kuchirish.oy!.format('MM.YYYY'),
+          fromCurrentCnt: fromCurrent,
+          fromNextCnt: fromCurrent - soni,
+          toAbonentId: abonentData2.id,
+          toLicshet: abonentData2.accountNumber,
+          toFio: abonentData2.fullName,
+          toCurrentCnt: toCurrent,
+          toNextCnt: toCurrent + soni,
+          toAktSumma: {
+            total: kuchirish.toAktSumma.total,
+            withQQSTotal: kuchirish.toAktSumma.totalWithQQS,
+            withoutQQSTotal: kuchirish.toAktSumma.withoutQQSTotal
+          }
+        };
+        setIsLoading(true);
+        try {
+          const { data } = await api.post('/arizalar/create', {
+            account_number: abonentData.accountNumber,
+            abonentId: abonentData.id,
+            fullName: abonentData.fullName,
+            dublicat_account_number: abonentData2.accountNumber,
+            document_type: aktType,
+            akt_summasi: { total: aktSumma.total, withQQSTotal: aktSumma.totalWithQQS, withoutQQSTotal: aktSumma.withoutQQSTotal },
+            current_prescribed_cnt: fromCurrent,
+            next_prescribed_cnt: payload.fromNextCnt,
+            photos: images.map((img) => img.document_id),
+            recalculationPeriods,
+            kuchirish: payload
+          });
+          if (!data.ok) return toast.error(data.message);
+          setAriza(data.ariza);
+          const [mfy1, mfy2] = await Promise.all([
+            api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId),
+            api.get('/billing/get-mfy-by-id/' + abonentData2.mahallaId)
+          ]);
+          setMahalla(mfy1.data);
+          setMahallaDublicat(mfy2.data);
+          setShowPrintSection(true);
+        } catch (error: any) {
+          console.error(error);
           toast.error(error?.response?.data?.message || error.message || 'Xatolik kuzatildi');
         } finally {
           setIsLoading(false);
@@ -900,6 +1049,27 @@ export const useStore = create<StoreState>((set, get) => ({
   setShouldBeMoneyTransfer: (shouldBeMoneyTransfer: boolean) => set({ shouldBeMoneyTransfer })
 }));
 
+/** Yashovchi ko'chirish formasini tekshiradi: xato matni yoki null */
+export function validateKuchirish(
+  from: AbonentDetails,
+  to: AbonentDetails,
+  k: IKuchirishInput,
+  isGlobalTo: boolean
+): string | null {
+  const soni = Number(k.soni);
+  const fromCurrent = Number(from?.house?.inhabitantCnt) || 0;
+  if (!from?.accountNumber) return 'Asosiy (kishi chiqib ketayotgan) hisob raqamini kiriting';
+  if (!to?.accountNumber) return 'Qabul qiluvchi hisob raqamini kiriting';
+  if (isGlobalTo) return "Qabul qiluvchi boshqa tashkilot abonenti: ko'chirish faqat bitta tashkilot ichida";
+  if (from.accountNumber === to.accountNumber) return "Bir hisob raqamning o'ziga ko'chirib bo'lmaydi";
+  if (!Number.isInteger(soni) || soni < 1) return "Ko'chiriladigan kishi soni kamida 1 bo'lishi kerak";
+  if (soni > fromCurrent) return `Asosiy abonentda ${fromCurrent} kishi bor, ${soni} kishini ko'chirib bo'lmaydi`;
+  if (!k.sabab.trim()) return "Ko'chirish sababini kiriting";
+  if (!k.oy?.isValid()) return "Ko'chgan oyni kiriting";
+  if (k.oy.isAfter(dayjs(), 'month')) return "Kelajakdagi oyni tanlab bo'lmaydi";
+  return null;
+}
+
 /** Xato bo'lsa toast ko'rsatadi va false qaytaradi — so'rov yuborilmaydi */
 function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }): boolean {
   if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(parseInt(inhabitantCnt)))) {
@@ -1003,6 +1173,17 @@ export function buildAutoAsoslantiruvchi({
       );
       if (muzlatiladi) sentences.push(`Hozirgi kunda ham ushbu manzilga xizmat ko'rsatish imkoniyati mavjud emas, shu sababli hisob raqam muzlatiladi.`);
       break;
+    case 'yashovchi_kuchirish': {
+      const k = ariza.kuchirish as IKuchirish | undefined;
+      if (k) {
+        sentences.push(
+          `Xonadonda joyida o'rganish o'tkazildi, MFY ma'lumotlariga ko'ra ${k.shaxslar ? `${k.shaxslar} ` : ''}(${k.soni} nafar) ${k.oy} oyidan boshlab ${
+            ariza.licshet
+          } hisob raqamli xonadondan ${k.toLicshet} hisob raqamli xonadonga ko'chib o'tganligi (${k.sabab.toLowerCase()}) tasdiqlandi.`
+        );
+      }
+      break;
+    }
     case 'dvaynik': {
       const first = abonentData?.accountNumber || ariza.licshet;
       const second = abonentData2?.accountNumber || ariza.ikkilamchi_licshet;

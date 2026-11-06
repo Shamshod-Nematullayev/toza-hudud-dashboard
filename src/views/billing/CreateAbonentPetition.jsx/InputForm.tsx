@@ -60,9 +60,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { aktType, defaultAbonentData, dublicateRelations, useStore } from './useStore';
+import { aktType, defaultAbonentData, dublicateRelations, useStore, validateKuchirish } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import { documentTypes } from 'store/constant';
+import { InhabitantTransferFields } from './InhabitantTransfer';
 import { TourHelpButton } from 'ui-component/tour';
 
 interface InputFormProps {
@@ -161,7 +162,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     selectedApplicantId,
     setSelectedApplicantId,
     transferDebitorAmount,
-    setTransferDebitorAmount
+    setTransferDebitorAmount,
+    kuchirish
   } = useStore();
 
   const theme = useTheme();
@@ -331,6 +333,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     (aktType === 'dvaynik' && !abonentData2.accountNumber) ||
     (aktType === 'dvaynik' && isGlobalAbonent2) ||
     (aktType === 'gps' && images.length === 0) ||
+    (aktType === 'yashovchi_kuchirish' && !!validateKuchirish(abonentData, abonentData2, kuchirish, isGlobalAbonent2)) ||
     (aktType === 'pul_kuchirish' &&
       (!transferDebitorAmount || Number(transferDebitorAmount) <= 0 || transferCreditors.length === 0 || !isAmountBalanced));
 
@@ -342,6 +345,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (!aktType) return t('Hujjat turini tanlang') || '';
     if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t('Ikkilamchi hisob raqamini kiriting') || '';
     if (aktType === 'gps' && images.length === 0) return t('GPS arizasi uchun kamida bitta rasm biriktiring') || '';
+    if (aktType === 'yashovchi_kuchirish') return validateKuchirish(abonentData, abonentData2, kuchirish, isGlobalAbonent2) || '';
     if (aktType === 'pul_kuchirish') {
       if (!transferDebitorAmount || Number(transferDebitorAmount) <= 0) return "O'tkaziladigan summani kiriting";
       if (transferCreditors.length === 0) return "Kamida bitta qabul qiluvchi hisob raqamini qo'shing";
@@ -623,6 +627,60 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     }
                     sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
                   />
+                </Stack>
+              )}
+
+              {/* Yashovchi ko'chirish: asosiy abonentdan qabul qiluvchiga */}
+              {aktType === 'yashovchi_kuchirish' && (
+                <Stack spacing={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <AccountNumberInput
+                        label={t('Qabul qiluvchi hisob raqami')}
+                        value={accountNumber2}
+                        setFunc={setAccountNumber2}
+                        loading={abonentLookup.dublicate.loading}
+                        error={!abonentLookup.dublicate.loading && !!abonentLookup.dublicate.error && accountNumber2.length === 12}
+                      />
+                    </Box>
+                    <Tooltip title={t("Yo'nalishni almashtirish")}>
+                      <IconButton
+                        onClick={handleSwapIconButtonClick}
+                        color="primary"
+                        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
+                      >
+                        <ScreenRotationAlt />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  {accountNumber2.length === 12 && (
+                    <AbonentLookupFeedback
+                      loading={abonentLookup.dublicate.loading}
+                      error={abonentLookup.dublicate.error}
+                      onRetry={() => updateAbonentDataByAccNum(accountNumber2, 'dublicate')}
+                    />
+                  )}
+                  {abonentData2.accountNumber && (
+                    <Paper
+                      elevation={0}
+                      sx={{ p: 1.25, borderRadius: 1.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
+                            {t('Qabul qiluvchi')}: {abonentData2.fullName || '—'}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {abonentData2.mahallaName}, {abonentData2.streetName} | {abonentData2.house?.inhabitantCnt || 0} kishi
+                          </Typography>
+                        </Box>
+                        <IconButton size="small" onClick={() => handleOpenAbonentCard(abonentData2.accountNumber)}>
+                          <AccountCircle fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Paper>
+                  )}
+                  <InhabitantTransferFields />
                 </Stack>
               )}
 
@@ -1112,7 +1170,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
               )}
 
               {/* Akt summasi indikatori */}
-              {aktType !== 'dvaynik' && aktType !== 'pul_kuchirish' && (
+              {aktType !== 'dvaynik' && aktType !== 'pul_kuchirish' && aktType !== 'yashovchi_kuchirish' && (
                 <Box
                   sx={{
                     p: 1.5,

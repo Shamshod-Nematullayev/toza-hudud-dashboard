@@ -130,7 +130,7 @@ function DataTable({ onOpenMobileFilter, showMobileFilterButton }: DataTableProp
           : Promise.resolve();
 
         let dublicatPromise = Promise.resolve();
-        if (ariza.document_type === 'dvaynik' && ariza.ikkilamchi_licshet) {
+        if ((ariza.document_type === 'dvaynik' || ariza.document_type === 'yashovchi_kuchirish') && ariza.ikkilamchi_licshet) {
           dublicatPromise = api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet).then(async (dubRes) => {
             const dubAbonent = dubRes.data?.abonentData;
             setAbonentData2(dubAbonent);

@@ -329,6 +329,12 @@ export function useFindedTableLogic() {
           formData = new FormData();
           formData.append('file', currentFile.blob, currentFile.file.name);
           url = `/arizalar/money-transfer-act/${ariza._id}`;
+        } else if (ariza.document_type === 'yashovchi_kuchirish') {
+          // Ikkala abonent aktlari ariza ma'lumotidan serverda tuziladi
+          formData = new FormData();
+          formData.append('file', currentFile.blob, currentFile.file.name);
+          formData.append('ariza_id', ariza._id);
+          url = '/billing/create-kuchirish-akt-by-ariza';
         } else {
           formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows, overrideShouldTransferMoney);
 
