@@ -680,32 +680,60 @@ export default function PrintSection({
             )}
           </Stack>
 
-          {/* Dalolatnoma turini tanlash dropdowni */}
-          <Box sx={{ mb: 2 }}>
-            <FormControl fullWidth size="small" disabled={ishtirokchilarDisabled}>
-              <InputLabel id="act-type-select-label">Dalolatnoma turi</InputLabel>
-              <Select
-                labelId="act-type-select-label"
-                label="Dalolatnoma turi"
-                value={selectedActTypeId}
-                onChange={(e) => setSelectedActTypeId(e.target.value)}
-              >
-                {actTypes.map((type) => (
-                  <MenuItem key={type._id || type.key} value={type._id || type.key}>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {type.name}
-                      </Typography>
-                      {type.isDefault && (
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          (Standart)
-                        </Typography>
-                      )}
-                    </Stack>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+          {/* Dalolatnoma turi: shablonlar 1-4 ta bo'ladi, select ikki marta bosishni talab qilgani uchun yonma-yon kartalar */}
+          <Box
+            role="radiogroup"
+            aria-label="Dalolatnoma turi"
+            sx={{
+              mb: 2,
+              display: 'grid',
+              gridTemplateColumns: `repeat(${Math.min(Math.max(actTypes.length, 1), 4)}, minmax(0, 1fr))`,
+              gap: 1
+            }}
+          >
+            {actTypes.map((type) => {
+              const id = type._id || type.key;
+              const selected = (selectedActType?._id || selectedActType?.key) === id;
+              return (
+                <Box
+                  key={id}
+                  component="button"
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  disabled={ishtirokchilarDisabled}
+                  onClick={() => setSelectedActTypeId(id)}
+                  sx={{
+                    minWidth: 0,
+                    p: 1.25,
+                    textAlign: 'left',
+                    font: 'inherit',
+                    cursor: ishtirokchilarDisabled ? 'default' : 'pointer',
+                    borderRadius: 2,
+                    border: '1.5px solid',
+                    borderColor: selected ? 'primary.main' : 'divider',
+                    bgcolor: selected
+                      ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
+                      : 'background.paper',
+                    color: 'text.primary',
+                    opacity: ishtirokchilarDisabled ? 0.5 : 1,
+                    transition: 'border-color .15s, background-color .15s',
+                    '&:hover:not(:disabled)': { borderColor: 'primary.main' },
+                    '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 }
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 700, color: selected ? 'primary.main' : 'text.primary', lineHeight: 1.3 }}
+                  >
+                    {type.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    {type.participants?.length || 0} ta ishtirokchi{type.isDefault ? ' · Standart' : ''}
+                  </Typography>
+                </Box>
+              );
+            })}
           </Box>
 
           {ishtirokchilarDisabled && (

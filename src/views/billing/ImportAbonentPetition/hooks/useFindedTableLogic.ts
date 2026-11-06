@@ -134,7 +134,7 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
 };
 
 export function useFindedTableLogic() {
-  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, setShowDialog, getArizalarByNumber, enteringMode } = useStore();
+  const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, getArizalarByNumber, enteringMode } = useStore();
   const [arizaNumberInput, setArizaNumberInput] = useState('');
   const [inputDisabled, setInputDisabled] = useState(true);
   const [showSpoiler, setShowSpoiler] = useState(false);

@@ -1,4 +1,5 @@
 import { toast } from 'react-toastify';
+import { promptDialog } from 'ui-component/ConfirmDialog';
 import { getArizaById, getArizasByNumber } from 'services/getArizaById';
 import { IAriza } from 'types/models';
 import api from 'utils/api';
@@ -49,7 +50,6 @@ interface StateData {
   arizalarList: Ariza[]; // raqam bilan izlaganda chiqadigan arizalar ro'yxati
   pdfFiles: PDFFile[];
   currentFile: PDFFile | null;
-  showDialog: boolean; // bu eskicha usul hozircha ishlatilmoqda, keyinchalik uni ui state ga o'tkazish rejalashtirilgan
   enteringMode: ManualEnteringMode;
   ui: {
     showDialog: boolean;
@@ -58,14 +58,14 @@ interface StateData {
 }
 
 interface StateActions {
-  setShowDialog: (state: boolean) => void;
   setPdfFiles: (files: PDFFile[]) => void;
   setCurrentFile: (file_name: string) => void;
   removePdfFile: (file_name: string) => void;
   processFile: (fileName: string) => Promise<any>;
   resetState: () => void;
   setAriza: (ariza: Ariza | null) => void;
-  cancelAriza: (description: string) => void;
+  /** Sababini so'rab arizani bekor qiladi */
+  cancelAriza: () => Promise<unknown>;
   getArizalarByNumber: (number: number) => Promise<Ariza[]>;
   chooseArizaFromList: (arizaId: string) => void;
   setEnteringMode: (mode: ManualEnteringMode) => void;
@@ -78,7 +78,6 @@ const initialState: Readonly<StateData> = {
   ariza: null,
   currentFile: null,
   pdfFiles: [],
-  showDialog: false,
   enteringMode: 'ariza',
   ui: {
     showDialog: false,
@@ -88,7 +87,6 @@ const initialState: Readonly<StateData> = {
 
 const useStore = create<State>((set, get) => ({
   ...initialState,
-  setShowDialog: (state) => set({ showDialog: state }),
   setPdfFiles: (files) => set({ pdfFiles: sortFilesByNumber(files) }),
   removePdfFile: (file_name) => set((state) => ({ pdfFiles: state.pdfFiles.filter(({ file }) => file.name != file_name) })),
   setCurrentFile: (file_name) => {
@@ -144,30 +142,33 @@ const useStore = create<State>((set, get) => ({
     }
   },
   resetState: () => set({ ...initialState }),
-  cancelAriza: (description) => {
-    const { ariza, currentFile, removePdfFile, ui } = get();
-    if (!ariza) return toast.error('Bekor qilinadigan ariza topilmadi');
+  cancelAriza: async () => {
+    const { ariza, currentFile } = get();
+    if (!ariza?._id) return toast.error('Bekor qilinadigan ariza topilmadi');
     if (!currentFile) return toast.error('Fayl topilmadi');
 
-    api
-      .post('/arizalar/cancel-ariza-by-id', {
-        _id: ariza,
-        canceling_description: description
-      })
-      .then(({ data }) => {
-        if (!data.ok) {
-          toast.error(data.message);
-          return;
-        }
-        toast.success('Ariza bekor qilindi!');
-        removePdfFile(currentFile.file.name);
-        set({
-          currentFile: null,
-          ariza: null,
-          showDialog: false,
-          ui: { ...ui, showDialog: false }
-        });
-      });
+    const reason = await promptDialog({
+      title: 'Arizani bekor qilish',
+      message: `№ ${ariza.document_number} ariza bekor qilinadi.`,
+      label: 'Bekor qilish sababi',
+      required: true,
+      multiline: true,
+      confirmText: 'Bekor qilish',
+      cancelText: 'Yopish',
+      color: 'error'
+    });
+    if (!reason?.trim()) return;
+
+    try {
+      // Avval mavjud bo'lmagan /cancel-ariza-by-id ga butun ariza obyekti yuborilib, 404 qaytardi
+      const { data } = await api.post('/arizalar/cancel', { _id: ariza._id, canceling_description: reason.trim() });
+      if (!data.ok) return toast.error(data.message);
+      toast.success('Ariza bekor qilindi!');
+      get().removePdfFile(currentFile.file.name);
+      set({ currentFile: null, ariza: null });
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Arizani bekor qilishda xatolik');
+    }
   },
   chooseArizaFromList: (arizaId) => {
     const { arizalarList } = get();

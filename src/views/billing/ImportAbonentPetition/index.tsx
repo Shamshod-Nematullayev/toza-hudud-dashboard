@@ -2,7 +2,6 @@ import React from 'react';
 import useStore, { PDFFile } from './hooks/useStore';
 import FilesList from './FilesList';
 import FindedDataTable from './FindedDataTable';
-import CancelDialog from './CancelDialog';
 import DisplayFile from './DisplayFile';
 import { Box, Card, Grid, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
@@ -17,7 +16,7 @@ import { usePageTour, getImportAbonentPetitionSteps } from 'ui-component/tour';
 const COLUMN_HEIGHT = 'calc(100vh - 220px)';
 
 function ImportAbonentPetition() {
-  const { pdfFiles, showDialog, setShowDialog } = useStore();
+  const { pdfFiles } = useStore();
   const { pdfFileLoading } = useUiStore();
   const { isLoading } = useLoaderStore();
 
@@ -144,7 +143,6 @@ function ImportAbonentPetition() {
           )}
         </Grid>
 
-        <CancelDialog showDialog={showDialog} setShowDialog={setShowDialog} />
       </Card>
     </Box>
   );

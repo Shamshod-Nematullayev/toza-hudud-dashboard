@@ -38,7 +38,7 @@ interface ArizaModeProps {
   isLoading: boolean;
   handlePrimaryButtonClick: (e: any) => Promise<any>;
   handleDeleteButtonClick: () => Promise<any>;
-  setShowDialog: (val: boolean) => void;
+  onCancelAriza: () => void;
   rowsDublicate?: any[];
   allPaymentsSumOnDublicate?: number;
 }
@@ -146,7 +146,7 @@ export function ArizaMode({
   isLoading,
   handlePrimaryButtonClick,
   handleDeleteButtonClick,
-  setShowDialog,
+  onCancelAriza,
   rowsDublicate = [],
   allPaymentsSumOnDublicate = 0
 }: ArizaModeProps) {
@@ -302,7 +302,7 @@ export function ArizaMode({
             variant="contained"
             color="error"
             disabled={isLoading}
-            onClick={() => setShowDialog(true)}
+            onClick={onCancelAriza}
           >
             {t('buttons.cancel')}
           </Button>
@@ -323,7 +323,11 @@ export function ArizaMode({
   const isViza = ariza?.document_type === 'viza';
   const currentInhabitant = ariza?.current_prescribed_cnt ?? rows[0]?.yashovchilar_soni;
   const nextInhabitant = getArizaNextInhabitant(ariza, rows[0]?.yashovchilar_soni);
-  const visibleRows = (showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows).slice(0, DHJ_VISIBLE_MONTHS);
+  // "Ikkilamchi" yorlig'i faqat dvaynik arizada bor: unda o'chiriladigan hisob raqamining DHJ si ko'rinadi
+  const showDublicateTab = isDvaynik && tabIndex === 1;
+  const visibleRows = (
+    showDublicateTab ? rowsDublicate : showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows
+  ).slice(0, DHJ_VISIBLE_MONTHS);
 
   const handleApplyAdjustment = (sum: string) => {
     setAktSumm(sum);
@@ -425,14 +429,25 @@ export function ArizaMode({
       <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column', width: '100%' }}>
         <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <Tabs
-            value={tabIndex}
+            value={isDvaynik ? tabIndex : 0}
             onChange={!isLoading ? handleTabChange : undefined}
             sx={{ minHeight: 34, '& .MuiTab-root': { minHeight: 34, py: 0 } }}
           >
-            <Tab label="Asosiy jadval" sx={{ textTransform: 'none' }} disabled={isLoading} />
-            <Tab label="Qo'shimcha" sx={{ textTransform: 'none' }} disabled={isLoading} />
+            <Tab label={isDvaynik ? `Asosiy · ${ariza.licshet}` : 'DHJ'} sx={{ textTransform: 'none' }} disabled={isLoading} />
+            {isDvaynik && (
+              <Tab
+                label={`Ikkilamchi · ${ariza.ikkilamchi_licshet || ''}`}
+                sx={{ textTransform: 'none', '&.Mui-selected': { color: 'error.main' } }}
+                disabled={isLoading}
+              />
+            )}
           </Tabs>
-          <IconButton size="small" disabled={isLoading} onClick={() => setShowSpoiler(!showSpoiler)} title="Akt kiritilgandan keyingi holat">
+          <IconButton
+            size="small"
+            disabled={isLoading || showDublicateTab}
+            onClick={() => setShowSpoiler(!showSpoiler)}
+            title="Akt kiritilgandan keyingi holat"
+          >
             {showSpoiler ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
           </IconButton>
         </Stack>
@@ -443,8 +458,14 @@ export function ArizaMode({
           density="compact"
           disableColumnMenu
           getRowId={(row) => row.id}
-          sx={{ flex: 1, minHeight: 0, '.first-row': { bgcolor: isDark ? 'warning.dark' : 'warning.light' } }}
-          getRowClassName={(params) => (params.indexRelativeToCurrentPage === 0 ? 'first-row' : '')}
+          localeText={{ noRowsLabel: showDublicateTab ? "Ikkilamchi hisob raqamining DHJ si topilmadi" : "Ma'lumot yo'q" }}
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            '.first-row': { bgcolor: isDark ? 'warning.dark' : 'warning.light' },
+            '.saldo-k-cell': { fontWeight: 700, fontSize: '0.85rem' }
+          }}
+          getRowClassName={(params) => (params.indexRelativeToCurrentPage === 0 && !showDublicateTab ? 'first-row' : '')}
         />
       </Box>
 
@@ -461,7 +482,7 @@ export function ArizaMode({
         >
           {t('buttons.submitEntry')}
         </Button>
-        <Button startIcon={<Close />} sx={{ flex: 0.5, py: 1 }} variant="contained" color="error" disabled={isLoading} onClick={() => setShowDialog(true)}>
+        <Button startIcon={<Close />} sx={{ flex: 0.5, py: 1 }} variant="contained" color="error" disabled={isLoading} onClick={onCancelAriza}>
           {t('buttons.cancel')}
         </Button>
         <Button sx={{ flex: 0.2, py: 1 }} variant="contained" color="secondary" disabled={isLoading} onClick={handleDeleteButtonClick}>

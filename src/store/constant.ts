@@ -8,11 +8,7 @@ export const appDrawerWidth = 320;
 // so'rovlar Vite proxy orqali o'sha origin'dan o'tadi (vite.config.mjs -> server.proxy)
 const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 export const SERVER_DOMAIN =
-  process.env.NODE_ENV === 'development'
-    ? isLocalHost
-      ? 'http://localhost:5001'
-      : window.location.origin
-    : 'https://api.greenzone.uz'; //'http://localhost:3000'
+  process.env.NODE_ENV === 'development' ? (isLocalHost ? 'http://localhost:5001' : window.location.origin) : 'https://api.greenzone.uz'; //'http://localhost:3000'
 export const SERVER_URL = SERVER_DOMAIN + '/api';
 export const actStatusOptions = [
   { value: 'NEW', label: 'Yangi' },

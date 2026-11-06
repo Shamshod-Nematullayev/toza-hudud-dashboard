@@ -20,7 +20,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { MoneyTransferConfirmDialog } from './MoneyTransferConfirmDialog';
 
 function FindedDataTable() {
-  const { ariza, setAriza, setShowDialog, ui, pdfFiles, currentFile, enteringMode, setEnteringMode } = useStore();
+  const { ariza, setAriza, cancelAriza, ui, pdfFiles, currentFile, enteringMode, setEnteringMode } = useStore();
   const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData, recalculationPeriods } = useRecalculatorStore();
 
   const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik');
@@ -101,15 +101,24 @@ function FindedDataTable() {
     setPhotos([...photos, document_id]);
   };
 
+  // Panel tor: saldo boshi olib tashlandi, saldo oxiri kengroq va ajralib turadi, akt ustuni ixcham
   const columns: GridColDef[] = [
-    { field: 'id', headerName: '№', width: 10 },
-    { field: 'davr', headerName: t('tableHeaders.period') },
-    { field: 'saldo_n', headerName: t('tableHeaders.nSaldo'), type: 'number' },
-    { field: 'nachis', headerName: t('tableHeaders.nachis'), type: 'number' },
-    { field: 'allPaymentsSum', headerName: t('tableHeaders.allPaymentsSum'), type: 'number' },
-    { field: 'saldo_k', headerName: t('tableHeaders.kSaldo'), type: 'number', flex: 1 },
-    { field: 'akt', headerName: t('tableHeaders.act'), type: 'number' },
-    { field: 'yashovchilar_soni', headerName: t('tableHeaders.inhabitantCount'), type: 'number', width: 10 }
+    { field: 'id', headerName: '№', width: 34, sortable: false },
+    { field: 'davr', headerName: t('tableHeaders.period'), width: 72, sortable: false },
+    { field: 'nachis', headerName: t('tableHeaders.nachis'), type: 'number', flex: 1, minWidth: 80, sortable: false },
+    { field: 'allPaymentsSum', headerName: t('tableHeaders.allPaymentsSum'), type: 'number', flex: 1, minWidth: 80, sortable: false },
+    {
+      field: 'saldo_k',
+      headerName: t('tableHeaders.kSaldo'),
+      type: 'number',
+      flex: 1.3,
+      minWidth: 100,
+      sortable: false,
+      cellClassName: 'saldo-k-cell',
+      headerClassName: 'saldo-k-cell'
+    },
+    { field: 'akt', headerName: t('tableHeaders.act'), type: 'number', width: 76, sortable: false },
+    { field: 'yashovchilar_soni', headerName: '👥', description: t('tableHeaders.inhabitantCount'), type: 'number', width: 40, sortable: false }
   ];
 
   if (pdfFiles.length === 0) {
@@ -182,7 +191,7 @@ function FindedDataTable() {
         isLoading={isLoading}
         handlePrimaryButtonClick={handlePrimaryButtonClick}
         handleDeleteButtonClick={handleDeleteButtonClick}
-        setShowDialog={setShowDialog}
+        onCancelAriza={cancelAriza}
         rowsDublicate={rowsDublicate}
         allPaymentsSumOnDublicate={allPaymentsSumOnDublicate}
       />
