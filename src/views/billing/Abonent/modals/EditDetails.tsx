@@ -28,12 +28,61 @@ import { DatePicker } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
 import MahallaSelection from 'ui-component/MahallaSelection';
 import StreetSelection from 'ui-component/StreetSelection';
-import { AddLocationAlt, ArrowBack, ArrowForward, AutoFixHigh, ManageSearch, Save } from '@mui/icons-material';
+import { AddLocationAlt, ArrowBack, ArrowForward, AutoFixHigh, ManageSearch, Save, Sync } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { isNumberValue } from 'utils/isNumberValue';
 import PhoneInput from 'ui-component/PhoneInput';
 import { PatternFormat, patternFormatter } from 'react-number-format';
 import AddStreetDialog from './AddStreetDialog';
+import RefreshedDataPickerDialog, { RefreshedData } from './RefreshedDataPickerDialog';
+import { House, parseAddress } from './ResidentCadastrs';
+import { HETSuccessResponse } from '../types';
+import api from 'utils/api';
+
+/** Kadastrdagi xonadon turini formadagi turga moslaydi (aniqlanmasa undefined) */
+function mapCadastrHouseType(houseType?: string | null): 'HOUSE' | 'APARTMENT' | undefined {
+  if (!houseType) return undefined;
+  if (/APARTMENT|Квартира|xonadon/i.test(houseType)) return 'APARTMENT';
+  if (/HOUSE|жилое помещение|uy-joy/i.test(houseType) && !/Нежилое/i.test(houseType)) return 'HOUSE';
+  return undefined;
+}
+
+/** JSHSHIR bo'yicha kadastr raqamlari va har birining manzili */
+async function fetchCadastrsByPnfl(pnfl: string): Promise<House[]> {
+  const { data } = await api.get<string[]>('/abonents/cadastrs', { params: { pnfl }, headers: { 'hide-error': true } });
+  const numbers = Array.isArray(data) ? data : [];
+  const houses = await Promise.all(
+    numbers.map(async (cadastralNumber) => {
+      try {
+        const { data: house } = await api.get<House>('/abonents/cadastr-details', {
+          params: { cadastralNumber },
+          headers: { 'hide-error': true }
+        });
+        return { ...house, cadastralNumber: house?.cadastralNumber || cadastralNumber, owners: house?.owners || [] } as House;
+      } catch {
+        // Tafsilot kelmasa ham raqamni tanlash imkoniyati qolsin
+        return {
+          cadastralNumber,
+          fullAddress: '',
+          houseNumber: '',
+          houseType: '',
+          isLegal: false,
+          numberOfOwners: 0,
+          objectType: '',
+          streetName: '',
+          owners: []
+        } as House;
+      }
+    })
+  );
+  return houses;
+}
+
+/** JSHSHIR bo'yicha elektr (HET) bazasidagi hisob raqamlar */
+async function fetchElectricityByPnfl(pinfl: string): Promise<HETSuccessResponse[]> {
+  const { data } = await api.get('/pendingNewAbonents/het-by-pinfl', { params: { pinfl }, headers: { 'hide-error': true } });
+  return (data?.data || []) as HETSuccessResponse[];
+}
 
 export function extractBirthDateString(jshshir: string) {
   if (!/^\d{14}$/.test(jshshir)) {
@@ -154,6 +203,94 @@ function EditDetails() {
     }
   };
 
+  // "Ma'lumotlarni yangilash": JSHSHIR bo'yicha pasport, kadastr va elektr bazalaridan ma'lumot olib keladi
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshedData, setRefreshedData] = useState<RefreshedData | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const applyPassportDetails = (details: Awaited<ReturnType<typeof getCitizensDetails>>) => {
+    setPassport(details.passport);
+    setFirstName(details.firstName);
+    setLastName(details.lastName);
+    setPatronymic(details.patronymic);
+    setBirthDate(details.birthDate ? dayjs(details.birthDate) : null);
+    setPassportIssuer(details.passportIssuer);
+    setForeignCitizen(details.foreignCitizen);
+    setPassportGivenDate(details.passportGivenDate ? dayjs(details.passportGivenDate) : null);
+    setPassportExpireDate(details.passportExpireDate ? dayjs(details.passportExpireDate) : null);
+    setInn(details.inn || '');
+    setAvatar(details.photo || '');
+  };
+
+  const handleRefreshData = async () => {
+    const cleanPnfl = pnfl.trim();
+    if (!/^\d{14}$/.test(cleanPnfl)) {
+      toast.warning("Ma'lumotlarni yangilash uchun to'g'ri JSHSHIR (14 ta raqam) kiriting");
+      return;
+    }
+    let birth = '';
+    try {
+      birth = extractBirthDateString(cleanPnfl);
+    } catch {
+      birth = '';
+    }
+    setRefreshing(true);
+    try {
+      const [passportRes, cadastrsRes, electricityRes] = await Promise.allSettled([
+        getCitizensDetails({ pnfl: cleanPnfl, passport, birthDate: birth, photoStatus: 'WITH_PHOTO' }),
+        fetchCadastrsByPnfl(cleanPnfl),
+        fetchElectricityByPnfl(cleanPnfl)
+      ]);
+      if (!isMountedRef.current) return;
+
+      const result: RefreshedData = { cadastrs: [], electricityAccounts: [], passportUpdated: false };
+
+      // Pasport ma'lumotlari tanlovsiz to'g'ridan-to'g'ri formaga kiritiladi
+      if (passportRes.status === 'fulfilled' && passportRes.value?.firstName) {
+        applyPassportDetails(passportRes.value);
+        result.passportUpdated = true;
+      } else {
+        result.passportError =
+          passportRes.status === 'rejected'
+            ? passportRes.reason?.response?.data?.message || "Pasport ma'lumotlarini olib bo'lmadi"
+            : t('abonentCardPage.noDataForPnfl');
+      }
+
+      if (cadastrsRes.status === 'fulfilled') result.cadastrs = cadastrsRes.value;
+      else if (cadastrsRes.reason?.response?.status === 404) result.cadastrs = [];
+      else result.cadastrsError = cadastrsRes.reason?.response?.data?.message || "Kadastr ma'lumotlarini olib bo'lmadi";
+
+      if (electricityRes.status === 'fulfilled') result.electricityAccounts = electricityRes.value;
+      else result.electricityError = electricityRes.reason?.response?.data?.message || "Elektr ma'lumotlarini olib bo'lmadi";
+
+      setRefreshedData(result);
+      setPickerOpen(true);
+    } finally {
+      if (isMountedRef.current) setRefreshing(false);
+    }
+  };
+
+  const handleApplyRefreshed = ({ cadastr, electricity }: { cadastr?: House; electricity?: HETSuccessResponse }) => {
+    if (cadastr) {
+      const parsed = parseAddress(cadastr.fullAddress || '');
+      const mappedType = mapCadastrHouseType(cadastr.houseType);
+      if (mappedType) setHomeType(mappedType);
+      setCadastralNumber(cadastr.cadastralNumber);
+      setIsAutoCadastr(false);
+      // Xonadon (uy) raqami kadastrdagi manzil bo'yicha
+      const houseNumber = (cadastr.houseNumber || parsed.houseNumber || '').toString().trim();
+      if (houseNumber) setBuildingId(houseNumber);
+      if ((mappedType || homeType) === 'APARTMENT' && parsed.flatNumber) setFlatId(parsed.flatNumber);
+    }
+    if (electricity) {
+      setElectricityCoato(String(electricity.coatoCode || ''));
+      setElectricityAccountNumber(String(electricity.personalAccount || ''));
+      setHetCheck({ loading: false, fullName: electricity.fullName, address: electricity.address });
+    }
+    setPickerOpen(false);
+    toast.success("Tanlangan ma'lumotlar formaga kiritildi. Saqlashni unutmang");
+  };
+
   useEffect(() => {
     if (editDialogOpenState && abonentDetails?.id) {
       if (isReopenedByErrorRef.current) {
@@ -164,6 +301,8 @@ function EditDetails() {
       setTabIndex(0);
       setIsAutoCadastr(false);
       setHetCheck(null);
+      setRefreshedData(null);
+      setPickerOpen(false);
       setPnfl(abonentDetails.citizen.pnfl);
       setPassport(abonentDetails.citizen.passport);
       setFirstName(abonentDetails.citizen.firstName);
@@ -349,7 +488,8 @@ function EditDetails() {
         cadastralNumber: cadastralNumber ? cadastralNumber.replace(/[_:]+$/, '').replace(/_/g, '') : '',
         temporaryCadastralNumber,
         type: homeType,
-        homeNumber: buildingId,
+        // Tozamakon bo'sh uy raqamini qabul qilmaydi: kiritilmagan bo'lsa 0 yuboriladi
+        homeNumber: buildingId.trim() || '0',
         flatNumber: flatId,
         homeIndex: homeIndex
       },
@@ -399,10 +539,26 @@ function EditDetails() {
         setIsAutoCadastr(false);
       }}
     >
-      <Tabs value={tabIndex} onChange={(e, value) => setTabIndex(value)} sx={{ pb: 1 }}>
-        <Tab label={t('abonentCardPage.personalDetails')} value={0} />
-        <Tab label={t('abonentCardPage.abonentDetails')} value={1} />
-      </Tabs>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+        <Tabs value={tabIndex} onChange={(e, value) => setTabIndex(value)}>
+          <Tab label={t('abonentCardPage.personalDetails')} value={0} />
+          <Tab label={t('abonentCardPage.abonentDetails')} value={1} />
+        </Tabs>
+        <Tooltip title="JSHSHIR bo'yicha pasport, kadastr va elektr bazalaridan ma'lumotlarni olib kelish">
+          <span>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={handleRefreshData}
+              disabled={refreshing || !/^\d{14}$/.test(pnfl.trim())}
+              startIcon={refreshing ? <CircularProgress size={14} /> : <Sync />}
+              sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+            >
+              Ma'lumotlarni yangilash
+            </Button>
+          </span>
+        </Tooltip>
+      </Stack>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={1}>
           {tabIndex === 0 && (
@@ -686,11 +842,19 @@ function EditDetails() {
                   value={buildingId}
                   onChange={(e) => setBuildingId(e.target.value)}
                   fullWidth
-                  error={buildingId === ''}
+                  placeholder="0"
+                  helperText={buildingId.trim() === '' ? '0 yuboriladi' : undefined}
                 />
               </Grid>
               <Grid size={{ xs: 3 }}>
-                <TextField label={t('tableHeaders.homeIndex')} value={homeIndex} onChange={(e) => setHomeIndex(e.target.value)} fullWidth />
+                <TextField
+                  label={t('tableHeaders.homeIndex')}
+                  value={homeIndex}
+                  // Tozamakon faqat raqam yoki bo'sh indeksni qabul qiladi
+                  onChange={(e) => setHomeIndex(e.target.value.replace(/\D/g, ''))}
+                  slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*' } }}
+                  fullWidth
+                />
               </Grid>
 
               {homeType === 'APARTMENT' && (
@@ -795,6 +959,14 @@ function EditDetails() {
           }}
         />
       )}
+      <RefreshedDataPickerDialog
+        open={pickerOpen}
+        data={refreshedData}
+        currentCadastralNumber={cadastralNumber}
+        currentElectricityAccountNumber={electricityAccountNumber}
+        onClose={() => setPickerOpen(false)}
+        onApply={handleApplyRefreshed}
+      />
     </DraggableDialog>
   );
 }
