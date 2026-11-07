@@ -9051,7 +9051,7 @@ export default function OnlineMahallaSync() {
 
                     {/* Asosiy xulosa metrikalari */}
                     <Grid container spacing={1.5}>
-                      <Grid item xs={6} sm={4} md={2}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                         <Paper
                           elevation={0}
                           sx={{
@@ -9072,7 +9072,7 @@ export default function OnlineMahallaSync() {
                         </Paper>
                       </Grid>
 
-                      <Grid item xs={6} sm={4} md={2}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                         <Paper
                           elevation={0}
                           sx={{
@@ -9093,7 +9093,7 @@ export default function OnlineMahallaSync() {
                         </Paper>
                       </Grid>
 
-                      <Grid item xs={6} sm={4} md={2}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                         <Paper
                           elevation={0}
                           sx={{
@@ -9114,7 +9114,7 @@ export default function OnlineMahallaSync() {
                         </Paper>
                       </Grid>
 
-                      <Grid item xs={6} sm={4} md={2}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                         <Paper
                           elevation={0}
                           sx={{
@@ -9135,7 +9135,7 @@ export default function OnlineMahallaSync() {
                         </Paper>
                       </Grid>
 
-                      <Grid item xs={6} sm={4} md={2}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                         <Paper
                           elevation={0}
                           sx={{
@@ -9156,7 +9156,7 @@ export default function OnlineMahallaSync() {
                         </Paper>
                       </Grid>
 
-                      <Grid item xs={6} sm={4} md={2}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                         <Paper
                           elevation={0}
                           sx={{
@@ -9181,7 +9181,7 @@ export default function OnlineMahallaSync() {
                     {/* 4 ta To'liq Blok Grid */}
                     <Grid container spacing={2}>
                       {/* 1. BANDLIK VA TA'LIM STATISTIKASI */}
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Card
                           elevation={0}
                           sx={{
@@ -9302,7 +9302,7 @@ export default function OnlineMahallaSync() {
                       </Grid>
 
                       {/* 2. TADBIRKORLIK VA MOLIYAVIY KO'MAK */}
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Card
                           elevation={0}
                           sx={{
@@ -9373,7 +9373,7 @@ export default function OnlineMahallaSync() {
                       </Grid>
 
                       {/* 3. DAROMAD VA KREDIT QARZDORLIGI */}
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Card
                           elevation={0}
                           sx={{
@@ -9476,7 +9476,7 @@ export default function OnlineMahallaSync() {
                       </Grid>
 
                       {/* 4. INFRATUZILMA VA KOMMUNIKATSIYA */}
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Card
                           elevation={0}
                           sx={{
