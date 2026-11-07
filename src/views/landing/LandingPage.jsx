@@ -52,7 +52,13 @@ import {
   IconFileSpreadsheet,
   IconRefresh,
   IconPuzzle,
-  IconChecklist
+  IconChecklist,
+  IconBrandGithub,
+  IconPhone,
+  IconCopy,
+  IconDeviceLaptop,
+  IconUserCheck,
+  IconExternalLink
 } from '@tabler/icons-react';
 import { KeyboardArrowDown } from '@mui/icons-material';
 
@@ -97,6 +103,15 @@ export default function LandingPage() {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const copyToClipboard = (text, label) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      toast.success(`${label} nusxalandi!`);
+    } else {
+      toast.info(text);
     }
   };
 
@@ -193,7 +208,7 @@ export default function LandingPage() {
         }}
       />
 
-      {/* ===================== 1. CLEAN NAVIGATION HEADER (FIXED) ===================== */}
+      {/* ===================== 1. CLEAN NAVIGATION HEADER (FIXED & SPACIOUS) ===================== */}
       <Box
         component="header"
         sx={{
@@ -203,78 +218,59 @@ export default function LandingPage() {
           right: 0,
           width: '100%',
           zIndex: 1300,
-          bgcolor: bgHeader,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          bgcolor: isDark ? 'rgba(6, 19, 14, 0.92)' : 'rgba(255, 255, 255, 0.94)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderBottom: `1px solid ${borderCard}`,
-          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 14px rgba(0,0,0,0.06)',
-          py: 1.2,
-          transition: 'all 0.3s ease'
+          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.45)' : '0 2px 14px rgba(0,0,0,0.05)',
+          py: 1.5,
+          transition: 'all 0.25s ease'
         }}
       >
         <Container maxWidth="xl">
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            {/* Left: Brand Logo */}
-            <Stack direction="row" alignItems="center" spacing={1.5} component={RouterLink} to="/" sx={{ textDecoration: 'none' }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: '44px' }}>
+            {/* Left: Official Brand Logo with Dark/Light Support & Shadow */}
+            <Box
+              component={RouterLink}
+              to="/"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                textDecoration: 'none',
+                py: 0.5
+              }}
+            >
               <Box
                 component="img"
-                src={logoImg}
-                alt="GreenZone Logo"
+                src={isDark ? '/images/greenzone-logo-dark.png' : '/images/greenzone-logo-full.png'}
+                alt="GreenZone"
                 sx={{
-                  width: { xs: 36, sm: 42 },
-                  height: { xs: 36, sm: 42 },
+                  height: { xs: 28, sm: 34 },
+                  width: 'auto',
+                  display: 'block',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 2px 6px rgba(16,185,129,0.3))'
+                  filter: isDark
+                    ? 'drop-shadow(0 0 1px rgba(255,255,255,0.8)) drop-shadow(0 2px 10px rgba(16,185,129,0.35))'
+                    : 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))',
+                  transition: 'filter 0.3s ease'
                 }}
               />
-              <Box>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 900,
-                    fontSize: { xs: '1.25rem', sm: '1.45rem' },
-                    color: textTitle,
-                    letterSpacing: '-0.02em',
-                    lineHeight: 1.1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5
-                  }}
-                >
-                  Green<span style={{ color: primaryAccent }}>Zone</span>
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: textMuted,
-                    fontSize: '0.66rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    fontWeight: 700,
-                    display: { xs: 'none', sm: 'block' }
-                  }}
-                >
-                  Raqamli Boshqaruv Tizimi
-                </Typography>
-              </Box>
-            </Stack>
+            </Box>
 
-            {/* Center: Navigation Links */}
+            {/* Center: Navigation Links with generous breathing room */}
             <Stack
               direction="row"
-              spacing={3}
+              spacing={{ md: 4, lg: 5 }}
               sx={{
-                display: { xs: 'none', lg: 'flex' },
+                display: { xs: 'none', md: 'flex' },
                 alignItems: 'center'
               }}
             >
               {[
-                { label: 'Tizim Haqida', id: 'haqida' },
-                { label: 'Muammo & Yechim', id: 'muammolar' },
-                { label: 'Ish Oqimi', id: 'ish-oqimi' },
-                { label: 'QR & Dalolatnomalar', id: 'hujjatlar' },
-                { label: 'Elektr & HET', id: 'elektr' },
-                { label: 'Rahbariyatga', id: 'rahbariyat' }
+                { label: 'Tizim haqida', id: 'haqida' },
+                { label: 'Imkoniyatlar', id: 'muammolar' },
+                { label: 'Jarayon', id: 'ish-oqimi' },
+                { label: 'Aloqa', id: 'aloqa' }
               ].map((item) => (
                 <Typography
                   key={item.id}
@@ -283,7 +279,9 @@ export default function LandingPage() {
                     color: textMuted,
                     cursor: 'pointer',
                     fontWeight: 600,
-                    fontSize: '0.92rem',
+                    fontSize: '0.94rem',
+                    px: 0.5,
+                    py: 0.5,
                     transition: 'color 0.2s ease',
                     '&:hover': { color: mintGlow }
                   }}
@@ -293,8 +291,8 @@ export default function LandingPage() {
               ))}
             </Stack>
 
-            {/* Right: Controls & Login Action */}
-            <Stack direction="row" spacing={1.2} alignItems="center">
+            {/* Right: Controls spaced apart cleanly (bir biriga yopishib qolmaydi) */}
+            <Stack direction="row" spacing={{ xs: 1.5, sm: 2 }} alignItems="center">
               {/* Language Selector Dropdown */}
               <Button
                 size="small"
@@ -302,22 +300,26 @@ export default function LandingPage() {
                 sx={{
                   color: textTitle,
                   textTransform: 'none',
-                  borderRadius: '20px',
-                  px: 1.5,
-                  py: 0.5,
-                  fontSize: '0.85rem',
+                  borderRadius: '24px',
+                  px: 1.6,
+                  py: 0.65,
+                  fontSize: '0.84rem',
                   fontWeight: 600,
-                  bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  whiteSpace: 'nowrap',
+                  border: `1px solid ${borderCard}`,
+                  bgcolor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF',
+                  boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.04)',
                   '&:hover': {
-                    bgcolor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'
+                    bgcolor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.04)',
+                    borderColor: primaryAccent
                   }
                 }}
-                endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />}
+                endIcon={<KeyboardArrowDown sx={{ fontSize: 16 }} />}
               >
                 <Box
                   component="span"
                   className={`fi fi-${currentLangObj.img}`}
-                  style={{ width: 18, height: 14, marginRight: 6, borderRadius: '2px' }}
+                  style={{ width: 18, height: 13, marginRight: 6, borderRadius: '2px' }}
                 />
                 {currentLangObj.label}
               </Button>
@@ -358,22 +360,32 @@ export default function LandingPage() {
                 ))}
               </Menu>
 
-              {/* Theme Toggle Button */}
+              {/* Theme Toggle Button — DOIRA SHAKLIDA (Perfect Circle) */}
               <Tooltip title={isDark ? 'Yorug‘ rejimga o‘tish' : 'Qorong‘u rejimga o‘tish'}>
                 <IconButton
-                  size="small"
                   onClick={handleToggleTheme}
                   sx={{
-                    color: textTitle,
-                    bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                    p: 0.8,
+                    width: 40,
+                    height: 40,
                     borderRadius: '50%',
+                    border: `1.5px solid ${isDark ? 'rgba(52, 211, 153, 0.4)' : 'rgba(16, 185, 129, 0.28)'}`,
+                    bgcolor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#FFFFFF',
+                    color: textTitle,
+                    boxShadow: isDark
+                      ? '0 2px 10px rgba(0,0,0,0.45), inset 0 0 8px rgba(16, 185, 129, 0.1)'
+                      : '0 2px 8px rgba(0,0,0,0.06)',
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     '&:hover': {
-                      bgcolor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'
+                      bgcolor: isDark ? 'rgba(16, 185, 129, 0.24)' : 'rgba(16, 185, 129, 0.08)',
+                      borderColor: primaryAccent,
+                      transform: 'scale(1.06)'
                     }
                   }}
                 >
-                  {isDark ? <IconSun size={19} color="#f59e0b" /> : <IconMoon size={19} color="#059669" />}
+                  {isDark ? <IconSun size={20} color="#f59e0b" /> : <IconMoon size={20} color="#059669" />}
                 </IconButton>
               </Tooltip>
 
@@ -391,8 +403,8 @@ export default function LandingPage() {
                     borderRadius: '24px',
                     textTransform: 'none',
                     fontWeight: 700,
-                    px: 2.5,
-                    py: 0.7,
+                    px: 2.8,
+                    py: 0.8,
                     boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
                     '&:hover': { bgcolor: '#059669' }
                   }}
@@ -411,14 +423,15 @@ export default function LandingPage() {
                     borderRadius: '24px',
                     textTransform: 'none',
                     fontWeight: 700,
-                    px: { xs: 2, sm: 2.8 },
-                    py: 0.75,
-                    fontSize: '0.88rem',
+                    px: { xs: 2.2, sm: 2.8 },
+                    py: 0.85,
+                    fontSize: '0.9rem',
+                    whiteSpace: 'nowrap',
                     boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-                    '&:hover': { bgcolor: '#059669' }
+                    '&:hover': { bgcolor: '#059669', boxShadow: '0 6px 20px rgba(16, 185, 129, 0.5)' }
                   }}
                 >
-                  Tizimga kirish
+                  Kirish
                 </Button>
               )}
             </Stack>
@@ -613,7 +626,7 @@ export default function LandingPage() {
                   </Typography>
                 </Box>
                 <Chip
-                  label="Xavfsiz Kirish"
+                  label="Xavfsiz kirish"
                   size="small"
                   icon={<IconShieldCheck size={16} color={primaryAccent} />}
                   sx={{
@@ -744,7 +757,7 @@ export default function LandingPage() {
                   <IconBrandTelegram size={22} color="#0284c7" style={{ flexShrink: 0, marginTop: 2 }} />
                   <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, color: textTitle, fontSize: '0.85rem' }}>
-                      Dala nazoratchilari diqqatiga:
+                      Aholi nazoratchilari diqqatiga:
                     </Typography>
                     <Typography variant="caption" sx={{ color: textMuted, display: 'block', mt: 0.3, lineHeight: 1.4 }}>
                       Mahallalarda aholi bilan ishlovchi nazoratchilar ma’lumotlarni korxona Telegram boti orqali mustaqil
@@ -772,7 +785,7 @@ export default function LandingPage() {
           <Grid container spacing={6} alignItems="center">
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
-                label="YAGONA RAQAMLI EKOTIZIM"
+                label="Yagona raqamli ekotizim"
                 size="small"
                 sx={{
                   bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)',
@@ -814,7 +827,7 @@ export default function LandingPage() {
                   },
                   {
                     title: 'Topshiriqlar Ijrosi (Task Executions)',
-                    desc: 'Dala nazoratchilari harakati, Telegram bot orqali vazifalar ijrosi va shaffof monitoring.'
+                    desc: 'Aholi nazoratchilari harakati, Telegram bot orqali vazifalar ijrosi va shaffof monitoring.'
                   }
                 ].map((item, idx) => (
                   <Box
@@ -875,7 +888,7 @@ export default function LandingPage() {
         <Container maxWidth="xl">
           <Box sx={{ textAlign: 'center', maxWidth: '820px', mx: 'auto', mb: 6 }}>
             <Chip
-              label="MUAMMO VA YECHIM"
+              label="Muammo va yechim"
               size="small"
               sx={{
                 bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)',
@@ -995,8 +1008,8 @@ export default function LandingPage() {
                       >
                         <IconX size={15} color="#ef4444" />
                       </Box>
-                      <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 800, letterSpacing: '0.05em' }}>
-                        AVVALGI MUAMMO:
+                      <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 800, letterSpacing: '0.04em' }}>
+                        Avvalgi holat:
                       </Typography>
                     </Stack>
                     <Typography variant="h5" sx={{ fontWeight: 800, color: textTitle, mb: 0.8 }}>
@@ -1024,8 +1037,8 @@ export default function LandingPage() {
                       >
                         <IconCheck size={15} color={primaryAccent} />
                       </Box>
-                      <Typography variant="caption" sx={{ color: mintGlow, fontWeight: 800, letterSpacing: '0.05em' }}>
-                        GREENZONE BILAN:
+                      <Typography variant="caption" sx={{ color: mintGlow, fontWeight: 800, letterSpacing: '0.04em' }}>
+                        GreenZone yechimi:
                       </Typography>
                     </Stack>
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: mintGlow, mb: 0.5 }}>
@@ -1042,7 +1055,7 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      {/* ===================== 5. DALA VA OFIS ISH OQIMI (field-to-office.webp) ===================== */}
+      {/* ===================== 5. AHOLI VA OFIS ISH OQIMI (field-to-office.webp) ===================== */}
       <Box
         id="ish-oqimi"
         sx={{
@@ -1071,7 +1084,7 @@ export default function LandingPage() {
                 <Box
                   component="img"
                   src="/images/landing/field-to-office.webp"
-                  alt="Dala nazoratchisi va Ofis xodimi aloqasi"
+                  alt="Aholi nazoratchisi va ofis xodimi aloqasi"
                   loading="lazy"
                   sx={{
                     width: '100%',
@@ -1088,7 +1101,7 @@ export default function LandingPage() {
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
                 icon={<IconBrandTelegram size={16} color="#0088cc" />}
-                label="DALA VA OFIS INTEGRATSIYASI"
+                label="Aholi nazorati va ofis integratsiyasi"
                 size="small"
                 sx={{
                   bgcolor: isDark ? 'rgba(0, 136, 204, 0.15)' : 'rgba(0, 136, 204, 0.08)',
@@ -1158,7 +1171,7 @@ export default function LandingPage() {
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
                 icon={<IconQrcode size={16} color={primaryAccent} />}
-                label="DALOLATNOMA VA ARIZALARNI SODDALASHTIRISH"
+                label="Dalolatnoma va arizalarni soddalashtirish"
                 size="small"
                 sx={{
                   bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)',
@@ -1294,7 +1307,7 @@ export default function LandingPage() {
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
                 icon={<IconBolt size={16} color="#0284c7" />}
-                label="HET VA ELEKTRGA ULASH INTEGRATSIYASI"
+                label="HET va elektr integratsiyasi"
                 size="small"
                 sx={{
                   bgcolor: isDark ? 'rgba(2, 132, 199, 0.15)' : 'rgba(2, 132, 199, 0.08)',
@@ -1364,7 +1377,7 @@ export default function LandingPage() {
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
                 icon={<IconChartBar size={16} color="#f59e0b" />}
-                label="RAHBARIYAT UCHUN HAQIQIY QIYMAT"
+                label="Rahbariyat uchun asosiy qiymat"
                 size="small"
                 sx={{
                   bgcolor: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.08)',
@@ -1527,7 +1540,7 @@ export default function LandingPage() {
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
                 icon={<IconPuzzle size={16} color={primaryAccent} />}
-                label="MOSLASHUVCHAN MAHSULOT VA HAMKORLIK"
+                label="Moslashuvchan yondashuv va hamkorlik"
                 size="small"
                 sx={{
                   bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)',
@@ -1616,7 +1629,7 @@ export default function LandingPage() {
           <Grid container spacing={4} alignItems="center">
             <Grid size={{ xs: 12, md: 8 }}>
               <Chip
-                label="RAQAMLI INTIZOM"
+                label="Raqamli intizom"
                 size="small"
                 sx={{
                   bgcolor: primaryAccent,
@@ -1661,7 +1674,498 @@ export default function LandingPage() {
         </Card>
       </Container>
 
-      {/* ===================== 11. CLEAN FOOTER ===================== */}
+      {/* ===================== 11. BOG'LANISH VA ALOQA (CONTACT SECTION) ===================== */}
+      <Box
+        id="aloqa"
+        sx={{
+          py: { xs: 8, md: 12 },
+          position: 'relative',
+          bgcolor: isDark ? 'rgba(6, 22, 17, 0.45)' : 'rgba(235, 246, 240, 0.4)'
+        }}
+      >
+        <Container maxWidth="xl">
+          {/* Section Header */}
+          <Box sx={{ textAlign: 'center', maxWidth: '820px', mx: 'auto', mb: { xs: 5, md: 8 } }}>
+            <Chip
+              label="Bog‘lanish va hamkorlik"
+              size="small"
+              sx={{
+                bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)',
+                color: mintGlow,
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                mb: 1.5
+              }}
+            />
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: 900,
+                color: textTitle,
+                mb: 2,
+                fontSize: { xs: '1.85rem', sm: '2.5rem', md: '2.8rem' },
+                lineHeight: 1.2
+              }}
+            >
+              Mijozlar va korxonalar uchun <span style={{ color: primaryAccent }}>to‘g‘ridan-to‘g‘ri aloqa</span>
+            </Typography>
+            <Typography variant="body1" sx={{ color: textMuted, fontSize: '1.08rem', lineHeight: 1.6 }}>
+              GreenZone tizimini korxonangizga joriy qilish, jonli demo ko‘rish, TozaMakon va HET integratsiyasi yoki texnik
+              savollar bo‘yicha to‘g‘ridan-to‘g‘ri tizim muallifi bilan bog‘laning.
+            </Typography>
+          </Box>
+
+          <Grid container spacing={4} alignItems="stretch">
+            {/* Left Column: Author / Founder Profile Card */}
+            <Grid size={{ xs: 12, md: 5 }}>
+              <Card
+                sx={{
+                  height: '100%',
+                  bgcolor: bgCard,
+                  borderRadius: '24px',
+                  border: `1.5px solid ${borderCard}`,
+                  p: { xs: 3, sm: 4.5 },
+                  boxShadow: isDark ? '0 18px 45px rgba(0,0,0,0.5)' : '0 10px 30px rgba(0,0,0,0.06)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Background ambient badge */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '-40px',
+                    right: '-40px',
+                    width: '160px',
+                    height: '160px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
+                    pointerEvents: 'none'
+                  }}
+                />
+
+                <Box>
+                  {/* Top: Avatar & Availability */}
+                  <Stack direction="row" spacing={2.5} alignItems="center" sx={{ mb: 3 }}>
+                    <Box sx={{ position: 'relative' }}>
+                      <Box
+                        component="img"
+                        src="/images/avatar-shamshod.webp"
+                        alt="Shamshod Ne'matullayev"
+                        sx={{
+                          width: { xs: 76, sm: 88 },
+                          height: { xs: 76, sm: 88 },
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: `3px solid ${primaryAccent}`,
+                          boxShadow: '0 6px 20px rgba(16, 185, 129, 0.35)',
+                          display: 'block'
+                        }}
+                      />
+                      {/* Active green dot */}
+                      <Tooltip title="Aloqada / Murojaat uchun faol">
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: 2,
+                            right: 2,
+                            width: 16,
+                            height: 16,
+                            borderRadius: '50%',
+                            bgcolor: '#10B981',
+                            border: `2.5px solid ${isDark ? '#0F211B' : '#FFFFFF'}`,
+                            boxShadow: '0 0 10px #10B981'
+                          }}
+                        />
+                      </Tooltip>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="h4" sx={{ fontWeight: 900, color: textTitle, fontSize: { xs: '1.25rem', sm: '1.45rem' } }}>
+                        Shamshod Ne‘matullayev
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: mintGlow, fontWeight: 700, fontSize: '0.88rem', mt: 0.3 }}>
+                        GreenZone muallifi va yetakchi dasturchi
+                      </Typography>
+                      <Chip
+                        icon={<IconUserCheck size={14} color="#10B981" />}
+                        label="Texnik maslahat va demo"
+                        size="small"
+                        sx={{
+                          mt: 0.8,
+                          height: 22,
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)',
+                          color: textTitle
+                        }}
+                      />
+                    </Box>
+                  </Stack>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: textMuted,
+                      lineHeight: 1.65,
+                      fontSize: '0.94rem',
+                      mb: 3.5,
+                      p: 2,
+                      borderRadius: '14px',
+                      bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                      borderLeft: `3px solid ${primaryAccent}`
+                    }}
+                  >
+                    «Chiqindi xizmatlari korxonalarining ish jarayonlari, dalolatnomalar oqimi va abonentlar billingini
+                    raqamlashtirish bo‘yicha to‘liq maslahat, jonli taqdimot va texnik yordam berishga doim tayyorman.»
+                  </Typography>
+
+                  <Divider sx={{ my: 2.5, borderColor: borderCard }} />
+
+                  {/* Direct Contacts List */}
+                  <Stack spacing={2}>
+                    {/* Phone item */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 1.5,
+                        borderRadius: '14px',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.04)' : '#F8FAFC',
+                        border: `1px solid ${borderCard}`,
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: primaryAccent }
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.8} alignItems="center">
+                        <Box
+                          sx={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: '10px',
+                            bgcolor: 'rgba(16, 185, 129, 0.12)',
+                            color: mintGlow,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <IconPhone size={22} />
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: textMuted, fontWeight: 700, fontSize: '0.72rem' }}>
+                            To‘g‘ridan-to‘g‘ri telefon
+                          </Typography>
+                          <Typography
+                            component="a"
+                            href="tel:+998911872536"
+                            sx={{
+                              display: 'block',
+                              color: textTitle,
+                              fontWeight: 800,
+                              fontSize: '0.98rem',
+                              textDecoration: 'none',
+                              '&:hover': { color: mintGlow }
+                            }}
+                          >
+                            +998 91 187 25 36
+                          </Typography>
+                        </Box>
+                      </Stack>
+                      <Tooltip title="Raqamdan nusxa olish">
+                        <IconButton
+                          size="small"
+                          onClick={() => copyToClipboard('+998911872536', 'Telefon raqami')}
+                          sx={{ color: textMuted, '&:hover': { color: mintGlow } }}
+                        >
+                          <IconCopy size={18} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+
+                    {/* Telegram item */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 1.5,
+                        borderRadius: '14px',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.04)' : '#F8FAFC',
+                        border: `1px solid ${borderCard}`,
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: '#229ED9' }
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.8} alignItems="center">
+                        <Box
+                          sx={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: '10px',
+                            bgcolor: 'rgba(34, 158, 217, 0.12)',
+                            color: '#229ED9',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <IconBrandTelegram size={22} />
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: textMuted, fontWeight: 700, fontSize: '0.72rem' }}>
+                            Telegram profil
+                          </Typography>
+                          <Typography
+                            component="a"
+                            href="https://t.me/oliy_ong_leader"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              display: 'block',
+                              color: '#229ED9',
+                              fontWeight: 800,
+                              fontSize: '0.98rem',
+                              textDecoration: 'none',
+                              '&:hover': { textDecoration: 'underline' }
+                            }}
+                          >
+                            @oliy_ong_leader
+                          </Typography>
+                        </Box>
+                      </Stack>
+                      <Tooltip title="Username nusxalash">
+                        <IconButton
+                          size="small"
+                          onClick={() => copyToClipboard('@oliy_ong_leader', 'Telegram username')}
+                          sx={{ color: textMuted, '&:hover': { color: '#229ED9' } }}
+                        >
+                          <IconCopy size={18} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+
+                    {/* GitHub item */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 1.5,
+                        borderRadius: '14px',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.04)' : '#F8FAFC',
+                        border: `1px solid ${borderCard}`,
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: isDark ? '#fff' : '#000' }
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.8} alignItems="center">
+                        <Box
+                          sx={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: '10px',
+                            bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+                            color: textTitle,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <IconBrandGithub size={22} />
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" sx={{ color: textMuted, fontWeight: 700, fontSize: '0.72rem' }}>
+                            GitHub va ochiq loyihalar
+                          </Typography>
+                          <Typography
+                            component="a"
+                            href="https://github.com/Shamshod-Nematullayev"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              display: 'block',
+                              color: textTitle,
+                              fontWeight: 800,
+                              fontSize: '0.95rem',
+                              textDecoration: 'none',
+                              '&:hover': { color: mintGlow }
+                            }}
+                          >
+                            Shamshod-Nematullayev
+                          </Typography>
+                        </Box>
+                      </Stack>
+                      <Tooltip title="GitHub sahifasini ochish">
+                        <IconButton
+                          component="a"
+                          href="https://github.com/Shamshod-Nematullayev"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          size="small"
+                          sx={{ color: textMuted, '&:hover': { color: textTitle } }}
+                        >
+                          <IconExternalLink size={18} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Card>
+            </Grid>
+
+            {/* Right Column: Partnership & Fast Action Cards */}
+            <Grid size={{ xs: 12, md: 7 }}>
+              <Stack spacing={3} sx={{ height: '100%', justifyContent: 'space-between' }}>
+                {/* 3 Value/Service Cards */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr' },
+                    gap: 2.5
+                  }}
+                >
+                  {[
+                    {
+                      icon: <IconDeviceLaptop size={26} color="#10B981" />,
+                      title: '1. Jonli demo va tizim taqdimoti',
+                      desc: 'Korxonangiz mas’ul xodimlari yoki rahbariyatiga GreenZone’ning barcha imkoniyatlari (Aholi nazorati boti, Ofis billingi, Dalolatnomalar, HET integratsiyasi) amalda ko‘rsatib beriladi.'
+                    },
+                    {
+                      icon: <IconBolt size={26} color="#F59E0B" />,
+                      title: '2. Hududingiz xususiyatlariga moslashtirish',
+                      desc: 'Har bir tuman yoki klaster hududidagi maxsus tariflar, mahallalar reyestri va abonentlar bazasi to‘liq tahlil qilinib, qisqa muddatda tizimga moslanadi.'
+                    },
+                    {
+                      icon: <IconShieldCheck size={26} color="#3B82F6" />,
+                      title: '3. Xodimlarni to‘liq o‘qitish va texnik hamrohlik',
+                      desc: 'Aholi nazoratchilari (Telegram botdan foydalanish) va ofis billing operatorlari uchun amaliy master-klass o‘tkaziladi hamda uzluksiz texnik yordam ko‘rsatiladi.'
+                    }
+                  ].map((service, idx) => (
+                    <Card
+                      key={idx}
+                      sx={{
+                        p: 3,
+                        bgcolor: bgCard,
+                        borderRadius: '20px',
+                        border: `1px solid ${borderCard}`,
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-3px)',
+                          boxShadow: isDark ? '0 12px 30px rgba(0,0,0,0.5)' : '0 8px 25px rgba(0,0,0,0.06)'
+                        }
+                      }}
+                    >
+                      <Stack direction="row" spacing={2} alignItems="flex-start">
+                        <Box
+                          sx={{
+                            p: 1.4,
+                            borderRadius: '12px',
+                            bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                            border: `1px solid ${borderCard}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}
+                        >
+                          {service.icon}
+                        </Box>
+                        <Box>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: textTitle, mb: 0.8, fontSize: '1.05rem' }}>
+                            {service.title}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: textMuted, lineHeight: 1.6, fontSize: '0.92rem' }}>
+                            {service.desc}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Card>
+                  ))}
+                </Box>
+
+                {/* Big Interactive Quick Contact Action Card */}
+                <Card
+                  sx={{
+                    p: { xs: 3, sm: 4 },
+                    borderRadius: '20px',
+                    bgcolor: isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)',
+                    border: `1.5px solid ${primaryAccent}`,
+                    boxShadow: '0 8px 30px rgba(16, 185, 129, 0.15)'
+                  }}
+                >
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2.5}
+                    alignItems={{ xs: 'stretch', sm: 'center' }}
+                    justifyContent="space-between"
+                  >
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 900, color: textTitle, mb: 0.5 }}>
+                        Savollaringiz bormi yoki demo kerakmi?
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: textMuted, fontSize: '0.92rem' }}>
+                        Telegram orqali to‘g‘ridan-to‘g‘ri yozing yoki qo‘ng‘iroq qiling — 15 daqiqa ichida javob beriladi.
+                      </Typography>
+                    </Box>
+
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                      <Button
+                        component="a"
+                        href="https://t.me/oliy_ong_leader"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="contained"
+                        startIcon={<IconBrandTelegram size={20} />}
+                        sx={{
+                          bgcolor: '#229ED9',
+                          color: '#fff',
+                          fontWeight: 800,
+                          px: 3,
+                          py: 1.3,
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          fontSize: '0.95rem',
+                          boxShadow: '0 6px 20px rgba(34, 158, 217, 0.4)',
+                          '&:hover': { bgcolor: '#1b80b2' }
+                        }}
+                      >
+                        Telegram orqali yozish
+                      </Button>
+
+                      <Button
+                        component="a"
+                        href="tel:+998911872536"
+                        variant="outlined"
+                        startIcon={<IconPhone size={20} />}
+                        sx={{
+                          color: textTitle,
+                          borderColor: borderCard,
+                          fontWeight: 700,
+                          px: 2.5,
+                          py: 1.3,
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          fontSize: '0.95rem',
+                          '&:hover': { borderColor: primaryAccent, bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }
+                        }}
+                      >
+                        Qo‘ng‘iroq qilish
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Card>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* ===================== 12. CLEAN FOOTER ===================== */}
       <Box
         component="footer"
         sx={{
@@ -1673,22 +2177,53 @@ export default function LandingPage() {
         <Container maxWidth="xl">
           <Grid container spacing={4} justifyContent="space-between" alignItems="center">
             <Grid size={{ xs: 12, md: 5 }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box component="img" src={logoImg} alt="GreenZone" sx={{ width: 32, height: 32 }} />
-                <Typography variant="h5" sx={{ fontWeight: 800, color: textTitle }}>
-                  Green<span style={{ color: primaryAccent }}>Zone</span>
-                </Typography>
-              </Stack>
-              <Typography variant="body2" sx={{ color: textMuted, maxWidth: '420px', lineHeight: 1.6 }}>
+              <Box
+                component="img"
+                src={isDark ? '/images/greenzone-logo-dark.png' : '/images/greenzone-logo-full.png'}
+                alt="GreenZone"
+                sx={{
+                  height: 30,
+                  width: 'auto',
+                  display: 'block',
+                  mb: 1.5,
+                  filter: isDark
+                    ? 'drop-shadow(0 0 1px rgba(255,255,255,0.7)) drop-shadow(0 2px 8px rgba(16,185,129,0.3))'
+                    : 'drop-shadow(0 1px 2px rgba(0,0,0,0.06))'
+                }}
+              />
+              <Typography variant="body2" sx={{ color: textMuted, maxWidth: '420px', lineHeight: 1.6, mb: 1 }}>
                 Chiqindi xizmatlari ko‘rsatuvchi korxonalarning kundalik faoliyatini tartibga soluvchi, avtomatlashtiruvchi va
                 monitoring qiluvchi yagona raqamli platforma.
+              </Typography>
+              <Typography variant="caption" sx={{ color: textMuted, display: 'block' }}>
+                Tizim muallifi va ishlab chiquvchisi:{' '}
+                <Box
+                  component="a"
+                  href="https://github.com/Shamshod-Nematullayev"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ color: mintGlow, fontWeight: 700, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                >
+                  Shamshod Ne‘matullayev
+                </Box>{' '}
+                (
+                <Box
+                  component="a"
+                  href="https://t.me/oliy_ong_leader"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ color: '#229ED9', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                >
+                  @oliy_ong_leader
+                </Box>
+                )
               </Typography>
             </Grid>
 
             <Grid size={{ xs: 12, md: 7 }}>
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
-                spacing={{ xs: 2, sm: 4 }}
+                spacing={{ xs: 2, sm: 3.5 }}
                 justifyContent={{ xs: 'flex-start', md: 'flex-end' }}
                 alignItems={{ xs: 'flex-start', sm: 'center' }}
               >
@@ -1696,19 +2231,25 @@ export default function LandingPage() {
                   onClick={() => scrollToSection('haqida')}
                   sx={{ color: textMuted, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, '&:hover': { color: mintGlow } }}
                 >
-                  Tizim Haqida
+                  Tizim haqida
                 </Typography>
                 <Typography
                   onClick={() => scrollToSection('muammolar')}
                   sx={{ color: textMuted, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, '&:hover': { color: mintGlow } }}
                 >
-                  Muammo & Yechim
+                  Imkoniyatlar
                 </Typography>
                 <Typography
                   onClick={() => scrollToSection('ish-oqimi')}
                   sx={{ color: textMuted, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, '&:hover': { color: mintGlow } }}
                 >
-                  Ish Oqimi
+                  Jarayon
+                </Typography>
+                <Typography
+                  onClick={() => scrollToSection('aloqa')}
+                  sx={{ color: mintGlow, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}
+                >
+                  Aloqa
                 </Typography>
                 <Typography
                   component="button"
@@ -1716,11 +2257,12 @@ export default function LandingPage() {
                   sx={{
                     background: 'none',
                     border: 'none',
-                    color: mintGlow,
+                    color: textTitle,
                     cursor: 'pointer',
                     fontSize: '0.9rem',
                     fontWeight: 700,
-                    p: 0
+                    p: 0,
+                    '&:hover': { color: mintGlow }
                   }}
                 >
                   Portalga kirish

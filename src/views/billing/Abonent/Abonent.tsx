@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import AbonentTools from './AbonentTools';
 import { Box, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
@@ -18,8 +19,22 @@ import TozaMakonHistoryModal from './modals/TozaMakonHistoryModal';
 function Abonent() {
   usePrefetchAbonentPageData();
   useAbonentDetailsSupplementaryData();
-  const { openPrintAbonentcardState, setOpenPrintAbonentcardState, abonentDetails } = useAbonentStore();
+  const { openPrintAbonentcardState, setOpenPrintAbonentcardState, abonentDetails, abonentPreview } = useAbonentStore();
   const { residentId } = useAbonentLogic();
+
+  useEffect(() => {
+    const activeDetails = abonentDetails?.id === residentId ? abonentDetails : null;
+    const activePreview = abonentPreview?.id === residentId ? abonentPreview : null;
+    const citizen = activeDetails?.citizen || activePreview?.citizen;
+    const citizenFullName = citizen ? [citizen.lastName, citizen.firstName, citizen.patronymic].filter(Boolean).join(' ') : '';
+    const fullName = activeDetails?.fullName || activePreview?.fullName || citizenFullName;
+
+    if (fullName && fullName.trim()) {
+      document.title = fullName.trim();
+    } else if (residentId) {
+      document.title = `Abonent #${residentId}`;
+    }
+  }, [abonentDetails, abonentPreview, residentId]);
   const location = useLocation();
   const currentTab = location.pathname.split('/').pop() || 'details';
   const theme = useTheme();

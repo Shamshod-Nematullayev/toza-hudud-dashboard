@@ -57,6 +57,7 @@ import { CreateManualAbonentModal } from './CreateManualAbonentModal';
 import { ImportAbonentsExcelModal } from './ImportAbonentsExcelModal';
 import { PrintNewAbonentDialog } from './PrintNewAbonentDialog';
 import { ImportScannedAbonentModal } from './ImportScannedAbonentModal';
+import { CadastrConflictModal } from './CadastrConflictModal';
 
 export const PendingNewAbonents: React.FC = () => {
   const theme = useTheme();
@@ -100,6 +101,9 @@ export const PendingNewAbonents: React.FC = () => {
   // Rokirovka modali
   const [rokirovkaItem, setRokirovkaItem] = useState<INewAbonentItem | null>(null);
   const [rokirovkaModalOpen, setRokirovkaModalOpen] = useState<boolean>(false);
+
+  // Kadastr band bo'lganda — so'rovni mavjud abonent uchun multiply / ETK so'roviga aylantirish
+  const [conflictRequestId, setConflictRequestId] = useState<string | null>(null);
 
   // Tezkor navbat (Queue)
   const [queueIndex, setQueueIndex] = useState<number>(0);
@@ -221,7 +225,13 @@ export const PendingNewAbonents: React.FC = () => {
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.response?.data?.message || 'Tasdiqlashda xatolik yuz berdi');
+      const errData = err?.response?.data;
+      if (errData?.code === 'CADASTRAL_NUMBER_ALREADY_EXISTS') {
+        toast.warning("Kadastr raqami boshqa abonentga biriktirilgan — so'rovni mavjud abonentga yo'naltirishingiz mumkin");
+        setConflictRequestId(id);
+        return false;
+      }
+      toast.error(errData?.message || 'Tasdiqlashda xatolik yuz berdi');
       return false;
     } finally {
       setActionLoading(false);
@@ -1441,6 +1451,25 @@ export const PendingNewAbonents: React.FC = () => {
         }}
         onConfirm={handleConfirmReject}
         loading={actionLoading}
+      />
+
+      {/* Kadastr band — so'rovni aylantirish */}
+      <CadastrConflictModal
+        requestId={conflictRequestId}
+        onClose={() => setConflictRequestId(null)}
+        onConverted={() => {
+          setConflictRequestId(null);
+          if (modalOpen && autoAdvance) {
+            if (queueIndex < pendingQueue.length - 1) {
+              handleNextInQueue();
+            } else {
+              setModalOpen(false);
+            }
+          } else if (modalOpen) {
+            setModalOpen(false);
+          }
+          fetchData();
+        }}
       />
 
       {/* Rokirovka Modali */}

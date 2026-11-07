@@ -36,7 +36,10 @@ import {
   CalendarMonth as CalendarIcon,
   VerifiedUser as VerifiedIcon,
   AccountTree as AccountTreeIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  GpsFixed as GpsFixedIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon
 } from '@mui/icons-material';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -62,6 +65,10 @@ interface CompanyProfileData {
   ekopayParentId?: string;
   murojaatTelegramIds?: string[];
   requireLocationForGpsActs?: boolean;
+  smartGpsLogin?: string;
+  smartGpsPassword?: string;
+  smartGpsBaseUrl?: string;
+  smartGpsPasswordSet?: boolean;
 }
 
 interface VerificationStatus {
@@ -81,6 +88,31 @@ export default function CompanyProfile() {
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
+  const [showSmartGpsPassword, setShowSmartGpsPassword] = useState(false);
+  const [smartGpsCheck, setSmartGpsCheck] = useState<{ loading: boolean; ok?: boolean; message?: string }>({ loading: false });
+
+  const handleCheckSmartGps = async () => {
+    setSmartGpsCheck({ loading: true });
+    try {
+      const { data } = await api.post('/auth/company/smartgps/check', {
+        login: form.smartGpsLogin,
+        password: form.smartGpsPassword,
+        baseUrl: form.smartGpsBaseUrl
+      });
+      if (data.saved) {
+        setCompany((prev) => (prev ? { ...prev, smartGpsPasswordSet: true, smartGpsLogin: form.smartGpsLogin } : prev));
+        toast.success('SmartGPS muvaffaqiyatli ulandi va sozlamalar saqlandi!');
+      }
+      setSmartGpsCheck({
+        loading: false,
+        ok: true,
+        message: `Ulandi: ${data.userName || form.smartGpsLogin}. Texnikalar soni: ${data.unitsCount}${data.units?.length ? ` (${data.units.join(', ')}${data.unitsCount > data.units.length ? ', ...' : ''})` : ''}`
+      });
+    } catch (err: any) {
+      setSmartGpsCheck({ loading: false, ok: false, message: err.response?.data?.message || err.message });
+    }
+  };
+
   const [verifications, setVerifications] = useState<Record<string, VerificationStatus>>({});
 
   const fetchCompanyProfile = async () => {
@@ -99,7 +131,10 @@ export default function CompanyProfile() {
           GROUP_ID_MANAGERS: data.company.GROUP_ID_MANAGERS || '',
           GROUP_ID_MUROJAATLAR: data.company.GROUP_ID_MUROJAATLAR || '',
           murojaatTelegramIds: data.company.murojaatTelegramIds || [],
-          requireLocationForGpsActs: !!data.company.requireLocationForGpsActs
+          requireLocationForGpsActs: !!data.company.requireLocationForGpsActs,
+          smartGpsLogin: data.company.smartGpsLogin || '',
+          smartGpsPassword: '',
+          smartGpsBaseUrl: data.company.smartGpsBaseUrl || ''
         });
       }
     } catch (err: any) {
@@ -167,7 +202,14 @@ export default function CompanyProfile() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data } = await api.put('/auth/company', form);
+      // Bo'sh parol yuborilmaydi — saqlangan parol o'zgarmaydi
+      const { smartGpsPassword, ...rest } = form;
+      const { data } = await api.put('/auth/company', smartGpsPassword ? form : rest);
+      if (data.ok) {
+        setForm((prev) => ({ ...prev, smartGpsPassword: '' }));
+        if (smartGpsPassword) setCompany((prev) => (prev ? { ...prev, smartGpsPasswordSet: true } : prev));
+        setSmartGpsCheck({ loading: false });
+      }
       if (data.ok) {
         toast.success('Tashkilot profili muvaffaqiyatli yangilandi');
         if (data.company) {
@@ -377,6 +419,84 @@ export default function CompanyProfile() {
                         }
                       }}
                     />
+                  </Grid>
+
+                  {/* SmartGPS (Wialon) integratsiyasi */}
+                  <Grid item xs={12}>
+                    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: '12px' }}>
+                      <Stack direction="row" spacing={1} sx={{ mb: 1.5, alignItems: 'center' }}>
+                        <GpsFixedIcon color="primary" fontSize="small" />
+                        <Typography variant="body2" sx={{ fontWeight: 700, flex: 1 }}>
+                          SmartGPS (texnikalar GPS kuzatuvi)
+                        </Typography>
+                        {company?.smartGpsPasswordSet && <Chip size="small" color="success" variant="outlined" label="Parol saqlangan" />}
+                      </Stack>
+                      <Grid container spacing={1.5}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Login"
+                            autoComplete="off"
+                            value={form.smartGpsLogin || ''}
+                            onChange={(e) => setForm({ ...form, smartGpsLogin: e.target.value })}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Parol"
+                            type={showSmartGpsPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            placeholder={company?.smartGpsPasswordSet ? "O'zgartirish uchun yangisini kiriting" : ''}
+                            value={form.smartGpsPassword || ''}
+                            onChange={(e) => setForm({ ...form, smartGpsPassword: e.target.value })}
+                            slotProps={{
+                              input: {
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <Button size="small" sx={{ minWidth: 0 }} onClick={() => setShowSmartGpsPassword((v) => !v)}>
+                                      {showSmartGpsPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                                    </Button>
+                                  </InputAdornment>
+                                )
+                              }
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Server manzili"
+                            placeholder="https://2.smartgps.uz"
+                            helperText="Bo'sh qoldirilsa https://2.smartgps.uz ishlatiladi"
+                            value={form.smartGpsBaseUrl || ''}
+                            onChange={(e) => setForm({ ...form, smartGpsBaseUrl: e.target.value })}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={handleCheckSmartGps}
+                            disabled={smartGpsCheck.loading}
+                            startIcon={smartGpsCheck.loading ? <CircularProgress size={16} /> : <CheckCircleIcon />}
+                          >
+                            Ulanishni tekshirish
+                          </Button>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                            Login va parolni kiritib, to'g'ridan-to'g'ri tekshirishingiz mumkin.
+                          </Typography>
+                          {smartGpsCheck.message && (
+                            <Alert severity={smartGpsCheck.ok ? 'success' : 'error'} sx={{ mt: 1, py: 0 }}>
+                              {smartGpsCheck.message}
+                            </Alert>
+                          )}
+                        </Grid>
+                      </Grid>
+                    </Paper>
                   </Grid>
 
                   {/* GPS dalolatnomasida abonent uyi joylashuvi */}

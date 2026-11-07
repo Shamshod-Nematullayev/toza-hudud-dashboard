@@ -12,6 +12,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { ContentCopy, Directions, OpenInNew, Search } from '@mui/icons-material';
 import { CircleMarker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { toast } from 'react-toastify';
@@ -187,7 +188,7 @@ export default function AbonentsMap() {
 
       <Card sx={{ p: 1, position: 'relative' }}>
         {loading && (
-          <Box sx={{ position: 'absolute', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(255,255,255,0.4)' }}>
+          <Box sx={{ position: 'absolute', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: (theme) => alpha(theme.palette.background.paper, 0.5) }}>
             <CircularProgress />
           </Box>
         )}

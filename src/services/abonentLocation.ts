@@ -92,8 +92,10 @@ export function parseLocationText(input: string): { lat: number; lng: number } |
   }
   return (
     pick(new RegExp(`!3d${NUM}!4d${NUM}`), text) ||
+    // /maps/search/40.016471,+66.142599 yoki /maps/place/40.01,66.14
+    pick(new RegExp(`/(?:search|place|dir)/(?:[^?#]*/)?${NUM}\\s*,[\\s+]*${NUM}`), text) ||
     pick(new RegExp(`@${NUM},\\s*${NUM}`), text) ||
-    pick(new RegExp(`[?&](?:q|query|ll|sll|destination|center|daddr)=(?:loc:)?${NUM},\\s*${NUM}`), text) ||
+    pick(new RegExp(`[?&](?:q|query|ll|sll|destination|center|daddr)=(?:loc:)?${NUM},[\\s+]*${NUM}`), text) ||
     pick(new RegExp(`geo:${NUM},\\s*${NUM}`), text) ||
     pick(new RegExp(`^${NUM}\\s*[,;\\s]\\s*${NUM}$`), text)
   );

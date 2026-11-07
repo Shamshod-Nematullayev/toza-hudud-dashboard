@@ -132,14 +132,6 @@ export const AbonentCardView = forwardRef(
               {
                 key: t('tableHeaders.bankName'),
                 value: cardDetails.companyBankName
-              },
-              {
-                key: t('tableHeaders.STIR'),
-                value: cardDetails.companyInn
-              },
-              {
-                key: t('tableHeaders.bankCredentials'),
-                value: [cardDetails.companyBankMFO, cardDetails.companyBankAccount].join(', ')
               }
             ]}
           />

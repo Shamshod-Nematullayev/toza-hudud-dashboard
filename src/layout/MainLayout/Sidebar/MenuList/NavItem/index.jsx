@@ -65,6 +65,9 @@ const NavItem = ({ item, level }) => {
       .findIndex((id) => id === item.id);
     if (currentIndex > -1) {
       setCustomization({ id: item.id });
+      if (item.title) {
+        document.title = t(`menuItems.${item.title}`);
+      }
     }
     // eslint-disable-next-line
   }, [pathname]);

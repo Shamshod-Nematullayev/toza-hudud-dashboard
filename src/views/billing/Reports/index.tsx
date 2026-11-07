@@ -60,6 +60,15 @@ const reportItems: IReportItem[] = [
     iconType: 'matrix'
   },
   {
+    id: 'inspector-integrated-report',
+    name: 'Nazoratchilar kompleks tahlili (Tushum + Maxsus topshiriqlar)',
+    description: 'Har kunlik tushum va maxsus topshiriqlar kesimidagi integratsiyalashgan tahlil, qoidalar asosida baholash va reyting',
+    category: 'tushumlar',
+    categoryLabel: 'Nazoratchilar',
+    path: 'report-inspector-integrated',
+    iconType: 'matrix'
+  },
+  {
     id: '4',
     name: 'Mahalla tushumlari',
     description: "Tushumlar nazoratchi va mahalla bo'yicha",
