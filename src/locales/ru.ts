@@ -98,6 +98,7 @@ const ru: typeof uz = {
     debtCollectionCenter: 'Центр взыскания задолженности',
     debitors: 'Дебиторы',
     visitsGraph: 'График визитов',
+    abonentsMap: 'Карта абонентов',
     mahallas: 'Махалли',
     'sms-warnings': 'SMS предупреждения',
     caller: 'Оператор',

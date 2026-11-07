@@ -10,10 +10,12 @@ import {
   Chip,
   CircularProgress,
   Divider,
+  FormControlLabel,
   Grid as MuiGrid,
   InputAdornment,
   Paper,
   Stack as MuiStack,
+  Switch,
   TextField,
   Typography,
   useTheme
@@ -59,6 +61,7 @@ interface CompanyProfileData {
   GROUP_ID_MUROJAATLAR?: string;
   ekopayParentId?: string;
   murojaatTelegramIds?: string[];
+  requireLocationForGpsActs?: boolean;
 }
 
 interface VerificationStatus {
@@ -95,7 +98,8 @@ export default function CompanyProfile() {
           GROUP_ID_XATLOVCHILAR: data.company.GROUP_ID_XATLOVCHILAR || '',
           GROUP_ID_MANAGERS: data.company.GROUP_ID_MANAGERS || '',
           GROUP_ID_MUROJAATLAR: data.company.GROUP_ID_MUROJAATLAR || '',
-          murojaatTelegramIds: data.company.murojaatTelegramIds || []
+          murojaatTelegramIds: data.company.murojaatTelegramIds || [],
+          requireLocationForGpsActs: !!data.company.requireLocationForGpsActs
         });
       }
     } catch (err: any) {
@@ -373,6 +377,29 @@ export default function CompanyProfile() {
                         }
                       }}
                     />
+                  </Grid>
+
+                  {/* GPS dalolatnomasida abonent uyi joylashuvi */}
+                  <Grid item xs={12}>
+                    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: '12px' }}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={!!form.requireLocationForGpsActs}
+                            onChange={(e) => setForm({ ...form, requireLocationForGpsActs: e.target.checked })}
+                          />
+                        }
+                        label={
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            GPS dalolatnomasida abonent uyi joylashuvi majburiy
+                          </Typography>
+                        }
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 6 }}>
+                        Yoqilsa, GPS (xizmat ko'rsatilmagan) arizasini uy joylashuvi xaritada belgilanmaguncha yaratib bo'lmaydi. O'chirilgan
+                        bo'lsa joylashuv ixtiyoriy kiritiladi.
+                      </Typography>
+                    </Paper>
                   </Grid>
 
                   {/* Murojaat Xodimlari Telegram ID lari (Array) */}

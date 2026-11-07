@@ -34,6 +34,7 @@ import IdentifikatsiyaMahallaKesim from 'views/billing/Reports/IdentifikatsiyaMa
 import SpecialTasksReport from 'views/billing/Reports/SpecialTasksReport';
 import MahallaTushumlarNazoratchi from 'views/billing/Reports/MahallaTushumlarNazoratchi';
 import InspectorPlanMatrix from 'views/billing/Reports/InspectorPlanMatrix';
+import InspectorIntegratedReport from 'views/billing/Reports/InspectorIntegratedReport';
 import MFYIncomeReport from 'views/billing/Reports/MFYIncomeReport';
 import XatlovOdamSoniReport from 'views/billing/Reports/XatlovOdamSoniReport';
 import ScheduledReportsPanel from 'views/billing/Reports/ScheduledReportsPanel';
@@ -47,6 +48,7 @@ import Debitors from 'views/billing/Debitors';
 import DebtCollectionOverview from 'views/billing/DebtCollectionCenter/DebtCollectionOverview';
 import WorkQueueDetail from 'views/billing/DebtCollectionCenter/WorkQueueDetail';
 import VisitGrafikPage from 'views/gpsMonitoring/VisitGrafikPage';
+import AbonentsMap from 'views/gpsMonitoring/AbonentsMap';
 import Tasks from 'views/employeers/Tasks';
 import GroupTasksPage from 'views/employeers/GroupTasks';
 import Abonent from 'views/billing/Abonent/Abonent';
@@ -260,6 +262,10 @@ const MainRoutes: MainRoutesProps = {
           element: <InspectorPlanMatrix />
         },
         {
+          path: 'report-inspector-integrated',
+          element: <InspectorIntegratedReport />
+        },
+        {
           path: 'report-mfy-income',
           element: <MFYIncomeReport />
         },
@@ -398,6 +404,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'visitsGraph',
           element: <VisitGrafikPage />
+        },
+        {
+          path: 'abonentsMap',
+          element: <AbonentsMap />
         }
       ]
     },

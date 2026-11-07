@@ -98,6 +98,7 @@ const uzKirill: typeof uz = {
     debtCollectionCenter: 'Дебитор ундириш маркази',
     debitors: 'Дебиторлар',
     visitsGraph: 'Ташрифлар графиги',
+    abonentsMap: 'Абонентлар харитаси',
     mahallas: 'Маҳаллалар',
     'sms-warnings': 'SMS огоҳлантиришлар',
     caller: 'Телефончи',

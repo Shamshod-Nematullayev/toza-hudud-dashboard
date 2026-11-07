@@ -9,6 +9,7 @@ import { AbonentCard } from 'views/billing/Abonent/types';
 import api from 'utils/api';
 import { AutoMobile } from 'views/gpsMonitoring/VisitGrafikPage/useVisitGrafikStore';
 import { create } from 'zustand';
+import type { LatLngPoint } from 'services/abonentLocation';
 
 export interface dhjRow {
   id: number;
@@ -399,6 +400,8 @@ interface StoreActionsState {
   setYashovchiSoniInput: (yashovchiSoniInput: string | number) => void;
   setPasteImageDialogOpen: (pasteImageDialogOpen: boolean) => void;
   setMuzlatiladi: (muzlatiladi: boolean) => void;
+  setGpsLocation: (gpsLocation: LatLngPoint | null) => void;
+  setGpsLocationRequired: (required: boolean) => void;
   setInitialState: () => void;
   createAriza: () => void;
   updateAbonentDataByAccNum: (accountNumber: string, abonentData: 'main' | 'dublicate') => Promise<boolean>;
@@ -459,6 +462,9 @@ interface StoreDataState {
   pasteImageDialogOpen: boolean;
   images: ImgType[];
   muzlatiladi: boolean;
+  /** GPS dalolatnomasi: abonent uyi joylashuvi va tashkilot sozlamasiga ko'ra majburiyligi */
+  gpsLocation: LatLngPoint | null;
+  gpsLocationRequired: boolean;
   hisoblandiJadval: IHisoblandiItem[];
   aktSumma: IAktSumma;
   autoMobile: AutoMobile | null;
@@ -492,6 +498,8 @@ const initialStoreDataState: StoreDataState = {
   ariza: {},
   hisoblandiJadval: [],
   images: [],
+  gpsLocation: null,
+  gpsLocationRequired: false,
   mahalla: {
     data: {},
     company: {
@@ -569,6 +577,8 @@ export const useStore = create<StoreState>((set, get) => ({
   setPasteImageDialogOpen: (pasteImageDialogOpen) => set({ pasteImageDialogOpen }),
   setImages: (images) => set({ images }),
   setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi }),
+  setGpsLocation: (gpsLocation) => set({ gpsLocation }),
+  setGpsLocationRequired: (gpsLocationRequired) => set({ gpsLocationRequired }),
   setInitialState: () => set({ ...initialStoreDataState, kuchirish: emptyKuchirish() }),
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
   setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma }),
@@ -586,6 +596,8 @@ export const useStore = create<StoreState>((set, get) => ({
         recalculationPeriods,
         images,
         muzlatiladi,
+        gpsLocation,
+        gpsLocationRequired,
         shouldBeMoneyTransfer,
         dublicateRelation,
         moneyTransferAmount,
@@ -776,6 +788,10 @@ export const useStore = create<StoreState>((set, get) => ({
         }))
       )
         return;
+      if (aktType === 'gps' && gpsLocationRequired && !gpsLocation) {
+        toast.error('GPS dalolatnomasi uchun abonent uyi joylashuvini xaritada belgilang');
+        return;
+      }
       setIsLoading(true);
       try {
         const newArizaData = (
@@ -803,6 +819,19 @@ export const useStore = create<StoreState>((set, get) => ({
             recalculationPeriods,
             bosqichlar,
             muzlatiladi,
+            location:
+              aktType === 'gps' && gpsLocation
+                ? {
+                    lat: gpsLocation.lat,
+                    lng: gpsLocation.lng,
+                    source: gpsLocation.source,
+                    accuracy: gpsLocation.accuracy,
+                    mahallaId: abonentData.mahallaId || undefined,
+                    mahallaName: abonentData.mahallaName || undefined,
+                    streetName: abonentData.streetName || undefined,
+                    homeNumber: abonentData.house?.homeNumber || undefined
+                  }
+                : undefined,
             shouldBeMoneyTransfer: aktType === 'dvaynik' ? shouldBeMoneyTransfer : false,
             dublicateRelation: aktType === 'dvaynik' ? dublicateRelation : undefined,
             moneyTransferAmount: aktType === 'dvaynik' && shouldBeMoneyTransfer ? Number(moneyTransferAmount) : 0

@@ -64,6 +64,7 @@ import { aktType, defaultAbonentData, dublicateRelations, useStore, validateKuch
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import { documentTypes } from 'store/constant';
 import { InhabitantTransferFields } from './InhabitantTransfer';
+import GpsLocationField from './GpsLocationField';
 import { TourHelpButton } from 'ui-component/tour';
 
 interface InputFormProps {
@@ -112,6 +113,8 @@ function AbonentLookupFeedback({ loading, error, onRetry }: { loading: boolean; 
 
 export default function InputForm({ onStartTour }: InputFormProps) {
   const {
+    gpsLocation,
+    gpsLocationRequired,
     recalcMode,
     setRecalcMode,
     aktType,
@@ -333,6 +336,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     (aktType === 'dvaynik' && !abonentData2.accountNumber) ||
     (aktType === 'dvaynik' && isGlobalAbonent2) ||
     (aktType === 'gps' && images.length === 0) ||
+    (aktType === 'gps' && gpsLocationRequired && !gpsLocation) ||
     (aktType === 'yashovchi_kuchirish' && !!validateKuchirish(abonentData, abonentData2, kuchirish, isGlobalAbonent2)) ||
     (aktType === 'pul_kuchirish' &&
       (!transferDebitorAmount || Number(transferDebitorAmount) <= 0 || transferCreditors.length === 0 || !isAmountBalanced));
@@ -345,6 +349,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (!aktType) return t('Hujjat turini tanlang') || '';
     if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t('Ikkilamchi hisob raqamini kiriting') || '';
     if (aktType === 'gps' && images.length === 0) return t('GPS arizasi uchun kamida bitta rasm biriktiring') || '';
+    if (aktType === 'gps' && gpsLocationRequired && !gpsLocation) return 'GPS arizasi uchun abonent uyi joylashuvini belgilang';
     if (aktType === 'yashovchi_kuchirish') return validateKuchirish(abonentData, abonentData2, kuchirish, isGlobalAbonent2) || '';
     if (aktType === 'pul_kuchirish') {
       if (!transferDebitorAmount || Number(transferDebitorAmount) <= 0) return "O'tkaziladigan summani kiriting";
@@ -923,6 +928,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                       </Typography>
                     </Paper>
                   )}
+
+                  <GpsLocationField />
 
                   <Button
                     fullWidth

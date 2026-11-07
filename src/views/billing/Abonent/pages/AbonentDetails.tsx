@@ -23,6 +23,7 @@ import { TimelineItem, Timeline, TimelineSeparator, TimelineDot, TimelineConnect
 import { NameHistory } from '../NameHistoryCard';
 import { Add, DownloadForOffline, Link, SaveAlt } from '@mui/icons-material';
 import { formatPhoneNumber } from 'views/tools/formatters';
+import AbonentLocationCard from '../AbonentLocationCard';
 
 function AbonentDetails() {
   const theme = useTheme();
@@ -182,6 +183,11 @@ function AbonentDetails() {
               ]}
             />
           )}
+        </Grid>
+
+        {/* 6. Uy joylashuvi */}
+        <Grid size={{ xs: 12 }}>
+          <AbonentLocationCard abonent={abonentDetails} />
         </Grid>
       </Grid>
     </>

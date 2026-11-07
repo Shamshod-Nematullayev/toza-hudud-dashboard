@@ -96,6 +96,7 @@ const uz = {
     debtCollectionCenter: 'Debitor undirish markazi',
     debitors: 'Debitorlar',
     visitsGraph: 'Tashriflar grafiki',
+    abonentsMap: 'Abonentlar xaritasi',
     mahallas: 'Mahallalar',
     'sms-warnings': 'SMS ogohlantirishlar',
     caller: 'Telefonchi',
