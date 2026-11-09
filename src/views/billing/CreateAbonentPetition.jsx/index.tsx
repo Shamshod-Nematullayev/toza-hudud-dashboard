@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   Box,
   Card,
   Grid,
@@ -358,7 +359,16 @@ function CreateAbonentPetition() {
               <>
                 {/* Tepada: Sana tanlash va Debitor/Kreditor paneli */}
                 <Box sx={{ flexShrink: 0 }}>
-                  {aktType === 'odam_soni' && recalcMode === 'kop_bosqichli' ? <MultiStageRecalculator /> : <Recalculate />}
+                  {aktType === 'cancelContract' ? (
+                    // Qayta hisob kerak emas: akt kiritilganda saldo va yashovchi soni 0 ga keltiriladi
+                    <Alert severity="info" sx={{ py: 0.5 }}>
+                      {t("Shartnoma bekor qilinganda qayta hisob davri tanlanmaydi: akt kiritilayotganda yashovchi soni va saldo avtomatik 0 ga keltiriladi.")}
+                    </Alert>
+                  ) : aktType === 'odam_soni' && recalcMode === 'kop_bosqichli' ? (
+                    <MultiStageRecalculator />
+                  ) : (
+                    <Recalculate />
+                  )}
                 </Box>
 
                 <Divider />

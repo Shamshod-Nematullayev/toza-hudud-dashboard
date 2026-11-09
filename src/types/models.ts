@@ -1,6 +1,6 @@
 import { IAct } from './billing';
 
-export const arizaDocumentTypes = ['dvaynik', 'odam_soni', 'viza', 'death', 'gps', 'pul_kuchirish', 'yashovchi_kuchirish'] as const;
+export const arizaDocumentTypes = ['dvaynik', 'odam_soni', 'viza', 'death', 'gps', 'pul_kuchirish', 'yashovchi_kuchirish', 'cancelContract'] as const;
 
 export interface INeedMoneyTransfer {
   accountNumber: string;
@@ -32,6 +32,8 @@ export interface IAriza {
   // photos: string[];
   recalculationPeriods: any[];
   /** Yashovchi soni ko'chirish (licshet → ikkilamchi_licshet) */
+  /** Shartnomani bekor qilish: sabab, asos, ariza paytidagi saldo va yashovchi soni */
+  bekorQilish?: { sabab: string; asos?: string; kSaldo?: number; inhabitantCnt?: number };
   kuchirish?: {
     soni: number;
     sabab: string;

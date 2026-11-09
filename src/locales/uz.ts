@@ -178,6 +178,7 @@ const uz = {
       dvaynik: 'Dublikat litseshyot',
       pul_kuchirish: "Pul ko'chirish",
       yashovchi_kuchirish: "Yashovchi ko'chirish",
+      cancelContract: 'Shartnoma bekor qilish',
       death: 'Vafot etganlik',
       gps: 'GPS dalolatnoma'
     },

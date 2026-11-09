@@ -58,6 +58,7 @@ const packTypeDisplayMap: Record<string, { label: string; lightColor: string; da
   death: { label: "Odam sonini o'zgartirish", lightColor: '#0284c7', darkColor: '#38bdf8' },
   CANCEL_CONTRACT: { label: 'Shartnoma bekor qilish', lightColor: '#dc2626', darkColor: '#f87171' },
   dvaynik: { label: 'Shartnoma bekor qilish', lightColor: '#dc2626', darkColor: '#f87171' },
+  cancelContract: { label: 'Shartnoma bekor qilish', lightColor: '#dc2626', darkColor: '#f87171' },
   SIMPLE: { label: "To'lov kelib tushmagan", lightColor: '#16a34a', darkColor: '#4ade80' },
   pul_kuchirish: { label: "To'lov kelib tushmagan", lightColor: '#16a34a', darkColor: '#4ade80' },
   yashovchi_kuchirish: { label: "Yashovchi ko'chirish", lightColor: '#0284c7', darkColor: '#38bdf8' }

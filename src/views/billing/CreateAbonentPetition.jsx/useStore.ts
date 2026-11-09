@@ -175,6 +175,26 @@ export interface IKuchirish {
   toAktSumma: { total: number; withQQSTotal: number; withoutQQSTotal: number };
 }
 
+/** Shartnomani bekor qilish sabablari (backend cancelContractReasons bilan bir xil) */
+export const cancelContractReasons = {
+  mahallada_mavjud_emas: 'Mahallada mavjud emas',
+  texnik_xatolik: "Texnik xatolik (noto'g'ri shaxsga ochilgan)",
+  takroriy: 'Takroriy (ortiqcha) ochilgan',
+  boshqa: 'Boshqa sabab'
+} as const;
+export type CancelContractReason = keyof typeof cancelContractReasons;
+
+/** Arizada saqlanadigan shartnoma bekor qilish ma'lumoti */
+export interface ICancelContract {
+  sabab: CancelContractReason;
+  /** Asos: kelgan xat, o'rganish natijasi va h.k. */
+  asos?: string;
+  kSaldo?: number;
+  inhabitantCnt?: number;
+}
+
+export const emptyBekorQilish = (): { sabab: CancelContractReason; asos: string } => ({ sabab: 'mahallada_mavjud_emas', asos: '' });
+
 export const emptyKuchirish = (): IKuchirishInput => ({
   soni: '1',
   sabab: kuchirishSabablari[0],
@@ -387,7 +407,8 @@ export interface ImgType {
 interface StoreActionsState {
   setAktSumma: (aktSumma: IAktSumma) => void;
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => void;
-  setAktType: (aktType: aktType | 'cancelContract') => void;
+  setAktType: (aktType: aktType) => void;
+  setBekorQilish: (patch: Partial<{ sabab: CancelContractReason; asos: string }>) => void;
   setShowPrintSection: (showPrintSection: boolean) => void;
   setRecalculationPeriods: (recalculationPeriods: any[]) => void;
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => void;
@@ -472,6 +493,8 @@ interface StoreDataState {
   recalcMode: RecalcMode;
   stages: IStageInput[];
   kuchirish: IKuchirishInput;
+  /** Shartnomani bekor qilish formasi */
+  bekorQilish: { sabab: CancelContractReason; asos: string };
 }
 
 const initialStoreDataState: StoreDataState = {
@@ -524,6 +547,7 @@ const initialStoreDataState: StoreDataState = {
   recalcMode: 'oddiy',
   stages: [emptyStage()],
   kuchirish: emptyKuchirish(),
+  bekorQilish: emptyBekorQilish(),
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' }
 };
 
@@ -553,8 +577,10 @@ export const useStore = create<StoreState>((set, get) => ({
     set({
       aktType,
       kuchirish: emptyKuchirish(),
+      bekorQilish: emptyBekorQilish(),
       ...(aktType === 'odam_soni' ? {} : { recalcMode: 'oddiy' as RecalcMode, stages: [emptyStage()] })
     }),
+  setBekorQilish: (patch) => set((state) => ({ bekorQilish: { ...state.bekorQilish, ...patch } })),
   setKuchirish: (patch) => set((state) => ({ kuchirish: { ...state.kuchirish, ...patch } })),
   // Rejim almashganda avvalgi rejimda qo'shilgan davrlar arizaga aralashib ketmasin
   setRecalcMode: (mode) =>
@@ -579,7 +605,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setMuzlatiladi: (muzlatiladi) => set({ muzlatiladi }),
   setGpsLocation: (gpsLocation) => set({ gpsLocation }),
   setGpsLocationRequired: (gpsLocationRequired) => set({ gpsLocationRequired }),
-  setInitialState: () => set({ ...initialStoreDataState, kuchirish: emptyKuchirish() }),
+  setInitialState: () => set({ ...initialStoreDataState, kuchirish: emptyKuchirish(), bekorQilish: emptyBekorQilish() }),
   setHisoblandiJadval: (hisoblandiJadval: IHisoblandiItem[]) => set({ hisoblandiJadval }),
   setAktSumma: (aktSumma: IAktSumma) => set({ aktSumma }),
   createAriza: async () => {
@@ -747,6 +773,53 @@ export const useStore = create<StoreState>((set, get) => ({
           ]);
           setMahalla(mfy1.data);
           setMahallaDublicat(mfy2.data);
+          setShowPrintSection(true);
+        } catch (error: any) {
+          console.error(error);
+          toast.error(error?.response?.data?.message || error.message || 'Xatolik kuzatildi');
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      if (aktType === 'cancelContract') {
+        const { bekorQilish } = get();
+        const kSaldo = Number(abonentData.balance?.kSaldo) || 0;
+        const inhabitantCnt = Number(abonentData.house?.inhabitantCnt) || 0;
+        if (
+          !(await confirmDialog({
+            title: 'Shartnomani bekor qilish',
+            message: `${abonentData.accountNumber} hisob raqami bo'yicha shartnomani bekor qilish dalolatnomasi tuziladi. Akt kiritilganda yashovchi soni (${inhabitantCnt} kishi) va saldo (${(kSaldo * -1).toLocaleString()} so'm) 0 qilinadi. Davom etasizmi?`,
+            confirmText: 'Ha, yaratish',
+            color: 'warning'
+          }))
+        )
+          return;
+        setIsLoading(true);
+        try {
+          const { data } = await api.post('/arizalar/create', {
+            account_number: abonentData.accountNumber,
+            abonentId: abonentData.id,
+            fullName: abonentData.fullName,
+            document_type: aktType,
+            // Summa akt kiritilayotganda TozaMakonda hisoblanadi (saldo 0 ga keltiriladi)
+            akt_summasi: { total: 0, withQQSTotal: 0, withoutQQSTotal: 0 },
+            current_prescribed_cnt: inhabitantCnt,
+            next_prescribed_cnt: 0,
+            comment: bekorQilish.asos.trim() || undefined,
+            photos: images.map((img) => img.document_id),
+            recalculationPeriods: [],
+            bekorQilish: {
+              sabab: bekorQilish.sabab,
+              asos: bekorQilish.asos.trim() || undefined,
+              kSaldo,
+              inhabitantCnt
+            }
+          });
+          if (!data.ok) return toast.error(data.message);
+          setAriza(data.ariza);
+          if (abonentData.mahallaId) setMahalla((await api.get('/billing/get-mfy-by-id/' + abonentData.mahallaId)).data);
           setShowPrintSection(true);
         } catch (error: any) {
           console.error(error);
@@ -1202,6 +1275,15 @@ export function buildAutoAsoslantiruvchi({
       );
       if (muzlatiladi) sentences.push(`Hozirgi kunda ham ushbu manzilga xizmat ko'rsatish imkoniyati mavjud emas, shu sababli hisob raqam muzlatiladi.`);
       break;
+    case 'cancelContract': {
+      const b = ariza.bekorQilish as ICancelContract | undefined;
+      sentences.push(
+        `O'rganish natijasida ${ariza.licshet} hisob raqamli abonent amalda mavjud emasligi (${(
+          cancelContractReasons[b?.sabab as CancelContractReason] || cancelContractReasons.mahallada_mavjud_emas
+        ).toLowerCase()}) aniqlandi. Shu sababli shartnomani bekor qilish, yashovchilar soni va saldoni 0 ga keltirish maqsadga muvofiq.`
+      );
+      break;
+    }
     case 'yashovchi_kuchirish': {
       const k = ariza.kuchirish as IKuchirish | undefined;
       if (k) {

@@ -24,7 +24,6 @@ function FindedDataTable() {
   const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData, recalculationPeriods } = useRecalculatorStore();
 
   const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik' && dt !== 'yashovchi_kuchirish');
-  manualActDocumentTypes.push('cancelContract');
 
   const {
     handleClickRefreshButton,

@@ -180,6 +180,7 @@ const uzKirill: typeof uz = {
       dvaynik: 'Дубликат лицсчёт',
       pul_kuchirish: 'Пул кўчириш',
       yashovchi_kuchirish: 'Яшовчи кўчириш',
+      cancelContract: 'Шартнома бекор қилиш',
       death: 'Вафот этганлик',
       gps: 'GPS далолатнома'
     },

@@ -23,6 +23,8 @@ import {
   Close,
   ContentCopy,
   ContentPaste,
+  Fullscreen,
+  FullscreenExit,
   LocationCity,
   MyLocation,
   OpenInNew,
@@ -93,7 +95,9 @@ export default function LocationPickerDialog({
   onSave
 }: LocationPickerDialogProps) {
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [isMaximized, setIsMaximized] = useState(false);
+
   const [point, setPoint] = useState<LatLngPoint | null>(initial ? { ...initial } : null);
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; key: number } | null>(null);
   const [input, setInput] = useState('');
@@ -188,9 +192,31 @@ export default function LocationPickerDialog({
 
   const center = useMemo<[number, number] | undefined>(() => (initial ? [initial.lat, initial.lng] : undefined), [open]);
 
+  // Butun ekran yoki standart o'lcham
+  const isFullScreen = isMobile || isMaximized;
+
+  const mapHeight = isMaximized
+    ? 'calc(100vh - 245px)'
+    : isMobile
+      ? 'calc(100vh - 350px)'
+      : 480;
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" fullScreen={fullScreen}>
-      <DialogTitle sx={{ pr: 6, pb: 1.5 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth={isMaximized ? false : 'md'}
+      fullScreen={isFullScreen}
+      PaperProps={{
+        sx: {
+          ...(isMaximized
+            ? { m: 0, width: '100vw', height: '100vh', maxHeight: '100vh', borderRadius: 0 }
+            : { borderRadius: 3, transition: 'all 0.25s ease' })
+        }
+      }}
+    >
+      <DialogTitle sx={{ pr: 12, pb: 1.5, position: 'relative' }}>
         <Typography variant="h4" component="div" sx={{ fontWeight: 600 }}>
           {title || 'Uy joylashuvini belgilash'}
         </Typography>
@@ -199,10 +225,22 @@ export default function LocationPickerDialog({
             {subtitle}
           </Typography>
         )}
-        <IconButton onClick={onClose} sx={{ position: 'absolute', right: 12, top: 12 }}>
-          <Close />
-        </IconButton>
+
+        {/* Yuqori o'ng burchakdagi boshqaruv tugmalari (Fullscreen va Yopish) */}
+        <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', right: 12, top: 12 }}>
+          <Tooltip title={isMaximized ? "Oynani kichraytirish" : "To'liq ekran (Fullscreen)"}>
+            <IconButton onClick={() => setIsMaximized((v) => !v)} size="medium" sx={{ color: 'text.secondary' }}>
+              {isMaximized ? <FullscreenExit /> : <Fullscreen />}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Yopish">
+            <IconButton onClick={onClose} size="medium" sx={{ color: 'text.secondary' }}>
+              <Close />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </DialogTitle>
+
       <DialogContent dividers sx={{ p: { xs: 1.5, sm: 2 } }}>
         <Stack spacing={1.5}>
           {/* Qidiruv va harakatlar paneli: barcha elementlar tekis bitta qatorda */}
@@ -306,22 +344,22 @@ export default function LocationPickerDialog({
           <Box
             sx={{
               position: 'relative',
-              borderRadius: 2.5,
+              borderRadius: isMaximized ? 1 : 2.5,
               overflow: 'hidden',
               boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
               border: '1px solid',
               borderColor: 'divider'
             }}
           >
-            <BaseMap center={center} zoom={center ? 17 : undefined} height={fullScreen ? 'calc(100vh - 350px)' : 460}>
+            <BaseMap center={center} zoom={center ? 17 : undefined} height={mapHeight}>
               <ClickToPick onPick={(lat, lng) => setPoint({ lat, lng, source: 'map' })} />
               <FlyTo target={flyTarget} />
               <FitNeighbors points={neighbors} enabled={!initial} />
 
-              {/* Qo'shni xonadonlar (kulrang markerlar) */}
+              {/* Qo'shni xonadonlar (kichik kulrang markerlar) */}
               {showNeighbors &&
                 neighbors.map((n) => (
-                  <Marker key={n.residentId} position={[n.lat, n.lng]} icon={pinIcon('#757575', 20)}>
+                  <Marker key={n.residentId} position={[n.lat, n.lng]} icon={pinIcon('#757575', 18)}>
                     <LeafletTooltip direction="top">
                       <div style={{ fontSize: 12 }}>
                         <b>{n.fullName}</b>
@@ -332,11 +370,11 @@ export default function LocationPickerDialog({
                   </Marker>
                 ))}
 
-              {/* Tanlangan uy joylashuvi (Asosiy qizil marker) */}
+              {/* Tanlangan uy joylashuvi: ixcham va aniq qizil marker (o'lchami 26px) */}
               {point && (
                 <Marker
                   position={[point.lat, point.lng]}
-                  icon={pinIcon('#d32f2f', 36)}
+                  icon={pinIcon('#d32f2f', 26)}
                   draggable
                   zIndexOffset={1000}
                   eventHandlers={{

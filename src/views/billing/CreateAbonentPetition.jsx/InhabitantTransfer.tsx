@@ -32,34 +32,35 @@ export function InhabitantTransferFields() {
 
   return (
     <Stack spacing={1.5}>
-      <Stack direction="row" spacing={1.5}>
-        <TextField
-          type="number"
-          label="Ko'chiriladigan kishi soni"
-          value={kuchirish.soni}
-          onChange={(e) => setKuchirish({ soni: e.target.value })}
-          error={soniError}
-          helperText={abonentData.accountNumber ? `Asosiy abonentda: ${fromCurrent} kishi` : ' '}
-          slotProps={{ htmlInput: { min: 1 } }}
-          sx={{ width: 170, flexShrink: 0, bgcolor: 'background.paper', borderRadius: 1 }}
-        />
-        <DatePicker
-          views={['year', 'month']}
-          format="MM.YYYY"
-          label="Ko'chgan oy"
-          minDate={minMonth}
-          maxDate={dayjs()}
-          value={kuchirish.oy}
-          onChange={(v) => setKuchirish({ oy: v })}
-          slotProps={{
-            textField: {
-              fullWidth: true,
-              helperText: kuchirish.oy?.isBefore(dayjs(), 'month') ? "O'tgan oylar qayta hisoblanadi" : 'Joriy oydan boshlab',
-              sx: { bgcolor: 'background.paper', borderRadius: 1 }
-            }
-          }}
-        />
-      </Stack>
+      {/* Ustun tor: maydonlar ustma-ust, oq fon faqat input qutisida (helper matn ostida emas) */}
+      <TextField
+        fullWidth
+        type="number"
+        label="Ko'chiriladigan kishi soni"
+        value={kuchirish.soni}
+        onChange={(e) => setKuchirish({ soni: e.target.value })}
+        error={soniError}
+        helperText={abonentData.accountNumber ? `Asosiy abonentda: ${fromCurrent} kishi` : undefined}
+        slotProps={{ htmlInput: { min: 1 } }}
+        sx={{ '& .MuiInputBase-root': { bgcolor: 'background.paper' } }}
+      />
+      <DatePicker
+        views={['year', 'month']}
+        format="MM.YYYY"
+        label="Ko'chgan oy"
+        minDate={minMonth}
+        maxDate={dayjs()}
+        value={kuchirish.oy}
+        onChange={(v) => setKuchirish({ oy: v })}
+        slotProps={{
+          textField: {
+            fullWidth: true,
+            helperText: kuchirish.oy?.isBefore(dayjs(), 'month') ? "O'tgan oylar qayta hisoblanadi" : 'Joriy oydan boshlab',
+            sx: { '& .MuiPickersInputBase-root, & .MuiInputBase-root': { bgcolor: 'background.paper' } }
+          }
+        }}
+      />
+
       <Autocomplete
         freeSolo
         options={[...kuchirishSabablari]}

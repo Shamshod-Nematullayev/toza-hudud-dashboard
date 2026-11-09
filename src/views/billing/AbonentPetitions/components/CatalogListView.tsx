@@ -23,6 +23,7 @@ import {
   FlightTakeoffOutlined,
   ContentCopyOutlined,
   LocationOffOutlined,
+  DoNotDisturbOnOutlined,
   CurrencyExchangeOutlined,
   DescriptionOutlined,
   FolderOpenOutlined,
@@ -79,6 +80,11 @@ const DOCUMENT_TYPE_METADATA: Record<string, { title: string; desc: string; icon
     title: "Yashovchi ko'chirish",
     desc: "Kishini bir xonadondan boshqasiga o'tkazish: biriga −N, boshqasiga +N",
     icon: <TransferWithinAStationOutlined sx={{ color: 'info.main' }} />
+  },
+  cancelContract: {
+    title: 'Shartnoma bekor qilish',
+    desc: "Amalda mavjud bo'lmagan abonent: yashovchi soni va saldo 0, shartnoma bekor",
+    icon: <DoNotDisturbOnOutlined sx={{ color: 'error.main' }} />
   },
   pul_kuchirish: {
     title: 'Pul ko‘chirish',

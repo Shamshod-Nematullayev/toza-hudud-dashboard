@@ -180,6 +180,7 @@ const ru: typeof uz = {
       dvaynik: 'Дублирующий лицевой счёт',
       pul_kuchirish: 'Перевод средств',
       yashovchi_kuchirish: 'Перевод жильцов',
+      cancelContract: 'Расторжение договора',
       death: 'Свидетельство о смерти',
       gps: 'GPS акт'
     },

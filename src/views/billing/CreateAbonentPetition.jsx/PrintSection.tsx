@@ -39,6 +39,7 @@ import Gps from './Documents/Gps';
 import Death from './Documents/Death';
 import Viza from './Documents/Viza';
 import YashovchiKuchirish from './Documents/YashovchiKuchirish';
+import CancelContract from './Documents/CancelContract';
 import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
 import { buildAutoAsoslantiruvchi, familyRelations, getCleanAsoslantiruvchi } from './useStore';
 import ManageActTypesDialog from './ManageActTypesDialog';
@@ -159,6 +160,8 @@ const DocumentRenderer = ({
       return <Viza {...commonProps} />;
     case 'death':
       return <Death {...commonProps} />;
+    case 'cancelContract':
+      return <CancelContract {...commonProps} />;
     case 'gps':
       return (
         <Gps {...commonProps} recalculationPeriods={recalculationPeriods} muzlatiladi={muzlatiladi} photos={photos} documentType="gps" />

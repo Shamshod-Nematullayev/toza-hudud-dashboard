@@ -20,7 +20,8 @@ export function useAdjustmentCalculation({
 
   useEffect(() => {
     let active = true;
-    if (!residentId || documentType === 'viza') {
+    // Shartnoma bekor qilishda saldo baribir 0 ga keltiriladi — qo'shimcha tuzatish hisobi kerak emas
+    if (!residentId || documentType === 'viza' || documentType === 'cancelContract') {
       setAdjustmentData(null);
       return;
     }

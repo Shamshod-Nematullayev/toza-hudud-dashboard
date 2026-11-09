@@ -60,7 +60,15 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { aktType, defaultAbonentData, dublicateRelations, useStore, validateKuchirish } from './useStore';
+import {
+  aktType,
+  cancelContractReasons,
+  CancelContractReason,
+  defaultAbonentData,
+  dublicateRelations,
+  useStore,
+  validateKuchirish
+} from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
 import { documentTypes } from 'store/constant';
 import { InhabitantTransferFields } from './InhabitantTransfer';
@@ -166,7 +174,9 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     setSelectedApplicantId,
     transferDebitorAmount,
     setTransferDebitorAmount,
-    kuchirish
+    kuchirish,
+    bekorQilish,
+    setBekorQilish
   } = useStore();
 
   const theme = useTheme();
@@ -689,6 +699,54 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                 </Stack>
               )}
 
+              {/* Shartnomani bekor qilish: abonent amalda mavjud emas */}
+              {aktType === 'cancelContract' && (
+                <Stack spacing={1.5}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>{t('Bekor qilish sababi')}</InputLabel>
+                    <Select
+                      label={t('Bekor qilish sababi')}
+                      value={bekorQilish.sabab}
+                      onChange={(e) => setBekorQilish({ sabab: e.target.value as CancelContractReason })}
+                      sx={{ bgcolor: 'background.paper' }}
+                    >
+                      {Object.entries(cancelContractReasons).map(([key, label]) => (
+                        <MenuItem key={key} value={key}>
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    label={t('Asos (izoh)')}
+                    placeholder="Masalan: Kadastr palatasi Kattaqo'rg'on filialining xati asosida, abonent ko'rsatilgan manzilda istiqomat qilmaydi"
+                    value={bekorQilish.asos}
+                    onChange={(e) => setBekorQilish({ asos: e.target.value })}
+                    slotProps={{ htmlInput: { maxLength: 2000 } }}
+                    sx={{ '& .MuiInputBase-root': { bgcolor: 'background.paper' } }}
+                  />
+                  <Alert severity="warning" sx={{ py: 0.25, fontSize: '12px' }}>
+                    {t('Akt kiritilganda yashovchi soni va saldo 0 qilinadi, shartnoma bekor qilinadi')}
+                    {abonentData.accountNumber
+                      ? ` (${abonentData.house?.inhabitantCnt || 0} kishi, ${((abonentData.balance?.kSaldo || 0) * -1).toLocaleString()} so'm)`
+                      : ''}
+                  </Alert>
+                  <Button
+                    fullWidth
+                    variant={images.length > 0 ? 'contained' : 'outlined'}
+                    color={images.length > 0 ? 'success' : 'primary'}
+                    startIcon={<AddPhotoAlternate />}
+                    onClick={() => setPasteImageDialogOpen(true)}
+                    sx={{ textTransform: 'none', borderRadius: 2 }}
+                  >
+                    {images.length > 0 ? `${t('Rasmlar biriktirildi')} (${images.length})` : t('Xat / hujjat rasmini biriktirish')}
+                  </Button>
+                </Stack>
+              )}
+
               {/* Dvoynik holati */}
               {aktType === 'dvaynik' && (
                 <Stack spacing={1.5}>
@@ -1177,7 +1235,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
               )}
 
               {/* Akt summasi indikatori */}
-              {aktType !== 'dvaynik' && aktType !== 'pul_kuchirish' && aktType !== 'yashovchi_kuchirish' && (
+              {aktType !== 'dvaynik' && aktType !== 'pul_kuchirish' && aktType !== 'yashovchi_kuchirish' && aktType !== 'cancelContract' && (
                 <Box
                   sx={{
                     p: 1.5,

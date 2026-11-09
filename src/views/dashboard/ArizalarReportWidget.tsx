@@ -34,7 +34,8 @@ import {
   GpsFixedOutlined,
   PersonRemoveOutlined,
   ArrowForward,
-  TransferWithinAStationOutlined
+  TransferWithinAStationOutlined,
+  DoNotDisturbOnOutlined
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from 'utils/api';
@@ -106,6 +107,13 @@ const docTypeMeta: Record<string, { labelKey: string; defaultLabel: string; icon
     icon: <TransferWithinAStationOutlined sx={{ fontSize: 20 }} />,
     color: '#0284c7',
     bgColor: 'rgba(2, 132, 199, 0.08)'
+  },
+  cancelContract: {
+    labelKey: 'dashboard.docTypes.cancelContract',
+    defaultLabel: 'Shartnoma bekor qilish',
+    icon: <DoNotDisturbOnOutlined sx={{ fontSize: 20 }} />,
+    color: '#dc2626',
+    bgColor: 'rgba(220, 38, 38, 0.08)'
   },
   pul_kuchirish: {
     labelKey: 'dashboard.docTypes.pul_kuchirish',
