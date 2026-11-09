@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Autocomplete,
@@ -22,21 +22,31 @@ import {
   Typography
 } from '@mui/material';
 import {
+  CameraAlt,
   Cancel,
   CheckCircle,
   Close,
   ContentCopy,
   DirectionsCar,
-  ErrorOutline,
+  ErrorOutlined,
+  Fullscreen,
+  FullscreenExit,
   Help,
   QueryStats,
+  RestartAlt,
+  Route,
   Speed,
-  Timer
+  Straighten,
+  Timer,
+  Undo
 } from '@mui/icons-material';
+import { Circle, CircleMarker, Marker, Polyline, Popup, Tooltip as LeafletTooltip, useMap, useMapEvents } from 'react-leaflet';
 import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
+import { toPng } from 'html-to-image';
 import api from 'utils/api';
 import { formatLatLng } from 'services/abonentLocation';
+import BaseMap, { pinIcon } from 'ui-component/map/BaseMap';
 
 export interface GpsVerificationDialogProps {
   open: boolean;
@@ -50,10 +60,73 @@ export interface GpsVerificationDialogProps {
   } | null;
 }
 
+export interface GpsTrackPoint {
+  lat: number;
+  lng: number;
+  time: number;
+  speed: number;
+  course?: number;
+  distanceMeters: number;
+}
+
 interface SmartGpsCarOption {
   id: number;
   name: string;
   isOnline?: boolean;
+}
+
+/** Ikki koordinata orasidagi masofani hisoblash (metrlarda) */
+function computeDistanceMeters(p1: [number, number], p2: [number, number]): number {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(p2[0] - p1[0]);
+  const dLng = toRad(p2[1] - p1[1]);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(p1[0])) * Math.cos(toRad(p2[0])) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
+}
+
+/** Xaritaga bosilganda o'lchash nuqtasini qo'shuvchi hook */
+function MeasureClickHandler({
+  active,
+  onAddPoint
+}: {
+  active: boolean;
+  onAddPoint: (point: [number, number]) => void;
+}) {
+  useMapEvents({
+    click: (e) => {
+      if (active) {
+        onAddPoint([e.latlng.lat, e.latlng.lng]);
+      }
+    }
+  });
+  return null;
+}
+
+function TrackBoundsFitter({
+  subscriber,
+  track
+}: {
+  subscriber: { lat: number; lng: number };
+  track: GpsTrackPoint[];
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    const allCoords: [number, number][] = [[subscriber.lat, subscriber.lng]];
+    for (const p of track) {
+      allCoords.push([p.lat, p.lng]);
+    }
+    if (allCoords.length === 1) {
+      map.setView(allCoords[0], 17);
+    } else {
+      map.fitBounds(allCoords, { padding: [40, 40], maxZoom: 18 });
+    }
+  }, [map, subscriber.lat, subscriber.lng, track]);
+  return null;
 }
 
 interface VerificationResultData {
@@ -93,6 +166,9 @@ interface VerificationResultData {
     avgSpeedKmh: number;
   }>;
   explanation: string;
+  nearbyTrack?: GpsTrackPoint[];
+  closestPoint?: GpsTrackPoint;
+  trackRadiusMeters?: number;
 }
 
 export default function GpsVerificationDialog({ open, onClose, target }: GpsVerificationDialogProps) {
@@ -210,16 +286,76 @@ export default function GpsVerificationDialog({ open, onClose, target }: GpsVeri
     }
   };
 
+  // Katta ekran (Fullscreen)
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Lineyka (masofa o'lchash) uskunasi
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measurePoints, setMeasurePoints] = useState<[number, number][]>([]);
+
+  // Dalolatnoma skrinshoti olish uchun ref
+  const captureAreaRef = useRef<HTMLDivElement | null>(null);
+  const [capturing, setCapturing] = useState(false);
+
+  const handleAddMeasurePoint = (point: [number, number]) => {
+    setMeasurePoints((prev) => [...prev, point]);
+  };
+
+  const handleUndoMeasurePoint = () => {
+    setMeasurePoints((prev) => prev.slice(0, -1));
+  };
+
+  const handleClearMeasure = () => {
+    setMeasurePoints([]);
+  };
+
+  const totalMeasureDistance = useMemo(() => {
+    if (measurePoints.length < 2) return 0;
+    let total = 0;
+    for (let i = 0; i < measurePoints.length - 1; i++) {
+      total += computeDistanceMeters(measurePoints[i], measurePoints[i + 1]);
+    }
+    return total;
+  }, [measurePoints]);
+
+  const handleCaptureScreenshot = async () => {
+    if (!captureAreaRef.current) return;
+    setCapturing(true);
+    try {
+      const dataUrl = await toPng(captureAreaRef.current, {
+        cacheBust: true,
+        quality: 0.98,
+        pixelRatio: 2
+      });
+      const link = document.createElement('a');
+      const safeAccount = (target?.accountNumber || 'abonent').replace(/[^a-zA-Z0-9_-]/g, '_');
+      link.download = `dalolatnoma_smartgps_${safeAccount}_${selectedDate}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success('Dalolatnoma uchun rasm yuklab olindi!');
+    } catch (err: any) {
+      console.error('Screenshot olishda xatolik:', err);
+      toast.error('Skrinshot olib bo‘lmadi: ' + (err?.message || 'Xatolik yuz berdi'));
+    } finally {
+      setCapturing(false);
+    }
+  };
+
   const copyExplanation = () => {
-    if (!result) return;
-    const text = `SmartGPS xizmat tekshiruvi xulosasi:\nHolat: ${result.status === 'VISITED' ? 'XIZMAT KO‘RSATILGAN' : result.status === 'NOT_VISITED' ? 'XIZMAT KO‘RSATILMAGAN' : 'NOANIQ'}\nAvtomobil: ${selectedCar?.name}\nSana: ${selectedDate} (${startTime} - ${endTime})\nMasofa: ${result.evidence.closestDistanceMeters} metr\nIzoh: ${result.explanation}`;
-    navigator.clipboard?.writeText(text);
-    toast.success('Xulosa nusxalandi');
+    if (!result?.explanation) return;
+    navigator.clipboard.writeText(result.explanation);
+    toast.success('GPS xulosasi nusxalandi');
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ pr: 6, pb: 1, position: 'relative' }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      fullScreen={isFullscreen}
+      maxWidth={isFullscreen ? false : (result?.nearbyTrack && result.nearbyTrack.length > 0 ? 'lg' : 'sm')}
+    >
+      <DialogTitle sx={{ pr: 12, pb: 1, position: 'relative' }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           <QueryStats sx={{ color: '#2e7d32', fontSize: 28 }} />
           <Box>
@@ -231,9 +367,16 @@ export default function GpsVerificationDialog({ open, onClose, target }: GpsVeri
             </Typography>
           </Box>
         </Stack>
-        <IconButton onClick={onClose} sx={{ position: 'absolute', right: 12, top: 12 }}>
-          <Close />
-        </IconButton>
+        <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', right: 12, top: 12, alignItems: 'center' }}>
+          <Tooltip title={isFullscreen ? "Kichraytirish" : "To'liq ekranga ochish"}>
+            <IconButton onClick={() => setIsFullscreen(!isFullscreen)} size="small">
+              {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+            </IconButton>
+          </Tooltip>
+          <IconButton onClick={onClose} size="small">
+            <Close />
+          </IconButton>
+        </Stack>
       </DialogTitle>
 
       <DialogContent dividers sx={{ p: 2.5 }}>
@@ -278,14 +421,6 @@ export default function GpsVerificationDialog({ open, onClose, target }: GpsVeri
                     {...params}
                     label="Transport vositasi (SmartGPS)"
                     placeholder="Avtomobilni tanlang"
-                    InputProps={{
-                      ...params.InputProps,
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <DirectionsCar fontSize="small" sx={{ color: 'text.secondary' }} />
-                        </InputAdornment>
-                      )
-                    }}
                   />
                 )}
                 renderOption={(props, o) => (
@@ -522,6 +657,429 @@ export default function GpsVerificationDialog({ open, onClose, target }: GpsVeri
                 </Box>
               )}
             </Box>
+          )}
+
+          {/* HARAKAT TREKI («ILON IZI») VA DALOLATNOMA SKRINSHOT HUDUDI */}
+          {result && result.nearbyTrack && result.nearbyTrack.length > 0 && (
+            <Box
+              ref={captureAreaRef}
+              sx={{
+                p: 2.5,
+                borderRadius: 2.5,
+                border: '1.5px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+                boxShadow: (theme) => (theme.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)')
+              }}
+            >
+              {/* DALOLATNOMA RASMIY SARLAVHASI (Screenshot olinganda aktga ilova sifatida tayyor chiqadi) */}
+              <Box
+                sx={{
+                  mb: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#f8fafc'),
+                  border: '1px solid',
+                  borderColor: 'divider'
+                }}
+              >
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', letterSpacing: 0.5 }}>
+                    SMARTGPS SUN’IY YO‘LDOSH MONITORINGI XULOSASI
+                  </Typography>
+                  <Chip
+                    label={
+                      result.status === 'VISITED'
+                        ? 'XIZMAT KO‘RSATILGAN'
+                        : result.status === 'NOT_VISITED'
+                          ? 'XIZMAT KO‘RSATILMAGAN'
+                          : 'NOANIQ'
+                    }
+                    color={result.status === 'VISITED' ? 'success' : result.status === 'NOT_VISITED' ? 'error' : 'warning'}
+                    sx={{ fontWeight: 800, fontSize: '0.85rem' }}
+                  />
+                </Stack>
+                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 1.5 }}>
+                  Dalolatnomaga ilova: avtomobil GPS treki asosida xonadonga xizmat ko‘rsatilganligini tekshirish hisoboti
+                </Typography>
+                <Divider sx={{ mb: 1.5 }} />
+                <Grid container spacing={1.5}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Abonent (Xonadon):</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{target?.fullName || '—'}</Typography>
+                    {target?.accountNumber && (
+                      <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'primary.main', display: 'block' }}>
+                        Hisob raqam: {target.accountNumber}
+                      </Typography>
+                    )}
+                    {target?.address && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        Manzil: {target.address}
+                      </Typography>
+                    )}
+                    <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', display: 'block' }}>
+                      📍 Koordinata: {formatLatLng(parseFloat(lat) || 0, parseFloat(lng) || 0)}
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Transport vositasi & Davr:</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>🚚 {selectedCar?.name || '—'}</Typography>
+                    <Typography variant="caption" sx={{ display: 'block', color: 'text.primary' }}>
+                      📅 Sana: <b>{dayjs(selectedDate).format('DD.MM.YYYY')}</b> ({startTime} — {endTime})
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', color: 'text.primary' }}>
+                      🎯 Eng yaqin o‘tish masofasi: <b>{result.evidence.closestDistanceMeters >= 0 ? `${result.evidence.closestDistanceMeters} metr` : '—'}</b> (Radius: {result.evidence.radiusMeters} m)
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic', color: 'text.secondary' }}>
+                      📝 {result.explanation}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* USKUNALAR PANELI: Lineyka & Skrinshot olish */}
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Route sx={{ color: 'primary.main', fontSize: 26 }} />
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      Mashina harakat treki («Ilon izi»)
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Abonent atrofidagi katta radiusdagi avtomobil harakati
+                    </Typography>
+                  </Box>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    label={`${result.nearbyTrack.length} ta GPS nuqta`}
+                    sx={{ height: 24, fontWeight: 600 }}
+                  />
+                  {result.trackRadiusMeters && (
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      label={`~${Math.round(result.trackRadiusMeters)} m qamrov`}
+                      sx={{ height: 24 }}
+                    />
+                  )}
+                </Stack>
+
+                {/* Lineyka va Skrinshot boshqaruvi */}
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  {measureMode && (
+                    <Chip
+                      color="warning"
+                      variant="filled"
+                      label={measurePoints.length > 1 ? `Masofa: ${totalMeasureDistance} m` : "Xaritada nuqtalarni bosing"}
+                      sx={{ fontWeight: 700, height: 30 }}
+                    />
+                  )}
+                  <Button
+                    size="small"
+                    variant={measureMode ? 'contained' : 'outlined'}
+                    color={measureMode ? 'warning' : 'primary'}
+                    startIcon={<Straighten />}
+                    onClick={() => {
+                      setMeasureMode(!measureMode);
+                      if (measureMode) handleClearMeasure();
+                    }}
+                    sx={{ textTransform: 'none', fontWeight: 600 }}
+                  >
+                    {measureMode ? 'Lineykani yopish' : 'Lineyka (O‘lchash)'}
+                  </Button>
+                  {measureMode && measurePoints.length > 0 && (
+                    <>
+                      <Tooltip title="Oxirgi nuqtani bekor qilish">
+                        <IconButton size="small" onClick={handleUndoMeasurePoint} color="inherit">
+                          <Undo fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Lineykani tozalash">
+                        <IconButton size="small" onClick={handleClearMeasure} color="error">
+                          <RestartAlt fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+
+                  {/* Skrinshot olish tugmasi */}
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="success"
+                    startIcon={capturing ? <CircularProgress size={16} color="inherit" /> : <CameraAlt />}
+                    onClick={handleCaptureScreenshot}
+                    disabled={capturing}
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      bgcolor: '#2e7d32',
+                      '&:hover': { bgcolor: '#1b5e20' }
+                    }}
+                  >
+                    {capturing ? 'Rasm olinmoqda...' : 'Akt uchun skrinshot olish'}
+                  </Button>
+                </Stack>
+              </Stack>
+
+              {/* Xarita konteyneri */}
+              <Box
+                sx={{
+                  height: isFullscreen ? 'calc(100vh - 430px)' : 440,
+                  minHeight: 400,
+                  width: '100%',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  position: 'relative',
+                  cursor: measureMode ? 'crosshair' : 'default'
+                }}
+              >
+                <BaseMap
+                  center={[parseFloat(lat) || 0, parseFloat(lng) || 0]}
+                  zoom={16}
+                  height="100%"
+                  defaultLayer="googleHybrid"
+                >
+                  <MeasureClickHandler active={measureMode} onAddPoint={handleAddMeasurePoint} />
+                  <TrackBoundsFitter
+                    subscriber={{ lat: parseFloat(lat) || 0, lng: parseFloat(lng) || 0 }}
+                    track={result.nearbyTrack}
+                  />
+
+                  {/* Katta kontekst qamrov doirasi */}
+                  {result.trackRadiusMeters && (
+                    <Circle
+                      center={[parseFloat(lat) || 0, parseFloat(lng) || 0]}
+                      radius={result.trackRadiusMeters}
+                      pathOptions={{
+                        color: '#0288d1',
+                        fillColor: '#0288d1',
+                        fillOpacity: 0.04,
+                        weight: 1.2,
+                        dashArray: '6, 8'
+                      }}
+                    />
+                  )}
+
+                  {/* Xizmat ko'rsatish radiusi doirasi */}
+                  <Circle
+                    center={[parseFloat(lat) || 0, parseFloat(lng) || 0]}
+                    radius={result.evidence.radiusMeters || 30}
+                    pathOptions={{
+                      color: result.status === 'VISITED' ? '#2e7d32' : '#ed6c02',
+                      fillColor: result.status === 'VISITED' ? '#2e7d32' : '#ed6c02',
+                      fillOpacity: 0.18,
+                      weight: 2,
+                      dashArray: '4, 4'
+                    }}
+                  />
+
+                  {/* Abonent xonadoni (Nishon) */}
+                  <Marker
+                    position={[parseFloat(lat) || 0, parseFloat(lng) || 0]}
+                    icon={pinIcon('#d32f2f', 32)}
+                  >
+                    <Popup>
+                      <Box sx={{ p: 0.5 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                          🏠 {target?.fullName || 'Xonadon'}
+                        </Typography>
+                        {target?.accountNumber && (
+                          <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', color: 'primary.main' }}>
+                            Hisob: {target.accountNumber}
+                          </Typography>
+                        )}
+                        {target?.address && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {target.address}
+                          </Typography>
+                        )}
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 600 }}>
+                          Xizmat radiusi: {result.evidence.radiusMeters || 30} metr
+                        </Typography>
+                      </Box>
+                    </Popup>
+                  </Marker>
+
+                  {/* «Ilon izi» polyline — tashqi oq kontur va ichki yorqin ko'k chiziq */}
+                  <Polyline
+                    positions={result.nearbyTrack.map((p) => [p.lat, p.lng])}
+                    pathOptions={{
+                      color: '#ffffff',
+                      weight: 7,
+                      opacity: 0.7,
+                      lineCap: 'round',
+                      lineJoin: 'round'
+                    }}
+                  />
+                  <Polyline
+                    positions={result.nearbyTrack.map((p) => [p.lat, p.lng])}
+                    pathOptions={{
+                      color: '#0288d1',
+                      weight: 4.5,
+                      opacity: 0.95,
+                      lineCap: 'round',
+                      lineJoin: 'round'
+                    }}
+                  />
+
+                  {/* Trek bo'ylab nuqtalar */}
+                  {result.nearbyTrack.map((p, idx) => {
+                    const isStart = idx === 0;
+                    const isEnd = idx === result.nearbyTrack!.length - 1;
+                    return (
+                      <CircleMarker
+                        key={`pt-${idx}-${p.time}`}
+                        center={[p.lat, p.lng]}
+                        radius={isStart || isEnd ? 6.5 : 3.5}
+                        pathOptions={{
+                          color: isStart ? '#1b5e20' : isEnd ? '#b71c1c' : '#01579b',
+                          fillColor: isStart ? '#4caf50' : isEnd ? '#f44336' : '#ffffff',
+                          fillOpacity: 1,
+                          weight: isStart || isEnd ? 2.5 : 1.5
+                        }}
+                      >
+                        <Popup>
+                          <Box sx={{ p: 0.5 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                              {isStart
+                                ? '🟢 Marshrut boshlanishi'
+                                : isEnd
+                                  ? '🏁 Marshrut tugashi'
+                                  : `📍 GPS nuqta #${idx + 1}`}
+                            </Typography>
+                            <Typography variant="caption" sx={{ display: 'block' }}>
+                              🕒 Vaqt: <b>{dayjs.unix(p.time).format('HH:mm:ss')}</b>
+                            </Typography>
+                            <Typography variant="caption" sx={{ display: 'block' }}>
+                              ⚡ Tezlik: <b>{p.speed} km/soat</b>
+                            </Typography>
+                            <Typography variant="caption" sx={{ display: 'block', color: 'primary.main', fontWeight: 600 }}>
+                              📏 Abonentgacha: <b>{p.distanceMeters} metr</b>
+                            </Typography>
+                          </Box>
+                        </Popup>
+                      </CircleMarker>
+                    );
+                  })}
+
+                  {/* Eng yaqin o'tgan nuqta */}
+                  {result.closestPoint && (
+                    <CircleMarker
+                      center={[result.closestPoint.lat, result.closestPoint.lng]}
+                      radius={8.5}
+                      pathOptions={{
+                        color: '#b71c1c',
+                        fillColor: '#ff9800',
+                        fillOpacity: 1,
+                        weight: 2.5
+                      }}
+                    >
+                      <Popup>
+                        <Box sx={{ p: 0.5 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b71c1c', mb: 0.5 }}>
+                            🎯 Eng yaqin kelgan nuqta!
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block' }}>
+                            📏 Masofa: <b>{result.closestPoint.distanceMeters} metr</b>
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block' }}>
+                            🕒 Vaqt: <b>{dayjs.unix(result.closestPoint.time).format('HH:mm:ss')}</b>
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'block' }}>
+                            ⚡ Tezlik: <b>{result.closestPoint.speed} km/soat</b>
+                          </Typography>
+                        </Box>
+                      </Popup>
+                    </CircleMarker>
+                  )}
+
+                  {/* Lineyka bilan o'lchanayotgan chiziq va nuqtalar */}
+                  {measurePoints.length > 0 && (
+                    <>
+                      <Polyline
+                        positions={measurePoints}
+                        pathOptions={{
+                          color: '#ff6d00',
+                          weight: 3.5,
+                          dashArray: '6, 6',
+                          opacity: 0.95
+                        }}
+                      />
+                      {measurePoints.map((pt, idx) => (
+                        <CircleMarker
+                          key={`measure-pt-${idx}`}
+                          center={pt}
+                          radius={5.5}
+                          pathOptions={{
+                            color: '#b71c1c',
+                            fillColor: '#ffeb3b',
+                            fillOpacity: 1,
+                            weight: 2.5
+                          }}
+                        >
+                          <LeafletTooltip permanent direction="top" offset={[0, -6]}>
+                            {idx === 0 ? 'Boshlanish' : `#${idx + 1}`}
+                          </LeafletTooltip>
+                        </CircleMarker>
+                      ))}
+                    </>
+                  )}
+                </BaseMap>
+              </Box>
+
+              {/* Legenda va vaqt tamg'asi */}
+              <Stack direction="row" spacing={1.5} sx={{ mt: 1.5, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#d32f2f' }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Abonent
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#2e7d32' }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Xizmat radiusi ({result.evidence.radiusMeters} m)
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                    <Box sx={{ width: 16, height: 3.5, bgcolor: '#0288d1', borderRadius: 1 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Harakat treki («Ilon izi»)
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ff9800', border: '1.5px solid #b71c1c' }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Eng yaqin nuqta ({result.closestPoint?.distanceMeters ?? result.evidence.closestDistanceMeters} m)
+                    </Typography>
+                  </Stack>
+                  {measureMode && (
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                      <Box sx={{ width: 16, height: 3, bgcolor: '#ff6d00', borderRadius: 1 }} />
+                      <Typography variant="caption" color="warning.main" sx={{ fontWeight: 700 }}>
+                        Lineyka ({totalMeasureDistance} m)
+                      </Typography>
+                    </Stack>
+                  )}
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  {dayjs().format('DD.MM.YYYY HH:mm:ss')} | Toza Makon / SmartGPS
+                </Typography>
+              </Stack>
+            </Box>
+          )}
+
+          {/* Agar trek nuqtalari bo'lmasa */}
+          {result && (!result.nearbyTrack || result.nearbyTrack.length === 0) && (
+            <Alert severity="info" sx={{ borderRadius: 2 }}>
+              Belgilangan vaqt oralig‘ida transport vositasi abonent koordinatasi yaqiniga (katta qamrov radiusiga) kelmagan.
+            </Alert>
           )}
         </Stack>
       </DialogContent>
