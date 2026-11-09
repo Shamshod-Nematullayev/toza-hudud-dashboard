@@ -61,11 +61,25 @@ const AuthLogin = ({ ...others }) => {
         }
         navigate('/');
       } else {
-        toast.error(data.message);
+        toast.error(data.message || 'Login yoki parol noto‘g‘ri');
       }
-    } catch (error) {
-      console.error(error);
-      toast.error('An error occured');
+    } catch (error: any) {
+      console.error('Login xatosi:', error);
+      if (!error?.response) {
+        toast.error("Server bilan aloqa o'rnatib bo'lmadi. Server ishlamayotgan bo'lishi mumkin yoki internet aloqangizni tekshiring.");
+      } else {
+        const status = error.response.status;
+        const msg = error.response.data?.message;
+        if (status >= 500) {
+          toast.error(msg || "Serverda ichki xatolik yuz berdi (Server error). Iltimos, administratorga murojaat qiling.");
+        } else if (status === 429) {
+          toast.error("Juda ko'p urinish amalga oshirildi. Iltimos, birozdan so'ng qayta urinib ko'ring.");
+        } else if (status === 401 || status === 400 || status === 403) {
+          toast.error(msg || "Login yoki parol noto‘g‘ri");
+        } else {
+          toast.error(msg || `Kutilmagan xatolik yuz berdi (${status})`);
+        }
+      }
     }
   };
 
@@ -125,6 +139,7 @@ const AuthLogin = ({ ...others }) => {
                 endAdornment={
                   <InputAdornment position="end">
                     <IconButton
+                      type="button"
                       aria-label="toggle password visibility"
                       onClick={handleClickShowPassword}
                       onMouseDown={handleMouseDownPassword}

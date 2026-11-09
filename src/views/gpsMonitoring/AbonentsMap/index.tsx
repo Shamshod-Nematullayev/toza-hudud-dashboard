@@ -13,7 +13,7 @@ import {
   Typography
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { ContentCopy, Directions, OpenInNew, Search } from '@mui/icons-material';
+import { ContentCopy, Directions, OpenInNew, QueryStats, Search } from '@mui/icons-material';
 import { CircleMarker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { toast } from 'react-toastify';
 import { Link as RouterLink } from 'react-router-dom';
@@ -29,6 +29,7 @@ import {
   googleDirectionsUrl,
   googleMapsUrl
 } from 'services/abonentLocation';
+import GpsVerificationDialog from './GpsVerificationDialog';
 
 type MahallaOption = { id: number; name: string; count: number };
 
@@ -80,6 +81,31 @@ export default function AbonentsMap() {
   const [points, setPoints] = useState<AbonentLocation[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+
+  // GPS xulosasi tekshiruv dialogi state'lari
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationTarget, setVerificationTarget] = useState<{
+    lat: number;
+    lng: number;
+    fullName?: string;
+    accountNumber?: string;
+    address?: string;
+  } | null>(null);
+
+  const handleOpenVerification = (point?: AbonentLocation | null) => {
+    if (point) {
+      setVerificationTarget({
+        lat: point.lat,
+        lng: point.lng,
+        fullName: point.fullName,
+        accountNumber: point.accountNumber,
+        address: [point.mahallaName && lotinga(point.mahallaName), point.streetName, point.homeNumber].filter(Boolean).join(', ')
+      });
+    } else {
+      setVerificationTarget(null);
+    }
+    setVerificationOpen(true);
+  };
 
   useEffect(() => {
     if (mahallalar.length === 0) {
@@ -138,11 +164,11 @@ export default function AbonentsMap() {
           <Box sx={{ flex: 1 }}>
             <Typography variant="h3">Abonentlar xaritasi</Typography>
             <Typography variant="body2" color="text.secondary">
-              Uy joylashuvi belgilangan xonadonlar. Jami: {totalLocated} ta. GPS kuzatuv va texnikalar harakati keyinroq qo‘shiladi.
+              Uy joylashuvi belgilangan xonadonlar. Jami: {totalLocated} ta. Xonadonlar bo‘yicha SmartGPS xizmat xulosasi mavjud.
             </Typography>
           </Box>
           <Autocomplete
-            sx={{ minWidth: { md: 340 } }}
+            sx={{ minWidth: { md: 280 } }}
             options={options}
             value={mahalla}
             onChange={(_, v) => {
@@ -163,7 +189,7 @@ export default function AbonentsMap() {
           />
           <TextField
             size="small"
-            sx={{ minWidth: { md: 260 } }}
+            sx={{ minWidth: { md: 220 } }}
             placeholder="Hisob raqam, F.I.Sh, ko‘cha"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -178,6 +204,16 @@ export default function AbonentsMap() {
               }
             }}
           />
+          {/* Yuqori paneldagi SmartGPS xulosasi tugmasi */}
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<QueryStats />}
+            onClick={() => handleOpenVerification(null)}
+            sx={{ height: 40, whiteSpace: 'nowrap', bgcolor: '#2e7d32', '&:hover': { bgcolor: '#1b5e20' }, px: 2 }}
+          >
+            GPS xulosasi
+          </Button>
         </Stack>
       </Card>
 
@@ -194,7 +230,7 @@ export default function AbonentsMap() {
         )}
         {mahalla && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', px: 1, pb: 1 }}>
-            {search ? `${filtered.length} / ${points.length}` : points.length} ta xonadon · bo‘sh joyga bosing — koordinatani nusxalash mumkin
+            {search ? `${filtered.length} / ${points.length}` : points.length} ta xonadon · xonadon ustiga bosing — GPS xizmat xulosasini olish mumkin
           </Typography>
         )}
         <BaseMap height="calc(100vh - 300px)">
@@ -209,7 +245,7 @@ export default function AbonentsMap() {
               pathOptions={{ color: '#fff', weight: 1.5, fillColor: sourceColor[p.source || 'map'] || '#1565c0', fillOpacity: 0.9 }}
             >
               <Popup>
-                <Box sx={{ minWidth: 220 }}>
+                <Box sx={{ minWidth: 240 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     {p.fullName || '—'}
                   </Typography>
@@ -219,7 +255,7 @@ export default function AbonentsMap() {
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                     {[p.mahallaName && lotinga(p.mahallaName), p.streetName, p.homeNumber].filter(Boolean).join(', ')}
                   </Typography>
-                  <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap' }}>
+                  <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', mb: 1 }}>
                     <Button size="small" component={RouterLink} to={`/abonent/${p.residentId}/details`} startIcon={<OpenInNew fontSize="small" />}>
                       Abonent 360
                     </Button>
@@ -230,12 +266,30 @@ export default function AbonentsMap() {
                       Google
                     </Button>
                   </Stack>
+                  {/* Har bir abonent popupida to'g'ridan-to'g'ri SmartGPS xizmat xulosasini olish tugmasi */}
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="success"
+                    startIcon={<QueryStats fontSize="small" />}
+                    onClick={() => handleOpenVerification(p)}
+                    sx={{ width: '100%', bgcolor: '#2e7d32', '&:hover': { bgcolor: '#1b5e20' } }}
+                  >
+                    GPS xizmat xulosasi
+                  </Button>
                 </Box>
               </Popup>
             </CircleMarker>
           ))}
         </BaseMap>
       </Card>
+
+      {/* GPS xulosasi olish dialogi */}
+      <GpsVerificationDialog
+        open={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        target={verificationTarget}
+      />
     </Stack>
   );
 }

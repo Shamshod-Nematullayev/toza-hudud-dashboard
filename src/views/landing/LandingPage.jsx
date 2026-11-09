@@ -161,9 +161,22 @@ export default function LandingPage() {
       localStorage.setItem('abonentsPrefix', data.abonentsPrefix);
       navigate('/');
     } catch (error) {
-      console.error(error);
-      const msg = error?.response?.data?.message || 'Login yoki parol noto‘g‘ri';
-      toast.error(msg);
+      console.error('Login xatosi:', error);
+      if (!error?.response) {
+        toast.error("Server bilan aloqa o'rnatib bo'lmadi. Server ishlamayotgan bo'lishi mumkin yoki internet aloqangizni tekshiring.");
+      } else {
+        const status = error.response.status;
+        const msg = error.response.data?.message;
+        if (status >= 500) {
+          toast.error(msg || "Serverda ichki xatolik yuz berdi (Server error). Iltimos, administratorga murojaat qiling.");
+        } else if (status === 429) {
+          toast.error("Juda ko'p urinish amalga oshirildi. Iltimos, birozdan so'ng qayta urinib ko'ring.");
+        } else if (status === 401 || status === 400 || status === 403) {
+          toast.error(msg || "Login yoki parol noto‘g‘ri");
+        } else {
+          toast.error(msg || `Kutilmagan xatolik yuz berdi (${status})`);
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -679,14 +692,34 @@ export default function LandingPage() {
                   onChange={(e) => setLoginValues({ ...loginValues, password: e.target.value })}
                   variant="outlined"
                   autoComplete="current-password"
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            onMouseDown={(e) => e.preventDefault()}
+                            edge="end"
+                            aria-label={showPassword ? "Parolni yashirish" : "Parolni ko'rsatish"}
+                            sx={{ color: textMuted, '&:hover': { color: primaryAccent } }}
+                          >
+                            {showPassword ? <IconEyeOff size={20} /> : <IconEye size={20} />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }
+                  }}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          onMouseDown={(e) => e.preventDefault()}
                           edge="end"
-                          aria-label="parolni ko'rish"
-                          sx={{ color: textMuted }}
+                          aria-label={showPassword ? "Parolni yashirish" : "Parolni ko'rsatish"}
+                          sx={{ color: textMuted, '&:hover': { color: primaryAccent } }}
                         >
                           {showPassword ? <IconEyeOff size={20} /> : <IconEye size={20} />}
                         </IconButton>
