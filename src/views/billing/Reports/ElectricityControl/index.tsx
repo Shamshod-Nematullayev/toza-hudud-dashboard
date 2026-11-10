@@ -30,6 +30,8 @@ import {
   useTheme
 } from '@mui/material';
 import {
+  AccessTime as AccessTimeIcon,
+  Add as AddIcon,
   ArrowBack,
   BoltOutlined,
   RefreshOutlined as RefreshIcon,
@@ -81,12 +83,22 @@ interface ISettings {
   responsibleAdminId: string | null;
   deadlineTime: string;
   defaultMeetingTime: string;
+  progressTimes: string[];
   chatId: string;
   defaultChatId: string;
 }
 
+interface IPermissions {
+  isAdmin: boolean;
+  isResponsible: boolean;
+  canEdit: boolean;
+  canDisable: boolean;
+  canChangeResponsible: boolean;
+}
+
 interface IResponse {
   settings: ISettings;
+  permissions: IPermissions;
   thresholds: { alo: number; yaxshi: number; qoniqarli: number };
   candidates: ICandidate[];
   live: IResultRow[];
@@ -177,6 +189,8 @@ export default function ElectricityControl() {
   const [settings, setSettings] = useState<ISettings | null>(null);
   const [companyGroups, setCompanyGroups] = useState<ICompanyTelegramGroup[]>([]);
   const [customTimes, setCustomTimes] = useState<Record<string, string>>({});
+  const [newProgressTime, setNewProgressTime] = useState('12:00');
+  const [sendingProgress, setSendingProgress] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -211,6 +225,47 @@ export default function ElectricityControl() {
 
   const update = (patch: Partial<ISettings>) => setSettings((prev) => (prev ? { ...prev, ...patch } : prev));
 
+  const perms: IPermissions = data?.permissions || {
+    isAdmin: false,
+    isResponsible: false,
+    canEdit: false,
+    canDisable: false,
+    canChangeResponsible: false
+  };
+  // Mas'ul xodim faqat yoqa oladi, o'chira olmaydi (yoqilgan holatda switch qulflanadi)
+  const savedEnabled = data?.settings.enabled ?? false;
+  const switchLocked = !perms.canEdit || (!perms.canDisable && savedEnabled);
+
+  const addProgressTime = () => {
+    if (!settings || !newProgressTime) return;
+    if (newProgressTime >= settings.deadlineTime) {
+      toast.warning(`Oraliq hisobot muddatdan (${settings.deadlineTime}) oldin bo‘lishi kerak`);
+      return;
+    }
+    if (settings.progressTimes.includes(newProgressTime)) {
+      toast.warning('Bu vaqt allaqachon ro‘yxatda');
+      return;
+    }
+    update({ progressTimes: [...settings.progressTimes, newProgressTime].sort() });
+  };
+
+  const removeProgressTime = (t: string) => {
+    if (!settings) return;
+    update({ progressTimes: settings.progressTimes.filter((x) => x !== t) });
+  };
+
+  const handleSendProgress = async () => {
+    setSendingProgress(true);
+    try {
+      const res = await api.post('/control-workflows/electricity/progress-now');
+      toast.success(res.data?.message || 'Yuborildi');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Yuborishda xatolik');
+    } finally {
+      setSendingProgress(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!settings) return;
     if (settings.enabled && !settings.responsibleAdminId) {
@@ -228,6 +283,7 @@ export default function ElectricityControl() {
         responsibleAdminId: settings.responsibleAdminId,
         deadlineTime: settings.deadlineTime,
         defaultMeetingTime: settings.defaultMeetingTime,
+        progressTimes: settings.progressTimes,
         chatId: settings.chatId?.trim() || undefined
       });
       toast.success(res.data?.message || 'Saqlandi');
@@ -352,13 +408,25 @@ export default function ElectricityControl() {
                         checked={settings.enabled}
                         color="success"
                         onChange={(e) => update({ enabled: e.target.checked })}
-                        disabled={!settings.responsibleAdminId && !settings.enabled}
+                        disabled={switchLocked || (!settings.responsibleAdminId && !settings.enabled)}
                       />
                     }
                     label=""
                     sx={{ m: 0 }}
                   />
                 </Stack>
+
+                {perms.isResponsible && !perms.isAdmin && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Siz ushbu nazoratning mas’ul xodimisiz. Hisobot vaqtlari, guruh va qarorlarni boshqarishingiz mumkin. Nazoratni
+                    o‘chirish va mas’ul xodimni o‘zgartirish faqat admin uchun.
+                  </Alert>
+                )}
+                {!perms.canEdit && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Siz sozlamalarni faqat ko‘rishingiz mumkin. O‘zgartirish admin va mas’ul xodim uchun.
+                  </Alert>
+                )}
 
                 {!settings.responsibleAdminId && (
                   <Alert severity="warning" sx={{ mb: 2 }}>
@@ -372,6 +440,7 @@ export default function ElectricityControl() {
                     labelId="responsible-label"
                     label="Mas’ul xodim *"
                     value={settings.responsibleAdminId || ''}
+                    disabled={!perms.canChangeResponsible}
                     onChange={(e) => update({ responsibleAdminId: (e.target.value as string) || null })}
                   >
                     <MenuItem value="">
@@ -393,7 +462,8 @@ export default function ElectricityControl() {
                     ))}
                   </Select>
                   <FormHelperText>
-                    Jarayonni nazorat qiladigan xodim. Telegrami ulangan (botni ishga tushirgan) bo‘lishi shart — 20:00 dan keyin unga savol yuboriladi.
+                    Jarayonni nazorat qiladigan xodim. Telegrami ulangan (botni ishga tushirgan) bo‘lishi shart — 20:00 dan keyin unga savol
+                    yuboriladi.
                   </FormHelperText>
                 </FormControl>
 
@@ -402,6 +472,7 @@ export default function ElectricityControl() {
                     type="time"
                     size="small"
                     label="Bajarish muddati"
+                    disabled={!perms.canEdit}
                     value={settings.deadlineTime}
                     onChange={(e) => update({ deadlineTime: e.target.value })}
                     fullWidth
@@ -411,6 +482,7 @@ export default function ElectricityControl() {
                     type="time"
                     size="small"
                     label="Yig‘ilish vaqti (ertaga)"
+                    disabled={!perms.canEdit}
                     value={settings.defaultMeetingTime}
                     onChange={(e) => update({ defaultMeetingTime: e.target.value })}
                     fullWidth
@@ -419,7 +491,90 @@ export default function ElectricityControl() {
                 </Stack>
 
                 <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Kun davomidagi oraliq hisobotlar ({settings.progressTimes.length} ta) + yakuniy natija {settings.deadlineTime} da:
+                  </Typography>
+                  {perms.canEdit && (
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.25, flexWrap: 'wrap', gap: 1 }}>
+                      <TextField
+                        type="time"
+                        size="small"
+                        value={newProgressTime}
+                        onChange={(e) => setNewProgressTime(e.target.value)}
+                        slotProps={{ input: { sx: { width: 130 } } }}
+                      />
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        size="small"
+                        startIcon={<AddIcon />}
+                        onClick={addProgressTime}
+                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                      >
+                        Qo‘shish
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="inherit"
+                        onClick={() => update({ progressTimes: ['12:00', '16:00'] })}
+                        sx={{ textTransform: 'none', borderColor: theme.palette.divider }}
+                      >
+                        2 mahal (12, 16)
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="inherit"
+                        onClick={() => update({ progressTimes: ['10:00', '13:00', '16:00', '18:00'] })}
+                        sx={{ textTransform: 'none', borderColor: theme.palette.divider }}
+                      >
+                        4 mahal (10, 13, 16, 18)
+                      </Button>
+                    </Stack>
+                  )}
+                  <Box
+                    sx={{
+                      p: 1.25,
+                      borderRadius: 2,
+                      bgcolor: theme.palette.action.hover,
+                      border: '1px solid',
+                      borderColor: theme.palette.divider,
+                      minHeight: 48,
+                      display: 'flex',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 1
+                    }}
+                  >
+                    {settings.progressTimes.length === 0 ? (
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                        Oraliq hisobot yo‘q — faqat yakuniy natija yuboriladi
+                      </Typography>
+                    ) : (
+                      settings.progressTimes.map((t) => (
+                        <Chip
+                          key={t}
+                          icon={<AccessTimeIcon fontSize="small" />}
+                          label={t}
+                          color="secondary"
+                          onDelete={perms.canEdit ? () => removeProgressTime(t) : undefined}
+                          sx={{ fontWeight: 600 }}
+                        />
+                      ))
+                    )}
+                    <Chip
+                      icon={<AccessTimeIcon fontSize="small" />}
+                      label={`${settings.deadlineTime} — yakuniy`}
+                      color="success"
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Box>
+                </Box>
+
+                <Box sx={{ mb: 2 }}>
                   <TelegramGroupSelect
+                    disabled={!perms.canEdit}
                     label="Natija va yig‘ilish e’lon qilinadigan guruh"
                     value={settings.chatId}
                     defaultChatId={settings.defaultChatId}
@@ -442,33 +597,47 @@ export default function ElectricityControl() {
 
                 <Alert severity="info" sx={{ mb: 2 }}>
                   {settings.deadlineTime} da natija guruhga e’lon qilinadi. Mas’ul xodimga «yomon» bajarganlar ro‘yxati va «Ertaga{' '}
-                  {settings.defaultMeetingTime} ga yig‘ilishga chaqiraymi?» savoli boradi. «Ha» yoki boshqa vaqt tanlansa, guruhga qoniqarsizlar
-                  ro‘yxati rasm qilib tashlanadi va faqat o‘shalarga «Tushundim» topshirig‘i beriladi.
+                  {settings.defaultMeetingTime} ga yig‘ilishga chaqiraymi?» savoli boradi. «Ha» yoki boshqa vaqt tanlansa, guruhga
+                  qoniqarsizlar ro‘yxati rasm qilib tashlanadi va faqat o‘shalarga «Tushundim» topshirig‘i beriladi.
                 </Alert>
 
-                <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between' }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={runningNow ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
-                    onClick={handleRunNow}
-                    disabled={runningNow || saving || !settings.responsibleAdminId}
-                    sx={{ textTransform: 'none', fontWeight: 600 }}
-                  >
-                    Hozir yakunlash (sinov)
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    size="small"
-                    startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
-                    onClick={handleSave}
-                    disabled={saving}
-                    sx={{ textTransform: 'none', fontWeight: 600 }}
-                  >
-                    Saqlash
-                  </Button>
-                </Stack>
+                {perms.canEdit && (
+                  <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={sendingProgress ? <CircularProgress size={16} color="inherit" /> : <AccessTimeIcon />}
+                        onClick={handleSendProgress}
+                        disabled={sendingProgress || saving}
+                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                      >
+                        Oraliq hisobot (sinov)
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={runningNow ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
+                        onClick={handleRunNow}
+                        disabled={runningNow || saving || !settings.responsibleAdminId}
+                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                      >
+                        Hozir yakunlash (sinov)
+                      </Button>
+                    </Stack>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="small"
+                      startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                      onClick={handleSave}
+                      disabled={saving}
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Saqlash
+                    </Button>
+                  </Stack>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -483,7 +652,13 @@ export default function ElectricityControl() {
                   </Typography>
                   <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
                     {(Object.keys(CATEGORY_META) as Category[]).map((c) => (
-                      <Chip key={c} size="small" variant="outlined" color={CATEGORY_META[c].color} label={`${CATEGORY_META[c].label}: ${liveCounts[c]}`} />
+                      <Chip
+                        key={c}
+                        size="small"
+                        variant="outlined"
+                        color={CATEGORY_META[c].color}
+                        label={`${CATEGORY_META[c].label}: ${liveCounts[c]}`}
+                      />
                     ))}
                   </Stack>
                 </Stack>
@@ -515,9 +690,19 @@ export default function ElectricityControl() {
                       return (
                         <Box
                           key={run._id}
-                          sx={{ p: 1.75, borderRadius: 2, border: '1px solid', borderColor: theme.palette.divider, bgcolor: theme.palette.action.hover }}
+                          sx={{
+                            p: 1.75,
+                            borderRadius: 2,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider,
+                            bgcolor: theme.palette.action.hover
+                          }}
                         >
-                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}
+                          >
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                                 {dayjs(run.date).format('DD.MM.YYYY')}
@@ -531,7 +716,7 @@ export default function ElectricityControl() {
                                 </Typography>
                               )}
                             </Stack>
-                            {run.decision === 'pending' && (
+                            {run.decision === 'pending' && perms.canEdit && (
                               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                                 <Button
                                   size="small"
@@ -576,7 +761,11 @@ export default function ElectricityControl() {
                             {bad.length ? `Qoniqarsiz (${bad.length}): ${bad.join(', ')}` : 'Qoniqarsiz bajargan nazoratchi yo‘q'}
                           </Typography>
                           {run.groupTaskId && (
-                            <Button size="small" onClick={() => navigate('/employeers/group-tasks')} sx={{ textTransform: 'none', mt: 0.5, px: 0 }}>
+                            <Button
+                              size="small"
+                              onClick={() => navigate('/employeers/group-tasks')}
+                              sx={{ textTransform: 'none', mt: 0.5, px: 0 }}
+                            >
                               Guruh topshirig‘ini ko‘rish («Tushundim» holati) →
                             </Button>
                           )}
