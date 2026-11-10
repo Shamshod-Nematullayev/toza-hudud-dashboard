@@ -53,6 +53,13 @@ export interface IAriza {
   acceptedDate: Date;
   akt_date: Date;
   canceling_description: string;
+  /** Hudud nazoratchisining e'tirozi (Telegram bot orqali) */
+  inspectorReview?: IArizaInspectorReview;
+  inspectorNotification?: {
+    target: 'private' | 'group';
+    inspectorName?: string;
+    sentAt: string | Date;
+  };
   akt_pachka_id: number;
   akt_id: number;
   actStatus: 'NEW' | 'CONFIRMED' | 'WARNED' | 'REJECTED';
@@ -70,4 +77,17 @@ export interface IAriza {
     phone?: string;
     mahallaName?: string;
   };
+}
+
+export interface IArizaInspectorReview {
+  /** bekor_qilindi — ariza bekor qilindi; etiroz — akt kiritib bo'lingan, qaror administratorda */
+  status: 'bekor_qilindi' | 'etiroz';
+  reason: 'soxta_manzil' | 'yashovchi_notogri' | 'dvaynik_izoh';
+  comment?: string;
+  actualLocation?: { lat: number; lng: number; distanceMeters?: number; areaCheck?: string };
+  actualInhabitantCnt?: number;
+  actualInhabitants?: string[];
+  inspectorId?: number;
+  inspectorName?: string;
+  createdAt: string | Date;
 }
