@@ -77,6 +77,9 @@ interface IGroupTaskItem {
   completionPercent: number;
   acknowledgedList: IInspectorAckItem[];
   unacknowledgedList: IInspectorAckItem[];
+  /** Faqat ayrim nazoratchilarga (masalan nazorat workflow'idagi qoniqarsizlarga) tegishli topshiriq */
+  isTargeted?: boolean;
+  source?: 'command' | 'control_workflow';
 }
 
 interface IGroupTaskStats {
@@ -550,6 +553,19 @@ function GroupTasksPage() {
                         </Typography>
                       </Stack>
 
+                      {task.isTargeted && (
+                        <Chip
+                          size="small"
+                          label={task.source === 'control_workflow' ? '🎯 Nazorat: faqat qoniqarsizlar' : '🎯 Faqat ro‘yxatdagilar'}
+                          sx={{
+                            mb: 0.75,
+                            fontWeight: 700,
+                            fontSize: 11,
+                            bgcolor: alpha(theme.palette.warning.main, isDark ? 0.22 : 0.12),
+                            color: theme.palette.warning.dark
+                          }}
+                        />
+                      )}
                       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                         👤 {task.originalSenderName}
                         {task.originalSenderUsername ? ` (@${task.originalSenderUsername})` : ''}
