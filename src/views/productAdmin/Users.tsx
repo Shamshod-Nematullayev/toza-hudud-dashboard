@@ -1,9 +1,11 @@
 import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Card,
+  CircularProgress,
   Chip,
   Dialog,
   DialogActions,
@@ -27,6 +29,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
   useTheme
 } from '@mui/material';
@@ -36,7 +39,9 @@ import {
   Delete as DeleteIcon,
   Person as PersonIcon,
   Email as EmailIcon,
-  Lock as LockIcon
+  Lock as LockIcon,
+  Telegram as TelegramIcon,
+  ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -52,6 +57,15 @@ interface UserData {
   pnfl?: string;
   isTestUser: boolean;
   email?: string;
+  telegramUsername?: string | null;
+  telegramLinkedAt?: string | null;
+}
+
+interface TelegramLinkState {
+  user: UserData;
+  loading: boolean;
+  linkUrl?: string;
+  expiresAt?: string;
 }
 
 interface CompanyItem {
@@ -90,6 +104,34 @@ export default function Users() {
   const [open, setOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [form, setForm] = useState<UserData>(initialUserState);
+  const [tgLink, setTgLink] = useState<TelegramLinkState | null>(null);
+
+  const handleCreateTelegramLink = async (user: UserData) => {
+    setTgLink({ user, loading: true });
+    try {
+      const { data } = await api.post(`/product-admin/users/${user._id}/telegram-link`);
+      setTgLink({ user, loading: false, linkUrl: data.linkUrl, expiresAt: data.expiresAt });
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Havola yaratishda xatolik');
+      setTgLink(null);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!tgLink?.linkUrl) return;
+    try {
+      await navigator.clipboard.writeText(tgLink.linkUrl);
+      toast.success('Havola nusxalandi');
+    } catch {
+      toast.error('Nusxalab bo‘lmadi, havolani qo‘lda belgilang');
+    }
+  };
+
+  const handleCloseTgLink = () => {
+    setTgLink(null);
+    // Xodim havolani ochgan bo'lsa, ulanish holati va yangi user_id ko'rinsin
+    fetchData();
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -247,6 +289,22 @@ export default function Users() {
                           {user.isTestUser && (
                             <Chip label="Test user" size="small" color="secondary" sx={{ height: 16, fontSize: 10 }} />
                           )}
+                          {user.telegramLinkedAt && (
+                            <Tooltip
+                              title={`Ulangan: ${new Date(user.telegramLinkedAt).toLocaleString('ru-RU')}${
+                                user.telegramUsername ? ` (@${user.telegramUsername})` : ''
+                              }`}
+                            >
+                              <Chip
+                                icon={<TelegramIcon sx={{ fontSize: 12 }} />}
+                                label={user.telegramUsername ? `@${user.telegramUsername}` : 'Telegram ulangan'}
+                                size="small"
+                                color="info"
+                                variant="outlined"
+                                sx={{ height: 18, fontSize: 10, ml: user.isTestUser ? 0.5 : 0 }}
+                              />
+                            </Tooltip>
+                          )}
                         </Box>
                       </Box>
                     </TableCell>
@@ -282,6 +340,11 @@ export default function Users() {
                       )}
                     </TableCell>
                     <TableCell align="right">
+                      <Tooltip title="Telegramni ulash havolasini yaratish">
+                        <IconButton color="info" onClick={() => handleCreateTelegramLink(user)}>
+                          <TelegramIcon />
+                        </IconButton>
+                      </Tooltip>
                       <IconButton color="primary" onClick={() => handleOpenEdit(user)}>
                         <EditIcon />
                       </IconButton>
@@ -296,6 +359,57 @@ export default function Users() {
           </Table>
         </TableContainer>
       </Card>
+
+      {/* Telegram ulash havolasi */}
+      <Dialog open={!!tgLink} onClose={handleCloseTgLink} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Telegramni ulash havolasi — {tgLink?.user.fullName}</DialogTitle>
+        <DialogContent>
+          {tgLink?.loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            tgLink?.linkUrl && (
+              <Stack spacing={2} sx={{ pt: 1 }}>
+                {tgLink.user.telegramLinkedAt && (
+                  <Alert severity="warning">
+                    Bu foydalanuvchiga Telegram allaqachon ulangan
+                    {tgLink.user.telegramUsername ? ` (@${tgLink.user.telegramUsername})` : ''}. Havola ochilsa, yangi Telegram hisobiga
+                    almashtiriladi.
+                  </Alert>
+                )}
+                <TextField
+                  fullWidth
+                  value={tgLink.linkUrl}
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                      endAdornment: (
+                        <IconButton onClick={handleCopyLink} edge="end">
+                          <ContentCopyIcon />
+                        </IconButton>
+                      )
+                    }
+                  }}
+                />
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Havolani xodimga yuboring. U havolani ochib botda «Start» bosishi bilan Telegrami ulanadi. Havola bir marta ishlaydi va{' '}
+                  {tgLink.expiresAt ? new Date(tgLink.expiresAt).toLocaleString('ru-RU') : '24 soat'} gacha amal qiladi. Yangi havola
+                  yaratilsa, eskisi bekor bo‘ladi.
+                </Typography>
+              </Stack>
+            )
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={handleCloseTgLink} color="inherit">
+            Yopish
+          </Button>
+          <Button variant="contained" startIcon={<ContentCopyIcon />} onClick={handleCopyLink} disabled={!tgLink?.linkUrl}>
+            Nusxalash
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* dialog for add / edit user */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px' } } }}>
