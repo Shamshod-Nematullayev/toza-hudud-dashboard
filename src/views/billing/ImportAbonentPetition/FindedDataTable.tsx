@@ -20,7 +20,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { MoneyTransferConfirmDialog } from './MoneyTransferConfirmDialog';
 
 function FindedDataTable() {
-  const { ariza, setAriza, cancelAriza, ui, pdfFiles, currentFile, enteringMode, setEnteringMode } = useStore();
+  const { ariza, setAriza, ui, pdfFiles, currentFile, enteringMode, setEnteringMode } = useStore();
   const { yashovchiSoniInput, setYashovchiSoniInput, aktType, setAktType, abonentData, recalculationPeriods } = useRecalculatorStore();
 
   const manualActDocumentTypes = documentTypes.filter((dt) => dt !== 'pul_kuchirish' && dt !== 'dvaynik' && dt !== 'yashovchi_kuchirish');
@@ -28,6 +28,7 @@ function FindedDataTable() {
   const {
     handleClickRefreshButton,
     handleDeleteButtonClick,
+    handleCancelArizaClick,
     handlePrimaryButtonClick,
     handleTabChange,
     tabIndex,
@@ -190,7 +191,7 @@ function FindedDataTable() {
         isLoading={isLoading}
         handlePrimaryButtonClick={handlePrimaryButtonClick}
         handleDeleteButtonClick={handleDeleteButtonClick}
-        onCancelAriza={cancelAriza}
+        onCancelAriza={handleCancelArizaClick}
         rowsDublicate={rowsDublicate}
         allPaymentsSumOnDublicate={allPaymentsSumOnDublicate}
       />
