@@ -51,6 +51,16 @@ const reportItems: IReportItem[] = [
     iconType: 'barchart'
   },
   {
+    id: 'electricity-daily-control',
+    name: 'Elektr hisoblagich kiritish nazorati (tajriba)',
+    description:
+      "Har kuni kamida 5 ta elektr kodi kiritish topshirig'i: 20:00 da natija, mas'ul xodim qarori va qoniqarsizlarni yig'ilishga chaqirish",
+    category: 'data',
+    categoryLabel: 'Nazoratchilar',
+    path: 'report-electricity-control',
+    iconType: 'trend'
+  },
+  {
     id: '3',
     name: 'Kunlik reja matritsasi',
     description: 'Har bir nazoratchining kunlik rejasi va natijasi',

@@ -38,6 +38,7 @@ import InspectorIntegratedReport from 'views/billing/Reports/InspectorIntegrated
 import MFYIncomeReport from 'views/billing/Reports/MFYIncomeReport';
 import XatlovOdamSoniReport from 'views/billing/Reports/XatlovOdamSoniReport';
 import ScheduledReportsPanel from 'views/billing/Reports/ScheduledReportsPanel';
+import ElectricityControl from 'views/billing/Reports/ElectricityControl';
 import Blanks from 'views/billing/Blanks';
 import CourtInvoices from 'views/jurist/CourtInvoices';
 import CreateGpsDalolatnoma from 'views/gpsMonitoring/CreateGpsDalolatnoma';
@@ -272,6 +273,10 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'report-xatlov-odam-soni',
           element: <XatlovOdamSoniReport />
+        },
+        {
+          path: 'report-electricity-control',
+          element: <ElectricityControl />
         },
         {
           path: 'scheduled-reports',
