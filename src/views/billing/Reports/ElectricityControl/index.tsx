@@ -53,6 +53,7 @@ interface IResultRow {
   inspectorMongoId: string;
   inspectorName: string;
   totalTasks: number;
+  remainingTasks?: number;
   todayCompleted: number;
   category: Category;
 }
@@ -153,7 +154,7 @@ function ResultsTable({ rows }: { rows: IResultRow[] }) {
           <TableRow>
             <TableCell sx={{ width: 48 }}>№</TableCell>
             <TableCell>Nazoratchi</TableCell>
-            <TableCell align="right">Jami topshiriq</TableCell>
+            <TableCell align="right">Qolgan topshiriq</TableCell>
             <TableCell align="right">Bugun bajarildi</TableCell>
             <TableCell align="center">Toifa</TableCell>
           </TableRow>
@@ -163,7 +164,7 @@ function ResultsTable({ rows }: { rows: IResultRow[] }) {
             <TableRow key={r.inspectorMongoId} hover>
               <TableCell>{i + 1}</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>{r.inspectorName}</TableCell>
-              <TableCell align="right">{r.totalTasks}</TableCell>
+              <TableCell align="right">{r.remainingTasks ?? r.totalTasks}</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {r.todayCompleted}
               </TableCell>
@@ -593,6 +594,7 @@ export default function ElectricityControl() {
                   <Chip size="small" color="info" label={`Yaxshi: ${data.thresholds.yaxshi}+`} />
                   <Chip size="small" color="warning" label={`Qoniqarli: ${data.thresholds.qoniqarli}+`} />
                   <Chip size="small" color="error" label={`Yomon: ${data.thresholds.qoniqarli} tadan kam`} />
+                  <Chip size="small" variant="outlined" color="success" label="Qolgan topshirig‘i yo‘q — avtomatik A'lo" />
                 </Stack>
 
                 <Alert severity="info" sx={{ mb: 2 }}>
