@@ -39,6 +39,7 @@ import AttachedImagesModal from '../../AbonentPetition/AttachedImagesModal';
 import PDFViewer from '../../AbonentPetition/PDFViewer';
 import DHJTable from '../../AbonentPetition/DHJTable';
 import AktInfoCard from '../../AbonentPetition/AktInfoCard';
+import InspectorReviewCard from '../../AbonentPetition/InspectorReviewCard';
 import { getCleanAsoslantiruvchi } from '../../CreateAbonentPetition.jsx/useStore';
 
 interface PetitionDetailDrawerProps {
@@ -418,6 +419,8 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
                       )}
                     </Stack>
                   </Box>
+
+                  <InspectorReviewCard review={ariza?.inspectorReview} />
 
                   {/* Akt Info Card */}
                   <AktInfoCard />

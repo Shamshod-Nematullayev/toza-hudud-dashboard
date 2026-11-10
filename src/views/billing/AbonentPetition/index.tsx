@@ -34,6 +34,7 @@ import useLoaderStore from 'store/loaderStore';
 import useArizaStore from './useStore';
 import DHJTable from './DHJTable';
 import AktInfoCard from './AktInfoCard';
+import InspectorReviewCard from './InspectorReviewCard';
 import AktChangerModal from './AktChangerModal';
 import Recalculate from '../../../ui-component/cards/RecalculatorAbonent';
 import PDFViewer from './PDFViewer';
@@ -300,6 +301,12 @@ function AbonentPetition() {
           </Box>
         </Stack>
       </Card>
+
+      {ariza?.inspectorReview && (
+        <Box sx={{ mb: 2 }}>
+          <InspectorReviewCard review={ariza.inspectorReview} />
+        </Box>
+      )}
 
       {/* Main Content Layout: 5 Columns Left (Tabs & Info), 7 Columns Right (PDF Viewer) */}
       <Grid container spacing={2}>
