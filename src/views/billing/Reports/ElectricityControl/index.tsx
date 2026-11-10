@@ -45,7 +45,7 @@ import dayjs from 'dayjs';
 import api from 'utils/api';
 import TelegramGroupSelect, { ICompanyTelegramGroup } from '../components/TelegramGroupSelect';
 
-type Category = 'alo' | 'yaxshi' | 'qoniqarli' | 'yomon';
+type Category = 'alo' | 'yaxshi' | 'qoniqarli' | 'yomon' | 'tolik';
 type Decision = 'pending' | 'yes' | 'later' | 'no' | 'none_needed';
 
 interface IResultRow {
@@ -53,6 +53,7 @@ interface IResultRow {
   inspectorMongoId: string;
   inspectorName: string;
   totalTasks: number;
+  remainingTasks?: number;
   todayCompleted: number;
   category: Category;
 }
@@ -105,11 +106,12 @@ interface IResponse {
   runs: IRun[];
 }
 
-const CATEGORY_META: Record<Category, { label: string; color: 'success' | 'info' | 'warning' | 'error' }> = {
+const CATEGORY_META: Record<Category, { label: string; color: 'primary' | 'success' | 'info' | 'warning' | 'error' }> = {
   alo: { label: "A'lo", color: 'success' },
   yaxshi: { label: 'Yaxshi', color: 'info' },
   qoniqarli: { label: 'Qoniqarli', color: 'warning' },
-  yomon: { label: 'Yomon', color: 'error' }
+  yomon: { label: 'Yomon', color: 'error' },
+  tolik: { label: 'To‘liq bajarilgan', color: 'primary' }
 };
 
 const DECISION_META: Record<Decision, { label: string; color: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
@@ -153,7 +155,7 @@ function ResultsTable({ rows }: { rows: IResultRow[] }) {
           <TableRow>
             <TableCell sx={{ width: 48 }}>№</TableCell>
             <TableCell>Nazoratchi</TableCell>
-            <TableCell align="right">Jami topshiriq</TableCell>
+            <TableCell align="right">Qolgan topshiriq</TableCell>
             <TableCell align="right">Bugun bajarildi</TableCell>
             <TableCell align="center">Toifa</TableCell>
           </TableRow>
@@ -163,7 +165,7 @@ function ResultsTable({ rows }: { rows: IResultRow[] }) {
             <TableRow key={r.inspectorMongoId} hover>
               <TableCell>{i + 1}</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>{r.inspectorName}</TableCell>
-              <TableCell align="right">{r.totalTasks}</TableCell>
+              <TableCell align="right">{r.remainingTasks ?? r.totalTasks}</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {r.todayCompleted}
               </TableCell>
@@ -218,7 +220,7 @@ export default function ElectricityControl() {
   );
 
   const liveCounts = useMemo(() => {
-    const counts: Record<Category, number> = { alo: 0, yaxshi: 0, qoniqarli: 0, yomon: 0 };
+    const counts: Record<Category, number> = { alo: 0, yaxshi: 0, qoniqarli: 0, yomon: 0, tolik: 0 };
     (data?.live || []).forEach((r) => counts[r.category]++);
     return counts;
   }, [data]);
@@ -593,6 +595,7 @@ export default function ElectricityControl() {
                   <Chip size="small" color="info" label={`Yaxshi: ${data.thresholds.yaxshi}+`} />
                   <Chip size="small" color="warning" label={`Qoniqarli: ${data.thresholds.qoniqarli}+`} />
                   <Chip size="small" color="error" label={`Yomon: ${data.thresholds.qoniqarli} tadan kam`} />
+                  <Chip size="small" variant="outlined" color="success" label="Qolgan topshirig‘i yo‘q — To‘liq bajarilgan (alohida)" />
                 </Stack>
 
                 <Alert severity="info" sx={{ mb: 2 }}>
