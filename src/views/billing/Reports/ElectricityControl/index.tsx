@@ -45,7 +45,7 @@ import dayjs from 'dayjs';
 import api from 'utils/api';
 import TelegramGroupSelect, { ICompanyTelegramGroup } from '../components/TelegramGroupSelect';
 
-type Category = 'alo' | 'yaxshi' | 'qoniqarli' | 'yomon';
+type Category = 'alo' | 'yaxshi' | 'qoniqarli' | 'yomon' | 'tolik';
 type Decision = 'pending' | 'yes' | 'later' | 'no' | 'none_needed';
 
 interface IResultRow {
@@ -106,11 +106,12 @@ interface IResponse {
   runs: IRun[];
 }
 
-const CATEGORY_META: Record<Category, { label: string; color: 'success' | 'info' | 'warning' | 'error' }> = {
+const CATEGORY_META: Record<Category, { label: string; color: 'primary' | 'success' | 'info' | 'warning' | 'error' }> = {
   alo: { label: "A'lo", color: 'success' },
   yaxshi: { label: 'Yaxshi', color: 'info' },
   qoniqarli: { label: 'Qoniqarli', color: 'warning' },
-  yomon: { label: 'Yomon', color: 'error' }
+  yomon: { label: 'Yomon', color: 'error' },
+  tolik: { label: 'To‘liq bajarilgan', color: 'primary' }
 };
 
 const DECISION_META: Record<Decision, { label: string; color: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
@@ -219,7 +220,7 @@ export default function ElectricityControl() {
   );
 
   const liveCounts = useMemo(() => {
-    const counts: Record<Category, number> = { alo: 0, yaxshi: 0, qoniqarli: 0, yomon: 0 };
+    const counts: Record<Category, number> = { alo: 0, yaxshi: 0, qoniqarli: 0, yomon: 0, tolik: 0 };
     (data?.live || []).forEach((r) => counts[r.category]++);
     return counts;
   }, [data]);
@@ -594,7 +595,7 @@ export default function ElectricityControl() {
                   <Chip size="small" color="info" label={`Yaxshi: ${data.thresholds.yaxshi}+`} />
                   <Chip size="small" color="warning" label={`Qoniqarli: ${data.thresholds.qoniqarli}+`} />
                   <Chip size="small" color="error" label={`Yomon: ${data.thresholds.qoniqarli} tadan kam`} />
-                  <Chip size="small" variant="outlined" color="success" label="Qolgan topshirig‘i yo‘q — avtomatik A'lo" />
+                  <Chip size="small" variant="outlined" color="success" label="Qolgan topshirig‘i yo‘q — To‘liq bajarilgan (alohida)" />
                 </Stack>
 
                 <Alert severity="info" sx={{ mb: 2 }}>
