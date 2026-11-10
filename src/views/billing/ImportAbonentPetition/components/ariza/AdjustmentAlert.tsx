@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
+import { Box, Button, Chip, Divider, Paper, Stack, Typography } from '@mui/material';
 import { parseAktSumExpression } from '../../hooks/useFindedTableLogic';
 import useLoaderStore from 'store/loaderStore';
 
@@ -12,15 +12,31 @@ interface AdjustmentAlertProps {
 export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum }: AdjustmentAlertProps) {
   const { isLoading } = useLoaderStore();
   const [baseSum, setBaseSum] = useState<string | null>(null);
-  const [isApplied, setIsApplied] = useState<boolean>(false);
+  const [isApplied, setIsApplied] = useState<boolean>(true);
+  const autoAppliedRef = useRef<string>('');
 
-  // Abonent yoki ariza o'zgarganda state larni reset qilish
   const residentId = adjustmentData?.residentId;
   const arizaId = adjustmentData?.arizaId;
+  const autoAppliedKey = `${residentId}_${arizaId}_${adjustmentData?.recommendedSum}_${adjustmentData?.adjustment}`;
+
+  // Default holatda tavsiya etilgan summani avtomatik qo'llash (insoniy omil xatolarini oldini olish uchun)
   useEffect(() => {
-    setIsApplied(false);
-    setBaseSum(null);
-  }, [residentId, arizaId]);
+    if (!adjustmentData || adjustmentData.adjustment === 0) {
+      autoAppliedRef.current = '';
+      setIsApplied(false);
+      setBaseSum(null);
+      return;
+    }
+
+    if (autoAppliedRef.current !== autoAppliedKey) {
+      autoAppliedRef.current = autoAppliedKey;
+      const original =
+        adjustmentData.baseAmount !== undefined ? String(adjustmentData.baseAmount) : aktSumm;
+      setBaseSum(original);
+      setIsApplied(true);
+      onApplyRecommendedSum(String(adjustmentData.recommendedSum));
+    }
+  }, [autoAppliedKey, adjustmentData, onApplyRecommendedSum]);
 
   if (!adjustmentData || adjustmentData.adjustment === 0) return null;
 
@@ -39,11 +55,9 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
       // Dastlabki summaga qaytarish
       const restore = baseSum !== null ? baseSum : String(originalAmount);
       setIsApplied(false);
-      setBaseSum(null);
       onApplyRecommendedSum(restore);
     } else {
-      // Tavsiya etilgan summani qo'llash
-      setBaseSum(aktSumm);
+      // Tavsiya etilgan summani qayta qo'llash
       setIsApplied(true);
       onApplyRecommendedSum(String(recommendedSum));
     }
@@ -80,13 +94,21 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
         py: 1,
         borderRadius: 2,
         border: '1px solid',
-        borderColor: 'primary.light',
-        bgcolor: 'primary.lighter'
+        borderColor: isCurrentlyApplied ? 'success.light' : 'warning.light',
+        bgcolor: isCurrentlyApplied ? 'success.lighter' : 'warning.lighter'
       }}
     >
-      <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.dark', display: 'block', mb: 0.5 }}>
-        ⚠️ O'tgan oylar uchun qo'shimcha hisob aniqlandi
-      </Typography>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: isCurrentlyApplied ? 'success.dark' : 'warning.dark' }}>
+          ⚠️ Kechikkan davr uchun qo'shimcha hisob aniqlandi
+        </Typography>
+        <Chip
+          size="small"
+          label={isCurrentlyApplied ? "Tavsiya etilgan summa qo'llandi" : 'Dastlabki summa saqlandi'}
+          color={isCurrentlyApplied ? 'success' : 'default'}
+          sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }}
+        />
+      </Stack>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', columnGap: 1.5, rowGap: 0.5 }}>
         {details.map((d) => (
@@ -105,7 +127,7 @@ export function AdjustmentAlert({ adjustmentData, aktSumm, onApplyRecommendedSum
 
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-          Tavsiya:{' '}
+          Tavsiya qilingan yakuniy summa:{' '}
           <Box component="span" sx={{ color: 'primary.main', fontWeight: 800 }}>
             {Math.abs(recommendedSum).toLocaleString()} UZS
           </Box>

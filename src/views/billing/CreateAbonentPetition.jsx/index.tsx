@@ -267,15 +267,15 @@ function CreateAbonentPetition() {
 
       <PasteImageDialog open={pasteImageDialogOpen} setOpen={setPasteImageDialogOpen} />
 
-      {/* 3 ta yonma-yon ustunli Tartib */}
+      {/* 3 ta yonma-yon ustunli Tartib: Forma kengaytirilgan, qulay mobil-ilova mutanosibligi */}
       <Grid container spacing={1.5} sx={{ height: { xs: 'auto', md: 'calc(100vh - 180px)' } }}>
-        {/* 1-Ustun (Chapda): Ariza shakllantirish formasi */}
-        <Grid size={{ xs: 12, md: 3, lg: 2.5 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
+        {/* 1-Ustun (Chapda): Ariza shakllantirish formasi (Keng va erkin) */}
+        <Grid size={{ xs: 12, md: 5, lg: 4.8 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
           <InputForm onStartTour={startTour} />
         </Grid>
 
         {/* 2-Ustun (Markazda): DHJ jadvali yoki Pul taqsimoti jadvali */}
-        <Grid size={{ xs: 12, md: 7, lg: 7.5 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
+        <Grid size={{ xs: 12, md: 4.6, lg: 4.8 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
           <Card
             elevation={2}
             sx={{
@@ -446,7 +446,7 @@ function CreateAbonentPetition() {
         </Grid>
 
         {/* 3-Ustun (O'ngda): Qo'shilgan hisob-kitoblar ro'yxati */}
-        <Grid size={{ xs: 12, md: 2, lg: 2 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
+        <Grid size={{ xs: 12, md: 2.4, lg: 2.4 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
           <RecalculationPeriodsList />
         </Grid>
       </Grid>

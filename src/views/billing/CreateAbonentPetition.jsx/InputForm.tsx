@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import {
   Alert,
   Box,
@@ -263,6 +264,35 @@ export default function InputForm({ onStartTour }: InputFormProps) {
   const debitorAmountNum = Number(transferDebitorAmount) || 0;
   const isAmountBalanced = debitorAmountNum > 0 && debitorAmountNum === totalCreditorAmount;
 
+  // Ushbu abonentda TozaMakonda faol yoki tasdiqlanmagan aktlar mavjudligini tekshirish (ziddiyatlarni oldini olish uchun)
+  const [pendingActsForResident, setPendingActsForResident] = useState<any[]>([]);
+  const [checkingActs, setCheckingActs] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (abonentData?.id && abonentData.id > 0) {
+      setCheckingActs(true);
+      api
+        .get('/billing/get-abonent-acts', { params: { residentId: abonentData.id } })
+        .then(({ data }) => {
+          if (data?.ok && Array.isArray(data.rows)) {
+            const currentMonth = dayjs().format('YYYY-MM');
+            const conflicts = data.rows.filter(
+              (act: any) =>
+                act.actStatus === 'NEW' ||
+                (act.createdAt && String(act.createdAt).startsWith(currentMonth))
+            );
+            setPendingActsForResident(conflicts);
+          } else {
+            setPendingActsForResident([]);
+          }
+        })
+        .catch(() => setPendingActsForResident([]))
+        .finally(() => setCheckingActs(false));
+    } else {
+      setPendingActsForResident([]);
+    }
+  }, [abonentData?.id]);
+
   useEffect(() => {
     if (abonentInputData) {
       setAccountNumber(abonentInputData.accountNumber || '');
@@ -277,7 +307,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (aktType === 'death') {
       const current = abonentData?.house?.inhabitantCnt || 0;
       setYashovchiSoniInput(Math.max(0, current - 1));
-    } else if (aktType === 'odam_soni' || aktType === 'dvaynik') {
+    } else if (aktType === 'odam_soni' || aktType === 'dvaynik' || aktType === 'viza') {
       setYashovchiSoniInput(abonentData?.house?.inhabitantCnt ?? '');
     }
   }, [aktType, abonentData, muzlatiladi]);
@@ -559,6 +589,45 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                   </Typography>
                 </Stack>
               </Box>
+
+              {/* Faol akt ziddiyatini ogohlantirish (Conflict Alert) */}
+              {pendingActsForResident.length > 0 && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    mt: 1,
+                    p: 1.25,
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: 'warning.main',
+                    bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'warning.900' : 'warning.lighter')
+                  }}
+                >
+                  <Stack spacing={0.75}>
+                    <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                      <WarningAmber sx={{ color: 'warning.dark', fontSize: 18 }} />
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.dark' }}>
+                        Diqqat: Ushbu abonentda faol akt mavjud ({pendingActsForResident.length} ta)
+                      </Typography>
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '11px', lineHeight: 1.3 }}>
+                      Tozamakonda tasdiqlanmagan yoki joriy oyda kiritilgan akt aniqlandi. Tasdiqlashda odam soni ustiga yozilib ketmasligi uchun bitta birlashtirilgan akt qilish tavsiya etiladi:
+                    </Typography>
+                    <Stack spacing={0.5}>
+                      {pendingActsForResident.slice(0, 2).map((act) => (
+                        <Chip
+                          key={act.id}
+                          size="small"
+                          color="warning"
+                          variant="outlined"
+                          label={`Akt №${act.actNumber || act.id} · ${act.actPackName || act.actType || 'Akt'} · ${act.actStatus} · Odam: ${act.inhabitantCount ?? '—'} kishi`}
+                          sx={{ fontWeight: 600, fontSize: '10.5px', height: 20, maxWidth: '100%' }}
+                        />
+                      ))}
+                    </Stack>
+                  </Stack>
+                </Paper>
+              )}
             </Stack>
           </Paper>
         )}
@@ -620,8 +689,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                   )}
                 </Box>
               )}
-              {(aktType === 'odam_soni' || aktType === 'death') && (
-                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+              {(aktType === 'odam_soni' || aktType === 'death' || aktType === 'viza') && (
+                <Stack spacing={1}>
                   <TextField
                     fullWidth
                     type="number"
@@ -636,12 +705,19 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     helperText={
                       aktType === 'death'
                         ? t('Vafot etganligi sababli 1 kishi avtomatik kamaytiriladi')
-                        : recalcMode === 'kop_bosqichli'
-                          ? `Yangi soni (oxirgi bosqich) · tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
-                          : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                        : aktType === 'viza'
+                          ? `Yakuniy odam soni (TozaMakonga yuboriladigan) · Tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                          : recalcMode === 'kop_bosqichli'
+                            ? `Yangi soni (oxirgi bosqich) · tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                            : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
                     }
                     sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
                   />
+                  {aktType === 'odam_soni' && (
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600, display: 'block', px: 0.5 }}>
+                      💡 Birlashtirilgan ariza: Agar qog'ozda chetga ketganlar (viza) yoki boshqa davrlar ham bo'lsa, o'ngdagi kalkulyatordan qo'shing. Barchasi bitta INVENTORY aktiga birlashtiriladi.
+                    </Typography>
+                  )}
                 </Stack>
               )}
 

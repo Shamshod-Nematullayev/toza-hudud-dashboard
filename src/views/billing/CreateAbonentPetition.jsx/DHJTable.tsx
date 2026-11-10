@@ -1,8 +1,8 @@
 import { DataGrid } from '@mui/x-data-grid';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { davrToMonth, IRecalculationPeriod, periodMonthRange, useStore } from './useStore';
 import api from 'utils/api';
-import { alpha, Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha, Box, Chip, CircularProgress, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { colors } from 'store/constant';
@@ -36,9 +36,14 @@ interface DHJTableProps {
   preview?: { periods: IRecalculationPeriod[]; inhabitant: number; aktTotal: number };
 }
 
+const DHJ_PREVIEW_SIZE = 15;
+
 function DHJTable({ abonentData, label, preview }: DHJTableProps) {
   const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
   const [rowsPreviewTable, setRowsPreviewTable] = useState<IRow[]>([]);
+  const [isDhjLoading, setIsDhjLoading] = useState(false);
+  const [isBackgroundLoading, setIsBackgroundLoading] = useState(false);
+  const dhjReqIdRef = useRef(0);
   const store = useStore();
   const { t } = useTranslation();
   const periods = preview ? preview.periods : store.recalculationPeriods;
@@ -92,32 +97,102 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
     }
 
     if (abonentData.accountNumber && abonentData.id > 0) {
+      const currentReqId = ++dhjReqIdRef.current;
+      setIsDhjLoading(true);
+
+      const mapRowList = (list: IRowDhj[]) =>
+        list.map((row, i) => ({
+          id: i + 1,
+          davr: row.period,
+          saldo_n: row.nSaldo,
+          nachis: row.accrual,
+          saldo_k: row.kSaldo,
+          akt: row.actAmount,
+          yashovchilar_soni: row.inhabitantCount,
+          allPaymentsSum: row.allPaymentsSum
+        }));
+
+      // 1-bosqich: Dastlabki 15 qatorni (oxirgi davrlar) bir zumda (200-300ms) yuklab ko'rsatish
       api
         .get('/billing/get-abonent-dxj-by-id', {
           params: {
-            residentId: abonentData.id
+            residentId: abonentData.id,
+            page: 1,
+            size: DHJ_PREVIEW_SIZE
           }
         })
-        .then(({ data }: { data: { ok: boolean; message: string; rows: IRowDhj[] } }) => {
-          if (!data.ok) return toast.error(data.message);
-          const mappedRows = data.rows.map((row, i) => ({
-            id: i + 1,
-            davr: row.period,
-            saldo_n: row.nSaldo,
-            nachis: row.accrual,
-            saldo_k: row.kSaldo,
-            akt: row.actAmount,
-            yashovchilar_soni: row.inhabitantCount,
-            allPaymentsSum: row.allPaymentsSum
-          }));
-          setRowsDhjTable(mappedRows);
-          if (!preview) store.setRowsDhjTable(mappedRows);
+        .then(({ data }) => {
+          if (currentReqId !== dhjReqIdRef.current) return;
+          if (data?.ok && Array.isArray(data.rows) && data.rows.length > 0) {
+            const mapped = mapRowList(data.rows);
+            setRowsDhjTable(mapped);
+            if (!preview) store.setRowsDhjTable(mapped);
+            setIsDhjLoading(false);
+            setIsBackgroundLoading(true);
+          }
+        })
+        .catch(() => {});
+
+      // 2-bosqich: Barcha tarixiy qatorlarni orqa fonda parallel yuklash
+      const size = 100;
+      api
+        .get('/billing/get-abonent-dxj-by-id', {
+          params: {
+            residentId: abonentData.id,
+            page: 1,
+            size
+          }
+        })
+        .then(async ({ data }) => {
+          if (currentReqId !== dhjReqIdRef.current) return;
+          if (!data?.ok) {
+            setIsDhjLoading(false);
+            setIsBackgroundLoading(false);
+            return toast.error(data?.message || "DHJ ma'lumotlarini yuklashda xatolik");
+          }
+
+          let allRows: IRowDhj[] = data.rows || [];
+          const total = data.meta?.total || allRows.length;
+          const totalPages = Math.ceil(total / size);
+
+          if (totalPages > 1) {
+            const restPages = await Promise.all(
+              Array.from({ length: totalPages - 1 }, (_, i) =>
+                api
+                  .get('/billing/get-abonent-dxj-by-id', {
+                    params: { residentId: abonentData.id, page: i + 2, size }
+                  })
+                  .then((res) => res.data)
+                  .catch(() => null)
+              )
+            );
+
+            if (currentReqId !== dhjReqIdRef.current) return;
+            for (const p of restPages) {
+              if (p?.ok && Array.isArray(p.rows)) {
+                allRows = allRows.concat(p.rows);
+              }
+            }
+          }
+
+          const fullMapped = mapRowList(allRows);
+          setRowsDhjTable(fullMapped);
+          if (!preview) store.setRowsDhjTable(fullMapped);
+          setIsDhjLoading(false);
+          setIsBackgroundLoading(false);
+        })
+        .catch(() => {
+          if (currentReqId !== dhjReqIdRef.current) return;
+          setIsDhjLoading(false);
+          setIsBackgroundLoading(false);
         });
     } else {
       setRowsDhjTable([]);
       if (!preview) store.setRowsDhjTable([]);
+      setIsDhjLoading(false);
+      setIsBackgroundLoading(false);
     }
-  }, [abonentData, store.isGlobalAbonent, store.isGlobalAbonent2]);
+  }, [abonentData?.id, store.isGlobalAbonent, store.isGlobalAbonent2]);
 
   useEffect(() => {
     if (show && rowsDhjTable.length) {
@@ -298,6 +373,16 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
             {(label?.includes('Ikkilamchi') ? store.isGlobalAbonent2 : store.isGlobalAbonent) && abonentData.companyName && (
               <Chip label={abonentData.companyName} size="small" color="info" sx={{ fontWeight: 700, fontSize: '11px', height: 20 }} />
             )}
+            {isBackgroundLoading && (
+              <Chip
+                icon={<CircularProgress size={11} color="inherit" />}
+                label="Fonda yuklanmoqda"
+                size="small"
+                variant="outlined"
+                color="info"
+                sx={{ fontWeight: 600, fontSize: '10px', height: 20, '& .MuiChip-icon': { ml: 0.5 } }}
+              />
+            )}
           </Stack>
         </Box>
 
@@ -399,6 +484,7 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
           disableColumnSorting
           disableColumnMenu
           hideFooter
+          loading={isDhjLoading && rowsDhjTable.length === 0}
           rows={rowsPreviewTable}
           getRowId={(row) => row.id}
           getRowClassName={(params) => (previewFor(params.row) ? 'recalc-row' : '')}
