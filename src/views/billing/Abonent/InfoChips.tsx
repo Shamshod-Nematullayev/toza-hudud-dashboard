@@ -60,6 +60,24 @@ const roundToThousand = (val: number): number => {
   return Object.is(rounded, -0) ? 0 : rounded;
 };
 
+/**
+ * Musbat balans qaysi oygacha yetishini hisoblaydi (MM.YYYY).
+ * Oylik to'lov = tarif (1 kishi uchun) × yashovchilar soni.
+ * Balans joriy davr yopilish saldosi bo'lgani uchun joriy davr allaqachon qoplangan,
+ * qolgan balans to'liq oylar soniga bo'linadi.
+ * Balans manfiy/nol yoki oylik to'lov aniqlanmasa null qaytaradi.
+ */
+const getPaidUntilPeriod = (balance: number, tariff: number, inhabitantCount: number, period: string): string | null => {
+  const monthly = Number(tariff) * Number(inhabitantCount);
+  if (!(balance > 0) || !(monthly > 0) || !period) return null;
+  const [month, year] = period.split('.').map(Number);
+  if (!month || !year) return null;
+  const fullMonths = Math.floor(balance / monthly);
+  return dayjs(new Date(year, month - 1, 1))
+    .add(fullMonths, 'month')
+    .format('MM.YYYY');
+};
+
 function InfoChips(props: InfoChipsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -92,6 +110,13 @@ function InfoChips(props: InfoChipsProps) {
       : null;
 
   const [toDate, setToDate] = useState<Dayjs | null>(dayjs().endOf('year'));
+  const paidUntil = getPaidUntilPeriod(props.balance, props.tariff, props.inhabitantCount, props.period);
+  const paidUntilText = paidUntil ? (
+    <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled', fontSize: 11, lineHeight: 1.2, mt: 0.5, pl: 0.5 }}>
+      Balans {paidUntil} gacha haqdor
+    </Typography>
+  ) : null;
+
   const [toDateBalance, setToDateBalance] = useState(0);
   const displayToDateBalance = isBalanceRounded ? roundToThousand(toDateBalance) : toDateBalance;
 
@@ -271,6 +296,7 @@ function InfoChips(props: InfoChipsProps) {
                   </Box>
                 </Stack>
               </Card>
+              {paidUntilText}
             </Grid>
 
             {/* Stats Grid Items */}
@@ -342,7 +368,7 @@ function InfoChips(props: InfoChipsProps) {
           </Grid>
         </Box>
       ) : (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
           {/* Vaqt va Tarif guruhi */}
           <InfoChip icon={PeriodIcon} label={t('tableHeaders.period')} value={props.period} />
           <InfoChip icon={TariffIcon} label={t('tableHeaders.tariff')} value={props.tariff} />
@@ -374,18 +400,21 @@ function InfoChips(props: InfoChipsProps) {
           </Tooltip>
 
           {/* Yakuniy holat */}
-          <InfoChip
-            icon={BalanceIcon}
-            label={t('tableHeaders.balance')}
-            value={displayBalance.toLocaleString('uz-Latn')}
-            valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
-            onClick={() => setOpenCalc(true)}
-            containerSX={{
-              cursor: 'pointer'
-            }}
-            containerRef={calculatorRef}
-            endAction={roundToggleBtn}
-          />
+          <Box>
+            <InfoChip
+              icon={BalanceIcon}
+              label={t('tableHeaders.balance')}
+              value={displayBalance.toLocaleString('uz-Latn')}
+              valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
+              onClick={() => setOpenCalc(true)}
+              containerSX={{
+                cursor: 'pointer'
+              }}
+              containerRef={calculatorRef}
+              endAction={roundToggleBtn}
+            />
+            {paidUntilText}
+          </Box>
         </Stack>
       )}
 
