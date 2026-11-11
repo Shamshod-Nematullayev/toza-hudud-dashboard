@@ -236,11 +236,29 @@ export function useFindedTableLogic() {
   useEffect(() => {
     if (ariza?.document_type === 'dvaynik') {
       setAktSumm(allPaymentsSumOnDublicate.toString() || '0');
-    } else {
+    } else if (ariza?.document_type !== 'cancelContract') {
+      // cancelContract summasi pastdagi effektda DHJ dan hisoblanadi
       setAktSumm(ariza?.aktSummCounts?.total?.toString() || '0');
     }
     setArizaNumberInput(ariza?.document_number?.toString() || '');
   }, [ariza, allPaymentsSumOnDublicate]);
+
+  // Shartnoma bekor qilish akti: yashovchi soni 0, saldo oxiri ham 0 bo'lishi kerak.
+  // Akt summasi joriy DHJ dan shunday hisoblanadiki, akt kiritilgandan keyin saldo oxiri 0 chiqadi
+  // (joriy oy hisoblanmasi 0 kishiga — ya'ni 0 deb olinadi). Natija darhol DHJ da ko'rinadi.
+  useEffect(() => {
+    if (ariza?.document_type !== 'cancelContract') return;
+    const first = rows[0];
+    if (!first) {
+      setAktSumm(ariza?.aktSummCounts?.total?.toString() || '0');
+      return;
+    }
+    const zeroingSum = Math.round(
+      (Number(first.saldo_n) || 0) + (Number(first.akt) || 0) - (Number(first.allPaymentsSum) || 0)
+    );
+    setAktSumm(String(zeroingSum));
+    setShowSpoiler(true);
+  }, [ariza, rows]);
 
   const handleClickRefreshButton = async () => {
     setIsLoading(true);
