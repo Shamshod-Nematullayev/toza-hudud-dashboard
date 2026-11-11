@@ -111,11 +111,7 @@ function InfoChips(props: InfoChipsProps) {
 
   const [toDate, setToDate] = useState<Dayjs | null>(dayjs().endOf('year'));
   const paidUntil = getPaidUntilPeriod(props.balance, props.tariff, props.inhabitantCount, props.period);
-  const paidUntilText = paidUntil ? (
-    <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled', fontSize: 11, lineHeight: 1.2, mt: 0.5, pl: 0.5 }}>
-      Balans {paidUntil} gacha haqdor
-    </Typography>
-  ) : null;
+  const paidUntilText = paidUntil ? `Balans ${paidUntil} gacha haqdor` : null;
 
   const [toDateBalance, setToDateBalance] = useState(0);
   const displayToDateBalance = isBalanceRounded ? roundToThousand(toDateBalance) : toDateBalance;
@@ -285,6 +281,11 @@ function InfoChips(props: InfoChipsProps) {
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       💳 Balans (so'm)
                     </Typography>
+                    {paidUntilText && (
+                      <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled', fontSize: 10.5, lineHeight: 1.2 }}>
+                        {paidUntilText}
+                      </Typography>
+                    )}
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="h4" color={Number(props.balanceToYearEnd) < 0 ? 'error' : 'success'} sx={{ fontWeight: 800 }}>
@@ -296,7 +297,6 @@ function InfoChips(props: InfoChipsProps) {
                   </Box>
                 </Stack>
               </Card>
-              {paidUntilText}
             </Grid>
 
             {/* Stats Grid Items */}
@@ -368,7 +368,7 @@ function InfoChips(props: InfoChipsProps) {
           </Grid>
         </Box>
       ) : (
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+        <Stack direction="row" spacing={1}>
           {/* Vaqt va Tarif guruhi */}
           <InfoChip icon={PeriodIcon} label={t('tableHeaders.period')} value={props.period} />
           <InfoChip icon={TariffIcon} label={t('tableHeaders.tariff')} value={props.tariff} />
@@ -400,21 +400,19 @@ function InfoChips(props: InfoChipsProps) {
           </Tooltip>
 
           {/* Yakuniy holat */}
-          <Box>
-            <InfoChip
-              icon={BalanceIcon}
-              label={t('tableHeaders.balance')}
-              value={displayBalance.toLocaleString('uz-Latn')}
-              valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
-              onClick={() => setOpenCalc(true)}
-              containerSX={{
-                cursor: 'pointer'
-              }}
-              containerRef={calculatorRef}
-              endAction={roundToggleBtn}
-            />
-            {paidUntilText}
-          </Box>
+          <InfoChip
+            icon={BalanceIcon}
+            label={t('tableHeaders.balance')}
+            value={displayBalance.toLocaleString('uz-Latn')}
+            valueColor={props.balance < 0 ? 'error.main' : 'success.main'}
+            onClick={() => setOpenCalc(true)}
+            containerSX={{
+              cursor: 'pointer'
+            }}
+            containerRef={calculatorRef}
+            endAction={roundToggleBtn}
+            hint={paidUntilText}
+          />
         </Stack>
       )}
 
