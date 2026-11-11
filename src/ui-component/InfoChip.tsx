@@ -11,7 +11,8 @@ const InfoChip = ({
   containerSX,
   containerRef,
   loading,
-  endAction
+  endAction,
+  hint
 }: {
   icon: React.ElementType<SvgIconProps>;
   label: string | number;
@@ -22,6 +23,7 @@ const InfoChip = ({
   containerRef?: React.RefObject<HTMLDivElement>;
   loading?: boolean;
   endAction?: React.ReactNode;
+  hint?: React.ReactNode;
 }) => {
   return (
     <Stack
@@ -83,6 +85,23 @@ const InfoChip = ({
         <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 500, lineHeight: 1 }}>
           {label}
         </Typography>
+        {hint && (
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              color: 'text.disabled',
+              fontSize: 10.5,
+              lineHeight: 1.2,
+              mt: 0.25,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {hint}
+          </Typography>
+        )}
       </Box>
 
       {endAction && (

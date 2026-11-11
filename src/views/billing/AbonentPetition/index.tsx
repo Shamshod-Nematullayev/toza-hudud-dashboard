@@ -302,9 +302,9 @@ function AbonentPetition() {
         </Stack>
       </Card>
 
-      {ariza?.inspectorReview && (
+      {(ariza?.inspectorReview || ariza?.inspectorConfirmation) && (
         <Box sx={{ mb: 2 }}>
-          <InspectorReviewCard review={ariza.inspectorReview} />
+          <InspectorReviewCard review={ariza.inspectorReview} confirmation={ariza.inspectorConfirmation} />
         </Box>
       )}
 

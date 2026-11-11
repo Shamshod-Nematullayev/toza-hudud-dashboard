@@ -813,7 +813,7 @@ export const useStore = create<StoreState>((set, get) => ({
             abonentId: abonentData.id,
             fullName: abonentData.fullName,
             document_type: aktType,
-            // Summa akt kiritilayotganda TozaMakonda hisoblanadi (saldo 0 ga keltiriladi)
+            // Summani server TozaMakonda saldo oxiri 0 bo'ladigan qilib hisoblaydi; akt kiritilganda yana yangilanadi
             akt_summasi: { total: 0, withQQSTotal: 0, withoutQQSTotal: 0 },
             current_prescribed_cnt: inhabitantCnt,
             next_prescribed_cnt: 0,

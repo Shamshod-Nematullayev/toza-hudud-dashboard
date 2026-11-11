@@ -272,7 +272,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (abonentData?.id && abonentData.id > 0) {
       setCheckingActs(true);
       api
-        .get('/billing/get-abonent-acts', { params: { residentId: abonentData.id } })
+        .get('/billing/get-abonent-acts/' + abonentData.id, { params: { residentId: abonentData.id } })
         .then(({ data }) => {
           if (data?.ok && Array.isArray(data.rows)) {
             const currentMonth = dayjs().format('YYYY-MM');

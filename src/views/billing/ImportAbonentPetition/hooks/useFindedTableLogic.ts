@@ -133,6 +133,26 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
   return formData;
 };
 
+/**
+ * Bekor qilinadigan ariza uchun akt ma'lumotlari: kiritishdagi hisob-kitob bilan bir xil.
+ * Akt TozaMakonda yaratilib darhol bekor qilinadi, izohiga bekor qilish sababi tushadi.
+ */
+const prepareCancelFormData = (currentFile: any, a: IAriza, aktSumm: string, rows: IRow[], reason: string) => {
+  const formData = new FormData();
+  formData.append('file', currentFile.blob, currentFile.file.name);
+  formData.append('ariza_id', a._id);
+  formData.append('canceling_description', reason);
+  formData.append('akt_sum', String(parseAktSumExpression(aktSumm)));
+  formData.append('amountWithoutQQS', (Math.floor(a.aktSummCounts?.withoutQQSTotal) || 0).toString());
+  const nextInhabitant = getArizaNextInhabitant(a, rows[0]?.yashovchilar_soni) ?? rows[0]?.yashovchilar_soni;
+  // Ma'lum bo'lmasa server joriy yashovchi sonini TozaMakondan oladi
+  if (nextInhabitant !== undefined && nextInhabitant !== null) formData.append('next_inhabitant_count', String(nextInhabitant));
+  a.tempPhotos?.forEach((photo, index) => {
+    formData.append(`photos[${index}]`, photo);
+  });
+  return formData;
+};
+
 export function useFindedTableLogic() {
   const { currentFile, removePdfFile, setCurrentFile, ariza, setAriza, getArizalarByNumber, enteringMode } = useStore();
   const [arizaNumberInput, setArizaNumberInput] = useState('');
@@ -216,11 +236,29 @@ export function useFindedTableLogic() {
   useEffect(() => {
     if (ariza?.document_type === 'dvaynik') {
       setAktSumm(allPaymentsSumOnDublicate.toString() || '0');
-    } else {
+    } else if (ariza?.document_type !== 'cancelContract') {
+      // cancelContract summasi pastdagi effektda DHJ dan hisoblanadi
       setAktSumm(ariza?.aktSummCounts?.total?.toString() || '0');
     }
     setArizaNumberInput(ariza?.document_number?.toString() || '');
   }, [ariza, allPaymentsSumOnDublicate]);
+
+  // Shartnoma bekor qilish akti: yashovchi soni 0, saldo oxiri ham 0 bo'lishi kerak.
+  // Akt summasi joriy DHJ dan shunday hisoblanadiki, akt kiritilgandan keyin saldo oxiri 0 chiqadi
+  // (joriy oy hisoblanmasi 0 kishiga — ya'ni 0 deb olinadi). Natija darhol DHJ da ko'rinadi.
+  useEffect(() => {
+    if (ariza?.document_type !== 'cancelContract') return;
+    const first = rows[0];
+    if (!first) {
+      setAktSumm(ariza?.aktSummCounts?.total?.toString() || '0');
+      return;
+    }
+    const zeroingSum = Math.round(
+      (Number(first.saldo_n) || 0) + (Number(first.akt) || 0) - (Number(first.allPaymentsSum) || 0)
+    );
+    setAktSumm(String(zeroingSum));
+    setShowSpoiler(true);
+  }, [ariza, rows]);
 
   const handleClickRefreshButton = async () => {
     setIsLoading(true);
@@ -392,6 +430,47 @@ export function useFindedTableLogic() {
     await executeSubmit(shouldTransfer);
   };
 
+  const handleCancelArizaClick = async () => {
+    if (!currentFile?.blob) return toast.error('Fayl tanlanmadi');
+    if (!hasValidAriza(ariza as IAriza | null)) return toast.error('Bekor qilinadigan ariza topilmadi');
+    const a = ariza as IAriza;
+    if (a.akt_id) return toast.error(`Bu arizaga akt kiritilgan (akt id: ${a.akt_id}). Aktni Aktlar bo'limidan bekor qiling`);
+
+    const alreadyCanceled = a.status === 'bekor qilindi';
+    const reason = await promptDialog({
+      title: 'Arizani bekor qilish',
+      message: alreadyCanceled
+        ? `№ ${a.document_number} ariza Greenzone'da bekor qilingan. Skaner fayli bilan TozaMakonda akt yaratiladi va bekor qilinadi.`
+        : `№ ${a.document_number} ariza bekor qilinadi. Skaner fayli bilan TozaMakonda akt yaratiladi va bekor qilinadi.`,
+      label: 'Bekor qilish sababi (akt izohiga yoziladi)',
+      defaultValue: alreadyCanceled ? a.canceling_description || '' : '',
+      required: true,
+      multiline: true,
+      confirmText: 'Bekor qilish',
+      cancelText: 'Yopish',
+      color: 'error'
+    });
+    if (!reason?.trim()) return;
+
+    try {
+      setIsLoading(true);
+      const formData = prepareCancelFormData(currentFile, a, aktSumm, rows, reason.trim());
+      const { data } = await api.post('/arizalar/cancel-with-act', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (!data.ok) throw new Error(data.message);
+      toast.success(data.message || 'Ariza bekor qilindi!');
+      handleDeleteButtonClick();
+    } catch (err) {
+      let message = err instanceof Error ? err.message : "Noma'lum xatolik";
+      if (err instanceof AxiosError) message = '';
+      if (message) toast.error(message);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeleteButtonClick = async () => {
     if (!currentFile?.url) {
       toast.error('Fayl tanlanmadi');
@@ -427,6 +506,7 @@ export function useFindedTableLogic() {
   return {
     handlePrimaryButtonClick,
     handleDeleteButtonClick,
+    handleCancelArizaClick,
     handleClickRefreshButton,
     tabIndex,
     handleTabChange,
