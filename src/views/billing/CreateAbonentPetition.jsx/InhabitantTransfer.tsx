@@ -28,6 +28,11 @@ export function InhabitantTransferFields() {
   const fromCurrent = Number(abonentData?.house?.inhabitantCnt) || 0;
   const soni = Number(kuchirish.soni);
   const soniError = kuchirish.soni !== '' && (!Number.isInteger(soni) || soni < 1 || (!!abonentData.accountNumber && soni > fromCurrent));
+  const validSoniField = Number.isInteger(soni) && soni >= 1;
+  const kam = Number(kuchirish.kamaytirish) || 0;
+  const kamError =
+    kuchirish.kamaytirish !== '' &&
+    (!Number.isInteger(Number(kuchirish.kamaytirish)) || kam < 0 || (!!abonentData.accountNumber && (validSoniField ? soni : 0) + kam > fromCurrent));
   const minMonth = getDhjFirstMonth(rowsDhjTable) ?? dayjs('2019-01-01');
 
   return (
@@ -68,6 +73,32 @@ export function InhabitantTransferFields() {
         onInputChange={(_, v) => setKuchirish({ sabab: v })}
         renderInput={(params) => <TextField {...params} label="Ko'chirish sababi" sx={{ bgcolor: 'background.paper', borderRadius: 1 }} />}
       />
+      <TextField
+        fullWidth
+        type="number"
+        label="Qolganlardan chiqarib tashlanadi (ixtiyoriy)"
+        value={kuchirish.kamaytirish}
+        onChange={(e) => setKuchirish({ kamaytirish: e.target.value })}
+        error={kamError}
+        helperText={
+          kam > 0 && validSoniField
+            ? `Asosiy abonentda ${fromCurrent} → ${Math.max(0, fromCurrent - soni - kam)} kishi qoladi`
+            : "Boshqa joyga ketgan, qabul qiluvchiga qo'shilmaydigan kishilar"
+        }
+        slotProps={{ htmlInput: { min: 0 } }}
+        sx={{ '& .MuiInputBase-root': { bgcolor: 'background.paper' } }}
+      />
+      {kam > 0 && (
+        <TextField
+          fullWidth
+          label="Chiqarib tashlash sababi"
+          value={kuchirish.kamaytirishSabab}
+          onChange={(e) => setKuchirish({ kamaytirishSabab: e.target.value })}
+          error={!kuchirish.kamaytirishSabab.trim()}
+          slotProps={{ htmlInput: { maxLength: 300 } }}
+          sx={{ '& .MuiInputBase-root': { bgcolor: 'background.paper' } }}
+        />
+      )}
       <TextField
         label="Ko'chgan shaxs(lar) F.I.Sh (ixtiyoriy)"
         placeholder="Masalan: Karimova Dilnoza Akmal qizi"
@@ -196,7 +227,10 @@ export function InhabitantTransferSummary() {
   const validSoni = Number.isInteger(soni) && soni >= 1;
   const fromCurrent = Number(abonentData?.house?.inhabitantCnt) || 0;
   const toCurrent = Number(abonentData2?.house?.inhabitantCnt) || 0;
-  const fromNext = validSoni ? Math.max(0, fromCurrent - soni) : fromCurrent;
+  const kam = Math.max(0, Math.floor(Number(kuchirish.kamaytirish) || 0));
+  // Asosiydan ko'chganlar + chiqarib tashlanganlar ayriladi; qabul qiluvchiga faqat ko'chganlar qo'shiladi
+  const fromDelta = validSoni ? soni + kam : 0;
+  const fromNext = validSoni ? Math.max(0, fromCurrent - fromDelta) : fromCurrent;
   const toNext = validSoni ? toCurrent + soni : toCurrent;
 
   // Ko'chgan oydan oxirgi yopilgan oygacha: asosiyda −N, qabul qiluvchida +N kishi. Joriy oy yangi son bilan hisoblanadi
@@ -205,13 +239,13 @@ export function InhabitantTransferSummary() {
     const oy = kuchirish.oy;
     if (!validSoni || !oy?.isValid() || oy.isAfter(lastClosed, 'month') || !hisoblandiJadval.length)
       return { fromPeriod: null, toPeriod: null };
-    const from = abonentData.accountNumber ? calcDeltaPeriod(rowsDhjTable, hisoblandiJadval, oy, lastClosed, -soni) : null;
+    const from = abonentData.accountNumber ? calcDeltaPeriod(rowsDhjTable, hisoblandiJadval, oy, lastClosed, -fromDelta) : null;
     const to = abonentData2.accountNumber ? calcDeltaPeriod(toRows, hisoblandiJadval, oy, lastClosed, soni) : null;
     return {
       fromPeriod: from && ({ ...from, color: FROM_COLOR } as IRecalculationPeriod),
       toPeriod: to && ({ ...to, color: TO_COLOR } as IRecalculationPeriod)
     };
-  }, [kuchirish.oy, soni, validSoni, rowsDhjTable, toRows, hisoblandiJadval, abonentData.accountNumber, abonentData2.accountNumber]);
+  }, [kuchirish.oy, soni, fromDelta, validSoni, rowsDhjTable, toRows, hisoblandiJadval, abonentData.accountNumber, abonentData2.accountNumber]);
 
   useEffect(() => {
     setRecalculationPeriods(fromPeriod ? [fromPeriod] : []);
@@ -240,7 +274,7 @@ export function InhabitantTransferSummary() {
     <Stack spacing={1} sx={{ height: '100%', minHeight: 0 }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: 'stretch', flexShrink: 0 }}>
         <SideCard
-          title={`Chiqib ketadi · −${validSoni ? soni : '?'}`}
+          title={`Chiqib ketadi · −${validSoni ? soni : '?'}${kam ? ` (+${kam} chiqariladi)` : ''}`}
           color={FROM_COLOR}
           account={abonentData.accountNumber}
           name={abonentData.fullName}

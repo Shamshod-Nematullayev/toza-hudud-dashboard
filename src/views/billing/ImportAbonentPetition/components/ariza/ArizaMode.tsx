@@ -180,6 +180,11 @@ function KuchirishPanel({ ariza }: { ariza: any }) {
           {k.soni} kishi o'tadi ({String(k.sabab || '').toLowerCase()})
         </Typography>
       </Stack>
+      {!!k.kamaytirish && (
+        <Typography variant="body2" color="error.main" sx={{ fontWeight: 600, pl: 2, pb: 0.5 }}>
+          + {k.kamaytirish} kishi chiqariladi ({String(k.kamaytirishSabab || '').toLowerCase()})
+        </Typography>
+      )}
       {side('to')}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
         Ikkala akt bitta fayl bilan kiritiladi. Kishi soni kiritish paytidagi TozaMakon sonidan hisoblanadi, joriy oy farqi summaga

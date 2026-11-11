@@ -39,6 +39,9 @@ export interface IAriza {
     sabab: string;
     shaxslar?: string;
     oy: string;
+    /** Ko'chirishdan tashqari asosiydan chiqarib tashlanganlar (qabul qiluvchiga qo'shilmaydi) */
+    kamaytirish?: number;
+    kamaytirishSabab?: string;
     fromCurrentCnt: number;
     fromNextCnt: number;
     toAbonentId: number;

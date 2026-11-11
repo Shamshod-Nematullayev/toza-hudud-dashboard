@@ -86,7 +86,13 @@ export default function BaseMap({
   const googleSubdomains = ['0', '1', '2', '3'];
 
   return (
-    <MapContainer center={center} zoom={zoom} maxZoom={MAX_ZOOM} style={{ height, width: '100%', borderRadius: 12, zIndex: 0 }} scrollWheelZoom>
+    <MapContainer
+      center={center}
+      zoom={zoom}
+      maxZoom={MAX_ZOOM}
+      style={{ height, width: '100%', minHeight: typeof height === 'number' ? height : undefined, flex: 1, borderRadius: 12, zIndex: 0 }}
+      scrollWheelZoom
+    >
       <InvalidateOnResize />
       <LayersControl position="topright">
         {/* SmartGPS dagi kabi asosiy tanlangan qatlam: Google Hybrid (Sun'iy yo'ldosh + yo'llar va nomlar) */}

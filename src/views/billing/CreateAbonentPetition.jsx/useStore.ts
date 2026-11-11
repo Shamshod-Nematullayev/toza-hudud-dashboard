@@ -152,6 +152,9 @@ export interface IKuchirishInput {
   sabab: string;
   /** Ko'chirilgan shaxs(lar) F.I.Sh */
   shaxslar: string;
+  /** Ko'chirishdan tashqari asosiy abonentdan chiqarib tashlanadiganlar (qabul qiluvchiga qo'shilmaydi) */
+  kamaytirish: string;
+  kamaytirishSabab: string;
   /** Ko'chgan oy: undan keyingi yopilgan oylar ikkala abonentda qayta hisoblanadi */
   oy: Dayjs | null;
   /** Qabul qiluvchining qayta hisob davri va summasi (asosiyniki — recalculationPeriods/aktSumma) */
@@ -165,6 +168,8 @@ export interface IKuchirish {
   sabab: string;
   shaxslar?: string;
   oy: string;
+  kamaytirish?: number;
+  kamaytirishSabab?: string;
   fromCurrentCnt: number;
   fromNextCnt: number;
   toAbonentId: number;
@@ -199,6 +204,8 @@ export const emptyKuchirish = (): IKuchirishInput => ({
   soni: '1',
   sabab: kuchirishSabablari[0],
   shaxslar: '',
+  kamaytirish: '',
+  kamaytirishSabab: "Boshqa joyga ko'chib ketganligi sababli",
   oy: dayjs().startOf('month'),
   toPeriods: [],
   toAktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 }
@@ -730,6 +737,7 @@ export const useStore = create<StoreState>((set, get) => ({
           return;
         }
         const soni = Number(kuchirish.soni);
+        const kamaytirish = Number(kuchirish.kamaytirish) || 0;
         const fromCurrent = Number(abonentData.house?.inhabitantCnt) || 0;
         const toCurrent = Number(abonentData2.house?.inhabitantCnt) || 0;
         const payload: IKuchirish = {
@@ -737,8 +745,10 @@ export const useStore = create<StoreState>((set, get) => ({
           sabab: kuchirish.sabab.trim(),
           shaxslar: kuchirish.shaxslar.trim() || undefined,
           oy: kuchirish.oy!.format('MM.YYYY'),
+          kamaytirish: kamaytirish || undefined,
+          kamaytirishSabab: kamaytirish ? kuchirish.kamaytirishSabab.trim() : undefined,
           fromCurrentCnt: fromCurrent,
-          fromNextCnt: fromCurrent - soni,
+          fromNextCnt: fromCurrent - soni - kamaytirish,
           toAbonentId: abonentData2.id,
           toLicshet: abonentData2.accountNumber,
           toFio: abonentData2.fullName,
@@ -1166,6 +1176,10 @@ export function validateKuchirish(
   if (from.accountNumber === to.accountNumber) return "Bir hisob raqamning o'ziga ko'chirib bo'lmaydi";
   if (!Number.isInteger(soni) || soni < 1) return "Ko'chiriladigan kishi soni kamida 1 bo'lishi kerak";
   if (soni > fromCurrent) return `Asosiy abonentda ${fromCurrent} kishi bor, ${soni} kishini ko'chirib bo'lmaydi`;
+  const kam = k.kamaytirish === '' ? 0 : Number(k.kamaytirish);
+  if (!Number.isInteger(kam) || kam < 0) return "Chiqarib tashlanadiganlar soni noto'g'ri";
+  if (soni + kam > fromCurrent) return `Asosiy abonentda ${fromCurrent} kishi bor: ${soni} ko'chirish + ${kam} chiqarish mumkin emas`;
+  if (kam > 0 && !k.kamaytirishSabab.trim()) return 'Chiqarib tashlanadiganlar sababini kiriting';
   if (!k.sabab.trim()) return "Ko'chirish sababini kiriting";
   if (!k.oy?.isValid()) return "Ko'chgan oyni kiriting";
   if (k.oy.isAfter(dayjs(), 'month')) return "Kelajakdagi oyni tanlab bo'lmaydi";
@@ -1292,6 +1306,10 @@ export function buildAutoAsoslantiruvchi({
             ariza.licshet
           } hisob raqamli xonadondan ${k.toLicshet} hisob raqamli xonadonga ko'chib o'tganligi (${k.sabab.toLowerCase()}) tasdiqlandi.`
         );
+        if (k.kamaytirish)
+          sentences.push(
+            `Shuningdek, xonadonda qolgan ${k.kamaytirish} nafar shaxs ham amalda istiqomat qilmasligi (${(k.kamaytirishSabab || '').toLowerCase()}) aniqlandi, natijada yashovchilar soni ${k.fromCurrentCnt} nafardan ${k.fromNextCnt} nafarga kamayadi.`
+          );
       }
       break;
     }

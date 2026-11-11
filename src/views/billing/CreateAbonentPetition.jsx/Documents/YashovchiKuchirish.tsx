@@ -68,11 +68,15 @@ export default function YashovchiKuchirish({
   const sabab = (k.sabab || '').toLowerCase();
   const [oyM, oyY] = k.oy.split('.').map(Number);
   const oyText = `${oyY} yil ${lotinga(oylar[oyM - 1] || '').toLowerCase()}`;
+  // Ko'chganlardan tashqari xonadondan chiqib ketgan (qabul qiluvchiga qo'shilmaydigan) kishilar
+  const kamText = k.kamaytirish
+    ? ` Shuningdek, xonadonda ro‘yxatda turgan yana ${k.kamaytirish} nafar shaxs ${(k.kamaytirishSabab || '').toLowerCase()} amalda istiqomat qilmaydi.`
+    : '';
   const startedEarlier = new Date(oyY, oyM - 1, 1) < new Date(date.getFullYear(), date.getMonth(), 1);
 
   const arizaText = isRelative
-    ? `Shuni yozib ma’lum qilamanki, men fuqaro ${abonentData?.fullName}ning ${vakil!.relation.toLowerCase()} — ${vakil!.fullName} bo‘laman. ${fromAccount}-sonli hisob raqamli xonadonda ro‘yxatda turgan ${who} ${sabab} ${oyText} oyidan boshlab ${toName} nomidagi ${toAccount}-sonli hisob raqamli xonadonga ko‘chib o‘tdi. Shu sababli ${fromAccount}-sonli hisob raqamdagi yashovchilar sonini ${k.fromCurrentCnt} kishidan ${k.fromNextCnt} kishiga kamaytirib, ${toAccount}-sonli hisob raqamdagi yashovchilar sonini ${k.toCurrentCnt} kishidan ${k.toNextCnt} kishiga ko‘paytirib${startedEarlier ? ', ko‘chgan oydan buyon hisob-kitobni qayta ko‘rib' : ''} berishingizni so‘rayman.`
-    : `Shuni yozib ma’lum qilamanki, mening ${fromAccount}-sonli hisob raqamli xonadonimda ro‘yxatda turgan ${who} ${sabab} ${oyText} oyidan boshlab ${toName} nomidagi ${toAccount}-sonli hisob raqamli xonadonga ko‘chib o‘tdi. Shu sababli hisob raqamimdagi yashovchilar sonini ${k.fromCurrentCnt} kishidan ${k.fromNextCnt} kishiga kamaytirib, ${toAccount}-sonli hisob raqamdagi yashovchilar sonini ${k.toCurrentCnt} kishidan ${k.toNextCnt} kishiga ko‘paytirib${startedEarlier ? ', ko‘chgan oydan buyon hisob-kitobni qayta ko‘rib' : ''} berishingizni so‘rayman.`;
+    ? `Shuni yozib ma’lum qilamanki, men fuqaro ${abonentData?.fullName}ning ${vakil!.relation.toLowerCase()} — ${vakil!.fullName} bo‘laman. ${fromAccount}-sonli hisob raqamli xonadonda ro‘yxatda turgan ${who} ${sabab} ${oyText} oyidan boshlab ${toName} nomidagi ${toAccount}-sonli hisob raqamli xonadonga ko‘chib o‘tdi.${kamText} Shu sababli ${fromAccount}-sonli hisob raqamdagi yashovchilar sonini ${k.fromCurrentCnt} kishidan ${k.fromNextCnt} kishiga kamaytirib, ${toAccount}-sonli hisob raqamdagi yashovchilar sonini ${k.toCurrentCnt} kishidan ${k.toNextCnt} kishiga ko‘paytirib${startedEarlier ? ', ko‘chgan oydan buyon hisob-kitobni qayta ko‘rib' : ''} berishingizni so‘rayman.`
+    : `Shuni yozib ma’lum qilamanki, mening ${fromAccount}-sonli hisob raqamli xonadonimda ro‘yxatda turgan ${who} ${sabab} ${oyText} oyidan boshlab ${toName} nomidagi ${toAccount}-sonli hisob raqamli xonadonga ko‘chib o‘tdi.${kamText} Shu sababli hisob raqamimdagi yashovchilar sonini ${k.fromCurrentCnt} kishidan ${k.fromNextCnt} kishiga kamaytirib, ${toAccount}-sonli hisob raqamdagi yashovchilar sonini ${k.toCurrentCnt} kishidan ${k.toNextCnt} kishiga ko‘paytirib${startedEarlier ? ', ko‘chgan oydan buyon hisob-kitobni qayta ko‘rib' : ''} berishingizni so‘rayman.`;
 
   const rows = [
     {
@@ -157,6 +161,12 @@ export default function YashovchiKuchirish({
             </tbody>
           </StyledTable>
 
+          {!!k.kamaytirish && (
+            <p style={{ textIndent: '40px', marginTop: '12px' }}>
+              {k.soni} nafar shaxs {toAccount} hisob raqamiga ko‘chirilib, {fromAccount} hisob raqamida qolgan yana {k.kamaytirish} nafar
+              shaxs {(k.kamaytirishSabab || '').toLowerCase()} yashovchilar sonidan chiqariladi (qabul qiluvchiga qo‘shilmaydi).
+            </p>
+          )}
           {asoslantiruvchi && <p style={{ textIndent: '40px', fontStyle: 'italic', marginTop: '12px' }}>{asoslantiruvchi}</p>}
 
           <p style={{ textIndent: '40px', lineHeight: '30px', marginTop: '15px', marginBottom: '20px' }}>
