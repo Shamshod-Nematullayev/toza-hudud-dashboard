@@ -420,7 +420,7 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
                     </Stack>
                   </Box>
 
-                  <InspectorReviewCard review={ariza?.inspectorReview} />
+                  <InspectorReviewCard review={ariza?.inspectorReview} confirmation={ariza?.inspectorConfirmation} />
 
                   {/* Akt Info Card */}
                   <AktInfoCard />

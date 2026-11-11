@@ -55,6 +55,8 @@ export interface IAriza {
   canceling_description: string;
   /** Hudud nazoratchisining e'tirozi (Telegram bot orqali) */
   inspectorReview?: IArizaInspectorReview;
+  /** Hudud nazoratchisi arizani to'g'ri deb tasdiqlagan */
+  inspectorConfirmation?: IArizaInspectorConfirmation;
   inspectorNotification?: {
     target: 'private' | 'group';
     inspectorName?: string;
@@ -87,6 +89,12 @@ export interface IArizaInspectorReview {
   actualLocation?: { lat: number; lng: number; distanceMeters?: number; areaCheck?: string };
   actualInhabitantCnt?: number;
   actualInhabitants?: string[];
+  inspectorId?: number;
+  inspectorName?: string;
+  createdAt: string | Date;
+}
+
+export interface IArizaInspectorConfirmation {
   inspectorId?: number;
   inspectorName?: string;
   createdAt: string | Date;

@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, AlertTitle, Box, Chip, Link, Stack, Typography } from '@mui/material';
 import { PlaceOutlined } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import { IArizaInspectorReview } from 'types/models';
+import { IArizaInspectorConfirmation, IArizaInspectorReview } from 'types/models';
 
 const REASON_LABELS: Record<IArizaInspectorReview['reason'], string> = {
   soxta_manzil: 'Abonent soxta manzil ko‘rsatgan',
@@ -16,7 +16,22 @@ function formatMeters(m?: number) {
 }
 
 /** Hudud nazoratchisi Telegram bot orqali bildirgan e'tiroz (arizani bekor qilgan yoki akt kiritilgandan keyin e'tiroz) */
-const InspectorReviewCard: React.FC<{ review?: IArizaInspectorReview | null }> = ({ review }) => {
+const InspectorReviewCard: React.FC<{
+  review?: IArizaInspectorReview | null;
+  confirmation?: IArizaInspectorConfirmation | null;
+}> = ({ review, confirmation }) => {
+  if (!review && confirmation) {
+    return (
+      <Alert severity="success" variant="outlined" sx={{ borderRadius: 2 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          Nazoratchi arizani to‘g‘ri deb tasdiqlagan
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          {confirmation.inspectorName || '-'}, {dayjs(confirmation.createdAt).format('DD.MM.YYYY HH:mm')}
+        </Typography>
+      </Alert>
+    );
+  }
   if (!review) return null;
   const cancelled = review.status === 'bekor_qilindi';
   const loc = review.actualLocation;
