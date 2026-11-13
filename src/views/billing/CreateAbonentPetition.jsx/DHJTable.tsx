@@ -37,6 +37,8 @@ interface DHJTableProps {
 }
 
 const DHJ_PREVIEW_SIZE = 15;
+// Orqa fondagi so'rovlar uchun yuqori chegara: tozamakon javob bermay qolsa "Fonda yuklanmoqda" abadiy aylanib turmasin
+const DHJ_BACKGROUND_TIMEOUT = 60_000;
 
 function DHJTable({ abonentData, label, preview }: DHJTableProps) {
   const [rowsDhjTable, setRowsDhjTable] = useState<IRow[]>([]);
@@ -91,14 +93,21 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
     // Agar abonent barcha tashkilotlar bo'yicha tortilgan bo'lsa, DHJ jadvali allaqachon store.rowsDhjTable da to'liq 2019-hozirgacha mavjud
     const isGlobal = label?.includes('Ikkilamchi') ? store.isGlobalAbonent2 : store.isGlobalAbonent;
 
+    // Har yangi effekt avvalgi so'rovlarni bekor qiladi (eski javoblar holatni buzmasin)
+    const currentReqId = ++dhjReqIdRef.current;
+
     if (isGlobal && store.rowsDhjTable.length > 0) {
       setRowsDhjTable(store.rowsDhjTable);
+      setIsDhjLoading(false);
+      setIsBackgroundLoading(false);
       return;
     }
 
     if (abonentData.accountNumber && abonentData.id > 0) {
-      const currentReqId = ++dhjReqIdRef.current;
       setIsDhjLoading(true);
+      // To'liq yuklash tugaganini belgilaydi: agar u 15 qatorli so'rovdan oldin qaytsa,
+      // kechikkan 15 qatorli javob to'liq jadvalni qisqartirmasin va "Fonda yuklanmoqda" qayta yoqilmasin.
+      let fullLoaded = false;
 
       const mapRowList = (list: IRowDhj[]) =>
         list.map((row, i) => ({
@@ -122,7 +131,7 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
           }
         })
         .then(({ data }) => {
-          if (currentReqId !== dhjReqIdRef.current) return;
+          if (currentReqId !== dhjReqIdRef.current || fullLoaded) return;
           if (data?.ok && Array.isArray(data.rows) && data.rows.length > 0) {
             const mapped = mapRowList(data.rows);
             setRowsDhjTable(mapped);
@@ -141,11 +150,13 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
             residentId: abonentData.id,
             page: 1,
             size
-          }
+          },
+          timeout: DHJ_BACKGROUND_TIMEOUT
         })
         .then(async ({ data }) => {
           if (currentReqId !== dhjReqIdRef.current) return;
           if (!data?.ok) {
+            fullLoaded = true;
             setIsDhjLoading(false);
             setIsBackgroundLoading(false);
             return toast.error(data?.message || "DHJ ma'lumotlarini yuklashda xatolik");
@@ -160,7 +171,8 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
               Array.from({ length: totalPages - 1 }, (_, i) =>
                 api
                   .get('/billing/get-abonent-dxj-by-id', {
-                    params: { residentId: abonentData.id, page: i + 2, size }
+                    params: { residentId: abonentData.id, page: i + 2, size },
+                    timeout: DHJ_BACKGROUND_TIMEOUT
                   })
                   .then((res) => res.data)
                   .catch(() => null)
@@ -175,6 +187,7 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
             }
           }
 
+          fullLoaded = true;
           const fullMapped = mapRowList(allRows);
           setRowsDhjTable(fullMapped);
           if (!preview) store.setRowsDhjTable(fullMapped);
@@ -183,8 +196,10 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
         })
         .catch(() => {
           if (currentReqId !== dhjReqIdRef.current) return;
+          fullLoaded = true;
           setIsDhjLoading(false);
           setIsBackgroundLoading(false);
+          toast.warn("DHJ tarixining to'liq qismini yuklab bo'lmadi");
         });
     } else {
       setRowsDhjTable([]);
