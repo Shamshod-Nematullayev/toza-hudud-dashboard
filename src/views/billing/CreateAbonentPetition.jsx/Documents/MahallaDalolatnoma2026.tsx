@@ -19,7 +19,8 @@ function Field({ value, minWidth = 90, bold = true }: { value?: React.ReactNode;
     <span
       style={{
         display: 'inline-block',
-        minWidth,
+        minWidth: empty ? minWidth : undefined,
+        textIndent: 0,
         borderBottom: LINE,
         padding: '0 4px',
         lineHeight: 1.15,
@@ -120,6 +121,13 @@ export default function MahallaDalolatnoma2026({
   const roles = ROLES.map((r) => ({ ...r, name: roleName(r.ids) }));
   const korxonaTitle = `“${cyr(companyName) || 'корхона номи'}” ходими`;
   const extra = active.filter((p) => !usedIds.has(p.id));
+  // Ismi yo'q lavozimlar chiqarilmaydi; MFY raisi va korxona xodimi har doim turadi
+  const signers = [
+    ...roles
+      .filter((r) => r.id === 'rais' || r.id === 'korxona' || !!r.name)
+      .map((r) => (r.id === 'korxona' ? { ...r, title: korxonaTitle } : r)),
+    ...extra.map((p) => ({ id: p.id, title: cyr(p.label.replace(/:$/, '')), ids: [p.id], name: p.name }))
+  ];
 
   const day = date.getDate();
   const month = kirillga(oylar[date.getMonth()]);
@@ -229,30 +237,19 @@ export default function MahallaDalolatnoma2026({
       </div>
 
       {/* Ishtirokchilar */}
-      <p style={{ textIndent: 40, margin: '0 0 4px' }}>
-        Бизлар қуйида имзо чекувчилар “<b>{cyr(mahallaData?.name)}</b>” МФЙ раиси <Field value={cyrShort(roles[0].name)} />,{' '}
-        {roles.slice(1, 8).map((r) => (
+      <p style={{ textIndent: 40, margin: '0 0 4px', textAlign: 'left' }}>
+        Бизлар қуйида имзо чекувчилар “<b>{cyr(mahallaData?.name)}</b>” МФЙ{' '}
+        {signers.map((r, i) => (
           <React.Fragment key={r.id}>
-            {r.title} <Field value={cyrShort(r.name)} />,{' '}
+            {r.id === 'rais' ? 'раиси' : r.title} <Field value={cyrShort(r.name)} />
+            {i < signers.length - 1 ? ', ' : ' '}
           </React.Fragment>
         ))}
-        {korxonaTitle} <Field value={cyrShort(roles[8].name)} />
-        {extra.length > 0 && (
-          <>
-            ,{' '}
-            {extra.map((p, i) => (
-              <React.Fragment key={p.id}>
-                {cyr(p.label.replace(/:$/, ''))} <Field value={cyrShort(p.name)} />
-                {i < extra.length - 1 ? ', ' : ''}
-              </React.Fragment>
-            ))}
-          </>
-        )}{' '}
         лар иштирокида туздик.
       </p>
 
       {/* Manzil */}
-      <p style={{ textIndent: 40, margin: '0 0 8px' }}>
+      <p style={{ textIndent: 40, margin: '0 0 8px', textAlign: 'left' }}>
         <Field value={withDistrictWord(location)} minWidth={120} /> “<b>{cyr(mahallaData?.name || abonentData?.mahallaName)}</b>” МФЙ{' '}
         <Field value={cyr(abonentData?.streetName)} minWidth={110} /> қишлоқ (кўча){' '}
         <Field value={abonentData?.house?.homeNumber} minWidth={40} /> уйда бугунги кунда <Field value={inhabitantCnt} minWidth={30} /> киши
@@ -300,19 +297,11 @@ export default function MahallaDalolatnoma2026({
       {/* Imzolar */}
       <p style={{ textAlign: 'center', margin: '6px 0 4px' }}>Юқоридагиларни тасдиқлаб имзо чекувчилар:</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 24, rowGap: 6, fontSize: 13.5 }}>
-        {[...roles.slice(0, 7), { ...roles[8], title: korxonaTitle }].map((r) => (
+        {signers.map((r) => (
           <div key={r.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
             <span style={{ whiteSpace: 'nowrap' }}>{r.title}:</span>
             <span style={{ flex: 1, borderBottom: LINE, textAlign: 'right', fontWeight: 'bold', paddingRight: 4, minHeight: 18 }}>
               {cyrShort(r.name)}
-            </span>
-          </div>
-        ))}
-        {extra.map((p) => (
-          <div key={p.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-            <span style={{ whiteSpace: 'nowrap' }}>{cyr(p.label)}</span>
-            <span style={{ flex: 1, borderBottom: LINE, textAlign: 'right', fontWeight: 'bold', paddingRight: 4, minHeight: 18 }}>
-              {cyrShort(p.name)}
             </span>
           </div>
         ))}
@@ -321,9 +310,13 @@ export default function MahallaDalolatnoma2026({
       {/* Abonent imzosi va QR */}
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 14 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ borderBottom: LINE, fontWeight: 'bold', minHeight: 20, paddingLeft: 4 }}>
-            {name1}
-            {abonentData?.phone ? `, ${abonentData.phone}` : ''}
+          {/* Imzo chap tomonda, F.I.Sh. va telefon o'ngda — imzo QR kodga tegmasligi uchun */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, borderBottom: LINE, minHeight: 34 }}>
+            <span style={{ flex: 1, fontSize: 12, color: '#555', paddingLeft: 4 }}>Имзо:</span>
+            <span style={{ fontWeight: 'bold', textAlign: 'right', paddingRight: 4 }}>
+              {name1}
+              {abonentData?.phone ? `, ${abonentData.phone}` : ''}
+            </span>
           </div>
           <div style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic' }}>(Абонент Ф.И.Ш. имзоси ва телефон рақами)</div>
         </div>
