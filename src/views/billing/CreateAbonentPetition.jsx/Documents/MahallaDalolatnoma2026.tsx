@@ -188,8 +188,6 @@ export default function MahallaDalolatnoma2026({
       status: `Яшайди (иккиламчи ҳ/р ${acc2})`
     });
   }
-  const totalRows = Math.min(Math.max(Number(inhabitantCnt) || 0, rows.length, 4), 8);
-  while (rows.length < totalRows) rows.push({ fio: '', birth: '', passport: '', relation: '', status: '' });
 
   const cell: React.CSSProperties = { border: LINE, padding: '2px 4px', verticalAlign: 'middle', height: 22, textAlign: 'left' };
   const head: React.CSSProperties = { ...cell, background: '#f2f2f2', textAlign: 'center', fontWeight: 'normal', fontSize: 12 };
@@ -282,7 +280,7 @@ export default function MahallaDalolatnoma2026({
         <tbody>
           {rows.map((r, i) => (
             <tr key={i}>
-              <td style={{ ...cell, textAlign: 'center' }}>{r.fio ? i + 1 : ''}</td>
+              <td style={{ ...cell, textAlign: 'center' }}>{i + 1}</td>
               <td style={{ ...cell, fontWeight: 'bold' }}>{r.fio}</td>
               <td style={{ ...cell, textAlign: 'center' }}>{r.birth}</td>
               <td style={{ ...cell, textAlign: 'center' }}>{r.passport}</td>
