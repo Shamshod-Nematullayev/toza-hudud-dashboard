@@ -10,6 +10,9 @@ import { ResolvedParticipant } from '../participantResolver';
 /** Yangi (2026) mahalla dalolatnoma blankasi uchun dalolatnoma turi kaliti (backend bilan bir xil) */
 export const MAHALLA_2026_ACT_TYPE_KEY = 'mahalla_2026';
 
+/** Yangi blankada chiqadigan ariza turlari; qolganlari eski ko'rinishda qoladi */
+export const MAHALLA_2026_DOCUMENT_TYPES = ['dvaynik', 'odam_soni', 'viza', 'death'];
+
 const LINE = '1px solid #000';
 
 /** Blankadagi "______" joyi: qiymat bo'lsa tagiga chizilgan qalin matn, bo'lmasa bo'sh chiziq */
@@ -33,7 +36,7 @@ function Field({ value, minWidth = 90, bold = true }: { value?: React.ReactNode;
   );
 }
 
-const formatSum = (n: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(n).replace(/ | /g, ' ');
+export const formatSum = (n: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(n).replace(/ | /g, ' ');
 
 const formatDate = (d?: string) => {
   if (!d) return '';
@@ -41,7 +44,7 @@ const formatDate = (d?: string) => {
   return parsed.isValid() ? parsed.format('DD.MM.YYYY') : d;
 };
 
-const cyr = (s?: string | null) => (s ? kirillga(String(s)) : '');
+export const cyr = (s?: string | null) => (s ? kirillga(String(s)) : '');
 const cyrShort = (s?: string | null) => (s ? kirillga(fullNameToShortName(s)) : '');
 
 /** "Kattaqo'rg'on tumani" kabi joy nomida tuman/shahar so'zi bo'lmasa qo'shib qo'yadi */
@@ -64,51 +67,64 @@ const ROLES: { id: string; title: string; ids: string[] }[] = [
   { id: 'korxona', title: 'ходими', ids: ['billing_staff'] }
 ];
 
-interface Props {
+export type BlankRow = { fio: string; birth?: string; passport?: string; relation?: string; since?: string; status?: string };
+
+export const B = ({ children }: { children: React.ReactNode }) => <b>{children}</b>;
+
+/** Uy egasi qatori (jadvalning birinchi qatori) */
+export const ownerRow = (abonentData: any): BlankRow => ({
+  fio: cyr(abonentData?.fullName),
+  birth: formatDate(abonentData?.citizen?.birthDate),
+  passport: abonentData?.citizen?.passport || '',
+  relation: 'Уй эгаси',
+  status: 'Яшайди'
+});
+
+const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
+
+/** Murojaat qilgan vakil (abonentning qarindoshi) qatori */
+export const vakilRow = (vakil?: { relation?: string; fullName?: string }): BlankRow | null =>
+  vakil?.relation && vakil?.fullName
+    ? { fio: cyr(vakil.fullName), relation: capitalize(cyr(vakil.relation.toLowerCase())), status: 'Яшайди (мурожаатчи)' }
+    : null;
+
+interface PageProps {
   date: Date;
   ariza: any;
   abonentData: any;
-  abonentData2: any;
   mahalla: any;
-  nextPrescribedCnt: number;
-  currentPrescribedCnt: number;
-  dublicateRelation?: string;
-  transferAmount: number;
-  isTransferEnabled: boolean;
-  asoslantiruvchi?: string;
   participants?: ResolvedParticipant[];
+  /** Faqat ikkilamchi hisob raqam dalolatnomasida */
+  secondaryAccount?: string;
+  /** "бугунги кунда ___ киши яшайди" */
+  inhabitantCnt?: number | string;
+  rows: BlankRow[];
+  izoh: React.ReactNode;
 }
 
 /**
- * Ikkilamchi hisob raqam bo'yicha mahalla dalolatnomasi — 2026-yilgi yangi blanka
- * (VMning 06.02.2019 yildagi 95-sonli qarori asosidagi shakl). Blanka matni kirillda.
+ * Mahalla dalolatnomasining 2026-yilgi yangi blankasi (VMning 06.02.2019 yildagi 95-sonli qarori
+ * asosidagi shakl). Blanka matni kirillda; ariza turiga qarab faqat jadval va izoh o'zgaradi.
  */
-export default function MahallaDalolatnoma2026({
+export function MahallaBlank2026Page({
   date,
   ariza,
   abonentData,
-  abonentData2,
   mahalla,
-  nextPrescribedCnt,
-  currentPrescribedCnt,
-  dublicateRelation,
-  transferAmount,
-  isTransferEnabled,
-  asoslantiruvchi,
-  participants = []
-}: Props) {
+  participants = [],
+  secondaryAccount,
+  inhabitantCnt,
+  rows,
+  izoh
+}: PageProps) {
   const { company } = useCustomizationStore();
   const mahallaData = mahalla?.data || mahalla;
   const location = company?.locationName || mahalla?.company?.locationName;
   const companyName = company?.name || mahalla?.company?.name;
 
   const acc1 = abonentData?.accountNumber;
-  const acc2 = abonentData2?.accountNumber;
+  const acc2 = secondaryAccount;
   const name1 = cyr(abonentData?.fullName);
-  const name2 = cyr(abonentData2?.fullName);
-  const rel = cyr((dublicateRelation || '').toLowerCase());
-  const sameName = !!abonentData?.fullName && abonentData?.fullName === abonentData2?.fullName;
-  const inhabitantCnt = nextPrescribedCnt ?? abonentData?.house?.inhabitantCnt;
 
   // Ishtirokchilar: blankadagi rollarga joylash; qolganlari "... лар иштирокида" qatoriga
   const active = participants.filter((p) => !p.isExcluded);
@@ -133,70 +149,6 @@ export default function MahallaDalolatnoma2026({
   const month = kirillga(oylar[date.getMonth()]);
   const year = date.getFullYear();
 
-  // ---- Izoh: qarindoshlik va ko'chiriladigan summalar bilan avtomatik jumla ----
-  const B = ({ children }: { children: React.ReactNode }) => <b>{children}</b>;
-  const izoh = (
-    <>
-      Ушбу хонадонда{' '}
-      {sameName ? (
-        <>
-          <B>{name1}</B> номига <B>{acc1}</B>-сонли асосий (тўлов) ҳисоб рақами ҳамда <B>{acc2}</B>-сонли иккиламчи ҳисоб рақами очилганлиги
-          аниқланди.
-        </>
-      ) : (
-        <>
-          уй эгаси <B>{name1}</B> номидаги <B>{acc1}</B>-сонли асосий (тўлов) ҳисоб рақамидан ташқари,{' '}
-          {rel ? (
-            <>
-              унинг <B>{rel}</B>{' '}
-            </>
-          ) : null}
-          <B>{name2}</B> номига очилган <B>{acc2}</B>-сонли иккиламчи ҳисоб рақами мавжудлиги аниқланди.
-        </>
-      )}{' '}
-      {isTransferEnabled && transferAmount > 0 ? (
-        <>
-          Иккиламчи <B>{acc2}</B> ҳисоб рақамига тўланган жами <B>{formatSum(transferAmount)} сўм</B> тўловларни асосий <B>{acc1}</B> ҳисоб
-          рақамига кўчириш,{' '}
-        </>
-      ) : isTransferEnabled ? (
-        <>
-          Иккиламчи ҳисоб рақамига тўланган тўловлар мавжуд бўлса, уларни асосий <B>{acc1}</B> ҳисоб рақамига кўчириш,{' '}
-        </>
-      ) : (
-        <>Иккиламчи ҳисоб рақамида тўловлар мавжуд бўлмаганлиги сабабли тўлов кўчирмасдан, </>
-      )}
-      {nextPrescribedCnt !== undefined && nextPrescribedCnt !== null && nextPrescribedCnt !== currentPrescribedCnt && (
-        <>
-          яшовчилар сонини <B>{currentPrescribedCnt}</B> кишидан <B>{nextPrescribedCnt}</B> кишига тўғрилаш,{' '}
-        </>
-      )}
-      иккиламчи <B>{acc2}</B> ҳисоб рақамини ягона электрон биллинг тизимидан ўчиришни мақсадга мувофиқ деб ҳисоблаймиз.
-      {asoslantiruvchi ? <> {cyr(asoslantiruvchi)}</> : null}
-    </>
-  );
-
-  // ---- Jadval qatorlari ----
-  type Row = { fio: string; birth: string; passport: string; relation: string; status: string };
-  const rows: Row[] = [
-    {
-      fio: name1,
-      birth: formatDate(abonentData?.citizen?.birthDate),
-      passport: abonentData?.citizen?.passport || '',
-      relation: 'Уй эгаси',
-      status: 'Яшайди'
-    }
-  ];
-  if (!sameName && abonentData2?.fullName) {
-    rows.push({
-      fio: name2,
-      birth: formatDate(abonentData2?.citizen?.birthDate),
-      passport: abonentData2?.citizen?.passport || '',
-      relation: rel ? rel.charAt(0).toUpperCase() + rel.slice(1) : '',
-      status: `Яшайди (иккиламчи ҳ/р ${acc2})`
-    });
-  }
-
   const cell: React.CSSProperties = { border: LINE, padding: '2px 4px', verticalAlign: 'middle', height: 22, textAlign: 'left' };
   const head: React.CSSProperties = { ...cell, background: '#f2f2f2', textAlign: 'center', fontWeight: 'normal', fontSize: 12 };
 
@@ -211,9 +163,11 @@ export default function MahallaDalolatnoma2026({
           <div>
             <Field value={acc1} minWidth={130} /> тўлов ҳисоб рақами
           </div>
-          <div>
-            <Field value={acc2} minWidth={130} /> иккиламчи ҳисоб рақами
-          </div>
+          {acc2 ? (
+            <div>
+              <Field value={acc2} minWidth={130} /> иккиламчи ҳисоб рақами
+            </div>
+          ) : null}
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ border: LINE, padding: '2px 8px', textAlign: 'center', fontSize: 12, lineHeight: 1.3 }}>
@@ -282,7 +236,7 @@ export default function MahallaDalolatnoma2026({
               <td style={{ ...cell, textAlign: 'center' }}>{r.birth}</td>
               <td style={{ ...cell, textAlign: 'center' }}>{r.passport}</td>
               <td style={{ ...cell, textAlign: 'center', fontWeight: 'bold' }}>{r.relation}</td>
-              <td style={cell}></td>
+              <td style={{ ...cell, textAlign: 'center' }}>{r.since}</td>
               <td style={cell}>{r.status}</td>
             </tr>
           ))}
@@ -332,5 +286,112 @@ export default function MahallaDalolatnoma2026({
         )}
       </div>
     </div>
+  );
+}
+
+interface DvaynikProps {
+  date: Date;
+  ariza: any;
+  abonentData: any;
+  abonentData2: any;
+  mahalla: any;
+  nextPrescribedCnt: number;
+  currentPrescribedCnt: number;
+  dublicateRelation?: string;
+  transferAmount: number;
+  isTransferEnabled: boolean;
+  asoslantiruvchi?: string;
+  participants?: ResolvedParticipant[];
+}
+
+/** Ikkilamchi hisob raqam (dvaynik) dalolatnomasi — yangi blankada */
+export default function MahallaDalolatnoma2026({
+  date,
+  ariza,
+  abonentData,
+  abonentData2,
+  mahalla,
+  nextPrescribedCnt,
+  currentPrescribedCnt,
+  dublicateRelation,
+  transferAmount,
+  isTransferEnabled,
+  asoslantiruvchi,
+  participants = []
+}: DvaynikProps) {
+  const acc1 = abonentData?.accountNumber;
+  const acc2 = abonentData2?.accountNumber;
+  const name1 = cyr(abonentData?.fullName);
+  const name2 = cyr(abonentData2?.fullName);
+  const rel = cyr((dublicateRelation || '').toLowerCase());
+  const sameName = !!abonentData?.fullName && abonentData?.fullName === abonentData2?.fullName;
+  const inhabitantCnt = nextPrescribedCnt ?? abonentData?.house?.inhabitantCnt;
+
+  // ---- Izoh: qarindoshlik va ko'chiriladigan summalar bilan avtomatik jumla ----
+  const izoh = (
+    <>
+      Ушбу хонадонда{' '}
+      {sameName ? (
+        <>
+          <B>{name1}</B> номига <B>{acc1}</B>-сонли асосий (тўлов) ҳисоб рақами ҳамда <B>{acc2}</B>-сонли иккиламчи ҳисоб рақами очилганлиги
+          аниқланди.
+        </>
+      ) : (
+        <>
+          уй эгаси <B>{name1}</B> номидаги <B>{acc1}</B>-сонли асосий (тўлов) ҳисоб рақамидан ташқари,{' '}
+          {rel ? (
+            <>
+              унинг <B>{rel}</B>{' '}
+            </>
+          ) : null}
+          <B>{name2}</B> номига очилган <B>{acc2}</B>-сонли иккиламчи ҳисоб рақами мавжудлиги аниқланди.
+        </>
+      )}{' '}
+      {isTransferEnabled && transferAmount > 0 ? (
+        <>
+          Иккиламчи <B>{acc2}</B> ҳисоб рақамига тўланган жами <B>{formatSum(transferAmount)} сўм</B> тўловларни асосий <B>{acc1}</B> ҳисоб
+          рақамига кўчириш,{' '}
+        </>
+      ) : isTransferEnabled ? (
+        <>
+          Иккиламчи ҳисоб рақамига тўланган тўловлар мавжуд бўлса, уларни асосий <B>{acc1}</B> ҳисоб рақамига кўчириш,{' '}
+        </>
+      ) : (
+        <>Иккиламчи ҳисоб рақамида тўловлар мавжуд бўлмаганлиги сабабли тўлов кўчирмасдан, </>
+      )}
+      {nextPrescribedCnt !== undefined && nextPrescribedCnt !== null && nextPrescribedCnt !== currentPrescribedCnt && (
+        <>
+          яшовчилар сонини <B>{currentPrescribedCnt}</B> кишидан <B>{nextPrescribedCnt}</B> кишига тўғрилаш,{' '}
+        </>
+      )}
+      иккиламчи <B>{acc2}</B> ҳисоб рақамини ягона электрон биллинг тизимидан ўчиришни мақсадга мувофиқ деб ҳисоблаймиз.
+      {asoslantiruvchi ? <> {cyr(asoslantiruvchi)}</> : null}
+    </>
+  );
+
+  // ---- Jadval qatorlari ----
+  const rows: BlankRow[] = [ownerRow(abonentData)];
+  if (!sameName && abonentData2?.fullName) {
+    rows.push({
+      fio: name2,
+      birth: formatDate(abonentData2?.citizen?.birthDate),
+      passport: abonentData2?.citizen?.passport || '',
+      relation: rel ? rel.charAt(0).toUpperCase() + rel.slice(1) : '',
+      status: `Яшайди (иккиламчи ҳ/р ${acc2})`
+    });
+  }
+
+  return (
+    <MahallaBlank2026Page
+      date={date}
+      ariza={ariza}
+      abonentData={abonentData}
+      mahalla={mahalla}
+      participants={participants}
+      secondaryAccount={acc2}
+      inhabitantCnt={inhabitantCnt}
+      rows={rows}
+      izoh={izoh}
+    />
   );
 }

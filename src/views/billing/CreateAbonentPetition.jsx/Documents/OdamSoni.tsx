@@ -3,6 +3,7 @@ import { formatName, oylar, raqamlar } from '../PrintSection';
 import { Dayjs } from 'dayjs';
 import { bosqichDavri, IBosqich, IMahalla } from '../useStore';
 import useCustomizationStore from 'store/customizationStore';
+import { OdamSoniBlank2026 } from './MahallaBlank2026Variants';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import { AbonentDetails } from 'types/billing';
 import { QRSection } from '../DocumentComponents/QRSection';
@@ -25,7 +26,8 @@ function OdamSoni({
   ariza,
   relation,
   relationFullName,
-  participants
+  participants,
+  useMahalla2026Blank = false
 }: {
   date: Date;
   abonentData: AbonentDetails;
@@ -39,6 +41,8 @@ function OdamSoni({
   relation?: string;
   relationFullName?: string;
   participants?: any[];
+  /** Tajriba: dalolatnoma sahifasini 2026-yilgi yangi mahalla blankasida chiqarish */
+  useMahalla2026Blank?: boolean;
 }) {
   let { customization, company, user } = useCustomizationStore();
   // Ko'p bosqichli qayta hisob: davrlar va kishi soni ko'rsatiladi, summalar emas
@@ -76,8 +80,23 @@ function OdamSoni({
         </div>
       )}
 
+      {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
+      {customization.documentVariantOdamSoni !== 'ariza' && useMahalla2026Blank && (
+        <OdamSoniBlank2026
+          date={date}
+          ariza={ariza}
+          abonentData={abonentData}
+          mahalla={mahalla}
+          vakil={isRelative ? { relation, fullName: relationFullName } : undefined}
+          asoslantiruvchi={asoslantiruvchi}
+          participants={participants}
+          aniqlanganYashovchiSoni={aniqlanganYashovchiSoni}
+          olderPeriod={olderPeriod}
+        />
+      )}
+
       {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariantOdamSoni !== 'ariza' && (
+      {customization.documentVariantOdamSoni !== 'ariza' && !useMahalla2026Blank && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', width: '70%', margin: '0 auto' }}>
