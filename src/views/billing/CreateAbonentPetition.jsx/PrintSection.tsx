@@ -43,6 +43,7 @@ import CancelContract from './Documents/CancelContract';
 import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
 import { buildAutoAsoslantiruvchi, familyRelations, getCleanAsoslantiruvchi } from './useStore';
 import ManageActTypesDialog from './ManageActTypesDialog';
+import { MAHALLA_2026_ACT_TYPE_KEY } from './Documents/MahallaDalolatnoma2026';
 import { ActTypeItem, resolveParticipants, ResolvedParticipant } from './participantResolver';
 
 // Constants
@@ -85,7 +86,8 @@ const DocumentRenderer = ({
   olderPeriod,
   setOlderPeriod,
   vakil,
-  participants
+  participants,
+  actTypeKey
 }: any) => {
   const [photos, setPhotos] = useState<string[]>([]);
 
@@ -152,6 +154,7 @@ const DocumentRenderer = ({
           dublicateRelation={ariza.dublicateRelation}
           moneyTransferAmount={ariza.moneyTransferAmount}
           shouldBeMoneyTransfer={ariza.shouldBeMoneyTransfer}
+          useMahalla2026Blank={actTypeKey === MAHALLA_2026_ACT_TYPE_KEY}
         />
       );
     case 'yashovchi_kuchirish':
@@ -442,6 +445,7 @@ export default function PrintSection({
               moneyTransferAmount={dvaynikTransferAmountProp}
               shouldBeMoneyTransfer={dvaynikShouldTransferProp}
               participants={resolvedParticipants}
+              actTypeKey={selectedActType?.key}
             />
           </Box>
         </DialogContent>
@@ -742,6 +746,12 @@ export default function PrintSection({
             })}
           </Box>
 
+          {selectedActType?.key === MAHALLA_2026_ACT_TYPE_KEY && ariza?.document_type !== 'dvaynik' && (
+            <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'warning.main' }}>
+              Yangi blanka hozircha faqat ikkilamchi hisob raqam arizasida chiqadi. Bu hujjat eski ko‘rinishda, shu ishtirokchilar bilan chop etiladi.
+            </Typography>
+          )}
+
           {ishtirokchilarDisabled && (
             <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>
               &quot;Faqat ariza&quot; variantida imzolovchilar ishlatilmaydi.
@@ -897,6 +907,7 @@ export default function PrintSection({
             moneyTransferAmount={dvaynikTransferAmountProp}
             shouldBeMoneyTransfer={dvaynikShouldTransferProp}
             participants={resolvedParticipants}
+            actTypeKey={selectedActType?.key}
           />
         </div>
       </Box>
