@@ -8,6 +8,7 @@ import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import useCustomizationStore from 'store/customizationStore';
+import MahallaDalolatnoma2026 from './MahallaDalolatnoma2026';
 import { formatParticipantsText } from '../participantResolver';
 
 const StyledTable = styled.table`
@@ -45,7 +46,8 @@ function Dvaynik({
   dublicateRelation,
   moneyTransferAmount,
   shouldBeMoneyTransfer,
-  participants
+  participants,
+  useMahalla2026Blank = false
 }: {
   date: Date;
   abonentData: any;
@@ -65,6 +67,8 @@ function Dvaynik({
   moneyTransferAmount?: number | string;
   shouldBeMoneyTransfer?: boolean;
   participants?: any[];
+  /** Tajriba: dalolatnoma sahifasini 2026-yilgi yangi mahalla blankasida chiqarish */
+  useMahalla2026Blank?: boolean;
 }) {
   const { customization, company, user } = useCustomizationStore();
 
@@ -177,8 +181,26 @@ function Dvaynik({
         </div>
       )}
 
+      {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
+      {customization.documentVariantOdamSoni !== 'ariza' && useMahalla2026Blank && (
+        <MahallaDalolatnoma2026
+          date={date}
+          ariza={ariza}
+          abonentData={abonentData}
+          abonentData2={abonentData2}
+          mahalla={mahalla}
+          nextPrescribedCnt={nextPrescribedCnt}
+          currentPrescribedCnt={currentPrescribedCnt}
+          dublicateRelation={rel}
+          transferAmount={transferAmt}
+          isTransferEnabled={isTransferEnabled}
+          asoslantiruvchi={asoslantiruvchi}
+          participants={participants}
+        />
+      )}
+
       {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariantOdamSoni !== 'ariza' && (
+      {customization.documentVariantOdamSoni !== 'ariza' && !useMahalla2026Blank && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontSize: '18px', margin: '15px 0' }}>

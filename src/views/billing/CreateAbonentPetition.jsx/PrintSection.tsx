@@ -45,6 +45,7 @@ import CancelContract from './Documents/CancelContract';
 import PrintSectionMonayTransferAriza from '../MonayTransfer/PrintSectionMonayTransferAriza';
 import { buildAutoAsoslantiruvchi, familyRelations, getCleanAsoslantiruvchi } from './useStore';
 import ManageActTypesDialog from './ManageActTypesDialog';
+import { MAHALLA_2026_ACT_TYPE_KEY, MAHALLA_2026_DOCUMENT_TYPES } from './Documents/MahallaDalolatnoma2026';
 import { ActTypeItem, resolveParticipants, ResolvedParticipant } from './participantResolver';
 
 // Constants
@@ -88,7 +89,8 @@ const DocumentRenderer = ({
   olderPeriod,
   setOlderPeriod,
   vakil,
-  participants
+  participants,
+  actTypeKey
 }: any) => {
   const [photos, setPhotos] = useState<string[]>([]);
 
@@ -118,6 +120,7 @@ const DocumentRenderer = ({
   }, [recalculationPeriods, setOlderPeriod]);
 
   const cleanAsoslantiruvchi = getCleanAsoslantiruvchi(asoslantiruvchi);
+  const useMahalla2026Blank = actTypeKey === MAHALLA_2026_ACT_TYPE_KEY;
 
   const commonProps = {
     date: new Date(ariza.sana),
@@ -142,6 +145,7 @@ const DocumentRenderer = ({
           documentType="odam_soni"
           relation={vakil.relation}
           relationFullName={vakil.fullName}
+          useMahalla2026Blank={useMahalla2026Blank}
         />
       );
     case 'dvaynik':
@@ -156,14 +160,15 @@ const DocumentRenderer = ({
           dublicateRelation={ariza.dublicateRelation}
           moneyTransferAmount={ariza.moneyTransferAmount}
           shouldBeMoneyTransfer={ariza.shouldBeMoneyTransfer}
+          useMahalla2026Blank={useMahalla2026Blank}
         />
       );
     case 'yashovchi_kuchirish':
       return <YashovchiKuchirish {...commonProps} abonentData2={abonentData2} mahalla2={mahalla2} />;
     case 'viza':
-      return <Viza {...commonProps} />;
+      return <Viza {...commonProps} recalculationPeriods={recalculationPeriods} useMahalla2026Blank={useMahalla2026Blank} />;
     case 'death':
-      return <Death {...commonProps} />;
+      return <Death {...commonProps} recalculationPeriods={recalculationPeriods} useMahalla2026Blank={useMahalla2026Blank} />;
     case 'cancelContract':
       return <CancelContract {...commonProps} />;
     case 'gps':
@@ -600,6 +605,7 @@ export default function PrintSection({
               moneyTransferAmount={dvaynikTransferAmountProp}
               shouldBeMoneyTransfer={dvaynikShouldTransferProp}
               participants={resolvedParticipants}
+              actTypeKey={selectedActType?.key}
             />
           </Box>
         </DialogContent>
@@ -940,6 +946,13 @@ export default function PrintSection({
             })}
           </Box>
 
+          {selectedActType?.key === MAHALLA_2026_ACT_TYPE_KEY &&
+            !MAHALLA_2026_DOCUMENT_TYPES.includes(effectiveDocType) && (
+            <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'warning.main' }}>
+              Yangi blanka hozircha ikkilamchi kod, odam soni, pasport viza va o‘lim guvohnomasi arizalarida chiqadi. Bu hujjat eski ko‘rinishda, shu ishtirokchilar bilan chop etiladi.
+            </Typography>
+          )}
+
           {/* Shartnomani bekor qilish dalolatnomasi holati uchun ogohlantirish */}
           {effectiveDocType === 'cancelContract' && (
             <Alert
@@ -1157,6 +1170,7 @@ export default function PrintSection({
             moneyTransferAmount={dvaynikTransferAmountProp}
             shouldBeMoneyTransfer={dvaynikShouldTransferProp}
             participants={resolvedParticipants}
+            actTypeKey={selectedActType?.key}
           />
         </div>
       </Box>

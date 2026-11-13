@@ -9,6 +9,7 @@ import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import useCustomizationStore from 'store/customizationStore';
+import { DeathBlank2026 } from './MahallaBlank2026Variants';
 
 function Death({
   ariza,
@@ -16,7 +17,10 @@ function Death({
   date,
   mahalla,
   asoslantiruvchi,
-  participants
+  participants,
+  vakil,
+  recalculationPeriods,
+  useMahalla2026Blank = false
 }: {
   ariza: IAriza;
   abonentData: AbonentDetails;
@@ -24,6 +28,10 @@ function Death({
   mahalla: IMahalla;
   asoslantiruvchi?: string;
   participants?: any[];
+  vakil?: { relation?: string; fullName?: string };
+  recalculationPeriods?: any[];
+  /** Tajriba: dalolatnoma sahifasini 2026-yilgi yangi mahalla blankasida chiqarish */
+  useMahalla2026Blank?: boolean;
 }) {
   const { customization } = useCustomizationStore();
   return (
@@ -50,7 +58,20 @@ function Death({
         </div>
       )}
 
-      {customization.documentVariantOdamSoni !== 'ariza' && (
+      {customization.documentVariantOdamSoni !== 'ariza' && useMahalla2026Blank && (
+        <DeathBlank2026
+          date={date}
+          ariza={ariza}
+          abonentData={abonentData}
+          mahalla={mahalla}
+          vakil={vakil}
+          asoslantiruvchi={asoslantiruvchi}
+          participants={participants}
+          recalculationPeriods={recalculationPeriods}
+        />
+      )}
+
+      {customization.documentVariantOdamSoni !== 'ariza' && !useMahalla2026Blank && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center' }}>
