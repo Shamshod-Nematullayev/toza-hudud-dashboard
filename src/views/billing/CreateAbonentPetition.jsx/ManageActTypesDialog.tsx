@@ -44,11 +44,6 @@ const AVAILABLE_PARTICIPANTS: Array<{ key: ParticipantKey; label: string; descri
     description: 'Mahallaning barcha mas’ul xodimlari (Hokim yordamchisi, Profilaktika, Yoshlar, Xotin-qizlar va h.k.)'
   },
   {
-    key: 'aholi_nazoratchisi',
-    label: 'Aholi nazoratchisi',
-    description: 'Mahallaga biriktirilgan nazoratchi xodim'
-  },
-  {
     key: 'billing_staff',
     label: 'Abonentlar bilan ishlash bo‘limi xodimi',
     description: 'Dalolatnomani tuzayotgan tizim foydalanuvchisi (user)'
@@ -88,7 +83,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
     setEditingId(null);
     setFormName('');
     setFormDescription('');
-    setSelectedParticipants(['mahalla_raisi', 'mahalla_yettiligi', 'aholi_nazoratchisi', 'billing_staff']);
+    setSelectedParticipants(['mahalla_raisi', 'mahalla_yettiligi', 'billing_staff']);
     setFormIsActive(true);
     setIsCreatingNew(true);
   };

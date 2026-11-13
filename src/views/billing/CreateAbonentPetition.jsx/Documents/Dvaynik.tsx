@@ -2,12 +2,13 @@ import { lotinga } from 'helpers/lotinKiril';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import styled from 'styled-components';
 import React from 'react';
-import { oylar } from '../PrintSection';
+import { formatName, oylar } from '../PrintSection';
 import { QRSection } from '../DocumentComponents/QRSection';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import useCustomizationStore from 'store/customizationStore';
+import { formatParticipantsText } from '../participantResolver';
 
 const StyledTable = styled.table`
   margin: auto;
@@ -119,6 +120,41 @@ function Dvaynik({
     return `Ushbu abonentlar bitta xonadonga tegishli ${rel ? `(o‘zaro ${rel.toLowerCase()}) ` : ''}ikkilamchi hisob raqam bo‘lganligi sababli, ${transferClause}${inhabitantClause}yagona elektron axborot tizimidan ikkilamchi (${abonentData2.accountNumber}) hisob raqamli abonentni butunlay o‘chirishni maqsadga muvofiq deb hisoblaymiz.`;
   };
 
+  // Ishtirokchilar matni (agar mavjud bo'lsa dinamik, aks holda fallback)
+  const activeParticipants = (participants || []).filter((p: any) => !p.isExcluded);
+  const hasMahallaStaff = activeParticipants.some((p: any) => p.key === 'mahalla_raisi' || p.key === 'mahalla_yettiligi');
+
+  const renderParticipantsIntro = () => {
+    if (activeParticipants.length > 0) {
+      const pText = formatParticipantsText(participants);
+      const sourceText = hasMahallaStaff
+        ? 'MFY ro‘yxatini va xonadon ma’lumotlarini o‘rganish natijasida'
+        : 'Murojaat va korxona ma’lumotlar bazasini o‘rganish natijasida';
+
+      return `Biz quyidagi imzo chekuvchilar: ${pText}lar mazkur dalolatnomani shu haqida tuzdik. ${sourceText} quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:`;
+    }
+
+    // Fallback: agar participants uzatilmagan bo'lsa
+    const isIchki = ariza?.actTypeKey === 'ichki' || customization.mfyRaisiIshtirok === false;
+    if (isIchki) {
+      const staffName = fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName);
+      const managerName = fullNameToShortName(company?.managerName || company?.manager?.fullName);
+      const parts = [
+        managerName ? `${company?.name || ''} ${company?.locationName || ''} filial rahbari ${managerName}`.trim() : '',
+        `Abonentlar bilan ishlash bo‘limi xodimi ${staffName}`,
+        `Fuqaro ${formatName(abonentData?.fullName)}`
+      ].filter(Boolean);
+
+      return `Biz quyidagi imzo chekuvchilar: ${parts.join(', ')}lar mazkur dalolatnomani shu haqida tuzdik. Murojaat va korxona ma’lumotlar bazasini o‘rganish natijasida quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:`;
+    }
+
+    return `Biz quyidagi imzo chekuvchilar, ${company?.locationName}, ${lotinga(mahalla?.data?.name)} MFY raisi ${fullNameToShortName(
+      mahalla?.data?.mfy_rais_name
+    )}, Abonentlar bilan ishlash bo‘limi xodimi ${fullNameToShortName(
+      ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName
+    )} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:`;
+  };
+
   return (
     <>
       {/* 1-SAHIFA: ARIZA */}
@@ -169,11 +205,7 @@ function Dvaynik({
               marginBottom: '15px'
             }}
           >
-            Biz quyidagi imzo chekuvchilar, {company?.locationName}, {lotinga(mahalla?.data?.name)} MFY raisi{' '}
-            {fullNameToShortName(mahalla?.data?.mfy_rais_name)}, {company?.name} {company?.locationName} aholi nazoratchisi{' '}
-            {fullNameToShortName(mahalla?.data?.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi xodimi
-            {' ' + fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish
-            natijasida quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:
+            {renderParticipantsIntro()}
           </p>
 
           <StyledTable>

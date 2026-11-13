@@ -30,7 +30,8 @@ function RecalculatorAbonent() {
     aktType,
     rowsDhjTable,
     hisoblandiJadval,
-    setHisoblandiJadval
+    setHisoblandiJadval,
+    abonentData
   } = useStore();
 
   const [currentTotal, setCurrentTotal] = useState(0);
@@ -155,7 +156,18 @@ function RecalculatorAbonent() {
   // Minus (kreditor) tugmasi bosilganda
   const handleRemoveButtonClick = () => {
     if (!checkDates()) return;
-    if (currentTotal === 0) return toast.info(t('recalculator.noValue'));
+    if (aktType !== 'odam_soni' && currentTotal === 0) return toast.info(t('recalculator.noValue'));
+    if (aktType === 'odam_soni') {
+      const initialCnt = Number(abonentData?.house?.inhabitantCnt || 0);
+      const currentDelta = recalculationPeriods.reduce(
+        (acc, p) => acc + (p.yashovchiDelta ?? (p.periodType === 'debitor' ? 1 : -1)),
+        0
+      );
+      if (initialCnt + currentDelta <= 0) {
+        toast.error("Xonadondagi barcha yashovchilar allaqachon chiqarilgan (0 kishi qoldi)");
+        return;
+      }
+    }
     const newEntry = {
       withQQSTotal: withQQS,
       withoutQQSTotal: currentTotal - withQQS,
@@ -173,7 +185,7 @@ function RecalculatorAbonent() {
   // Plus (debitor) tugmasi bosilganda
   const handleAddButtonClick = () => {
     if (!checkDates()) return;
-    if (currentTotal === 0) return toast.info(t('recalculator.noValue'));
+    if (aktType !== 'odam_soni' && currentTotal === 0) return toast.info(t('recalculator.noValue'));
     const newEntry = {
       withQQSTotal: withQQS * -1,
       withoutQQSTotal: (currentTotal - withQQS) * -1,
@@ -210,7 +222,12 @@ function RecalculatorAbonent() {
                 label={t('recalculator.from')}
                 format="DD.MM.YY"
                 value={startDate}
-                onChange={setStartDate}
+                onChange={(newStart) => {
+                  setStartDate(newStart);
+                  if (newStart?.isValid() && endDate?.isValid() && newStart.isAfter(endDate, 'day')) {
+                    setEndDate(newStart);
+                  }
+                }}
                 slotProps={{
                   textField: {
                     size: 'small',

@@ -15,7 +15,7 @@ function DvaynikBlank({ company }: { company: Company }) {
 
       <p style={{ textIndent: '40px' }}>
         Biz quyidagi imzo chekuvchilar, Samarqand viloyati, {company.locationName}, __________________________ MFY raisi
-        ____________________________, aholi nazoratchisi ____________________________, Abonentlar bilan ishlash bo‘limi xodimi
+        ____________________________, Abonentlar bilan ishlash bo‘limi xodimi
         {' ' + fullNameToShortName(company.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida
         quyidagi abonent:
       </p>

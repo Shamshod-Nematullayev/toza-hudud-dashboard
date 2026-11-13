@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { lotinga } from 'helpers/lotinKiril';
 import { formatName, oylar, raqamlar } from '../PrintSection';
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { bosqichDavri, IBosqich, IMahalla } from '../useStore';
 import useCustomizationStore from 'store/customizationStore';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
@@ -9,6 +10,7 @@ import { QRSection } from '../DocumentComponents/QRSection';
 import { ImzoJoyiRow, ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
+import { formatParticipantsText } from '../participantResolver';
 
 const cell = { border: '1px solid #000', padding: '4px 8px' } as const;
 const nafar = (n: number) => `${n} (${raqamlar[n] ?? n}) nafar`;
@@ -25,7 +27,8 @@ function OdamSoni({
   ariza,
   relation,
   relationFullName,
-  participants
+  participants,
+  recalculationPeriods
 }: {
   date: Date;
   abonentData: AbonentDetails;
@@ -39,10 +42,36 @@ function OdamSoni({
   relation?: string;
   relationFullName?: string;
   participants?: any[];
+  recalculationPeriods?: any[];
 }) {
   let { customization, company, user } = useCustomizationStore();
   // Ko'p bosqichli qayta hisob: davrlar va kishi soni ko'rsatiladi, summalar emas
   const bosqichlar: IBosqich[] | undefined = ariza?.bosqichlar?.length ? ariza.bosqichlar : undefined;
+
+  const periods: any[] = useMemo(() => {
+    return (recalculationPeriods || ariza?.recalculationPeriods || []).filter(Boolean);
+  }, [recalculationPeriods, ariza?.recalculationPeriods]);
+
+  // Yashovchi kamayishi (chiqib ketganlar) guruhlari
+  const departureGroups = useMemo(() => {
+    const map = new Map<string, { date: Dayjs; count: number }>();
+    periods.forEach((p: any) => {
+      if (p.periodType === 'kreditor' || (p.yashovchiDelta && p.yashovchiDelta < 0)) {
+        const dt = dayjs(p.startDate);
+        if (!dt.isValid()) return;
+        const key = dt.format('YYYY-MM-DD');
+        const count = Math.abs(p.yashovchiDelta || 1);
+        const existing = map.get(key);
+        if (existing) {
+          existing.count += count;
+        } else {
+          map.set(key, { date: dt, count });
+        }
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.date.valueOf() - b.date.valueOf());
+  }, [periods]);
+
   // Dinamik mantiqiy o'zgaruvchilar
   const isRelative = !!relation && !!relationFullName;
   const currentApplicant = isRelative ? relationFullName : abonentData?.fullName;
@@ -137,20 +166,39 @@ function OdamSoni({
                 </tbody>
               </table>
             </>
+          ) : departureGroups.length > 1 ? (
+            <p>
+              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni] || aniqlanganYashovchiSoni}) nafar shaxs amalda birga istiqomat qilishi aniqlandi.
+            </p>
           ) : (
-          <p>
-            Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni]}) nafar shaxs {olderPeriod.year()} yilning “
-            {olderPeriod.date()}” {lotinga(oylar[olderPeriod.month()])} oyidan buyon birga istiqomat qilishi aniqlandi.
-          </p>
+            <p>
+              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni] || aniqlanganYashovchiSoni}) nafar shaxs{' '}
+              {departureGroups.length === 1
+                ? `${departureGroups[0].date.year()} yilning “${departureGroups[0].date.date()}” ${lotinga(oylar[departureGroups[0].date.month()])} oyidan buyon`
+                : `${olderPeriod.year()} yilning “${olderPeriod.date()}” ${lotinga(oylar[olderPeriod.month()])} oyidan buyon`}{' '}
+              birga istiqomat qilishi aniqlandi.
+            </p>
           )}
 
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             {participants && participants.length > 0
-              ? `${participants
-                  .filter((p: any) => !p.isExcluded && p.name)
-                  .map((p: any) => `${p.label?.replace(':', '')} ${fullNameToShortName(p.name)}`)
-                  .join(', ')}lar mazkur dalolatnomani shu haqida tuzdik.`
-              : `Fuqoro ${formatName(isRelative ? relationFullName : abonentData?.fullName)}, ${lotinga(mahalla.data.name || '')} MFY raisi ${fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, ${company.name} ${company.locationName} aholi bo'lim boshlig'i ${lotinga(fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.`}
+              ? `Biz quyidagi imzo chekuvchilar: ${formatParticipantsText(participants)}lar mazkur dalolatnomani shu haqida tuzdik.`
+              : (() => {
+                  const isIchki = ariza?.actTypeKey === 'ichki' || customization.mfyRaisiIshtirok === false;
+                  if (isIchki) {
+                    const managerName = fullNameToShortName(company?.managerName || company?.manager?.fullName);
+                    const staffName = lotinga(
+                      fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName)
+                    );
+                    const parts = [
+                      managerName ? `${company?.name || ''} ${company?.locationName || ''} filial rahbari ${managerName}`.trim() : '',
+                      `Abonentlar bilan ishlash bo‘limi xodimi ${staffName}`,
+                      `Fuqaro ${formatName(isRelative ? relationFullName : abonentData?.fullName)}`
+                    ].filter(Boolean);
+                    return `Biz quyidagi imzo chekuvchilar: ${parts.join(', ')}lar mazkur dalolatnomani shu haqida tuzdik.`;
+                  }
+                  return `Fuqoro ${formatName(isRelative ? relationFullName : abonentData?.fullName)}, ${lotinga(mahalla.data.name || '')} MFY raisi ${fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, ${company.name} ${company.locationName} aholi bo'lim boshlig'i ${lotinga(fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.`;
+                })()}
           </p>
           <p style={{ textAlign: 'justify', textIndent: '40px' }}>
             Fuqaro {formatName(abonentData.fullName)}ning xonadonida oila a'zolari soni yagona elektron tizimda{' '}
@@ -165,6 +213,22 @@ function OdamSoni({
                   </span>
                 ))}{' '}
                 oila a'zolari istiqomat qilishi aniqlandi.
+              </>
+            ) : departureGroups.length > 1 ? (
+              <>
+                O'rganish natijasida xonadondan{' '}
+                {departureGroups.map((g, i) => (
+                  <span key={i}>
+                    {i > 0 && ', '}
+                    {g.count} nafar shaxs {g.date.year()} yil «{g.date.date()}» {oylar[g.date.month()]}dan
+                  </span>
+                ))}{' '}
+                chiqib ketganligi sababli, amalda {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
+              </>
+            ) : departureGroups.length === 1 ? (
+              <>
+                O'rganish natijasida {departureGroups[0].date.year()} yil «{departureGroups[0].date.date()}»{' '}
+                {oylar[departureGroups[0].date.month()]}dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
               </>
             ) : (
               <>

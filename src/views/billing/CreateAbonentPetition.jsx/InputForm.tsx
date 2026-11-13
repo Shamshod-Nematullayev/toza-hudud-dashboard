@@ -307,10 +307,21 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (aktType === 'death') {
       const current = abonentData?.house?.inhabitantCnt || 0;
       setYashovchiSoniInput(Math.max(0, current - 1));
-    } else if (aktType === 'odam_soni' || aktType === 'dvaynik' || aktType === 'viza') {
+    } else if (aktType === 'odam_soni') {
+      if (recalcMode === 'oddiy') {
+        const initialCnt = Number(abonentData?.house?.inhabitantCnt || 0);
+        const delta = recalculationPeriods.reduce((acc, p) => {
+          if (typeof p.yashovchiDelta === 'number') return acc + p.yashovchiDelta;
+          return acc + (p.periodType === 'debitor' ? 1 : -1);
+        }, 0);
+        setYashovchiSoniInput(Math.max(0, initialCnt + delta));
+      } else {
+        setYashovchiSoniInput(abonentData?.house?.inhabitantCnt ?? '');
+      }
+    } else if (aktType === 'dvaynik' || aktType === 'viza') {
       setYashovchiSoniInput(abonentData?.house?.inhabitantCnt ?? '');
     }
-  }, [aktType, abonentData, muzlatiladi]);
+  }, [aktType, recalcMode, abonentData, recalculationPeriods, muzlatiladi]);
 
   useEffect(() => {
     if (accountNumber.length === 12) {
@@ -373,6 +384,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     !abonentData.accountNumber ||
     !aktType ||
     isGlobalAbonent ||
+    (aktType === 'odam_soni' && recalcMode === 'oddiy' && recalculationPeriods.length === 0) ||
     (aktType === 'dvaynik' && !abonentData2.accountNumber) ||
     (aktType === 'dvaynik' && isGlobalAbonent2) ||
     (aktType === 'gps' && images.length === 0) ||
@@ -387,6 +399,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     if (aktType === 'dvaynik' && isGlobalAbonent2) return t('Ikkilamchi abonent boshqa tashkilotga tegishli');
     if (!abonentData.accountNumber) return t('Avval asosiy hisob raqamini kiriting') || '';
     if (!aktType) return t('Hujjat turini tanlang') || '';
+    if (aktType === 'odam_soni' && recalcMode === 'oddiy' && recalculationPeriods.length === 0)
+      return t("Har bir chiquvchi odam uchun qachondan ekanligini kiritish majburiy (o'ngdagi kalkulyatordan davr qo'shing)") || '';
     if (aktType === 'dvaynik' && !abonentData2.accountNumber) return t('Ikkilamchi hisob raqamini kiriting') || '';
     if (aktType === 'gps' && images.length === 0) return t('GPS arizasi uchun kamida bitta rasm biriktiring') || '';
     if (aktType === 'gps' && gpsLocationRequired && !gpsLocation) return 'GPS arizasi uchun abonent uyi joylashuvini belgilang';
@@ -696,7 +710,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     type="number"
                     label={t('createAbonentPetitionPage.inhabitantCnt')}
                     value={yashovchiSoniInput}
-                    disabled={aktType === 'death'}
+                    disabled={aktType === 'death' || (aktType === 'odam_soni' && recalcMode === 'oddiy')}
                     onChange={(e) => {
                       if (!isNaN(Number(e.target.value))) {
                         setYashovchiSoniInput(e.target.value);
@@ -705,17 +719,23 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     helperText={
                       aktType === 'death'
                         ? t('Vafot etganligi sababli 1 kishi avtomatik kamaytiriladi')
-                        : aktType === 'viza'
-                          ? `Yakuniy odam soni (TozaMakonga yuboriladigan) · Tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
-                          : recalcMode === 'kop_bosqichli'
-                            ? `Yangi soni (oxirgi bosqich) · tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
-                            : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                        : aktType === 'odam_soni' && recalcMode === 'oddiy'
+                          ? recalculationPeriods.length > 0
+                            ? `Qayta hisob davrlariga asosan: ${yashovchiSoniInput} kishi (tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi)`
+                            : `Har bir chiquvchi odam uchun qachondan ekanligini o'ngdagi kalkulyatordan qo'shing · Tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                          : aktType === 'viza'
+                            ? `Yakuniy odam soni (TozaMakonga yuboriladigan) · Tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                            : recalcMode === 'kop_bosqichli'
+                              ? `Yangi soni (oxirgi bosqich) · tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                              : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
                     }
                     sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
                   />
                   {aktType === 'odam_soni' && (
                     <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600, display: 'block', px: 0.5 }}>
-                      💡 Birlashtirilgan ariza: Agar qog'ozda chetga ketganlar (viza) yoki boshqa davrlar ham bo'lsa, o'ngdagi kalkulyatordan qo'shing. Barchasi bitta INVENTORY aktiga birlashtiriladi.
+                      {recalcMode === 'oddiy'
+                        ? "💡 Yashovchi sonini kamaytirish: O'ngdagi kalkulyatordan har bir chiquvchi odam uchun ketgan sanasini tanlab, «Kreditor (+)» tugmasi orqali qo'shing. Agar shu oydan chiqqan bo'lsa 0 so'm bo'lib qo'shiladi va odam soni avtomatik kamayadi."
+                        : "💡 Birlashtirilgan ariza: Agar qog'ozda chetga ketganlar (viza) yoki boshqa davrlar ham bo'lsa, o'ngdagi kalkulyatordan qo'shing. Barchasi bitta INVENTORY aktiga birlashtiriladi."}
                     </Typography>
                   )}
                 </Stack>

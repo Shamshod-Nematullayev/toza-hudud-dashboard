@@ -8,6 +8,7 @@ import api from 'utils/api';
 import {
   ArrowForward,
   Cancel,
+  CancelOutlined,
   DescriptionOutlined,
   InsertDriveFile,
   MoveToInboxOutlined,
@@ -40,6 +41,33 @@ function CustomNoRowsOverlay() {
     </Stack>
   );
 }
+
+const getCancellationReason = (row: any): string => {
+  if (!row) return '';
+  return (
+    row.canceling_description ||
+    row.cancellationConclusion ||
+    row.aktInfo?.cancellationConclusion ||
+    row.aktInfo?.conclusion ||
+    row.cancelingReason ||
+    row.rejectReason ||
+    row.rejectionReason ||
+    row.inspectorReview?.comment ||
+    ''
+  ).trim();
+};
+
+const isRowCancelled = (row: any): boolean => {
+  if (!row) return false;
+  return (
+    row.status === 'bekor qilindi' ||
+    row.is_canceled === true ||
+    row.actStatus === 'CANCELLED' ||
+    row.actStatus === 'REJECTED' ||
+    row.actStatus === 'CONFIRMED_CANCELLED' ||
+    row.actStatus === 'WARNED_CANCELLED'
+  );
+};
 
 function AbonentArizalar() {
   const theme = useTheme();
@@ -303,9 +331,10 @@ function AbonentArizalar() {
     {
       field: 'status',
       headerName: t('tableHeaders.status', 'Holati'),
-      width: 130,
+      width: 140,
       renderCell: (params) => {
         const status = params.row.status;
+        const reason = getCancellationReason(params.row);
         let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
         if (status === 'tasdiqlangan') color = 'success';
         else if (status === 'bekor qilindi') color = 'error';
@@ -313,23 +342,42 @@ function AbonentArizalar() {
         else if (status === 'qabul qilindi') color = 'warning';
         else if (status === 'akt_kiritilgan') color = 'primary';
 
-        return <Chip size="small" label={status || '-'} color={color} variant="filled" sx={{ fontWeight: 600 }} />;
+        const chip = <Chip size="small" label={status || '-'} color={color} variant="filled" sx={{ fontWeight: 600 }} />;
+        if (status === 'bekor qilindi' && reason) {
+          return (
+            <Tooltip
+              title={`${t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}: ${reason}`}
+              arrow
+              placement="top"
+            >
+              <span>{chip}</span>
+            </Tooltip>
+          );
+        }
+        return chip;
       }
     },
     {
       field: 'actStatus',
       headerName: t('tableHeaders.actStatus', 'Akt holati'),
-      width: 130,
+      width: 140,
       renderCell: (params) => {
         const actStatus = params.row.actStatus;
-        if (!actStatus) return <span>-</span>;
+        if (!actStatus) return <span style={{ color: '#aaa' }}>-</span>;
+        const reason = getCancellationReason(params.row);
         let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
         if (actStatus === 'CONFIRMED' || actStatus === 'APPROVED') color = 'success';
-        else if (actStatus === 'CANCELLED' || actStatus === 'REJECTED') color = 'error';
+        else if (
+          actStatus === 'CANCELLED' ||
+          actStatus === 'REJECTED' ||
+          actStatus === 'CONFIRMED_CANCELLED' ||
+          actStatus === 'WARNED_CANCELLED'
+        )
+          color = 'error';
         else if (actStatus === 'WARNED') color = 'warning';
         else if (actStatus === 'NEW') color = 'info';
 
-        return (
+        const chip = (
           <Chip
             size="small"
             label={String(t('actStatus.' + actStatus, actStatus))}
@@ -337,6 +385,106 @@ function AbonentArizalar() {
             variant="outlined"
             sx={{ fontWeight: 600 }}
           />
+        );
+        if ((actStatus === 'CANCELLED' || actStatus === 'REJECTED') && reason) {
+          return (
+            <Tooltip
+              title={`${t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}: ${reason}`}
+              arrow
+              placement="top"
+            >
+              <span>{chip}</span>
+            </Tooltip>
+          );
+        }
+        return chip;
+      }
+    },
+    {
+      field: 'cancellationReason',
+      headerName: t('tableHeaders.cancellationReason', 'Bekor qilish xulosasi'),
+      width: 250,
+      sortable: false,
+      renderCell: (params) => {
+        const reason = getCancellationReason(params.row);
+        const canceled = isRowCancelled(params.row);
+
+        if (!canceled && !reason) {
+          return (
+            <Typography variant="body2" sx={{ color: 'text.disabled', pl: 1 }}>
+              —
+            </Typography>
+          );
+        }
+
+        if (!reason) {
+          return (
+            <Chip
+              size="small"
+              variant="outlined"
+              label={t('messages.noReasonGiven', 'Izoh kiritilmagan')}
+              sx={{
+                fontSize: '0.72rem',
+                fontWeight: 500,
+                color: 'text.secondary',
+                borderColor: 'divider',
+                height: 24
+              }}
+            />
+          );
+        }
+
+        return (
+          <Tooltip
+            title={
+              <Box sx={{ p: 0.5, maxWidth: 380 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5, color: '#fca5a5' }}>
+                  {t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}:
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: '0.8rem', lineHeight: 1.45, color: '#fff', wordBreak: 'break-word' }}>
+                  {reason}
+                </Typography>
+              </Box>
+            }
+            arrow
+            placement="top"
+          >
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                maxWidth: 230,
+                px: 1,
+                py: 0.4,
+                borderRadius: 1,
+                bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2'),
+                border: '1px solid',
+                borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.35)' : '#fca5a5'),
+                cursor: 'pointer',
+                transition: 'all 0.15s ease-in-out',
+                '&:hover': {
+                  bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.25)' : '#fecaca'),
+                  borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.5)' : '#f87171')
+                }
+              }}
+            >
+              <CancelOutlined sx={{ fontSize: 15, color: 'error.main', flexShrink: 0 }} />
+              <Typography
+                variant="body2"
+                noWrap
+                sx={{
+                  fontSize: '0.75rem',
+                  color: (th) => (th.palette.mode === 'dark' ? '#fca5a5' : '#b91c1c'),
+                  fontWeight: 600,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {reason}
+              </Typography>
+            </Box>
+          </Tooltip>
         );
       }
     },

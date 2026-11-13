@@ -60,7 +60,8 @@ const statusMap: Record<string, { label: string; lightBg: string; lightColor: st
   NEW: { label: 'Yangi', lightBg: '#eff6ff', lightColor: '#1d4ed8', darkBg: 'rgba(59, 130, 246, 0.15)', darkColor: '#60a5fa' },
   CONFIRMED: { label: 'Tasdiqlangan', lightBg: '#f0fdf4', lightColor: '#15803d', darkBg: 'rgba(34, 197, 94, 0.15)', darkColor: '#4ade80' },
   REJECTED: { label: 'Bekor qilingan', lightBg: '#fef2f2', lightColor: '#b91c1c', darkBg: 'rgba(239, 68, 68, 0.15)', darkColor: '#f87171' },
-  CANCELLED: { label: 'Bekor qilingan', lightBg: '#fef2f2', lightColor: '#b91c1c', darkBg: 'rgba(239, 68, 68, 0.15)', darkColor: '#f87171' }
+  CANCELLED: { label: 'Bekor qilingan', lightBg: '#fef2f2', lightColor: '#b91c1c', darkBg: 'rgba(239, 68, 68, 0.15)', darkColor: '#f87171' },
+  CONFIRMED_CANCELLED: { label: 'Bekor qilingan', lightBg: '#fef2f2', lightColor: '#b91c1c', darkBg: 'rgba(239, 68, 68, 0.15)', darkColor: '#f87171' }
 };
 
 const actTypeMap: Record<string, { label: string; lightColor: string; darkColor: string }> = {
@@ -210,7 +211,9 @@ const ActList: React.FC = () => {
     try {
       const { data } = await api.post(`/acts/${selectedActToCancel.id}/cancel`, {
         reason: cancelReason.trim(),
-        comment: cancelReason.trim()
+        comment: cancelReason.trim(),
+        conclusion: cancelReason.trim(),
+        actStatus: selectedActToCancel.actStatus
       });
       setSnackbar({
         open: true,
@@ -408,6 +411,19 @@ const ActList: React.FC = () => {
         )
       },
       {
+        field: 'cancellationConclusion',
+        headerName: 'Bekor qilish xulosasi',
+        flex: 1.2,
+        minWidth: 150,
+        renderCell: (params) => (
+          <Tooltip title={params.value || params.row.conclusion || ''} arrow>
+            <Typography sx={{ fontSize: '0.8125rem', color: params.value || params.row.conclusion ? 'warning.main' : 'text.disabled' }}>
+              {params.value || params.row.conclusion || '-'}
+            </Typography>
+          </Tooltip>
+        )
+      },
+      {
         field: 'actions',
         headerName: 'Amallar',
         width: 150,
@@ -419,7 +435,9 @@ const ActList: React.FC = () => {
           const isAlreadyCancelled =
             params.row.actStatus === 'CANCELLED' ||
             params.row.actStatus === 'REJECTED' ||
-            params.row.actStatus === 'bekor_qilindi';
+            params.row.actStatus === 'bekor_qilindi' ||
+            params.row.actStatus === 'CONFIRMED_CANCELLED' ||
+            params.row.actStatus === 'WARNED_CANCELLED';
 
           return (
             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'center' }}>

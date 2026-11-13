@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import {
+  Alert,
   Button,
+  CircularProgress,
   DialogContent,
   FormControl,
   InputLabel,
@@ -57,7 +59,8 @@ import {
   Close,
   SettingsOutlined,
   CheckCircleOutlined,
-  DoNotDisturbAltOutlined
+  DoNotDisturbAltOutlined,
+  InfoOutlined
 } from '@mui/icons-material';
 import { IconEye } from '@tabler/icons-react';
 
@@ -123,7 +126,8 @@ const DocumentRenderer = ({
     ariza,
     vakil,
     asoslantiruvchi: cleanAsoslantiruvchi,
-    participants
+    participants,
+    recalculationPeriods: recalculationPeriods || ariza?.recalculationPeriods
   };
 
   switch (ariza.document_type) {
@@ -203,7 +207,8 @@ export default function PrintSection({
   recalculationPeriods,
   dublicateRelation,
   moneyTransferAmount,
-  shouldBeMoneyTransfer
+  shouldBeMoneyTransfer,
+  documentType
 }: any) {
   const theme = useTheme();
   const componentRef = useRef(null);
@@ -214,6 +219,63 @@ export default function PrintSection({
   const [comment, setComment] = useState<string>(getCleanAsoslantiruvchi(ariza?.comment));
   const [relation, setRelation] = useState<string>(ariza?.relation || '');
   const [relationFullName, setRelationFullName] = useState<string>(ariza?.relationFullName || '');
+
+  // Amaldagi hujjat turi
+  const effectiveDocType = documentType || ariza?.document_type;
+
+  // Dalolatnomadagi aniqlangan yashovchilar soni
+  const aniqlangan = useMemo(() => {
+    if (aniqlanganYashovchiSoni !== undefined && aniqlanganYashovchiSoni !== null && !isNaN(Number(aniqlanganYashovchiSoni))) {
+      return Number(aniqlanganYashovchiSoni);
+    }
+    if (ariza?.next_prescribed_cnt !== undefined && ariza?.next_prescribed_cnt !== null && !isNaN(Number(ariza.next_prescribed_cnt))) {
+      return Number(ariza.next_prescribed_cnt);
+    }
+    return 0;
+  }, [aniqlanganYashovchiSoni, ariza?.next_prescribed_cnt]);
+
+  // Propiskadagi yashovchi soni (MVD / IIB)
+  const [mvdCount, setMvdCount] = useState<number | null>(() => {
+    const direct = abonentData?.house?.miaInhabitantCnt ?? abonentData?.miaInhabitantCnt;
+    if (direct !== undefined && direct !== null && !isNaN(Number(direct))) {
+      return Number(direct);
+    }
+    return null;
+  });
+  const [mvdLoading, setMvdLoading] = useState(false);
+
+  useEffect(() => {
+    const direct = abonentData?.house?.miaInhabitantCnt ?? abonentData?.miaInhabitantCnt;
+    if (direct !== undefined && direct !== null && !isNaN(Number(direct))) {
+      setMvdCount(Number(direct));
+      return;
+    }
+
+    const cad = abonentData?.house?.cadastralNumber || abonentData?.cadastralNumber;
+    const residentId = abonentData?.id || ariza?.abonentId;
+
+    if (show && effectiveDocType === 'odam_soni' && cad) {
+      setMvdLoading(true);
+      api
+        .get('/abonents/iib-inhabitants', { params: { cadastralNumber: cad, residentId } })
+        .then((res) => {
+          const perms = res.data?.Data?.PermanentPersons;
+          if (Array.isArray(perms)) {
+            setMvdCount(perms.length);
+          } else if (res.data?.house?.miaInhabitantCnt !== undefined && res.data?.house?.miaInhabitantCnt !== null) {
+            setMvdCount(Number(res.data.house.miaInhabitantCnt));
+          } else {
+            setMvdCount(null);
+          }
+        })
+        .catch((err) => {
+          console.warn('Could not fetch IIB inhabitants:', err);
+        })
+        .finally(() => {
+          setMvdLoading(false);
+        });
+    }
+  }, [show, effectiveDocType, abonentData, ariza]);
 
   // Dalolatnoma turlari va ishtirokchilar statelari
   const [actTypes, setActTypes] = useState<ActTypeItem[]>([]);
@@ -245,6 +307,62 @@ export default function PrintSection({
     setRelationFullName(ariza?.relationFullName || '');
   }, [ariza?._id, ariza?.comment]);
 
+  const ishtirokchilarDisabled = customization.documentVariantOdamSoni === 'ariza';
+
+  /**
+   * Dalolatnoma turining cheklanganligi (disabled) va sababini hisoblash:
+   * 1. Ikkilamchi hisob raqami (dvaynik) dalolatnomalariga umuman ichki dalolatnoma qilish mumkin emas!
+   * 2. Odam soni dalolatnomasida faqat MVD propiska soni bilan aniqlangan son bir xil bo'lsagina ichki dalolatnomaga ruxsat beriladi.
+   */
+  const getActTypeRestriction = useCallback(
+    (type: ActTypeItem) => {
+      if (ishtirokchilarDisabled) {
+        return {
+          isDisabled: true,
+          reason: '"Faqat ariza" variantida imzolovchilar ishlatilmaydi.'
+        };
+      }
+
+      if (type.key === 'ichki') {
+        // Shartnomani bekor qilish dalolatnomasi hech qachon ichki dalolatnoma bilan qilinmaydi!
+        if (effectiveDocType === 'cancelContract') {
+          return {
+            isDisabled: true,
+            reason: "Shartnomani bekor qilish dalolatnomasi hech qachon ichki dalolatnoma bilan qilinmaydi! Mahalla yettiligi ishtirokidagi dalolatnoma talab etiladi."
+          };
+        }
+
+        // Odam soni dalolatnomasida faqat MVD propiska soni bilan aniqlangan son bir xil bo'lsagina ichki dalolatnomaga ruxsat
+        if (effectiveDocType === 'odam_soni') {
+          if (mvdLoading) {
+            return {
+              isDisabled: true,
+              reason: "MVD propiska ma'lumotlari tekshirilmoqda..."
+            };
+          }
+          if (mvdCount === null) {
+            return {
+              isDisabled: true,
+              reason: "MVD propiska ma'lumoti aniqlanmagan. Odam soni dalolatnomasida faqat propiskadagi yashovchi soni (MVD) bilan aniqlangan son bir xil bo'lsagina ichki dalolatnomaga ruxsat beriladi."
+            };
+          }
+          if (mvdCount !== aniqlangan) {
+            return {
+              isDisabled: true,
+              reason: `Odam soni dalolatnomasida faqat MVD propiskadagi son (${mvdCount} nafar) bilan aniqlangan son (${aniqlangan} nafar) bir xil bo'lsagina ichki dalolatnomaga ruxsat beriladi. Hozirda farq mavjud (${mvdCount} ≠ ${aniqlangan}) bo'lgani sababli ichki dalolatnoma cheklangan (Mahalla dalolatnomasi talab etiladi).`
+            };
+          }
+        }
+      }
+
+      return {
+        isDisabled: false,
+        reason: ''
+      };
+    },
+    [ishtirokchilarDisabled, effectiveDocType, mvdLoading, mvdCount, aniqlangan]
+  );
+
   // Initial tanlangan turni aniqlash — har bir ariza uchun faqat bir marta,
   // aks holda foydalanuvchi tanlovi saqlangan turga qaytarib yuboriladi
   const initializedArizaIdRef = useRef<string | null>(null);
@@ -257,18 +375,45 @@ export default function PrintSection({
     const saved = actTypes.find(
       (t) => (ariza.actTypeId && t._id === ariza.actTypeId) || (ariza.actTypeKey && t.key === ariza.actTypeKey)
     );
-    // Standart holatda 'mahalla' turi, yoki birinchi tur
-    const initial = saved || actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
+    // Standart holatda saqlangan tur, 'mahalla' turi, yoki birinchi tur
+    let initial = saved || actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
+
+    // Cheklov: faqat agar ariza yangi bo'lsa (hali actType saqlanmagan bo'lsa) va tanlangan tur cheklangan bo'lsa,
+    // yoki shartnomani bekor qilish dalolatnomasi bo'lsa (chunki u hech qachon ichki bo'la olmaydi)
+    const isStrictlyForbidden = effectiveDocType === 'cancelContract' && initial?.key === 'ichki';
+    if ((!saved || isStrictlyForbidden) && initial && getActTypeRestriction(initial).isDisabled && !ishtirokchilarDisabled) {
+      initial =
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki') ||
+        initial;
+    }
+
     setSelectedActTypeId(initial._id || initial.key);
     setExcludedParticipantIds(Array.isArray(ariza.excludedParticipants) ? ariza.excludedParticipants : []);
-  }, [ariza, actTypes]);
+  }, [ariza, actTypes, getActTypeRestriction, ishtirokchilarDisabled, effectiveDocType]);
 
   const selectedActType = useMemo(() => {
     if (!actTypes.length) return null;
     return actTypes.find((t) => t._id === selectedActTypeId || t.key === selectedActTypeId) || actTypes[0];
   }, [actTypes, selectedActTypeId]);
 
-  const ishtirokchilarDisabled = customization.documentVariantOdamSoni === 'ariza';
+  // Agar joriy tanlangan tur qoidalarga ko'ra cheklangan bo'lsa, avtomatik ravishda ruxsat berilgan turga o'tkazish
+  useEffect(() => {
+    // Agar ariza avvaldan saqlangan bo'lsa, uni majburan almashtirmaymiz (faqat cancelContract ichki bo'lgan holat bundan mustasno)
+    const isSavedAsThis = (ariza?.actTypeId && selectedActType?._id === ariza.actTypeId) || (ariza?.actTypeKey && selectedActType?.key === ariza.actTypeKey);
+    const isStrictlyForbidden = effectiveDocType === 'cancelContract' && selectedActType?.key === 'ichki';
+    if (!selectedActType || ishtirokchilarDisabled || (isSavedAsThis && !isStrictlyForbidden)) return;
+    const restriction = getActTypeRestriction(selectedActType);
+    if (restriction.isDisabled) {
+      const allowed =
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki') ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled);
+      if (allowed) {
+        setSelectedActTypeId(allowed._id || allowed.key);
+      }
+    }
+  }, [selectedActType, getActTypeRestriction, ishtirokchilarDisabled, actTypes, ariza, effectiveDocType]);
 
   const [showPreview, setShowPreview] = useState(false);
 
@@ -295,10 +440,23 @@ export default function PrintSection({
       user,
       abonentData: vakilData?.relation ? { ...abonentData, fullName: vakilData.fullName } : abonentData,
       mahalla,
+      mahalla2,
       excludedIds: excludedParticipantIds,
-      creatorName: ariza?.creatorName
+      creatorName: ariza?.creatorName,
+      documentType: effectiveDocType
     });
-  }, [selectedActType, company, user, abonentData, vakilData, mahalla, excludedParticipantIds, ariza?.creatorName]);
+  }, [
+    selectedActType,
+    company,
+    user,
+    abonentData,
+    vakilData,
+    mahalla,
+    mahalla2,
+    excludedParticipantIds,
+    ariza?.creatorName,
+    effectiveDocType
+  ]);
 
   const handleToggleExclude = (participantId: string) => {
     setExcludedParticipantIds((prev) =>
@@ -691,7 +849,7 @@ export default function PrintSection({
             role="radiogroup"
             aria-label="Dalolatnoma turi"
             sx={{
-              mb: 2,
+              mb: 1.5,
               display: 'grid',
               gridTemplateColumns: `repeat(${Math.min(Math.max(actTypes.length, 1), 4)}, minmax(0, 1fr))`,
               gap: 1
@@ -700,47 +858,149 @@ export default function PrintSection({
             {actTypes.map((type) => {
               const id = type._id || type.key;
               const selected = (selectedActType?._id || selectedActType?.key) === id;
+              const restriction = getActTypeRestriction(type);
+              const isDisabled = restriction.isDisabled;
+              const isIchki = type.key === 'ichki';
+
               return (
-                <Box
-                  key={id}
-                  component="button"
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  disabled={ishtirokchilarDisabled}
-                  onClick={() => setSelectedActTypeId(id)}
-                  sx={{
-                    minWidth: 0,
-                    p: 1.25,
-                    textAlign: 'left',
-                    font: 'inherit',
-                    cursor: ishtirokchilarDisabled ? 'default' : 'pointer',
-                    borderRadius: 2,
-                    border: '1.5px solid',
-                    borderColor: selected ? 'primary.main' : 'divider',
-                    bgcolor: selected
-                      ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
-                      : 'background.paper',
-                    color: 'text.primary',
-                    opacity: ishtirokchilarDisabled ? 0.5 : 1,
-                    transition: 'border-color .15s, background-color .15s',
-                    '&:hover:not(:disabled)': { borderColor: 'primary.main' },
-                    '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 }
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 700, color: selected ? 'primary.main' : 'text.primary', lineHeight: 1.3 }}
+                <Tooltip key={id} title={restriction.reason || ''} arrow placement="top" disableHoverListener={!isDisabled}>
+                  <Box
+                    component="button"
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-disabled={isDisabled}
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        setSelectedActTypeId(id);
+                      }
+                    }}
+                    sx={{
+                      minWidth: 0,
+                      p: 1.25,
+                      textAlign: 'left',
+                      font: 'inherit',
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                      borderRadius: 2,
+                      border: '1.5px solid',
+                      borderColor: selected ? 'primary.main' : isDisabled ? 'action.disabledBackground' : 'divider',
+                      bgcolor: selected
+                        ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
+                        : isDisabled
+                        ? alpha(theme.palette.action.disabledBackground, 0.4)
+                        : 'background.paper',
+                      color: isDisabled ? 'text.disabled' : 'text.primary',
+                      opacity: isDisabled ? 0.55 : 1,
+                      position: 'relative',
+                      transition: 'border-color .15s, background-color .15s',
+                      '&:hover:not(:disabled)': { borderColor: 'primary.main' },
+                      '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 }
+                    }}
                   >
-                    {type.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                    {type.participants?.length || 0} ta ishtirokchi{type.isDefault ? ' · Standart' : ''}
-                  </Typography>
-                </Box>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.5}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 700,
+                          color: isDisabled ? 'text.disabled' : selected ? 'primary.main' : 'text.primary',
+                          lineHeight: 1.3
+                        }}
+                      >
+                        {type.name}
+                      </Typography>
+                      {isDisabled && isIchki && (
+                        <Chip
+                          label="Cheklangan"
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          sx={{ height: 18, fontSize: '0.65rem', fontWeight: 600, px: 0.2 }}
+                        />
+                      )}
+                      {!isDisabled && isIchki && effectiveDocType === 'odam_soni' && mvdCount !== null && mvdCount === aniqlangan && (
+                        <Chip
+                          label={`MVD: ${mvdCount}`}
+                          size="small"
+                          color="success"
+                          variant="filled"
+                          sx={{ height: 18, fontSize: '0.65rem', fontWeight: 600, px: 0.2 }}
+                        />
+                      )}
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: isDisabled ? 'text.disabled' : 'text.secondary', display: 'block', mt: 0.25 }}
+                    >
+                      {type.participants?.length || 0} ta ishtirokchi{type.isDefault ? ' · Standart' : ''}
+                    </Typography>
+                  </Box>
+                </Tooltip>
               );
             })}
           </Box>
+
+          {/* Shartnomani bekor qilish dalolatnomasi holati uchun ogohlantirish */}
+          {effectiveDocType === 'cancelContract' && (
+            <Alert
+              severity="warning"
+              icon={<InfoOutlined fontSize="small" />}
+              sx={{ mb: 2, py: 0.5, px: 1.5, fontSize: '0.78rem', borderRadius: 2 }}
+            >
+              Shartnomani bekor qilish dalolatnomasi: Mazkur dalolatnoma faqat Mahalla yettiligi ishtirokida tuziladi va tasdiqlanadi. Ichki dalolatnoma tuzish qatʼiyan man etiladi.
+            </Alert>
+          )}
+
+          {/* Ikkilamchi hisob raqami (dvaynik) holati uchun ogohlantirish */}
+          {effectiveDocType === 'dvaynik' && (
+            <Alert
+              severity="info"
+              icon={<InfoOutlined fontSize="small" />}
+              sx={{ mb: 2, py: 0.5, px: 1.5, fontSize: '0.78rem', borderRadius: 2 }}
+            >
+              Ikkilamchi hisob raqami (dvaynik) dalolatnomasi: Er-xotin qarindoshligi bo‘yicha ichki dalolatnoma tuzishda FHDYo (ZAKS) guvohnomasi asos sifatida ilova qilinishi shart.
+            </Alert>
+          )}
+
+          {/* Odam soni holati uchun MVD propiska va aniqlangan son xabarnomasi */}
+          {effectiveDocType === 'odam_soni' && (
+            <Alert
+              severity={
+                mvdLoading
+                  ? 'info'
+                  : mvdCount !== null && mvdCount === aniqlangan
+                  ? 'success'
+                  : 'warning'
+              }
+              icon={
+                mvdLoading ? (
+                  <CircularProgress size={16} />
+                ) : mvdCount !== null && mvdCount === aniqlangan ? (
+                  <CheckCircleOutlined fontSize="small" />
+                ) : (
+                  <DoNotDisturbAltOutlined fontSize="small" />
+                )
+              }
+              sx={{ mb: 2, py: 0.5, px: 1.5, fontSize: '0.78rem', borderRadius: 2 }}
+            >
+              {mvdLoading ? (
+                <span>MVD propiska ma&apos;lumotlari tekshirilmoqda...</span>
+              ) : mvdCount !== null && mvdCount === aniqlangan ? (
+                <span>
+                  Propiskadagi yashovchi soni (MVD: <b>{mvdCount}</b> nafar) bilan dalolatnomadagi aniqlangan son (<b>{aniqlangan}</b> nafar) bir xil — <b>Ichki dalolatnoma</b>ga ruxsat berildi.
+                </span>
+              ) : (
+                <span>
+                  Odam soni dalolatnomasida faqat propiskadagi yashovchi soni (MVD) bilan aniqlangan son bir xil bo&apos;lgandagina ichki dalolatnomaga ruxsat beriladi.
+                  {mvdCount !== null ? (
+                    <> (MVD propiska: <b>{mvdCount}</b> nafar, Aniqlangan: <b>{aniqlangan}</b> nafar — farq borligi sababli <b>Ichki dalolatnoma cheklangan</b>, Mahalla dalolatnomasi talab etiladi).</>
+                  ) : (
+                    <> (MVD propiska ma&apos;lumoti aniqlanmaganligi sababli <b>Ichki dalolatnoma cheklangan</b>, Mahalla dalolatnomasi talab etiladi).</>
+                  )}
+                </span>
+              )}
+            </Alert>
+          )}
 
           {ishtirokchilarDisabled && (
             <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>

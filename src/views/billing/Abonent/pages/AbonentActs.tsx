@@ -137,7 +137,9 @@ function AbonentActs() {
     try {
       const { data } = await api.post(`/acts/${actToCancel.id}/cancel`, {
         reason: cancelReason.trim(),
-        comment: cancelReason.trim()
+        comment: cancelReason.trim(),
+        conclusion: cancelReason.trim(),
+        actStatus: actToCancel.actStatus
       });
       toast.success(data?.message || 'Akt muvaffaqiyatli bekor qilindi');
       setCancelModalOpen(false);
@@ -167,7 +169,11 @@ function AbonentActs() {
       renderCell: ({ row }) => {
         const isNew = row.actStatus === 'NEW' || row.actStatus === 'Yangi';
         const isAlreadyCancelled =
-          row.actStatus === 'CANCELLED' || row.actStatus === 'REJECTED' || row.actStatus === 'bekor_qilindi';
+          row.actStatus === 'CANCELLED' ||
+          row.actStatus === 'REJECTED' ||
+          row.actStatus === 'bekor_qilindi' ||
+          row.actStatus === 'CONFIRMED_CANCELLED' ||
+          row.actStatus === 'WARNED_CANCELLED';
 
         return (
           <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
@@ -352,6 +358,16 @@ function AbonentActs() {
       field: 'canceledByFullName',
       headerName: t('tableHeaders.canceledByFullName'),
       width: 140
+    },
+    {
+      field: 'cancellationConclusion',
+      headerName: 'Bekor qilish xulosasi',
+      width: 220,
+      renderCell: ({ row }) => (
+        <Tooltip title={row.cancellationConclusion || row.conclusion || ''} arrow>
+          <span>{row.cancellationConclusion || row.conclusion || '-'}</span>
+        </Tooltip>
+      )
     }
   ];
 

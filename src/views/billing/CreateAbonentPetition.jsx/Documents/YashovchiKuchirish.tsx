@@ -2,12 +2,13 @@ import styled from 'styled-components';
 import { lotinga } from 'helpers/lotinKiril';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import useCustomizationStore from 'store/customizationStore';
-import { oylar } from '../PrintSection';
+import { formatName, oylar } from '../PrintSection';
 import { QRSection } from '../DocumentComponents/QRSection';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import type { IKuchirish } from '../useStore';
+import { formatParticipantsText } from '../participantResolver';
 
 const StyledTable = styled.table`
   margin: auto;
@@ -97,6 +98,40 @@ export default function YashovchiKuchirish({
     }
   ];
 
+  // Ishtirokchilar matni (agar mavjud bo'lsa dinamik, aks holda fallback)
+  const activeParticipants = (participants || []).filter((p: any) => !p.isExcluded);
+  const hasMahallaStaff = activeParticipants.some((p: any) => p.key === 'mahalla_raisi' || p.key === 'mahalla_yettiligi');
+
+  const renderParticipantsIntro = () => {
+    if (activeParticipants.length > 0) {
+      const pText = formatParticipantsText(participants);
+      const sourceText = hasMahallaStaff
+        ? `Joyida o‘rganish va MFY ma’lumotlariga ko‘ra ${who} ${sabab} ${oyText} oyidan boshlab quyidagi xonadonlar o‘rtasida ko‘chib o‘tganligi aniqlandi:`
+        : `Murojaat va taqdim etilgan ma’lumotlarni o‘rganish natijasida ${who} ${sabab} ${oyText} oyidan boshlab quyidagi xonadonlar o‘rtasida ko‘chib o‘tganligi aniqlandi:`;
+
+      return `Biz quyidagi imzo chekuvchilar: ${pText}lar mazkur dalolatnomani shu haqida tuzdik. ${sourceText}`;
+    }
+
+    const isIchki = ariza?.actTypeKey === 'ichki' || customization.mfyRaisiIshtirok === false;
+    if (isIchki) {
+      const staffName = fullNameToShortName(ariza?.creatorName || user?.fullName || company?.billingAdminName);
+      const managerName = fullNameToShortName(company?.managerName || company?.manager?.fullName);
+      const parts = [
+        managerName ? `${company?.name || ''} ${company?.locationName || ''} filial rahbari ${managerName}`.trim() : '',
+        `Abonentlar bilan ishlash bo‘limi xodimi ${staffName}`,
+        `Fuqaro ${formatName(applicant)}`
+      ].filter(Boolean);
+
+      return `Biz quyidagi imzo chekuvchilar: ${parts.join(', ')}lar mazkur dalolatnomani shu haqida tuzdik. Murojaat va taqdim etilgan ma’lumotlarni o‘rganish natijasida ${who} ${sabab} ${oyText} oyidan boshlab quyidagi xonadonlar o‘rtasida ko‘chib o‘tganligi aniqlandi:`;
+    }
+
+    return `Biz quyidagi imzo chekuvchilar, ${company?.locationName}, ${lotinga(mahalla?.data?.name)} MFY raisi ${fullNameToShortName(
+      mahalla?.data?.mfy_rais_name
+    )}, Abonentlar bilan ishlash bo‘limi xodimi ${fullNameToShortName(
+      ariza?.creatorName || user?.fullName || company?.billingAdminName
+    )} mazkur dalolatnomani shu haqida tuzdik. Joyida o‘rganish va MFY ma’lumotlariga ko‘ra ${who} ${sabab} ${oyText} oyidan boshlab quyidagi xonadonlar o‘rtasida ko‘chib o‘tganligi aniqlandi:`;
+  };
+
   return (
     <>
       {/* 1-SAHIFA: ARIZA */}
@@ -127,13 +162,8 @@ export default function YashovchiKuchirish({
             </div>
             <div>{mahalla?.company?.locationName}</div>
           </div>
-          <p style={{ textIndent: '40px', lineHeight: '28px', marginBottom: '15px' }}>
-            Biz quyidagi imzo chekuvchilar, {company?.locationName}, {lotinga(mahalla?.data?.name)} MFY raisi{' '}
-            {fullNameToShortName(mahalla?.data?.mfy_rais_name)}, {company?.name} {company?.locationName} aholi nazoratchisi{' '}
-            {fullNameToShortName(mahalla?.data?.biriktirilganNazoratchi?.inspector_name)}, Abonentlar bilan ishlash bo‘limi xodimi{' '}
-            {fullNameToShortName(ariza?.creatorName || user?.fullName || company?.billingAdminName)} mazkur dalolatnomani shu haqida tuzdik. Joyida
-            o‘rganish va MFY ma’lumotlariga ko‘ra {who} {sabab} {oyText} oyidan boshlab quyidagi xonadonlar o‘rtasida ko‘chib o‘tganligi
-            aniqlandi:
+          <p style={{ textIndent: '40px', lineHeight: '28px', marginBottom: '15px', textAlign: 'justify' }}>
+            {renderParticipantsIntro()}
           </p>
 
           <StyledTable>

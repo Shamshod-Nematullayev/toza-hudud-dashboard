@@ -454,7 +454,7 @@ export default function LandingPage() {
 
       {/* ===================== 2. HERO SECTION & INTEGRATED LOGIN ===================== */}
       <Container maxWidth="xl" sx={{ pt: { xs: 11, md: 14 }, pb: { xs: 5, md: 8 }, position: 'relative', zIndex: 1 }}>
-        <Grid container spacing={{ xs: 4, lg: 6 }} alignItems="center">
+        <Grid container spacing={{ xs: 4, lg: 6 }} sx={{ alignItems: 'center' }}>
           {/* Left Column: Thesis & Value Prop */}
           <Grid size={{ xs: 12, lg: 7 }}>
             {/* Pill Eyebrow */}
@@ -710,22 +710,6 @@ export default function LandingPage() {
                       )
                     }
                   }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          type="button"
-                          onClick={() => setShowPassword((prev) => !prev)}
-                          onMouseDown={(e) => e.preventDefault()}
-                          edge="end"
-                          aria-label={showPassword ? "Parolni yashirish" : "Parolni ko'rsatish"}
-                          sx={{ color: textMuted, '&:hover': { color: primaryAccent } }}
-                        >
-                          {showPassword ? <IconEyeOff size={20} /> : <IconEye size={20} />}
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{
                     mb: 3,
                     '& .MuiOutlinedInput-root': {
@@ -815,7 +799,7 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="xl">
-          <Grid container spacing={6} alignItems="center">
+          <Grid container spacing={6} sx={{ alignItems: 'center' }}>
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
                 label="Yagona raqamli ekotizim"
@@ -1099,7 +1083,7 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="xl">
-          <Grid container spacing={6} alignItems="center">
+          <Grid container spacing={6} sx={{ alignItems: 'center' }}>
             {/* Left Image */}
             <Grid size={{ xs: 12, lg: 6 }}>
               <Box
@@ -1199,7 +1183,7 @@ export default function LandingPage() {
       {/* ===================== 6. QR-KODLI ARIZALAR VA EXCEL IMPORT (qr-documents.webp) ===================== */}
       <Box id="hujjatlar" sx={{ py: { xs: 8, md: 12 } }}>
         <Container maxWidth="xl">
-          <Grid container spacing={6} alignItems="center">
+          <Grid container spacing={6} sx={{ alignItems: 'center' }}>
             {/* Left Content */}
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
@@ -1305,7 +1289,7 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="xl">
-          <Grid container spacing={6} alignItems="center">
+          <Grid container spacing={6} sx={{ alignItems: 'center' }}>
             {/* Left Image */}
             <Grid size={{ xs: 12, lg: 6 }}>
               <Box
@@ -1405,7 +1389,7 @@ export default function LandingPage() {
       {/* ===================== 8. RAHBARIYAT MONITORINGI (command-center.webp & operations-hub.webp) ===================== */}
       <Box id="rahbariyat" sx={{ py: { xs: 8, md: 12 } }}>
         <Container maxWidth="xl">
-          <Grid container spacing={6} alignItems="center">
+          <Grid container spacing={6} sx={{ alignItems: 'center' }}>
             {/* Left Content */}
             <Grid size={{ xs: 12, lg: 6 }}>
               <Chip
@@ -1538,7 +1522,7 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="xl">
-          <Grid container spacing={6} alignItems="center">
+          <Grid container spacing={6} sx={{ alignItems: 'center' }}>
             {/* Left Image */}
             <Grid size={{ xs: 12, lg: 6 }}>
               <Box
@@ -1659,7 +1643,7 @@ export default function LandingPage() {
             boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.5)' : '0 10px 30px rgba(16,185,129,0.1)'
           }}
         >
-          <Grid container spacing={4} alignItems="center">
+          <Grid container spacing={4} sx={{ alignItems: 'center' }}>
             <Grid size={{ xs: 12, md: 8 }}>
               <Chip
                 label="Raqamli intizom"
@@ -1748,7 +1732,7 @@ export default function LandingPage() {
             </Typography>
           </Box>
 
-          <Grid container spacing={4} alignItems="stretch">
+          <Grid container spacing={4} sx={{ alignItems: 'stretch' }}>
             {/* Left Column: Author / Founder Profile Card */}
             <Grid size={{ xs: 12, md: 5 }}>
               <Card
@@ -2208,7 +2192,7 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="xl">
-          <Grid container spacing={4} justifyContent="space-between" alignItems="center">
+          <Grid container spacing={4} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <Grid size={{ xs: 12, md: 5 }}>
               <Box
                 component="img"

@@ -65,7 +65,9 @@ function Acts() {
     try {
       const { data } = await api.post(`/acts/${actToCancel.id}/cancel`, {
         reason: cancelReason.trim(),
-        comment: cancelReason.trim()
+        comment: cancelReason.trim(),
+        conclusion: cancelReason.trim(),
+        actStatus: actToCancel.actStatus
       });
       toast.success(data?.message || 'Akt muvaffaqiyatli bekor qilindi');
       setCancelModalOpen(false);
@@ -107,6 +109,8 @@ function Acts() {
         const isAlreadyCancelled =
           row.row.actStatus === 'CANCELLED' ||
           row.row.actStatus === 'REJECTED' ||
+          row.row.actStatus === 'CONFIRMED_CANCELLED' ||
+          row.row.actStatus === 'WARNED_CANCELLED' ||
           row.row.onDb?.status === 'bekor_qilindi';
 
         return (
