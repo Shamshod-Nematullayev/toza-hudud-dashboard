@@ -580,32 +580,72 @@ export const useStore = create<StoreState>((set, get) => ({
   setIsGlobalAbonent: (isGlobal: boolean) => set({ isGlobalAbonent: isGlobal }),
   setIsGlobalAbonent2: (isGlobal: boolean) => set({ isGlobalAbonent2: isGlobal }),
   // Ikki bosqichli rejim faqat odam soni uchun: boshqa turga o'tilsa oddiyga qaytadi
-  setAktType: (aktType) =>
+  setAktType: (aktType) => {
+    const houseCnt = get().abonentData?.house?.inhabitantCnt;
+    const initialCnt = houseCnt !== undefined && houseCnt !== null ? String(houseCnt) : '';
     set({
       aktType,
       kuchirish: emptyKuchirish(),
       bekorQilish: emptyBekorQilish(),
+      recalculationPeriods: [],
+      aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 },
+      yashovchiSoniInput:
+        aktType === 'death'
+          ? String(Math.max(0, Number(houseCnt || 0) - 1))
+          : aktType === 'odam_soni' || aktType === 'dvaynik' || aktType === 'viza'
+            ? initialCnt
+            : '',
       ...(aktType === 'odam_soni' ? {} : { recalcMode: 'oddiy' as RecalcMode, stages: [emptyStage()] })
-    }),
+    });
+  },
   setBekorQilish: (patch) => set((state) => ({ bekorQilish: { ...state.bekorQilish, ...patch } })),
   setKuchirish: (patch) => set((state) => ({ kuchirish: { ...state.kuchirish, ...patch } })),
   // Rejim almashganda avvalgi rejimda qo'shilgan davrlar arizaga aralashib ketmasin
-  setRecalcMode: (mode) =>
+  setRecalcMode: (mode) => {
+    const houseCnt = get().abonentData?.house?.inhabitantCnt;
+    const initialCnt = houseCnt !== undefined && houseCnt !== null ? String(houseCnt) : '';
     set({
       recalcMode: mode,
       stages: [emptyStage()],
       recalculationPeriods: [],
+      yashovchiSoniInput: initialCnt,
       aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 }
-    }),
+    });
+  },
   setStages: (stages) => set({ stages }),
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => set({ rowsDhjTable }),
-  setAbonentData: (data) => set({ abonentData: data }),
+  setAbonentData: (data) => {
+    const { aktType, recalcMode } = get();
+    const cnt = data?.house?.inhabitantCnt ?? 0;
+    const patch: Partial<StoreState> = { abonentData: data };
+    if (aktType === 'death') {
+      patch.yashovchiSoniInput = String(Math.max(0, Number(cnt) - 1));
+    } else if (aktType === 'odam_soni' && recalcMode === 'oddiy') {
+      patch.recalculationPeriods = [];
+      patch.aktSumma = { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 };
+      patch.yashovchiSoniInput = String(cnt);
+    }
+    set(patch);
+  },
   setAbonentData2: (data) => set({ abonentData2: data }),
   setAriza: (data) => set({ ariza: data }),
   setMahalla: (mfy) => set({ mahalla: mfy }),
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
-  setRecalculationPeriods: (data: IRecalculationPeriod[]) => set({ recalculationPeriods: data }),
+  setRecalculationPeriods: (data: IRecalculationPeriod[]) => {
+    const { aktType, recalcMode, abonentData } = get();
+    if (aktType === 'odam_soni' && recalcMode === 'oddiy') {
+      const initialCnt = Number(abonentData?.house?.inhabitantCnt || 0);
+      const delta = data.reduce((acc, p) => {
+        if (typeof p.yashovchiDelta === 'number') return acc + p.yashovchiDelta;
+        return acc + (p.periodType === 'debitor' ? 1 : -1);
+      }, 0);
+      const nextCnt = Math.max(0, initialCnt + delta);
+      set({ recalculationPeriods: data, yashovchiSoniInput: String(nextCnt) });
+    } else {
+      set({ recalculationPeriods: data });
+    }
+  },
   setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: String(data) }),
   setPasteImageDialogOpen: (pasteImageDialogOpen) => set({ pasteImageDialogOpen }),
   setImages: (images) => set({ images }),
@@ -840,7 +880,15 @@ export const useStore = create<StoreState>((set, get) => ({
         return;
       }
 
-      if (!validateCreateAct({ aktType, inhabitantCnt: yashovchiSoniInput })) return;
+      if (
+        !validateCreateAct({
+          aktType,
+          inhabitantCnt: yashovchiSoniInput,
+          recalcMode: get().recalcMode,
+          periodsCount: get().recalculationPeriods.length
+        })
+      )
+        return;
 
       const { recalcMode, stages, rowsDhjTable } = get();
       let bosqichlar: IBosqich[] | undefined;
@@ -1187,10 +1235,26 @@ export function validateKuchirish(
 }
 
 /** Xato bo'lsa toast ko'rsatadi va false qaytaradi — so'rov yuborilmaydi */
-function validateCreateAct({ aktType, inhabitantCnt }: { aktType: aktType; inhabitantCnt: string }): boolean {
-  if (aktType === 'odam_soni' && (inhabitantCnt === '' || isNaN(parseInt(inhabitantCnt)))) {
-    toast.error(t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
-    return false;
+function validateCreateAct({
+  aktType,
+  inhabitantCnt,
+  recalcMode,
+  periodsCount
+}: {
+  aktType: aktType;
+  inhabitantCnt: string;
+  recalcMode?: RecalcMode;
+  periodsCount?: number;
+}): boolean {
+  if (aktType === 'odam_soni') {
+    if (inhabitantCnt === '' || isNaN(parseInt(inhabitantCnt))) {
+      toast.error(t('createAbonentPetitionPage.notEnteredInhabitantCnt'));
+      return false;
+    }
+    if (recalcMode === 'oddiy' && (!periodsCount || periodsCount === 0)) {
+      toast.error("Kamida bitta qayta hisob davrini qo'shing (har bir chiquvchi odam uchun qachondan ekanligini kiritish majburiy)");
+      return false;
+    }
   }
   return true;
 }
@@ -1264,9 +1328,29 @@ export function buildAutoAsoslantiruvchi({
           `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra ${parts.join(', ')} shaxs istiqomat qilishi tasdiqlandi.`
         );
       } else if (hasCnt) {
-        sentences.push(
-          `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, amalda ${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
+        const depPeriods = (recalculationPeriods || ariza.recalculationPeriods || []).filter(
+          (p: any) => p?.periodType === 'kreditor' || (p?.yashovchiDelta && p?.yashovchiDelta < 0)
         );
+        if (depPeriods.length > 1) {
+          const map = new Map<string, { dateStr: string; count: number }>();
+          depPeriods.forEach((p: any) => {
+            const dt = dayjs(p.startDate);
+            if (!dt.isValid()) return;
+            const key = dt.format('YYYY-MM-DD');
+            const count = Math.abs(p.yashovchiDelta || 1);
+            const ex = map.get(key);
+            if (ex) ex.count += count;
+            else map.set(key, { dateStr: `${dt.format('DD.MM.YYYY')} dan`, count });
+          });
+          const depParts = Array.from(map.values()).map((g) => `${g.count} nafar shaxs ${g.dateStr}`);
+          sentences.push(
+            `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, xonadondan ${depParts.join(', ')} chiqib ketganligi sababli amalda ${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
+          );
+        } else {
+          sentences.push(
+            `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, amalda ${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
+          );
+        }
       } else {
         sentences.push(`Xonadonda joyida o'rganish o'tkazildi va amalda istiqomat qiluvchi shaxslar soni MFY ma'lumotlari bilan tasdiqlandi.`);
       }

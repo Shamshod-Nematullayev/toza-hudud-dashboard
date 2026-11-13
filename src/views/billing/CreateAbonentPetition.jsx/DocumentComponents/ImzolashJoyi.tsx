@@ -40,7 +40,23 @@ export const ImzolashJoyi = ({
   const snapshotList = participants || ariza?.participantsSnapshot;
 
   if (snapshotList && Array.isArray(snapshotList) && snapshotList.length > 0) {
-    const activeList = snapshotList.filter((p: any) => !p.isExcluded).sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
+    const activeList = snapshotList
+      .filter((p: any) => !p.isExcluded && p.key !== 'aholi_nazoratchisi' && p.id !== 'aholi_nazoratchisi')
+      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
+
+    // mahalla2 raisi faqat agar:
+    // 1) Dalolatnomada mahalla raisi ishtirok etayotgan bo'lsa (ichki dalolatnomada emas!)
+    // 2) mahalla2_raisi hali activeList ichida bo'lmasa
+    // 3) mahalla2 mahalla1 dan farq qilsa
+    const hasActiveRais = activeList.some((p: any) => p.key === 'mahalla_raisi');
+    const alreadyHasMahalla2 = activeList.some((p: any) => p.id === 'mahalla2_raisi');
+    const showMahalla2Fallback =
+      hasActiveRais &&
+      !alreadyHasMahalla2 &&
+      (documentType === 'dvaynik' || documentType === 'yashovchi_kuchirish') &&
+      mahalla2?.data?.id &&
+      mahalla?.data?.id &&
+      mahalla2.data.id != mahalla.data.id;
 
     return (
       <>
@@ -50,7 +66,7 @@ export const ImzolashJoyi = ({
             <br />
           </React.Fragment>
         ))}
-        {(documentType === 'dvaynik' || documentType === 'yashovchi_kuchirish') && mahalla2?.data?.id && mahalla?.data?.id && mahalla2.data.id != mahalla.data.id && (
+        {showMahalla2Fallback && (
           <>
             <ImzoJoyiRow label={`${lotinga(mahalla2.data.name)} MFY raisi:`} name={lotinga(mahalla2.data.mfy_rais_name)} />
             <br />
@@ -85,8 +101,6 @@ export const ImzolashJoyi = ({
           <br />
         </>
       )}
-      <ImzoJoyiRow label="Axoli nazoratchisi:" name={lotinga(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
-      <br />
       {customization.mfyRaisiIshtirok && (
         <>
           <ImzoJoyiRow label={`${lotinga(mahalla?.name)} MFY raisi:`} name={lotinga(mahalla?.mfy_rais_name)} />
@@ -99,7 +113,7 @@ export const ImzolashJoyi = ({
           )}
         </>
       )}
-      {fuqaroIshtirok && abonentData && (
+      {fuqaroIshtirok && abonentData && documentType !== 'cancelContract' && (
         <>
           <ImzoJoyiRow label="Fuqaro:" name={abonentData.fullName} />
           <br />

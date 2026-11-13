@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import api from 'utils/api';
 import { socket } from 'utils/socket';
-import audio from '../../../../assets/audios/notification.wav';
+import { playNotificationSound } from 'utils/sound';
 
 export interface IVerificationCounts {
   shaxsniTasdiqlash: number;
@@ -195,9 +195,7 @@ export const useInspectorVerificationsStore = create<InspectorVerificationsState
           }
 
           if (shouldPlaySound) {
-            try {
-              new Audio(audio).play().catch(() => {});
-            } catch (e) {}
+            playNotificationSound();
           }
         }
       }

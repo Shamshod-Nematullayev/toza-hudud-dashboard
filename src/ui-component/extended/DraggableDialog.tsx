@@ -18,9 +18,14 @@ import CloseIcon from '@mui/icons-material/Close';
 
 /* Draggable Paper */
 function PaperComponent(props: React.ComponentProps<typeof Paper>) {
+  const nodeRef = React.useRef<HTMLDivElement>(null);
   return (
-    <Draggable handle="#draggable-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
-      <Paper {...props} />
+    <Draggable
+      nodeRef={nodeRef as any}
+      handle="#draggable-dialog-title"
+      cancel={'[class*="MuiDialogContent-root"]'}
+    >
+      <Paper ref={nodeRef} {...props} />
     </Draggable>
   );
 }

@@ -1,7 +1,7 @@
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { create } from 'zustand';
-import audio from '../../../../assets/audios/notification.wav';
+import { playNotificationSound } from 'utils/sound';
 
 export interface INotification {
   _id: string;
@@ -42,7 +42,7 @@ const useNotificationStore = create<StoreState>((set) => ({
   },
   addNotification: (notification) => {
     set((state) => ({ notifications: [notification, ...state.notifications] }));
-    new Audio(audio).play();
+    playNotificationSound();
   },
   markNotificationAsRead: async (id) => {
     await api.put(`/notification/${id}/read`);

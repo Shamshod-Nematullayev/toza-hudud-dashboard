@@ -102,11 +102,7 @@ function PrintSection() {
               {fullNameToShortName(company.managerName) || '________________'} va abonentlar bilan ishlash bo‘limi xodimi{' '}
               {fullNameToShortName(
                 (dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName
-              ) || '________________'}
-              {mahalla?.biriktirilganNazoratchi?.inspector_name && (
-                <span>, aholi nazoratchisi {fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)}</span>
-              )}{' '}
-              mazkur dalolatnomani shu haqida tuzdik.
+              ) || '________________'} mazkur dalolatnomani shu haqida tuzdik.
             </p>
             <p style={{ textIndent: '25px' }}>
               {lotinga(mahalla?.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma&#39;lum
@@ -169,8 +165,6 @@ function PrintSection() {
             />
             <br />
             {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla?.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla?.mfy_rais_name)} />}
-            <br />
-            <ImzoJoyiRow label="Axoli nazoratchisi:" name={fullNameToShortName(mahalla?.biriktirilganNazoratchi?.inspector_name)} />
             <br />
             <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <QRCodeCanvas

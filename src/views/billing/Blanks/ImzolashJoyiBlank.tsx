@@ -35,14 +35,6 @@ export const ImzolashJoyiBlank = ({ company }: { company: Company }) => {
             justifyContent: 'space-between'
           }}
         >
-          <b>Aholi nazoratchisi:</b> ______________________________
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}
-        >
           <b>__________________ MFY raisi:</b> ______________________________
         </div>
         <div

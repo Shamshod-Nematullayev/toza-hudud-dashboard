@@ -5,6 +5,9 @@ import { lotinga } from 'helpers/lotinKiril';
 import { AbonentDetails } from 'types/billing';
 import { QRSection } from '../DocumentComponents/QRSection';
 import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
+import { formatParticipantsText } from '../participantResolver';
+import fullNameToShortName from 'views/tools/fullNameToShortName';
+import useCustomizationStore from 'store/customizationStore';
 
 /**
  * Shartnomani bekor qilish dalolatnomasi: abonent amalda mavjud emas (mahallada yo'q, noto'g'ri shaxsga ochilgan,
@@ -25,6 +28,7 @@ function CancelContract({
   asoslantiruvchi?: string;
   participants?: any[];
 }) {
+  const { company, user } = useCustomizationStore();
   const b = ariza.bekorQilish;
   const sabab = cancelContractReasons[b?.sabab as CancelContractReason] || cancelContractReasons.mahallada_mavjud_emas;
   const inhabitantCnt = b?.inhabitantCnt ?? ariza.current_prescribed_cnt ?? abonentData.house?.inhabitantCnt ?? 0;
@@ -60,6 +64,11 @@ function CancelContract({
       <p>
         <b>Abonent: {abonentData?.fullName || ariza.fio}</b>
       </p>
+      <p style={{ textAlign: 'justify', textIndent: '40px' }}>
+        {participants && participants.length > 0
+          ? `Biz quyidagi imzo chekuvchilar: ${formatParticipantsText(participants)}lar mazkur dalolatnomani shu haqida tuzdik.`
+          : `Biz quyidagi imzo chekuvchilar: ${lotinga(mahalla.data?.name || '')} MFY raisi ${fullNameToShortName(mahalla?.data?.mfy_rais_name || '')}, Mahalla yettiligi, ${company?.name || ''} ${company?.locationName || ''} aholi bo'lim boshlig'i ${lotinga(fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName))}lar mazkur dalolatnomani shu haqida tuzdik.`}
+      </p>
       <p style={{ textIndent: '40px' }}>
         O'rganish natijasida yuqoridagi shaxsiy hisob raqami bo'yicha abonent amalda mavjud emasligi aniqlandi. Sabab:{' '}
         <b>{sabab.toLowerCase()}</b>.
@@ -71,7 +80,7 @@ function CancelContract({
         saldoni 0 ga keltirish maqsadga muvofiq deb hisoblaymiz.
       </p>
       {izoh && <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic' }}>{izoh}</p>}
-      <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'viza'} ariza={ariza} participants={participants} />
+      <ImzolashJoyi abonentData={abonentData} mahalla={mahalla} documentType={'cancelContract'} ariza={ariza} participants={participants} />
       <div style={{ marginTop: '20px' }}>
         <QRSection ariza={ariza} date={date} />
       </div>

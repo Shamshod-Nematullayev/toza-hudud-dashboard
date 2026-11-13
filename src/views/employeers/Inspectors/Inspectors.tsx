@@ -1,16 +1,49 @@
 import { confirmDialog } from 'ui-component/ConfirmDialog';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Button, Chip, Grid, IconButton, List, ListItem, Switch, Typography, useMediaQuery, Box, Theme, Tooltip } from '@mui/material';
+import {
+  Button,
+  ButtonGroup,
+  Chip,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  Switch,
+  Typography,
+  useMediaQuery,
+  Box,
+  Theme,
+  Tooltip,
+  TextField,
+  InputAdornment,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider
+} from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
+import * as XLSX from 'xlsx';
 
 // Icons
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import { AddOutlined, Telegram, Edit as EditIcon } from '@mui/icons-material';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import EditIcon from '@mui/icons-material/Edit';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
+import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import PauseCircleOutlinedIcon from '@mui/icons-material/PauseCircleOutlined';
+import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 
 // Internal Imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -37,10 +70,16 @@ interface AttachedMahalla {
 }
 
 interface InspectorRow {
+  _id?: string;
   id: number;
   name: string;
+  phone?: string | null;
   activ: boolean;
   biriktirilgan: AttachedMahalla[];
+  telegram_id?: number[];
+  hasTelegram?: boolean;
+  telegramUsername?: string | null;
+  telegramLinkedAt?: string | null;
   [key: string]: any; // Dinamik mfy_X kalitlari uchun
 }
 
@@ -77,6 +116,222 @@ function Inspectors(): React.JSX.Element {
   const [openEditNameModal, setOpenEditNameModal] = useState<boolean>(false);
   const [selectedInspectorForEdit, setSelectedInspectorForEdit] = useState<InspectorRow | null>(null);
 
+  // Search & Export State
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
+  const isExportMenuOpen = Boolean(exportAnchorEl);
+
+  const handleOpenExportMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setExportAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseExportMenu = () => {
+    setExportAnchorEl(null);
+  };
+
+  // Qidiruv bo'yicha filtrlangan qatorlar
+  const filteredRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows;
+    const q = searchQuery.trim().toLowerCase();
+    return rows.filter((row) => {
+      const nameMatch = row.name?.toLowerCase().includes(q);
+      const idMatch = String(row.id).includes(q);
+      const phoneMatch = row.phone ? String(row.phone).toLowerCase().includes(q) : false;
+      const tgMatch = row.telegramUsername ? row.telegramUsername.toLowerCase().includes(q) : false;
+      const mahallaMatch = row.biriktirilgan?.some((m) => m.mfy_name?.toLowerCase().includes(q));
+      return nameMatch || idMatch || phoneMatch || tgMatch || mahallaMatch;
+    });
+  }, [rows, searchQuery]);
+
+  // Statistika hisobi
+  const stats = useMemo(() => {
+    const total = rows.length;
+    const active = rows.filter((r) => r.activ).length;
+    const inactive = total - active;
+    const withTelegram = rows.filter(
+      (r) => r.hasTelegram || (r.telegram_id && r.telegram_id.length > 0 && r.telegram_id[0])
+    ).length;
+    const freeMahallas = mahallalar.filter((m) => !m.biriktirilganNazoratchi?.inspactor_id).length;
+    return { total, active, inactive, withTelegram, freeMahallas };
+  }, [rows, mahallalar]);
+
+  // Excelga eksport qilish funksiyasi
+  const handleExportToExcel = (mode: 'all' | 'active' | 'inactive' | 'filtered' | 'unassigned' = 'all') => {
+    handleCloseExportMenu();
+
+    let targetRows = rows;
+    let titlePrefix = 'Nazoratchilar_Hisoboti';
+
+    if (mode === 'active') {
+      targetRows = rows.filter((r) => r.activ);
+      titlePrefix = 'Faol_Nazoratchilar';
+    } else if (mode === 'inactive') {
+      targetRows = rows.filter((r) => !r.activ);
+      titlePrefix = 'Nofaol_Nazoratchilar';
+    } else if (mode === 'filtered') {
+      targetRows = filteredRows;
+      titlePrefix = 'Filtrlangan_Nazoratchilar';
+    } else if (mode === 'unassigned') {
+      titlePrefix = 'Biriktirilmagan_Mahallalar';
+    }
+
+    if (mode !== 'unassigned' && targetRows.length === 0) {
+      toast.warning('Eksport qilish uchun ma’lumot topilmadi');
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    // 1-VARAQ: Nazoratchilar jadvali
+    if (mode !== 'unassigned') {
+      const dynamicMaxMfy = Math.max(0, ...targetRows.map((r) => (r.biriktirilgan || []).length));
+
+      const headers = [
+        'Т/р',
+        'ID',
+        'F.I.SH',
+        'Telefon raqami',
+        'Holati',
+        'Telegram',
+        'Telegram foydalanuvchi nomi',
+        'Telegramga ulangan sana',
+        'Biriktirilgan mahallalar soni',
+        'Biriktirilgan mahallalar (barchasi)'
+      ];
+
+      for (let i = 0; i < dynamicMaxMfy; i++) {
+        headers.push(`Mahalla ${i + 1}`);
+      }
+
+      const dataRows = targetRows.map((row, idx) => {
+        const attached = row.biriktirilgan || [];
+        const mfyNames = attached.map((m) => m.mfy_name).join(', ');
+        const isLinked = Boolean(
+          row.hasTelegram || (row.telegram_id && row.telegram_id.length > 0 && row.telegram_id[0])
+        );
+        const tgUsername = row.telegramUsername
+          ? `@${row.telegramUsername.replace(/^@/, '')}`
+          : row.telegram_id?.[0]
+          ? String(row.telegram_id[0])
+          : '—';
+        const tgLinkedAt = row.telegramLinkedAt
+          ? new Date(row.telegramLinkedAt).toLocaleDateString('uz-UZ')
+          : '—';
+        const phone = row.phone || '—';
+
+        const r: (string | number)[] = [
+          idx + 1,
+          row.id,
+          row.name,
+          phone,
+          row.activ ? 'Faol' : 'Nofaol',
+          isLinked ? 'Ulangan' : 'Ulanmagan',
+          tgUsername,
+          tgLinkedAt,
+          attached.length,
+          mfyNames || '—'
+        ];
+
+        for (let i = 0; i < dynamicMaxMfy; i++) {
+          r.push(attached[i] ? attached[i].mfy_name : '');
+        }
+
+        return r;
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+
+      // Ustun kengliklarini avtomatik moslash
+      const colWidths = headers.map((header, colIndex) => {
+        let maxLen = header.length;
+        dataRows.forEach((row) => {
+          const val = row[colIndex];
+          if (val !== undefined && val !== null) {
+            const strLen = String(val).length;
+            if (strLen > maxLen) maxLen = strLen;
+          }
+        });
+        return { wch: Math.min(Math.max(maxLen + 3, 10), 60) };
+      });
+      ws['!cols'] = colWidths;
+
+      const sheetName =
+        mode === 'active'
+          ? 'Faol nazoratchilar'
+          : mode === 'inactive'
+          ? 'Nofaol nazoratchilar'
+          : mode === 'filtered'
+          ? 'Filtrlangan nazoratchilar'
+          : 'Nazoratchilar';
+
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    }
+
+    // 2-VARAQ: Biriktirilmagan bo'sh mahallalar
+    if (mode === 'all' || mode === 'unassigned') {
+      const freeMahallas = mahallalar.filter((mfy) => !mfy.biriktirilganNazoratchi?.inspactor_id);
+      const freeHeaders = ['Т/р', 'Mahalla ID', 'Mahalla nomi', 'Reja ko‘rsatkichi', 'Holati'];
+      const freeDataRows = freeMahallas.map((mfy, idx) => [
+        idx + 1,
+        mfy.id,
+        mfy.name,
+        mfy.reja || 0,
+        'Nazoratchi biriktirilmagan'
+      ]);
+
+      const wsFree = XLSX.utils.aoa_to_sheet([freeHeaders, ...freeDataRows]);
+      const freeColWidths = freeHeaders.map((header, colIndex) => {
+        let maxLen = header.length;
+        freeDataRows.forEach((row) => {
+          const val = row[colIndex];
+          if (val !== undefined && val !== null) {
+            const strLen = String(val).length;
+            if (strLen > maxLen) maxLen = strLen;
+          }
+        });
+        return { wch: Math.min(Math.max(maxLen + 3, 12), 45) };
+      });
+      wsFree['!cols'] = freeColWidths;
+
+      XLSX.utils.book_append_sheet(wb, wsFree, 'Bo‘sh mahallalar');
+    }
+
+    // 3-VARAQ: Umumiy statistika
+    if (mode === 'all') {
+      const totalInspectors = rows.length;
+      const activeInspectors = rows.filter((r) => r.activ).length;
+      const inactiveInspectors = rows.filter((r) => !r.activ).length;
+      const telegramLinked = rows.filter(
+        (r) => r.hasTelegram || (r.telegram_id && r.telegram_id.length > 0 && r.telegram_id[0])
+      ).length;
+      const totalMahallas = mahallalar.length;
+      const assignedMahallas = mahallalar.filter((m) => m.biriktirilganNazoratchi?.inspactor_id).length;
+      const unassignedMahallas = mahallalar.filter((m) => !m.biriktirilganNazoratchi?.inspactor_id).length;
+
+      const statsData = [
+        ['Ko‘rsatkich', 'Qiymat'],
+        ['Jami nazoratchilar soni', totalInspectors],
+        ['Faol nazoratchilar', activeInspectors],
+        ['Nofaol (faolsizlantirilgan) nazoratchilar', inactiveInspectors],
+        ['Telegram botga ulangan nazoratchilar', telegramLinked],
+        ['Telegram botga ulanmagan nazoratchilar', totalInspectors - telegramLinked],
+        ['Jami mahallalar soni', totalMahallas],
+        ['Nazoratchi biriktirilgan mahallalar', assignedMahallas],
+        ['Bo‘sh (biriktirilmagan) mahallalar', unassignedMahallas],
+        ['Hisobot shakllantirilgan sana', new Date().toLocaleString('uz-UZ')]
+      ];
+
+      const wsStats = XLSX.utils.aoa_to_sheet(statsData);
+      wsStats['!cols'] = [{ wch: 40 }, { wch: 25 }];
+      XLSX.utils.book_append_sheet(wb, wsStats, 'Umumiy statistika');
+    }
+
+    const fileName = `${titlePrefix}_${dateStr}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    toast.success('Excel fayli muvaffaqiyatli yuklab olindi!');
+  };
+
   // API Data Fetching
   const updateData = useCallback(async () => {
     try {
@@ -94,6 +349,7 @@ function Inspectors(): React.JSX.Element {
           _id: row._id,
           id: row.id,
           name: row.name,
+          phone: (row as any).phone || null,
           activ: row.activ,
           biriktirilgan: attached,
           telegram_id: row.telegram_id || [],
@@ -266,7 +522,7 @@ function Inspectors(): React.JSX.Element {
           return (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Chip
-                icon={<Telegram sx={{ fontSize: '18px !important' }} />}
+                icon={<TelegramIcon sx={{ fontSize: '18px !important' }} />}
                 label={isLinked ? 'Ulangan' : 'Ulash'}
                 color={isLinked ? 'success' : 'primary'}
                 size="small"
@@ -354,13 +610,179 @@ function Inspectors(): React.JSX.Element {
       <Grid container spacing={2}>
         {/* Actions panel */}
         <Grid size={{ xs: 12 }}>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <Button color="success" onClick={() => setOpenCreateInspectorModal(true)} variant="contained" startIcon={<AddOutlined />}>
-              {t('tableActions.add')}
-            </Button>
-            <Button color="primary" onClick={() => handleOpenConnectTelegram()} variant="contained" startIcon={<Telegram />}>
-              {isXsUp && t('tableActions.connectTelegramAccount')}
-            </Button>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1.5,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between'
+            }}
+          >
+            {/* Asosiy harakat tugmalari */}
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Button
+                color="success"
+                onClick={() => setOpenCreateInspectorModal(true)}
+                variant="contained"
+                startIcon={<AddOutlinedIcon />}
+              >
+                {t('tableActions.add')}
+              </Button>
+              <Button
+                color="primary"
+                onClick={() => handleOpenConnectTelegram()}
+                variant="contained"
+                startIcon={<TelegramIcon />}
+              >
+                {isXsUp && t('tableActions.connectTelegramAccount')}
+              </Button>
+
+              {/* Excelga eksport ButtonGroup (Split button) */}
+              <ButtonGroup
+                variant="contained"
+                color="success"
+                sx={{
+                  boxShadow: 2,
+                  '& .MuiButton-root': {
+                    textTransform: 'none',
+                    fontWeight: 600
+                  }
+                }}
+              >
+                <Tooltip title="Barcha nazoratchilar va mahallalar ro‘yxatini to‘liq Excel faylga yuklab olish">
+                  <Button
+                    startIcon={<FileDownloadIcon />}
+                    onClick={() => handleExportToExcel('all')}
+                  >
+                    Excel yuklab olish
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Eksport parametrlarini tanlash">
+                  <Button
+                    size="small"
+                    onClick={handleOpenExportMenu}
+                    sx={{ px: 0.75 }}
+                  >
+                    <ArrowDropDownIcon />
+                  </Button>
+                </Tooltip>
+              </ButtonGroup>
+
+              {/* Eksport menyusi */}
+              <Menu
+                anchorEl={exportAnchorEl}
+                open={isExportMenuOpen}
+                onClose={handleCloseExportMenu}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      minWidth: 290,
+                      boxShadow: 4,
+                      borderRadius: 2,
+                      p: 0.5
+                    }
+                  }
+                }}
+              >
+                <MenuItem onClick={() => handleExportToExcel('all')} sx={{ py: 1, borderRadius: 1 }}>
+                  <ListItemIcon>
+                    <TableChartOutlinedIcon color="success" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<Typography variant="body2" sx={{ fontWeight: 600 }}>Barcha nazoratchilar (To‘liq hisobot)</Typography>}
+                    secondary={<Typography variant="caption" color="text.secondary">{`Jami: ${stats.total} ta nazoratchi (3 ta varaqda)`}</Typography>}
+                  />
+                </MenuItem>
+
+                {searchQuery.trim() && (
+                  <MenuItem onClick={() => handleExportToExcel('filtered')} sx={{ py: 1, borderRadius: 1 }}>
+                    <ListItemIcon>
+                      <FilterAltOutlinedIcon color="info" fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={<Typography variant="body2" sx={{ fontWeight: 600 }}>Qidiruv natijalarini yuklash</Typography>}
+                      secondary={<Typography variant="caption" color="text.secondary">{`Topilgan: ${filteredRows.length} ta nazoratchi`}</Typography>}
+                    />
+                  </MenuItem>
+                )}
+
+                <MenuItem onClick={() => handleExportToExcel('active')} sx={{ py: 1, borderRadius: 1 }}>
+                  <ListItemIcon>
+                    <CheckCircleOutlinedIcon color="success" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<Typography variant="body2">Faqat faol nazoratchilar</Typography>}
+                    secondary={<Typography variant="caption" color="text.secondary">{`${stats.active} ta faol nazoratchi`}</Typography>}
+                  />
+                </MenuItem>
+
+                <MenuItem onClick={() => handleExportToExcel('inactive')} sx={{ py: 1, borderRadius: 1 }}>
+                  <ListItemIcon>
+                    <PauseCircleOutlinedIcon color="warning" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<Typography variant="body2">Faqat nofaol nazoratchilar</Typography>}
+                    secondary={<Typography variant="caption" color="text.secondary">{`${stats.inactive} ta faolsizlantirilgan`}</Typography>}
+                  />
+                </MenuItem>
+
+                <Divider sx={{ my: 0.5 }} />
+
+                <MenuItem onClick={() => handleExportToExcel('unassigned')} sx={{ py: 1, borderRadius: 1 }}>
+                  <ListItemIcon>
+                    <LocationCityOutlinedIcon color="action" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<Typography variant="body2">Faqat biriktirilmagan mahallalar</Typography>}
+                    secondary={<Typography variant="caption" color="text.secondary">{`${stats.freeMahallas} ta bo‘sh mahalla`}</Typography>}
+                  />
+                </MenuItem>
+              </Menu>
+            </Box>
+
+            {/* Qidiruv filtri */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <TextField
+                size="small"
+                placeholder="F.I.SH yoki mahalla bo‘yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{
+                  minWidth: { xs: 200, sm: 270 },
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2
+                  }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: searchQuery ? (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setSearchQuery('')} edge="end">
+                          <ClearIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null
+                  }
+                }}
+              />
+              {searchQuery && (
+                <Chip
+                  size="small"
+                  color="info"
+                  variant="outlined"
+                  label={`${filteredRows.length} / ${rows.length}`}
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+            </Box>
           </Box>
         </Grid>
 
@@ -394,7 +816,7 @@ function Inspectors(): React.JSX.Element {
         {/* Asosiy DataGrid (Markaz) */}
         <Grid size={{ xs: 12, sm: 7 }}>
           <DataGrid
-            rows={rows}
+            rows={filteredRows}
             columns={columns}
             pageSizeOptions={[10, 25, 50, 100]}
             initialState={{
