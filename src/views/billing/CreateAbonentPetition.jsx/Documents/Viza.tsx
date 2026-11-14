@@ -9,6 +9,7 @@ import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import { ImzoJoyiRow, ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import useCustomizationStore from 'store/customizationStore';
+import { VizaBlank2026 } from './MahallaBlank2026Variants';
 
 interface VizaProps {
   ariza: IAriza;
@@ -21,9 +22,22 @@ interface VizaProps {
     fullName: string;
   };
   participants?: any[];
+  recalculationPeriods?: any[];
+  /** Tajriba: dalolatnoma sahifasini 2026-yilgi yangi mahalla blankasida chiqarish */
+  useMahalla2026Blank?: boolean;
 }
 
-function Viza({ ariza, abonentData, date, mahalla, asoslantiruvchi, vakil, participants }: VizaProps) {
+function Viza({
+  ariza,
+  abonentData,
+  date,
+  mahalla,
+  asoslantiruvchi,
+  vakil,
+  participants,
+  recalculationPeriods,
+  useMahalla2026Blank = false
+}: VizaProps) {
   const { customization, company } = useCustomizationStore();
 
   // Vakillik mantiqini aniqlash
@@ -54,8 +68,22 @@ function Viza({ ariza, abonentData, date, mahalla, asoslantiruvchi, vakil, parti
         </div>
       )}
 
+      {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
+      {customization.documentVariantOdamSoni !== 'ariza' && useMahalla2026Blank && (
+        <VizaBlank2026
+          date={date}
+          ariza={ariza}
+          abonentData={abonentData}
+          mahalla={mahalla}
+          vakil={isRelative ? vakil : undefined}
+          asoslantiruvchi={asoslantiruvchi}
+          participants={participants}
+          recalculationPeriods={recalculationPeriods}
+        />
+      )}
+
       {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariantOdamSoni !== 'ariza' && (
+      {customization.documentVariantOdamSoni !== 'ariza' && !useMahalla2026Blank && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontWeight: 'bold' }}>
