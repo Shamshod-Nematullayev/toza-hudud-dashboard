@@ -66,6 +66,11 @@ export interface AbonentDetails {
   house: House;
   balance: Balance;
   identified: boolean;
+  inspector?: {
+    id: number;
+    name: string;
+    phone?: string | null;
+  } | null;
 }
 
 export interface AbonentSearchQuery {

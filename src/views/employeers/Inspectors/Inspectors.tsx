@@ -44,6 +44,9 @@ import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import PauseCircleOutlinedIcon from '@mui/icons-material/PauseCircleOutlined';
 import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import PhoneIcon from '@mui/icons-material/Phone';
+import SyncIcon from '@mui/icons-material/Sync';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Internal Imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -52,6 +55,7 @@ import ModalChoose from '../ModalChoose';
 import AddInspectorModal from '../AddInspectorModal';
 import ConnectTelegramModal from '../ConnectTelegramModal';
 import EditInspectorNameModal from './EditInspectorNameModal';
+import EditInspectorPhoneModal from './EditInspectorPhoneModal';
 import api from 'utils/api';
 
 // --- INTERFACES & TYPES ---
@@ -115,6 +119,9 @@ function Inspectors(): React.JSX.Element {
   const [selectedInspectorForTelegram, setSelectedInspectorForTelegram] = useState<InspectorRow | null>(null);
   const [openEditNameModal, setOpenEditNameModal] = useState<boolean>(false);
   const [selectedInspectorForEdit, setSelectedInspectorForEdit] = useState<InspectorRow | null>(null);
+  const [openEditPhoneModal, setOpenEditPhoneModal] = useState<boolean>(false);
+  const [selectedInspectorForPhoneEdit, setSelectedInspectorForPhoneEdit] = useState<InspectorRow | null>(null);
+  const [isSyncingPhones, setIsSyncingPhones] = useState<boolean>(false);
 
   // Search & Export State
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -380,6 +387,24 @@ function Inspectors(): React.JSX.Element {
     updateData();
   }, [updateData]);
 
+  const handleSyncPhones = async () => {
+    try {
+      setIsSyncingPhones(true);
+      const res = await api.post<{ ok: boolean; message: string; updatedCount: number }>('/inspectors/sync-phones');
+      if (res.data.ok) {
+        toast.success(res.data.message || 'Telefon raqamlar TozaMakondan muvaffaqiyatli yangilandi');
+        await updateData();
+      } else {
+        toast.error(res.data.message || 'Xatolik yuz berdi');
+      }
+    } catch (err: any) {
+      console.error('Error syncing phones:', err);
+      toast.error(err?.response?.data?.message || 'Telefon raqamlarni sinxronlashda xatolik yuz berdi');
+    } finally {
+      setIsSyncingPhones(false);
+    }
+  };
+
   // Handlers
   const handleDelete = async (mfy_id: number) => {
     try {
@@ -511,6 +536,71 @@ function Inspectors(): React.JSX.Element {
         )
       },
       {
+        field: 'phone',
+        headerName: 'Telefon',
+        width: 180,
+        sortable: false,
+        renderCell: (params: GridRenderCellParams<InspectorRow>) => {
+          const rawPhone = params.row.phone;
+          const clean = rawPhone ? String(rawPhone).replace(/\D/g, '').replace(/^998/, '') : '';
+          const formatted =
+            clean.length === 9
+              ? `+998 ${clean.slice(0, 2)} ${clean.slice(2, 5)} ${clean.slice(5, 7)} ${clean.slice(7, 9)}`
+              : clean
+              ? `+998 ${clean}`
+              : '—';
+
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 0.5 }}>
+              {clean ? (
+                <Box
+                  component="a"
+                  href={`tel:+998${clean}`}
+                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    textDecoration: 'none',
+                    color: 'primary.main',
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
+                >
+                  <PhoneIcon sx={{ fontSize: 15 }} />
+                  {formatted}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>
+                  —
+                </Typography>
+              )}
+              <Tooltip title="Telefon raqamini tahrirlash">
+                <IconButton
+                  size="small"
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    setSelectedInspectorForPhoneEdit(params.row);
+                    setOpenEditPhoneModal(true);
+                  }}
+                  sx={{
+                    color: 'text.secondary',
+                    p: 0.5,
+                    '&:hover': {
+                      color: 'primary.main',
+                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1)
+                    }
+                  }}
+                >
+                  <EditIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        }
+      },
+      {
         field: 'telegram',
         headerName: 'Telegram',
         width: 140,
@@ -597,6 +687,19 @@ function Inspectors(): React.JSX.Element {
           }}
         />
       )}
+      {openEditPhoneModal && selectedInspectorForPhoneEdit && (
+        <EditInspectorPhoneModal
+          open={openEditPhoneModal}
+          inspector={selectedInspectorForPhoneEdit}
+          onClose={() => {
+            setOpenEditPhoneModal(false);
+            setSelectedInspectorForPhoneEdit(null);
+          }}
+          onSuccess={() => {
+            updateData();
+          }}
+        />
+      )}
       <ModalChoose
         activeInspector={activeInspector}
         activeMFY={activeMFY}
@@ -637,6 +740,18 @@ function Inspectors(): React.JSX.Element {
               >
                 {isXsUp && t('tableActions.connectTelegramAccount')}
               </Button>
+              <Tooltip title="TozaMakon xodimlar bo'limidan telefon raqamlarni sinxronlash">
+                <Button
+                  color="secondary"
+                  onClick={handleSyncPhones}
+                  variant="outlined"
+                  disabled={isSyncingPhones}
+                  startIcon={isSyncingPhones ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                >
+                  {isXsUp ? 'TozaMakondan sinxronlash' : 'Sinxronlash'}
+                </Button>
+              </Tooltip>
 
               {/* Excelga eksport ButtonGroup (Split button) */}
               <ButtonGroup
