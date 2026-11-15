@@ -105,6 +105,7 @@ const ru: typeof uz = {
     'call-warnings': 'Телефонные предупреждения',
     'call-warnings-workspace': 'Рабочая зона оператора',
     productAdmin: 'Управление системой',
+    workflowIntelligence: 'Product Intelligence',
     manageCompanies: 'Управление организациями',
     productAnalytics: 'Аналитика продукта',
     manageUsers: 'Управление пользователями',

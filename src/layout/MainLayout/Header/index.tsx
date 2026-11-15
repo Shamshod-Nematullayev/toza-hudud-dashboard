@@ -24,6 +24,7 @@ import useCustomizationStore from 'store/customizationStore';
 import CompanySelector from './CompanySelector';
 import ExtraMenuSection from './ExtraMenuSection';
 import PinnedPagesSection from './PinnedPagesSection';
+import DashboardModeSwitcher from './DashboardModeSwitcher';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -101,6 +102,13 @@ const Header = ({ handleLeftDrawerToggle }: { handleLeftDrawerToggle: () => void
       <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', flex: 1, minWidth: 0 }}>
         <PinnedPagesSection />
       </Box>
+
+      {/* Product Admin Dashboard Mode Switcher */}
+      {isProductAdmin && (
+        <Box sx={{ display: { xs: 'none', sm: 'block' }, mx: 1.5, flexShrink: 0 }}>
+          <DashboardModeSwitcher />
+        </Box>
+      )}
 
       {/* Mobile spacer */}
       <Box sx={{ display: { xs: 'block', md: 'none' }, flexGrow: 1 }} />

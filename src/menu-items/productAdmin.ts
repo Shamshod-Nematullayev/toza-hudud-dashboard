@@ -6,7 +6,8 @@ import {
   ManageHistoryOutlined,
   ElectricBoltOutlined,
   CampaignOutlined,
-  LocationCityOutlined
+  LocationCityOutlined,
+  InsightsOutlined
 } from '@mui/icons-material';
 import { MenuItem } from './index';
 
@@ -18,7 +19,8 @@ const icons = {
   ManageHistoryOutlined,
   ElectricBoltOutlined,
   CampaignOutlined,
-  LocationCityOutlined
+  LocationCityOutlined,
+  InsightsOutlined
 };
 
 const productAdmin: MenuItem = {
@@ -27,6 +29,15 @@ const productAdmin: MenuItem = {
   type: 'group',
   allowedRoles: ['product_admin'],
   children: [
+    {
+      id: 'workflowIntelligence',
+      title: 'workflowIntelligence',
+      type: 'item',
+      url: '/dashboard/product-intelligence',
+      icon: icons.InsightsOutlined,
+      breadcrumbs: false,
+      allowedRoles: ['product_admin']
+    },
     {
       id: 'manageCompanies',
       title: 'manageCompanies',
