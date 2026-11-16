@@ -58,6 +58,7 @@ import { ImportAbonentsExcelModal } from './ImportAbonentsExcelModal';
 import { PrintNewAbonentDialog } from './PrintNewAbonentDialog';
 import { ImportScannedAbonentModal } from './ImportScannedAbonentModal';
 import { CadastrConflictModal } from './CadastrConflictModal';
+import { TodayCreatedAbonents } from './TodayCreatedAbonents';
 
 export const PendingNewAbonents: React.FC = () => {
   const theme = useTheme();
@@ -83,6 +84,8 @@ export const PendingNewAbonents: React.FC = () => {
   const [excelImportOpen, setExcelImportOpen] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [rowActionLoading, setRowActionLoading] = useState<string | null>(null);
+  const [todayRefreshTrigger, setTodayRefreshTrigger] = useState<number>(0);
+  const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
 
   // Hujjat chiqarish va Skaner yuklash
   const [printItem, setPrintItem] = useState<INewAbonentItem | null>(null);
@@ -205,6 +208,8 @@ export const PendingNewAbonents: React.FC = () => {
       const res = await api.post(`/pendingNewAbonents/accept/${id}`, payload || {});
       if (res.data?.ok) {
         toast.success(res.data.message || `Abonent muvaffaqiyatli ochildi! Hisob raqami: ${res.data.accountNumber || ''}`);
+        setNewlyCreatedId(id);
+        setTodayRefreshTrigger((prev) => prev + 1);
 
         // Modal ochiq bo'lsa va avto-o'tish yoqilgan bo'lsa, keyingi elementga o'tish
         if (modalOpen && autoAdvance) {
@@ -445,6 +450,13 @@ export const PendingNewAbonents: React.FC = () => {
           )}
         </Stack>
       </Stack>
+
+      {/* 1.5. Bugun ochilgan abonentlar tasmasi (Scroll va bitta click bilan profilga kirish) */}
+      <TodayCreatedAbonents
+        refreshTrigger={todayRefreshTrigger}
+        highlightId={newlyCreatedId}
+        onOpenManualCreate={() => setCreateManualOpen(true)}
+      />
 
       {/* 2. KPI Statistik Kartalar (Mobilda 2x2 + 1 ixcham ko'rinish) */}
       <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, sm: 2.5 } }}>
@@ -1488,11 +1500,26 @@ export const PendingNewAbonents: React.FC = () => {
       <CreateManualAbonentModal
         open={createManualOpen}
         onClose={() => setCreateManualOpen(false)}
-        onSuccess={fetchData}
+        onSuccess={(created) => {
+          setCreateManualOpen(false);
+          setTodayRefreshTrigger((prev) => prev + 1);
+          if (created?.residentId) {
+            setNewlyCreatedId(String(created.residentId));
+          }
+          fetchData();
+        }}
       />
 
       {/* Excel orqali ommaviy abonent ochish */}
-      <ImportAbonentsExcelModal open={excelImportOpen} onClose={() => setExcelImportOpen(false)} onSuccess={fetchData} />
+      <ImportAbonentsExcelModal
+        open={excelImportOpen}
+        onClose={() => setExcelImportOpen(false)}
+        onSuccess={() => {
+          setExcelImportOpen(false);
+          setTodayRefreshTrigger((prev) => prev + 1);
+          fetchData();
+        }}
+      />
 
       {/* Asoslantiruvchi hujjat chiqarish va chop etish dialogi */}
       <PrintNewAbonentDialog
@@ -1511,7 +1538,11 @@ export const PendingNewAbonents: React.FC = () => {
       <ImportScannedAbonentModal
         open={importScannedModalOpen}
         onClose={() => setImportScannedModalOpen(false)}
-        onSuccess={fetchData}
+        onSuccess={() => {
+          setImportScannedModalOpen(false);
+          setTodayRefreshTrigger((prev) => prev + 1);
+          fetchData();
+        }}
       />
     </Box>
   );

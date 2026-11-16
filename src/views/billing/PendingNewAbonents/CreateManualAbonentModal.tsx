@@ -47,7 +47,7 @@ import MvdInhabitantsInfo from './MvdInhabitantsInfo';
 interface CreateManualAbonentModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newAbonent?: { accountNumber?: string; residentId?: number }) => void;
 }
 
 export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> = ({
@@ -276,7 +276,7 @@ export const CreateManualAbonentModal: React.FC<CreateManualAbonentModalProps> =
       const res = await api.post('/pendingNewAbonents/create-manual', payload);
       if (res.data?.ok) {
         toast.success(res.data?.message || `Abonent muvaffaqiyatli yaratildi! Yangi hisob raqami: ${res.data?.accountNumber || ''}`);
-        onSuccess();
+        onSuccess({ accountNumber: res.data?.accountNumber, residentId: res.data?.residentId });
         onClose();
       } else {
         toast.error(res.data?.message || 'Abonent yaratishda xatolik yuz berdi');

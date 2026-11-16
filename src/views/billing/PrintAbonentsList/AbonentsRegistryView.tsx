@@ -40,6 +40,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import BoltIcon from '@mui/icons-material/Bolt';
 import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined';
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -50,6 +51,7 @@ import AbonentsFilterDrawer, {
 } from './AbonentsFilterDrawer';
 import QuickEditAbonentModal, { IAbonentRegistryItem } from './QuickEditAbonentModal';
 import MoveMahallaDialog from './MoveMahallaDialog';
+import ImportPhonesModal from './ImportPhonesModal';
 
 type QuickSearchField =
   | 'accountNumber'
@@ -135,6 +137,9 @@ export default function AbonentsRegistryView({ onSwitchToPrint }: AbonentsRegist
 
   // Mahallani ko'chirish modali
   const [moveMahallaOpen, setMoveMahallaOpen] = useState<boolean>(false);
+
+  // Telefonlarni import qilish modali
+  const [importPhonesOpen, setImportPhonesOpen] = useState<boolean>(false);
 
   // Aktiv filtrlar ro'yxati
   const activeFilterEntries = useMemo(() => {
@@ -423,6 +428,22 @@ export default function AbonentsRegistryView({ onSwitchToPrint }: AbonentsRegist
                 }}
               >
                 Mahallani ko'chirish
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Abonentlarga telefon raqamlarini Excel orqali import qilish (Tekshiruv, TozaMakon, debitor va topshiriqlarni yangilash)">
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<CloudUploadOutlinedIcon />}
+                onClick={() => setImportPhonesOpen(true)}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none'
+                }}
+              >
+                Telefonlarni import qilish
               </Button>
             </Tooltip>
 
@@ -1082,6 +1103,17 @@ export default function AbonentsRegistryView({ onSwitchToPrint }: AbonentsRegist
           open={moveMahallaOpen}
           onClose={() => setMoveMahallaOpen(false)}
           initialFromMahallaId={appliedFilters.mahallaId}
+          onSuccess={() => {
+            fetchAbonents(page, pageSize, appliedFilters, quickValue);
+          }}
+        />
+      )}
+
+      {/* Telefon raqamlarini Excel orqali import qilish modali */}
+      {importPhonesOpen && (
+        <ImportPhonesModal
+          open={importPhonesOpen}
+          onClose={() => setImportPhonesOpen(false)}
           onSuccess={() => {
             fetchAbonents(page, pageSize, appliedFilters, quickValue);
           }}
