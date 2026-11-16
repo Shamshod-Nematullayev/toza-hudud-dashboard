@@ -105,6 +105,7 @@ const uzKirill: typeof uz = {
     'call-warnings': 'Телефон огоҳлантиришлар',
     'call-warnings-workspace': 'Телефончи иш майдони',
     productAdmin: 'Тизим бошқаруви',
+    workflowIntelligence: 'Product Intelligence',
     manageCompanies: 'Ташкилотларни бошқариш',
     productAnalytics: 'Маҳсулот Аналитикаси',
     manageUsers: 'Фойдаланувчиларни бошқариш',

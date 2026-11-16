@@ -103,6 +103,7 @@ const uz = {
     'call-warnings': 'Telefon ogohlantirishlar',
     'call-warnings-workspace': 'Telefonchi ishmaydoni',
     productAdmin: 'Tizim boshqaruvi',
+    workflowIntelligence: 'Product Intelligence',
     manageCompanies: 'Tashkilotlarni boshqarish',
     productAnalytics: 'Mahsulot Analitikasi',
     manageUsers: 'Foydalanuvchilarni boshqarish',

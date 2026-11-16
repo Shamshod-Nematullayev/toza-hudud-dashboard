@@ -80,6 +80,16 @@ import TelegramPage from 'views/dispatcher/Telegram';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
+const ProductIntelligence = Loadable(lazy(() => import('views/productAdmin/ProductIntelligence')));
+const OrganizationIntelligenceDetail = Loadable(
+  lazy(() => import('views/productAdmin/ProductIntelligence/OrganizationDetail'))
+);
+const OrganizationReportDetail = Loadable(
+  lazy(() => import('views/productAdmin/ProductIntelligence/OrganizationReportDetail'))
+);
+const OrganizationSpecialTaskDetail = Loadable(
+  lazy(() => import('views/productAdmin/ProductIntelligence/OrganizationSpecialTaskDetail'))
+);
 
 // utilities routing
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
@@ -92,10 +102,36 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const PendingActs = Loadable(lazy(() => import('views/billing/PendingActs')));
 
+const ProductAdminGuard = ({ children }: { children: JSX.Element }) => {
+  const userStr = localStorage.getItem('user');
+  let isProductAdmin = false;
+  if (userStr) {
+    try {
+      const parsed = JSON.parse(userStr);
+      isProductAdmin = parsed?.roles?.includes('product_admin');
+    } catch (e) {}
+  }
+  if (!isProductAdmin) {
+    return <Navigate to="/dashboard/default" replace />;
+  }
+  return children;
+};
+
 const RootPage = () => {
   const token = Cookies.get('accessToken');
   if (!token) {
     return <Navigate to="/pages/login/login" replace />;
+  }
+  const userStr = localStorage.getItem('user');
+  let isProductAdmin = false;
+  if (userStr) {
+    try {
+      const parsed = JSON.parse(userStr);
+      isProductAdmin = parsed?.roles?.includes('product_admin');
+    } catch (e) {}
+  }
+  if (isProductAdmin) {
+    return <Navigate to="/dashboard/product-intelligence" replace />;
   }
   return <DashboardDefault />;
 };
@@ -124,6 +160,38 @@ const MainRoutes: MainRoutesProps = {
         {
           path: 'default',
           element: <DashboardDefault />
+        },
+        {
+          path: 'product-intelligence',
+          element: (
+            <ProductAdminGuard>
+              <ProductIntelligence />
+            </ProductAdminGuard>
+          )
+        },
+        {
+          path: 'product-intelligence/reports/:companyId',
+          element: (
+            <ProductAdminGuard>
+              <OrganizationReportDetail />
+            </ProductAdminGuard>
+          )
+        },
+        {
+          path: 'product-intelligence/special-tasks/:companyId',
+          element: (
+            <ProductAdminGuard>
+              <OrganizationSpecialTaskDetail />
+            </ProductAdminGuard>
+          )
+        },
+        {
+          path: 'product-intelligence/:companyId',
+          element: (
+            <ProductAdminGuard>
+              <OrganizationIntelligenceDetail />
+            </ProductAdminGuard>
+          )
         }
       ]
     },
