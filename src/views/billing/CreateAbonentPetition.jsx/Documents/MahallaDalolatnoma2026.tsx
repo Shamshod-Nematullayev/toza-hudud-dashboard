@@ -77,7 +77,7 @@ export const ownerRow = (abonentData: any): BlankRow => ({
   birth: formatDate(abonentData?.citizen?.birthDate),
   passport: abonentData?.citizen?.passport || '',
   relation: 'Уй эгаси',
-  status: 'Яшайди'
+  status: ''
 });
 
 const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
@@ -85,7 +85,7 @@ const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : 
 /** Murojaat qilgan vakil (abonentning qarindoshi) qatori */
 export const vakilRow = (vakil?: { relation?: string; fullName?: string }): BlankRow | null =>
   vakil?.relation && vakil?.fullName
-    ? { fio: cyr(vakil.fullName), relation: capitalize(cyr(vakil.relation.toLowerCase())), status: 'Яшайди (мурожаатчи)' }
+    ? { fio: cyr(vakil.fullName), relation: capitalize(cyr(vakil.relation.toLowerCase())), status: '' }
     : null;
 
 interface PageProps {
@@ -137,10 +137,15 @@ export function MahallaBlank2026Page({
   const roles = ROLES.map((r) => ({ ...r, name: roleName(r.ids) }));
   const korxonaTitle = `“${cyr(companyName) || 'корхона номи'}” ходими`;
   const extra = active.filter((p) => !usedIds.has(p.id));
-  // Ismi yo'q lavozimlar chiqarilmaydi; MFY raisi va korxona xodimi har doim turadi
+
+  // Mahalla raisi va mahallada ishlovchilar blankada har doim lavozim sifatida turadi;
+  // agar admin UI orqali qaysidir ishtirokchini ataylab exclude qilgan bo'lsa (isExcluded), u chiqarilmaydi.
+  const isExcludedRole = (ids: string[]) =>
+    ids.length > 0 && ids.some((id) => participants.some((p) => p.id === id && p.isExcluded));
+
   const signers = [
     ...roles
-      .filter((r) => r.id === 'rais' || r.id === 'korxona' || !!r.name)
+      .filter((r) => !isExcludedRole(r.ids))
       .map((r) => (r.id === 'korxona' ? { ...r, title: korxonaTitle } : r)),
     ...extra.map((p) => ({ id: p.id, title: cyr(p.label.replace(/:$/, '')), ids: [p.id], name: p.name }))
   ];
@@ -190,15 +195,19 @@ export function MahallaBlank2026Page({
         </span>
       </div>
 
-      {/* Ishtirokchilar */}
+      {/* Ishtirokchilar: mahalla raisi va mahallada ishlovchilarning familiya-ismi chiqarilmaydi, faqat lavozimi qoladi */}
       <p style={{ textIndent: 40, margin: '0 0 4px', textAlign: 'left' }}>
         Бизлар қуйида имзо чекувчилар “<b>{cyr(mahallaData?.name)}</b>” МФЙ{' '}
-        {signers.map((r, i) => (
-          <React.Fragment key={r.id}>
-            {r.id === 'rais' ? 'раиси' : r.title} <Field value={cyrShort(r.name)} />
-            {i < signers.length - 1 ? ', ' : ' '}
-          </React.Fragment>
-        ))}
+        {signers.map((r, i) => {
+          const isMahalla = r.id !== 'korxona';
+          return (
+            <React.Fragment key={r.id}>
+              {r.id === 'rais' ? 'раиси' : r.title}
+              {!isMahalla && r.name ? <> <Field value={cyrShort(r.name)} /></> : null}
+              {i < signers.length - 1 ? ', ' : ' '}
+            </React.Fragment>
+          );
+        })}
         лар иштирокида туздик.
       </p>
 
@@ -237,7 +246,7 @@ export function MahallaBlank2026Page({
               <td style={{ ...cell, textAlign: 'center' }}>{r.passport}</td>
               <td style={{ ...cell, textAlign: 'center', fontWeight: 'bold' }}>{r.relation}</td>
               <td style={{ ...cell, textAlign: 'center' }}>{r.since}</td>
-              <td style={cell}>{r.status}</td>
+              <td style={cell}></td>
             </tr>
           ))}
         </tbody>
@@ -248,17 +257,20 @@ export function MahallaBlank2026Page({
         <span style={{ textDecoration: 'underline' }}>Изоҳ:</span> {izoh}
       </p>
 
-      {/* Imzolar */}
+      {/* Imzolar: mahalla raisi va mahallada ishlovchilarning familiya-ismi ko'rsatilmaydi (bo'sh imzo chizig'i qoladi) */}
       <p style={{ textAlign: 'center', margin: '6px 0 4px' }}>Юқоридагиларни тасдиқлаб имзо чекувчилар:</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 24, rowGap: 6, fontSize: 13.5 }}>
-        {signers.map((r) => (
-          <div key={r.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-            <span style={{ whiteSpace: 'nowrap' }}>{r.title}:</span>
-            <span style={{ flex: 1, borderBottom: LINE, textAlign: 'right', fontWeight: 'bold', paddingRight: 4, minHeight: 18 }}>
-              {cyrShort(r.name)}
-            </span>
-          </div>
-        ))}
+        {signers.map((r) => {
+          const isMahalla = r.id !== 'korxona';
+          return (
+            <div key={r.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
+              <span style={{ whiteSpace: 'nowrap' }}>{r.title}:</span>
+              <span style={{ flex: 1, borderBottom: LINE, textAlign: 'right', fontWeight: 'bold', paddingRight: 4, minHeight: 18 }}>
+                {isMahalla ? '' : cyrShort(r.name)}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Abonent imzosi va QR */}
@@ -377,7 +389,7 @@ export default function MahallaDalolatnoma2026({
       birth: formatDate(abonentData2?.citizen?.birthDate),
       passport: abonentData2?.citizen?.passport || '',
       relation: rel ? rel.charAt(0).toUpperCase() + rel.slice(1) : '',
-      status: `Яшайди (иккиламчи ҳ/р ${acc2})`
+      status: ''
     });
   }
 

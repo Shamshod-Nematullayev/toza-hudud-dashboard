@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -56,6 +56,10 @@ interface CatalogDrillDownViewProps {
   onUpdateFromTozamakon: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSortChange?: (field: string, direction: 'asc' | 'desc') => void;
+  isGlobalSearchActive?: boolean;
 }
 
 const renderStatusChip = (status: string) => {
@@ -154,12 +158,20 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
   printingId,
   onUpdateFromTozamakon,
   searchQuery,
-  onSearchChange
+  onSearchChange,
+  sortField,
+  sortDirection,
+  onSortChange,
+  isGlobalSearchActive
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [isExporting, setIsExporting] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,16 +184,18 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
       setIsExporting(true);
       toast.info(t('messages.exportStarted', 'Excel fayli tayyorlanmoqda...'));
 
-      const fromDate = dayjs(`${period}-01`).startOf('month').toISOString();
-      const toDate = dayjs(`${period}-01`).endOf('month').toISOString();
-
       const params: any = {
         limit: 5000,
-        created_from_date: fromDate,
-        created_to_date: toDate
       };
+
+      if (period !== 'all' && !searchQuery.trim()) {
+        params.created_from_date = dayjs(`${period}-01`).startOf('month').toISOString();
+        params.created_to_date = dayjs(`${period}-01`).endOf('month').toISOString();
+      }
+
       if (category) params.document_type = category;
       if (statusFilter && statusFilter !== 'all') params.ariza_status = statusFilter;
+      if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await api.get('/arizalar', { params });
       const exportItems = res.data?.data || [];
@@ -448,6 +462,16 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
             variant="filled"
             sx={{ fontWeight: 600, height: 22, fontSize: '0.75rem' }}
           />
+
+          {isGlobalSearchActive && (
+            <Chip
+              label="Umumiy qidiruv (barcha davrlar)"
+              size="small"
+              color="info"
+              variant="outlined"
+              sx={{ fontWeight: 600, height: 22, fontSize: '0.75rem' }}
+            />
+          )}
         </Stack>
 
         {/* Right Side: Actions + Search */}
@@ -552,7 +576,20 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
         loading={isLoading}
         paginationMode="server"
         filterMode="server"
-        disableColumnSorting
+        sortingMode="server"
+        sortModel={[
+          {
+            field: sortField || 'sana',
+            sort: sortDirection || 'desc'
+          }
+        ]}
+        onSortModelChange={(newModel) => {
+          if (newModel.length > 0 && onSortChange) {
+            onSortChange(newModel[0].field, (newModel[0].sort as 'asc' | 'desc') || 'desc');
+          } else if (onSortChange) {
+            onSortChange('sana', 'desc');
+          }
+        }}
         disableColumnMenu
         rowHeight={46}
         columnHeaderHeight={40}

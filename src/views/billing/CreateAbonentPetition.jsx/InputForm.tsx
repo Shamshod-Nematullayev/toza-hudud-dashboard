@@ -703,7 +703,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                   )}
                 </Box>
               )}
-              {(aktType === 'odam_soni' || aktType === 'death' || aktType === 'viza') && (
+              {(aktType === 'odam_soni' || aktType === 'death') && (
                 <Stack spacing={1}>
                   <TextField
                     fullWidth
@@ -723,11 +723,9 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                           ? recalculationPeriods.length > 0
                             ? `Qayta hisob davrlariga asosan: ${yashovchiSoniInput} kishi (tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi)`
                             : `Har bir chiquvchi odam uchun qachondan ekanligini o'ngdagi kalkulyatordan qo'shing · Tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
-                          : aktType === 'viza'
-                            ? `Yakuniy odam soni (TozaMakonga yuboriladigan) · Tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
-                            : recalcMode === 'kop_bosqichli'
-                              ? `Yangi soni (oxirgi bosqich) · tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
-                              : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                          : recalcMode === 'kop_bosqichli'
+                            ? `Yangi soni (oxirgi bosqich) · tizimda: ${abonentData?.house?.inhabitantCnt || 0} kishi`
+                            : `Hozirgi: ${abonentData?.house?.inhabitantCnt || 0} kishi`
                     }
                     sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
                   />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Breadcrumbs,
@@ -6,9 +6,11 @@ import {
   Card,
   Chip,
   IconButton,
+  InputAdornment,
   Menu,
   MenuItem,
   Stack,
+  TextField,
   Tooltip,
   Typography
 } from '@mui/material';
@@ -19,7 +21,10 @@ import {
   HomeOutlined,
   FolderOpenOutlined,
   FilterAltOutlined,
-  Refresh
+  Refresh,
+  SearchOutlined,
+  Close,
+  AllInclusive
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +39,8 @@ interface PeriodHeaderProps {
   onRefresh: () => void;
   categoryLabel?: string;
   statusLabel?: string;
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
 }
 
 const MONTH_NAMES_UZ = [
@@ -52,7 +59,7 @@ const MONTH_NAMES_UZ = [
 ];
 
 export const formatPeriodLabel = (periodStr: string): string => {
-  if (!periodStr) return '';
+  if (!periodStr || periodStr === 'all') return 'Barcha davrlar';
   const parts = periodStr.split('-');
   if (parts.length < 2) return periodStr;
   const year = parts[0];
@@ -69,12 +76,20 @@ const PeriodHeader: React.FC<PeriodHeaderProps> = ({
   onStatusClear,
   onRefresh,
   categoryLabel,
-  statusLabel
+  statusLabel,
+  searchQuery = '',
+  onSearchChange
 }) => {
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [headerSearch, setHeaderSearch] = useState(searchQuery);
 
-  const currentDayjs = dayjs(`${period}-01`);
+  useEffect(() => {
+    setHeaderSearch(searchQuery);
+  }, [searchQuery]);
+
+  const isAllPeriod = period === 'all';
+  const currentDayjs = isAllPeriod ? dayjs() : dayjs(`${period}-01`);
 
   const handlePrevMonth = () => {
     const prev = currentDayjs.subtract(1, 'month').format('YYYY-MM');
@@ -84,6 +99,11 @@ const PeriodHeader: React.FC<PeriodHeaderProps> = ({
   const handleNextMonth = () => {
     const next = currentDayjs.add(1, 'month').format('YYYY-MM');
     onPeriodChange(next);
+  };
+
+  const handleHeaderSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearchChange?.(headerSearch.trim());
   };
 
   // Quick pick list for current year
@@ -106,14 +126,14 @@ const PeriodHeader: React.FC<PeriodHeaderProps> = ({
         borderRadius: 2,
         boxShadow: 'none',
         display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        alignItems: { xs: 'flex-start', md: 'center' },
+        flexDirection: { xs: 'column', lg: 'row' },
+        alignItems: { xs: 'flex-start', lg: 'center' },
         justifyContent: 'space-between',
-        gap: 1
+        gap: 1.5
       }}
     >
       {/* Left: Breadcrumbs & Hierarchy */}
-      <Box>
+      <Box sx={{ minWidth: 260 }}>
         <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 0.2 }}>
           <Stack
             direction="row"
@@ -196,8 +216,73 @@ const PeriodHeader: React.FC<PeriodHeaderProps> = ({
               sx={{ fontWeight: 600, height: 22, fontSize: '0.75rem' }}
             />
           )}
+
+          {searchQuery && (
+            <Chip
+              label={`Qidiruv: "${searchQuery}"`}
+              size="small"
+              color="info"
+              variant="filled"
+              onDelete={() => onSearchChange?.('')}
+              sx={{ fontWeight: 600, height: 22, fontSize: '0.75rem' }}
+            />
+          )}
         </Stack>
       </Box>
+
+      {/* Center: Global Search Bar */}
+      {onSearchChange && (
+        <Box
+          component="form"
+          onSubmit={handleHeaderSearchSubmit}
+          sx={{
+            flex: { xs: '1 1 100%', lg: '0 1 400px' },
+            width: { xs: '100%', lg: 'auto' }
+          }}
+        >
+          <TextField
+            fullWidth
+            size="small"
+            placeholder={t('searchPlaceholderGlobal', 'Umumiy qidiruv (akt №, hisob raqam, F.I.Sh)...')}
+            value={headerSearch}
+            onChange={(e) => {
+              setHeaderSearch(e.target.value);
+              if (!e.target.value.trim() && searchQuery) {
+                onSearchChange('');
+              }
+            }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchOutlined fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+                endAdornment: headerSearch ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setHeaderSearch('');
+                        onSearchChange('');
+                      }}
+                      edge="end"
+                    >
+                      <Close fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null,
+                sx: {
+                  borderRadius: 2,
+                  fontSize: '0.84rem',
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'background.default' : 'grey.50'
+                }
+              }
+            }}
+          />
+        </Box>
+      )}
 
       {/* Right: Period Switcher + Refresh */}
       <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center', alignSelf: { xs: 'stretch', sm: 'auto' } }}>
@@ -222,7 +307,7 @@ const PeriodHeader: React.FC<PeriodHeaderProps> = ({
           variant="outlined"
           color="primary"
           size="small"
-          startIcon={<CalendarMonth sx={{ fontSize: 18 }} />}
+          startIcon={isAllPeriod ? <AllInclusive sx={{ fontSize: 18 }} /> : <CalendarMonth sx={{ fontSize: 18 }} />}
           onClick={(e) => setAnchorEl(e.currentTarget)}
           sx={{
             px: 1.5,
@@ -281,14 +366,34 @@ const PeriodHeader: React.FC<PeriodHeaderProps> = ({
           slotProps={{
             paper: {
               sx: {
-                maxHeight: 300,
-                width: 200,
+                maxHeight: 340,
+                width: 220,
                 borderRadius: 2,
                 boxShadow: 3
               }
             }
           }}
         >
+          {/* Barcha davrlar option */}
+          <MenuItem
+            selected={isAllPeriod}
+            onClick={() => {
+              onPeriodChange('all');
+              setAnchorEl(null);
+            }}
+            sx={{
+              fontWeight: isAllPeriod ? 700 : 500,
+              color: isAllPeriod ? 'primary.main' : 'text.primary',
+              fontSize: '0.85rem',
+              py: 0.8,
+              borderBottom: '1px solid',
+              borderColor: 'divider'
+            }}
+          >
+            <AllInclusive sx={{ fontSize: 18, mr: 1, color: isAllPeriod ? 'primary.main' : 'text.secondary' }} />
+            Barcha davrlar (Umumiy)
+          </MenuItem>
+
           <Box sx={{ px: 2, py: 0.8, borderBottom: '1px solid', borderColor: 'divider' }}>
             <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
               {currentYear}-yil oylari

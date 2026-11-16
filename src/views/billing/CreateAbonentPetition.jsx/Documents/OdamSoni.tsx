@@ -90,8 +90,8 @@ function OdamSoni({
   };
   return (
     <>
-      {/* 1-SAHIFA: ARIZA */}
-      {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {/* 1-SAHIFA: ARIZA (Yangi chiqqan dalolatnoma turida ariza bo'lmaydi) */}
+      {!useMahalla2026Blank && customization.documentVariantOdamSoni !== 'dalolatnoma' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <ArizaHeading abonentData={abonentData} participants={participants} vakil={relation ? { relation, fullName: relationFullName || '' } : undefined} />
@@ -110,7 +110,7 @@ function OdamSoni({
       )}
 
       {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
-      {customization.documentVariantOdamSoni !== 'ariza' && useMahalla2026Blank && (
+      {useMahalla2026Blank && (
         <OdamSoniBlank2026
           date={date}
           ariza={ariza}

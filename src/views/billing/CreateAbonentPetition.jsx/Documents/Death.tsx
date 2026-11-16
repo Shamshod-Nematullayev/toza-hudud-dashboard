@@ -36,7 +36,8 @@ function Death({
   const { customization } = useCustomizationStore();
   return (
     <>
-      {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {/* 1-SAHIFA: ARIZA (Yangi blankada ariza bo'lmaydi) */}
+      {!useMahalla2026Blank && customization.documentVariantOdamSoni !== 'dalolatnoma' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <ArizaHeading abonentData={abonentData} participants={participants} />
@@ -58,7 +59,8 @@ function Death({
         </div>
       )}
 
-      {customization.documentVariantOdamSoni !== 'ariza' && useMahalla2026Blank && (
+      {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
+      {useMahalla2026Blank && (
         <DeathBlank2026
           date={date}
           ariza={ariza}

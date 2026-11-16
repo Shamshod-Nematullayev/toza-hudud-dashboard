@@ -120,7 +120,10 @@ const DocumentRenderer = ({
   }, [recalculationPeriods, setOlderPeriod]);
 
   const cleanAsoslantiruvchi = getCleanAsoslantiruvchi(asoslantiruvchi);
-  const useMahalla2026Blank = actTypeKey === MAHALLA_2026_ACT_TYPE_KEY;
+  const docType = ariza?.document_type;
+  const useMahalla2026Blank =
+    actTypeKey === MAHALLA_2026_ACT_TYPE_KEY ||
+    (docType === 'odam_soni' && actTypeKey !== 'ichki');
 
   const commonProps = {
     date: new Date(ariza.sana),
@@ -288,6 +291,15 @@ export default function PrintSection({
   const [excludedParticipantIds, setExcludedParticipantIds] = useState<string[]>([]);
   const [openManageActTypesDialog, setOpenManageActTypesDialog] = useState(false);
 
+  // Odam soni dalolatnomasida eski mahalla dalolatnomasi ('mahalla') olib tashlanadi,
+  // faqat yangi chiqqan dalolatnoma turi ('mahalla_2026') va 'ichki' (agar shartlar to'g'ri kelsa) qoladi
+  const visibleActTypes = useMemo(() => {
+    if (effectiveDocType === 'odam_soni') {
+      return actTypes.filter((t) => t.key !== 'mahalla');
+    }
+    return actTypes;
+  }, [actTypes, effectiveDocType]);
+
   // Dalolatnoma turlarini yuklash
   const fetchActTypes = useCallback(async () => {
     try {
@@ -377,19 +389,34 @@ export default function PrintSection({
     if (initializedArizaIdRef.current === arizaId) return;
     initializedArizaIdRef.current = arizaId;
 
+    const isOdamSoni = effectiveDocType === 'odam_soni';
     const saved = actTypes.find(
       (t) => (ariza.actTypeId && t._id === ariza.actTypeId) || (ariza.actTypeKey && t.key === ariza.actTypeKey)
     );
-    // Standart holatda saqlangan tur, 'mahalla' turi, yoki birinchi tur
-    let initial = saved || actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
+    // Odam sonida eski 'mahalla' turi saqlangan bo'lsa ham uni yangi mahalla_2026 ga o'tkazamiz
+    let initial = saved && (!isOdamSoni || saved.key !== 'mahalla') ? saved : undefined;
+    if (!initial) {
+      if (isOdamSoni) {
+        initial =
+          actTypes.find((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY) ||
+          actTypes.find((t) => t.key !== 'mahalla') ||
+          actTypes[0];
+      } else {
+        initial = actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
+      }
+    }
 
     // Cheklov: faqat agar ariza yangi bo'lsa (hali actType saqlanmagan bo'lsa) va tanlangan tur cheklangan bo'lsa,
     // yoki shartnomani bekor qilish dalolatnomasi bo'lsa (chunki u hech qachon ichki bo'la olmaydi)
-    const isStrictlyForbidden = effectiveDocType === 'cancelContract' && initial?.key === 'ichki';
+    const isStrictlyForbidden =
+      (effectiveDocType === 'cancelContract' && initial?.key === 'ichki') ||
+      (isOdamSoni && initial?.key === 'mahalla');
     if ((!saved || isStrictlyForbidden) && initial && getActTypeRestriction(initial).isDisabled && !ishtirokchilarDisabled) {
       initial =
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') ||
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki') ||
+        (isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === MAHALLA_2026_ACT_TYPE_KEY) : null) ||
+        (!isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') : null) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki' && (!isOdamSoni || t.key !== 'mahalla')) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && (!isOdamSoni || t.key !== 'mahalla')) ||
         initial;
     }
 
@@ -402,18 +429,26 @@ export default function PrintSection({
     return actTypes.find((t) => t._id === selectedActTypeId || t.key === selectedActTypeId) || actTypes[0];
   }, [actTypes, selectedActTypeId]);
 
+  const isMahalla2026Selected =
+    selectedActType?.key === MAHALLA_2026_ACT_TYPE_KEY ||
+    (effectiveDocType === 'odam_soni' && selectedActType?.key !== 'ichki');
+
   // Agar joriy tanlangan tur qoidalarga ko'ra cheklangan bo'lsa, avtomatik ravishda ruxsat berilgan turga o'tkazish
   useEffect(() => {
-    // Agar ariza avvaldan saqlangan bo'lsa, uni majburan almashtirmaymiz (faqat cancelContract ichki bo'lgan holat bundan mustasno)
+    const isOdamSoni = effectiveDocType === 'odam_soni';
+    // Agar ariza avvaldan saqlangan bo'lsa, uni majburan almashtirmaymiz (faqat cancelContract ichki bo'lgan yoki odam sonida eski mahalla bo'lgan holat bundan mustasno)
     const isSavedAsThis = (ariza?.actTypeId && selectedActType?._id === ariza.actTypeId) || (ariza?.actTypeKey && selectedActType?.key === ariza.actTypeKey);
-    const isStrictlyForbidden = effectiveDocType === 'cancelContract' && selectedActType?.key === 'ichki';
+    const isStrictlyForbidden =
+      (effectiveDocType === 'cancelContract' && selectedActType?.key === 'ichki') ||
+      (isOdamSoni && selectedActType?.key === 'mahalla');
     if (!selectedActType || ishtirokchilarDisabled || (isSavedAsThis && !isStrictlyForbidden)) return;
     const restriction = getActTypeRestriction(selectedActType);
-    if (restriction.isDisabled) {
+    if (restriction.isDisabled || (isOdamSoni && selectedActType.key === 'mahalla')) {
       const allowed =
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') ||
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki') ||
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled);
+        (isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === MAHALLA_2026_ACT_TYPE_KEY) : null) ||
+        (!isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') : null) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki' && (!isOdamSoni || t.key !== 'mahalla')) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && (!isOdamSoni || t.key !== 'mahalla'));
       if (allowed) {
         setSelectedActTypeId(allowed._id || allowed.key);
       }
@@ -658,8 +693,8 @@ export default function PrintSection({
           <Chip label="Tayyor" color="success" size="small" variant="filled" sx={{ fontWeight: 600, borderRadius: '6px' }} />
         </Card>
 
-        {/* Hujjat tarkibi (Chop etish rejimi) */}
-        {ariza?.document_type !== 'pul_kuchirish' && (
+        {/* Hujjat tarkibi (Chop etish rejimi) — yangi blankada ariza bo'lmagani uchun faqat boshqa shakllarda ko'rsatiladi */}
+        {ariza?.document_type !== 'pul_kuchirish' && !isMahalla2026Selected && (
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -857,11 +892,11 @@ export default function PrintSection({
             sx={{
               mb: 1.5,
               display: 'grid',
-              gridTemplateColumns: `repeat(${Math.min(Math.max(actTypes.length, 1), 4)}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${Math.min(Math.max(visibleActTypes.length, 1), 4)}, minmax(0, 1fr))`,
               gap: 1
             }}
           >
-            {actTypes.map((type) => {
+            {visibleActTypes.map((type) => {
               const id = type._id || type.key;
               const selected = (selectedActType?._id || selectedActType?.key) === id;
               const restriction = getActTypeRestriction(type);

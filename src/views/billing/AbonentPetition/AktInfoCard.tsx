@@ -40,6 +40,9 @@ export default function AktInfoCard() {
 
         <Stack spacing={1.2}>
           <InfoRow label={t('tableHeaders.accountNumber', 'Hisob raqami:')} value={ariza.licshet || '-'} isMonospace />
+          {ariza.ikkilamchi_licshet && (
+            <InfoRow label="Ikkilamchi hisob:" value={ariza.ikkilamchi_licshet} isMonospace />
+          )}
           <InfoRow label={t('tableHeaders.actStatus', 'Holati:')} customComponent={getActStatusChip(ariza.actStatus)} />
           <InfoRow
             label={t('recalculationDetailPage.inhabitantsAmount', 'Yashovchilar / Summa:')}

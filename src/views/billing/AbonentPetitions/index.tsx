@@ -33,6 +33,8 @@ function AbonentPetitions() {
   const statusParam = searchParams.get('status') || null;
   const searchParam = searchParams.get('search') || '';
   const selectedIdParam = searchParams.get('selectedId') || null;
+  const sortFieldParam = searchParams.get('sortField') || 'sana';
+  const sortDirectionParam = (searchParams.get('sortDirection') as 'asc' | 'desc') || 'desc';
 
   const {
     rows,
@@ -101,15 +103,22 @@ function AbonentPetitions() {
     let isMounted = true;
     setIsLoading(true);
 
-    const fromDate = dayjs(`${periodParam}-01`).startOf('month').toISOString();
-    const toDate = dayjs(`${periodParam}-01`).endOf('month').toISOString();
-
+    const isGlobalSearch = Boolean(searchParam.trim());
     const queryParams: any = {
       page: pageNum,
       limit,
-      created_from_date: fromDate,
-      created_to_date: toDate
+      sortField: sortFieldParam,
+      sortDirection: sortDirectionParam
     };
+
+    // Qidiruv bo'lmaganda va oy tanlanganda sanaga ko'ra filtrlanadi
+    // Agar qidiruv kiritilsa (searchParam), qaysi oyda qilinganini bilmaslik mumkin bo'lgani uchun barcha oylar bo'yicha qidiriladi
+    if (periodParam !== 'all' && !isGlobalSearch) {
+      const fromDate = dayjs(`${periodParam}-01`).startOf('month').toISOString();
+      const toDate = dayjs(`${periodParam}-01`).endOf('month').toISOString();
+      queryParams.created_from_date = fromDate;
+      queryParams.created_to_date = toDate;
+    }
 
     if (categoryParam) {
       queryParams.document_type = categoryParam;
@@ -120,14 +129,7 @@ function AbonentPetitions() {
     }
 
     if (searchParam.trim()) {
-      const cleanSearch = searchParam.trim();
-      if (!isNaN(Number(cleanSearch)) && cleanSearch.length >= 9) {
-        queryParams.account_number = cleanSearch;
-      } else if (!isNaN(Number(cleanSearch))) {
-        queryParams.document_number = cleanSearch;
-      } else {
-        queryParams.account_number = cleanSearch;
-      }
+      queryParams.search = searchParam.trim();
     }
 
     api
@@ -172,6 +174,8 @@ function AbonentPetitions() {
     categoryParam,
     statusParam,
     searchParam,
+    sortFieldParam,
+    sortDirectionParam,
     pageNum,
     limit,
     reloadState,
@@ -221,6 +225,11 @@ function AbonentPetitions() {
 
   const handleSearchChange = (query: string) => {
     updateQueryParams({ search: query || null, selectedId: null });
+    setPageNum(1);
+  };
+
+  const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
+    updateQueryParams({ sortField: field, sortDirection: direction });
     setPageNum(1);
   };
 
@@ -306,13 +315,12 @@ function AbonentPetitions() {
   );
 
   const handleUpdateFromTozamakon = useCallback(async () => {
-    const fromDate = dayjs(`${periodParam}-01`).startOf('month').toISOString();
-    const toDate = dayjs(`${periodParam}-01`).endOf('month').toISOString();
+    const params: any = {};
 
-    const params: any = {
-      created_from_date: fromDate,
-      created_to_date: toDate
-    };
+    if (periodParam !== 'all' && !searchParam.trim()) {
+      params.created_from_date = dayjs(`${periodParam}-01`).startOf('month').toISOString();
+      params.created_to_date = dayjs(`${periodParam}-01`).endOf('month').toISOString();
+    }
 
     if (categoryParam) {
       params.document_type = categoryParam;
@@ -326,14 +334,7 @@ function AbonentPetitions() {
     }
 
     if (searchParam.trim()) {
-      const cleanSearch = searchParam.trim();
-      if (!isNaN(Number(cleanSearch)) && cleanSearch.length >= 9) {
-        params.account_number = cleanSearch;
-      } else if (!isNaN(Number(cleanSearch))) {
-        params.document_number = cleanSearch;
-      } else {
-        params.account_number = cleanSearch;
-      }
+      params.search = searchParam.trim();
     }
 
     await updateFromTozamakon(params);
@@ -378,6 +379,8 @@ function AbonentPetitions() {
           onRefresh={reload}
           categoryLabel={categoryLabel}
           statusLabel={statusLabel}
+          searchQuery={searchParam}
+          onSearchChange={handleSearchChange}
         />
 
         {/* 2. Top Kanban Pipeline / Statistics Cards */}
@@ -419,6 +422,10 @@ function AbonentPetitions() {
             onUpdateFromTozamakon={handleUpdateFromTozamakon}
             searchQuery={searchParam}
             onSearchChange={handleSearchChange}
+            sortField={sortFieldParam}
+            sortDirection={sortDirectionParam}
+            onSortChange={handleSortChange}
+            isGlobalSearchActive={Boolean(searchParam.trim())}
           />
         )}
       </Stack>
