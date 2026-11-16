@@ -34,7 +34,7 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import TelegramIcon from '@mui/icons-material/Telegram';
 import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
@@ -46,6 +46,7 @@ export interface PhoneImportRowResult {
   fio?: string;
   mahallaName?: string;
   status: 'success' | 'failed';
+  failureReason?: string;
   message: string;
   tasksCompleted?: number;
   debitorUpdated?: boolean;
@@ -58,6 +59,12 @@ export interface PhoneImportSummary {
   failedCount: number;
   tasksCompletedCount: number;
   results: PhoneImportRowResult[];
+  telegramStatus?: {
+    sent: boolean;
+    recipientName?: string;
+    chatId?: number | string;
+    error?: string;
+  };
 }
 
 interface ImportPhonesModalProps {
@@ -72,6 +79,7 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [downloadingTemplate, setDownloadingTemplate] = useState<boolean>(false);
+  const [downloadingResult, setDownloadingResult] = useState<boolean>(false);
   const [importing, setImporting] = useState<boolean>(false);
   const [summary, setSummary] = useState<PhoneImportSummary | null>(null);
 
@@ -98,6 +106,29 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
       toast.error('Shablonni yuklab olishda xatolik yuz berdi');
     } finally {
       setDownloadingTemplate(false);
+    }
+  };
+
+  const handleDownloadResultExcel = async () => {
+    if (!summary) return;
+    try {
+      setDownloadingResult(true);
+      const response = await api.post('/abonents/import-phones/export-result', summary, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Telefonlar_import_natijasi_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      link.click();
+      toast.success('Natijaviy Excel fayl yuklab olindi!');
+    } catch (err: any) {
+      console.error('Natijalarni yuklab olishda xatolik:', err);
+      toast.error('Excel faylni yuklab olishda xatolik yuz berdi');
+    } finally {
+      setDownloadingResult(false);
     }
   };
 
@@ -204,9 +235,10 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
               '& .MuiAlert-message': { fontSize: '0.85rem', lineHeight: 1.5 }
             }}
           >
-            <b>TozaMakondan farqi:</b> Har bir telefon raqami Telegram botdagi kabi qat'iy tekshiruvdan (format, soxta va
-            dummy raqamlar filtri) o'tadi, Toza Makon serveriga sinxronlanadi, <b>debitor kartasi</b> "checking" (Umid bor) holatiga
-            o'tadi va ushbu abonentga tegishli <b>telefon topshiriqlari avtomatik yopiladi</b>.
+            <b>Telegram botdagidek qat'iy nazorat:</b> Bitta telefon raqami ko‘pi bilan 3 ta abonentga ulanishi mumkin
+            (3 tadan oshsa rad etiladi), soxta va dummy raqamlar filtrlanadi, Toza Makon serveriga sinxronlanadi,
+            <b> debitor kartasi</b> «checking» (Umid bor) holatiga o‘tadi va tegishli <b>telefon topshiriqlari avtomatik yopiladi</b>.
+            Natijaviy to‘liq hisobot avtomatik Telegramingizga yuboriladi.
           </Alert>
 
           {/* Yuqori bosqich: Shablon yuklab olish va Fayl tanlash */}
@@ -319,7 +351,7 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
                   <Box sx={{ width: '100%', mt: 1 }}>
                     <LinearProgress color="primary" sx={{ borderRadius: 1 }} />
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1, textAlign: 'center' }}>
-                      Telefon raqamlari tekshirilmoqda, Toza Makon va topshiriqlar yangilanmoqda. Iltimos, kuting...
+                      Telefon raqamlari tekshirilmoqda (limit: 3 ta, format, Toza Makon va topshiriqlar). Iltimos, kuting...
                     </Typography>
                   </Box>
                 )}
@@ -330,6 +362,27 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
           {/* Import yakunlangandagi natijalar va hisobot */}
           {summary && (
             <Stack spacing={2}>
+              {/* Telegramga yuborilganlik holati banneri */}
+              {summary.telegramStatus?.sent ? (
+                <Alert
+                  severity="success"
+                  icon={<TelegramIcon sx={{ fontSize: 24 }} />}
+                  sx={{ borderRadius: 2 }}
+                >
+                  To‘liq hisobot va rad etilganlar ro‘yxati bilan natijaviy Excel fayli Telegramingizga (
+                  <b>{summary.telegramStatus.recipientName}</b>) yuborildi ✅
+                </Alert>
+              ) : (
+                <Alert
+                  severity="warning"
+                  icon={<TelegramIcon sx={{ fontSize: 24 }} />}
+                  sx={{ borderRadius: 2 }}
+                >
+                  Telegram xabarnomasi: {summary.telegramStatus?.error || 'Telegram ID topilmadi'}. Natijaviy Excel faylni
+                  pastdagi tugma orqali yuklab olishingiz mumkin.
+                </Alert>
+              )}
+
               {/* KPI kartalari */}
               <Grid container spacing={1.5}>
                 <Grid size={{ xs: 6, sm: 3 }}>
@@ -408,7 +461,7 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
                     }}
                   >
                     <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 700 }}>
-                      Xatolik / Qabul qilinmadi
+                      Rad etildi (Xatolar)
                     </Typography>
                     <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: 'error.main' }}>
                       {summary.failedCount}
@@ -423,7 +476,7 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
                 spacing={1.5}
                 sx={{ alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between' }}
               >
-                <Stack direction="row" spacing={0.5}>
+                <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
                   <Chip
                     size="small"
                     label={`Barchasi (${summary.results.length})`}
@@ -554,16 +607,33 @@ export default function ImportPhonesModal({ open, onClose, onSuccess }: ImportPh
 
       <DialogActions sx={{ p: 2, px: 2.5 }}>
         {summary ? (
-          <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'space-between' }}>
-            <Button
-              variant="outlined"
-              color="inherit"
-              startIcon={<RefreshIcon />}
-              onClick={handleReset}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-            >
-              Yangi fayl yuklash
-            </Button>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            sx={{ width: '100%', justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' } }}
+          >
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                startIcon={<RefreshIcon />}
+                onClick={handleReset}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+              >
+                Yangi fayl yuklash
+              </Button>
+
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={downloadingResult ? <CircularProgress size={16} color="inherit" /> : <DownloadOutlinedIcon />}
+                disabled={downloadingResult}
+                onClick={handleDownloadResultExcel}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+              >
+                Natijalarni Excel yuklab olish (.xlsx)
+              </Button>
+            </Stack>
 
             <Button
               variant="contained"
