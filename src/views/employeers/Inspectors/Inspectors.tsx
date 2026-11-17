@@ -20,7 +20,16 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  Paper,
+  Badge
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
@@ -46,6 +55,9 @@ import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import PhoneIcon from '@mui/icons-material/Phone';
 import SyncIcon from '@mui/icons-material/Sync';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CircularProgress from '@mui/material/CircularProgress';
 
 // Internal Imports
@@ -79,6 +91,13 @@ interface InspectorRow {
   name: string;
   phone?: string | null;
   activ: boolean;
+  isBlocked?: boolean;
+  blockedAt?: string | null;
+  blockedReason?: string | null;
+  blockedBy?: string | null;
+  terminalId?: number | null;
+  terminalSerial?: string | null;
+  terminalCompanyId?: number | null;
   biriktirilgan: AttachedMahalla[];
   telegram_id?: number[];
   hasTelegram?: boolean;
@@ -100,6 +119,12 @@ function Inspectors(): React.JSX.Element {
   const { t } = useTranslation();
   const { customization, user } = useCustomizationStore();
   const isAdmin = Boolean(user?.roles?.includes('admin') || user?.roles?.includes('product_admin'));
+  const canManageBlocks = Boolean(
+    isAdmin ||
+    (user as any)?.canUnblockInspector ||
+    (user as any)?.canBlockInspector ||
+    user?.roles?.includes('rahbar')
+  );
   const isXsUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'));
 
   // State Management
@@ -122,6 +147,32 @@ function Inspectors(): React.JSX.Element {
   const [openEditPhoneModal, setOpenEditPhoneModal] = useState<boolean>(false);
   const [selectedInspectorForPhoneEdit, setSelectedInspectorForPhoneEdit] = useState<InspectorRow | null>(null);
   const [isSyncingPhones, setIsSyncingPhones] = useState<boolean>(false);
+  const [isSyncingTerminals, setIsSyncingTerminals] = useState<boolean>(false);
+
+  // Bloklash / Uchyotchik State
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked' | 'inactive'>('all');
+  const [openBlockDialog, setOpenBlockDialog] = useState<boolean>(false);
+  const [selectedInspectorForBlock, setSelectedInspectorForBlock] = useState<InspectorRow | null>(null);
+  const [blockReason, setBlockReason] = useState<string>("Yig‘ilishga kelmaganligi sababli");
+  const [customBlockReason, setCustomBlockReason] = useState<string>('');
+  const [nowTick, setNowTick] = useState<number>(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowTick(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getElapsedDuration = (blockedAt?: string | null) => {
+    if (!blockedAt) return '0 daqiqa';
+    const diffMs = Math.max(0, nowTick - new Date(blockedAt).getTime());
+    const totalMin = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMin / 60);
+    const mins = totalMin % 60;
+    if (hours > 0) {
+      return `${hours} soat ${mins} daqiqa`;
+    }
+    return `${mins} daqiqa`;
+  };
 
   // Search & Export State
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -136,31 +187,42 @@ function Inspectors(): React.JSX.Element {
     setExportAnchorEl(null);
   };
 
-  // Qidiruv bo'yicha filtrlangan qatorlar
+  // Statistika hisobi
+  const stats = useMemo(() => {
+    const total = rows.length;
+    const blocked = rows.filter((r) => r.isBlocked).length;
+    const active = rows.filter((r) => r.activ && !r.isBlocked).length;
+    const inactive = rows.filter((r) => !r.activ).length;
+    const withTelegram = rows.filter(
+      (r) => r.hasTelegram || (r.telegram_id && r.telegram_id.length > 0 && r.telegram_id[0])
+    ).length;
+    const freeMahallas = mahallalar.filter((m) => !m.biriktirilganNazoratchi?.inspactor_id).length;
+    return { total, active, blocked, inactive, withTelegram, freeMahallas };
+  }, [rows, mahallalar]);
+
+  // Status va Qidiruv bo'yicha filtrlangan qatorlar
   const filteredRows = useMemo(() => {
-    if (!searchQuery.trim()) return rows;
+    let result = rows;
+    if (statusFilter === 'active') {
+      result = result.filter((r) => r.activ && !r.isBlocked);
+    } else if (statusFilter === 'blocked') {
+      result = result.filter((r) => r.isBlocked);
+    } else if (statusFilter === 'inactive') {
+      result = result.filter((r) => !r.activ);
+    }
+
+    if (!searchQuery.trim()) return result;
     const q = searchQuery.trim().toLowerCase();
-    return rows.filter((row) => {
+    return result.filter((row) => {
       const nameMatch = row.name?.toLowerCase().includes(q);
       const idMatch = String(row.id).includes(q);
       const phoneMatch = row.phone ? String(row.phone).toLowerCase().includes(q) : false;
       const tgMatch = row.telegramUsername ? row.telegramUsername.toLowerCase().includes(q) : false;
       const mahallaMatch = row.biriktirilgan?.some((m) => m.mfy_name?.toLowerCase().includes(q));
-      return nameMatch || idMatch || phoneMatch || tgMatch || mahallaMatch;
+      const terminalMatch = row.terminalSerial ? row.terminalSerial.toLowerCase().includes(q) : false;
+      return nameMatch || idMatch || phoneMatch || tgMatch || mahallaMatch || terminalMatch;
     });
-  }, [rows, searchQuery]);
-
-  // Statistika hisobi
-  const stats = useMemo(() => {
-    const total = rows.length;
-    const active = rows.filter((r) => r.activ).length;
-    const inactive = total - active;
-    const withTelegram = rows.filter(
-      (r) => r.hasTelegram || (r.telegram_id && r.telegram_id.length > 0 && r.telegram_id[0])
-    ).length;
-    const freeMahallas = mahallalar.filter((m) => !m.biriktirilganNazoratchi?.inspactor_id).length;
-    return { total, active, inactive, withTelegram, freeMahallas };
-  }, [rows, mahallalar]);
+  }, [rows, statusFilter, searchQuery]);
 
   // Excelga eksport qilish funksiyasi
   const handleExportToExcel = (mode: 'all' | 'active' | 'inactive' | 'filtered' | 'unassigned' = 'all') => {
@@ -358,6 +420,13 @@ function Inspectors(): React.JSX.Element {
           name: row.name,
           phone: (row as any).phone || null,
           activ: row.activ,
+          isBlocked: Boolean((row as any).isBlocked),
+          blockedAt: (row as any).blockedAt || null,
+          blockedReason: (row as any).blockedReason || null,
+          blockedBy: (row as any).blockedBy || null,
+          terminalId: (row as any).terminalId || null,
+          terminalSerial: (row as any).terminalSerial || null,
+          terminalCompanyId: (row as any).terminalCompanyId || null,
           biriktirilgan: attached,
           telegram_id: row.telegram_id || [],
           hasTelegram: row.hasTelegram ?? Boolean(row.telegram_id && row.telegram_id.length > 0 && row.telegram_id[0]),
@@ -402,6 +471,79 @@ function Inspectors(): React.JSX.Element {
       toast.error(err?.response?.data?.message || 'Telefon raqamlarni sinxronlashda xatolik yuz berdi');
     } finally {
       setIsSyncingPhones(false);
+    }
+  };
+
+  const handleSyncTerminals = async () => {
+    try {
+      setIsSyncingTerminals(true);
+      const res = await api.post<{ ok: boolean; message: string; attachedCount?: number }>('/inspectors/sync-terminals');
+      if (res.data.ok) {
+        toast.success(res.data.message || 'Ekopay terminallari muvaffaqiyatli sinxronlandi!');
+        await updateData();
+      } else {
+        toast.error(res.data.message || 'Xatolik yuz berdi');
+      }
+    } catch (err: any) {
+      console.error('Error syncing terminals:', err);
+      toast.error(err?.response?.data?.message || err.message || 'Ekopay terminallarini sinxronlashda xatolik yuz berdi');
+    } finally {
+      setIsSyncingTerminals(false);
+    }
+  };
+
+  const handleUnblock = async (row: InspectorRow) => {
+    if (
+      !(await confirmDialog({
+        message: `${row.name}ni blokdan chiqarish va Ekopay terminalini (${row.terminalSerial || 'avvalgi terminal'}) qayta biriktirishni tasdiqlaysizmi?`,
+        confirmText: 'Blokdan chiqarish',
+        color: 'success'
+      }))
+    ) {
+      return;
+    }
+    try {
+      const res = await api.post(`/inspectors/${row.id}/unblock`);
+      if (res.data?.ok) {
+        toast.success(res.data.message || 'Nazoratchi muvaffaqiyatli blokdan chiqarildi!');
+        await updateData();
+      } else {
+        toast.error(res.data?.message || 'Xatolik yuz berdi');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Blokdan chiqarishda xatolik');
+    }
+  };
+
+  const handleOpenBlockDialog = (row: InspectorRow) => {
+    setSelectedInspectorForBlock(row);
+    setBlockReason("Yig‘ilishga kelmaganligi sababli");
+    setCustomBlockReason('');
+    setOpenBlockDialog(true);
+  };
+
+  const handleConfirmBlock = async () => {
+    if (!selectedInspectorForBlock) return;
+    const finalReason = blockReason === 'other' ? customBlockReason.trim() : blockReason;
+    if (!finalReason) {
+      toast.warn('Iltimos, bloklash sababini kiriting');
+      return;
+    }
+
+    try {
+      const res = await api.post(`/inspectors/${selectedInspectorForBlock.id}/block`, {
+        reason: finalReason
+      });
+      if (res.data?.ok) {
+        toast.success(`${selectedInspectorForBlock.name} vaqtincha bloklandi, terminali uzildi!`);
+        setOpenBlockDialog(false);
+        setSelectedInspectorForBlock(null);
+        await updateData();
+      } else {
+        toast.error(res.data?.message || 'Xatolik yuz berdi');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Bloklashda xatolik');
     }
   };
 
@@ -648,19 +790,158 @@ function Inspectors(): React.JSX.Element {
       });
     }
 
-    // Status ustunini oxiriga qo'shamiz
+    // 1. Holat (Status & Uchetchik) ustuni
+    baseColumns.push({
+      field: 'status',
+      headerName: 'Holati',
+      width: 175,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams<InspectorRow>) => {
+        const row = params.row;
+        if (row.isBlocked) {
+          const elapsed = getElapsedDuration(row.blockedAt);
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, py: 0.5 }}>
+              <Chip
+                icon={<LockIcon sx={{ fontSize: '13px !important' }} />}
+                label="Vaqtincha bloklangan"
+                color="error"
+                size="small"
+                sx={{ fontWeight: 700, fontSize: '0.725rem', height: 22 }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'error.main',
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.3
+                }}
+              >
+                <AccessTimeIcon sx={{ fontSize: 12 }} /> {elapsed}
+              </Typography>
+            </Box>
+          );
+        }
+        if (row.activ) {
+          return (
+            <Chip
+              label="Faol (Ishda)"
+              color="success"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: 600, fontSize: '0.75rem', height: 22 }}
+            />
+          );
+        }
+        return (
+          <Chip
+            label="Bo‘shatilgan / Nofaol"
+            size="small"
+            variant="outlined"
+            sx={{ fontWeight: 500, fontSize: '0.75rem', height: 22, color: 'text.secondary' }}
+          />
+        );
+      }
+    });
+
+    // 2. Intizom / Chiqish yo'li (Bloklash & Ochish)
+    baseColumns.push({
+      field: 'blockActions',
+      headerName: 'Intizom / Qulflash',
+      width: 175,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams<InspectorRow>) => {
+        const row = params.row;
+        if (!canManageBlocks) {
+          return (
+            <Typography variant="caption" color="text.secondary">
+              —
+            </Typography>
+          );
+        }
+
+        if (row.isBlocked) {
+          return (
+            <Button
+              variant="contained"
+              color="success"
+              size="small"
+              startIcon={<LockOpenIcon sx={{ fontSize: '15px !important' }} />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUnblock(row);
+              }}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                py: 0.25,
+                px: 1,
+                borderRadius: 1.5,
+                boxShadow: 1
+              }}
+            >
+              Ochish
+            </Button>
+          );
+        }
+
+        if (row.activ) {
+          return (
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              startIcon={<LockIcon sx={{ fontSize: '14px !important' }} />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenBlockDialog(row);
+              }}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                py: 0.25,
+                px: 1,
+                borderRadius: 1.5
+              }}
+            >
+              Bloklash
+            </Button>
+          );
+        }
+
+        return (
+          <Typography variant="caption" color="text.secondary">
+            Nofaol
+          </Typography>
+        );
+      }
+    });
+
+    // 3. Shtat (activ) faollik switchi
     baseColumns.push({
       field: 'activ',
-      headerName: t('tableHeaders.status'),
-      width: 90,
+      headerName: 'Shtat',
+      width: 75,
       sortable: false,
       renderCell: (params: GridRenderCellParams<InspectorRow>) => (
-        <Switch checked={params.row.activ} onChange={() => handleClickSwitch(params.row.id)} size="small" />
+        <Tooltip title={params.row.activ ? 'Xodimni ishdan bo‘shatish / nofaol qilish' : 'Xodimni qayta faollashtirish'}>
+          <Switch
+            checked={params.row.activ}
+            onChange={() => handleClickSwitch(params.row.id)}
+            size="small"
+            disabled={!isAdmin}
+          />
+        </Tooltip>
       )
     });
 
     return baseColumns;
-  }, [maxMahallaCount, t, isDark, rows, isAdmin]);
+  }, [maxMahallaCount, t, isDark, rows, isAdmin, canManageBlocks, nowTick]);
 
   return (
     <MainCard contentSX={{ height: '100%' }}>
@@ -710,6 +991,49 @@ function Inspectors(): React.JSX.Element {
         updateData={updateData}
       />
 
+      {/* Vaqtincha bloklash dialogi */}
+      <Dialog open={openBlockDialog} onClose={() => setOpenBlockDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, color: 'error.main' }}>
+          <LockIcon /> Nazoratchini vaqtincha bloklash
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            <b>{selectedInspectorForBlock?.name}</b> faoliyati vaqtincha to‘xtatiladi, Ekopaydagi termoprinteri uziladi va bot cheklanadi.
+          </Typography>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="block-reason-label">Bloklash sababi</InputLabel>
+            <Select
+              labelId="block-reason-label"
+              value={blockReason}
+              label="Bloklash sababi"
+              onChange={(e) => setBlockReason(e.target.value)}
+            >
+              <MenuItem value="Yig‘ilishga kelmaganligi sababli">Yig‘ilishga kelmaganligi sababli</MenuItem>
+              <MenuItem value="Kunlik minimum 5 ta kodni bajarmaganligi sababli">Kunlik reja bajarilmaganligi sababli</MenuItem>
+              <MenuItem value="Intizomiy chora / Rahbariyat talabi">Intizomiy chora / Rahbariyat talabi</MenuItem>
+              <MenuItem value="other">Boshqa sabab (qo‘lda yozish)</MenuItem>
+            </Select>
+          </FormControl>
+          {blockReason === 'other' && (
+            <TextField
+              fullWidth
+              autoFocus
+              label="Sababni batafsil yozing"
+              value={customBlockReason}
+              onChange={(e) => setCustomBlockReason(e.target.value)}
+            />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenBlockDialog(false)} color="inherit">
+            Bekor qilish
+          </Button>
+          <Button onClick={handleConfirmBlock} variant="contained" color="error">
+            Bloklash 🔐
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Grid container spacing={2}>
         {/* Actions panel */}
         <Grid size={{ xs: 12 }}>
@@ -750,6 +1074,18 @@ function Inspectors(): React.JSX.Element {
                   sx={{ textTransform: 'none', fontWeight: 600 }}
                 >
                   {isXsUp ? 'TozaMakondan sinxronlash' : 'Sinxronlash'}
+                </Button>
+              </Tooltip>
+              <Tooltip title="Ekopay.uz tizimidan biriktirilgan terminallarni sinxronlash">
+                <Button
+                  color="warning"
+                  onClick={handleSyncTerminals}
+                  variant="outlined"
+                  disabled={isSyncingTerminals}
+                  startIcon={isSyncingTerminals ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                >
+                  {isXsUp ? 'Ekopay terminallarini sinxronlash' : 'Ekopay sync'}
                 </Button>
               </Tooltip>
 
@@ -898,6 +1234,47 @@ function Inspectors(): React.JSX.Element {
                 />
               )}
             </Box>
+          </Box>
+        </Grid>
+
+        {/* Tezkor holat filtrlari (Status Filters & Uchyotchik) */}
+        <Grid size={{ xs: 12 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', pt: 0.5, pb: 0.5 }}>
+            <Chip
+              label={`Barchasi (${stats.total})`}
+              color={statusFilter === 'all' ? 'primary' : 'default'}
+              variant={statusFilter === 'all' ? 'filled' : 'outlined'}
+              onClick={() => setStatusFilter('all')}
+              sx={{ fontWeight: 600, cursor: 'pointer' }}
+            />
+            <Chip
+              label={`🟢 Faol (${stats.active})`}
+              color={statusFilter === 'active' ? 'success' : 'default'}
+              variant={statusFilter === 'active' ? 'filled' : 'outlined'}
+              onClick={() => setStatusFilter('active')}
+              sx={{ fontWeight: 600, cursor: 'pointer' }}
+            />
+            <Badge badgeContent={stats.blocked} color="error" invisible={stats.blocked === 0}>
+              <Chip
+                icon={<LockIcon sx={{ fontSize: '15px !important' }} />}
+                label={`🔐 Vaqtincha bloklangan (${stats.blocked})`}
+                color={stats.blocked > 0 ? 'error' : statusFilter === 'blocked' ? 'error' : 'default'}
+                variant={statusFilter === 'blocked' ? 'filled' : 'outlined'}
+                onClick={() => setStatusFilter('blocked')}
+                sx={{
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  ...(stats.blocked > 0 && statusFilter !== 'blocked' ? { borderColor: 'error.main', color: 'error.main' } : {})
+                }}
+              />
+            </Badge>
+            <Chip
+              label={`⚪ Bo‘shatilgan / Nofaol (${stats.inactive})`}
+              color={statusFilter === 'inactive' ? 'default' : 'default'}
+              variant={statusFilter === 'inactive' ? 'filled' : 'outlined'}
+              onClick={() => setStatusFilter('inactive')}
+              sx={{ fontWeight: 600, cursor: 'pointer' }}
+            />
           </Box>
         </Grid>
 

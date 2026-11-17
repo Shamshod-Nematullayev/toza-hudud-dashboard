@@ -31,7 +31,8 @@ import {
   TextField,
   Tooltip,
   Typography,
-  useTheme
+  useTheme,
+  alpha
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -59,6 +60,8 @@ interface UserData {
   email?: string;
   telegramUsername?: string | null;
   telegramLinkedAt?: string | null;
+  canUnblockInspector?: boolean;
+  canBlockInspector?: boolean;
 }
 
 interface TelegramLinkState {
@@ -93,11 +96,20 @@ const initialUserState: UserData = {
   roles: [],
   pnfl: '',
   isTestUser: false,
-  email: ''
+  email: '',
+  canUnblockInspector: false,
+  canBlockInspector: false,
 };
 
 export default function Users() {
   const theme = useTheme();
+  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+  let currentUser: any = null;
+  try {
+    currentUser = userStr ? JSON.parse(userStr) : null;
+  } catch (e) {}
+  const isProductAdmin = Boolean(currentUser?.roles?.includes('product_admin'));
+
   const [users, setUsers] = useState<UserData[]>([]);
   const [companies, setCompanies] = useState<CompanyItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +121,7 @@ export default function Users() {
   const handleCreateTelegramLink = async (user: UserData) => {
     setTgLink({ user, loading: true });
     try {
-      const { data } = await api.post(`/product-admin/users/${user._id}/telegram-link`);
+      const { data } = await api.post(`/staff/users/${user._id}/telegram-link`);
       setTgLink({ user, loading: false, linkUrl: data.linkUrl, expiresAt: data.expiresAt });
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || 'Havola yaratishda xatolik');
@@ -133,12 +145,31 @@ export default function Users() {
     fetchData();
   };
 
+  const handleToggleCanBlock = async (targetUser: UserData, checked: boolean) => {
+    try {
+      await api.put(`/staff/users/${targetUser._id}`, {
+        canUnblockInspector: checked,
+        canBlockInspector: checked,
+      });
+      setUsers((prev) =>
+        prev.map((u) =>
+          u._id === targetUser._id ? { ...u, canUnblockInspector: checked, canBlockInspector: checked } : u
+        )
+      );
+      toast.success(
+        `${targetUser.fullName} uchun nazoratchilarni bloklash huquqi ${checked ? 'berildi' : 'olib tashlandi'}`
+      );
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Huquqni o‘zgartirishda xatolik');
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
       const [usersRes, companiesRes] = await Promise.all([
-        api.get('/product-admin/users'),
-        api.get('/product-admin/companies').catch(() => api.get('/auth/companies'))
+        api.get('/staff/users'),
+        api.get('/staff/companies').catch(() => api.get('/auth/companies'))
       ]);
       if (usersRes.data.ok) {
         setUsers(usersRes.data.data || []);
@@ -183,7 +214,7 @@ export default function Users() {
       return;
     }
     try {
-      const { data } = await api.delete(`/product-admin/users/${user._id}`);
+      const { data } = await api.delete(`/staff/users/${user._id}`);
       if (data.ok) {
         toast.success("Foydalanuvchi muvaffaqiyatli o'chirildi");
         fetchData();
@@ -204,9 +235,12 @@ export default function Users() {
       if (!submitData.password) {
         delete submitData.password; // Do not send empty password on edit
       }
+      if (!isProductAdmin && currentUser?.companyId) {
+        submitData.companyId = currentUser.companyId;
+      }
 
       if (editingUser) {
-        const { data } = await api.put(`/product-admin/users/${editingUser._id}`, submitData);
+        const { data } = await api.put(`/staff/users/${editingUser._id}`, submitData);
         if (data.ok) {
           toast.success("Foydalanuvchi muvaffaqiyatli tahrirlandi");
           fetchData();
@@ -217,7 +251,7 @@ export default function Users() {
           toast.error("Yangi foydalanuvchi uchun parol kiritilishi shart");
           return;
         }
-        const { data } = await api.post('/product-admin/users', submitData);
+        const { data } = await api.post('/staff/users', submitData);
         if (data.ok) {
           toast.success("Foydalanuvchi muvaffaqiyatli yaratildi");
           fetchData();
@@ -257,22 +291,23 @@ export default function Users() {
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>F.I.Sh</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Login</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Tashkilot</TableCell>
+                {isProductAdmin && <TableCell sx={{ fontWeight: 700 }}>Tashkilot</TableCell>}
                 <TableCell sx={{ fontWeight: 700 }}>Rollar</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>PNFL / Email</TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="center">Nazoratchilarni bloklash</TableCell>
                 <TableCell sx={{ fontWeight: 700 }} align="right">Amallar</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={isProductAdmin ? 7 : 6} align="center" sx={{ py: 3 }}>
                     Yuklanmoqda...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={isProductAdmin ? 7 : 6} align="center" sx={{ py: 3 }}>
                     Foydalanuvchilar topilmadi
                   </TableCell>
                 </TableRow>
@@ -309,9 +344,11 @@ export default function Users() {
                       </Box>
                     </TableCell>
                     <TableCell>{user.login}</TableCell>
-                    <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {getCompanyName(user.companyId)}
-                    </TableCell>
+                    {isProductAdmin && (
+                      <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {getCompanyName(user.companyId)}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Box sx={{ display: 'flex', flexDirection: 'row', gap: 0.5, flexWrap: 'wrap' }}>
                         {user.roles.map((role) => (
@@ -338,6 +375,22 @@ export default function Users() {
                           </Typography>
                         </Box>
                       )}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Tooltip
+                        title={
+                          user.canUnblockInspector || user.canBlockInspector
+                            ? 'Nazoratchilarni bloklash va ochish huquqi faol'
+                            : 'Huquq yo‘q (yoqish uchun bosing)'
+                        }
+                      >
+                        <Switch
+                          size="small"
+                          color="warning"
+                          checked={Boolean(user.canUnblockInspector || user.canBlockInspector)}
+                          onChange={(e) => handleToggleCanBlock(user, e.target.checked)}
+                        />
+                      </Tooltip>
                     </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Telegramni ulash havolasini yaratish">
@@ -454,29 +507,78 @@ export default function Users() {
                   }}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
-                <FormControl fullWidth required>
-                  <InputLabel id="company-select-label">Tashkilot</InputLabel>
-                  <Select
-                    labelId="company-select-label"
-                    value={form.companyId ? form.companyId : ''}
-                    label="Tashkilot"
-                    required
-                    onChange={(e) => setForm({ ...form, companyId: Number(e.target.value) })}
-                  >
-                    {companies.length === 0 ? (
-                      <MenuItem value="" disabled>
-                        Tashkilotlar mavjud emas
-                      </MenuItem>
-                    ) : (
-                      companies.map((c) => (
-                        <MenuItem key={c.id} value={c.id}>
-                          {c.name} (ID: {c.id})
+              {isProductAdmin ? (
+                <Grid size={{ xs: 12 }}>
+                  <FormControl fullWidth required>
+                    <InputLabel id="company-select-label">Tashkilot</InputLabel>
+                    <Select
+                      labelId="company-select-label"
+                      value={form.companyId ? form.companyId : ''}
+                      label="Tashkilot"
+                      required
+                      onChange={(e) => setForm({ ...form, companyId: Number(e.target.value) })}
+                    >
+                      {companies.length === 0 ? (
+                        <MenuItem value="" disabled>
+                          Tashkilotlar mavjud emas
                         </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                </FormControl>
+                      ) : (
+                        companies.map((c) => (
+                          <MenuItem key={c.id} value={c.id}>
+                            {c.name} (ID: {c.id})
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              ) : (
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    label="Tashkilot"
+                    disabled
+                    value={companies[0]?.name || `Tashkilot ID: ${currentUser?.companyId || ''}`}
+                  />
+                </Grid>
+              )}
+
+              <Grid size={{ xs: 12 }}>
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: (theme) => alpha(theme.palette.warning.main, 0.05),
+                    borderColor: 'warning.light'
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        color="warning"
+                        checked={Boolean(form.canUnblockInspector || form.canBlockInspector)}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            canUnblockInspector: e.target.checked,
+                            canBlockInspector: e.target.checked
+                          })
+                        }
+                      />
+                    }
+                    label={
+                      <Box sx={{ ml: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                          Nazoratchilarni bloklash va ochish huquqi (can block inspectors)
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                          Ushbu xodim yig‘ilishga kelmagan yoki intizom buzgan nazoratchilarni vaqtincha bloklash va blokdan chiqarish vakolatiga ega bo‘ladi.
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </Paper>
               </Grid>
 
               <Grid size={{ xs: 12 }}>

@@ -123,7 +123,7 @@ const DocumentRenderer = ({
   const docType = ariza?.document_type;
   const useMahalla2026Blank =
     actTypeKey === MAHALLA_2026_ACT_TYPE_KEY ||
-    (docType === 'odam_soni' && actTypeKey !== 'ichki');
+    ((docType === 'odam_soni' || docType === 'dvaynik') && actTypeKey !== 'ichki');
 
   const commonProps = {
     date: new Date(ariza.sana),

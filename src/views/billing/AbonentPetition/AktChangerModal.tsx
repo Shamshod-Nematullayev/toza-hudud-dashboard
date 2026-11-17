@@ -235,6 +235,17 @@ function AktChangerModal({ onClose }: AktChangerModalProps) {
                   </Typography>
                 </Grid>
 
+                {isDvaynik && (
+                  <Grid size={{ xs: 6, sm: 3 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                      Balansni 0 qilish akti ID:
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
+                      #{ariza?.balance_akt_id || ariza?.balance_akt_info?.id || '-'}
+                    </Typography>
+                  </Grid>
+                )}
+
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                     Akt holati:

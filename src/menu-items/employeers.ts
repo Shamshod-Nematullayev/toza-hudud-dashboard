@@ -1,9 +1,9 @@
 //assets
-import { Checklist, LocationCity, Telegram } from '@mui/icons-material';
+import { Checklist, LocationCity, Telegram, ManageAccounts } from '@mui/icons-material';
 import BadgeIcon from '@mui/icons-material/BadgeOutlined';
 import { MenuItem } from 'menu-items';
 //contans
-const icons = { BadgeIcon, Checklist, LocationCity, Telegram };
+const icons = { BadgeIcon, Checklist, LocationCity, Telegram, ManageAccounts };
 // ==============================|| EMPLOYEERS MENU ITEMS ||============================== //
 
 const employeers: MenuItem = {
@@ -20,6 +20,15 @@ const employeers: MenuItem = {
       icon: icons.BadgeIcon,
       breadcrumbs: false,
       allowedRoles: ['admin', 'billing', 'rahbar', 'product_admin']
+    },
+    {
+      id: 'staff',
+      title: 'staff',
+      type: 'item',
+      url: '/employeers/staff',
+      icon: icons.ManageAccounts,
+      breadcrumbs: false,
+      allowedRoles: ['admin', 'product_admin']
     },
     {
       id: 'mahallas',

@@ -1,35 +1,9 @@
-import { lotinga } from 'helpers/lotinKiril';
-import fullNameToShortName from 'views/tools/fullNameToShortName';
-import styled from 'styled-components';
 import React from 'react';
-import { formatName, oylar } from '../PrintSection';
 import { QRSection } from '../DocumentComponents/QRSection';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
-import { ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import useCustomizationStore from 'store/customizationStore';
 import MahallaDalolatnoma2026 from './MahallaDalolatnoma2026';
-import { formatParticipantsText } from '../participantResolver';
-
-const StyledTable = styled.table`
-  margin: auto;
-  width: 100%;
-  border-collapse: collapse;
-
-  th,
-  td {
-    padding: 8px 10px;
-    border: 1px solid #000;
-    text-align: left;
-    font-size: 14px;
-  }
-
-  th {
-    background-color: #f5f5f5;
-    font-weight: bold;
-    text-align: center;
-  }
-`;
 
 function Dvaynik({
   date,
@@ -47,7 +21,6 @@ function Dvaynik({
   moneyTransferAmount,
   shouldBeMoneyTransfer,
   participants,
-  useMahalla2026Blank = false
 }: {
   date: Date;
   abonentData: any;
@@ -67,10 +40,9 @@ function Dvaynik({
   moneyTransferAmount?: number | string;
   shouldBeMoneyTransfer?: boolean;
   participants?: any[];
-  /** Tajriba: dalolatnoma sahifasini 2026-yilgi yangi mahalla blankasida chiqarish */
   useMahalla2026Blank?: boolean;
 }) {
-  const { customization, company, user } = useCustomizationStore();
+  const { customization } = useCustomizationStore();
 
   // Vakillik mantiqini aniqlash
   const isRelative = !!vakil?.fullName;
@@ -85,7 +57,7 @@ function Dvaynik({
   // 1-Qoida: Ismlar har xil bo'lsa qarindoshlik
   const hasDifferentNames = abonentData?.fullName && abonentData2?.fullName && abonentData.fullName !== abonentData2.fullName;
 
-  // Dinamik ariza matni (1-sahifa)
+  // Dinamik ariza matni (1-sahifa: abonent murojaati)
   const renderArizaText = () => {
     let moneyText = '';
     if (isTransferEnabled && transferAmt > 0) {
@@ -107,62 +79,10 @@ function Dvaynik({
     return `Shuni yozib ma’lum qilamanki, mening nomimdagi ${abonentData2.accountNumber}-sonli ikkilamchi hisob raqamimni haqiqiy ${abonentData.accountNumber}-sonli asosiy hisob raqamimga dalolatnoma asosida birlashtirib, ${moneyText}ikkilamchi hisob raqamimni yagona billing tizimidan o‘chirib berishingizni so‘rayman.`;
   };
 
-  // Dinamik dalolatnoma xulosa matni (2-sahifa)
-  const renderDalolatnomaConclusion = () => {
-    let transferClause = '';
-    if (isTransferEnabled && transferAmt > 0) {
-      transferClause = `yagona elektron tizimda ikkilamchi (${abonentData2.accountNumber}) hisob raqamiga to‘langan jami ${transferAmt.toLocaleString()} so‘m miqdoridagi to‘lovlarni haqiqiy (${abonentData.accountNumber}) hisob raqamga o‘tkazish (ko‘chirish), `;
-    } else if (isTransferEnabled) {
-      transferClause = `yagona elektron tizimda ikkilamchi hisob raqamga tushgan to‘lovlarni haqiqiy hisob raqamga o‘tkazish, `;
-    } else {
-      transferClause = `ikkilamchi hisob raqamda to‘lovlar mavjud bo‘lmaganligi sababli to‘lov ko‘chirishsiz, `;
-    }
-
-    const inhabitantClause =
-      nextPrescribedCnt !== currentPrescribedCnt ? `yashovchilar sonini ${nextPrescribedCnt} kishiga to‘g‘rilash, ` : '';
-
-    return `Ushbu abonentlar bitta xonadonga tegishli ${rel ? `(o‘zaro ${rel.toLowerCase()}) ` : ''}ikkilamchi hisob raqam bo‘lganligi sababli, ${transferClause}${inhabitantClause}yagona elektron axborot tizimidan ikkilamchi (${abonentData2.accountNumber}) hisob raqamli abonentni butunlay o‘chirishni maqsadga muvofiq deb hisoblaymiz.`;
-  };
-
-  // Ishtirokchilar matni (agar mavjud bo'lsa dinamik, aks holda fallback)
-  const activeParticipants = (participants || []).filter((p: any) => !p.isExcluded);
-  const hasMahallaStaff = activeParticipants.some((p: any) => p.key === 'mahalla_raisi' || p.key === 'mahalla_yettiligi');
-
-  const renderParticipantsIntro = () => {
-    if (activeParticipants.length > 0) {
-      const pText = formatParticipantsText(participants);
-      const sourceText = hasMahallaStaff
-        ? 'MFY ro‘yxatini va xonadon ma’lumotlarini o‘rganish natijasida'
-        : 'Murojaat va korxona ma’lumotlar bazasini o‘rganish natijasida';
-
-      return `Biz quyidagi imzo chekuvchilar: ${pText}lar mazkur dalolatnomani shu haqida tuzdik. ${sourceText} quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:`;
-    }
-
-    // Fallback: agar participants uzatilmagan bo'lsa
-    const isIchki = ariza?.actTypeKey === 'ichki' || customization.mfyRaisiIshtirok === false;
-    if (isIchki) {
-      const staffName = fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName);
-      const managerName = fullNameToShortName(company?.managerName || company?.manager?.fullName);
-      const parts = [
-        managerName ? `${company?.name || ''} ${company?.locationName || ''} filial rahbari ${managerName}`.trim() : '',
-        `Abonentlar bilan ishlash bo‘limi xodimi ${staffName}`,
-        `Fuqaro ${formatName(abonentData?.fullName)}`
-      ].filter(Boolean);
-
-      return `Biz quyidagi imzo chekuvchilar: ${parts.join(', ')}lar mazkur dalolatnomani shu haqida tuzdik. Murojaat va korxona ma’lumotlar bazasini o‘rganish natijasida quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:`;
-    }
-
-    return `Biz quyidagi imzo chekuvchilar, ${company?.locationName}, ${lotinga(mahalla?.data?.name)} MFY raisi ${fullNameToShortName(
-      mahalla?.data?.mfy_rais_name
-    )}, Abonentlar bilan ishlash bo‘limi xodimi ${fullNameToShortName(
-      ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName
-    )} mazkur dalolatnomani shu haqida tuzdik. MFY ro‘yxatini o‘rganish natijasida quyidagi abonentlar bitta xonadonga tegishli ekanligi aniqlandi:`;
-  };
-
   return (
     <>
-      {/* 1-SAHIFA: ARIZA (Yangi blankada ariza bo'lmaydi) */}
-      {!useMahalla2026Blank && customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {/* 1-SAHIFA: ARIZA (Abonent murojaati) */}
+      {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <ArizaHeading abonentData={abonentData} participants={participants} vakil={vakil} />
@@ -181,8 +101,8 @@ function Dvaynik({
         </div>
       )}
 
-      {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
-      {useMahalla2026Blank && (
+      {/* 2-SAHIFA: DALOLATNOMA (Yangi mahalla blankasi) */}
+      {customization.documentVariantOdamSoni !== 'ariza' && (
         <MahallaDalolatnoma2026
           date={date}
           ariza={ariza}
@@ -197,94 +117,6 @@ function Dvaynik({
           asoslantiruvchi={asoslantiruvchi}
           participants={participants}
         />
-      )}
-
-      {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariantOdamSoni !== 'ariza' && !useMahalla2026Blank && (
-        <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
-          <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <p style={{ textAlign: 'center', fontSize: '18px', margin: '15px 0' }}>
-            <b>DALOLATNOMA</b>
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              lineHeight: '40px',
-              marginBottom: '10px'
-            }}
-          >
-            <div>
-              "{date.getDate()}" {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
-            </div>
-            <div>{mahalla?.company?.locationName}</div>
-          </div>
-          <p
-            style={{
-              textAlign: 'justify',
-              textIndent: '40px',
-              lineHeight: '28px',
-              marginBottom: '15px'
-            }}
-          >
-            {renderParticipantsIntro()}
-          </p>
-
-          <StyledTable>
-            <thead>
-              <tr>
-                <th>Haqiqiy hisob raqam</th>
-                <th>Asosiy abonent F.I.Sh.</th>
-                <th>Ikkilamchi hisob raqam</th>
-                <th>Ikkilamchi abonent F.I.Sh.</th>
-                {rel && <th>Aloqasi / Qarindoshlik</th>}
-                {isTransferEnabled && transferAmt > 0 && <th>Ko‘chiriladigan to‘lovlar summasi</th>}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ fontWeight: 'bold', textAlign: 'center' }}>{abonentData.accountNumber}</td>
-                <td>{abonentData.fullName}</td>
-                <td style={{ fontWeight: 'bold', textAlign: 'center' }}>{abonentData2.accountNumber}</td>
-                <td>{abonentData2.fullName}</td>
-                {rel && <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{rel}</td>}
-                {isTransferEnabled && transferAmt > 0 && (
-                  <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{transferAmt.toLocaleString()} so‘m</td>
-                )}
-              </tr>
-            </tbody>
-          </StyledTable>
-
-          {asoslantiruvchi && (
-            <p style={{ textAlign: 'justify', textIndent: '40px', fontStyle: 'italic', marginTop: '12px' }}>{asoslantiruvchi}</p>
-          )}
-
-          <p
-            style={{
-              textAlign: 'justify',
-              textIndent: '40px',
-              lineHeight: '30px',
-              marginTop: '15px',
-              marginBottom: '20px'
-            }}
-          >
-            {renderDalolatnomaConclusion()}
-          </p>
-
-          {/* IMZOLAR BO'LIMI */}
-          <ImzolashJoyi
-            mahalla={mahalla}
-            abonentData={{ ...abonentData, fullName: currentApplicant }}
-            mahalla2={mahalla2}
-            documentType={documentType}
-            ariza={ariza}
-            participants={participants}
-          />
-
-          <div style={{ marginTop: '20px' }}>
-            <QRSection ariza={ariza} date={date} />
-          </div>
-        </div>
       )}
     </>
   );

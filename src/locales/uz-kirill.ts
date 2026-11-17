@@ -62,6 +62,7 @@ const uzKirill: typeof uz = {
   documentNumber: 'Ҳужжат рақами',
   menuItems: {
     employeers: 'Ходимлар',
+    staff: 'Ходимлар ва ҳуқуқлар',
     inspectors: 'Назоратчилар',
     tasks: 'Топшириқлар',
     workspace: 'Иш майдони',

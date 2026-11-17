@@ -746,22 +746,22 @@ export default function ElectricityControl() {
               elevation={0}
               sx={{
                 ...cardSx,
-                borderColor: blockedList.length > 0 ? theme.palette.error.main : theme.palette.divider,
-                bgcolor: blockedList.length > 0 ? alpha(theme.palette.error.main, 0.02) : theme.palette.background.paper
+                borderColor: blockedList.length > 0 ? theme.palette.warning.main : theme.palette.divider,
+                bgcolor: blockedList.length > 0 ? alpha(theme.palette.warning.main, 0.04) : theme.palette.background.paper
               }}
             >
               <CardContent sx={{ p: 2.5 }}>
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
                   <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                     <Box
                       sx={{
-                        p: 1,
+                        p: 1.25,
                         borderRadius: 2,
                         bgcolor: alpha(
-                          blockedList.length > 0 ? theme.palette.error.main : theme.palette.success.main,
+                          blockedList.length > 0 ? theme.palette.error.main : theme.palette.primary.main,
                           theme.palette.mode === 'dark' ? 0.2 : 0.12
                         ),
-                        color: blockedList.length > 0 ? theme.palette.error.main : theme.palette.success.main,
+                        color: blockedList.length > 0 ? theme.palette.error.main : theme.palette.primary.main,
                         display: 'flex'
                       }}
                     >
@@ -770,108 +770,31 @@ export default function ElectricityControl() {
                     <Box>
                       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                          Bloklangan nazoratchilar (Uchetchik)
+                          Nazoratchilarni bloklash va uchyotchik nazorati
                         </Typography>
-                        <Chip
-                          size="small"
-                          label={`${blockedList.length} nafar`}
-                          color={blockedList.length > 0 ? 'error' : 'default'}
-                          sx={{ fontWeight: 700 }}
-                        />
+                        {blockedList.length > 0 && (
+                          <Chip
+                            size="small"
+                            label={`${blockedList.length} nafar bloklangan`}
+                            color="error"
+                            sx={{ fontWeight: 700 }}
+                          />
+                        )}
                       </Stack>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                        Yig‘ilishga kelmagani sababli termoprinteri va Telegram boti to‘xtatilgan xodimlar hisobi
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                        Inspektorlar bilan bog‘liq barcha amallar, intizomiy qulflash, uchyotchik hisobi va terminallarni qayta biriktirish <b>Nazoratchilar sahifasiga</b> birlashtirildi.
                       </Typography>
                     </Box>
                   </Stack>
-                  <Stack direction="row" spacing={1}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      color="inherit"
-                      startIcon={syncingTerminals ? <CircularProgress size={16} color="inherit" /> : <SyncOutlined />}
-                      onClick={handleSyncTerminals}
-                      disabled={syncingTerminals}
-                      sx={{ textTransform: 'none', fontWeight: 600 }}
-                    >
-                      Ekopay terminallarini sinxronlash
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      color="inherit"
-                      startIcon={loadingBlocked ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
-                      onClick={fetchBlocked}
-                      disabled={loadingBlocked}
-                      sx={{ textTransform: 'none', fontWeight: 600 }}
-                    >
-                      Yangilash
-                    </Button>
-                  </Stack>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate('/employeers/inspectors')}
+                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, px: 2.5 }}
+                  >
+                    Nazoratchilar sahifasiga o‘tish →
+                  </Button>
                 </Stack>
-
-                {blockedList.length === 0 ? (
-                  <Alert severity="success" sx={{ py: 1 }}>
-                    Hozirda bloklangan nazoratchi yo‘q. Barcha inspektorlar faol holatda.
-                  </Alert>
-                ) : (
-                  <TableContainer sx={{ border: '1px solid', borderColor: theme.palette.divider, borderRadius: 2 }}>
-                    <Table size="small">
-                      <TableHead sx={{ bgcolor: theme.palette.action.hover }}>
-                        <TableRow>
-                          <TableCell sx={{ width: 48, fontWeight: 700 }}>№</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Nazoratchi</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Terminal seriyasi</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Qachon bloklandi</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>O‘tgan vaqt (Uchetchik)</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Sababi</TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>Bloklagan mas’ul</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 700 }}>Amal</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {blockedList.map((item, idx) => (
-                          <TableRow key={item._id} hover>
-                            <TableCell>{idx + 1}</TableCell>
-                            <TableCell sx={{ fontWeight: 600 }}>{item.inspectorName}</TableCell>
-                            <TableCell>
-                              {item.terminalSerial ? (
-                                <Chip size="small" variant="outlined" label={item.terminalSerial} sx={{ fontFamily: 'monospace' }} />
-                              ) : (
-                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Biriktirilmagan</Typography>
-                              )}
-                            </TableCell>
-                            <TableCell>{dayjs(item.blockedAt).format('DD.MM.YYYY HH:mm')}</TableCell>
-                            <TableCell>
-                              <Chip
-                                size="small"
-                                color="error"
-                                icon={<AccessTimeIcon />}
-                                label={item.elapsedFormatted}
-                                sx={{ fontWeight: 700 }}
-                              />
-                            </TableCell>
-                            <TableCell sx={{ color: 'text.secondary' }}>{item.reason || 'Yig‘ilishga kelmagan'}</TableCell>
-                            <TableCell sx={{ color: 'text.secondary' }}>{item.blockedByAdminName || 'Tizim'}</TableCell>
-                            <TableCell align="center">
-                              <Button
-                                size="small"
-                                variant="contained"
-                                color="success"
-                                startIcon={unblockingId === item._id ? <CircularProgress size={14} color="inherit" /> : <LockOpenOutlined />}
-                                onClick={() => handleUnblock(item)}
-                                disabled={unblockingId === item._id}
-                                sx={{ textTransform: 'none', fontWeight: 600, py: 0.5, px: 1.5 }}
-                              >
-                                Blokdan chiqarish
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
               </CardContent>
             </Card>
           </Grid>

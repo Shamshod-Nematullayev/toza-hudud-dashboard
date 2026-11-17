@@ -60,6 +60,7 @@ const uz = {
   documentNumber: 'Xujjat raqami',
   menuItems: {
     employeers: 'Xodimlar',
+    staff: 'Xodimlar va huquqlar',
     inspectors: 'Nazoratchilar',
     tasks: 'Topshiriqlar',
     workspace: 'Ish maydoni',

@@ -65,6 +65,7 @@ interface CompanyProfileData {
   ekopayParentId?: string;
   murojaatTelegramIds?: string[];
   requireLocationForGpsActs?: boolean;
+  notifySpecialTaskStatus?: boolean;
   smartGpsLogin?: string;
   smartGpsPassword?: string;
   smartGpsBaseUrl?: string;
@@ -132,6 +133,7 @@ export default function CompanyProfile() {
           GROUP_ID_MUROJAATLAR: data.company.GROUP_ID_MUROJAATLAR || '',
           murojaatTelegramIds: data.company.murojaatTelegramIds || [],
           requireLocationForGpsActs: !!data.company.requireLocationForGpsActs,
+          notifySpecialTaskStatus: !!data.company.notifySpecialTaskStatus,
           smartGpsLogin: data.company.smartGpsLogin || '',
           smartGpsPassword: '',
           smartGpsBaseUrl: data.company.smartGpsBaseUrl || ''
@@ -518,6 +520,28 @@ export default function CompanyProfile() {
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 6 }}>
                         Yoqilsa, GPS (xizmat ko'rsatilmagan) arizasini uy joylashuvi xaritada belgilanmaguncha yaratib bo'lmaydi. O'chirilgan
                         bo'lsa joylashuv ixtiyoriy kiritiladi.
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  {/* Maxsus topshiriq nazorati */}
+                  <Grid item xs={12}>
+                    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: '12px' }}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={!!form.notifySpecialTaskStatus}
+                            onChange={(e) => setForm({ ...form, notifySpecialTaskStatus: e.target.checked })}
+                          />
+                        }
+                        label={
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            Maxsus topshiriq nazorati (elektr va telefon kiritishda)
+                          </Typography>
+                        }
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 6 }}>
+                        Yoqilsa, botda nazoratchi elektr kodi yoki telefon raqami kiritganda ushbu abonent maxsus topshiriqda bor yoki yo'qligi eslatiladi, hamda tasdiqlash xabarlarida ko'rsatiladi.
                       </Typography>
                     </Paper>
                   </Grid>

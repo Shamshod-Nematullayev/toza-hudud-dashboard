@@ -62,6 +62,7 @@ const ru: typeof uz = {
   documentNumber: 'Номер документа',
   menuItems: {
     employeers: 'Сотрудники',
+    staff: 'Сотрудники и права',
     inspectors: 'Инспекторы',
     tasks: 'Задачи',
     workspace: 'Рабочая зона',

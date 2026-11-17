@@ -63,7 +63,6 @@ const ROLES: { id: string; title: string; ids: string[] }[] = [
   { id: 'profilaktika', title: 'Профилактика инспектори', ids: ['yettilik_profilaktika_inspektori'] },
   { id: 'ijtimoiy', title: 'Ижтимоий ходим', ids: ['yettilik_ijtimoiy_xodim'] },
   { id: 'soliq', title: 'Солиқ инспектори', ids: ['yettilik_soliq_inspektori'] },
-  { id: 'uy', title: 'Уй (кўча) бошқарувчиси', ids: [] },
   { id: 'korxona', title: 'ходими', ids: ['billing_staff'] }
 ];
 
@@ -263,11 +262,18 @@ export function MahallaBlank2026Page({
         {signers.map((r) => {
           const isMahalla = r.id !== 'korxona';
           return (
-            <div key={r.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-              <span style={{ whiteSpace: 'nowrap' }}>{r.title}:</span>
-              <span style={{ flex: 1, borderBottom: LINE, textAlign: 'right', fontWeight: 'bold', paddingRight: 4, minHeight: 18 }}>
-                {isMahalla ? '' : cyrShort(r.name)}
-              </span>
+            <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+              <span style={{ whiteSpace: 'nowrap', paddingTop: 2 }}>{r.title}:</span>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: '100%', borderBottom: LINE, minHeight: 18 }} />
+                {!isMahalla && r.name ? (
+                  <span style={{ fontSize: 11, fontStyle: 'italic', fontWeight: 'bold', minHeight: 14, marginTop: 1 }}>
+                    ({cyrShort(r.name)})
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 11, minHeight: 14 }} />
+                )}
+              </div>
             </div>
           );
         })}

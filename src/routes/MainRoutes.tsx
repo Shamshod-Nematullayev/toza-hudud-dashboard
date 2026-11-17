@@ -117,6 +117,21 @@ const ProductAdminGuard = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
+const StaffAdminGuard = ({ children }: { children: JSX.Element }) => {
+  const userStr = localStorage.getItem('user');
+  let allowed = false;
+  if (userStr) {
+    try {
+      const parsed = JSON.parse(userStr);
+      allowed = parsed?.roles?.includes('admin') || parsed?.roles?.includes('product_admin');
+    } catch (e) {}
+  }
+  if (!allowed) {
+    return <Navigate to="/dashboard/default" replace />;
+  }
+  return children;
+};
+
 const RootPage = () => {
   const token = Cookies.get('accessToken');
   if (!token) {
@@ -225,6 +240,14 @@ const MainRoutes: MainRoutesProps = {
     {
       path: 'employeers',
       children: [
+        {
+          path: 'staff',
+          element: (
+            <StaffAdminGuard>
+              <Users />
+            </StaffAdminGuard>
+          )
+        },
         {
           path: 'inspectors',
           element: <Inspectors />
