@@ -65,23 +65,34 @@ function DHJTable({ abonentData, label, preview }: DHJTableProps) {
 
   useEffect(() => {
     if (store.hisoblandiJadval.length === 0) {
-      api.get('/billing/get-tariffs').then((res) => {
-        const tariffs = res.data.tariffs;
-        let result = [
-          {
-            month: 1,
-            year: 2019,
-            hisoblandi: 2000,
-            withQQS: 2000
+      api
+        .get('/billing/get-tariffs', { headers: { 'hide-error': 'true' } })
+        .then((res) => {
+          const tariffs = res.data?.tariffs || [];
+          let result = [
+            {
+              month: 1,
+              year: 2019,
+              hisoblandi: 2000,
+              withQQS: 2000
+            }
+          ];
+          for (let tariff of tariffs) {
+            result.push(
+              ...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined)
+            );
           }
-        ];
-        for (let tariff of tariffs) {
-          result.push(
-            ...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined)
-          );
-        }
-        store.setHisoblandiJadval(result.sort((r1, r2) => r1.year - r2.year || r1.month - r2.month));
-      });
+          store.setHisoblandiJadval(result.sort((r1, r2) => r1.year - r2.year || r1.month - r2.month));
+        })
+        .catch((err) => {
+          console.warn('Tariflar yuklanmadi, standart tariflar ishlatilmoqda:', err);
+          if (store.hisoblandiJadval.length === 0) {
+            store.setHisoblandiJadval([
+              { month: 1, year: 2019, hisoblandi: 2000, withQQS: 2000 },
+              { month: 1, year: 2024, hisoblandi: 4000, withQQS: 4000 }
+            ]);
+          }
+        });
     }
   }, []);
 

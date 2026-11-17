@@ -103,11 +103,12 @@ api.interceptors.response.use(
     }
 
     if (
-      (error.response?.status === 400 || error.response?.status === 404 || (error.response?.status === 401 && isOnlineMahallaReq)) &&
-      !Boolean(error.config?.headers['hide-error'])
+      (error.response?.status === 400 || error.response?.status === 404 || error.response?.status === 500 || (error.response?.status === 401 && isOnlineMahallaReq)) &&
+      !Boolean(error.config?.headers?.['hide-error'])
     ) {
       // @ts-ignore
-      toast.error(error.response?.data?.message || error.message || 'Xatolik kuzatildi');
+      const message = error.response?.data?.message || error.message || 'Xatolik kuzatildi';
+      toast.error(message, { toastId: message });
     }
 
     return Promise.reject(error);

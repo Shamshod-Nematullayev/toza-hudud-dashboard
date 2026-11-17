@@ -31,24 +31,29 @@ export const useStepperLogic = () => {
   } = useStore();
 
   useEffect(() => {
-    api.get('/billing/get-tariffs').then((res) => {
-      const tariffs = res.data.tariffs;
+    api
+      .get('/billing/get-tariffs', { headers: { 'hide-error': 'true' } })
+      .then((res) => {
+        const tariffs = res.data?.tariffs || [];
 
-      let result = [
-        {
-          month: 1,
-          year: 2019,
-          hisoblandi: 2000,
-          withQQS: 2000
+        let result = [
+          {
+            month: 1,
+            year: 2019,
+            hisoblandi: 2000,
+            withQQS: 2000
+          }
+        ];
+        for (let tariff of tariffs) {
+          result.push(
+            ...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined)
+          );
         }
-      ];
-      for (let tariff of tariffs) {
-        result.push(
-          ...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined)
-        );
-      }
-      setHisoblandiJadval(result.sort((r1, r2) => r1.year - r2.year || r1.month - r2.month));
-    });
+        setHisoblandiJadval(result.sort((r1, r2) => r1.year - r2.year || r1.month - r2.month));
+      })
+      .catch((err) => {
+        console.warn('useStepperLogic: Tariflarni olishda xatolik:', err);
+      });
   }, []);
 
   useEffect(() => {

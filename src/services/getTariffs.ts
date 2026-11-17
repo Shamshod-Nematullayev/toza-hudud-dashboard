@@ -44,9 +44,20 @@ export async function getTariffs(): Promise<ITariff[]> {
       withQQS: 2000
     }
   ];
-  const tariffs = (await api.get('/billing/get-tariffs')).data.tariffs;
-  for (let tariff of tariffs) {
-    result.push(...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined));
+  try {
+    const res = await api.get('/billing/get-tariffs', { headers: { 'hide-error': 'true' } });
+    const tariffs = res.data?.tariffs || [];
+    for (let tariff of tariffs) {
+      result.push(...getTarifElement(tariff).filter((row) => result.find((r) => r.month == row.month && r.year == row.year) == undefined));
+    }
+  } catch (err) {
+    console.warn('getTariffs: API dan tariflarni olishda xatolik, standart qiymat qaytariladi:', err);
+    result.push({
+      month: 1,
+      year: 2024,
+      hisoblandi: 4000,
+      withQQS: 4000
+    });
   }
   return result;
 }

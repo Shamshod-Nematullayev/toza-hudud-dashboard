@@ -42,7 +42,8 @@ export function useAdjustmentCalculation({
 
         const { data } = await api.get('/billing/calculate-adjustment', {
           params,
-          signal: controller.signal
+          signal: controller.signal,
+          headers: { 'hide-error': 'true' }
         });
         if (active && data.ok) {
           setAdjustmentData(data);
