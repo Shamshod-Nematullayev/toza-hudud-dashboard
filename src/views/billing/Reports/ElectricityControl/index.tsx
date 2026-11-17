@@ -37,7 +37,10 @@ import {
   RefreshOutlined as RefreshIcon,
   SaveOutlined as SaveIcon,
   SendOutlined as SendIcon,
-  Telegram as TelegramIcon
+  Telegram as TelegramIcon,
+  LockOutlined,
+  LockOpenOutlined,
+  SyncOutlined
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -68,6 +71,18 @@ interface IRun {
   meetingAt?: string;
   error?: string;
   groupTaskId?: string | null;
+}
+
+interface IBlockedInspector {
+  _id: string;
+  inspectorId: number;
+  inspectorName: string;
+  terminalSerial?: string;
+  blockedAt: string;
+  blockedByAdminName?: string;
+  reason?: string;
+  elapsedMinutes: number;
+  elapsedFormatted: string;
 }
 
 interface ICandidate {
@@ -193,6 +208,58 @@ export default function ElectricityControl() {
   const [customTimes, setCustomTimes] = useState<Record<string, string>>({});
   const [newProgressTime, setNewProgressTime] = useState('12:00');
   const [sendingProgress, setSendingProgress] = useState(false);
+  const [blockedList, setBlockedList] = useState<IBlockedInspector[]>([]);
+  const [loadingBlocked, setLoadingBlocked] = useState(false);
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
+  const [syncingTerminals, setSyncingTerminals] = useState(false);
+
+  const fetchBlocked = async () => {
+    setLoadingBlocked(true);
+    try {
+      const res = await api.get('/control-workflows/blocked-inspectors');
+      setBlockedList(res.data?.data || []);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingBlocked(false);
+    }
+  };
+
+  const handleUnblock = async (item: IBlockedInspector) => {
+    if (
+      !window.confirm(
+        `${item.inspectorName} ni blokdan chiqarmoqchimisiz?\n\nEkopay terminali qayta ulanadi, Telegram boti faollashtiriladi va unga kirish ma’lumotlari yuboriladi.`
+      )
+    ) {
+      return;
+    }
+    setUnblockingId(item._id);
+    try {
+      const res = await api.post('/control-workflows/unblock-inspector', {
+        logId: item._id,
+        inspectorId: item.inspectorId
+      });
+      toast.success(res.data?.message || 'Muvaffaqiyatli blokdan chiqarildi!');
+      fetchBlocked();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Blokdan chiqarishda xatolik yuz berdi');
+    } finally {
+      setUnblockingId(null);
+    }
+  };
+
+  const handleSyncTerminals = async () => {
+    setSyncingTerminals(true);
+    try {
+      const res = await api.post('/control-workflows/sync-terminals');
+      toast.success(res.data?.message || 'Ekopay terminallari sinxronlandi');
+      fetchBlocked();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Sinxronlashda xatolik yuz berdi');
+    } finally {
+      setSyncingTerminals(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -212,6 +279,9 @@ export default function ElectricityControl() {
 
   useEffect(() => {
     fetchData();
+    fetchBlocked();
+    const interval = setInterval(fetchBlocked, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const selectedCandidate = useMemo(
@@ -670,6 +740,142 @@ export default function ElectricityControl() {
             </Card>
           </Grid>
 
+          {/* Blocked inspectors / Uchetchik */}
+          <Grid size={{ xs: 12 }}>
+            <Card
+              elevation={0}
+              sx={{
+                ...cardSx,
+                borderColor: blockedList.length > 0 ? theme.palette.error.main : theme.palette.divider,
+                bgcolor: blockedList.length > 0 ? alpha(theme.palette.error.main, 0.02) : theme.palette.background.paper
+              }}
+            >
+              <CardContent sx={{ p: 2.5 }}>
+                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        borderRadius: 2,
+                        bgcolor: alpha(
+                          blockedList.length > 0 ? theme.palette.error.main : theme.palette.success.main,
+                          theme.palette.mode === 'dark' ? 0.2 : 0.12
+                        ),
+                        color: blockedList.length > 0 ? theme.palette.error.main : theme.palette.success.main,
+                        display: 'flex'
+                      }}
+                    >
+                      <LockOutlined />
+                    </Box>
+                    <Box>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                          Bloklangan nazoratchilar (Uchetchik)
+                        </Typography>
+                        <Chip
+                          size="small"
+                          label={`${blockedList.length} nafar`}
+                          color={blockedList.length > 0 ? 'error' : 'default'}
+                          sx={{ fontWeight: 700 }}
+                        />
+                      </Stack>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                        Yig‘ilishga kelmagani sababli termoprinteri va Telegram boti to‘xtatilgan xodimlar hisobi
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="inherit"
+                      startIcon={syncingTerminals ? <CircularProgress size={16} color="inherit" /> : <SyncOutlined />}
+                      onClick={handleSyncTerminals}
+                      disabled={syncingTerminals}
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Ekopay terminallarini sinxronlash
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="inherit"
+                      startIcon={loadingBlocked ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
+                      onClick={fetchBlocked}
+                      disabled={loadingBlocked}
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Yangilash
+                    </Button>
+                  </Stack>
+                </Stack>
+
+                {blockedList.length === 0 ? (
+                  <Alert severity="success" sx={{ py: 1 }}>
+                    Hozirda bloklangan nazoratchi yo‘q. Barcha inspektorlar faol holatda.
+                  </Alert>
+                ) : (
+                  <TableContainer sx={{ border: '1px solid', borderColor: theme.palette.divider, borderRadius: 2 }}>
+                    <Table size="small">
+                      <TableHead sx={{ bgcolor: theme.palette.action.hover }}>
+                        <TableRow>
+                          <TableCell sx={{ width: 48, fontWeight: 700 }}>№</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Nazoratchi</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Terminal seriyasi</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Qachon bloklandi</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>O‘tgan vaqt (Uchetchik)</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Sababi</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Bloklagan mas’ul</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 700 }}>Amal</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {blockedList.map((item, idx) => (
+                          <TableRow key={item._id} hover>
+                            <TableCell>{idx + 1}</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>{item.inspectorName}</TableCell>
+                            <TableCell>
+                              {item.terminalSerial ? (
+                                <Chip size="small" variant="outlined" label={item.terminalSerial} sx={{ fontFamily: 'monospace' }} />
+                              ) : (
+                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Biriktirilmagan</Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>{dayjs(item.blockedAt).format('DD.MM.YYYY HH:mm')}</TableCell>
+                            <TableCell>
+                              <Chip
+                                size="small"
+                                color="error"
+                                icon={<AccessTimeIcon />}
+                                label={item.elapsedFormatted}
+                                sx={{ fontWeight: 700 }}
+                              />
+                            </TableCell>
+                            <TableCell sx={{ color: 'text.secondary' }}>{item.reason || 'Yig‘ilishga kelmagan'}</TableCell>
+                            <TableCell sx={{ color: 'text.secondary' }}>{item.blockedByAdminName || 'Tizim'}</TableCell>
+                            <TableCell align="center">
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="success"
+                                startIcon={unblockingId === item._id ? <CircularProgress size={14} color="inherit" /> : <LockOpenOutlined />}
+                                onClick={() => handleUnblock(item)}
+                                disabled={unblockingId === item._id}
+                                sx={{ textTransform: 'none', fontWeight: 600, py: 0.5, px: 1.5 }}
+                              >
+                                Blokdan chiqarish
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
           {/* History */}
           <Grid size={{ xs: 12 }}>
             <Card elevation={0} sx={cardSx}>
@@ -771,6 +977,27 @@ export default function ElectricityControl() {
                             >
                               Guruh topshirig‘ini ko‘rish («Tushundim» holati) →
                             </Button>
+                          )}
+                          {run.meetingAt && perms.canEdit && (
+                            <Box sx={{ mt: 1 }}>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="warning"
+                                onClick={async () => {
+                                  if (!window.confirm('Mas’ul xodimga yig‘ilish davomati so‘rovini hoziroq yuborasizmi?')) return;
+                                  try {
+                                    const res = await api.post(`/control-workflows/runs/${run._id}/trigger-attendance`);
+                                    toast.success(res.data?.message || 'Davomat so‘rovi yuborildi');
+                                  } catch (e: any) {
+                                    toast.error(e?.response?.data?.message || 'Xatolik');
+                                  }
+                                }}
+                                sx={{ textTransform: 'none', fontWeight: 600 }}
+                              >
+                                📋 Davomat so‘rovini yuborish (Telegram)
+                              </Button>
+                            </Box>
                           )}
                           {run.error && (
                             <Alert severity="error" sx={{ mt: 1, py: 0 }}>
