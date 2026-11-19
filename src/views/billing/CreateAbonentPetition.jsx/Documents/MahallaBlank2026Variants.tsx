@@ -54,18 +54,150 @@ const periodsOf = (recalculationPeriods: any[] | undefined, ariza: any) =>
 
 const davr = (from: string, to?: string) => (to && to !== from ? `${from} ойидан ${to} ойигача` : `${from} ойи`);
 
+export const OYLAR_KIRILL = [
+  'Январ',
+  'Феврал',
+  'Март',
+  'Апрел',
+  'Май',
+  'Июн',
+  'Июл',
+  'Август',
+  'Сентябр',
+  'Октябр',
+  'Ноябр',
+  'Декабр'
+];
+
+export interface IOdamSoniStage {
+  label: string;
+  count: number;
+}
+
+export function buildOdamSoniStages(params: {
+  currentCnt?: number;
+  nextCnt?: number;
+  recalculationPeriods?: any[];
+  bosqichlar?: { from: string; to: string; count: number; hozirgacha?: boolean }[];
+  olderPeriod?: any;
+}): IOdamSoniStage[] {
+  const { currentCnt, nextCnt, recalculationPeriods, bosqichlar, olderPeriod } = params;
+
+  if (bosqichlar && bosqichlar.length > 0) {
+    return bosqichlar.map((b) => ({
+      label: b.hozirgacha ? `${b.from} ойидан бошлаб бугунги кунгача` : davr(b.from, b.to),
+      count: b.count
+    }));
+  }
+
+  const periods = (recalculationPeriods || []).filter(
+    (p: any) => p && (p.startDate || p.from) && (p.periodType === 'kreditor' || (p.yashovchiDelta && p.yashovchiDelta !== 0))
+  );
+
+  if (periods.length > 0 && currentCnt !== undefined) {
+    const dateMap = new Map<string, { date: dayjs.Dayjs; delta: number }>();
+    for (const p of periods) {
+      const dt = dayjs(p.startDate || p.from);
+      if (!dt.isValid()) continue;
+      const key = dt.format('YYYY-MM-DD');
+      const delta = Number(p.yashovchiDelta) || -1;
+      const existing = dateMap.get(key);
+      if (existing) {
+        existing.delta += delta;
+      } else {
+        dateMap.set(key, { date: dt, delta });
+      }
+    }
+
+    const sortedChanges = Array.from(dateMap.values()).sort((a, b) => a.date.valueOf() - b.date.valueOf());
+
+    const formatPoint = (d: dayjs.Dayjs) => {
+      const oy = OYLAR_KIRILL[d.month()];
+      if (d.date() === 1) {
+        return `${d.year()} йил ${oy} ойи`;
+      }
+      return `${d.year()} йил «${d.date()}» ${oy}`;
+    };
+
+    const lastEnd = periods.reduce<dayjs.Dayjs | null>((max, p) => {
+      const d = dayjs(p.endDate || p.to);
+      return d.isValid() && (!max || d.isAfter(max)) ? d : max;
+    }, null);
+    const isUntilToday = !lastEnd || !lastEnd.isValid() || !lastEnd.isBefore(dayjs().startOf('month'));
+    const untilText = isUntilToday
+      ? 'бугунги кунгача'
+      : (lastEnd.date() === 1 ? `${lastEnd.year()} йил ${OYLAR_KIRILL[lastEnd.month()]} ойигача` : `${lastEnd.year()} йил «${lastEnd.date()}» ${OYLAR_KIRILL[lastEnd.month()]}гача`);
+
+    if (sortedChanges.length > 1) {
+      const stages: IOdamSoniStage[] = [];
+      let runningCnt = currentCnt;
+
+      for (let i = 0; i < sortedChanges.length; i++) {
+        const change = sortedChanges[i];
+        runningCnt += change.delta;
+        if (i < sortedChanges.length - 1) {
+          stages.push({
+            label: `${formatPoint(change.date)}дан бошлаб`,
+            count: Math.max(runningCnt, 0)
+          });
+        } else {
+          stages.push({
+            label: `${formatPoint(change.date)}дан бошлаб ${untilText}`,
+            count: nextCnt !== undefined ? nextCnt : Math.max(runningCnt, 0)
+          });
+        }
+      }
+      return stages;
+    } else if (sortedChanges.length === 1) {
+      const change = sortedChanges[0];
+      return [
+        {
+          label: `${formatPoint(change.date)}дан бошлаб ${untilText}`,
+          count: nextCnt !== undefined ? nextCnt : Math.max(currentCnt + change.delta, 0)
+        }
+      ];
+    }
+  }
+
+  const since = olderPeriod && dayjs(olderPeriod).isValid() ? dayjs(olderPeriod) : null;
+  if (since) {
+    const oy = OYLAR_KIRILL[since.month()];
+    const label = since.date() === 1 ? `${since.year()} йил ${oy} ойидан бошлаб бугунги кунгача` : `${since.year()} йил «${since.date()}» ${oy}дан бошлаб бугунги кунгача`;
+    return [
+      {
+        label,
+        count: nextCnt ?? 0
+      }
+    ];
+  }
+
+  if (nextCnt !== undefined) {
+    return [{ label: '', count: nextCnt }];
+  }
+
+  return [];
+}
+
 // ---------------- ODAM SONI ----------------
 export function OdamSoniBlank2026({
   aniqlanganYashovchiSoni,
   olderPeriod,
+  recalculationPeriods,
   ...props
-}: CommonProps & { aniqlanganYashovchiSoni: number | string; olderPeriod?: any }) {
+}: CommonProps & { aniqlanganYashovchiSoni: number | string; olderPeriod?: any; recalculationPeriods?: any[] }) {
   const { ariza, abonentData, vakil, asoslantiruvchi } = props;
   const acc = abonentData?.accountNumber;
   const current = toNum(abonentData?.house?.inhabitantCnt ?? ariza?.current_prescribed_cnt);
   const next = toNum(aniqlanganYashovchiSoni ?? ariza?.next_prescribed_cnt);
   const bosqichlar: { from: string; to: string; count: number; hozirgacha?: boolean }[] = ariza?.bosqichlar?.length ? ariza.bosqichlar : [];
-  const since = olderPeriod && dayjs(olderPeriod).isValid() ? dayjs(olderPeriod) : null;
+
+  const stages = buildOdamSoniStages({
+    currentCnt: current,
+    nextCnt: next,
+    recalculationPeriods: recalculationPeriods || ariza?.recalculationPeriods,
+    bosqichlar,
+    olderPeriod
+  });
 
   const izoh = (
     <>
@@ -75,28 +207,24 @@ export function OdamSoniBlank2026({
         </>
       )}
       Ўрганиш натижасида{' '}
-      {bosqichlar.length > 0 ? (
+      {stages.length > 0 ? (
         <>
-          {bosqichlar.map((b, i) => (
+          {stages.map((st, i) => (
             <React.Fragment key={i}>
               {i > 0 && ', '}
-              <B>{b.hozirgacha ? `${b.from} ойидан бошлаб` : davr(b.from, b.to)}</B> <B>{b.count}</B> киши
+              {st.label ? (
+                <>
+                  <B>{st.label}</B> <B>{st.count}</B> киши
+                </>
+              ) : (
+                <B>{st.count} киши</B>
+              )}
             </React.Fragment>
           ))}{' '}
-          истиқомат қилиши аниқланди.
+          истиқомат қилиб келганлиги аниқланди.
         </>
       ) : (
-        <>
-          {since && (
-            <>
-              <B>
-                {since.year()} йил «{since.date()}» {cyr(oylar[since.month()])}
-              </B>
-              дан бошлаб{' '}
-            </>
-          )}
-          <B>{next}</B> киши истиқомат қилиши аниқланди.
-        </>
+        <><B>{next}</B> киши истиқомат қилиб келганлиги аниқланди.</>
       )}{' '}
       Юқоридагиларга асосан <B>{acc}</B> ҳисоб рақами бўйича яшовчилар сонини <B>{next}</B> кишига ўзгартириш ҳамда тўловларни қайта
       ҳисоб-китоб қилишни мақсадга мувофиқ деб ҳисоблаймиз.

@@ -1,11 +1,12 @@
 import { confirmDialog } from 'ui-component/ConfirmDialog';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AddOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
-  EditOutlined
+  EditOutlined,
+  FilterListOutlined
 } from '@mui/icons-material';
 import {
   Box,
@@ -22,15 +23,61 @@ import {
   IconButton,
   Stack,
   Switch,
+  Tab,
+  Tabs,
   TextField,
   Tooltip,
   Typography,
   alpha,
+  Fade,
+  Collapse,
   useTheme
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
 import { ActTypeItem, IParticipantConfig, ParticipantKey } from './participantResolver';
+
+export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  odam_soni: 'Odam soni',
+  cancelContract: 'Shartnomani bekor qilish (Mahallada mavjud emas)',
+  dvaynik: 'Ikkilamchi kod (Dvaynik)',
+  viza: 'Pasport / Viza / Xorij',
+  death: 'O‘lim guvohnomasi',
+  yashovchi_kuchirish: 'Yashovchini ko‘chirish'
+};
+
+const DOCUMENT_TYPES_OPTIONS: Array<{ key: string; label: string; description: string }> = [
+  {
+    key: 'odam_soni',
+    label: 'Odam soni',
+    description: 'Yashovchilar soni o‘zgarishi arizasi'
+  },
+  {
+    key: 'cancelContract',
+    label: 'Shartnomani bekor qilish',
+    description: 'Mahallada mavjud emas / abonent topilmadi arizasi'
+  },
+  {
+    key: 'dvaynik',
+    label: 'Ikkilamchi hisob (Dvaynik)',
+    description: 'Dvaynik hisob raqamlari bo‘yicha ariza'
+  },
+  {
+    key: 'viza',
+    label: 'Pasport / Viza / Xorij',
+    description: 'Xorijga chiqib ketganlar arizasi'
+  },
+  {
+    key: 'death',
+    label: 'O‘lim guvohnomasi',
+    description: 'Vafot etganlik bo‘yicha ariza'
+  },
+  {
+    key: 'yashovchi_kuchirish',
+    label: 'Yashovchini ko‘chirish',
+    description: 'Manzildan manzilga ko‘chirish arizasi'
+  }
+];
 
 const AVAILABLE_PARTICIPANTS: Array<{ key: ParticipantKey; label: string; description: string }> = [
   {
@@ -39,24 +86,39 @@ const AVAILABLE_PARTICIPANTS: Array<{ key: ParticipantKey; label: string; descri
     description: 'Mahalla ob’yektidagi rais (mfy_rais_name)'
   },
   {
+    key: 'aholi_nazoratchisi',
+    label: 'Aholi nazoratchisi',
+    description: 'Mahallaga biriktirilgan nazoratchi (biriktirilganNazoratchi)'
+  },
+  {
+    key: 'fuqaro',
+    label: 'Fuqaro (Abonent)',
+    description: 'Abonent yoki uning qonuniy vakili'
+  },
+  {
+    key: 'profilaktika_inspektori',
+    label: 'Profilaktika inspektori',
+    description: 'Mahalla profilaktika inspektori'
+  },
+  {
+    key: 'yoshlar_yetakchisi',
+    label: 'Yoshlar yetakchisi',
+    description: 'Mahalla yoshlar yetakchisi'
+  },
+  {
     key: 'mahalla_yettiligi',
-    label: 'Mahalla yettiligi',
-    description: 'Mahallaning barcha mas’ul xodimlari (Hokim yordamchisi, Profilaktika, Yoshlar, Xotin-qizlar va h.k.)'
+    label: 'Profilaktika va Yoshlar yetakchisi (umumiy)',
+    description: 'Profilaktika inspektori va Yoshlar yetakchisi birgalikda'
   },
   {
     key: 'billing_staff',
-    label: 'Abonentlar bilan ishlash bo‘limi xodimi',
+    label: 'Korxona xodimi (User)',
     description: 'Dalolatnomani tuzayotgan tizim foydalanuvchisi (user)'
   },
   {
     key: 'rahbar',
     label: 'Filial rahbari',
     description: 'Kompaniya / filial rahbari'
-  },
-  {
-    key: 'fuqaro',
-    label: 'Fuqaro (Abonent)',
-    description: 'Abonent yoki uning qonuniy vakili'
   }
 ];
 
@@ -76,14 +138,19 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [selectedParticipants, setSelectedParticipants] = useState<ParticipantKey[]>([]);
+  const [selectedDocTypes, setSelectedDocTypes] = useState<string[]>([]);
   const [formIsActive, setFormIsActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Tab filter in the list
+  const [activeTabFilter, setActiveTabFilter] = useState<string>('all');
 
   const startCreate = () => {
     setEditingId(null);
     setFormName('');
     setFormDescription('');
-    setSelectedParticipants(['mahalla_raisi', 'mahalla_yettiligi', 'billing_staff']);
+    setSelectedParticipants(['mahalla_raisi', 'aholi_nazoratchisi', 'profilaktika_inspektori', 'yoshlar_yetakchisi', 'billing_staff']);
+    setSelectedDocTypes([]);
     setFormIsActive(true);
     setIsCreatingNew(true);
   };
@@ -94,6 +161,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
     setFormName(item.name);
     setFormDescription(item.description || '');
     setSelectedParticipants((item.participants || []).map((p) => p.key));
+    setSelectedDocTypes(Array.isArray(item.documentTypes) ? item.documentTypes : []);
     setFormIsActive(item.isActive !== false);
   };
 
@@ -105,6 +173,12 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
   const toggleParticipant = (key: ParticipantKey) => {
     setSelectedParticipants((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const toggleDocType = (docKey: string) => {
+    setSelectedDocTypes((prev) =>
+      prev.includes(docKey) ? prev.filter((k) => k !== docKey) : [...prev, docKey]
     );
   };
 
@@ -125,21 +199,19 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
 
     setIsSubmitting(true);
     try {
+      const payload = {
+        name: formName.trim(),
+        description: formDescription.trim(),
+        participants: participantsPayload,
+        documentTypes: selectedDocTypes,
+        isActive: formIsActive
+      };
+
       if (isCreatingNew) {
-        await api.post('/act-types', {
-          name: formName.trim(),
-          description: formDescription.trim(),
-          participants: participantsPayload,
-          isActive: formIsActive
-        });
+        await api.post('/act-types', payload);
         toast.success('Yangi dalolatnoma turi yaratildi');
       } else if (editingId) {
-        await api.put(`/act-types/${editingId}`, {
-          name: formName.trim(),
-          description: formDescription.trim(),
-          participants: participantsPayload,
-          isActive: formIsActive
-        });
+        await api.put(`/act-types/${editingId}`, payload);
         toast.success('Dalolatnoma turi yangilandi');
       }
       cancelEdit();
@@ -167,22 +239,48 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
     }
   };
 
+  const filteredActTypes = useMemo(() => {
+    if (activeTabFilter === 'all') return actTypes;
+    if (activeTabFilter === 'general') {
+      return actTypes.filter((t) => !t.documentTypes || t.documentTypes.length === 0);
+    }
+    return actTypes.filter((t) => t.documentTypes && t.documentTypes.includes(activeTabFilter));
+  }, [actTypes, activeTabFilter]);
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
+      TransitionComponent={Fade}
+      transitionDuration={{ enter: 220, exit: 180 }}
       maxWidth="md"
       fullWidth
-      sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}
+      sx={{
+        '& .MuiDialog-paper': {
+          borderRadius: 3,
+          maxHeight: '92vh',
+          boxShadow: '0 24px 48px -12px rgba(15, 23, 42, 0.25), 0 4px 16px rgba(0, 0, 0, 0.08)',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+        }
+      }}
+      slotProps={{
+        backdrop: {
+          sx: {
+            bgcolor: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(4px)',
+            transition: 'opacity 0.22s ease-in-out !important'
+          }
+        }
+      }}
     >
-      <DialogTitle sx={{ px: 3, pt: 2.5, pb: 1.5 }}>
+      <DialogTitle sx={{ px: 3, pt: 2.5, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
-              Dalolatnoma turlarini sozlash
+              Dalolatnoma turlari va Imzolovchilar shabloni
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              Kompaniyangiz uchun dalolatnoma turlari va standart ishtirokchilar tarkibi
+              Har bir ariza turi (odam soni, shartnomani bekor qilish, dvaynik) uchun alohida imzolovchilar tarkibini belgilang
             </Typography>
           </Box>
           <IconButton size="small" onClick={onClose}>
@@ -191,7 +289,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
         </Stack>
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, py: 2 }}>
+      <DialogContent sx={{ px: 3, py: 2.5, overflowY: 'auto' }}>
         {!isCreatingNew && !editingId && (
           <Box sx={{ mb: 2.5 }}>
             <Button
@@ -201,34 +299,35 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
               onClick={startCreate}
               sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600 }}
             >
-              Yangi dalolatnoma turi qo‘shish
+              Yangi dalolatnoma turi / shablon qo‘shish
             </Button>
           </Box>
         )}
 
         {/* Tahrirlash / Yaratish Formasi */}
-        {(isCreatingNew || editingId) && (
+        <Collapse in={Boolean(isCreatingNew || editingId)} timeout={280} unmountOnExit>
           <Card
             elevation={0}
             sx={{
               p: 2.5,
               mb: 3,
               borderRadius: 2.5,
-              border: '1px solid',
+              border: '1.5px solid',
               borderColor: 'primary.main',
-              bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.1 : 0.04)
+              bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.1 : 0.03),
+              transition: 'all 0.2s ease'
             }}
           >
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-              {isCreatingNew ? 'Yangi dalolatnoma turi' : 'Dalolatnoma turini tahrirlash'}
+              {isCreatingNew ? 'Yangi dalolatnoma shabloni' : 'Dalolatnoma turini tahrirlash'}
             </Typography>
 
-            <Stack spacing={2}>
+            <Stack spacing={2.5}>
               <TextField
                 fullWidth
                 size="small"
                 label="Dalolatnoma turi nomi *"
-                placeholder="Masalan: Mahalla dalolatnomasi"
+                placeholder="Masalan: Mahalla dalolatnomasi (Shartnomani bekor qilish)"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
               />
@@ -237,17 +336,57 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
                 fullWidth
                 size="small"
                 label="Qisqacha tavsif"
-                placeholder="Ushbu dalolatnoma qachon va kimlar ishtirokida tuziladi"
+                placeholder="Ushbu shablon qachon va qaysi holatlarda ishlatiladi"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
               />
 
+              {/* Qaysi ariza turlariga biriktiriladi */}
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                  Standart ishtirokchilar tarkibi:
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Qaysi ariza / dalolatnoma turlari uchun amal qiladi?
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
-                  Belgilangan ishtirokchilar ushbu tur tanlanganda avtomatik ravishda dalolatnomaga kiritiladi.
+                  Belgilangan turdagi arizalarda faqat shu shablon(lar) chiqadi. Agar hech qaysi tanlanmasa, barcha umumiy arizalarda ko‘rinadi.
+                </Typography>
+
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                  {DOCUMENT_TYPES_OPTIONS.map((doc) => {
+                    const isChecked = selectedDocTypes.includes(doc.key);
+                    return (
+                      <Chip
+                        key={doc.key}
+                        label={doc.label}
+                        clickable
+                        color={isChecked ? 'primary' : 'default'}
+                        variant={isChecked ? 'filled' : 'outlined'}
+                        onClick={() => toggleDocType(doc.key)}
+                        icon={isChecked ? <CheckOutlined fontSize="small" /> : undefined}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '0.8125rem',
+                          py: 2,
+                          px: 0.5,
+                          borderRadius: '8px'
+                        }}
+                      />
+                    );
+                  })}
+                </Stack>
+                {selectedDocTypes.length === 0 && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1, fontStyle: 'italic' }}>
+                    * Hozirda umumiy holatda: barcha turdagi arizalar uchun ko‘rinadi.
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Standart ishtirokchilar */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Standart imzo qo‘yuvchilar (ishtirokchilar):
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
+                  Ushbu shablon tanlanganda dalolatnomaga avtomatik kiritiladigan ishtirokchilarni belgilang.
                 </Typography>
 
                 <Stack spacing={1}>
@@ -259,7 +398,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
                         elevation={0}
                         onClick={() => toggleParticipant(part.key)}
                         sx={{
-                          p: 1.5,
+                          p: 1.25,
                           borderRadius: 2,
                           border: '1px solid',
                           borderColor: isChecked ? 'primary.main' : 'divider',
@@ -287,7 +426,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
                           </Box>
                           {isChecked && (
                             <Chip
-                              label="Kiritiladi"
+                              label="Imzolovchi"
                               size="small"
                               color="primary"
                               sx={{ fontWeight: 600, fontSize: '0.75rem', height: 22 }}
@@ -310,7 +449,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
                 }
                 label={
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    Faol holatda (xodimlar dalolatnoma tuzishda tanlashi mumkin)
+                    Faol holatda (xodimlar dalolatnoma tuzishda foydalanishi mumkin)
                   </Typography>
                 }
               />
@@ -331,16 +470,34 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
               </Stack>
             </Stack>
           </Card>
-        )}
+        </Collapse>
+
+        {/* Filtr tablari */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tabs
+            value={activeTabFilter}
+            onChange={(_, val) => setActiveTabFilter(val)}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <Tab label={`Barchasi (${actTypes.length})`} value="all" sx={{ textTransform: 'none', fontWeight: 600 }} />
+            <Tab label="Odam soni" value="odam_soni" sx={{ textTransform: 'none', fontWeight: 600 }} />
+            <Tab label="Shartnomani bekor qilish" value="cancelContract" sx={{ textTransform: 'none', fontWeight: 600 }} />
+            <Tab label="Dvaynik" value="dvaynik" sx={{ textTransform: 'none', fontWeight: 600 }} />
+            <Tab label="Umumiy shablonlar" value="general" sx={{ textTransform: 'none', fontWeight: 600 }} />
+          </Tabs>
+        </Box>
 
         {/* Mavjud turlar ro'yxati */}
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
-          Kompaniya dalolatnoma turlari ({actTypes.length})
+          Mavjud shablonlar ({filteredActTypes.length})
         </Typography>
 
         <Stack spacing={1.5}>
-          {actTypes.map((item) => {
+          {filteredActTypes.map((item) => {
             const isEditingThis = editingId === (item._id || item.key);
+            const docTypesList = item.documentTypes || [];
+
             return (
               <Card
                 key={item._id || item.key}
@@ -351,7 +508,12 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
                   border: '1px solid',
                   borderColor: isEditingThis ? 'primary.main' : 'divider',
                   bgcolor: item.isActive === false ? alpha(theme.palette.action.disabledBackground, 0.3) : 'background.paper',
-                  opacity: item.isActive === false ? 0.75 : 1
+                  opacity: item.isActive === false ? 0.75 : 1,
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+                  }
                 }}
               >
                 <Stack
@@ -359,14 +521,14 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
                   spacing={1.5}
                   sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}
                 >
-                  <Box>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         {item.name}
                       </Typography>
                       {item.isDefault && (
                         <Chip
-                          label="Standart tur"
+                          label="Standart"
                           size="small"
                           color="info"
                           variant="outlined"
@@ -382,11 +544,39 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
                         />
                       )}
                     </Stack>
+
                     {item.description && (
                       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
                         {item.description}
                       </Typography>
                     )}
+
+                    {/* Biriktirilgan ariza turlari */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', mt: 0.5, mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                        Amal qiladi:
+                      </Typography>
+                      {docTypesList.length > 0 ? (
+                        docTypesList.map((dt) => (
+                          <Chip
+                            key={dt}
+                            label={DOCUMENT_TYPE_LABELS[dt] || dt}
+                            size="small"
+                            color="secondary"
+                            variant="outlined"
+                            sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600 }}
+                          />
+                        ))
+                      ) : (
+                        <Chip
+                          label="Barcha arizalar uchun umumiy"
+                          size="small"
+                          color="default"
+                          variant="filled"
+                          sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
+                      )}
+                    </Box>
                   </Box>
 
                   <Stack direction="row" spacing={0.5}>
@@ -409,7 +599,7 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
 
                 <Box sx={{ pt: 0.5 }}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mb: 0.8 }}>
-                    Standart ishtirokchilar:
+                    Imzo qo‘yuvchilar ({item.participants?.length || 0}):
                   </Typography>
                   <Stack direction="row" spacing={0.8} sx={{ flexWrap: 'wrap', gap: 0.8 }}>
                     {(item.participants || []).map((p) => {
@@ -434,10 +624,15 @@ export default function ManageActTypesDialog({ open, onClose, actTypes, onRefres
               </Card>
             );
           })}
+          {filteredActTypes.length === 0 && (
+            <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
+              Tanlangan filtr bo‘yicha shablonlar topilmadi.
+            </Box>
+          )}
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
+      <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: 'divider' }}>
         <Button variant="outlined" color="inherit" onClick={onClose} sx={{ borderRadius: 2 }}>
           Yopish
         </Button>

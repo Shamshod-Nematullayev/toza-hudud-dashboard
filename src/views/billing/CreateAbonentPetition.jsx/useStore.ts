@@ -189,6 +189,25 @@ export const cancelContractReasons = {
 } as const;
 export type CancelContractReason = keyof typeof cancelContractReasons;
 
+/**
+ * "Mahallada mavjud emas" tanlanganda avtomatik shakllantiriladigan asos matni.
+ */
+export function buildMahalladaMavjudEmasAsos(mahallaName?: string, fullName?: string): string {
+  const rawM = (mahallaName || '').trim();
+  const m = rawM
+    ? rawM
+        .split(' ')
+        .map((w) => (w.length > 1 ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w))
+        .join(' ')
+    : '';
+  const f = (fullName || '').trim();
+  const mahallaPart = m ? `${m} mahallasining har bir qishlog'idan (ko'chasidan) odamlardan` : "Mahallaning har bir qishlog'idan (ko'chasidan) odamlardan";
+  const hududPart = m ? `${m} hududida` : 'mahalla hududida';
+  const personPart = f ? `ushbu ${f}` : 'ushbu fuqaro';
+
+  return `Aholi bilan surishtiruv o'tkazildi. ${mahallaPart} surishtirildi, eski arxivlar tekshirildi. Shunga qaramay, ${personPart} ${hududPart} aniqlanmadi.`;
+}
+
 /** Arizada saqlanadigan shartnoma bekor qilish ma'lumoti */
 export interface ICancelContract {
   sabab: CancelContractReason;
@@ -198,7 +217,10 @@ export interface ICancelContract {
   inhabitantCnt?: number;
 }
 
-export const emptyBekorQilish = (): { sabab: CancelContractReason; asos: string } => ({ sabab: 'mahallada_mavjud_emas', asos: '' });
+export const emptyBekorQilish = (mahallaName?: string, fullName?: string): { sabab: CancelContractReason; asos: string } => ({
+  sabab: 'mahallada_mavjud_emas',
+  asos: buildMahalladaMavjudEmasAsos(mahallaName, fullName)
+});
 
 export const emptyKuchirish = (): IKuchirishInput => ({
   soni: '1',
@@ -583,10 +605,12 @@ export const useStore = create<StoreState>((set, get) => ({
   setAktType: (aktType) => {
     const houseCnt = get().abonentData?.house?.inhabitantCnt;
     const initialCnt = houseCnt !== undefined && houseCnt !== null ? String(houseCnt) : '';
+    const mName = get().mahalla?.data?.name || get().abonentData?.mahallaName;
+    const fName = get().abonentData?.fullName;
     set({
       aktType,
       kuchirish: emptyKuchirish(),
-      bekorQilish: emptyBekorQilish(),
+      bekorQilish: aktType === 'cancelContract' ? emptyBekorQilish(mName, fName) : emptyBekorQilish(),
       recalculationPeriods: [],
       aktSumma: { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 },
       yashovchiSoniInput:
@@ -598,7 +622,24 @@ export const useStore = create<StoreState>((set, get) => ({
       ...(aktType === 'odam_soni' ? {} : { recalcMode: 'oddiy' as RecalcMode, stages: [emptyStage()] })
     });
   },
-  setBekorQilish: (patch) => set((state) => ({ bekorQilish: { ...state.bekorQilish, ...patch } })),
+  setBekorQilish: (patch) =>
+    set((state) => {
+      const nextSabab = patch.sabab ?? state.bekorQilish.sabab;
+      let nextAsos = patch.asos !== undefined ? patch.asos : state.bekorQilish.asos;
+      if (patch.sabab === 'mahallada_mavjud_emas' && patch.asos === undefined) {
+        const mName = state.mahalla?.data?.name || state.abonentData?.mahallaName;
+        const fName = state.abonentData?.fullName;
+        nextAsos = buildMahalladaMavjudEmasAsos(mName, fName);
+      }
+      return {
+        bekorQilish: {
+          ...state.bekorQilish,
+          ...patch,
+          sabab: nextSabab,
+          asos: nextAsos
+        }
+      };
+    }),
   setKuchirish: (patch) => set((state) => ({ kuchirish: { ...state.kuchirish, ...patch } })),
   // Rejim almashganda avvalgi rejimda qo'shilgan davrlar arizaga aralashib ketmasin
   setRecalcMode: (mode) => {
@@ -616,7 +657,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setShowPrintSection: (showPrintSection: boolean) => set({ showPrintSection: showPrintSection }),
   setRowsDhjTable: (rowsDhjTable: dhjRow[]) => set({ rowsDhjTable }),
   setAbonentData: (data) => {
-    const { aktType, recalcMode } = get();
+    const { aktType, recalcMode, bekorQilish, mahalla } = get();
     const cnt = data?.house?.inhabitantCnt ?? 0;
     const patch: Partial<StoreState> = { abonentData: data };
     if (aktType === 'death') {
@@ -625,12 +666,29 @@ export const useStore = create<StoreState>((set, get) => ({
       patch.recalculationPeriods = [];
       patch.aktSumma = { total: 0, totalWithQQS: 0, withoutQQSTotal: 0 };
       patch.yashovchiSoniInput = String(cnt);
+    } else if (aktType === 'cancelContract' && bekorQilish.sabab === 'mahallada_mavjud_emas') {
+      const mName = mahalla?.data?.name || data?.mahallaName;
+      patch.bekorQilish = {
+        ...bekorQilish,
+        asos: buildMahalladaMavjudEmasAsos(mName, data?.fullName)
+      };
     }
     set(patch);
   },
   setAbonentData2: (data) => set({ abonentData2: data }),
   setAriza: (data) => set({ ariza: data }),
-  setMahalla: (mfy) => set({ mahalla: mfy }),
+  setMahalla: (mfy) => {
+    const { aktType, bekorQilish, abonentData } = get();
+    const patch: Partial<StoreState> = { mahalla: mfy };
+    if (aktType === 'cancelContract' && bekorQilish.sabab === 'mahallada_mavjud_emas') {
+      const mName = mfy?.data?.name || abonentData?.mahallaName;
+      patch.bekorQilish = {
+        ...bekorQilish,
+        asos: buildMahalladaMavjudEmasAsos(mName, abonentData?.fullName)
+      };
+    }
+    set(patch);
+  },
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
   setRecalculationPeriods: (data: IRecalculationPeriod[]) => {
     const { aktType, recalcMode, abonentData } = get();
@@ -1332,23 +1390,57 @@ export function buildAutoAsoslantiruvchi({
           (p: any) => p?.periodType === 'kreditor' || (p?.yashovchiDelta && p?.yashovchiDelta < 0)
         );
         if (depPeriods.length > 1) {
-          const map = new Map<string, { dateStr: string; count: number }>();
+          const map = new Map<string, { date: dayjs.Dayjs; count: number }>();
           depPeriods.forEach((p: any) => {
-            const dt = dayjs(p.startDate);
+            const dt = dayjs(p.startDate || p.from);
             if (!dt.isValid()) return;
             const key = dt.format('YYYY-MM-DD');
             const count = Math.abs(p.yashovchiDelta || 1);
             const ex = map.get(key);
             if (ex) ex.count += count;
-            else map.set(key, { dateStr: `${dt.format('DD.MM.YYYY')} dan`, count });
+            else map.set(key, { date: dt, count });
           });
-          const depParts = Array.from(map.values()).map((g) => `${g.count} nafar shaxs ${g.dateStr}`);
+          const sorted = Array.from(map.values()).sort((a, b) => a.date.valueOf() - b.date.valueOf());
+          const lastEnd = depPeriods.reduce<dayjs.Dayjs | null>((max, p) => {
+            const d = dayjs(p.endDate || p.to);
+            return d.isValid() && (!max || d.isAfter(max)) ? d : max;
+          }, null);
+          const isUntilToday = !lastEnd || !lastEnd.isValid() || !lastEnd.isBefore(dayjs().startOf('month'));
+          const untilLatin = isUntilToday
+            ? 'bugungi kungacha'
+            : (lastEnd.date() === 1 ? `${lastEnd.year()}-yil ${oylar[lastEnd.month()]} oyigacha` : `${lastEnd.year()}-yil ${lastEnd.date()}-${oylar[lastEnd.month()]}gacha`);
+
+          let running = currentCnt;
+          const stageTexts: string[] = [];
+          for (let i = 0; i < sorted.length; i++) {
+            const item = sorted[i];
+            running -= item.count;
+            const fmtFrom = (d: dayjs.Dayjs) => (d.date() === 1 ? `${d.year()}-yil ${oylar[d.month()]} oyidan` : `${d.year()}-yil ${d.date()}-${oylar[d.month()]}dan`);
+
+            if (i < sorted.length - 1) {
+              stageTexts.push(`${fmtFrom(item.date)} boshlab ${Math.max(running, 0)} kishi`);
+            } else {
+              stageTexts.push(`${fmtFrom(item.date)} boshlab ${untilLatin} ${nextCnt} kishi`);
+            }
+          }
+
+          const depParts = sorted.map((g) => {
+            const fmtFrom = g.date.date() === 1 ? `${g.date.year()}-yil ${oylar[g.date.month()]} oyidan` : `${g.date.year()}-yil ${g.date.date()}-${oylar[g.date.month()]}dan`;
+            return `${g.count} nafar shaxs ${fmtFrom} ${untilLatin}`;
+          });
+
           sentences.push(
-            `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, xonadondan ${depParts.join(', ')} chiqib ketganligi sababli amalda ${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
+            `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, ${stageTexts.join(', ')} yashab kelganligi (${depParts.join(', ')} chiqarilishi) aniqlandi.`
           );
         } else {
+          const lastEnd = depPeriods.reduce<dayjs.Dayjs | null>((max, p) => {
+            const d = dayjs(p.endDate || p.to);
+            return d.isValid() && (!max || d.isAfter(max)) ? d : max;
+          }, null);
+          const isUntilToday = !lastEnd || !lastEnd.isValid() || !lastEnd.isBefore(dayjs().startOf('month'));
+          const untilLatin = isUntilToday ? 'bugungi kungacha' : '';
           sentences.push(
-            `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, amalda ${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
+            `Xonadonda joyida o'rganish o'tkazildi, MFY va qo'shnilar ma'lumotlariga ko'ra yagona elektron tizimda ${currentCnt} nafar ko'rsatilgan bo'lsa-da, amalda ${untilLatin ? `${untilLatin} ` : ''}${nextCnt} nafar shaxs istiqomat qilishi tasdiqlandi.`
           );
         }
       } else {

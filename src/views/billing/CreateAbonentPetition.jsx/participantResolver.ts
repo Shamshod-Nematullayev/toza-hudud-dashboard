@@ -6,7 +6,9 @@ export type ParticipantKey =
   | 'fuqaro'
   | 'mahalla_raisi'
   | 'mahalla_yettiligi'
-  | 'aholi_nazoratchisi';
+  | 'aholi_nazoratchisi'
+  | 'profilaktika_inspektori'
+  | 'yoshlar_yetakchisi';
 
 export interface IParticipantConfig {
   key: ParticipantKey;
@@ -21,6 +23,7 @@ export interface ActTypeItem {
   name: string;
   description?: string;
   participants: IParticipantConfig[];
+  documentTypes?: string[];
   isDefault: boolean;
   isActive: boolean;
 }
@@ -114,17 +117,15 @@ export function resolveParticipants(params: {
     switch (cfg.key) {
       case 'billing_staff': {
         const name = creatorName || user?.fullName || company?.billingAdminName || '';
-        if (name) {
-          list.push({
-            id: 'billing_staff',
-            key: 'billing_staff',
-            label: cfg.label || 'Abonentlar bilan ishlash bo‘limi xodimi:',
-            name,
-            position: 'Abonentlar bilan ishlash bo‘limi xodimi',
-            order: cfg.order,
-            isExcluded: excludedIds.includes('billing_staff')
-          });
-        }
+        list.push({
+          id: 'billing_staff',
+          key: 'billing_staff',
+          label: cfg.label || 'Korxona xodimi:',
+          name: name || '',
+          position: 'Abonentlar bilan ishlash bo‘limi xodimi',
+          order: 5,
+          isExcluded: excludedIds.includes('billing_staff')
+        });
         break;
       }
       case 'rahbar': {
@@ -136,7 +137,7 @@ export function resolveParticipants(params: {
             label: cfg.label || `${company?.name || ''} ${company?.locationName || ''} filial rahbari:`.trim(),
             name,
             position: 'Filial rahbari',
-            order: cfg.order,
+            order: 6,
             isExcluded: excludedIds.includes('rahbar')
           });
         }
@@ -148,21 +149,29 @@ export function resolveParticipants(params: {
           break;
         }
         const name = abonentData?.fullName || '';
-        if (name) {
-          list.push({
-            id: 'fuqaro',
-            key: 'fuqaro',
-            label: cfg.label || 'Fuqaro:',
-            name,
-            position: 'Fuqaro',
-            order: cfg.order,
-            isExcluded: excludedIds.includes('fuqaro')
-          });
-        }
+        list.push({
+          id: 'fuqaro',
+          key: 'fuqaro',
+          label: cfg.label || 'Fuqaro:',
+          name: name || '',
+          position: 'Fuqaro',
+          order: 2,
+          isExcluded: excludedIds.includes('fuqaro')
+        });
         break;
       }
-      // Aholi nazoratchisi umuman imzo qo'yuvchilardan olib tashlangan (telegram bot orqali xabar boradi)
       case 'aholi_nazoratchisi': {
+        // Mahallada mavjud emas (cancelContract) dalolatnomasida aholi nazoratchisi qatnashadi
+        const name = mahallaData?.biriktirilganNazoratchi?.inspector_name || '';
+        list.push({
+          id: 'aholi_nazoratchisi',
+          key: 'aholi_nazoratchisi',
+          label: cfg.label || 'Aholi nazoratchisi:',
+          name: name || '',
+          position: 'Aholi nazoratchisi',
+          order: 2,
+          isExcluded: excludedIds.includes('aholi_nazoratchisi')
+        });
         break;
       }
       case 'mahalla_raisi': {
@@ -172,7 +181,7 @@ export function resolveParticipants(params: {
           label: cfg.label || `${mahallaData?.name || 'MFY'} raisi:`,
           name: raisName,
           position: 'MFY raisi',
-          order: cfg.order,
+          order: 1,
           isExcluded: excludedIds.includes('mahalla_raisi')
         });
 
@@ -194,7 +203,7 @@ export function resolveParticipants(params: {
             label: `${mahalla2Data.name || 'MFY'} raisi:`,
             name: rais2Name,
             position: 'MFY raisi',
-            order: (cfg.order ?? 1) + 0.1,
+            order: 1.1,
             isExcluded: excludedIds.includes('mahalla2_raisi')
           });
         }
@@ -203,6 +212,9 @@ export function resolveParticipants(params: {
       case 'mahalla_yettiligi': {
         const employees = mahallaData?.employees || [];
         const seenRoles = new Set<string>();
+
+        // Mahalla dalolatnomalarida yettilikdan faqat profilaktika inspektori va yoshlar yetakchisi qatnashadi
+        const allowedRoles = ['profilaktika_inspektori', 'yoshlar_yetakchisi'];
 
         let subIndex = 0;
         for (const emp of employees) {
@@ -216,8 +228,8 @@ export function resolveParticipants(params: {
           const matched = matchYettilikRole(emp.position);
           if (!matched) continue; // Noma'lum lavozimni taxmin qilmaymiz
 
-          // Agar lavozim rais bo'lsa va rais alohida mavjud bo'lsa, tashlab ketamiz
-          if (matched.roleKey === 'mahalla_raisi' && hasExplicitRais) {
+          // Faqat Profilaktika inspektori va Yoshlar yetakchisi
+          if (!allowedRoles.includes(matched.roleKey)) {
             continue;
           }
 
@@ -225,22 +237,114 @@ export function resolveParticipants(params: {
           seenRoles.add(matched.roleKey);
 
           const memberId = `yettilik_${matched.roleKey}`;
+          const isProf = matched.roleKey === 'profilaktika_inspektori';
           list.push({
             id: memberId,
             key: 'mahalla_yettiligi',
             label: `${matched.standardTitle}:`,
             name: emp.fullName.trim(),
             position: matched.standardTitle,
-            order: (cfg.order ?? 2) * 10 + subIndex,
+            order: isProf ? 3 : 4,
             isExcluded: excludedIds.includes(memberId)
           });
           subIndex++;
         }
+
+        // Agar mahalla xodimlari ro'yxatida Profilaktika inspektori yoki Yoshlar yetakchisi topilmasa ham,
+        // dalolatnoma blankasida ularning o'rni saqlanib turishi uchun qo'shib qo'yamiz
+        if (!seenRoles.has('profilaktika_inspektori')) {
+          list.push({
+            id: 'yettilik_profilaktika_inspektori',
+            key: 'mahalla_yettiligi',
+            label: 'Profilaktika inspektori:',
+            name: '',
+            position: 'Profilaktika inspektori',
+            order: 3,
+            isExcluded: excludedIds.includes('yettilik_profilaktika_inspektori')
+          });
+        }
+        if (!seenRoles.has('yoshlar_yetakchisi')) {
+          list.push({
+            id: 'yettilik_yoshlar_yetakchisi',
+            key: 'mahalla_yettiligi',
+            label: 'Yoshlar yetakchisi:',
+            name: '',
+            position: 'Yoshlar yetakchisi',
+            order: 4,
+            isExcluded: excludedIds.includes('yettilik_yoshlar_yetakchisi')
+          });
+        }
+        break;
+      }
+      case 'profilaktika_inspektori': {
+        const employees = mahallaData?.employees || [];
+        const emp = employees.find(
+          (e: any) => e.fullName?.trim() && matchYettilikRole(e.position)?.roleKey === 'profilaktika_inspektori'
+        );
+        list.push({
+          id: 'yettilik_profilaktika_inspektori',
+          key: 'profilaktika_inspektori',
+          label: cfg.label || 'Profilaktika inspektori:',
+          name: emp?.fullName?.trim() || '',
+          position: 'Profilaktika inspektori',
+          order: 3,
+          isExcluded: excludedIds.includes('yettilik_profilaktika_inspektori')
+        });
+        break;
+      }
+      case 'yoshlar_yetakchisi': {
+        const employees = mahallaData?.employees || [];
+        const emp = employees.find(
+          (e: any) => e.fullName?.trim() && matchYettilikRole(e.position)?.roleKey === 'yoshlar_yetakchisi'
+        );
+        list.push({
+          id: 'yettilik_yoshlar_yetakchisi',
+          key: 'yoshlar_yetakchisi',
+          label: cfg.label || 'Yoshlar yetakchisi:',
+          name: emp?.fullName?.trim() || '',
+          position: 'Yoshlar yetakchisi',
+          order: 4,
+          isExcluded: excludedIds.includes('yettilik_yoshlar_yetakchisi')
+        });
         break;
       }
     }
   }
 
+  // Agar mahalla dalolatnomasi bo'lsa va actType konfiguratsiyasida aholi nazoratchisi yoki fuqaro qolib ketgan bo'lsa:
+  const isMahallaAct = actType.key === 'mahalla' || actType.key === 'mahalla_2026';
+  if (isMahallaAct) {
+    if (documentType === 'cancelContract') {
+      // Mahallada mavjud emasda: aholi nazoratchisi qatnashadi, fuqaro qatnashmaydi
+      if (!list.some((p) => p.id === 'aholi_nazoratchisi')) {
+        const nazoratchiName = mahallaData?.biriktirilganNazoratchi?.inspector_name || '';
+        list.push({
+          id: 'aholi_nazoratchisi',
+          key: 'aholi_nazoratchisi',
+          label: 'Aholi nazoratchisi:',
+          name: nazoratchiName || '',
+          position: 'Aholi nazoratchisi',
+          order: 2,
+          isExcluded: excludedIds.includes('aholi_nazoratchisi')
+        });
+      }
+    } else {
+      // Boshqa barcha mahalla dalolatnomalarida: fuqaro qatnashadi
+      if (!list.some((p) => p.id === 'fuqaro')) {
+        list.push({
+          id: 'fuqaro',
+          key: 'fuqaro',
+          label: 'Fuqaro:',
+          name: abonentData?.fullName || '',
+          position: 'Fuqaro',
+          order: 2,
+          isExcluded: excludedIds.includes('fuqaro')
+        });
+      }
+    }
+  }
+
+  list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   return list;
 }
 
@@ -253,9 +357,7 @@ export function formatParticipantsText(participants?: ResolvedParticipant[] | an
     return '';
   }
 
-  const active = participants.filter(
-    (p) => !p.isExcluded && p.key !== 'aholi_nazoratchisi' && p.id !== 'aholi_nazoratchisi'
-  );
+  const active = participants.filter((p) => !p.isExcluded);
   if (active.length === 0) return '';
 
   return active

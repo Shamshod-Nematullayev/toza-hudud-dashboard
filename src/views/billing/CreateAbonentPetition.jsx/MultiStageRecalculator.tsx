@@ -127,7 +127,13 @@ export default function MultiStageRecalculator() {
                   type="number"
                   label={isCurrent ? 'Kishi (yangi)' : 'Kishi soni'}
                   value={stageCount(stage, yashovchiSoniInput)}
-                  onChange={(e) => (isCurrent ? setYashovchiSoniInput(e.target.value) : updateStage(i, { count: e.target.value }))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (isCurrent) {
+                      setYashovchiSoniInput(val);
+                    }
+                    updateStage(i, { count: val });
+                  }}
                   slotProps={{ htmlInput: { min: 0 } }}
                   sx={{ width: 110, flexShrink: 0 }}
                 />

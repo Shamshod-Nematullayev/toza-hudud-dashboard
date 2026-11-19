@@ -10,8 +10,7 @@ import {
   Paper,
   Box,
   SxProps,
-  PaperProps,
-  DialogProps,
+  Fade,
   DialogSlotsAndSlotProps
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -58,12 +57,29 @@ export default function DraggableDialog({
     <Dialog
       open={open}
       onClose={onClose}
+      TransitionComponent={Fade}
+      transitionDuration={{ enter: 220, exit: 180 }}
       PaperComponent={PaperComponent}
       aria-labelledby="draggable-dialog-title"
       maxWidth={maxWidth}
       fullWidth={fullWidth}
-      sx={sx}
-      slotProps={slotProps}
+      sx={{
+        '& .MuiDialog-paper': {
+          boxShadow: '0 24px 48px -12px rgba(15, 23, 42, 0.25), 0 4px 16px rgba(0, 0, 0, 0.08)',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+        },
+        ...sx
+      }}
+      slotProps={{
+        backdrop: {
+          sx: {
+            bgcolor: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(4px)',
+            transition: 'opacity 0.22s ease-in-out !important'
+          }
+        },
+        ...slotProps
+      }}
     >
       {/* HEADER */}
       <DialogTitle
@@ -89,7 +105,19 @@ export default function DraggableDialog({
       </DialogContent>
 
       {/* ACTIONS (optional) */}
-      {actions && <DialogActions>{actions}</DialogActions>}
+      {actions && (
+        <DialogActions
+          sx={{
+            p: '12px 20px',
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            flexShrink: 0
+          }}
+        >
+          {actions}
+        </DialogActions>
+      )}
     </Dialog>
   );
 }

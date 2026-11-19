@@ -11,7 +11,7 @@ import { ResolvedParticipant } from '../participantResolver';
 export const MAHALLA_2026_ACT_TYPE_KEY = 'mahalla_2026';
 
 /** Yangi blankada chiqadigan ariza turlari; qolganlari eski ko'rinishda qoladi */
-export const MAHALLA_2026_DOCUMENT_TYPES = ['dvaynik', 'odam_soni', 'viza', 'death'];
+export const MAHALLA_2026_DOCUMENT_TYPES = ['dvaynik', 'odam_soni', 'viza', 'death', 'cancelContract'];
 
 const LINE = '1px solid #000';
 
@@ -54,17 +54,26 @@ const withDistrictWord = (loc?: string) => {
   return /туман|шаҳар|шахар/i.test(c) ? c : `${c} тумани`;
 };
 
-// Blankadagi imzo chekuvchilar tartibi va mahalla yettiligi rollari
-const ROLES: { id: string; title: string; ids: string[] }[] = [
-  { id: 'rais', title: 'МФЙ раиси', ids: ['mahalla_raisi', 'yettilik_mahalla_raisi'] },
-  { id: 'hokim', title: 'Ҳоким ёрдамчиси', ids: ['yettilik_hokim_yordamchisi'] },
-  { id: 'xotin', title: 'Хотин-қизлар фаоли', ids: ['yettilik_xotin_qizlar_faoli'] },
-  { id: 'yoshlar', title: 'Ёшлар етакчиси', ids: ['yettilik_yoshlar_yetakchisi'] },
-  { id: 'profilaktika', title: 'Профилактика инспектори', ids: ['yettilik_profilaktika_inspektori'] },
-  { id: 'ijtimoiy', title: 'Ижтимоий ходим', ids: ['yettilik_ijtimoiy_xodim'] },
-  { id: 'soliq', title: 'Солиқ инспектори', ids: ['yettilik_soliq_inspektori'] },
-  { id: 'korxona', title: 'ходими', ids: ['billing_staff'] }
-];
+// Blankadagi imzo chekuvchilar tartibi: faqat belgilangan 5 lavozim
+export const getMahalla2026Roles = (isCancelContract?: boolean) => {
+  if (isCancelContract) {
+    // Mahallada mavjud emas: 1. Mahalla raisi, 2. Aholi nazoratchisi, 3. Profilaktika inspektori, 4. Yoshlar yetakchisi, 5. Korxona xodimi
+    return [
+      { id: 'rais', title: 'МФЙ раиси', ids: ['mahalla_raisi', 'yettilik_mahalla_raisi'] },
+      { id: 'aholi_nazoratchisi', title: 'Аҳоли назоратчиси', ids: ['aholi_nazoratchisi'] },
+      { id: 'profilaktika', title: 'Профилактика инспектори', ids: ['yettilik_profilaktika_inspektori', 'profilaktika_inspektori'] },
+      { id: 'yoshlar', title: 'Ёшлар етакчиси', ids: ['yettilik_yoshlar_yetakchisi', 'yoshlar_yetakchisi'] },
+      { id: 'korxona', title: 'ходими', ids: ['billing_staff'] }
+    ];
+  }
+  // Boshqa mahalla dalolatnomalari: 1. Mahalla raisi, 2. Profilaktika inspektori, 3. Yoshlar yetakchisi, 4. Korxona xodimi (fuqaroning o'zi pastki alohida imzo blokida)
+  return [
+    { id: 'rais', title: 'МФЙ раиси', ids: ['mahalla_raisi', 'yettilik_mahalla_raisi'] },
+    { id: 'profilaktika', title: 'Профилактика инспектори', ids: ['yettilik_profilaktika_inspektori', 'profilaktika_inspektori'] },
+    { id: 'yoshlar', title: 'Ёшлар етакчиси', ids: ['yettilik_yoshlar_yetakchisi', 'yoshlar_yetakchisi'] },
+    { id: 'korxona', title: 'ходими', ids: ['billing_staff'] }
+  ];
+};
 
 export type BlankRow = { fio: string; birth?: string; passport?: string; relation?: string; since?: string; status?: string };
 
@@ -76,6 +85,7 @@ export const ownerRow = (abonentData: any): BlankRow => ({
   birth: formatDate(abonentData?.citizen?.birthDate),
   passport: abonentData?.citizen?.passport || '',
   relation: 'Уй эгаси',
+  since: '—',
   status: ''
 });
 
@@ -84,7 +94,7 @@ const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : 
 /** Murojaat qilgan vakil (abonentning qarindoshi) qatori */
 export const vakilRow = (vakil?: { relation?: string; fullName?: string }): BlankRow | null =>
   vakil?.relation && vakil?.fullName
-    ? { fio: cyr(vakil.fullName), relation: capitalize(cyr(vakil.relation.toLowerCase())), status: '' }
+    ? { fio: cyr(vakil.fullName), relation: capitalize(cyr(vakil.relation.toLowerCase())), since: '—', status: '' }
     : null;
 
 interface PageProps {
@@ -99,6 +109,8 @@ interface PageProps {
   inhabitantCnt?: number | string;
   rows: BlankRow[];
   izoh: React.ReactNode;
+  /** Shartnomani bekor qilish (mahallada mavjud emas) dalolatnomasi */
+  isCancelContract?: boolean;
 }
 
 /**
@@ -114,7 +126,8 @@ export function MahallaBlank2026Page({
   secondaryAccount,
   inhabitantCnt,
   rows,
-  izoh
+  izoh,
+  isCancelContract
 }: PageProps) {
   const { company } = useCustomizationStore();
   const mahallaData = mahalla?.data || mahalla;
@@ -133,21 +146,16 @@ export function MahallaBlank2026Page({
     if (p) usedIds.add(p.id);
     return p?.name || '';
   };
-  const roles = ROLES.map((r) => ({ ...r, name: roleName(r.ids) }));
+  const roles = getMahalla2026Roles(isCancelContract).map((r) => ({ ...r, name: roleName(r.ids) }));
   const korxonaTitle = `“${cyr(companyName) || 'корхона номи'}” ходими`;
-  const extra = active.filter((p) => !usedIds.has(p.id));
 
-  // Mahalla raisi va mahallada ishlovchilar blankada har doim lavozim sifatida turadi;
-  // agar admin UI orqali qaysidir ishtirokchini ataylab exclude qilgan bo'lsa (isExcluded), u chiqarilmaydi.
+  // Mahalla raisi va mas'ullar blankada har doim lavozim sifatida turadi
   const isExcludedRole = (ids: string[]) =>
     ids.length > 0 && ids.some((id) => participants.some((p) => p.id === id && p.isExcluded));
 
-  const signers = [
-    ...roles
-      .filter((r) => !isExcludedRole(r.ids))
-      .map((r) => (r.id === 'korxona' ? { ...r, title: korxonaTitle } : r)),
-    ...extra.map((p) => ({ id: p.id, title: cyr(p.label.replace(/:$/, '')), ids: [p.id], name: p.name }))
-  ];
+  const signers = roles
+    .filter((r) => !isExcludedRole(r.ids))
+    .map((r) => (r.id === 'korxona' ? { ...r, title: korxonaTitle } : r));
 
   const day = date.getDate();
   const month = kirillga(oylar[date.getMonth()]);
@@ -194,7 +202,7 @@ export function MahallaBlank2026Page({
         </span>
       </div>
 
-      {/* Ishtirokchilar: mahalla raisi va mahallada ishlovchilarning familiya-ismi chiqarilmaydi, faqat lavozimi qoladi */}
+      {/* Ishtirokchilar: Mahalla dalolatnomalarida belgilangan 5 kishi ishtirok etadi */}
       <p style={{ textIndent: 40, margin: '0 0 4px', textAlign: 'left' }}>
         Бизлар қуйида имзо чекувчилар “<b>{cyr(mahallaData?.name)}</b>” МФЙ{' '}
         {signers.map((r, i) => {
@@ -207,18 +215,29 @@ export function MahallaBlank2026Page({
             </React.Fragment>
           );
         })}
-        лар иштирокида туздик.
+        {!isCancelContract && name1 ? <>, фуқаро <Field value={name1} /></> : null} лар иштирокида туздик.
       </p>
 
       {/* Manzil */}
-      <p style={{ textIndent: 40, margin: '0 0 8px', textAlign: 'left' }}>
-        <Field value={withDistrictWord(location)} minWidth={120} /> “<b>{cyr(mahallaData?.name || abonentData?.mahallaName)}</b>” МФЙ{' '}
-        <Field value={cyr(abonentData?.streetName)} minWidth={110} /> қишлоқ (кўча){' '}
-        <Field value={abonentData?.house?.homeNumber} minWidth={40} /> уйда бугунги кунда <Field value={inhabitantCnt} minWidth={30} /> киши
-        яшайди. Уй кадастри № <Field value={abonentData?.house?.cadastralNumber} minWidth={150} /> ЖШИР{' '}
-        <Field value={abonentData?.citizen?.pnfl} minWidth={140} /> <Field value={name1} minWidth={200} /> номида бўлиб қуйидагилар
-        истиқомат қилади. <b>Электр энергия ҳисоб рақами</b> <Field value={abonentData?.electricityAccountNumber} minWidth={110} />
-      </p>
+      {isCancelContract ? (
+        <p style={{ textIndent: 40, margin: '0 0 8px', textAlign: 'left' }}>
+          <Field value={withDistrictWord(location)} minWidth={120} /> “<b>{cyr(mahallaData?.name || abonentData?.mahallaName)}</b>” МФЙ{' '}
+          <Field value={cyr(abonentData?.streetName)} minWidth={110} /> қишлоқ (кўча){' '}
+          <Field value={abonentData?.house?.homeNumber} minWidth={40} /> уй манзили бўйича Уй кадастри №{' '}
+          <Field value={abonentData?.house?.cadastralNumber} minWidth={150} /> ЖШИР <Field value={abonentData?.citizen?.pnfl} minWidth={140} />{' '}
+          <Field value={name1} minWidth={200} /> номидаги тўлов ҳисоб рақами бўйича ушбу абонент кўрсатилган манзилда ва маҳалла ҳудудида амалда
+          мавжуд эмаслиги (аниқланмаганлиги) маълум бўлди.
+        </p>
+      ) : (
+        <p style={{ textIndent: 40, margin: '0 0 8px', textAlign: 'left' }}>
+          <Field value={withDistrictWord(location)} minWidth={120} /> “<b>{cyr(mahallaData?.name || abonentData?.mahallaName)}</b>” МФЙ{' '}
+          <Field value={cyr(abonentData?.streetName)} minWidth={110} /> қишлоқ (кўча){' '}
+          <Field value={abonentData?.house?.homeNumber} minWidth={40} /> уйда бугунги кунда <Field value={inhabitantCnt} minWidth={30} /> киши
+          яшайди. Уй кадастри № <Field value={abonentData?.house?.cadastralNumber} minWidth={150} /> ЖШИР{' '}
+          <Field value={abonentData?.citizen?.pnfl} minWidth={140} /> <Field value={name1} minWidth={200} /> номида бўлиб қуйидагилар
+          истиқомат қилади. <b>Электр энергия ҳисоб рақами</b> <Field value={abonentData?.electricityAccountNumber} minWidth={110} />
+        </p>
+      )}
 
       {/* Yashovchilar jadvali */}
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, lineHeight: 1.2 }}>
@@ -245,7 +264,7 @@ export function MahallaBlank2026Page({
               <td style={{ ...cell, textAlign: 'center' }}>{r.passport}</td>
               <td style={{ ...cell, textAlign: 'center', fontWeight: 'bold' }}>{r.relation}</td>
               <td style={{ ...cell, textAlign: 'center' }}>{r.since}</td>
-              <td style={cell}></td>
+              <td style={{ ...cell, fontSize: 11 }}>{r.status || ''}</td>
             </tr>
           ))}
         </tbody>
@@ -256,7 +275,7 @@ export function MahallaBlank2026Page({
         <span style={{ textDecoration: 'underline' }}>Изоҳ:</span> {izoh}
       </p>
 
-      {/* Imzolar: mahalla raisi va mahallada ishlovchilarning familiya-ismi ko'rsatilmaydi (bo'sh imzo chizig'i qoladi) */}
+      {/* Imzolar */}
       <p style={{ textAlign: 'center', margin: '6px 0 4px' }}>Юқоридагиларни тасдиқлаб имзо чекувчилар:</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 24, rowGap: 6, fontSize: 13.5 }}>
         {signers.map((r) => {
@@ -270,6 +289,10 @@ export function MahallaBlank2026Page({
                   <span style={{ fontSize: 11, fontStyle: 'italic', fontWeight: 'bold', minHeight: 14, marginTop: 1 }}>
                     ({cyrShort(r.name)})
                   </span>
+                ) : r.name ? (
+                  <span style={{ fontSize: 11, fontStyle: 'italic', minHeight: 14, marginTop: 1 }}>
+                    ({cyrShort(r.name)})
+                  </span>
                 ) : (
                   <span style={{ fontSize: 11, minHeight: 14 }} />
                 )}
@@ -280,29 +303,44 @@ export function MahallaBlank2026Page({
       </div>
 
       {/* Abonent imzosi va QR */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 14 }}>
-        <div style={{ flex: 1 }}>
-          {/* Imzo chap tomonda, F.I.Sh. va telefon o'ngda — imzo QR kodga tegmasligi uchun */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, borderBottom: LINE, minHeight: 34 }}>
-            <span style={{ flex: 1, fontSize: 12, color: '#555', paddingLeft: 4 }}>Имзо:</span>
-            <span style={{ fontWeight: 'bold', textAlign: 'right', paddingRight: 4 }}>
-              {name1}
-              {abonentData?.phone ? `, ${abonentData.phone}` : ''}
-            </span>
+      {!isCancelContract ? (
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 14 }}>
+          <div style={{ flex: 1 }}>
+            {/* Imzo chap tomonda, F.I.Sh. va telefon o'ngda — imzo QR kodga tegmasligi uchun */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, borderBottom: LINE, minHeight: 34 }}>
+              <span style={{ flex: 1, fontSize: 12, color: '#555', paddingLeft: 4 }}>Имзо:</span>
+              <span style={{ fontWeight: 'bold', textAlign: 'right', paddingRight: 4 }}>
+                {name1}
+                {abonentData?.phone ? `, ${abonentData.phone}` : ''}
+              </span>
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic' }}>(Абонент (фуқаро) Ф.И.Ш. имзоси ва телефон рақами)</div>
           </div>
-          <div style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic' }}>(Абонент Ф.И.Ш. имзоси ва телефон рақами)</div>
+          {ariza?._id && (
+            <QRCodeCanvas
+              value={`ariza_${ariza._id}_${ariza.document_number}`}
+              size={96}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              level="Q"
+              includeMargin={true}
+            />
+          )}
         </div>
-        {ariza?._id && (
-          <QRCodeCanvas
-            value={`ariza_${ariza._id}_${ariza.document_number}`}
-            size={96}
-            bgColor="#ffffff"
-            fgColor="#000000"
-            level="Q"
-            includeMargin={true}
-          />
-        )}
-      </div>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+          {ariza?._id && (
+            <QRCodeCanvas
+              value={`ariza_${ariza._id}_${ariza.document_number}`}
+              size={96}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              level="Q"
+              includeMargin={true}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -63,6 +63,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
   aktType,
+  buildMahalladaMavjudEmasAsos,
   cancelContractReasons,
   CancelContractReason,
   defaultAbonentData,
@@ -177,6 +178,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     setTransferDebitorAmount,
     kuchirish,
     bekorQilish,
+    mahalla,
     setBekorQilish
   } = useStore();
 
@@ -315,9 +317,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
           return acc + (p.periodType === 'debitor' ? 1 : -1);
         }, 0);
         setYashovchiSoniInput(Math.max(0, initialCnt + delta));
-      } else {
-        setYashovchiSoniInput(abonentData?.house?.inhabitantCnt ?? '');
       }
+      // 'kop_bosqichli' rejimida recalculationPeriods o'zgarganda yashovchiSoniInput qayta yozilmaydi (input qotib qolmasligi uchun)
     } else if (aktType === 'dvaynik' || aktType === 'viza') {
       setYashovchiSoniInput(abonentData?.house?.inhabitantCnt ?? '');
     }
@@ -801,7 +802,16 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     <Select
                       label={t('Bekor qilish sababi')}
                       value={bekorQilish.sabab}
-                      onChange={(e) => setBekorQilish({ sabab: e.target.value as CancelContractReason })}
+                      onChange={(e) => {
+                        const newSabab = e.target.value as CancelContractReason;
+                        let newAsos = bekorQilish.asos;
+                        if (newSabab === 'mahallada_mavjud_emas') {
+                          newAsos = buildMahalladaMavjudEmasAsos(mahalla?.data?.name || abonentData?.mahallaName, abonentData?.fullName);
+                        } else if (bekorQilish.sabab === 'mahallada_mavjud_emas' && bekorQilish.asos === buildMahalladaMavjudEmasAsos(mahalla?.data?.name || abonentData?.mahallaName, abonentData?.fullName)) {
+                          newAsos = '';
+                        }
+                        setBekorQilish({ sabab: newSabab, asos: newAsos });
+                      }}
                       sx={{ bgcolor: 'background.paper' }}
                     >
                       {Object.entries(cancelContractReasons).map(([key, label]) => (
@@ -816,7 +826,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                     multiline
                     minRows={3}
                     label={t('Asos (izoh)')}
-                    placeholder="Masalan: Kadastr palatasi Kattaqo'rg'on filialining xati asosida, abonent ko'rsatilgan manzilda istiqomat qilmaydi"
+                    placeholder="Masalan: Kadastr palatasi filialining xati asosida yoki aholi bilan surishtiruv natijasida..."
                     value={bekorQilish.asos}
                     onChange={(e) => setBekorQilish({ asos: e.target.value })}
                     slotProps={{ htmlInput: { maxLength: 2000 } }}

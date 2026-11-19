@@ -21,7 +21,10 @@ import {
   DialogActions,
   ToggleButton,
   ToggleButtonGroup,
-  alpha
+  alpha,
+  Collapse,
+  Fade,
+  Skeleton
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useReactToPrint } from 'react-to-print';
@@ -61,7 +64,8 @@ import {
   SettingsOutlined,
   CheckCircleOutlined,
   DoNotDisturbAltOutlined,
-  InfoOutlined
+  InfoOutlined,
+  PersonAddOutlined
 } from '@mui/icons-material';
 import { IconEye } from '@tabler/icons-react';
 
@@ -123,7 +127,7 @@ const DocumentRenderer = ({
   const docType = ariza?.document_type;
   const useMahalla2026Blank =
     actTypeKey === MAHALLA_2026_ACT_TYPE_KEY ||
-    ((docType === 'odam_soni' || docType === 'dvaynik') && actTypeKey !== 'ichki');
+    ((docType === 'odam_soni' || docType === 'dvaynik' || docType === 'cancelContract') && actTypeKey !== 'ichki');
 
   const commonProps = {
     date: new Date(ariza.sana),
@@ -292,16 +296,83 @@ export default function PrintSection({
   const [openManageActTypesDialog, setOpenManageActTypesDialog] = useState(false);
 
   // Odam soni dalolatnomasida eski mahalla dalolatnomasi ('mahalla') olib tashlanadi,
-  // faqat yangi chiqqan dalolatnoma turi ('mahalla_2026') va 'ichki' (agar shartlar to'g'ri kelsa) qoladi
+  // cancelContract (mahallada mavjud emas) da esa faqat bitta 2026 blankali mahalla dalolatnomasi bo'ladi!
   const visibleActTypes = useMemo(() => {
-    if (effectiveDocType === 'odam_soni') {
-      return actTypes.filter((t) => t.key !== 'mahalla');
+    // 1. Shartnomani bekor qilish (Mahallada mavjud emas):
+    // Faqat bitta dalolatnoma bo'ladi — ariza yoki ichki dalolatnoma mavjud emas!
+    // Eski 'mahalla' va 'ichki' mutlaqo ko'rinmaydi. Faqat 'mahalla_2026' (yangi blanka).
+    if (effectiveDocType === 'cancelContract') {
+      const blank2026 = actTypes.filter((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY);
+      if (blank2026.length > 0) {
+        return [blank2026[0]];
+      }
+      const explicit = actTypes.filter(
+        (t) => t.key !== 'mahalla' && t.key !== 'ichki' && t.documentTypes && t.documentTypes.includes('cancelContract')
+      );
+      if (explicit.length > 0) {
+        return [explicit[0]];
+      }
+      return actTypes.filter((t) => t.key !== 'ichki' && t.key !== 'mahalla').slice(0, 1);
     }
-    return actTypes;
+
+    // 2. Odam soni o'zgarishi:
+    // Eski mahalla dalolatnomasi ('mahalla') olib tashlanadi
+    if (effectiveDocType === 'odam_soni') {
+      return actTypes.filter((t) => {
+        if (t.key === 'mahalla') return false;
+        if (t.documentTypes && t.documentTypes.length > 0) {
+          return t.documentTypes.includes('odam_soni');
+        }
+        return true;
+      });
+    }
+
+    // 3. Ikkilamchi hisob raqami (Dvaynik):
+    if (effectiveDocType === 'dvaynik') {
+      return actTypes.filter((t) => {
+        if (t.key === 'mahalla') return false;
+        if (t.documentTypes && t.documentTypes.length > 0) {
+          return t.documentTypes.includes('dvaynik');
+        }
+        return true;
+      });
+    }
+
+    // 4. Boshqa barcha turlar:
+    return actTypes.filter((t) => {
+      if (t.documentTypes && t.documentTypes.length > 0) {
+        return t.documentTypes.includes(effectiveDocType);
+      }
+      return true;
+    });
   }, [actTypes, effectiveDocType]);
 
+  // Tur bittagina bo'lsa avtomatik tanlanishi
+  useEffect(() => {
+    if (visibleActTypes.length === 1) {
+      const onlyId = visibleActTypes[0]._id || visibleActTypes[0].key;
+      if (selectedActTypeId !== onlyId) {
+        setSelectedActTypeId(onlyId);
+      }
+    }
+  }, [visibleActTypes, selectedActTypeId]);
+
+  // Agar tanlangan tur joriy ko'rinadigan turlar ro'yxatida bo'lmasa, birinchi ruxsat etilgan turga o'tkazish
+  useEffect(() => {
+    if (!visibleActTypes.length) return;
+    const exists = visibleActTypes.some((t) => (t._id && t._id === selectedActTypeId) || t.key === selectedActTypeId);
+    if (!exists) {
+      const firstType = visibleActTypes[0];
+      if (firstType) {
+        setSelectedActTypeId(firstType._id || firstType.key);
+      }
+    }
+  }, [visibleActTypes, selectedActTypeId]);
+
   // Dalolatnoma turlarini yuklash
+  const [loadingActTypes, setLoadingActTypes] = useState(false);
   const fetchActTypes = useCallback(async () => {
+    setLoadingActTypes(true);
     try {
       const { data } = await api.get('/act-types');
       if (data?.data && Array.isArray(data.data)) {
@@ -309,6 +380,8 @@ export default function PrintSection({
       }
     } catch (err) {
       console.error('Failed to load act types:', err);
+    } finally {
+      setLoadingActTypes(false);
     }
   }, []);
 
@@ -318,11 +391,15 @@ export default function PrintSection({
     }
   }, [show, fetchActTypes]);
 
+  const [showVakil, setShowVakil] = useState(false);
+
   useEffect(() => {
     setComment(getCleanAsoslantiruvchi(ariza?.comment));
-    setRelation(ariza?.relation || '');
+    const rel = ariza?.relation || '';
+    setRelation(rel);
     setRelationFullName(ariza?.relationFullName || '');
-  }, [ariza?._id, ariza?.comment]);
+    setShowVakil(Boolean(rel));
+  }, [ariza?._id, ariza?.comment, ariza?.relation, ariza?.relationFullName]);
 
   const ishtirokchilarDisabled = customization.documentVariantOdamSoni === 'ariza';
 
@@ -393,10 +470,12 @@ export default function PrintSection({
     const saved = actTypes.find(
       (t) => (ariza.actTypeId && t._id === ariza.actTypeId) || (ariza.actTypeKey && t.key === ariza.actTypeKey)
     );
-    // Odam sonida eski 'mahalla' turi saqlangan bo'lsa ham uni yangi mahalla_2026 ga o'tkazamiz
-    let initial = saved && (!isOdamSoni || saved.key !== 'mahalla') ? saved : undefined;
+    // Odam sonida va cancelContract da eski 'mahalla' turi saqlangan bo'lsa ham uni yangi mahalla_2026 ga o'tkazamiz
+    let initial = saved && (!isOdamSoni || saved.key !== 'mahalla') && (effectiveDocType !== 'cancelContract' || (saved.key !== 'mahalla' && saved.key !== 'ichki')) ? saved : undefined;
     if (!initial) {
-      if (isOdamSoni) {
+      if (effectiveDocType === 'cancelContract') {
+        initial = actTypes.find((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY) || visibleActTypes[0] || actTypes[0];
+      } else if (isOdamSoni) {
         initial =
           actTypes.find((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY) ||
           actTypes.find((t) => t.key !== 'mahalla') ||
@@ -407,14 +486,15 @@ export default function PrintSection({
     }
 
     // Cheklov: faqat agar ariza yangi bo'lsa (hali actType saqlanmagan bo'lsa) va tanlangan tur cheklangan bo'lsa,
-    // yoki shartnomani bekor qilish dalolatnomasi bo'lsa (chunki u hech qachon ichki bo'la olmaydi)
+    // yoki shartnomani bekor qilish dalolatnomasi bo'lsa (chunki u hech qachon ichki yoki eski mahalla bo'la olmaydi)
     const isStrictlyForbidden =
-      (effectiveDocType === 'cancelContract' && initial?.key === 'ichki') ||
+      (effectiveDocType === 'cancelContract' && (initial?.key === 'ichki' || initial?.key === 'mahalla')) ||
       (isOdamSoni && initial?.key === 'mahalla');
-    if ((!saved || isStrictlyForbidden) && initial && getActTypeRestriction(initial).isDisabled && !ishtirokchilarDisabled) {
+    if ((!saved || isStrictlyForbidden) && initial && (getActTypeRestriction(initial).isDisabled || isStrictlyForbidden) && !ishtirokchilarDisabled) {
       initial =
+        (effectiveDocType === 'cancelContract' ? actTypes.find((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY) || visibleActTypes[0] : null) ||
         (isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === MAHALLA_2026_ACT_TYPE_KEY) : null) ||
-        (!isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') : null) ||
+        (!isOdamSoni && effectiveDocType !== 'cancelContract' ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') : null) ||
         actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki' && (!isOdamSoni || t.key !== 'mahalla')) ||
         actTypes.find((t) => !getActTypeRestriction(t).isDisabled && (!isOdamSoni || t.key !== 'mahalla')) ||
         initial;
@@ -571,12 +651,62 @@ export default function PrintSection({
       sx={{
         '& .MuiDialog-paper': {
           width: '95%',
-          maxWidth: '680px',
+          maxWidth: '700px',
+          maxHeight: '90vh',
+          display: 'flex',
+          flexDirection: 'column',
           borderRadius: '16px',
-          p: 0,
           overflow: 'hidden'
         }
       }}
+      contentSX={{
+        p: '20px 24px',
+        overflowY: 'auto',
+        flex: '1 1 auto'
+      }}
+      actions={
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+            py: 0.5
+          }}
+        >
+          <Button
+            variant="text"
+            color="inherit"
+            startIcon={<Close />}
+            onClick={handleClose}
+            sx={{ fontWeight: 600, textTransform: 'none' }}
+          >
+            Yopish
+          </Button>
+
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<IconEye size={18} />}
+              onClick={() => setShowPreview(true)}
+              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: '8px' }}
+            >
+              Ko&apos;rish
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PrintOutlined />}
+              onClick={handlePrint}
+              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: '8px', px: 3 }}
+            >
+              Chop etish
+            </Button>
+          </Stack>
+        </Box>
+      }
     >
       {/* Admin uchun Dalolatnoma turlari dialogi */}
       {isAdmin && (
@@ -651,7 +781,7 @@ export default function PrintSection({
         </DialogActions>
       </DraggableDialog>
 
-      <DialogContent sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Top Card Info */}
         <Card
           elevation={0}
@@ -693,8 +823,8 @@ export default function PrintSection({
           <Chip label="Tayyor" color="success" size="small" variant="filled" sx={{ fontWeight: 600, borderRadius: '6px' }} />
         </Card>
 
-        {/* Hujjat tarkibi (Chop etish rejimi) — yangi blankada ariza bo'lmagani uchun faqat boshqa shakllarda ko'rsatiladi */}
-        {ariza?.document_type !== 'pul_kuchirish' && !isMahalla2026Selected && (
+        {/* Hujjat tarkibi (Chop etish rejimi) — yangi blankada va cancelContract da ariza bo'lmagani uchun ko'rsatilmaydi */}
+        {ariza?.document_type !== 'pul_kuchirish' && effectiveDocType !== 'cancelContract' && !isMahalla2026Selected && (
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -755,61 +885,111 @@ export default function PrintSection({
           </Box>
         )}
 
-        {/* Vakillik qismi */}
-        <Card
-          elevation={0}
-          sx={{
-            p: 2,
-            bgcolor: theme.palette.mode === 'dark' ? 'background.default' : '#fcfcfc',
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: '12px'
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'textSecondary', fontWeight: 600 }}>
-            Murojaatchi (Abonent nomidan vakil murojaat qilgan bo&apos;lsa)
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 5 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel id="relation-label">Qarindoshlik darajasi</InputLabel>
-                <Select
-                  labelId="relation-label"
-                  label="Qarindoshlik darajasi"
-                  value={relation}
-                  onChange={(e) => {
-                    const newRelation = e.target.value;
-                    setRelation(newRelation);
-                    if (!newRelation) setRelationFullName('');
-                  }}
-                >
-                  <MenuItem value="">
-                    <em>Tanlanmagan (Abonentning o&apos;zi)</em>
-                  </MenuItem>
-                  {familyRelations.map((rel) => {
-                    const relName = typeof rel === 'string' ? rel : (rel as any)?.name;
-                    return (
-                      <MenuItem key={relName} value={relName}>
-                        {relName}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 7 }}>
-              <TextField
-                fullWidth
+        {/* Vakillik qismi — silliq Collapse animatsiyasi bilan */}
+        <Box>
+          <Collapse in={!showVakil} timeout={220} unmountOnExit>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button
                 size="small"
-                label="Vakilning F.I.Sh."
-                placeholder="Familiya Ism Sharif"
-                disabled={!relation}
-                value={relationFullName}
-                onChange={(e) => setRelationFullName(e.target.value)}
-              />
-            </Grid>
-          </Grid>
-        </Card>
+                variant="text"
+                startIcon={<PersonAddOutlined fontSize="small" />}
+                onClick={() => setShowVakil(true)}
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  py: 0.6,
+                  px: 1.5,
+                  borderRadius: '8px',
+                  color: 'text.secondary',
+                  bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.04) : '#f4f6f8',
+                  border: '1px dashed',
+                  borderColor: 'divider',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    color: 'primary.main',
+                    bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    borderColor: 'primary.main'
+                  }
+                }}
+              >
+                + Abonent nomidan vakil murojaat qilgan bo‘lsa (ko‘rsatish)
+              </Button>
+            </Box>
+          </Collapse>
+
+          <Collapse in={showVakil} timeout={260} unmountOnExit>
+            <Card
+              elevation={0}
+              sx={{
+                p: 2,
+                bgcolor: theme.palette.mode === 'dark' ? 'background.default' : '#fcfcfc',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: '12px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                  Murojaatchi (Abonent nomidan vakil murojaat qilgan bo&apos;lsa)
+                </Typography>
+                <Button
+                  size="small"
+                  color="inherit"
+                  onClick={() => {
+                    setShowVakil(false);
+                    setRelation('');
+                    setRelationFullName('');
+                  }}
+                  sx={{ textTransform: 'none', fontSize: '0.75rem', py: 0.2, px: 0.8 }}
+                >
+                  Yashirish
+                </Button>
+              </Stack>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 5 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="relation-label">Qarindoshlik darajasi</InputLabel>
+                    <Select
+                      labelId="relation-label"
+                      label="Qarindoshlik darajasi"
+                      value={relation}
+                      onChange={(e) => {
+                        const newRelation = e.target.value;
+                        setRelation(newRelation);
+                        if (!newRelation) setRelationFullName('');
+                      }}
+                    >
+                      <MenuItem value="">
+                        <em>Tanlanmagan (Abonentning o&apos;zi)</em>
+                      </MenuItem>
+                      {familyRelations.map((rel) => {
+                        const relName = typeof rel === 'string' ? rel : (rel as any)?.name;
+                        return (
+                          <MenuItem key={relName} value={relName}>
+                            {relName}
+                          </MenuItem>
+                        );
+                      })}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 7 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Vakilning F.I.Sh."
+                    placeholder="Familiya Ism Sharif"
+                    disabled={!relation}
+                    value={relationFullName}
+                    onChange={(e) => setRelationFullName(e.target.value)}
+                  />
+                </Grid>
+              </Grid>
+            </Card>
+          </Collapse>
+        </Box>
 
         {/* Asoslantiruvchi izoh */}
         <TextField
@@ -886,60 +1066,72 @@ export default function PrintSection({
           </Stack>
 
           {/* Dalolatnoma turi: shablonlar 1-4 ta bo'ladi, select ikki marta bosishni talab qilgani uchun yonma-yon kartalar */}
-          <Box
-            role="radiogroup"
-            aria-label="Dalolatnoma turi"
-            sx={{
-              mb: 1.5,
-              display: 'grid',
-              gridTemplateColumns: `repeat(${Math.min(Math.max(visibleActTypes.length, 1), 4)}, minmax(0, 1fr))`,
-              gap: 1
-            }}
-          >
-            {visibleActTypes.map((type) => {
-              const id = type._id || type.key;
-              const selected = (selectedActType?._id || selectedActType?.key) === id;
-              const restriction = getActTypeRestriction(type);
-              const isDisabled = restriction.isDisabled;
-              const isIchki = type.key === 'ichki';
+          {loadingActTypes && visibleActTypes.length === 0 ? (
+            <Box sx={{ mb: 1.5, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+              <Skeleton variant="rounded" height={60} sx={{ borderRadius: 2 }} />
+              <Skeleton variant="rounded" height={60} sx={{ borderRadius: 2 }} />
+            </Box>
+          ) : (
+            <Box
+              role="radiogroup"
+              aria-label="Dalolatnoma turi"
+              sx={{
+                mb: 1.5,
+                display: 'grid',
+                gridTemplateColumns: `repeat(${Math.min(Math.max(visibleActTypes.length, 1), 4)}, minmax(0, 1fr))`,
+                gap: 1
+              }}
+            >
+              {visibleActTypes.map((type) => {
+                const id = type._id || type.key;
+                const selected = (selectedActType?._id || selectedActType?.key) === id;
+                const restriction = getActTypeRestriction(type);
+                const isDisabled = restriction.isDisabled;
+                const isIchki = type.key === 'ichki';
 
-              return (
-                <Tooltip key={id} title={restriction.reason || ''} arrow placement="top" disableHoverListener={!isDisabled}>
-                  <Box
-                    component="button"
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    aria-disabled={isDisabled}
-                    disabled={isDisabled}
-                    onClick={() => {
-                      if (!isDisabled) {
-                        setSelectedActTypeId(id);
-                      }
-                    }}
-                    sx={{
-                      minWidth: 0,
-                      p: 1.25,
-                      textAlign: 'left',
-                      font: 'inherit',
-                      cursor: isDisabled ? 'not-allowed' : 'pointer',
-                      borderRadius: 2,
-                      border: '1.5px solid',
-                      borderColor: selected ? 'primary.main' : isDisabled ? 'action.disabledBackground' : 'divider',
-                      bgcolor: selected
-                        ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
-                        : isDisabled
-                        ? alpha(theme.palette.action.disabledBackground, 0.4)
-                        : 'background.paper',
-                      color: isDisabled ? 'text.disabled' : 'text.primary',
-                      opacity: isDisabled ? 0.55 : 1,
-                      position: 'relative',
-                      transition: 'border-color .15s, background-color .15s',
-                      '&:hover:not(:disabled)': { borderColor: 'primary.main' },
-                      '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 }
-                    }}
-                  >
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.5}>
+                return (
+                  <Tooltip key={id} title={restriction.reason || ''} arrow placement="top" disableHoverListener={!isDisabled}>
+                    <Box
+                      component="button"
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      aria-disabled={isDisabled}
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (!isDisabled) {
+                          setSelectedActTypeId(id);
+                        }
+                      }}
+                      sx={{
+                        minWidth: 0,
+                        p: 1.25,
+                        textAlign: 'left',
+                        font: 'inherit',
+                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        borderRadius: 2,
+                        border: '1.5px solid',
+                        borderColor: selected ? 'primary.main' : isDisabled ? 'action.disabledBackground' : 'divider',
+                        bgcolor: selected
+                          ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
+                          : isDisabled
+                          ? alpha(theme.palette.action.disabledBackground, 0.4)
+                          : 'background.paper',
+                        color: isDisabled ? 'text.disabled' : 'text.primary',
+                        opacity: isDisabled ? 0.55 : 1,
+                        position: 'relative',
+                        boxShadow: selected ? `0 2px 10px ${alpha(theme.palette.primary.main, 0.15)}` : 'none',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover:not(:disabled)': {
+                          borderColor: 'primary.main',
+                          transform: 'translateY(-1px)',
+                          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.12)}`
+                        },
+                        '&:active:not(:disabled)': { transform: 'translateY(0)' },
+                        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 }
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.5}>
                       <Typography
                         variant="body2"
                         sx={{
@@ -948,7 +1140,9 @@ export default function PrintSection({
                           lineHeight: 1.3
                         }}
                       >
-                        {type.name}
+                        {type.key === MAHALLA_2026_ACT_TYPE_KEY && effectiveDocType === 'cancelContract'
+                          ? 'Mahalla dalolatnomasi'
+                          : type.name}
                       </Typography>
                       {isDisabled && isIchki && (
                         <Chip
@@ -973,13 +1167,16 @@ export default function PrintSection({
                       variant="caption"
                       sx={{ color: isDisabled ? 'text.disabled' : 'text.secondary', display: 'block', mt: 0.25 }}
                     >
-                      {type.participants?.length || 0} ta ishtirokchi{type.isDefault ? ' · Standart' : ''}
+                      {(type.key === MAHALLA_2026_ACT_TYPE_KEY || type.key === 'mahalla'
+                        ? 5
+                        : (selected && resolvedParticipants.length) || type.participants?.length || 0)} ta ishtirokchi{type.isDefault ? ' · Standart' : ''}
                     </Typography>
                   </Box>
                 </Tooltip>
               );
             })}
           </Box>
+        )}
 
           {selectedActType?.key === MAHALLA_2026_ACT_TYPE_KEY &&
             !MAHALLA_2026_DOCUMENT_TYPES.includes(effectiveDocType) && (
@@ -995,7 +1192,7 @@ export default function PrintSection({
               icon={<InfoOutlined fontSize="small" />}
               sx={{ mb: 2, py: 0.5, px: 1.5, fontSize: '0.78rem', borderRadius: 2 }}
             >
-              Shartnomani bekor qilish dalolatnomasi: Mazkur dalolatnoma faqat Mahalla yettiligi ishtirokida tuziladi va tasdiqlanadi. Ichki dalolatnoma tuzish qatʼiyan man etiladi.
+              Shartnomani bekor qilish (Mahallada mavjud emas) dalolatnomasi: Mazkur dalolatnoma faqat Mahalla masʼullari (rais, aholi nazoratchisi, profilaktika inspektori, yoshlar yetakchisi va korxona xodimi) ishtirokida yangi shaklda tuziladi. Ariza yoki ichki dalolatnoma turi mavjud emas.
             </Alert>
           )}
 
@@ -1139,51 +1336,7 @@ export default function PrintSection({
             </Box>
           )}
         </Card>
-
-        {/* Pastki tugmalar */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            pt: 1,
-            borderTop: '1px solid',
-            borderColor: 'divider'
-          }}
-        >
-          <Button
-            variant="text"
-            color="inherit"
-            startIcon={<Close />}
-            onClick={handleClose}
-            sx={{ fontWeight: 600, textTransform: 'none' }}
-          >
-            Yopish
-          </Button>
-
-          <Stack direction="row" spacing={1.5}>
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<IconEye size={18} />}
-              onClick={() => setShowPreview(true)}
-              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: '8px' }}
-            >
-              Ko&apos;rish
-            </Button>
-
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<PrintOutlined />}
-              onClick={handlePrint}
-              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: '8px', px: 3 }}
-            >
-              Chop etish
-            </Button>
-          </Stack>
-        </Box>
-      </DialogContent>
+      </Box>
 
       {/* Chop etish uchun yashirin render komponenti */}
       <Box sx={{ display: 'none' }}>

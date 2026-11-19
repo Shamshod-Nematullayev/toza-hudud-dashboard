@@ -76,6 +76,42 @@ function OdamSoni({
     return Array.from(map.values()).sort((a, b) => a.date.valueOf() - b.date.valueOf());
   }, [periods]);
 
+  // Bosqichma-bosqich yashovchilar soni (ko'p davrlar uchun)
+  const classicStages = useMemo(() => {
+    const current = Number(abonentData?.house?.inhabitantCnt ?? ariza?.current_prescribed_cnt);
+    if (!Number.isFinite(current) || departureGroups.length <= 1) return null;
+
+    const lastEnd = periods.reduce<Dayjs | null>((max, p) => {
+      const d = dayjs(p.endDate || p.to);
+      return d.isValid() && (!max || d.isAfter(max)) ? d : max;
+    }, null);
+    const isUntilToday = !lastEnd || !lastEnd.isValid() || !lastEnd.isBefore(dayjs().startOf('month'));
+    const untilLatin = isUntilToday
+      ? 'bugungi kungacha'
+      : (lastEnd.date() === 1 ? `${lastEnd.year()}-yil ${oylar[lastEnd.month()]} oyigacha` : `${lastEnd.year()}-yil «${lastEnd.date()}» ${oylar[lastEnd.month()]}gacha`);
+
+    const stages: { label: string; count: number }[] = [];
+    let running = current;
+    for (let i = 0; i < departureGroups.length; i++) {
+      const g = departureGroups[i];
+      running -= g.count;
+      const fmtPoint = (d: Dayjs) => (d.date() === 1 ? `${d.year()}-yil ${oylar[d.month()]} oyidan` : `${d.year()}-yil «${d.date()}» ${oylar[d.month()]}dan`);
+
+      if (i < departureGroups.length - 1) {
+        stages.push({
+          label: `${fmtPoint(g.date)} boshlab`,
+          count: Math.max(running, 0)
+        });
+      } else {
+        stages.push({
+          label: `${fmtPoint(g.date)} boshlab ${untilLatin}`,
+          count: aniqlanganYashovchiSoni ?? Math.max(running, 0)
+        });
+      }
+    }
+    return stages;
+  }, [abonentData, ariza, departureGroups, aniqlanganYashovchiSoni, periods]);
+
   // Dinamik mantiqiy o'zgaruvchilar
   const isRelative = !!relation && !!relationFullName;
   const currentApplicant = isRelative ? relationFullName : abonentData?.fullName;
@@ -121,6 +157,7 @@ function OdamSoni({
           participants={participants}
           aniqlanganYashovchiSoni={aniqlanganYashovchiSoni}
           olderPeriod={olderPeriod}
+          recalculationPeriods={periods}
         />
       )}
 
@@ -232,6 +269,17 @@ function OdamSoni({
                   </span>
                 ))}{' '}
                 oila a'zolari istiqomat qilishi aniqlandi.
+              </>
+            ) : classicStages && classicStages.length > 1 ? (
+              <>
+                O'rganish natijasida{' '}
+                {classicStages.map((st, i) => (
+                  <span key={i}>
+                    {i > 0 && ', '}
+                    <b>{st.label}</b> <b>{st.count}</b> nafar
+                  </span>
+                ))}{' '}
+                oila a'zolari istiqomat qilib kelganligi aniqlandi.
               </>
             ) : departureGroups.length > 1 ? (
               <>
