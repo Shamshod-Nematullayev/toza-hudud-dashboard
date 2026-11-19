@@ -439,7 +439,7 @@ export default function ElectricityControl() {
               <Chip size="small" label="Tajriba" color="secondary" sx={{ fontWeight: 700 }} />
             </Stack>
             <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-              Har kuni kamida {data?.thresholds.qoniqarli ?? 5} ta elektr hisoblagich kodi kiritish topshirig‘i — nazorat workflow
+              Har kuni kamida {data?.thresholds.qoniqarli ?? 10} ta elektr hisoblagich kodi kiritish topshirig‘i — nazorat workflow
             </Typography>
           </Box>
         </Stack>

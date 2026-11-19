@@ -202,7 +202,7 @@ export default function OrganizationSpecialTaskDetail() {
         return (
           <Chip
             icon={<ThumbUpOutlined sx={{ fontSize: 14 }} />}
-            label="Yaxshi (10-19)"
+            label="Yaxshi (15-19)"
             size="small"
             sx={{
               bgcolor: alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.25 : 0.1),
@@ -214,7 +214,7 @@ export default function OrganizationSpecialTaskDetail() {
       case 'qoniqarli':
         return (
           <Chip
-            label="Qoniqarli (5-9)"
+            label="Qoniqarli (10-14)"
             size="small"
             sx={{
               bgcolor: alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.25 : 0.1),
@@ -227,7 +227,7 @@ export default function OrganizationSpecialTaskDetail() {
         return (
           <Chip
             icon={<ReportProblemOutlined sx={{ fontSize: 14 }} />}
-            label="Yomon (<5)"
+            label="Yomon (<10)"
             size="small"
             sx={{
               bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.25 : 0.1),
@@ -701,9 +701,9 @@ export default function OrganizationSpecialTaskDetail() {
             {[
               { id: 'all', label: 'Barchasi' },
               { id: 'alo', label: 'A’lo (20+)' },
-              { id: 'yaxshi', label: 'Yaxshi (10-19)' },
-              { id: 'qoniqarli', label: 'Qoniqarli (5-9)' },
-              { id: 'yomon', label: 'Yomon (<5)' },
+              { id: 'yaxshi', label: 'Yaxshi (15-19)' },
+              { id: 'qoniqarli', label: 'Qoniqarli (10-14)' },
+              { id: 'yomon', label: 'Yomon (<10)' },
               { id: 'tolik', label: 'To‘liq bajarilgan' }
             ].map((tab) => (
               <Chip
