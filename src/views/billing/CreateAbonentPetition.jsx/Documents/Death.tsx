@@ -20,7 +20,8 @@ function Death({
   participants,
   vakil,
   recalculationPeriods,
-  useMahalla2026Blank = false
+  useMahalla2026Blank = false,
+  showTable
 }: {
   ariza: IAriza;
   abonentData: AbonentDetails;
@@ -32,12 +33,13 @@ function Death({
   recalculationPeriods?: any[];
   /** Tajriba: dalolatnoma sahifasini 2026-yilgi yangi mahalla blankasida chiqarish */
   useMahalla2026Blank?: boolean;
+  showTable?: boolean;
 }) {
   const { customization } = useCustomizationStore();
   return (
     <>
-      {/* 1-SAHIFA: ARIZA (Yangi blankada ariza bo'lmaydi) */}
-      {!useMahalla2026Blank && customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {/* 1-SAHIFA: ARIZA */}
+      {customization.documentVariant.includes('ariza') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <ArizaHeading abonentData={abonentData} participants={participants} />
@@ -60,7 +62,7 @@ function Death({
       )}
 
       {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
-      {useMahalla2026Blank && (
+      {useMahalla2026Blank && customization.documentVariant.includes('dalolatnoma') && (
         <DeathBlank2026
           date={date}
           ariza={ariza}
@@ -70,10 +72,11 @@ function Death({
           asoslantiruvchi={asoslantiruvchi}
           participants={participants}
           recalculationPeriods={recalculationPeriods}
+          showTable={showTable}
         />
       )}
 
-      {customization.documentVariantOdamSoni !== 'ariza' && !useMahalla2026Blank && (
+      {customization.documentVariant.includes('dalolatnoma') && !useMahalla2026Blank && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center' }}>

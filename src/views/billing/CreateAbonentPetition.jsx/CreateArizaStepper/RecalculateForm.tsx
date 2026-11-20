@@ -6,7 +6,6 @@ import { t } from 'i18next';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import RecalculatorAbonent from 'ui-component/cards/RecalculatorAbonent';
-import DHJTable from '../DHJTable';
 
 const actsCanChangeInhabitants: aktType[] = ['odam_soni', 'dvaynik', 'death'];
 
@@ -28,7 +27,7 @@ function RecalculateForm() {
         <Box sx={{ height: '100%' }}>
           {actsCanChangeInhabitants.includes(aktType) ? (
             // Yashovchi soni o'zgaratigan aktlar uchun
-            (<>
+            <>
               <TextField
                 label={t('tableHeaders.nextInhabitantCount')}
                 value={yashovchiSoniInput}
@@ -116,20 +115,18 @@ function RecalculateForm() {
                   </FormControl>
                 </Box>
               )}
-            </>)
+            </>
           ) : aktType === 'viza' ? (
             // Pasport vizasi yoki boshqa xujjatlari asosida faqat qayta hisob kitob qilinadigan aktlar uchun
-            (<>
+            <>
               <RecalculatorAbonent />
-            </>)
+            </>
           ) : (
             ''
           )}
         </Box>
       </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        {/* <DHJTable abonentData={abonentData} /> */}
-      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>{/* <DHJTable abonentData={abonentData} /> */}</Grid>
     </Grid>
   );
 }

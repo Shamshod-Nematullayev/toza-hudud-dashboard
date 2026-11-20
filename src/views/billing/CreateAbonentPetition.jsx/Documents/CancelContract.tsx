@@ -22,7 +22,8 @@ function CancelContract({
   date,
   mahalla,
   asoslantiruvchi,
-  participants
+  participants,
+  showTable = false
 }: {
   ariza: IAriza;
   abonentData: AbonentDetails;
@@ -30,6 +31,7 @@ function CancelContract({
   mahalla: IMahalla;
   asoslantiruvchi?: string;
   participants?: ResolvedParticipant[];
+  showTable?: boolean;
 }) {
   const b = ariza?.bekorQilish;
   const sabab = cancelContractReasons[b?.sabab as CancelContractReason] || cancelContractReasons.mahallada_mavjud_emas;
@@ -39,16 +41,18 @@ function CancelContract({
   const asosText = (b?.asos || asoslantiruvchi || '').trim();
   const cleanAsos = asosText ? cyr(asosText).replace(/\.+$/, '') + '.' : '';
 
-  const rows: BlankRow[] = [
-    {
-      fio: cyr(abonentData?.fullName || ariza?.fio),
-      birth: formatDate(abonentData?.citizen?.birthDate),
-      passport: abonentData?.citizen?.passport || '',
-      relation: 'Уй эгаси',
-      since: '—',
-      status: 'Ҳудудда яшамаслиги (аниқланмаганлиги) маълум бўлди'
-    }
-  ];
+  const rows: BlankRow[] = showTable
+    ? [
+        {
+          fio: cyr(abonentData?.fullName || ariza?.fio),
+          birth: formatDate(abonentData?.citizen?.birthDate),
+          passport: abonentData?.citizen?.passport || '',
+          relation: 'Абонент',
+          since: '—',
+          status: 'Ҳудудда яшамаслиги (аниқланмаганлиги) маълум бўлди'
+        }
+      ]
+    : [];
 
   const izoh = (
     <>
@@ -75,6 +79,7 @@ function CancelContract({
       rows={rows}
       izoh={izoh}
       isCancelContract={true}
+      showTable={showTable}
     />
   );
 }

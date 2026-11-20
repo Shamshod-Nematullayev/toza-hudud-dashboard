@@ -54,7 +54,7 @@ function Gps({
   return (
     <>
       {/* 1-SAHIFA: ARIZA */}
-      {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {customization.documentVariant.includes('ariza') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <ArizaHeading abonentData={abonentData} participants={participants} vakil={vakil} />
@@ -74,7 +74,7 @@ function Gps({
       )}
 
       {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariantOdamSoni !== 'ariza' && (
+      {customization.documentVariant.includes('dalolatnoma') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontWeight: 'bold' }}>
@@ -142,10 +142,12 @@ function Gps({
       )}
 
       {/* 3-SAHIFA: FOTOLAR */}
-      {customization.documentVariantOdamSoni !== 'ariza' && photos && photos.length > 0 && (
+      {customization.documentVariant.includes('dalolatnoma') && photos && photos.length > 0 && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <h3>Ilova qilingan fotosuratlar:</h3>
-          {photos?.map((photo, index) => <img key={index} src={photo} alt="" width="100%" style={{ marginBottom: '10px' }} />)}
+          {photos?.map((photo, index) => (
+            <img key={index} src={photo} alt="" width="100%" style={{ marginBottom: '10px' }} />
+          ))}
         </div>
       )}
     </>

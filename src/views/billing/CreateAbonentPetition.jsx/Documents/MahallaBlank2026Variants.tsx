@@ -19,6 +19,7 @@ interface CommonProps {
   vakil?: Vakil;
   asoslantiruvchi?: string;
   participants?: ResolvedParticipant[];
+  showTable?: boolean;
 }
 
 const baseRows = (abonentData: any, vakil?: Vakil): BlankRow[] => {
@@ -232,7 +233,15 @@ export function OdamSoniBlank2026({
     </>
   );
 
-  return <MahallaBlank2026Page {...props} inhabitantCnt={next} rows={baseRows(abonentData, vakil)} izoh={izoh} />;
+  return (
+    <MahallaBlank2026Page
+      {...props}
+      inhabitantCnt={next}
+      rows={props.showTable ? baseRows(abonentData, vakil) : []}
+      showTable={props.showTable}
+      izoh={izoh}
+    />
+  );
 }
 
 // ---------------- PASPORT VIZA ----------------
@@ -273,7 +282,15 @@ export function VizaBlank2026({ recalculationPeriods, ...props }: CommonProps & 
     </>
   );
 
-  return <MahallaBlank2026Page {...props} inhabitantCnt={current} rows={baseRows(abonentData, vakil)} izoh={izoh} />;
+  return (
+    <MahallaBlank2026Page
+      {...props}
+      inhabitantCnt={current}
+      rows={props.showTable ? baseRows(abonentData, vakil) : []}
+      showTable={props.showTable}
+      izoh={izoh}
+    />
+  );
 }
 
 // ---------------- O'LIM GUVOHNOMASI ----------------
@@ -317,5 +334,13 @@ export function DeathBlank2026({ recalculationPeriods, ...props }: CommonProps &
     </>
   );
 
-  return <MahallaBlank2026Page {...props} inhabitantCnt={next} rows={baseRows(abonentData, vakil)} izoh={izoh} />;
+  return (
+    <MahallaBlank2026Page
+      {...props}
+      inhabitantCnt={next}
+      rows={props.showTable ? baseRows(abonentData, vakil) : []}
+      showTable={props.showTable}
+      izoh={izoh}
+    />
+  );
 }

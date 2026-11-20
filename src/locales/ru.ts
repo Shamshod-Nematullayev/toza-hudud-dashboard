@@ -567,7 +567,7 @@ const ru: typeof uz = {
     completed: 'Завершено',
     checking: 'Проверяется',
     'in-progress': 'В процессе',
-    rejected: 'Не выполнено'
+    rejected: 'Невозможно выполнить'
   },
   taskTypes: {
     type: 'Тип',

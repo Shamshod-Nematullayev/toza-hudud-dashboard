@@ -79,12 +79,12 @@ export type BlankRow = { fio: string; birth?: string; passport?: string; relatio
 
 export const B = ({ children }: { children: React.ReactNode }) => <b>{children}</b>;
 
-/** Uy egasi qatori (jadvalning birinchi qatori) */
+/** Abonent qatori (jadvalning birinchi qatori) */
 export const ownerRow = (abonentData: any): BlankRow => ({
   fio: cyr(abonentData?.fullName),
   birth: formatDate(abonentData?.citizen?.birthDate),
   passport: abonentData?.citizen?.passport || '',
-  relation: 'Уй эгаси',
+  relation: 'Абонент',
   since: '—',
   status: ''
 });
@@ -107,10 +107,12 @@ interface PageProps {
   secondaryAccount?: string;
   /** "бугунги кунда ___ киши яшайди" */
   inhabitantCnt?: number | string;
-  rows: BlankRow[];
+  rows?: BlankRow[];
   izoh: React.ReactNode;
   /** Shartnomani bekor qilish (mahallada mavjud emas) dalolatnomasi */
   isCancelContract?: boolean;
+  /** Jadvalni ko'rsatish yoki yashirish */
+  showTable?: boolean;
 }
 
 /**
@@ -125,9 +127,10 @@ export function MahallaBlank2026Page({
   participants = [],
   secondaryAccount,
   inhabitantCnt,
-  rows,
+  rows = [],
   izoh,
-  isCancelContract
+  isCancelContract,
+  showTable
 }: PageProps) {
   const { company } = useCustomizationStore();
   const mahallaData = mahalla?.data || mahalla;
@@ -137,6 +140,7 @@ export function MahallaBlank2026Page({
   const acc1 = abonentData?.accountNumber;
   const acc2 = secondaryAccount;
   const name1 = cyr(abonentData?.fullName);
+  const hasTable = showTable !== false && Array.isArray(rows) && rows.length > 0;
 
   // Ishtirokchilar: blankadagi rollarga joylash; qolganlari "... лар иштирокида" qatoriga
   const active = participants.filter((p) => !p.isExcluded);
@@ -218,57 +222,60 @@ export function MahallaBlank2026Page({
         {!isCancelContract && name1 ? <>, фуқаро <Field value={name1} /></> : null} лар иштирокида туздик.
       </p>
 
-      {/* Manzil */}
+      {/* Manzil va abonent ma'lumotlari */}
       {isCancelContract ? (
         <p style={{ textIndent: 40, margin: '0 0 8px', textAlign: 'left' }}>
           <Field value={withDistrictWord(location)} minWidth={120} /> “<b>{cyr(mahallaData?.name || abonentData?.mahallaName)}</b>” МФЙ{' '}
           <Field value={cyr(abonentData?.streetName)} minWidth={110} /> қишлоқ (кўча){' '}
           <Field value={abonentData?.house?.homeNumber} minWidth={40} /> уй манзили бўйича Уй кадастри №{' '}
-          <Field value={abonentData?.house?.cadastralNumber} minWidth={150} /> ЖШИР <Field value={abonentData?.citizen?.pnfl} minWidth={140} />{' '}
-          <Field value={name1} minWidth={200} /> номидаги тўлов ҳисоб рақами бўйича ушбу абонент кўрсатилган манзилда ва маҳалла ҳудудида амалда
-          мавжуд эмаслиги (аниқланмаганлиги) маълум бўлди.
+          <Field value={abonentData?.house?.cadastralNumber} minWidth={150} />, абонент{' '}
+          <Field value={name1} minWidth={200} /> (ЖШИР <Field value={abonentData?.citizen?.pnfl} minWidth={140} />) номидаги ҳисоб рақами бўйича
+          ушбу абонент кўрсатилган манзилда ва маҳалла ҳудудида амалда мавжуд эмаслиги (аниқланмаганлиги) маълум бўлди.
         </p>
       ) : (
         <p style={{ textIndent: 40, margin: '0 0 8px', textAlign: 'left' }}>
           <Field value={withDistrictWord(location)} minWidth={120} /> “<b>{cyr(mahallaData?.name || abonentData?.mahallaName)}</b>” МФЙ{' '}
           <Field value={cyr(abonentData?.streetName)} minWidth={110} /> қишлоқ (кўча){' '}
           <Field value={abonentData?.house?.homeNumber} minWidth={40} /> уйда бугунги кунда <Field value={inhabitantCnt} minWidth={30} /> киши
-          яшайди. Уй кадастри № <Field value={abonentData?.house?.cadastralNumber} minWidth={150} /> ЖШИР{' '}
-          <Field value={abonentData?.citizen?.pnfl} minWidth={140} /> <Field value={name1} minWidth={200} /> номида бўлиб қуйидагилар
-          истиқомат қилади. <b>Электр энергия ҳисоб рақами</b> <Field value={abonentData?.electricityAccountNumber} minWidth={110} />
+          яшайди. Уй кадастри № <Field value={abonentData?.house?.cadastralNumber} minWidth={150} />, абонент{' '}
+          <Field value={name1} minWidth={200} /> (ЖШИР <Field value={abonentData?.citizen?.pnfl} minWidth={140} />).{' '}
+          <b>Электр энергия ҳисоб рақами</b> <Field value={abonentData?.electricityAccountNumber} minWidth={110} />.
+          {hasTable ? ' Қуйидагилар рўйхатда кўрсатилган:' : ''}
         </p>
       )}
 
-      {/* Yashovchilar jadvali */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, lineHeight: 1.2 }}>
-        <thead>
-          <tr>
-            <th style={{ ...head, width: '4%' }}>№</th>
-            <th style={{ ...head, width: '24%' }}>Ф.И.Ш</th>
-            <th style={{ ...head, width: '11%' }}>Туғилган вақти</th>
-            <th style={{ ...head, width: '13%' }}>Паспорт маълумотлари</th>
-            <th style={{ ...head, width: '12%' }}>Уй эгасига қариндош-лиги</th>
-            <th style={{ ...head, width: '11%' }}>Қачондан яшаб келмоқда</th>
-            <th style={{ ...head, width: '25%' }}>
-              Ҳар бир шахс тўғрисида яшаётганлиги ёки яшамаётганлиги{' '}
-              <i>(кўчиб кетган, уйни сотиб кетган, вафот этганлиги ва ҳакозалар кўрсатилиши шарт)</i>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i}>
-              <td style={{ ...cell, textAlign: 'center' }}>{i + 1}</td>
-              <td style={{ ...cell, fontWeight: 'bold' }}>{r.fio}</td>
-              <td style={{ ...cell, textAlign: 'center' }}>{r.birth}</td>
-              <td style={{ ...cell, textAlign: 'center' }}>{r.passport}</td>
-              <td style={{ ...cell, textAlign: 'center', fontWeight: 'bold' }}>{r.relation}</td>
-              <td style={{ ...cell, textAlign: 'center' }}>{r.since}</td>
-              <td style={{ ...cell, fontSize: 11 }}>{r.status || ''}</td>
+      {/* Yashovchilar jadvali (faqat zarur hollarda ko'rsatiladi) */}
+      {hasTable && (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, lineHeight: 1.2 }}>
+          <thead>
+            <tr>
+              <th style={{ ...head, width: '4%' }}>№</th>
+              <th style={{ ...head, width: '24%' }}>Ф.И.Ш</th>
+              <th style={{ ...head, width: '11%' }}>Туғилган вақти</th>
+              <th style={{ ...head, width: '13%' }}>Паспорт маълумотлари</th>
+              <th style={{ ...head, width: '12%' }}>Қариндош-лиги</th>
+              <th style={{ ...head, width: '11%' }}>Қачондан яшаб келмоқда</th>
+              <th style={{ ...head, width: '25%' }}>
+                Ҳар бир шахс тўғрисида яшаётганлиги ёки яшамаётганлиги{' '}
+                <i>(кўчиб кетган, уйни сотиб кетган, вафот этганлиги ва ҳакозалар кўрсатилиши шарт)</i>
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...cell, textAlign: 'center' }}>{i + 1}</td>
+                <td style={{ ...cell, fontWeight: 'bold' }}>{r.fio}</td>
+                <td style={{ ...cell, textAlign: 'center' }}>{r.birth}</td>
+                <td style={{ ...cell, textAlign: 'center' }}>{r.passport}</td>
+                <td style={{ ...cell, textAlign: 'center', fontWeight: 'bold' }}>{r.relation}</td>
+                <td style={{ ...cell, textAlign: 'center' }}>{r.since}</td>
+                <td style={{ ...cell, fontSize: 11 }}>{r.status || ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {/* Izoh */}
       <p style={{ margin: '8px 0 6px', textIndent: 0 }}>
@@ -358,6 +365,7 @@ interface DvaynikProps {
   isTransferEnabled: boolean;
   asoslantiruvchi?: string;
   participants?: ResolvedParticipant[];
+  showTable?: boolean;
 }
 
 /** Ikkilamchi hisob raqam (dvaynik) dalolatnomasi — yangi blankada */
@@ -373,7 +381,8 @@ export default function MahallaDalolatnoma2026({
   transferAmount,
   isTransferEnabled,
   asoslantiruvchi,
-  participants = []
+  participants = [],
+  showTable = false
 }: DvaynikProps) {
   const acc1 = abonentData?.accountNumber;
   const acc2 = abonentData2?.accountNumber;
@@ -394,7 +403,7 @@ export default function MahallaDalolatnoma2026({
         </>
       ) : (
         <>
-          уй эгаси <B>{name1}</B> номидаги <B>{acc1}</B>-сонли асосий (тўлов) ҳисоб рақамидан ташқари,{' '}
+          <B>{name1}</B> номидаги <B>{acc1}</B>-сонли асосий (тўлов) ҳисоб рақамидан ташқари,{' '}
           {rel ? (
             <>
               унинг <B>{rel}</B>{' '}
@@ -426,8 +435,8 @@ export default function MahallaDalolatnoma2026({
   );
 
   // ---- Jadval qatorlari ----
-  const rows: BlankRow[] = [ownerRow(abonentData)];
-  if (!sameName && abonentData2?.fullName) {
+  const rows: BlankRow[] = showTable ? [ownerRow(abonentData)] : [];
+  if (showTable && !sameName && abonentData2?.fullName) {
     rows.push({
       fio: name2,
       birth: formatDate(abonentData2?.citizen?.birthDate),
@@ -448,6 +457,7 @@ export default function MahallaDalolatnoma2026({
       inhabitantCnt={inhabitantCnt}
       rows={rows}
       izoh={izoh}
+      showTable={showTable}
     />
   );
 }

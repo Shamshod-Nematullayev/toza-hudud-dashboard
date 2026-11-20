@@ -33,6 +33,11 @@ export interface ITask {
   nazoratchiName: string;
   status: 'completed' | 'in-progress' | 'rejected' | 'checking';
   purpose: string;
+  fileId?: string;
+  rejectedReason?: string;
+  rejectedReasonType?: string;
+  rejectedAt?: string | Date;
+  rejectedBy?: string;
   _id?: string;
 }
 
@@ -71,7 +76,10 @@ interface ITasksStore {
   fetchTasks: ({ page, limit, sortField, sortDirection, filters }: FetchParams) => Promise<FetchResult<any>>;
   filters: IFilters;
   setFilters: (filters: IFilters) => void;
-  applyQuickFilter: (filterUpdate: { type?: '' | 'electricity' | 'phone'; status?: '' | 'completed' | 'in-progress' | 'rejected' | 'checking' }) => void;
+  applyQuickFilter: (filterUpdate: {
+    type?: '' | 'electricity' | 'phone';
+    status?: '' | 'completed' | 'in-progress' | 'rejected' | 'checking';
+  }) => void;
   triggerRefresh: () => void;
   downloadExcel: () => void;
   accountNumber: string;
@@ -89,6 +97,10 @@ interface ITasksStore {
   openEditTaskDialog: boolean;
   handleOpenEditTaskDialog: (taskId: string) => void;
   handleCloseEditTaskDialog: () => void;
+  openRejectDialog: boolean;
+  rejectTargetTask: ITask | null;
+  handleOpenRejectDialog: (task: ITask) => void;
+  handleCloseRejectDialog: () => void;
   task: ITask | null;
   setTask: (task: ITask | null) => void;
   handleSaveTask: () => void;
@@ -113,10 +125,10 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
     try {
       useLoaderStore.setState({ isLoading: true });
       const { data } = await api.post('/tasks/trigger-update-status');
-      toast.success(data.message || "Topshiriqlar holati yangilandi!");
+      toast.success(data.message || 'Topshiriqlar holati yangilandi!');
       await get().fetchStats();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Topshiriqlar holatini yangilashda xatolik");
+      toast.error(err?.response?.data?.message || 'Topshiriqlar holatini yangilashda xatolik');
     } finally {
       useLoaderStore.setState({ isLoading: false });
     }
@@ -125,11 +137,11 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
     try {
       useLoaderStore.setState({ isLoading: true });
       const { data } = await api.post('/tasks/trigger-generate-tasks');
-      toast.success(data.message || "Topshiriqlar yangilandi!");
+      toast.success(data.message || 'Topshiriqlar yangilandi!');
       await get().fetchStats();
       get().triggerRefresh();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Topshiriqlarni yuklashda xatolik");
+      toast.error(err?.response?.data?.message || 'Topshiriqlarni yuklashda xatolik');
     } finally {
       useLoaderStore.setState({ isLoading: false });
     }
@@ -196,7 +208,8 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
           ...row,
           mahallaId: get().mahallalar.find((m: IMahalla) => m.id == row.mahallaId)?.name || '',
           status: row.status,
-          index: index
+          index: index,
+          id: index
         })) || [];
 
       set({ tasks });
@@ -301,15 +314,31 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
     set({ openEditTaskDialog: true });
   },
   handleCloseEditTaskDialog: () => set({ openEditTaskDialog: false }),
+  openRejectDialog: false,
+  rejectTargetTask: null,
+  handleOpenRejectDialog: (task) => set({ openRejectDialog: true, rejectTargetTask: task }),
+  handleCloseRejectDialog: () => set({ openRejectDialog: false, rejectTargetTask: null }),
   setTask: (task) => set({ task: task }),
   task: null,
   handleSaveTask: async () => {
+    const currentTask = get().task;
+    if (!currentTask) return;
+
+    if (currentTask.status === 'rejected' && !currentTask.fileId) {
+      toast.warning(
+        "Topshiriqni 'Bajarib bo'lmaydi' holatiga o'tkazish uchun asoslantiruvchi hujjat yuklanishi shart! Iltimos, jadvaldagi maxsus qizil tugma orqali yakunlang."
+      );
+      return;
+    }
+
     try {
-      await api.put(`/tasks/${get().task?._id}`, get().task);
+      await api.put(`/tasks/${currentTask._id}`, currentTask);
       toast.success(t('successMessages.successSave'));
       get().handleCloseEditTaskDialog();
+      get().triggerRefresh();
+      get().fetchStats();
     } catch (error: any) {
-      toast.error(error?.message as string);
+      toast.error(error?.response?.data?.message || (error?.message as string));
     }
   }
 }));

@@ -36,16 +36,16 @@ export interface IPrintTableCustomization {
 }
 
 export interface IMenuItemCustomization {
-  order?: string[];     // User-defined order of item IDs
-  hidden?: string[];    // IDs of hidden items
+  order?: string[]; // User-defined order of item IDs
+  hidden?: string[]; // IDs of hidden items
 }
 
 export interface IMenuCustomizationSettings {
-  groupOrder?: string[];                           // Order of main groups
-  hiddenGroups?: string[];                         // Hidden group IDs
+  groupOrder?: string[]; // Order of main groups
+  hiddenGroups?: string[]; // Hidden group IDs
   itemsByGroup?: Record<string, IMenuItemCustomization>; // Per-group item customization
-  pinnedPages?: string[];                          // URLs of pages pinned to the Header
-  showCompanySelectorInHeader?: boolean;           // Whether CompanySelector is visible in the main Header
+  pinnedPages?: string[]; // URLs of pages pinned to the Header
+  showCompanySelectorInHeader?: boolean; // Whether CompanySelector is visible in the main Header
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -64,6 +64,8 @@ export const getEffectiveThemeMode = (mode?: string | ThemeMode): 'light' | 'dar
   return mode === 'dark' ? 'dark' : 'light';
 };
 
+type DocumentVariant = 'dalolatnoma' | 'ariza';
+
 interface CustomizationState {
   customization: {
     isOpen: string[];
@@ -72,7 +74,7 @@ interface CustomizationState {
     borderRadius: number;
     opened: boolean;
     mode: ThemeMode;
-    documentVariantOdamSoni: 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza';
+    documentVariant: DocumentVariant[];
     boshliqIshtirokida: boolean;
     mfyRaisiIshtirok: boolean;
     fuqaroIshtirok: boolean;
@@ -161,7 +163,7 @@ const initialState = {
     borderRadius: config.borderRadius,
     opened: true,
     mode: 'dark' as ThemeMode,
-    documentVariantOdamSoni: 'ariza+dalolatnoma' as 'ariza+dalolatnoma' | 'dalolatnoma' | 'ariza',
+    documentVariant: ['ariza', 'dalolatnoma'],
     boshliqIshtirokida: false,
     mfyRaisiIshtirok: true,
     fuqaroIshtirok: true
@@ -216,7 +218,7 @@ const useCustomizationStore = create<CustomizationState>()(
   persist<CustomizationState>(
     (set, get) => ({
       ...initialState,
-      customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' },
+      customization: { ...initialState.customization, documentVariant: ['ariza', 'dalolatnoma'] },
       setCustomization: (customization) =>
         set((state) => {
           const nextState = {
@@ -263,9 +265,7 @@ const useCustomizationStore = create<CustomizationState>()(
       toggleFavoriteReport: (reportId) =>
         set((state) => {
           const exists = state.favoriteReports.includes(reportId);
-          const updated = exists
-            ? state.favoriteReports.filter((id) => id !== reportId)
-            : [...state.favoriteReports, reportId];
+          const updated = exists ? state.favoriteReports.filter((id) => id !== reportId) : [...state.favoriteReports, reportId];
           const nextState = { ...state, favoriteReports: updated };
           syncCustomizationToServerDebounced(nextState);
           return nextState;
@@ -281,7 +281,9 @@ const useCustomizationStore = create<CustomizationState>()(
             ...(innerCust.mode ? { mode: innerCust.mode } : {}),
             ...(innerCust.fontFamily ? { fontFamily: innerCust.fontFamily } : {}),
             ...(innerCust.borderRadius !== undefined ? { borderRadius: innerCust.borderRadius } : {}),
-            ...(innerCust.documentVariantOdamSoni ? { documentVariantOdamSoni: innerCust.documentVariantOdamSoni } : {})
+            ...(Array.isArray(innerCust.documentVariant)
+              ? { documentVariant: innerCust.documentVariant }
+              : { documentVariant: ['ariza', 'dalolatnoma'] as DocumentVariant[] })
           };
 
           const newFavorites = Array.isArray(rawCust.favoriteReports)
@@ -317,7 +319,7 @@ const useCustomizationStore = create<CustomizationState>()(
         set((state) => {
           const nextState = {
             ...state,
-            customization: { ...initialState.customization, documentVariantOdamSoni: 'ariza+dalolatnoma' as const }
+            customization: { ...initialState.customization, documentVariant: ['ariza', 'dalolatnoma'] as DocumentVariant[] }
           };
           syncCustomizationToServerDebounced(nextState);
           return nextState;
@@ -347,7 +349,24 @@ const useCustomizationStore = create<CustomizationState>()(
     }),
     {
       name: 'customization-store',
-      storage: createJSONStorage(() => localStorage) // `zustand` uchun to‘g‘ri storage
+      version: 2,
+      storage: createJSONStorage(() => localStorage), // `zustand` uchun to‘g‘ri storage.
+      merge: (persistedState: any, currentState) => {
+        const mergedCustomization = {
+          ...currentState.customization,
+          ...(persistedState?.customization || {})
+        };
+
+        if (!Array.isArray(mergedCustomization.documentVariant)) {
+          mergedCustomization.documentVariant = ['ariza', 'dalolatnoma'];
+        }
+
+        return {
+          ...currentState,
+          ...persistedState,
+          customization: mergedCustomization
+        };
+      }
     }
   )
 );

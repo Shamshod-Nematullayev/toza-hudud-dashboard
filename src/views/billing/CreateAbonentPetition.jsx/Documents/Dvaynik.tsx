@@ -21,6 +21,7 @@ function Dvaynik({
   moneyTransferAmount,
   shouldBeMoneyTransfer,
   participants,
+  showTable
 }: {
   date: Date;
   abonentData: any;
@@ -41,6 +42,7 @@ function Dvaynik({
   shouldBeMoneyTransfer?: boolean;
   participants?: any[];
   useMahalla2026Blank?: boolean;
+  showTable?: boolean;
 }) {
   const { customization } = useCustomizationStore();
 
@@ -51,7 +53,8 @@ function Dvaynik({
 
   // Dvoynikdagi qarindoshlik / aloqadorlik (ariza yoki prop orqali)
   const rel = dublicateRelation || ariza?.dublicateRelation || '';
-  const transferAmt = moneyTransferAmount !== undefined ? Number(moneyTransferAmount) : (ariza?.moneyTransferAmount ? Number(ariza.moneyTransferAmount) : 0);
+  const transferAmt =
+    moneyTransferAmount !== undefined ? Number(moneyTransferAmount) : ariza?.moneyTransferAmount ? Number(ariza.moneyTransferAmount) : 0;
   const isTransferEnabled = shouldBeMoneyTransfer !== undefined ? shouldBeMoneyTransfer : (ariza?.shouldBeMoneyTransfer ?? true);
 
   // 1-Qoida: Ismlar har xil bo'lsa qarindoshlik
@@ -82,7 +85,7 @@ function Dvaynik({
   return (
     <>
       {/* 1-SAHIFA: ARIZA (Abonent murojaati) */}
-      {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {customization.documentVariant.includes('ariza') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <ArizaHeading abonentData={abonentData} participants={participants} vakil={vakil} />
@@ -102,7 +105,7 @@ function Dvaynik({
       )}
 
       {/* 2-SAHIFA: DALOLATNOMA (Yangi mahalla blankasi) */}
-      {customization.documentVariantOdamSoni !== 'ariza' && (
+      {customization.documentVariant.includes('dalolatnoma') && (
         <MahallaDalolatnoma2026
           date={date}
           ariza={ariza}
@@ -116,6 +119,7 @@ function Dvaynik({
           isTransferEnabled={isTransferEnabled}
           asoslantiruvchi={asoslantiruvchi}
           participants={participants}
+          showTable={showTable}
         />
       )}
     </>

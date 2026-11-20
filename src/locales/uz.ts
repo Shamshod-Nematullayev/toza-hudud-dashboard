@@ -566,7 +566,7 @@ const uz = {
     completed: 'Tugallangan',
     checking: 'Tekshirilmoqda',
     'in-progress': 'Jarayonda',
-    rejected: 'Muvaffaqqiyatsiz bajarildi'
+    rejected: "Bajarib bo'lmaydi"
   },
   taskTypes: {
     type: 'Turi',

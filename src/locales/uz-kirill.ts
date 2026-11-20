@@ -567,7 +567,7 @@ const uzKirill: typeof uz = {
     completed: 'Тугалланган',
     checking: 'Текширилмоқда',
     'in-progress': 'Жараёнда',
-    rejected: 'Муваффақиятсиз бажарилди'
+    rejected: 'Бажариб бўлмайди'
   },
   taskTypes: {
     type: 'Тури',

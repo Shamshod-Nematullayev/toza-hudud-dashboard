@@ -30,7 +30,8 @@ function OdamSoni({
   relationFullName,
   participants,
   recalculationPeriods,
-  useMahalla2026Blank = false
+  useMahalla2026Blank = false,
+  showTable
 }: {
   date: Date;
   abonentData: AbonentDetails;
@@ -47,6 +48,7 @@ function OdamSoni({
   /** Tajriba: dalolatnoma sahifasini 2026-yilgi yangi mahalla blankasida chiqarish */
   useMahalla2026Blank?: boolean;
   recalculationPeriods?: any[];
+  showTable?: boolean;
 }) {
   let { customization, company, user } = useCustomizationStore();
   // Ko'p bosqichli qayta hisob: davrlar va kishi soni ko'rsatiladi, summalar emas
@@ -88,14 +90,17 @@ function OdamSoni({
     const isUntilToday = !lastEnd || !lastEnd.isValid() || !lastEnd.isBefore(dayjs().startOf('month'));
     const untilLatin = isUntilToday
       ? 'bugungi kungacha'
-      : (lastEnd.date() === 1 ? `${lastEnd.year()}-yil ${oylar[lastEnd.month()]} oyigacha` : `${lastEnd.year()}-yil «${lastEnd.date()}» ${oylar[lastEnd.month()]}gacha`);
+      : lastEnd.date() === 1
+        ? `${lastEnd.year()}-yil ${oylar[lastEnd.month()]} oyigacha`
+        : `${lastEnd.year()}-yil «${lastEnd.date()}» ${oylar[lastEnd.month()]}gacha`;
 
     const stages: { label: string; count: number }[] = [];
     let running = current;
     for (let i = 0; i < departureGroups.length; i++) {
       const g = departureGroups[i];
       running -= g.count;
-      const fmtPoint = (d: Dayjs) => (d.date() === 1 ? `${d.year()}-yil ${oylar[d.month()]} oyidan` : `${d.year()}-yil «${d.date()}» ${oylar[d.month()]}dan`);
+      const fmtPoint = (d: Dayjs) =>
+        d.date() === 1 ? `${d.year()}-yil ${oylar[d.month()]} oyidan` : `${d.year()}-yil «${d.date()}» ${oylar[d.month()]}dan`;
 
       if (i < departureGroups.length - 1) {
         stages.push({
@@ -126,11 +131,15 @@ function OdamSoni({
   };
   return (
     <>
-      {/* 1-SAHIFA: ARIZA (Yangi chiqqan dalolatnoma turida ariza bo'lmaydi) */}
-      {!useMahalla2026Blank && customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {/* 1-SAHIFA: ARIZA */}
+      {customization.documentVariant.includes('ariza') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
-          <ArizaHeading abonentData={abonentData} participants={participants} vakil={relation ? { relation, fullName: relationFullName || '' } : undefined} />
+          <ArizaHeading
+            abonentData={abonentData}
+            participants={participants}
+            vakil={relation ? { relation, fullName: relationFullName || '' } : undefined}
+          />
           <br />
           <ArizaTitle type="odam soni" />
           <br />
@@ -146,7 +155,7 @@ function OdamSoni({
       )}
 
       {/* 2-SAHIFA: DALOLATNOMA (yangi blanka) */}
-      {useMahalla2026Blank && (
+      {useMahalla2026Blank && customization.documentVariant.includes('dalolatnoma') && (
         <OdamSoniBlank2026
           date={date}
           ariza={ariza}
@@ -158,11 +167,12 @@ function OdamSoni({
           aniqlanganYashovchiSoni={aniqlanganYashovchiSoni}
           olderPeriod={olderPeriod}
           recalculationPeriods={periods}
+          showTable={showTable}
         />
       )}
 
       {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariantOdamSoni !== 'ariza' && !useMahalla2026Blank && (
+      {customization.documentVariant.includes('dalolatnoma') && !useMahalla2026Blank && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', width: '70%', margin: '0 auto' }}>
@@ -224,7 +234,8 @@ function OdamSoni({
             </>
           ) : departureGroups.length > 1 ? (
             <p>
-              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni] || aniqlanganYashovchiSoni}) nafar shaxs amalda birga istiqomat qilishi aniqlandi.
+              Jami {aniqlanganYashovchiSoni} ({raqamlar[aniqlanganYashovchiSoni] || aniqlanganYashovchiSoni}) nafar shaxs amalda birga
+              istiqomat qilishi aniqlandi.
             </p>
           ) : (
             <p>
@@ -242,7 +253,7 @@ function OdamSoni({
               : (() => {
                   const isIchki = ariza?.actTypeKey === 'ichki' || customization.mfyRaisiIshtirok === false;
                   if (isIchki) {
-                    const managerName = fullNameToShortName(company?.managerName || company?.manager?.fullName);
+                    const managerName = fullNameToShortName(company?.managerName || (company as any)?.manager?.fullName);
                     const staffName = lotinga(
                       fullNameToShortName(ariza?.creatorName || ariza?.creator?.fullName || user?.fullName || company?.billingAdminName)
                     );
@@ -295,7 +306,8 @@ function OdamSoni({
             ) : departureGroups.length === 1 ? (
               <>
                 O'rganish natijasida {departureGroups[0].date.year()} yil «{departureGroups[0].date.date()}»{' '}
-                {oylar[departureGroups[0].date.month()]}dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi aniqlandi.
+                {oylar[departureGroups[0].date.month()]}dan boshlab {aniqlanganYashovchiSoni} nafar oila a'zolari istiqomat qilishi
+                aniqlandi.
               </>
             ) : (
               <>

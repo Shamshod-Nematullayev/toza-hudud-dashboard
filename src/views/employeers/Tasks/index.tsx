@@ -6,6 +6,7 @@ import FiltersBar from './FiltersBar';
 import EditTaskDialog from './EditTaskDialog';
 import SendExcelToTelegramGroupDialog from './SendExcelToTelegramGroupDialog';
 import TasksStatsHeader from './TasksStatsHeader';
+import RejectTaskDialog from './RejectTaskDialog';
 
 function Tasks() {
   return (
@@ -25,6 +26,7 @@ function Tasks() {
 
         {/* Modallar */}
         <EditTaskDialog />
+        <RejectTaskDialog />
         <SendExcelToTelegramGroupDialog />
       </MainCard>
     </Box>

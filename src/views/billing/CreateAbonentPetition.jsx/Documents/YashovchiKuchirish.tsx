@@ -30,9 +30,7 @@ const StyledTable = styled.table`
 `;
 
 const addressOf = (abonent: any, mahalla: any) =>
-  [lotinga(mahalla?.data?.name || abonent?.mahallaName || ''), abonent?.streetName, abonent?.house?.homeNumber]
-    .filter(Boolean)
-    .join(', ');
+  [lotinga(mahalla?.data?.name || abonent?.mahallaName || ''), abonent?.streetName, abonent?.house?.homeNumber].filter(Boolean).join(', ');
 
 /** Yashovchi soni ko'chirish: ariza (1-sahifa) va dalolatnoma (2-sahifa). Summalar hujjatga chiqmaydi */
 export default function YashovchiKuchirish({
@@ -115,7 +113,7 @@ export default function YashovchiKuchirish({
     const isIchki = ariza?.actTypeKey === 'ichki' || customization.mfyRaisiIshtirok === false;
     if (isIchki) {
       const staffName = fullNameToShortName(ariza?.creatorName || user?.fullName || company?.billingAdminName);
-      const managerName = fullNameToShortName(company?.managerName || company?.manager?.fullName);
+      const managerName = fullNameToShortName(company?.managerName || (company as any)?.manager?.fullName);
       const parts = [
         managerName ? `${company?.name || ''} ${company?.locationName || ''} filial rahbari ${managerName}`.trim() : '',
         `Abonentlar bilan ishlash bo‘limi xodimi ${staffName}`,
@@ -135,7 +133,7 @@ export default function YashovchiKuchirish({
   return (
     <>
       {/* 1-SAHIFA: ARIZA */}
-      {customization.documentVariantOdamSoni !== 'dalolatnoma' && (
+      {customization.documentVariant.includes('ariza') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <ArizaHeading abonentData={abonentData} participants={participants} vakil={vakil} />
@@ -147,7 +145,7 @@ export default function YashovchiKuchirish({
       )}
 
       {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariantOdamSoni !== 'ariza' && (
+      {customization.documentVariant.includes('dalolatnoma') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontSize: '18px', margin: '15px 0 0' }}>
@@ -162,9 +160,7 @@ export default function YashovchiKuchirish({
             </div>
             <div>{mahalla?.company?.locationName}</div>
           </div>
-          <p style={{ textIndent: '40px', lineHeight: '28px', marginBottom: '15px', textAlign: 'justify' }}>
-            {renderParticipantsIntro()}
-          </p>
+          <p style={{ textIndent: '40px', lineHeight: '28px', marginBottom: '15px', textAlign: 'justify' }}>{renderParticipantsIntro()}</p>
 
           <StyledTable>
             <thead>
