@@ -246,6 +246,7 @@ const ru: typeof uz = {
   },
   tableHeaders: {
     fullName: 'Ф.И.О.',
+    age: 'Лет',
     name: 'Название',
     phone: 'Номер телефона',
     status: 'Статус',

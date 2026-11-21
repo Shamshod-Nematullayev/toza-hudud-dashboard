@@ -66,6 +66,11 @@ export function useServerDataGrid<T>(
   const stableSortKey = useMemo(() => JSON.stringify(sortModel), [sortModel]);
   const stableFiltersKey = useMemo(() => JSON.stringify(filters), [filters]);
 
+  // Filtr o'zgarganda sahifani 0 ga qaytarish (eski sahifada bo'sh qolib ketmasligi uchun)
+  useEffect(() => {
+    setPaginationModel((prev) => (prev.page === 0 ? prev : { ...prev, page: 0 }));
+  }, [stableFiltersKey]);
+
   useEffect(() => {
     // ... avvalgi useEffect logikasi ...
     const load = async () => {
@@ -83,7 +88,7 @@ export function useServerDataGrid<T>(
         setRows(
           res.data.map((r, idx) => (({
             ...r,
-            id: (r as any).id ?? `${paginationModel.page * paginationModel.pageSize + idx + 1}`
+            id: (r as any)._id ?? (r as any).id ?? `${paginationModel.page * paginationModel.pageSize + idx + 1}`
           }) as T))
         );
         setRowCount(res.meta.total);

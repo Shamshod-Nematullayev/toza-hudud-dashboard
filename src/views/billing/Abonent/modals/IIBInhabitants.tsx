@@ -3,7 +3,7 @@ import DraggableDialog from 'ui-component/extended/DraggableDialog';
 import { useAbonentStore } from '../hooks/abonentStore';
 import { Backdrop, Box, Button, CircularProgress, DialogActions, Typography } from '@mui/material';
 import { t } from 'i18next';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { red } from '@mui/material/colors';
 import { useReactToPrint } from 'react-to-print';
 import { reactToPrintDefaultOptions } from 'store/constant';
@@ -155,8 +155,8 @@ function IIBInhabitants() {
               </Box>
             )}
             <Typography variant="h3" align="center" sx={{ mb: 2 }}>
-              Migratsiya va fuqarolikni rasmiylashtirish bosh boshqarmasi (Passport-Viza tizimi) elektron manzil boʻyicha doimiy va vaqtincha
-              roʻyxatga olinganlar
+              Migratsiya va fuqarolikni rasmiylashtirish bosh boshqarmasi (Passport-Viza tizimi) elektron manzil boʻyicha doimiy va
+              vaqtincha roʻyxatga olinganlar
             </Typography>
             <StyledTable border={1}>
               <tbody>
@@ -192,11 +192,14 @@ function IIBInhabitants() {
                   <th>{t('tableHeaders.registeredAt')}</th>
                   <th>{t('tableHeaders.unregisteredAt')}</th>
                   <th>{t('tableHeaders.birthDate')}</th>
+                  <th>{t('tableHeaders.age')}</th>
                   <th>{t('tableHeaders.sex')}</th>
                 </tr>
               </thead>
               <tbody>
-                {details?.Data?.PermanentPersons?.map((permament, i) => (
+                {details?.Data?.PermanentPersons?.sort((a, b) =>
+                  dayjs(a.DateBirth, 'DD.MM.YYYY').diff(dayjs(b.DateBirth, 'DD.MM.YYYY'))
+                ).map((permament, i) => (
                   <tr key={i}>
                     <td>{i + 1}</td>
                     <td>{permament.Person}</td>
@@ -205,6 +208,7 @@ function IIBInhabitants() {
                     <td>{dayjs(permament.RegistrationDate).format('DD.MM.YYYY')}</td>
                     <td>{''}</td>
                     <td>{permament.DateBirth}</td>
+                    <td>{dayjs().diff(permament.DateBirth.split('.').reverse().join('-'), 'year')}</td>{' '}
                     <td>{permament.Sex == '1' ? 'Erkak' : 'Ayol'}</td>
                   </tr>
                 ))}

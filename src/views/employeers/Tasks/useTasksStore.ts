@@ -189,27 +189,41 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
         }
       });
       set({ mahallalar: data.data });
-      get().fetchTasks({
-        limit: 50,
-        page: 1,
-        filters: {},
-        sortDirection: 'asc',
-        sortField: 'id'
-      });
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   },
   fetchTasks: async (params) => {
     try {
-      const { data } = await api.get('/tasks', { params });
+      const { page, limit, sortField, sortDirection, filters } = params;
+      const cleanParams: Record<string, any> = {
+        page,
+        limit
+      };
+
+      if (sortField && sortField !== 'rowNumber') {
+        cleanParams.sortField = sortField;
+        cleanParams.sortDirection = sortDirection || 'asc';
+      }
+
+      if (filters) {
+        const cleanFilters: Record<string, any> = {};
+        if (filters.accountNumber?.trim()) cleanFilters.accountNumber = filters.accountNumber.trim();
+        if (filters.fullName?.trim()) cleanFilters.fullName = filters.fullName.trim();
+        if (filters.mahallaId) cleanFilters.mahallaId = Number(filters.mahallaId);
+        if (filters.type) cleanFilters.type = filters.type;
+        if (filters.nazoratchi_id) cleanFilters.nazoratchi_id = Number(filters.nazoratchi_id);
+        if (filters.status) cleanFilters.status = filters.status;
+        cleanParams.filters = cleanFilters;
+      }
+
+      const { data } = await api.get('/tasks', { params: cleanParams });
       const tasks =
         data.data.map((row: any, index: number) => ({
           ...row,
           mahallaId: get().mahallalar.find((m: IMahalla) => m.id == row.mahallaId)?.name || '',
           status: row.status,
-          index: index,
-          id: index
+          index: index
         })) || [];
 
       set({ tasks });
@@ -247,6 +261,20 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
     set({ filters });
   },
   applyQuickFilter: (patch) => {
+    const isTotal = patch.type === '' && patch.status === '';
+    if (isTotal) {
+      set({
+        accountNumber: '',
+        fullName: '',
+        mahallaId: '',
+        nazoratchi_id: '',
+        type: '',
+        status: '',
+        filters: { _nonce: Date.now() }
+      });
+      return;
+    }
+
     const nextType = patch.type !== undefined ? patch.type : get().type;
     const nextStatus = patch.status !== undefined ? patch.status : get().status;
 
@@ -265,20 +293,20 @@ export const useTasksStore = create<ITasksStore>((set, get) => ({
     });
   },
   downloadExcel: () => {
-    const { accountNumber, fullName, mahallaId, type, nazoratchi_id, status } = get();
-    let filters: IFilters = {};
-    if (accountNumber) filters.accountNumber = accountNumber;
-    if (fullName) filters.fullName = fullName;
-    if (mahallaId) filters.mahallaId = Number(mahallaId);
-    if (type) filters.type = type;
-    if (nazoratchi_id) filters.nazoratchi_id = Number(nazoratchi_id);
-    if (status) filters.status = status;
+    const currentFilters = get().filters;
+    const cleanFilters: Record<string, any> = {};
+    if (currentFilters.accountNumber?.trim()) cleanFilters.accountNumber = currentFilters.accountNumber.trim();
+    if (currentFilters.fullName?.trim()) cleanFilters.fullName = currentFilters.fullName.trim();
+    if (currentFilters.mahallaId) cleanFilters.mahallaId = Number(currentFilters.mahallaId);
+    if (currentFilters.type) cleanFilters.type = currentFilters.type;
+    if (currentFilters.nazoratchi_id) cleanFilters.nazoratchi_id = Number(currentFilters.nazoratchi_id);
+    if (currentFilters.status) cleanFilters.status = currentFilters.status;
 
     api
       .get('/tasks/excel', {
         responseType: 'blob',
         params: {
-          filters
+          filters: cleanFilters
         }
       })
       .then((response) => {

@@ -15,6 +15,9 @@ interface Props {
   sx?: any;
 }
 
+let cachedInspectors: { id: number; name: string }[] = [];
+let pendingInspectorsPromise: Promise<{ id: number; name: string }[]> | null = null;
+
 function InspectorSelection({
   selectedIspectorId,
   setSelectedIspectorId,
@@ -26,17 +29,40 @@ function InspectorSelection({
   size = 'small',
   sx
 }: Props) {
-  const [inspectors, setInspectorsState] = useState<{ id: number; name: string }[]>([]);
+  const [inspectors, setInspectorsState] = useState<{ id: number; name: string }[]>(cachedInspectors);
 
   const labelId = useId();
 
   useEffect(() => {
-    api.get('/inspectors').then(({ data }) => {
-      const inspectors = data.rows.map((ins: any) => ({ id: ins.id, name: ins.name }));
-      if (setInspectors) setInspectors(inspectors);
-      setInspectorsState(inspectors);
-    });
-  }, []);
+    if (cachedInspectors.length > 0) {
+      if (setInspectors) setInspectors(cachedInspectors);
+      return;
+    }
+
+    if (!pendingInspectorsPromise) {
+      pendingInspectorsPromise = api
+        .get('/inspectors')
+        .then(({ data }) => {
+          const list = (data.rows || []).map((ins: any) => ({ id: ins.id, name: ins.name }));
+          cachedInspectors = list;
+          pendingInspectorsPromise = null;
+          return list;
+        })
+        .catch((err) => {
+          pendingInspectorsPromise = null;
+          throw err;
+        });
+    }
+
+    pendingInspectorsPromise
+      .then((list) => {
+        if (setInspectors) setInspectors(list);
+        setInspectorsState(list);
+      })
+      .catch((err) => {
+        console.error('Error fetching inspectors:', err);
+      });
+  }, [setInspectors]);
   return (
     <FormControl fullWidth size={size} sx={sx}>
       {label && <InputLabel id={labelId}>{label}</InputLabel>}

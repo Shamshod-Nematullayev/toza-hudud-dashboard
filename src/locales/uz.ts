@@ -245,6 +245,7 @@ const uz = {
   tableHeaders: {
     fullName: 'F.I.Sh',
     name: 'Nomi',
+    age: 'Yoshi',
     phone: 'Telefon raqami',
     status: 'Holat',
     mfy: 'Mahalla',

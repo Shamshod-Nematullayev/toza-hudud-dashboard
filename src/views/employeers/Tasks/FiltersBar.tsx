@@ -140,6 +140,7 @@ function FiltersBar() {
         anchor="right"
         open={openFilterDrawer}
         onClose={() => setOpenFilterDrawer(false)}
+        ModalProps={{ keepMounted: true }}
         slotProps={{
           paper: {
             sx: {

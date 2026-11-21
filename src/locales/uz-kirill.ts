@@ -247,6 +247,7 @@ const uzKirill: typeof uz = {
   tableHeaders: {
     fullName: 'Ф.И.Ш',
     name: 'Номи',
+    age: 'Ёши',
     phone: 'Телефон рақами',
     status: 'Ҳолат',
     mfy: 'Маҳалла',
