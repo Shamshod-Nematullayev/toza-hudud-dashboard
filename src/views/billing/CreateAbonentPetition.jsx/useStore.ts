@@ -466,6 +466,7 @@ interface StoreActionsState {
   setIsGlobalAbonent: (isGlobal: boolean) => void;
   setIsGlobalAbonent2: (isGlobal: boolean) => void;
   setTransferReason: (reason: 'ortiqcha_tulov' | 'yanglish_tulov') => void;
+  setTransferComment: (comment: string) => void;
   setTransferCreditors: (creditors: ITransferCreditor[]) => void;
   addTransferCreditor: (creditor: ITransferCreditor) => void;
   removeTransferCreditor: (id: number) => void;
@@ -487,6 +488,7 @@ interface StoreDataState {
   dublicateRelation: string;
   moneyTransferAmount: number | string;
   transferReason: 'ortiqcha_tulov' | 'yanglish_tulov';
+  transferComment: string;
   transferCreditors: ITransferCreditor[];
   selectedApplicantId: number | '';
   transferDebitorAmount: string;
@@ -531,6 +533,7 @@ const initialStoreDataState: StoreDataState = {
   dublicateRelation: '',
   moneyTransferAmount: 0,
   transferReason: 'ortiqcha_tulov',
+  transferComment: '',
   transferCreditors: [],
   selectedApplicantId: '',
   transferDebitorAmount: '',
@@ -586,6 +589,7 @@ export const useStore = create<StoreState>((set, get) => ({
   ...initialStoreDataState,
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' },
   setTransferReason: (reason) => set({ transferReason: reason }),
+  setTransferComment: (comment) => set({ transferComment: comment }),
   setTransferCreditors: (creditors) => set({ transferCreditors: creditors }),
   addTransferCreditor: (creditor) => set((state) => ({ transferCreditors: [...state.transferCreditors, creditor] })),
   removeTransferCreditor: (id) => set((state) => ({ transferCreditors: state.transferCreditors.filter((c) => c.id !== id) })),
@@ -745,6 +749,7 @@ export const useStore = create<StoreState>((set, get) => ({
           transferDebitorAmount,
           transferCreditors,
           transferReason,
+          transferComment,
           selectedApplicantId,
           setAriza,
           setMahalla,
@@ -768,6 +773,10 @@ export const useStore = create<StoreState>((set, get) => ({
         }
         if (debitorAmount !== totalCreditorsAmount) {
           toast.error("Debitor summasi va kreditorlar summasi bir-biriga teng bo'lishi shart");
+          return;
+        }
+        if (!transferComment.trim()) {
+          toast.error("Ortiqcha to'lov sababi (izohi)ni kiritish majburiy");
           return;
         }
 
@@ -802,6 +811,7 @@ export const useStore = create<StoreState>((set, get) => ({
               debitorAct,
               creditorActs: transferCreditors,
               transferReason,
+              comment: transferComment.trim(),
               applicant: {
                 residentId: applicantRow?.residentId || applicantRow?.id,
                 accountNumber: applicantRow?.accountNumber,

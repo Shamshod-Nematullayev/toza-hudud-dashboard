@@ -11,17 +11,20 @@ function PrintSectionMonayTransferAriza({
   ariza,
   abonentDetails,
   debitorDetails,
-  transferReason = 'ortiqcha_tulov'
+  transferReason = 'ortiqcha_tulov',
+  comment
 }: {
   printComponentRef: any;
   ariza: IAriza | null;
   abonentDetails: AbonentDetails;
   debitorDetails?: { accountNumber?: string; fullName?: string; mahallaName?: string };
   transferReason?: 'ortiqcha_tulov' | 'yanglish_tulov';
+  comment?: string;
 }) {
   const isYanglishTulov = (ariza?.transferReason || transferReason) === 'yanglish_tulov';
   const debitorAccount = debitorDetails?.accountNumber || ariza?.licshet || abonentDetails?.accountNumber;
   const debitorName = debitorDetails?.fullName || ariza?.fio || abonentDetails?.fullName;
+  const transferComment = (comment || ariza?.comment || '').trim();
 
   const creditors = ariza?.needMonayTransferActs || [];
   const isMultiCreditor = creditors.length > 1;
@@ -42,6 +45,15 @@ function PrintSectionMonayTransferAriza({
           Men {abonentDetails?.mahallaName || ''}da yashovchi fuqaro {formatName(abonentDetails?.fullName)}, qattiq maishiy chiqindilar
           xizmati to'lovi uchun {targetAccountsText} hisob raqami{isMultiCreditor ? 'lari' : ''}ga to'lov qilish jarayonida yanglishib
           (adashib) {debitorAccount} ({formatName(debitorName)}) hisob raqamiga to'lov qilib yuborganman.
+          {transferComment ? (
+            <>
+              <br />
+              <br />
+              <span style={{ textIndent: 0, display: 'block' }}>
+                <b>To‘lov sababi (izohi):</b> {transferComment}
+              </span>
+            </>
+          ) : null}
           <br />
           <br />
           Ilova qilinayotgan to'lov kvitansiyasi (chek)ga asosan, yanglishib to'langan jami{' '}
@@ -54,6 +66,15 @@ function PrintSectionMonayTransferAriza({
           ochilgan {debitorAccount} hisob raqamimga ortiqcha to'langan{' '}
           <b>{ariza?.aktSummasi?.toLocaleString()} so'm</b> pul mablag'ini quyidagi abonent
           {isMultiCreditor ? 'lar' : ''}ning hisob raqamiga o'tkazib berishingizni so'rayman.
+          {transferComment ? (
+            <>
+              <br />
+              <br />
+              <span style={{ textIndent: 0, display: 'block' }}>
+                <b>Ortiqcha to‘lov sababi (izohi):</b> {transferComment}
+              </span>
+            </>
+          ) : null}
         </p>
       )}
 

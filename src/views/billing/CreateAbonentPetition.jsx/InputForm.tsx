@@ -176,6 +176,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     setSelectedApplicantId,
     transferDebitorAmount,
     setTransferDebitorAmount,
+    transferComment,
+    setTransferComment,
     kuchirish,
     bekorQilish,
     mahalla,
@@ -365,6 +367,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     setTransferCreditors([]);
     setSelectedApplicantId('');
     setTransferReason('ortiqcha_tulov');
+    setTransferComment('');
     setClearConfirmOpen(false);
   };
 
@@ -392,7 +395,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     (aktType === 'gps' && gpsLocationRequired && !gpsLocation) ||
     (aktType === 'yashovchi_kuchirish' && !!validateKuchirish(abonentData, abonentData2, kuchirish, isGlobalAbonent2)) ||
     (aktType === 'pul_kuchirish' &&
-      (!transferDebitorAmount || Number(transferDebitorAmount) <= 0 || transferCreditors.length === 0 || !isAmountBalanced));
+      (!transferDebitorAmount || Number(transferDebitorAmount) <= 0 || transferCreditors.length === 0 || !isAmountBalanced || !transferComment.trim()));
 
   const getCreateDisabledReason = (): string => {
     if (isGlobalAbonent)
@@ -410,6 +413,7 @@ export default function InputForm({ onStartTour }: InputFormProps) {
       if (!transferDebitorAmount || Number(transferDebitorAmount) <= 0) return "O'tkaziladigan summani kiriting";
       if (transferCreditors.length === 0) return "Kamida bitta qabul qiluvchi hisob raqamini qo'shing";
       if (!isAmountBalanced) return 'Debitor summasi va kreditorlar summasi teng emas';
+      if (!transferComment.trim()) return "Ortiqcha to'lov sababi (izohi)ni kiritish majburiy";
     }
     return '';
   };
@@ -1146,6 +1150,36 @@ export default function InputForm({ onStartTour }: InputFormProps) {
                       />
                     </RadioGroup>
                   </Paper>
+
+                  {/* Ortiqcha to'lov sababi / izohi (Majburiy) */}
+                  <Box
+                    sx={{
+                      p: 1.25,
+                      borderRadius: 1.5,
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: !transferComment.trim() ? 'error.light' : 'divider'
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', mb: 0.8 }}>
+                      {transferReason === 'yanglish_tulov' ? t("Yanglish to'lov sababi (izohi)") : t("Ortiqcha to'lov sababi (izohi)")}{' '}
+                      <span style={{ color: 'red' }}>*</span>
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      required
+                      multiline
+                      minRows={2}
+                      maxRows={4}
+                      size="small"
+                      placeholder={t("Ortiqcha to'lov sababi (masalan: Iste'molchi tomonidan adashib ikki marotaba to'lov amalga oshirilgan)")}
+                      value={transferComment}
+                      onChange={(e) => setTransferComment(e.target.value)}
+                      error={!transferComment.trim()}
+                      helperText={!transferComment.trim() ? t("Arizada ko'rsatish uchun ortiqcha to'lov sababi (izohi) kiritilishi majburiy!") : undefined}
+                      sx={{ bgcolor: 'background.paper' }}
+                    />
+                  </Box>
 
                   {/* Debitor (olinadigan) summa */}
                   <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>

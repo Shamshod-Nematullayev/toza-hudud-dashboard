@@ -344,3 +344,64 @@ export function DeathBlank2026({ recalculationPeriods, ...props }: CommonProps &
     />
   );
 }
+
+// ---------------- GPS (TEGISHLI SIFATDAGI XIZMAT KO'RSATILMAGANLIGI) ----------------
+export function GpsBlank2026({
+  recalculationPeriods,
+  muzlatiladi,
+  ...props
+}: CommonProps & { recalculationPeriods?: any[]; muzlatiladi?: boolean }) {
+  const { ariza, abonentData, vakil, asoslantiruvchi } = props;
+  const acc = abonentData?.accountNumber;
+  const current = toNum(abonentData?.house?.inhabitantCnt);
+
+  const periods =
+    recalculationPeriods && recalculationPeriods.length > 0
+      ? recalculationPeriods
+      : ariza?.recalculationPeriods && ariza?.recalculationPeriods.length > 0
+      ? ariza.recalculationPeriods
+      : [];
+
+  const period = periods[0];
+  const startFmt = period?.startDate ? dayjs(period.startDate).format('DD.MM.YYYY') : '';
+  const endFmt = period?.endDate ? dayjs(period.endDate).format('DD.MM.YYYY') : '';
+
+  const izoh = (
+    <>
+      Ҳақиқатдан ҳам абонент хонадонига{' '}
+      {startFmt && endFmt ? (
+        <>
+          <B>{startFmt}</B> санадан <B>{endFmt}</B> санасигача{' '}
+        </>
+      ) : periods.length > 0 ? (
+        <>
+          {periods.map((p: any, i: number) => {
+            const f = dayjs(p.startDate || p.from).format('DD.MM.YYYY');
+            const t = dayjs(p.endDate || p.to).format('DD.MM.YYYY');
+            return (
+              <React.Fragment key={i}>
+                {i > 0 && ', '}
+                <B>{f} — {t}</B>
+              </React.Fragment>
+            );
+          })}{' '}
+          даврида{' '}
+        </>
+      ) : null}
+      йўлнинг яроқсизлиги сабабли тегишли сифатдаги хизмат кўрсатилмаганлиги аниқланди.{' '}
+      {muzlatiladi && <>Ушбу абонентга бугунги кунда ҳам хизмат кўрсатиш имконияти мавжуд эмас. </>}
+      Юқоридагиларга ва GPS маълумотларига мувофиқ, <B>{acc}</B> ҳисоб рақами бўйича ҳисобга олишнинг ягона электрон тизимида тегишли ўзгартиришлар киритиш ҳамда тўловларни қайта ҳисоб-китоб қилишни мақсадга мувофиқ деб ҳисоблаймиз.
+      <Asos text={asoslantiruvchi} />
+    </>
+  );
+
+  return (
+    <MahallaBlank2026Page
+      {...props}
+      inhabitantCnt={current}
+      rows={props.showTable ? baseRows(abonentData, vakil) : []}
+      showTable={props.showTable}
+      izoh={izoh}
+    />
+  );
+}

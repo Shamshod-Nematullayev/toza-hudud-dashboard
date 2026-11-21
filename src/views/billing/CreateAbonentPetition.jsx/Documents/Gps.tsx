@@ -6,6 +6,7 @@ import { ImzoJoyiRow, ImzolashJoyi } from '../DocumentComponents/ImzolashJoyi';
 import { ArizaHeading } from '../DocumentComponents/ArizaHeading';
 import { ArizaTitle } from '../DocumentComponents/ArizaTitle';
 import useCustomizationStore from 'store/customizationStore';
+import { GpsBlank2026 } from './MahallaBlank2026Variants';
 import dayjs from 'dayjs';
 
 function Gps({
@@ -19,7 +20,9 @@ function Gps({
   photos,
   asoslantiruvchi,
   vakil, // Vakil ma'lumotlari prop sifatida qo'shildi
-  participants
+  participants,
+  useMahalla2026Blank = false,
+  showTable
 }: {
   date: Date;
   abonentData: any;
@@ -35,6 +38,8 @@ function Gps({
     fullName: string;
   };
   participants?: any[];
+  useMahalla2026Blank?: boolean;
+  showTable?: boolean;
 }) {
   const { customization } = useCustomizationStore();
 
@@ -73,8 +78,24 @@ function Gps({
         </div>
       )}
 
-      {/* 2-SAHIFA: DALOLATNOMA */}
-      {customization.documentVariant.includes('dalolatnoma') && (
+      {/* 2-SAHIFA: DALOLATNOMA (Yangi mahalla blankasi) */}
+      {useMahalla2026Blank && customization.documentVariant.includes('dalolatnoma') && (
+        <GpsBlank2026
+          date={date}
+          ariza={ariza}
+          abonentData={abonentData}
+          mahalla={mahalla}
+          vakil={isRelative ? vakil : undefined}
+          asoslantiruvchi={asoslantiruvchi}
+          participants={participants}
+          recalculationPeriods={recalculationPeriods}
+          muzlatiladi={muzlatiladi}
+          showTable={showTable}
+        />
+      )}
+
+      {/* 2-SAHIFA: DALOLATNOMA (Eski blanka) */}
+      {!useMahalla2026Blank && customization.documentVariant.includes('dalolatnoma') && (
         <div className="page" style={{ fontSize: '16px', textAlign: 'justify', position: 'relative' }}>
           <span style={{ position: 'absolute', top: 0, left: 0, fontWeight: 'bold' }}>{ariza.document_number}</span>
           <p style={{ textAlign: 'center', fontWeight: 'bold' }}>

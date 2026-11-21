@@ -11,7 +11,7 @@ import { ResolvedParticipant } from '../participantResolver';
 export const MAHALLA_2026_ACT_TYPE_KEY = 'mahalla_2026';
 
 /** Yangi blankada chiqadigan ariza turlari; qolganlari eski ko'rinishda qoladi */
-export const MAHALLA_2026_DOCUMENT_TYPES = ['dvaynik', 'odam_soni', 'viza', 'death', 'cancelContract'];
+export const MAHALLA_2026_DOCUMENT_TYPES = ['dvaynik', 'odam_soni', 'viza', 'death', 'cancelContract', 'gps'];
 
 const LINE = '1px solid #000';
 

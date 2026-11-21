@@ -130,7 +130,7 @@ const DocumentRenderer = ({
   const docType = ariza?.document_type;
   const useMahalla2026Blank =
     actTypeKey === MAHALLA_2026_ACT_TYPE_KEY ||
-    ((docType === 'odam_soni' || docType === 'dvaynik' || docType === 'cancelContract') && actTypeKey !== 'ichki');
+    (MAHALLA_2026_DOCUMENT_TYPES.includes(docType) && actTypeKey !== 'ichki');
 
   const commonProps = {
     date: new Date(ariza.sana),
@@ -184,7 +184,14 @@ const DocumentRenderer = ({
       return <CancelContract {...commonProps} />;
     case 'gps':
       return (
-        <Gps {...commonProps} recalculationPeriods={recalculationPeriods} muzlatiladi={muzlatiladi} photos={photos} documentType="gps" />
+        <Gps
+          {...commonProps}
+          recalculationPeriods={recalculationPeriods}
+          muzlatiladi={muzlatiladi}
+          photos={photos}
+          documentType="gps"
+          useMahalla2026Blank={useMahalla2026Blank}
+        />
       );
     case 'pul_kuchirish': {
       const applicantDetails = ariza.applicantInfo?.fullName
@@ -201,6 +208,7 @@ const DocumentRenderer = ({
           abonentDetails={applicantDetails as any}
           debitorDetails={abonentData}
           transferReason={ariza.transferReason}
+          comment={ariza.comment || cleanAsoslantiruvchi}
         />
       );
     }
@@ -275,10 +283,10 @@ export default function PrintSection({
     const currentArr: ('ariza' | 'dalolatnoma')[] = Array.isArray(customization.documentVariant)
       ? [...customization.documentVariant]
       : typeof customization.documentVariant === 'string'
-      ? (customization.documentVariant === 'ariza+dalolatnoma'
+        ? customization.documentVariant === 'ariza+dalolatnoma'
           ? ['ariza', 'dalolatnoma']
-          : [customization.documentVariant as 'ariza' | 'dalolatnoma'])
-      : ['ariza', 'dalolatnoma'];
+          : [customization.documentVariant as 'ariza' | 'dalolatnoma']
+        : ['ariza', 'dalolatnoma'];
 
     let next: ('ariza' | 'dalolatnoma')[];
     if (currentArr.includes(type)) {
@@ -374,24 +382,13 @@ export default function PrintSection({
       return actTypes.filter((t) => t.key !== 'ichki' && t.key !== 'mahalla').slice(0, 1);
     }
 
-    // 2. Odam soni o'zgarishi:
-    // Eski mahalla dalolatnomasi ('mahalla') olib tashlanadi
-    if (effectiveDocType === 'odam_soni') {
+    // 2. Yangi 2026 blankasiga o'tgan turlar (odam_soni, dvaynik, gps):
+    // Eski mahalla dalolatnomasi ('mahalla') olib tashlanadi, faqat yangi blanka (mahalla_2026) va ichki qoladi
+    if (effectiveDocType === 'odam_soni' || effectiveDocType === 'dvaynik' || effectiveDocType === 'gps') {
       return actTypes.filter((t) => {
         if (t.key === 'mahalla') return false;
         if (t.documentTypes && t.documentTypes.length > 0) {
-          return t.documentTypes.includes('odam_soni');
-        }
-        return true;
-      });
-    }
-
-    // 3. Ikkilamchi hisob raqami (Dvaynik):
-    if (effectiveDocType === 'dvaynik') {
-      return actTypes.filter((t) => {
-        if (t.key === 'mahalla') return false;
-        if (t.documentTypes && t.documentTypes.length > 0) {
-          return t.documentTypes.includes('dvaynik');
+          return t.documentTypes.includes(effectiveDocType);
         }
         return true;
       });
@@ -527,19 +524,19 @@ export default function PrintSection({
     if (initializedArizaIdRef.current === arizaId) return;
     initializedArizaIdRef.current = arizaId;
 
-    const isOdamSoni = effectiveDocType === 'odam_soni';
+    const is2026Type = MAHALLA_2026_DOCUMENT_TYPES.includes(effectiveDocType);
     const saved = actTypes.find((t) => (ariza.actTypeId && t._id === ariza.actTypeId) || (ariza.actTypeKey && t.key === ariza.actTypeKey));
-    // Odam sonida va cancelContract da eski 'mahalla' turi saqlangan bo'lsa ham uni yangi mahalla_2026 ga o'tkazamiz
+    // 2026 blankasiga o'tgan turlarda eski 'mahalla' turi saqlangan bo'lsa ham uni yangi mahalla_2026 ga o'tkazamiz
     let initial =
       saved &&
-      (!isOdamSoni || saved.key !== 'mahalla') &&
+      (!is2026Type || saved.key !== 'mahalla') &&
       (effectiveDocType !== 'cancelContract' || (saved.key !== 'mahalla' && saved.key !== 'ichki'))
         ? saved
         : undefined;
     if (!initial) {
       if (effectiveDocType === 'cancelContract') {
         initial = actTypes.find((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY) || visibleActTypes[0] || actTypes[0];
-      } else if (isOdamSoni) {
+      } else if (is2026Type) {
         initial = actTypes.find((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY) || actTypes.find((t) => t.key !== 'mahalla') || actTypes[0];
       } else {
         initial = actTypes.find((t) => t.key === 'mahalla') || actTypes[0];
@@ -550,7 +547,7 @@ export default function PrintSection({
     // yoki shartnomani bekor qilish dalolatnomasi bo'lsa (chunki u hech qachon ichki yoki eski mahalla bo'la olmaydi)
     const isStrictlyForbidden =
       (effectiveDocType === 'cancelContract' && (initial?.key === 'ichki' || initial?.key === 'mahalla')) ||
-      (isOdamSoni && initial?.key === 'mahalla');
+      (is2026Type && initial?.key === 'mahalla');
     if (
       (!saved || isStrictlyForbidden) &&
       initial &&
@@ -559,12 +556,12 @@ export default function PrintSection({
     ) {
       initial =
         (effectiveDocType === 'cancelContract' ? actTypes.find((t) => t.key === MAHALLA_2026_ACT_TYPE_KEY) || visibleActTypes[0] : null) ||
-        (isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === MAHALLA_2026_ACT_TYPE_KEY) : null) ||
-        (!isOdamSoni && effectiveDocType !== 'cancelContract'
+        (is2026Type ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === MAHALLA_2026_ACT_TYPE_KEY) : null) ||
+        (!is2026Type && effectiveDocType !== 'cancelContract'
           ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla')
           : null) ||
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki' && (!isOdamSoni || t.key !== 'mahalla')) ||
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && (!isOdamSoni || t.key !== 'mahalla')) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki' && (!is2026Type || t.key !== 'mahalla')) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && (!is2026Type || t.key !== 'mahalla')) ||
         initial;
     }
 
@@ -579,25 +576,25 @@ export default function PrintSection({
 
   const isMahalla2026Selected =
     selectedActType?.key === MAHALLA_2026_ACT_TYPE_KEY ||
-    ((effectiveDocType === 'odam_soni' || effectiveDocType === 'dvaynik' || effectiveDocType === 'cancelContract') &&
-      selectedActType?.key !== 'ichki');
+    (MAHALLA_2026_DOCUMENT_TYPES.includes(effectiveDocType) && selectedActType?.key !== 'ichki');
 
   // Agar joriy tanlangan tur qoidalarga ko'ra cheklangan bo'lsa, avtomatik ravishda ruxsat berilgan turga o'tkazish
   useEffect(() => {
-    const isOdamSoni = effectiveDocType === 'odam_soni';
-    // Agar ariza avvaldan saqlangan bo'lsa, uni majburan almashtirmaymiz (faqat cancelContract ichki bo'lgan yoki odam sonida eski mahalla bo'lgan holat bundan mustasno)
+    const is2026Type = MAHALLA_2026_DOCUMENT_TYPES.includes(effectiveDocType);
+    // Agar ariza avvaldan saqlangan bo'lsa, uni majburan almashtirmaymiz (faqat cancelContract ichki bo'lgan yoki 2026 turlarida eski mahalla bo'lgan holat bundan mustasno)
     const isSavedAsThis =
       (ariza?.actTypeId && selectedActType?._id === ariza.actTypeId) || (ariza?.actTypeKey && selectedActType?.key === ariza.actTypeKey);
     const isStrictlyForbidden =
-      (effectiveDocType === 'cancelContract' && selectedActType?.key === 'ichki') || (isOdamSoni && selectedActType?.key === 'mahalla');
+      (effectiveDocType === 'cancelContract' && selectedActType?.key === 'ichki') || (is2026Type && selectedActType?.key === 'mahalla');
     if (!selectedActType || ishtirokchilarDisabled || (isSavedAsThis && !isStrictlyForbidden)) return;
     const restriction = getActTypeRestriction(selectedActType);
-    if (restriction.isDisabled || (isOdamSoni && selectedActType.key === 'mahalla')) {
+    const isForbiddenMahalla = is2026Type && selectedActType.key === 'mahalla';
+    if (restriction.isDisabled || isForbiddenMahalla) {
       const allowed =
-        (isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === MAHALLA_2026_ACT_TYPE_KEY) : null) ||
-        (!isOdamSoni ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') : null) ||
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki' && (!isOdamSoni || t.key !== 'mahalla')) ||
-        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && (!isOdamSoni || t.key !== 'mahalla'));
+        (is2026Type ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === MAHALLA_2026_ACT_TYPE_KEY) : null) ||
+        (!is2026Type ? actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key === 'mahalla') : null) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && t.key !== 'ichki' && (!is2026Type || t.key !== 'mahalla')) ||
+        actTypes.find((t) => !getActTypeRestriction(t).isDisabled && (!is2026Type || t.key !== 'mahalla'));
       if (allowed) {
         setSelectedActTypeId(allowed._id || allowed.key);
       }
@@ -757,23 +754,17 @@ export default function PrintSection({
           <Stack
             direction="row"
             spacing={0.75}
-            alignItems="center"
             sx={{
               bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : '#f1f5f9',
               p: '3px 4px',
               borderRadius: '10px',
               border: '1px solid',
-              borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e2e8f0'
+              borderColor: theme.palette.mode === 'dark' ? 'divider' : '#e2e8f0',
+              alignItems: 'center'
             }}
           >
             {/* Ariza */}
-            <Tooltip
-              title={
-                isCancelContract
-                  ? 'Shartnomani bekor qilishda ariza shakllanmaydi'
-                  : 'Abonent arizasi sahifasini chop etish'
-              }
-            >
+            <Tooltip title={isCancelContract ? 'Shartnomani bekor qilishda ariza shakllanmaydi' : 'Abonent arizasi sahifasini chop etish'}>
               <Box
                 component="label"
                 sx={{
@@ -785,13 +776,8 @@ export default function PrintSection({
                   borderRadius: '7px',
                   cursor: isCancelContract ? 'not-allowed' : 'pointer',
                   opacity: isCancelContract ? 0.45 : 1,
-                  bgcolor: hasAriza
-                    ? theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.primary.main, 0.22)
-                      : '#ffffff'
-                    : 'transparent',
-                  boxShadow:
-                    hasAriza && theme.palette.mode !== 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.08)' : 'none',
+                  bgcolor: hasAriza ? (theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.22) : '#ffffff') : 'transparent',
+                  boxShadow: hasAriza && theme.palette.mode !== 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.08)' : 'none',
                   border: '1px solid',
                   borderColor: hasAriza ? alpha(theme.palette.primary.main, 0.35) : 'transparent',
                   transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -856,8 +842,7 @@ export default function PrintSection({
                       ? alpha(theme.palette.primary.main, 0.22)
                       : '#ffffff'
                     : 'transparent',
-                  boxShadow:
-                    hasDalolatnoma && theme.palette.mode !== 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.08)' : 'none',
+                  boxShadow: hasDalolatnoma && theme.palette.mode !== 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.08)' : 'none',
                   border: '1px solid',
                   borderColor: hasDalolatnoma ? alpha(theme.palette.primary.main, 0.35) : 'transparent',
                   transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',

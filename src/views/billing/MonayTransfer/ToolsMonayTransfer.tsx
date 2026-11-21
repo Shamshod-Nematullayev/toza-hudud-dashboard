@@ -63,6 +63,7 @@ function ToolsMonayTransfer({
 }) {
   const { isLoading, setIsLoading } = useLoaderStore();
   const { t } = useTranslation();
+  const [transferComment, setTransferComment] = useState('');
 
   const handleAddButtonClick = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +125,10 @@ function ToolsMonayTransfer({
   };
 
   const handleClickCreateArizaButton = async () => {
+    if (!transferComment.trim()) {
+      toast.error("Ortiqcha to'lov sababi (izohi)ni kiritish majburiy!");
+      return;
+    }
     setIsLoading(true);
     try {
       let applicantRow = rows[0];
@@ -138,6 +143,7 @@ function ToolsMonayTransfer({
           debitorAct: rows[0],
           creditorActs: rows.slice(1),
           transferReason,
+          comment: transferComment.trim(),
           applicant: {
             residentId: applicantRow?.residentId || applicantRow?.id,
             accountNumber: applicantRow?.accountNumber,
@@ -161,6 +167,7 @@ function ToolsMonayTransfer({
     setAccountNumber('');
     setAmount('');
     setSelectedApplicantId('');
+    setTransferComment('');
     clearPdfFile();
   };
 
@@ -220,6 +227,20 @@ function ToolsMonayTransfer({
           )}
         </Stack>
 
+        {/* Ortiqcha to'lov sababi / izohi (Majburiy) */}
+        <TextField
+          size="small"
+          required
+          fullWidth
+          label={transferReason === 'yanglish_tulov' ? "Yanglish to'lov sababi (izohi) *" : "Ortiqcha to'lov sababi (izohi) *"}
+          placeholder="Ortiqcha to'lov sababi (masalan: Iste'molchi tomonidan adashib ikki marotaba to'lov amalga oshirilgan)"
+          value={transferComment}
+          onChange={(e) => setTransferComment(e.target.value)}
+          error={rows.length > 0 && !transferComment.trim()}
+          helperText={rows.length > 0 && !transferComment.trim() ? "Arizani shakllantirish uchun ortiqcha to'lov sababi (izohi) kiritilishi majburiy!" : undefined}
+          disabled={isLoading}
+        />
+
         {/* Input qatori */}
         <Toolbar disableGutters sx={{ gap: '6px', minHeight: 'auto !important' }}>
           <AccountNumberInput
@@ -276,6 +297,7 @@ function ToolsMonayTransfer({
             disabled={
               rows.length === 0 ||
               rows[0].amount !== rows.slice(1).reduce((a, b) => a + b.amount, 0) ||
+              !transferComment.trim() ||
               isLoading ||
               Boolean(ariza?._id)
             }
