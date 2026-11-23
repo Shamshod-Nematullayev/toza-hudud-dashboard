@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Tabs, Tab, Paper } from '@mui/material';
+import { TableChartOutlined, FactCheckOutlined } from '@mui/icons-material';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -14,6 +15,7 @@ import PetitionDetailDrawer from './components/PetitionDetailDrawer';
 import RejectPetitionDialog from './RejectPetitionDialog';
 import PrintSection from '../CreateAbonentPetition.jsx/PrintSection';
 import Loader from 'ui-component/Loader';
+import ViloyatTekshiruviView from './components/ViloyatTekshiruviView';
 
 const STATUS_LABELS: Record<string, string> = {
   all: 'Barchasi',
@@ -28,6 +30,7 @@ function AbonentPetitions() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Read URL query parameters
+  const tabParam = searchParams.get('tab') || 'registry';
   const periodParam = searchParams.get('period') || dayjs().format('YYYY-MM');
   const categoryParam = searchParams.get('type') || null;
   const statusParam = searchParams.get('status') || null;
@@ -186,6 +189,10 @@ function AbonentPetitions() {
   ]);
 
   // Actions
+  const handleTabChange = (_: any, newTab: string) => {
+    updateQueryParams({ tab: newTab === 'registry' ? null : newTab });
+  };
+
   const handlePeriodChange = (newPeriod: string) => {
     updateQueryParams({ period: newPeriod, selectedId: null });
     setPageNum(1);
@@ -367,68 +374,123 @@ function AbonentPetitions() {
     <Box sx={{ width: '100%' }}>
       {isLoading && <Loader />}
 
-      <Stack spacing={1.2}>
-        {/* 1. Global Header & Period Control */}
-        <PeriodHeader
+      {/* Main Tab Navigation: Reestr vs Viloyat tekshiruvi */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2.5,
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          mb: 1.5
+        }}
+      >
+        <Tabs
+          value={tabParam}
+          onChange={handleTabChange}
+          sx={{
+            minHeight: 46,
+            px: 1.5,
+            '& .MuiTab-root': {
+              minHeight: 46,
+              py: 1,
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              textTransform: 'none'
+            }
+          }}
+        >
+          <Tab
+            value="registry"
+            icon={<TableChartOutlined sx={{ fontSize: 20 }} />}
+            iconPosition="start"
+            label="Arizalar reestri va katalog"
+          />
+          <Tab
+            value="audit"
+            icon={<FactCheckOutlined sx={{ fontSize: 20 }} />}
+            iconPosition="start"
+            label="Viloyat tekshiruvi & Audit UI"
+          />
+        </Tabs>
+      </Paper>
+
+      {tabParam === 'audit' ? (
+        <ViloyatTekshiruviView
           period={periodParam}
           onPeriodChange={handlePeriodChange}
-          category={categoryParam}
-          onCategoryClear={handleBackToCatalogs}
-          statusFilter={statusParam}
-          onStatusClear={handleClearStatus}
-          onRefresh={reload}
-          categoryLabel={categoryLabel}
-          statusLabel={statusLabel}
-          searchQuery={searchParam}
-          onSearchChange={handleSearchChange}
+          onOpenRejectDialog={handleOpenRejectDialog}
+          onMoveToInbox={handleMoveToInbox}
+          onPrint={handlePrint}
+          printingId={printingId}
+          onReload={reload}
+          selectedIdFromUrl={selectedIdParam}
+          onSelectId={handleSelectAriza}
         />
-
-        {/* 2. Top Kanban Pipeline / Statistics Cards */}
-        <KanbanStatusCards
-          summary={currentSummary}
-          activeStatus={statusParam}
-          onStatusClick={handleStatusClick}
-          isLoading={isStatsLoading}
-        />
-
-        {/* 3. Main Body: Level 1 (Catalogs Table) OR Level 2 (Drill-Down DataGrid) */}
-        {!isDrillDownMode ? (
-          <CatalogListView
-            byDocumentType={monthlyStats?.byDocumentType || []}
-            onSelectCategory={handleSelectCategory}
-            isLoading={isStatsLoading}
-          />
-        ) : (
-          <CatalogDrillDownView
-            category={categoryParam}
-            categoryLabel={categoryLabel}
+      ) : (
+        <Stack spacing={1.2}>
+          {/* 1. Global Header & Period Control */}
+          <PeriodHeader
             period={periodParam}
+            onPeriodChange={handlePeriodChange}
+            category={categoryParam}
+            onCategoryClear={handleBackToCatalogs}
             statusFilter={statusParam}
+            onStatusClear={handleClearStatus}
+            onRefresh={reload}
+            categoryLabel={categoryLabel}
             statusLabel={statusLabel}
-            onBackToCatalogs={handleBackToCatalogs}
-            rows={rows}
-            total={total}
-            pageNum={pageNum}
-            limit={limit}
-            onPageChange={(p) => setPageNum(p)}
-            onLimitChange={(l) => setLimit(l)}
-            isLoading={isLoading}
-            onSelectAriza={handleSelectAriza}
-            selectedArizaId={selectedIdParam}
-            onOpenRejectDialog={handleOpenRejectDialog}
-            onMoveToInbox={handleMoveToInbox}
-            onPrint={handlePrint}
-            printingId={printingId}
-            onUpdateFromTozamakon={handleUpdateFromTozamakon}
             searchQuery={searchParam}
             onSearchChange={handleSearchChange}
-            sortField={sortFieldParam}
-            sortDirection={sortDirectionParam}
-            onSortChange={handleSortChange}
-            isGlobalSearchActive={Boolean(searchParam.trim())}
           />
-        )}
-      </Stack>
+
+          {/* 2. Top Kanban Pipeline / Statistics Cards */}
+          <KanbanStatusCards
+            summary={currentSummary}
+            activeStatus={statusParam}
+            onStatusClick={handleStatusClick}
+            isLoading={isStatsLoading}
+          />
+
+          {/* 3. Main Body: Level 1 (Catalogs Table) OR Level 2 (Drill-Down DataGrid) */}
+          {!isDrillDownMode ? (
+            <CatalogListView
+              byDocumentType={monthlyStats?.byDocumentType || []}
+              onSelectCategory={handleSelectCategory}
+              isLoading={isStatsLoading}
+            />
+          ) : (
+            <CatalogDrillDownView
+              category={categoryParam}
+              categoryLabel={categoryLabel}
+              period={periodParam}
+              statusFilter={statusParam}
+              statusLabel={statusLabel}
+              onBackToCatalogs={handleBackToCatalogs}
+              rows={rows}
+              total={total}
+              pageNum={pageNum}
+              limit={limit}
+              onPageChange={(p) => setPageNum(p)}
+              onLimitChange={(l) => setLimit(l)}
+              isLoading={isLoading}
+              onSelectAriza={handleSelectAriza}
+              selectedArizaId={selectedIdParam}
+              onOpenRejectDialog={handleOpenRejectDialog}
+              onMoveToInbox={handleMoveToInbox}
+              onPrint={handlePrint}
+              printingId={printingId}
+              onUpdateFromTozamakon={handleUpdateFromTozamakon}
+              searchQuery={searchParam}
+              onSearchChange={handleSearchChange}
+              sortField={sortFieldParam}
+              sortDirection={sortDirectionParam}
+              onSortChange={handleSortChange}
+              isGlobalSearchActive={Boolean(searchParam.trim())}
+            />
+          )}
+        </Stack>
+      )}
 
       {/* 4. Master-Detail Drawer (Right Slide-out Panel) */}
       <PetitionDetailDrawer

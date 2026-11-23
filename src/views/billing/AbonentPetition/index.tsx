@@ -41,6 +41,8 @@ import PDFViewer from './PDFViewer';
 import PasteImageDialog from './PasteImageDialog';
 import AttachedImagesModal from './AttachedImagesModal';
 import { useTranslation } from 'react-i18next';
+import ArizaAuditBreakdown from '../AbonentPetitions/components/ArizaAuditBreakdown';
+import AuditDHJTable from '../AbonentPetitions/components/AuditDHJTable';
 
 function AbonentPetition() {
   const { ariza_id } = useParams<{ ariza_id: string }>();
@@ -62,7 +64,7 @@ function AbonentPetition() {
   } = useArizaStore();
 
   const [davriyHarakatlarJadvali, setDavriyHarakatlarJadvali] = useState<any[]>([]);
-  const [currentTab, setCurrentTab] = useState<'dhj' | 'aktInfo' | 'calculator'>('dhj');
+  const [currentTab, setCurrentTab] = useState<'audit' | 'dhj' | 'aktInfo' | 'calculator'>('audit');
   const [searchDocNumber, setSearchDocNumber] = useState('');
   const [isUpdatingFromBilling, setIsUpdatingFromBilling] = useState(false);
 
@@ -308,59 +310,74 @@ function AbonentPetition() {
         </Box>
       )}
 
-      {/* Main Content Layout: 5 Columns Left (Tabs & Info), 7 Columns Right (PDF Viewer) */}
-      <Grid container spacing={2}>
-        {/* Left Section (DHJ Table / Akt Info / Calculator) */}
-        <Grid size={{ xs: 12, lg: 5 }}>
-          <Card
-            sx={{
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 2,
-              boxShadow: 'none',
-              height: 'calc(100vh - 200px)',
-              minHeight: 520,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}
-          >
-            <Tabs
-              value={currentTab}
-              onChange={(e, val) => setCurrentTab(val)}
-              variant="fullWidth"
+      {/* Tabs Switcher */}
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Tabs
+          value={currentTab}
+          onChange={(e, val) => setCurrentTab(val)}
+          sx={{
+            minHeight: 44,
+            '& .MuiTab-root': {
+              minHeight: 44,
+              py: 1,
+              fontWeight: 700,
+              fontSize: '0.9rem'
+            }
+          }}
+        >
+          <Tab value="audit" label="Viloyat tekshiruvi & Hisob-kitob auditi" />
+          <Tab value="dhj" label={t('recalculationDetailPage.tabDhj', 'Davriy Harakatlar (DHJ)')} />
+          <Tab value="aktInfo" label={t('recalculationDetailPage.tabInfo', 'Akt Ma‘lumotlari')} />
+          <Tab value="calculator" label={t('recalculationDetailPage.tabCalc', 'Kalkulyator')} />
+        </Tabs>
+      </Box>
+
+      {/* Main Content Layout */}
+      {currentTab === 'audit' ? (
+        <ArizaAuditBreakdown
+          ariza={ariza}
+          aktFileURL={aktFileURL}
+          onOpenRejectDialog={() => {}}
+          onMoveToInbox={() => {}}
+          onPrint={() => {}}
+          printingId={null}
+          onReloadList={() => {}}
+          onOpenActChanger={() => setShowModal(true)}
+          onOpenImageModal={() => setAttachedImagesModalOpen(true)}
+        />
+      ) : (
+        <Grid container spacing={2}>
+          {/* Left Section (DHJ Table / Akt Info / Calculator) */}
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <Card
               sx={{
-                borderBottom: '1px solid',
+                border: '1px solid',
                 borderColor: 'divider',
-                backgroundColor: (theme) => (theme.palette.mode === 'dark' ? 'background.default' : 'grey.50'),
-                minHeight: 44,
-                '& .MuiTab-root': {
-                  minHeight: 44,
-                  py: 1,
-                  fontWeight: 600
-                }
+                borderRadius: 2,
+                boxShadow: 'none',
+                height: 'calc(100vh - 260px)',
+                minHeight: 520,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
               }}
             >
-              <Tab value="dhj" label={t('recalculationDetailPage.tabDhj', 'Davriy Harakatlar (DHJ)')} />
-              <Tab value="aktInfo" label={t('recalculationDetailPage.tabInfo', 'Akt Ma‘lumotlari')} />
-              <Tab value="calculator" label={t('recalculationDetailPage.tabCalc', 'Kalkulyator')} />
-            </Tabs>
+              <Box sx={{ flex: 1, p: currentTab === 'dhj' ? 0 : 1.5, overflowY: 'auto' }}>
+                {currentTab === 'dhj' && <AuditDHJTable ariza={ariza} maxHeight="calc(100vh - 300px)" />}
+                {currentTab === 'aktInfo' && <AktInfoCard />}
+                {currentTab === 'calculator' && <Recalculate />}
+              </Box>
+            </Card>
+          </Grid>
 
-            <Box sx={{ flex: 1, p: currentTab === 'dhj' ? 0 : 1.5, overflowY: 'auto' }}>
-              {currentTab === 'dhj' && <DHJTable rows={davriyHarakatlarJadvali} />}
-              {currentTab === 'aktInfo' && <AktInfoCard />}
-              {currentTab === 'calculator' && <Recalculate />}
+          {/* Right Section (Full PDF Document Viewer) */}
+          <Grid size={{ xs: 12, lg: 7 }}>
+            <Box sx={{ height: 'calc(100vh - 260px)', minHeight: 520 }}>
+              <PDFViewer base64String={aktFileURL} />
             </Box>
-          </Card>
+          </Grid>
         </Grid>
-
-        {/* Right Section (Full PDF Document Viewer) */}
-        <Grid size={{ xs: 12, lg: 7 }}>
-          <Box sx={{ height: 'calc(100vh - 200px)', minHeight: 520 }}>
-            <PDFViewer base64String={aktFileURL} />
-          </Box>
-        </Grid>
-      </Grid>
+      )}
 
       {/* Modals */}
       {showModal && <AktChangerModal onClose={() => setShowModal(false)} />}

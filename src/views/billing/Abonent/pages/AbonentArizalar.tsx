@@ -10,6 +10,7 @@ import {
   Cancel,
   CancelOutlined,
   DescriptionOutlined,
+  FactCheckOutlined,
   InsertDriveFile,
   MoveToInboxOutlined,
   PrintOutlined,
@@ -93,47 +94,44 @@ function AbonentArizalar() {
     }
   }, [residentId, abonentDetails?.accountNumber, getAbonentPetitions]);
 
-  const handlePrint = useCallback(
-    async (_id: string) => {
-      try {
-        setPrintingId(_id);
-        const res = await api.get('/arizalar/' + _id);
-        const ariza = res.data?.ariza;
-        if (!ariza) throw new Error('Ariza topilmadi');
+  const handlePrint = useCallback(async (_id: string) => {
+    try {
+      setPrintingId(_id);
+      const res = await api.get('/arizalar/' + _id);
+      const ariza = res.data?.ariza;
+      if (!ariza) throw new Error('Ariza topilmadi');
 
-        // Asosiy abonent ma'lumotlarini yuklash
-        const abonentRes = await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet);
-        const primaryAbonent = abonentRes.data?.abonentData;
-        setAbonentData(primaryAbonent);
+      // Asosiy abonent ma'lumotlarini yuklash
+      const abonentRes = await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet);
+      const primaryAbonent = abonentRes.data?.abonentData;
+      setAbonentData(primaryAbonent);
 
-        const mahallaPromise = primaryAbonent?.mahallaId
-          ? api.get('/billing/get-mfy-by-id/' + primaryAbonent.mahallaId).then((r) => setMahalla(r.data))
-          : Promise.resolve();
+      const mahallaPromise = primaryAbonent?.mahallaId
+        ? api.get('/billing/get-mfy-by-id/' + primaryAbonent.mahallaId).then((r) => setMahalla(r.data))
+        : Promise.resolve();
 
-        let dublicatPromise = Promise.resolve();
-        if ((ariza.document_type === 'dvaynik' || ariza.document_type === 'yashovchi_kuchirish') && ariza.ikkilamchi_licshet) {
-          dublicatPromise = api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet).then(async (dubRes) => {
-            const dubAbonent = dubRes.data?.abonentData;
-            setAbonentData2(dubAbonent);
-            if (dubAbonent?.mahallaId) {
-              const dubMahalla = await api.get('/billing/get-mfy-by-id/' + dubAbonent.mahallaId);
-              setMahallaDublicat(dubMahalla.data);
-            }
-          });
-        }
-
-        await Promise.all([mahallaPromise, dublicatPromise]);
-        setCurrentAriza(ariza);
-        setShowPrintSection(true);
-      } catch (error: any) {
-        console.error(error);
-        toast.error(error?.response?.data?.message || t('messages.error', 'Xatolik kuzatildi'));
-      } finally {
-        setPrintingId(null);
+      let dublicatPromise = Promise.resolve();
+      if ((ariza.document_type === 'dvaynik' || ariza.document_type === 'yashovchi_kuchirish') && ariza.ikkilamchi_licshet) {
+        dublicatPromise = api.get('/billing/get-abonent-data-by-licshet/' + ariza.ikkilamchi_licshet).then(async (dubRes) => {
+          const dubAbonent = dubRes.data?.abonentData;
+          setAbonentData2(dubAbonent);
+          if (dubAbonent?.mahallaId) {
+            const dubMahalla = await api.get('/billing/get-mfy-by-id/' + dubAbonent.mahallaId);
+            setMahallaDublicat(dubMahalla.data);
+          }
+        });
       }
-    },
-    []
-  );
+
+      await Promise.all([mahallaPromise, dublicatPromise]);
+      setCurrentAriza(ariza);
+      setShowPrintSection(true);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || t('messages.error', 'Xatolik kuzatildi'));
+    } finally {
+      setPrintingId(null);
+    }
+  }, []);
 
   const handleMoveToInboxIconClick = async (_id: string) => {
     try {
@@ -167,431 +165,511 @@ function AbonentArizalar() {
 
   const currentAccountNumber = abonentDetails?.accountNumber;
 
-  const columns = useMemo<GridColDef[]>(() => [
-    {
-      field: 'id',
-      headerName: '№',
-      width: 60
-    },
-    {
-      field: 'document_number',
-      headerName: t('documentNumber', 'Hujjat №'),
-      width: 120,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-          #{params.row.document_number}
-        </Typography>
-      )
-    },
-    {
-      field: 'account_role',
-      headerName: t('tableHeaders.accountRole', 'Hisob roli'),
-      width: 150,
-      renderCell: (params) => {
-        const isSecondary =
-          (currentAccountNumber && params.row.ikkilamchi_licshet === currentAccountNumber) ||
-          (params.row.abonentId && params.row.abonentId !== residentId) ||
-          (params.row.ikkilamchiAbonentId && params.row.ikkilamchiAbonentId === residentId);
+  const columns = useMemo<GridColDef[]>(
+    () => [
+      {
+        field: 'id',
+        headerName: '№',
+        width: 60
+      },
+      {
+        field: 'actions',
+        headerName: t('tableHeaders.actions', 'Amallar'),
+        width: 230,
+        sortable: false,
+        filterable: false,
+        renderCell(params) {
+          const isNew = params.row.status === 'yangi';
+          const isCanceled = params.row.status === 'bekor qilindi';
+          const isConfirmed = params.row.status === 'tasdiqlangan';
+          const canCancel = !isCanceled && !isConfirmed;
+          const isPrintingThis = printingId === params.row._id;
 
-        if (isSecondary) {
+          return (
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
+              {/* Viloyat tekshiruvi va auditiga to'g'ridan-to'g'ri o'tish */}
+              {params.row._id && (
+                <Tooltip title="Viloyat tekshiruvi va auditiga o‘tish" arrow enterDelay={300}>
+                  <span>
+                    <Link to={`/billing/createAbonentAriza?tab=audit&selectedId=${params.row._id}`}>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        sx={{
+                          p: 0.6,
+                          bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : '#eff6ff'),
+                          border: '1px solid',
+                          borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.3)' : '#bfdbfe'),
+                          '&:hover': {
+                            bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.25)' : '#dbeafe')
+                          }
+                        }}
+                      >
+                        <FactCheckOutlined sx={{ fontSize: 19 }} />
+                      </IconButton>
+                    </Link>
+                  </span>
+                </Tooltip>
+              )}
+
+              {/* Dastlabki ariza chiqarish (yangi bo'lsa) */}
+              {isNew && (
+                <Tooltip title={t('tableActions.createPetition', 'Chop etish')} arrow>
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => handlePrint(params.row._id)}
+                      disabled={isPrintingThis}
+                      color="primary"
+                      sx={{ p: 0.6 }}
+                    >
+                      {isPrintingThis ? <CircularProgress size={18} color="inherit" /> : <InsertDriveFile sx={{ fontSize: 20 }} />}
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
+
+              {/* Qayta chop etish (barcha faol arizalar uchun) */}
+              {!isNew && !isCanceled && (
+                <Tooltip title={t('tableActions.reprint', 'Qayta chop etish')} arrow>
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => handlePrint(params.row._id)}
+                      disabled={isPrintingThis}
+                      color="info"
+                      sx={{ p: 0.6 }}
+                    >
+                      {isPrintingThis ? <CircularProgress size={18} color="inherit" /> : <PrintOutlined sx={{ fontSize: 20 }} />}
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
+
+              {/* Qabul qilish */}
+              <Tooltip title={t('tableActions.accept', 'Qabul qilish')} arrow enterDelay={400}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleMoveToInboxIconClick(params.row._id)}
+                    disabled={!isNew}
+                    color="primary"
+                    sx={{ p: 0.6 }}
+                  >
+                    <MoveToInboxOutlined sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+
+              {/* Arizani bekor qilish */}
+              <Tooltip title={t('tableActions.cancel', 'Arizani bekor qilish')} arrow enterDelay={400}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleOpenRejectDialog(params.row)}
+                    disabled={!canCancel}
+                    color="error"
+                    sx={{ p: 0.6 }}
+                  >
+                    <Cancel sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+
+              {/* Akt sahifasiga o'tish (agar ariza mavjud bo'lsa) */}
+              {params.row._id && (
+                <Tooltip title={t('tableActions.next', 'Aktga o‘tish')} arrow enterDelay={400}>
+                  <span>
+                    <Link to={`/billing/recalculation/${params.row._id}`}>
+                      <IconButton size="small" color="secondary" sx={{ p: 0.6 }}>
+                        <ArrowForward sx={{ fontSize: 20 }} />
+                      </IconButton>
+                    </Link>
+                  </span>
+                </Tooltip>
+              )}
+            </Stack>
+          );
+        }
+      },
+      {
+        field: 'document_number',
+        headerName: t('documentNumber', 'Hujjat №'),
+        width: 140,
+        renderCell: (params) => (
+          <Tooltip title="Viloyat tekshiruvi va hisob-kitob auditiga o‘tish" arrow>
+            <Link to={`/billing/createAbonentAriza?tab=audit&selectedId=${params.row._id}`} style={{ textDecoration: 'none' }}>
+              <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
+                <FactCheckOutlined sx={{ fontSize: 16, color: 'primary.main' }} />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 700,
+                    color: 'primary.main',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
+                >
+                  #{params.row.document_number}
+                </Typography>
+              </Stack>
+            </Link>
+          </Tooltip>
+        )
+      },
+      {
+        field: 'akt_id',
+        headerName: 'Akt ID & Tarix',
+        width: 160,
+        renderCell: (params) => {
+          const actId = params.row.akt_id || params.row.aktInfo?.id;
+          const historyCount = Array.isArray(params.row.actHistory) ? params.row.actHistory.length : 0;
+
+          if (!actId && historyCount === 0) {
+            return <span style={{ color: '#aaa' }}>—</span>;
+          }
+
+          return (
+            <Tooltip
+              title={
+                <Box sx={{ p: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
+                    Joriy Akt ID: {actId ? `#${actId}` : 'Mavjud emas'}
+                  </Typography>
+                  {historyCount > 0 && (
+                    <Typography variant="caption" sx={{ color: '#bae6fd', display: 'block', mt: 0.5 }}>
+                      Oldingi aktlar tarixi: {historyCount} ta qayd saqlangan (auditda ko‘rish)
+                    </Typography>
+                  )}
+                </Box>
+              }
+              arrow
+            >
+              <Stack direction="row" spacing={0.6} sx={{ alignItems: 'center' }}>
+                {actId ? (
+                  <Chip
+                    size="small"
+                    label={`Akt #${actId}`}
+                    color="primary"
+                    variant="outlined"
+                    sx={{ fontWeight: 700, fontSize: '0.72rem', height: 22 }}
+                  />
+                ) : (
+                  <Chip size="small" label="Akt yo'q" color="default" variant="outlined" sx={{ fontSize: '0.7rem', height: 20 }} />
+                )}
+                {historyCount > 0 && (
+                  <Chip
+                    size="small"
+                    label={`+${historyCount}`}
+                    color="warning"
+                    variant="filled"
+                    sx={{ fontWeight: 800, fontSize: '0.68rem', height: 18, px: 0.2 }}
+                  />
+                )}
+              </Stack>
+            </Tooltip>
+          );
+        }
+      },
+      {
+        field: 'account_role',
+        headerName: t('tableHeaders.accountRole', 'Hisob roli'),
+        width: 150,
+        renderCell: (params) => {
+          const isSecondary =
+            (currentAccountNumber && params.row.ikkilamchi_licshet === currentAccountNumber) ||
+            (params.row.abonentId && params.row.abonentId !== residentId) ||
+            (params.row.ikkilamchiAbonentId && params.row.ikkilamchiAbonentId === residentId);
+
+          if (isSecondary) {
+            return (
+              <Chip
+                size="small"
+                label={t('accountRole.secondary', 'Ikkilamchi hisob')}
+                color="secondary"
+                variant="filled"
+                sx={{ fontWeight: 600, fontSize: '0.72rem' }}
+              />
+            );
+          }
           return (
             <Chip
               size="small"
-              label={t('accountRole.secondary', 'Ikkilamchi hisob')}
-              color="secondary"
-              variant="filled"
+              label={t('accountRole.primary', 'Asosiy hisob')}
+              color="primary"
+              variant="outlined"
               sx={{ fontWeight: 600, fontSize: '0.72rem' }}
             />
           );
         }
-        return (
-          <Chip
-            size="small"
-            label={t('accountRole.primary', 'Asosiy hisob')}
-            color="primary"
-            variant="outlined"
-            sx={{ fontWeight: 600, fontSize: '0.72rem' }}
-          />
-        );
-      }
-    },
-    {
-      field: 'document_type',
-      headerName: t('tableHeaders.documentType', 'Hujjat turi'),
-      width: 140,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-          {String(t(`documentTypes.${params.row.document_type}`, params.row.document_type || '-'))}
-        </Typography>
-      )
-    },
-    {
-      field: 'aktSummasi',
-      headerName: t('tableHeaders.actAmount', 'Akt summasi'),
-      type: 'number',
-      width: 130,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>
-          {params.row.aktSummasi ? Number(params.row.aktSummasi).toLocaleString('uz-UZ') + ' so‘m' : '0 so‘m'}
-        </Typography>
-      )
-    },
-    {
-      field: 'next_prescribed_cnt',
-      headerName: t('tableHeaders.nextInhabitantCount', 'Yashovchilar'),
-      type: 'number',
-      width: 120,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          {params.row.next_prescribed_cnt ?? '-'}
-        </Typography>
-      )
-    },
-    {
-      field: 'asosiy_licshet',
-      headerName: t('tableHeaders.accountNumber', 'Asosiy hisob'),
-      width: 160,
-      renderCell: (params) => {
-        const accNum = params.row.asosiy_licshet || params.row.licshet;
-        if (!accNum) return <span style={{ color: '#888' }}>-</span>;
-        const isCurrent = currentAccountNumber === accNum;
-        const targetId = params.row.abonentId;
-
-        return (
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-            {targetId && !isCurrent ? (
-              <Tooltip title={t('tableActions.openPrimaryAbonent', 'Asosiy abonent sahifasiga o‘tish')} arrow>
-                <Link to={`/abonent/${targetId}/details`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: 'monospace',
-                      fontWeight: 600,
-                      color: 'primary.main',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                  >
-                    {accNum}
-                  </Typography>
-                </Link>
-              </Tooltip>
-            ) : (
-              <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: isCurrent ? 700 : 500 }}>
-                {accNum}
-              </Typography>
-            )}
-          </Stack>
-        );
-      }
-    },
-    {
-      field: 'ikkilamchi_licshet',
-      headerName: t('tableHeaders.dublicateAccountNumber', 'Ikkilamchi hisob'),
-      width: 160,
-      renderCell: (params) => {
-        const accNum = params.row.ikkilamchi_licshet;
-        if (!accNum) return <span style={{ color: '#888' }}>-</span>;
-        const isCurrent = currentAccountNumber === accNum;
-        const targetId = params.row.ikkilamchiAbonentId;
-
-        return (
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-            {targetId && !isCurrent ? (
-              <Tooltip title={t('tableActions.openSecondaryAbonent', 'Ikkilamchi abonent sahifasiga o‘tish')} arrow>
-                <Link to={`/abonent/${targetId}/details`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: 'monospace',
-                      fontWeight: 600,
-                      color: 'secondary.main',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                  >
-                    {accNum}
-                  </Typography>
-                </Link>
-              </Tooltip>
-            ) : (
-              <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: isCurrent ? 700 : 500 }}>
-                {accNum}
-              </Typography>
-            )}
-          </Stack>
-        );
-      }
-    },
-    {
-      field: 'sana',
-      headerName: t('tableHeaders.createdAt', 'Sana'),
-      width: 130,
-      type: 'date',
-      valueGetter: (params) => params && new Date(params)
-    },
-    {
-      field: 'status',
-      headerName: t('tableHeaders.status', 'Holati'),
-      width: 140,
-      renderCell: (params) => {
-        const status = params.row.status;
-        const reason = getCancellationReason(params.row);
-        let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
-        if (status === 'tasdiqlangan') color = 'success';
-        else if (status === 'bekor qilindi') color = 'error';
-        else if (status === 'yangi') color = 'info';
-        else if (status === 'qabul qilindi') color = 'warning';
-        else if (status === 'akt_kiritilgan') color = 'primary';
-
-        const chip = <Chip size="small" label={status || '-'} color={color} variant="filled" sx={{ fontWeight: 600 }} />;
-        if (status === 'bekor qilindi' && reason) {
-          return (
-            <Tooltip
-              title={`${t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}: ${reason}`}
-              arrow
-              placement="top"
-            >
-              <span>{chip}</span>
-            </Tooltip>
-          );
-        }
-        return chip;
-      }
-    },
-    {
-      field: 'actStatus',
-      headerName: t('tableHeaders.actStatus', 'Akt holati'),
-      width: 140,
-      renderCell: (params) => {
-        const actStatus = params.row.actStatus;
-        if (!actStatus) return <span style={{ color: '#aaa' }}>-</span>;
-        const reason = getCancellationReason(params.row);
-        let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
-        if (actStatus === 'CONFIRMED' || actStatus === 'APPROVED') color = 'success';
-        else if (
-          actStatus === 'CANCELLED' ||
-          actStatus === 'REJECTED' ||
-          actStatus === 'CONFIRMED_CANCELLED' ||
-          actStatus === 'WARNED_CANCELLED'
+      },
+      {
+        field: 'document_type',
+        headerName: t('tableHeaders.documentType', 'Hujjat turi'),
+        width: 140,
+        renderCell: (params) => (
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {String(t(`documentTypes.${params.row.document_type}`, params.row.document_type || '-'))}
+          </Typography>
         )
-          color = 'error';
-        else if (actStatus === 'WARNED') color = 'warning';
-        else if (actStatus === 'NEW') color = 'info';
+      },
+      {
+        field: 'aktSummasi',
+        headerName: t('tableHeaders.actAmount', 'Akt summasi'),
+        type: 'number',
+        width: 130,
+        renderCell: (params) => (
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {params.row.aktSummasi ? Number(params.row.aktSummasi).toLocaleString('uz-UZ') + ' so‘m' : '0 so‘m'}
+          </Typography>
+        )
+      },
+      {
+        field: 'next_prescribed_cnt',
+        headerName: t('tableHeaders.nextInhabitantCount', 'Yashovchilar'),
+        type: 'number',
+        width: 120,
+        renderCell: (params) => (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {params.row.next_prescribed_cnt ?? '-'}
+          </Typography>
+        )
+      },
+      {
+        field: 'asosiy_licshet',
+        headerName: t('tableHeaders.accountNumber', 'Asosiy hisob'),
+        width: 160,
+        renderCell: (params) => {
+          const accNum = params.row.asosiy_licshet || params.row.licshet;
+          if (!accNum) return <span style={{ color: '#888' }}>-</span>;
+          const isCurrent = currentAccountNumber === accNum;
+          const targetId = params.row.abonentId;
 
-        const chip = (
-          <Chip
-            size="small"
-            label={String(t('actStatus.' + actStatus, actStatus))}
-            color={color}
-            variant="outlined"
-            sx={{ fontWeight: 600 }}
-          />
-        );
-        if ((actStatus === 'CANCELLED' || actStatus === 'REJECTED') && reason) {
           return (
-            <Tooltip
-              title={`${t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}: ${reason}`}
-              arrow
-              placement="top"
-            >
-              <span>{chip}</span>
-            </Tooltip>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+              {targetId && !isCurrent ? (
+                <Tooltip title={t('tableActions.openPrimaryAbonent', 'Asosiy abonent sahifasiga o‘tish')} arrow>
+                  <Link to={`/abonent/${targetId}/details`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      {accNum}
+                    </Typography>
+                  </Link>
+                </Tooltip>
+              ) : (
+                <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: isCurrent ? 700 : 500 }}>
+                  {accNum}
+                </Typography>
+              )}
+            </Stack>
           );
         }
-        return chip;
-      }
-    },
-    {
-      field: 'cancellationReason',
-      headerName: t('tableHeaders.cancellationReason', 'Bekor qilish xulosasi'),
-      width: 250,
-      sortable: false,
-      renderCell: (params) => {
-        const reason = getCancellationReason(params.row);
-        const canceled = isRowCancelled(params.row);
+      },
+      {
+        field: 'ikkilamchi_licshet',
+        headerName: t('tableHeaders.dublicateAccountNumber', 'Ikkilamchi hisob'),
+        width: 160,
+        renderCell: (params) => {
+          const accNum = params.row.ikkilamchi_licshet;
+          if (!accNum) return <span style={{ color: '#888' }}>-</span>;
+          const isCurrent = currentAccountNumber === accNum;
+          const targetId = params.row.ikkilamchiAbonentId;
 
-        if (!canceled && !reason) {
           return (
-            <Typography variant="body2" sx={{ color: 'text.disabled', pl: 1 }}>
-              —
-            </Typography>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+              {targetId && !isCurrent ? (
+                <Tooltip title={t('tableActions.openSecondaryAbonent', 'Ikkilamchi abonent sahifasiga o‘tish')} arrow>
+                  <Link to={`/abonent/${targetId}/details`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        fontWeight: 600,
+                        color: 'secondary.main',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      {accNum}
+                    </Typography>
+                  </Link>
+                </Tooltip>
+              ) : (
+                <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: isCurrent ? 700 : 500 }}>
+                  {accNum}
+                </Typography>
+              )}
+            </Stack>
           );
         }
+      },
+      {
+        field: 'sana',
+        headerName: t('tableHeaders.createdAt', 'Sana'),
+        width: 130,
+        type: 'date',
+        valueGetter: (params) => params && new Date(params)
+      },
+      {
+        field: 'status',
+        headerName: t('tableHeaders.status', 'Holati'),
+        width: 140,
+        renderCell: (params) => {
+          const status = params.row.status;
+          const reason = getCancellationReason(params.row);
+          let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
+          if (status === 'tasdiqlangan') color = 'success';
+          else if (status === 'bekor qilindi') color = 'error';
+          else if (status === 'yangi') color = 'info';
+          else if (status === 'qabul qilindi') color = 'warning';
+          else if (status === 'akt_kiritilgan') color = 'primary';
 
-        if (!reason) {
-          return (
+          const chip = <Chip size="small" label={status || '-'} color={color} variant="filled" sx={{ fontWeight: 600 }} />;
+          if (status === 'bekor qilindi' && reason) {
+            return (
+              <Tooltip title={`${t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}: ${reason}`} arrow placement="top">
+                <span>{chip}</span>
+              </Tooltip>
+            );
+          }
+          return chip;
+        }
+      },
+      {
+        field: 'actStatus',
+        headerName: t('tableHeaders.actStatus', 'Akt holati'),
+        width: 140,
+        renderCell: (params) => {
+          const actStatus = params.row.actStatus;
+          if (!actStatus) return <span style={{ color: '#aaa' }}>-</span>;
+          const reason = getCancellationReason(params.row);
+          let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
+          if (actStatus === 'CONFIRMED' || actStatus === 'APPROVED') color = 'success';
+          else if (
+            actStatus === 'CANCELLED' ||
+            actStatus === 'REJECTED' ||
+            actStatus === 'CONFIRMED_CANCELLED' ||
+            actStatus === 'WARNED_CANCELLED'
+          )
+            color = 'error';
+          else if (actStatus === 'WARNED') color = 'warning';
+          else if (actStatus === 'NEW') color = 'info';
+
+          const chip = (
             <Chip
               size="small"
+              label={String(t('actStatus.' + actStatus, actStatus))}
+              color={color}
               variant="outlined"
-              label={t('messages.noReasonGiven', 'Izoh kiritilmagan')}
-              sx={{
-                fontSize: '0.72rem',
-                fontWeight: 500,
-                color: 'text.secondary',
-                borderColor: 'divider',
-                height: 24
-              }}
+              sx={{ fontWeight: 600 }}
             />
           );
+          if ((actStatus === 'CANCELLED' || actStatus === 'REJECTED') && reason) {
+            return (
+              <Tooltip title={`${t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}: ${reason}`} arrow placement="top">
+                <span>{chip}</span>
+              </Tooltip>
+            );
+          }
+          return chip;
         }
+      },
+      {
+        field: 'cancellationReason',
+        headerName: t('tableHeaders.cancellationReason', 'Bekor qilish xulosasi'),
+        width: 250,
+        sortable: false,
+        renderCell: (params) => {
+          const reason = getCancellationReason(params.row);
+          const canceled = isRowCancelled(params.row);
 
-        return (
-          <Tooltip
-            title={
-              <Box sx={{ p: 0.5, maxWidth: 380 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5, color: '#fca5a5' }}>
-                  {t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}:
-                </Typography>
-                <Typography variant="body2" sx={{ fontSize: '0.8rem', lineHeight: 1.45, color: '#fff', wordBreak: 'break-word' }}>
+          if (!canceled && !reason) {
+            return (
+              <Typography variant="body2" sx={{ color: 'text.disabled', pl: 1 }}>
+                —
+              </Typography>
+            );
+          }
+
+          if (!reason) {
+            return (
+              <Chip
+                size="small"
+                variant="outlined"
+                label={t('messages.noReasonGiven', 'Izoh kiritilmagan')}
+                sx={{
+                  fontSize: '0.72rem',
+                  fontWeight: 500,
+                  color: 'text.secondary',
+                  borderColor: 'divider',
+                  height: 24
+                }}
+              />
+            );
+          }
+
+          return (
+            <Tooltip
+              title={
+                <Box sx={{ p: 0.5, maxWidth: 380 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5, color: '#fca5a5' }}>
+                    {t('labels.cancellationConclusion', 'Bekor qilish xulosasi')}:
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem', lineHeight: 1.45, color: '#fff', wordBreak: 'break-word' }}>
+                    {reason}
+                  </Typography>
+                </Box>
+              }
+              arrow
+              placement="top"
+            >
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  maxWidth: 230,
+                  px: 1,
+                  py: 0.4,
+                  borderRadius: 1,
+                  bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2'),
+                  border: '1px solid',
+                  borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.35)' : '#fca5a5'),
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease-in-out',
+                  '&:hover': {
+                    bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.25)' : '#fecaca'),
+                    borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.5)' : '#f87171')
+                  }
+                }}
+              >
+                <CancelOutlined sx={{ fontSize: 15, color: 'error.main', flexShrink: 0 }} />
+                <Typography
+                  variant="body2"
+                  noWrap
+                  sx={{
+                    fontSize: '0.75rem',
+                    color: (th) => (th.palette.mode === 'dark' ? '#fca5a5' : '#b91c1c'),
+                    fontWeight: 600,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
                   {reason}
                 </Typography>
               </Box>
-            }
-            arrow
-            placement="top"
-          >
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.75,
-                maxWidth: 230,
-                px: 1,
-                py: 0.4,
-                borderRadius: 1,
-                bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2'),
-                border: '1px solid',
-                borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.35)' : '#fca5a5'),
-                cursor: 'pointer',
-                transition: 'all 0.15s ease-in-out',
-                '&:hover': {
-                  bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.25)' : '#fecaca'),
-                  borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.5)' : '#f87171')
-                }
-              }}
-            >
-              <CancelOutlined sx={{ fontSize: 15, color: 'error.main', flexShrink: 0 }} />
-              <Typography
-                variant="body2"
-                noWrap
-                sx={{
-                  fontSize: '0.75rem',
-                  color: (th) => (th.palette.mode === 'dark' ? '#fca5a5' : '#b91c1c'),
-                  fontWeight: 600,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {reason}
-              </Typography>
-            </Box>
-          </Tooltip>
-        );
-      }
-    },
-    {
-      field: 'actions',
-      headerName: t('tableHeaders.actions', 'Amallar'),
-      width: 190,
-      sortable: false,
-      filterable: false,
-      renderCell(params) {
-        const isNew = params.row.status === 'yangi';
-        const isCanceled = params.row.status === 'bekor qilindi';
-        const isConfirmed = params.row.status === 'tasdiqlangan';
-        const canCancel = !isCanceled && !isConfirmed;
-        const isPrintingThis = printingId === params.row._id;
-
-        return (
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
-            {/* Dastlabki ariza chiqarish (yangi bo'lsa) */}
-            {isNew && (
-              <Tooltip title={t('tableActions.createPetition', 'Chop etish')} arrow>
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => handlePrint(params.row._id)}
-                    disabled={isPrintingThis}
-                    color="primary"
-                    sx={{ p: 0.6 }}
-                  >
-                    {isPrintingThis ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <InsertDriveFile sx={{ fontSize: 20 }} />
-                    )}
-                  </IconButton>
-                </span>
-              </Tooltip>
-            )}
-
-            {/* Qayta chop etish (barcha faol arizalar uchun) */}
-            {!isNew && !isCanceled && (
-              <Tooltip title={t('tableActions.reprint', 'Qayta chop etish')} arrow>
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => handlePrint(params.row._id)}
-                    disabled={isPrintingThis}
-                    color="info"
-                    sx={{ p: 0.6 }}
-                  >
-                    {isPrintingThis ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <PrintOutlined sx={{ fontSize: 20 }} />
-                    )}
-                  </IconButton>
-                </span>
-              </Tooltip>
-            )}
-
-            {/* Qabul qilish */}
-            <Tooltip title={t('tableActions.accept', 'Qabul qilish')} arrow enterDelay={400}>
-              <span>
-                <IconButton
-                  size="small"
-                  onClick={() => handleMoveToInboxIconClick(params.row._id)}
-                  disabled={!isNew}
-                  color="primary"
-                  sx={{ p: 0.6 }}
-                >
-                  <MoveToInboxOutlined sx={{ fontSize: 20 }} />
-                </IconButton>
-              </span>
             </Tooltip>
-
-            {/* Arizani bekor qilish */}
-            <Tooltip title={t('tableActions.cancel', 'Arizani bekor qilish')} arrow enterDelay={400}>
-              <span>
-                <IconButton
-                  size="small"
-                  onClick={() => handleOpenRejectDialog(params.row)}
-                  disabled={!canCancel}
-                  color="error"
-                  sx={{ p: 0.6 }}
-                >
-                  <Cancel sx={{ fontSize: 20 }} />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            {/* Akt sahifasiga o'tish (agar ariza mavjud bo'lsa) */}
-            {params.row._id && (
-              <Tooltip title={t('tableActions.next', 'Aktga o‘tish')} arrow enterDelay={400}>
-                <span>
-                  <Link to={`/billing/recalculation/${params.row._id}`}>
-                    <IconButton size="small" color="secondary" sx={{ p: 0.6 }}>
-                      <ArrowForward sx={{ fontSize: 20 }} />
-                    </IconButton>
-                  </Link>
-                </span>
-              </Tooltip>
-            )}
-          </Stack>
-        );
+          );
+        }
       }
-    }
-  ], [currentAccountNumber, residentId, printingId, handlePrint]);
+    ],
+    [currentAccountNumber, residentId, printingId, handlePrint]
+  );
 
   return (
     <>
@@ -637,11 +715,7 @@ function AbonentArizalar() {
                 disabled={abonentPetitionsLoading}
                 sx={{ p: 0.8 }}
               >
-                {abonentPetitionsLoading ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <RefreshOutlined fontSize="small" />
-                )}
+                {abonentPetitionsLoading ? <CircularProgress size={18} color="inherit" /> : <RefreshOutlined fontSize="small" />}
               </IconButton>
             </span>
           </Tooltip>

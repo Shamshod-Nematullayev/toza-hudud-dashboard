@@ -111,7 +111,16 @@ const prepareManualFormData = async (currentFile: any, aktSumm: string, aktType:
   return formData;
 };
 
-const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, rows: IRow[], customShouldTransferMoney?: boolean) => {
+import { useAdjustmentCalculation } from './useAdjustmentCalculation';
+
+const prepareFormDataForAriza = (
+  currentFile: any,
+  a: IAriza,
+  aktSumm: string,
+  rows: IRow[],
+  customShouldTransferMoney?: boolean,
+  adjustmentData?: any
+) => {
   const formData = new FormData();
   formData.append('file', currentFile.blob, currentFile.file.name);
   formData.append('document_type', a.document_type);
@@ -129,6 +138,13 @@ const prepareFormDataForAriza = (currentFile: any, a: IAriza, aktSumm: string, r
   if (a.document_type === 'dvaynik') {
     const shouldTransfer = customShouldTransferMoney !== undefined ? customShouldTransferMoney : a.shouldBeMoneyTransfer;
     formData.append('shouldTransferMoney', shouldTransfer ? '1' : '0');
+  }
+  if (adjustmentData) {
+    try {
+      formData.append('autoAdjust', typeof adjustmentData === 'string' ? adjustmentData : JSON.stringify(adjustmentData));
+    } catch (e) {
+      // ignore
+    }
   }
   return formData;
 };
@@ -185,6 +201,21 @@ export function useFindedTableLogic() {
     loading: arizaLoading
   } = useArizaData(ariza as IAriza | null, manualResidentIdForDh);
   const [rowAfterAkt, setRowAfterAkt] = useState<IRow | null>(null);
+
+  const residentId = (ariza as any)?.abonentId || abonentData?.id;
+  const currentDocType = enteringMode === 'manual' ? useRecalculatorStore.getState().aktType : ariza?.document_type;
+  const nextInhabitantCount = hasValidAriza(ariza as IAriza | null)
+    ? (getArizaNextInhabitant(ariza as IAriza, rows[0]?.yashovchilar_soni) ?? rows[0]?.yashovchilar_soni)
+    : undefined;
+  const baseActAmount = parseAktSumExpression(aktSumm);
+
+  const adjustmentData = useAdjustmentCalculation({
+    arizaId: ariza?._id,
+    residentId,
+    nextInhabitantCount,
+    actAmount: baseActAmount,
+    documentType: currentDocType
+  });
 
   useEffect(() => {
     if (tariffsLoading) {
@@ -374,7 +405,14 @@ export function useFindedTableLogic() {
           formData.append('ariza_id', ariza._id);
           url = '/billing/create-kuchirish-akt-by-ariza';
         } else {
-          formData = prepareFormDataForAriza(currentFile, ariza as IAriza, aktSumm, rows, overrideShouldTransferMoney);
+          formData = prepareFormDataForAriza(
+            currentFile,
+            ariza as IAriza,
+            aktSumm,
+            rows,
+            overrideShouldTransferMoney,
+            adjustmentData
+          );
 
           const urlMap: Record<string, string> = {
             dvaynik: '/billing/create-dvaynik-akt-by-ariza',

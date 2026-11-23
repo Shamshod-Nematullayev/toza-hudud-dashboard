@@ -23,9 +23,13 @@ import {
   SwapHorizOutlined,
   NoteAddOutlined as NoteAddOutlinedIcon,
   UploadFileOutlined,
-  ReceiptLongOutlined
+  ReceiptLongOutlined,
+  FactCheckOutlined
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import dayjs from 'dayjs';
+import { toast } from 'react-toastify';
+import api from 'utils/api';
 
 import { useStore } from './useStore';
 import InputForm from './InputForm';
@@ -37,6 +41,8 @@ import { InhabitantTransferSummary } from './InhabitantTransfer';
 import PrintSection from './PrintSection';
 import PasteImageDialog from './PasteImageDialog';
 import PrintAbonentCard from '../Abonent/modals/PrintAbonentCard';
+import ViloyatTekshiruviView from '../AbonentPetitions/components/ViloyatTekshiruviView';
+import RejectPetitionDialog from '../AbonentPetitions/RejectPetitionDialog';
 import { usePageTour, getCreateAbonentPetitionSteps } from '../../../ui-component/tour';
 
 function CreateAbonentPetition() {
@@ -85,6 +91,58 @@ function CreateAbonentPetition() {
   const [dvaynikTab, setDvaynikTab] = useState<'main' | 'dublicate' | 'both'>('main');
   // Pul ko'chirish rejimidagi markaziy tab holati
   const [moneyTransferCenterTab, setMoneyTransferCenterTab] = useState<'distribution' | 'dhj'>('distribution');
+
+  const searchParams = new URLSearchParams(location.search);
+  const isAuditTab = searchParams.get('tab') === 'audit';
+  const activeNavTab = isAuditTab ? 2 : 0;
+
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedRowForReject, setSelectedRowForReject] = useState<any>(null);
+  const [auditPeriod, setAuditPeriod] = useState<string>(searchParams.get('period') || dayjs().format('YYYY-MM'));
+  const [printingId, setPrintingId] = useState<string | null>(null);
+
+  const handleOpenRejectDialog = (row: any) => {
+    setSelectedRowForReject(row);
+    setRejectDialogOpen(true);
+  };
+
+  const handleConfirmReject = async (canceling_description: string) => {
+    if (!selectedRowForReject?._id) return;
+    try {
+      await api.post('/arizalar/cancel', {
+        _id: selectedRowForReject._id,
+        canceling_description
+      });
+      toast.success(t('messages.success', 'Ariza bekor qilindi'));
+      setRejectDialogOpen(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t('messages.error', 'Xatolik kuzatildi'));
+    }
+  };
+
+  const handleMoveToInbox = async (_id: string) => {
+    try {
+      await api.put('/arizalar/move-to-inbox/' + _id);
+      toast.success(t('messages.success', 'Muvaffaqiyatli qabul qilindi'));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t('messages.error', 'Xatolik kuzatildi'));
+    }
+  };
+
+  const handlePrint = async (_id: string) => {
+    try {
+      setPrintingId(_id);
+      const res = await api.get('/arizalar/' + _id);
+      const a = res.data?.ariza;
+      if (!a) throw new Error('Ariza topilmadi');
+      useStore.getState().setAriza?.(a);
+      setShowPrintSection(true);
+    } catch (err: any) {
+      toast.error(err?.message || 'Xatolik yuz berdi');
+    } finally {
+      setPrintingId(null);
+    }
+  };
 
   useEffect(() => {
     setInitialState();
@@ -203,19 +261,38 @@ function CreateAbonentPetition() {
           gap: 1
         }}
       >
-        <Tabs value={0} textColor="primary" indicatorColor="primary" sx={{ minHeight: 36 }}>
+        <Tabs
+          value={activeNavTab}
+          onChange={(_, val) => {
+            if (val === 1) {
+              navigate('/billing/importAbonentPetition');
+            } else if (val === 2) {
+              navigate('/billing/createAbonentAriza?tab=audit');
+            } else {
+              navigate('/billing/createAbonentAriza');
+            }
+          }}
+          textColor="primary"
+          indicatorColor="primary"
+          sx={{ minHeight: 36 }}
+        >
           <Tab
             icon={<NoteAddOutlinedIcon fontSize="small" />}
             iconPosition="start"
             label={t('1. Ariza shakllantirish (Yaratish)')}
-            sx={{ textTransform: 'none', fontWeight: 700, fontSize: '13px', minHeight: 36 }}
+            sx={{ textTransform: 'none', fontWeight: activeNavTab === 0 ? 700 : 600, fontSize: '13px', minHeight: 36 }}
           />
           <Tab
             icon={<UploadFileOutlined fontSize="small" />}
             iconPosition="start"
             label={t('2. Arizalarni kiritish (Tozamakon ijrosi)')}
-            onClick={() => navigate('/billing/importAbonentPetition')}
-            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '13px', minHeight: 36, cursor: 'pointer' }}
+            sx={{ textTransform: 'none', fontWeight: activeNavTab === 1 ? 700 : 600, fontSize: '13px', minHeight: 36, cursor: 'pointer' }}
+          />
+          <Tab
+            icon={<FactCheckOutlined fontSize="small" />}
+            iconPosition="start"
+            label="3. Viloyat tekshiruvi (Tekshirish & Audit)"
+            sx={{ textTransform: 'none', fontWeight: activeNavTab === 2 ? 700 : 600, fontSize: '13px', minHeight: 36, cursor: 'pointer' }}
           />
         </Tabs>
 
@@ -267,8 +344,22 @@ function CreateAbonentPetition() {
 
       <PasteImageDialog open={pasteImageDialogOpen} setOpen={setPasteImageDialogOpen} />
 
-      {/* 3 ta yonma-yon ustunli Tartib: Forma kengaytirilgan, qulay mobil-ilova mutanosibligi */}
-      <Grid container spacing={1.5} sx={{ height: { xs: 'auto', md: 'calc(100vh - 180px)' } }}>
+      {activeNavTab === 2 ? (
+        <Box sx={{ mt: 1 }}>
+          <ViloyatTekshiruviView
+            period={auditPeriod}
+            onPeriodChange={(p) => setAuditPeriod(p)}
+            onOpenRejectDialog={handleOpenRejectDialog}
+            onMoveToInbox={handleMoveToInbox}
+            onPrint={handlePrint}
+            printingId={printingId}
+            onReload={() => {}}
+            selectedIdFromUrl={searchParams.get('selectedId')}
+          />
+        </Box>
+      ) : (
+        /* 3 ta yonma-yon ustunli Tartib: Forma kengaytirilgan, qulay mobil-ilova mutanosibligi */
+        <Grid container spacing={1.5} sx={{ height: { xs: 'auto', md: 'calc(100vh - 180px)' } }}>
         {/* 1-Ustun (Chapda): Ariza shakllantirish formasi (Keng va erkin) */}
         <Grid size={{ xs: 12, md: 5, lg: 4.8 }} sx={{ height: { xs: 'auto', md: '100%' } }}>
           <InputForm onStartTour={startTour} />
@@ -450,6 +541,14 @@ function CreateAbonentPetition() {
           <RecalculationPeriodsList />
         </Grid>
       </Grid>
+      )}
+
+      <RejectPetitionDialog
+        open={rejectDialogOpen}
+        onClose={() => setRejectDialogOpen(false)}
+        onConfirm={handleConfirmReject}
+        documentNumber={selectedRowForReject?.document_number || selectedRowForReject?.documentNumber}
+      />
     </Box>
   );
 }

@@ -41,6 +41,8 @@ import DHJTable from '../../AbonentPetition/DHJTable';
 import AktInfoCard from '../../AbonentPetition/AktInfoCard';
 import InspectorReviewCard from '../../AbonentPetition/InspectorReviewCard';
 import { getCleanAsoslantiruvchi } from '../../CreateAbonentPetition.jsx/useStore';
+import ArizaAuditBreakdown from './ArizaAuditBreakdown';
+import AuditDHJTable from './AuditDHJTable';
 
 interface PetitionDetailDrawerProps {
   open: boolean;
@@ -81,7 +83,7 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
   } = useArizaStore();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'info' | 'files' | 'dhj'>('info');
+  const [currentTab, setCurrentTab] = useState<'info' | 'audit' | 'files' | 'dhj'>('info');
   const [showAktModal, setShowAktModal] = useState(false);
   const [isUpdatingFromBilling, setIsUpdatingFromBilling] = useState(false);
   const [dhjRows, setDhjRows] = useState<any[]>([]);
@@ -327,6 +329,7 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
             }}
           >
             <Tab value="info" label={t('recalculationDetailPage.tabInfo', 'Tafsilotlar & Akt')} />
+            <Tab value="audit" label="Hisob-kitob auditi" />
             <Tab value="files" label={t('recalculationDetailPage.tabFiles', 'Fayl / PDF Preview')} />
             <Tab value="dhj" label={t('recalculationDetailPage.tabDhj', 'DHJ Tarixi')} />
           </Tabs>
@@ -427,6 +430,24 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
                 </Stack>
               )}
 
+              {/* Tab: Calculation Audit & Recalculation Breakdown */}
+              {currentTab === 'audit' && (
+                <Box>
+                  <ArizaAuditBreakdown
+                    ariza={ariza}
+                    aktFileURL={aktFileURL}
+                    onOpenRejectDialog={onOpenRejectDialog}
+                    onMoveToInbox={onMoveToInbox}
+                    onPrint={onPrint}
+                    printingId={printingId}
+                    onReloadList={onReloadList}
+                    onOpenActChanger={() => setShowAktModal(true)}
+                    onOpenImageModal={() => setAttachedImagesModalOpen(true)}
+                    compact
+                  />
+                </Box>
+              )}
+
               {/* Tab 2: Files & PDF Preview */}
               {currentTab === 'files' && (
                 <Stack spacing={2} sx={{ height: '100%' }}>
@@ -471,10 +492,10 @@ const PetitionDetailDrawer: React.FC<PetitionDetailDrawerProps> = ({
                 </Stack>
               )}
 
-              {/* Tab 3: DHJ Table */}
+              {/* Tab 3: DHJ Table with Recalculation Breakdown */}
               {currentTab === 'dhj' && (
                 <Box>
-                  <DHJTable rows={dhjRows} />
+                  <AuditDHJTable ariza={ariza} maxHeight={520} />
                 </Box>
               )}
             </>

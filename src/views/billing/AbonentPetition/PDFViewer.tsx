@@ -1,11 +1,17 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import { RotateDirection, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin, ToolbarProps, ToolbarSlot } from '@react-pdf-viewer/default-layout';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { useTranslation } from 'react-i18next';
 
-const PdfViewer = ({ base64String }: { base64String: string | null }) => {
+interface PdfViewerProps {
+  base64String: string | null;
+  onFetchPdf?: () => void;
+  isLoading?: boolean;
+}
+
+const PdfViewer = ({ base64String, onFetchPdf, isLoading = false }: PdfViewerProps) => {
   const { t } = useTranslation();
 
   const renderToolbar = (Toolbar: (props: ToolbarProps) => React.ReactElement) => (
@@ -95,9 +101,22 @@ const PdfViewer = ({ base64String }: { base64String: string | null }) => {
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
           {t('recalculationDetailPage.noPdfTitle', 'Hujjat fayli biriktirilmagan')}
         </Typography>
-        <Typography variant="body2" sx={{ textAlign: 'center' }}>
+        <Typography variant="body2" sx={{ textAlign: 'center', mb: onFetchPdf ? 2 : 0 }}>
           {t('recalculationDetailPage.noPdfDesc', 'Ushbu arizaga biriktirilgan PDF fayl topilmadi')}
         </Typography>
+
+        {onFetchPdf && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <PictureAsPdfOutlinedIcon />}
+            onClick={onFetchPdf}
+            disabled={isLoading}
+            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+          >
+            {isLoading ? 'Yuklanmoqda...' : 'Tozamakondan PDF faylni ochish'}
+          </Button>
+        )}
       </Box>
     );
   }

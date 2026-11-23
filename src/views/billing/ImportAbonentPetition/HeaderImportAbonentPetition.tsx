@@ -6,7 +6,8 @@ import {
   NoteAddOutlined as NoteAddOutlinedIcon,
   NoteAltOutlined,
   PictureAsPdfOutlined,
-  UploadFileOutlined
+  UploadFileOutlined,
+  FactCheckOutlined
 } from '@mui/icons-material';
 import useStore from './hooks/useStore';
 import useLoaderStore from 'store/loaderStore';
@@ -67,6 +68,14 @@ function HeaderImportAbonentPetition({ onStartTour }: HeaderProps) {
             iconPosition="start"
             label={t('2. Arizalarni kiritish (Tozamakon ijrosi)')}
             sx={{ textTransform: 'none', fontWeight: 700, fontSize: '13px', minHeight: 36 }}
+          />
+          <Tab
+            icon={<FactCheckOutlined fontSize="small" />}
+            iconPosition="start"
+            label="3. Viloyat tekshiruvi (Tekshirish & Audit)"
+            onClick={() => !isLoading && navigate('/billing/createAbonentAriza?tab=audit')}
+            disabled={isLoading}
+            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '13px', minHeight: 36, cursor: isLoading ? 'default' : 'pointer' }}
           />
         </Tabs>
       </Box>
