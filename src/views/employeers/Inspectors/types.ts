@@ -13,6 +13,21 @@ export interface InspectorRow {
   hasTelegram?: boolean;
   telegramUsername?: string | null;
   telegramLinkedAt?: string | null;
+  isBlocked?: boolean;
+  blockedAt?: string | null;
+  blockedReason?: string | null;
+  blockedBy?: string | null;
+  isTerminalBlocked?: boolean;
+  terminalBlockedAt?: string | null;
+  terminalBlockedReason?: string | null;
+  terminalBlockedBy?: string | null;
+  isBotBlocked?: boolean;
+  botBlockedAt?: string | null;
+  botBlockedReason?: string | null;
+  botBlockedBy?: string | null;
+  terminalId?: number | null;
+  terminalSerial?: string | null;
+  terminalCompanyId?: number | null;
 }
 
 export interface Mahalla {

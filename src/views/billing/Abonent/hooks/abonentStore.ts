@@ -310,7 +310,7 @@ export interface IAbonentPageActionsStore {
   verifyIdentity: (residentId: number, identify: boolean) => void;
 
   setOpenIIBInhabitantsDialog: (open: boolean) => void;
-  getIIBInhabitants: (cadastralNumber: string, residentId?: number) => Promise<PermamentsResponse>;
+  getIIBInhabitants: (cadastralNumber: string, residentId?: number, forceRefresh?: boolean) => Promise<PermamentsResponse>;
   addInhabitantsToAbonent: (residentId: number, inhabitantCount: number, file: File) => Promise<void>;
 
   setOpenAddInhabitantsDialog: (open: boolean) => void;
@@ -632,9 +632,12 @@ export const useAbonentStore = create<IAbonentPageStore>((set, get) => ({
     set({ abonentDetails: { ...details, identified } });
   },
   setOpenIIBInhabitantsDialog: (open: boolean) => set({ openIIBInhabitantsDialog: open }),
-  getIIBInhabitants: async (cadastralNumber, residentId) => {
+  getIIBInhabitants: async (cadastralNumber, residentId, forceRefresh) => {
     // Xato modalning o'zida ko'rsatiladi, global toast takrorlanmasin
-    const { data } = await api.get('/abonents/iib-inhabitants', { params: { cadastralNumber, residentId }, headers: { 'hide-error': true } });
+    const { data } = await api.get('/abonents/iib-inhabitants', {
+      params: { cadastralNumber, residentId, forceRefresh },
+      headers: { 'hide-error': true }
+    });
     return data;
   },
   addInhabitantsToAbonent: async (residentId, inhabitantCount, file) => {

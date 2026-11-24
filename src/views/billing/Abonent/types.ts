@@ -137,6 +137,9 @@ export interface PermamentsResponse {
     TemproaryPersons: PermamentPerson[] | null;
   } | null;
   house: House | null;
+  lastFetchedAt?: string | Date;
+  isFromCache?: boolean;
+  warning?: string;
 }
 
 export interface HETErrorResponse {

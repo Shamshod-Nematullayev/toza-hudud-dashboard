@@ -38,6 +38,9 @@ import useArizaStore from './useStore';
 interface AttachedImagesModalProps {
   open: boolean;
   onClose: () => void;
+  ariza?: any;
+  photos?: string[];
+  onPhotosUpdated?: (updatedAriza: any) => void;
 }
 
 interface ImageState {
@@ -46,12 +49,22 @@ interface ImageState {
   error: boolean;
 }
 
-const AttachedImagesModal: React.FC<AttachedImagesModalProps> = ({ open, onClose }) => {
+const AttachedImagesModal: React.FC<AttachedImagesModalProps> = ({
+  open,
+  onClose,
+  ariza: arizaProp,
+  photos: photosProp,
+  onPhotosUpdated
+}) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { ariza, setAriza, setPasteImgModalOpen } = useArizaStore();
+  const { ariza: storeAriza, setAriza, setPasteImgModalOpen } = useArizaStore();
 
-  const photoIds: string[] = Array.isArray(ariza?.tempPhotos)
+  const ariza = arizaProp || storeAriza;
+
+  const photoIds: string[] = Array.isArray(photosProp)
+    ? photosProp.filter((id: any): id is string => typeof id === 'string' && id.trim().length > 0)
+    : Array.isArray(ariza?.tempPhotos)
     ? ariza.tempPhotos.filter((id: any): id is string => typeof id === 'string' && id.trim().length > 0)
     : [];
   const photoIdsKey = photoIds.join(',');
@@ -207,7 +220,12 @@ const AttachedImagesModal: React.FC<AttachedImagesModalProps> = ({ open, onClose
       setIsDeleting(true);
       const res = await api.put(`/arizalar/remove-image/${ariza._id}`, { file_id: currentFileId });
       if (res.data?.ariza) {
-        setAriza(res.data.ariza);
+        if (!arizaProp) {
+          setAriza(res.data.ariza);
+        }
+        if (onPhotosUpdated) {
+          onPhotosUpdated(res.data.ariza);
+        }
       }
       toast.success(t('messages.imageDeleted', 'Rasm o‘chirildi'));
       setDeleteConfirmOpen(false);

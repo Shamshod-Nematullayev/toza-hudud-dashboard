@@ -30,6 +30,8 @@ import { useTranslation } from 'react-i18next';
 interface PasteImageDialogProps {
   open?: boolean;
   setOpen: (open: boolean) => void;
+  ariza?: any;
+  onUploaded?: (updatedAriza: any) => void;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -40,7 +42,7 @@ const formatFileSize = (bytes: number): string => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
 
-const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open = true, setOpen }) => {
+const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open = true, setOpen, ariza: arizaProp, onUploaded }) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -49,7 +51,8 @@ const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open = true, setOpe
   const [loading, setLoading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const { ariza, setAriza } = useArizaStore();
+  const { ariza: storeAriza, setAriza } = useArizaStore();
+  const ariza = arizaProp || storeAriza;
   const theme = useTheme();
 
   const handleProcessFile = (file: File) => {
@@ -155,7 +158,12 @@ const PasteImageDialog: React.FC<PasteImageDialogProps> = ({ open = true, setOpe
       const updateRes = await api.put(`/arizalar/add-image/${ariza._id}`, { file_id: document_id });
       const updatedAriza = updateRes.data?.ariza;
       if (updatedAriza) {
-        setAriza(updatedAriza);
+        if (!arizaProp) {
+          setAriza(updatedAriza);
+        }
+        if (onUploaded) {
+          onUploaded(updatedAriza);
+        }
       }
 
       toast.success(t('messages.imageAttached', 'Rasm muvaffaqiyatli biriktirildi!'));

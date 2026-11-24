@@ -29,7 +29,12 @@ import {
   InputLabel,
   Select,
   Paper,
-  Badge
+  Badge,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
+  Stack
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
@@ -58,6 +63,8 @@ import SyncIcon from '@mui/icons-material/Sync';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PrintIcon from '@mui/icons-material/Print';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import CircularProgress from '@mui/material/CircularProgress';
 
 // Internal Imports
@@ -95,6 +102,14 @@ interface InspectorRow {
   blockedAt?: string | null;
   blockedReason?: string | null;
   blockedBy?: string | null;
+  isTerminalBlocked?: boolean;
+  terminalBlockedAt?: string | null;
+  terminalBlockedReason?: string | null;
+  terminalBlockedBy?: string | null;
+  isBotBlocked?: boolean;
+  botBlockedAt?: string | null;
+  botBlockedReason?: string | null;
+  botBlockedBy?: string | null;
   terminalId?: number | null;
   terminalSerial?: string | null;
   terminalCompanyId?: number | null;
@@ -150,9 +165,10 @@ function Inspectors(): React.JSX.Element {
   const [isSyncingTerminals, setIsSyncingTerminals] = useState<boolean>(false);
 
   // Bloklash / Uchyotchik State
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked' | 'terminal_blocked' | 'bot_blocked' | 'inactive'>('all');
   const [openBlockDialog, setOpenBlockDialog] = useState<boolean>(false);
   const [selectedInspectorForBlock, setSelectedInspectorForBlock] = useState<InspectorRow | null>(null);
+  const [blockTarget, setBlockTarget] = useState<'all' | 'terminal' | 'bot'>('all');
   const [blockReason, setBlockReason] = useState<string>("Yig‘ilishga kelmaganligi sababli");
   const [customBlockReason, setCustomBlockReason] = useState<string>('');
   const [nowTick, setNowTick] = useState<number>(Date.now());
@@ -190,23 +206,29 @@ function Inspectors(): React.JSX.Element {
   // Statistika hisobi
   const stats = useMemo(() => {
     const total = rows.length;
-    const blocked = rows.filter((r) => r.isBlocked).length;
-    const active = rows.filter((r) => r.activ && !r.isBlocked).length;
+    const terminalBlocked = rows.filter((r) => r.isTerminalBlocked).length;
+    const botBlocked = rows.filter((r) => r.isBotBlocked).length;
+    const blocked = rows.filter((r) => r.isBlocked || r.isTerminalBlocked || r.isBotBlocked).length;
+    const active = rows.filter((r) => r.activ && !r.isTerminalBlocked && !r.isBotBlocked && !r.isBlocked).length;
     const inactive = rows.filter((r) => !r.activ).length;
     const withTelegram = rows.filter(
       (r) => r.hasTelegram || (r.telegram_id && r.telegram_id.length > 0 && r.telegram_id[0])
     ).length;
     const freeMahallas = mahallalar.filter((m) => !m.biriktirilganNazoratchi?.inspactor_id).length;
-    return { total, active, blocked, inactive, withTelegram, freeMahallas };
+    return { total, active, blocked, terminalBlocked, botBlocked, inactive, withTelegram, freeMahallas };
   }, [rows, mahallalar]);
 
   // Status va Qidiruv bo'yicha filtrlangan qatorlar
   const filteredRows = useMemo(() => {
     let result = rows;
     if (statusFilter === 'active') {
-      result = result.filter((r) => r.activ && !r.isBlocked);
+      result = result.filter((r) => r.activ && !r.isTerminalBlocked && !r.isBotBlocked && !r.isBlocked);
     } else if (statusFilter === 'blocked') {
-      result = result.filter((r) => r.isBlocked);
+      result = result.filter((r) => r.isBlocked || r.isTerminalBlocked || r.isBotBlocked);
+    } else if (statusFilter === 'terminal_blocked') {
+      result = result.filter((r) => r.isTerminalBlocked);
+    } else if (statusFilter === 'bot_blocked') {
+      result = result.filter((r) => r.isBotBlocked);
     } else if (statusFilter === 'inactive') {
       result = result.filter((r) => !r.activ);
     }
@@ -424,6 +446,14 @@ function Inspectors(): React.JSX.Element {
           blockedAt: (row as any).blockedAt || null,
           blockedReason: (row as any).blockedReason || null,
           blockedBy: (row as any).blockedBy || null,
+          isTerminalBlocked: Boolean((row as any).isTerminalBlocked),
+          terminalBlockedAt: (row as any).terminalBlockedAt || null,
+          terminalBlockedReason: (row as any).terminalBlockedReason || null,
+          terminalBlockedBy: (row as any).terminalBlockedBy || null,
+          isBotBlocked: Boolean((row as any).isBotBlocked),
+          botBlockedAt: (row as any).botBlockedAt || null,
+          botBlockedReason: (row as any).botBlockedReason || null,
+          botBlockedBy: (row as any).botBlockedBy || null,
           terminalId: (row as any).terminalId || null,
           terminalSerial: (row as any).terminalSerial || null,
           terminalCompanyId: (row as any).terminalCompanyId || null,
@@ -492,20 +522,29 @@ function Inspectors(): React.JSX.Element {
     }
   };
 
-  const handleUnblock = async (row: InspectorRow) => {
+  const handleUnblock = async (row: InspectorRow, target: 'all' | 'terminal' | 'bot' = 'all') => {
+    let confirmMsg = '';
+    if (target === 'terminal') {
+      confirmMsg = `${row.name}ning apparatini (Ekopay terminali: ${row.terminalSerial || 'avvalgi terminal'}) qayta faollashtirishni tasdiqlaysizmi?`;
+    } else if (target === 'bot') {
+      confirmMsg = `${row.name}ning Telegram botini qayta faollashtirishni tasdiqlaysizmi?`;
+    } else {
+      confirmMsg = `${row.name}ni to‘liq blokdan chiqarish va Ekopay terminalini (${row.terminalSerial || 'avvalgi terminal'}) qayta biriktirishni tasdiqlaysizmi?`;
+    }
+
     if (
       !(await confirmDialog({
-        message: `${row.name}ni blokdan chiqarish va Ekopay terminalini (${row.terminalSerial || 'avvalgi terminal'}) qayta biriktirishni tasdiqlaysizmi?`,
-        confirmText: 'Blokdan chiqarish',
-        color: 'success'
+        message: confirmMsg,
+        confirmText: 'Faollashtirish',
+        color: 'primary'
       }))
     ) {
       return;
     }
     try {
-      const res = await api.post(`/inspectors/${row.id}/unblock`);
+      const res = await api.post(`/inspectors/${row.id}/unblock`, { target });
       if (res.data?.ok) {
-        toast.success(res.data.message || 'Nazoratchi muvaffaqiyatli blokdan chiqarildi!');
+        toast.success(res.data.message || 'Muvaffaqiyatli blokdan chiqarildi!');
         await updateData();
       } else {
         toast.error(res.data?.message || 'Xatolik yuz berdi');
@@ -515,8 +554,9 @@ function Inspectors(): React.JSX.Element {
     }
   };
 
-  const handleOpenBlockDialog = (row: InspectorRow) => {
+  const handleOpenBlockDialog = (row: InspectorRow, defaultTarget: 'all' | 'terminal' | 'bot' = 'all') => {
     setSelectedInspectorForBlock(row);
+    setBlockTarget(defaultTarget);
     setBlockReason("Yig‘ilishga kelmaganligi sababli");
     setCustomBlockReason('');
     setOpenBlockDialog(true);
@@ -532,10 +572,12 @@ function Inspectors(): React.JSX.Element {
 
     try {
       const res = await api.post(`/inspectors/${selectedInspectorForBlock.id}/block`, {
-        reason: finalReason
+        reason: finalReason,
+        target: blockTarget
       });
       if (res.data?.ok) {
-        toast.success(`${selectedInspectorForBlock.name} vaqtincha bloklandi, terminali uzildi!`);
+        const targetLabel = blockTarget === 'terminal' ? 'Apparati' : blockTarget === 'bot' ? 'Telegram boti' : 'To‘liq';
+        toast.success(`${selectedInspectorForBlock.name}ning ${targetLabel.toLowerCase()} vaqtincha bloklandi!`);
         setOpenBlockDialog(false);
         setSelectedInspectorForBlock(null);
         await updateData();
@@ -794,17 +836,22 @@ function Inspectors(): React.JSX.Element {
     baseColumns.push({
       field: 'status',
       headerName: 'Holati',
-      width: 175,
+      width: 190,
       sortable: false,
       renderCell: (params: GridRenderCellParams<InspectorRow>) => {
         const row = params.row;
-        if (row.isBlocked) {
-          const elapsed = getElapsedDuration(row.blockedAt);
+        const isTermBlocked = Boolean(row.isTerminalBlocked);
+        const isBotBlk = Boolean(row.isBotBlocked);
+        const isFullyBlocked = isTermBlocked && isBotBlk;
+        const isLegacyBlocked = Boolean(row.isBlocked && !isTermBlocked && !isBotBlk);
+
+        if (isFullyBlocked || isLegacyBlocked) {
+          const elapsed = getElapsedDuration(row.blockedAt || row.terminalBlockedAt || row.botBlockedAt);
           return (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, py: 0.5 }}>
               <Chip
                 icon={<LockIcon sx={{ fontSize: '13px !important' }} />}
-                label="Vaqtincha bloklangan"
+                label="To‘liq bloklangan"
                 color="error"
                 size="small"
                 sx={{ fontWeight: 700, fontSize: '0.725rem', height: 22 }}
@@ -825,6 +872,63 @@ function Inspectors(): React.JSX.Element {
             </Box>
           );
         }
+
+        if (isTermBlocked) {
+          const elapsed = getElapsedDuration(row.terminalBlockedAt || row.blockedAt);
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, py: 0.5 }}>
+              <Chip
+                icon={<PrintIcon sx={{ fontSize: '13px !important' }} />}
+                label="Apparat bloklangan"
+                color="warning"
+                size="small"
+                sx={{ fontWeight: 700, fontSize: '0.725rem', height: 22 }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'warning.dark',
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.3
+                }}
+              >
+                <AccessTimeIcon sx={{ fontSize: 12 }} /> {elapsed}
+              </Typography>
+            </Box>
+          );
+        }
+
+        if (isBotBlk) {
+          const elapsed = getElapsedDuration(row.botBlockedAt || row.blockedAt);
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, py: 0.5 }}>
+              <Chip
+                icon={<SmartToyIcon sx={{ fontSize: '13px !important' }} />}
+                label="Bot bloklangan"
+                color="secondary"
+                size="small"
+                sx={{ fontWeight: 700, fontSize: '0.725rem', height: 22 }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'secondary.main',
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.3
+                }}
+              >
+                <AccessTimeIcon sx={{ fontSize: 12 }} /> {elapsed}
+              </Typography>
+            </Box>
+          );
+        }
+
         if (row.activ) {
           return (
             <Chip
@@ -847,11 +951,11 @@ function Inspectors(): React.JSX.Element {
       }
     });
 
-    // 2. Intizom / Chiqish yo'li (Bloklash & Ochish)
+    // 2. Intizom / Chiqish yo'li (Apparat va Botni alohida bloklash & ochish)
     baseColumns.push({
       field: 'blockActions',
       headerName: 'Intizom / Qulflash',
-      width: 175,
+      width: 250,
       sortable: false,
       renderCell: (params: GridRenderCellParams<InspectorRow>) => {
         const row = params.row;
@@ -863,61 +967,125 @@ function Inspectors(): React.JSX.Element {
           );
         }
 
-        if (row.isBlocked) {
+        if (!row.activ) {
           return (
-            <Button
-              variant="contained"
-              color="success"
-              size="small"
-              startIcon={<LockOpenIcon sx={{ fontSize: '15px !important' }} />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUnblock(row);
-              }}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                py: 0.25,
-                px: 1,
-                borderRadius: 1.5,
-                boxShadow: 1
-              }}
-            >
-              Ochish
-            </Button>
+            <Typography variant="caption" color="text.secondary">
+              Nofaol
+            </Typography>
           );
         }
 
-        if (row.activ) {
-          return (
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              startIcon={<LockIcon sx={{ fontSize: '14px !important' }} />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenBlockDialog(row);
-              }}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.75rem',
-                py: 0.25,
-                px: 1,
-                borderRadius: 1.5
-              }}
-            >
-              Bloklash
-            </Button>
-          );
-        }
+        const isTermBlocked = Boolean(row.isTerminalBlocked || (row.isBlocked && !row.isBotBlocked && !row.isTerminalBlocked));
+        const isBotBlk = Boolean(row.isBotBlocked || (row.isBlocked && !row.isBotBlocked && !row.isTerminalBlocked));
 
         return (
-          <Typography variant="caption" color="text.secondary">
-            Nofaol
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, py: 0.5, flexWrap: 'nowrap' }}>
+            {/* 🖨️ Apparat boshqaruvi */}
+            {isTermBlocked ? (
+              <Tooltip title="Ekopay apparatini (termoprinter) qayta faollashtirish">
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  startIcon={<LockOpenIcon sx={{ fontSize: '13px !important' }} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnblock(row, 'terminal');
+                  }}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.72rem',
+                    py: 0.3,
+                    px: 0.75,
+                    borderRadius: 1.5,
+                    whiteSpace: 'nowrap',
+                    minWidth: 0
+                  }}
+                >
+                  Apparatni ochish
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Faqat Ekopay apparatini vaqtincha to‘xtatish">
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  startIcon={<PrintIcon sx={{ fontSize: '13px !important' }} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenBlockDialog(row, 'terminal');
+                  }}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.72rem',
+                    py: 0.3,
+                    px: 0.75,
+                    borderRadius: 1.5,
+                    whiteSpace: 'nowrap',
+                    minWidth: 0
+                  }}
+                >
+                  Apparatni qulflash
+                </Button>
+              </Tooltip>
+            )}
+
+            {/* 🤖 Bot boshqaruvi */}
+            {isBotBlk ? (
+              <Tooltip title="Telegram botini qayta faollashtirish">
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  startIcon={<LockOpenIcon sx={{ fontSize: '13px !important' }} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnblock(row, 'bot');
+                  }}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.72rem',
+                    py: 0.3,
+                    px: 0.75,
+                    borderRadius: 1.5,
+                    whiteSpace: 'nowrap',
+                    minWidth: 0
+                  }}
+                >
+                  Botni ochish
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Faqat Telegram bot faoliyatini vaqtincha to‘xtatish">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  startIcon={<SmartToyIcon sx={{ fontSize: '13px !important' }} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenBlockDialog(row, 'bot');
+                  }}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.72rem',
+                    py: 0.3,
+                    px: 0.75,
+                    borderRadius: 1.5,
+                    whiteSpace: 'nowrap',
+                    minWidth: 0
+                  }}
+                >
+                  Botni qulflash
+                </Button>
+              </Tooltip>
+            )}
+          </Box>
         );
       }
     });
@@ -998,8 +1166,53 @@ function Inspectors(): React.JSX.Element {
         </DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            <b>{selectedInspectorForBlock?.name}</b> faoliyati vaqtincha to‘xtatiladi, Ekopaydagi termoprinteri uziladi va bot cheklanadi.
+            <b>{selectedInspectorForBlock?.name}</b> bo‘yicha cheklov turini va sababini belgilang:
           </Typography>
+
+          <FormControl component="fieldset" fullWidth sx={{ mb: 2, p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+            <FormLabel component="legend" sx={{ fontWeight: 700, fontSize: '0.8rem', mb: 0.5 }}>
+              Cheklov obyekti:
+            </FormLabel>
+            <RadioGroup
+              value={blockTarget}
+              onChange={(e) => setBlockTarget(e.target.value as any)}
+            >
+              <FormControlLabel
+                value="terminal"
+                control={<Radio size="small" color="error" />}
+                label={
+                  <Box sx={{ py: 0.25 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>🖨️ Faqat apparat (Ekopay)</Typography>
+                    <Typography variant="caption" color="text.secondary">Termoprinter uziladi, to‘lov ololmaydi. Bot faol qoladi.</Typography>
+                  </Box>
+                }
+                sx={{ mb: 0.75, alignItems: 'flex-start' }}
+              />
+              <FormControlLabel
+                value="bot"
+                control={<Radio size="small" color="secondary" />}
+                label={
+                  <Box sx={{ py: 0.25 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>🤖 Faqat Telegram bot</Typography>
+                    <Typography variant="caption" color="text.secondary">Telegram boti to‘xtatiladi. Apparati ishlashda davom etadi.</Typography>
+                  </Box>
+                }
+                sx={{ mb: 0.75, alignItems: 'flex-start' }}
+              />
+              <FormControlLabel
+                value="all"
+                control={<Radio size="small" color="error" />}
+                label={
+                  <Box sx={{ py: 0.25 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>🔒 Ikkalasini ham (To‘liq cheklov)</Typography>
+                    <Typography variant="caption" color="text.secondary">Ham apparat, ham Telegram bot to‘liq to‘xtatiladi.</Typography>
+                  </Box>
+                }
+                sx={{ alignItems: 'flex-start' }}
+              />
+            </RadioGroup>
+          </FormControl>
+
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="block-reason-label">Bloklash sababi</InputLabel>
             <Select
@@ -1254,10 +1467,38 @@ function Inspectors(): React.JSX.Element {
               onClick={() => setStatusFilter('active')}
               sx={{ fontWeight: 600, cursor: 'pointer' }}
             />
+            <Badge badgeContent={stats.terminalBlocked} color="warning" invisible={stats.terminalBlocked === 0}>
+              <Chip
+                icon={<PrintIcon sx={{ fontSize: '15px !important' }} />}
+                label={`🖨️ Apparat blok (${stats.terminalBlocked})`}
+                color={stats.terminalBlocked > 0 ? 'warning' : statusFilter === 'terminal_blocked' ? 'warning' : 'default'}
+                variant={statusFilter === 'terminal_blocked' ? 'filled' : 'outlined'}
+                onClick={() => setStatusFilter('terminal_blocked')}
+                sx={{
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  ...(stats.terminalBlocked > 0 && statusFilter !== 'terminal_blocked' ? { borderColor: 'warning.main', color: 'warning.dark' } : {})
+                }}
+              />
+            </Badge>
+            <Badge badgeContent={stats.botBlocked} color="secondary" invisible={stats.botBlocked === 0}>
+              <Chip
+                icon={<SmartToyIcon sx={{ fontSize: '15px !important' }} />}
+                label={`🤖 Bot blok (${stats.botBlocked})`}
+                color={stats.botBlocked > 0 ? 'secondary' : statusFilter === 'bot_blocked' ? 'secondary' : 'default'}
+                variant={statusFilter === 'bot_blocked' ? 'filled' : 'outlined'}
+                onClick={() => setStatusFilter('bot_blocked')}
+                sx={{
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  ...(stats.botBlocked > 0 && statusFilter !== 'bot_blocked' ? { borderColor: 'secondary.main', color: 'secondary.main' } : {})
+                }}
+              />
+            </Badge>
             <Badge badgeContent={stats.blocked} color="error" invisible={stats.blocked === 0}>
               <Chip
                 icon={<LockIcon sx={{ fontSize: '15px !important' }} />}
-                label={`🔐 Vaqtincha bloklangan (${stats.blocked})`}
+                label={`🔐 Jami bloklanganlar (${stats.blocked})`}
                 color={stats.blocked > 0 ? 'error' : statusFilter === 'blocked' ? 'error' : 'default'}
                 variant={statusFilter === 'blocked' ? 'filled' : 'outlined'}
                 onClick={() => setStatusFilter('blocked')}

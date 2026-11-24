@@ -44,7 +44,7 @@ export default function DraggableDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title?: React.ReactNode;
   children: React.ReactNode;
   actions?: React.ReactNode;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -90,8 +90,8 @@ export default function DraggableDialog({
           p: 1.5
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 1 }}>
+          {typeof title === 'string' ? <Typography sx={{ fontWeight: 600 }}>{title}</Typography> : title}
 
           <IconButton size="small" onClick={onClose}>
             <CloseIcon fontSize="small" />

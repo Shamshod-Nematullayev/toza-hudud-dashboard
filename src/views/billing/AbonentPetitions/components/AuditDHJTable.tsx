@@ -226,31 +226,42 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
       };
     }
 
-    // 2. Agar AutoAdjust davriga tushsa (ariza sanasi va akt kiritilgan sana oralig'idagi oylar)
-    const arizaDate = ariza?.sana ? dayjs(ariza.sana).startOf('month') : null;
-    const aktDate = ariza?.akt_date ? dayjs(ariza.akt_date).startOf('month') : dayjs().startOf('month');
+    // 2. Agar Tozamakonga akt kiritilgan bo'lsa va MongoDB da autoAdjust mavjud bo'lsa:
+    const isActEntered = Boolean(
+      ariza?.akt_id ||
+      ariza?.status === 'akt_kiritilgan' ||
+      ariza?.status === 'tasdiqlangan'
+    );
+    const hasMongoAutoAdjust = Boolean(
+      ariza?.autoAdjust &&
+      (ariza.autoAdjust.isAdjusted || Number(ariza.autoAdjust.adjustment) > 0 || Number(ariza.autoAdjust.adjustmentAmount) > 0)
+    );
 
-    const isBetweenArizaAndAkt =
-      arizaDate &&
-      !d.isBefore(arizaDate, 'month') &&
-      !d.isAfter(aktDate, 'month') &&
-      verifiedNextInhabitant !== undefined &&
-      oldCount > verifiedNextInhabitant;
+    if (isActEntered && hasMongoAutoAdjust && ariza?.sana && ariza?.akt_date) {
+      const arizaDate = dayjs(ariza.sana).startOf('month');
+      const aktDate = dayjs(ariza.akt_date).startOf('month');
 
-    if (isBetweenArizaAndAkt) {
-      const count = verifiedNextInhabitant;
-      const newNachis = count * rate;
-      const diff = (oldCount - count) * rate;
+      const isBetweenArizaAndAkt =
+        !d.isBefore(arizaDate, 'month') &&
+        !d.isAfter(aktDate, 'month') &&
+        verifiedNextInhabitant !== undefined &&
+        oldCount > verifiedNextInhabitant;
 
-      return {
-        count,
-        oldCount,
-        newNachis,
-        diff,
-        periodIndex: 0,
-        color: 'f59e0b',
-        isAutoAdjust: true
-      };
+      if (isBetweenArizaAndAkt) {
+        const count = verifiedNextInhabitant;
+        const newNachis = count * rate;
+        const diff = (oldCount - count) * rate;
+
+        return {
+          count,
+          oldCount,
+          newNachis,
+          diff,
+          periodIndex: 0,
+          color: 'f59e0b',
+          isAutoAdjust: true
+        };
+      }
     }
 
     return null;
