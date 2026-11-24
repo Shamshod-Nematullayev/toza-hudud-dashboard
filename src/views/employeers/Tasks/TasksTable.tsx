@@ -145,9 +145,19 @@ function TasksTable() {
               ? `${row.rejectedReasonType} (${row.rejectedReason})`
               : row.rejectedReasonType
             : row?.rejectedReason || row?.purpose;
+          const legalInfo = row?.legalAccountNumber
+            ? ` | Yuridik hisob: ${row.legalAccountNumber}${row.caoto ? ` (CAOTO: ${row.caoto})` : ''}`
+            : '';
           return (
-            <Tooltip title={reasonText ? `Asos: ${reasonText}` : "Bajarib bo'lmaydi"} arrow>
-              <Chip label="❌ Bajarib bo'lmaydi" color="error" size="small" sx={{ fontWeight: 600 }} />
+            <Tooltip title={`${reasonText ? `Asos: ${reasonText}` : "Bajarib bo'lmaydi"}${legalInfo}`} arrow>
+              <Stack direction="column" spacing={0.3} sx={{ alignItems: 'flex-start' }}>
+                <Chip label="❌ Bajarib bo'lmaydi" color="error" size="small" sx={{ fontWeight: 600 }} />
+                {row?.legalAccountNumber && (
+                  <Typography variant="caption" sx={{ fontSize: '0.68rem', color: 'primary.main', fontWeight: 700 }}>
+                    🏢 {row.legalAccountNumber}
+                  </Typography>
+                )}
+              </Stack>
             </Tooltip>
           );
         }

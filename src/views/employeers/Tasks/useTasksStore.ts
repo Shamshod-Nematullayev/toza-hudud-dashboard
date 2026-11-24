@@ -38,6 +38,9 @@ export interface ITask {
   rejectedReasonType?: string;
   rejectedAt?: string | Date;
   rejectedBy?: string;
+  legalAccountNumber?: string;
+  caoto?: number | string;
+  legalDetails?: any;
   _id?: string;
 }
 
