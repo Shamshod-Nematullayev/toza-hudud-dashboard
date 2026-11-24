@@ -30,13 +30,13 @@ import {
   DeleteOutlined,
   DoDisturbOnOutlined,
   SearchOutlined,
-  CheckCircleOutline,
+  CheckCircleOutlined,
   BusinessOutlined,
   LocationOnOutlined,
   AccountBalanceWalletOutlined,
   ReceiptLongOutlined,
-  PersonOutline,
-  ErrorOutline
+  PersonOutlined,
+  ErrorOutlined
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import api from 'utils/api';
@@ -88,9 +88,11 @@ export default function RejectTaskDialog() {
   const [checkResult, setCheckResult] = useState<any>(null);
   const [checkError, setCheckError] = useState<string | null>(null);
 
+  const cleanReason = (reasonType || '').toLowerCase();
   const isLegalReason =
-    reasonType.toLowerCase().includes('yuridik') ||
-    reasonType === "Elektr hisob raqami yuridik hisob raqami bo'lgani uchun";
+    cleanReason.includes('yuridik') ||
+    cleanReason.includes('юридик') ||
+    cleanReason.includes('legal');
 
   // Korxona CAOTO larini yuklash
   useEffect(() => {
@@ -502,7 +504,7 @@ export default function RejectTaskDialog() {
 
               {/* Tekshirish natijasi: Xatolik bo'lsa */}
               {checkError && (
-                <Alert severity="error" icon={<ErrorOutline />} sx={{ borderRadius: 2 }}>
+                <Alert severity="error" icon={<ErrorOutlined />} sx={{ borderRadius: 2 }}>
                   <strong>Abonent topilmadi yoki xatolik:</strong> {checkError}
                 </Alert>
               )}
@@ -522,7 +524,7 @@ export default function RejectTaskDialog() {
                   <Stack spacing={1.5}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
                       <Chip
-                        icon={<CheckCircleOutline />}
+                        icon={<CheckCircleOutlined />}
                         label={`Click.uz orqali tasdiqlandi (${checkResult.accountType === 'legal' ? 'Yuridik shaxs' : 'Jismoniy shaxs'})`}
                         color="success"
                         size="small"
@@ -554,7 +556,7 @@ export default function RejectTaskDialog() {
                       {/* Rahbar / Mas'ul F.I.O */}
                       {checkResult.fio && (
                         <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
-                          <PersonOutline fontSize="small" sx={{ color: 'text.secondary', mt: 0.3 }} />
+                          <PersonOutlined fontSize="small" sx={{ color: 'text.secondary', mt: 0.3 }} />
                           <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                               Mas'ul shaxs (F.I.O):
