@@ -42,7 +42,8 @@ function RecalculatorAbonent() {
   // DHJ da yo'q davrni (abonent ochilishidan oldingi) qayta hisoblab bo'lmaydi: masalan abonent 01.05.2026 da ochilgan,
   // o'lim guvohnomasi esa 01.02.2026 ga — eng erta sana 01.05.2026, undan oldingisi xato bo'lib turadi
   const minDate = getDhjFirstMonth(rowsDhjTable) ?? dayjs('2019-01-01');
-  const maxDate = dayjs();
+  // Odam soni kamayishida eng oxirgi sana joriy oyning 1-kuni (undan keyingi sanani belgilab bo'lmaydi)
+  const maxDate = aktType === 'odam_soni' ? dayjs().startOf('month') : dayjs();
 
   /** Xato bo'lsa toast ko'rsatadi va false qaytaradi */
   const checkDates = () => {
@@ -54,8 +55,20 @@ function RecalculatorAbonent() {
       toast.error(`Abonent DHJ si ${minDate.format('MM.YYYY')} dan boshlanadi: undan oldingi davrni qayta hisoblab bo'lmaydi`);
       return false;
     }
+    if (startDate.isAfter(maxDate, 'day')) {
+      toast.error(
+        aktType === 'odam_soni'
+          ? "Odam soni dalolatnomasida boshlanish sanasi shu oyning birinchi kunidan keyin bo'lishi mumkin emas"
+          : "Boshlanish sanasi bugundan keyin bo'lishi mumkin emas"
+      );
+      return false;
+    }
     if (endDate.isAfter(maxDate, 'day')) {
-      toast.error("Tugash sanasi bugundan keyin bo'lishi mumkin emas");
+      toast.error(
+        aktType === 'odam_soni'
+          ? "Odam soni dalolatnomasida tugash sanasi shu oyning birinchi kunidan keyin bo'lishi mumkin emas"
+          : "Tugash sanasi bugundan keyin bo'lishi mumkin emas"
+      );
       return false;
     }
     if (startDate.isAfter(endDate, 'day')) {
@@ -153,9 +166,21 @@ function RecalculatorAbonent() {
     });
   }, [startDate, endDate]);
 
-  // aktType o'zgarganda endDate ni oyning boshiga qaytarish
+  // aktType o'zgarganda endDate ni oyning boshiga qaytarish va maxDate dan oshib ketmasligini ta'minlash
   useEffect(() => {
-    setEndDate(dayjs().startOf('month'));
+    const currentMax = aktType === 'odam_soni' ? dayjs().startOf('month') : dayjs();
+    setEndDate((prev) => {
+      if (!prev || prev.isAfter(currentMax, 'day')) {
+        return dayjs().startOf('month');
+      }
+      return prev;
+    });
+    setStartDate((prev) => {
+      if (prev && prev.isAfter(currentMax, 'day')) {
+        return currentMax;
+      }
+      return prev;
+    });
   }, [aktType]);
 
   // Minus (kreditor) tugmasi bosilganda
@@ -228,9 +253,13 @@ function RecalculatorAbonent() {
                 format="DD.MM.YY"
                 value={startDate}
                 onChange={(newStart) => {
-                  setStartDate(newStart);
-                  if (newStart?.isValid() && endDate?.isValid() && newStart.isAfter(endDate, 'day')) {
-                    setEndDate(newStart);
+                  let val = newStart;
+                  if (val?.isValid() && val.isAfter(maxDate, 'day')) {
+                    val = maxDate;
+                  }
+                  setStartDate(val);
+                  if (val?.isValid() && endDate?.isValid() && val.isAfter(endDate, 'day')) {
+                    setEndDate(val);
                   }
                 }}
                 slotProps={{
@@ -254,7 +283,13 @@ function RecalculatorAbonent() {
                 label={t('recalculator.to')}
                 format="DD.MM.YY"
                 value={endDate}
-                onChange={setEndDate}
+                onChange={(newEnd) => {
+                  let val = newEnd;
+                  if (val?.isValid() && val.isAfter(maxDate, 'day')) {
+                    val = maxDate;
+                  }
+                  setEndDate(val);
+                }}
                 disabled={aktType === 'death'}
                 slotProps={{
                   textField: {

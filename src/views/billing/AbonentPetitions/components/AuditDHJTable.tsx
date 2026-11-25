@@ -51,7 +51,7 @@ const fmt = (v: unknown) => (typeof v === 'number' ? v.toLocaleString('ru-RU') :
 export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
   ariza,
   title = "DHJ jadvalida qayta hisobning aks etishi",
-  maxHeight = 440
+  maxHeight = 520
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -540,7 +540,9 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
         bgcolor: 'background.paper',
         display: 'flex',
         flexDirection: 'column',
-        gap: 1.5
+        gap: 1.5,
+        boxSizing: 'border-box',
+        ...(typeof maxHeight === 'string' && maxHeight.includes('vh') ? { height: '100%' } : {})
       }}
     >
       {/* Header bar with controls */}
@@ -601,7 +603,17 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
       </Typography>
 
       {/* Main Table Container */}
-      <Box sx={{ height: maxHeight, width: '100%' }}>
+      <Box
+        sx={{
+          height: maxHeight,
+          width: '100%',
+          minHeight: 360,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          ...(typeof maxHeight === 'string' && maxHeight.includes('vh') ? { flex: 1 } : {})
+        }}
+      >
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <CircularProgress size={32} />
@@ -631,15 +643,27 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
             columns={columns}
             rows={displayedRows}
             density="compact"
-            hideFooter={displayedRows.length <= 15}
+            pageSizeOptions={[15, 25, 50, 100]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 15 } }
+              pagination: { paginationModel: { pageSize: 25 } }
             }}
-            pageSizeOptions={[15, 30, 50, 100]}
             sx={{
+              height: '100%',
+              width: '100%',
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 2,
+              '& .MuiDataGrid-main': {
+                overflow: 'hidden'
+              },
+              '& .MuiDataGrid-virtualScroller': {
+                overflowY: 'auto !important'
+              },
+              '& .MuiDataGrid-footerContainer': {
+                borderTop: '1px solid',
+                borderColor: 'divider',
+                minHeight: 46
+              },
               '& .MuiDataGrid-columnHeaders': {
                 bgcolor: theme.palette.mode === 'dark' ? 'background.default' : 'grey.100',
                 borderBottom: '1px solid',

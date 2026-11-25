@@ -1,4 +1,4 @@
-import { Box, Button, Chip, IconButton, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, IconButton, Stack, Tab, Tabs, TextField, Tooltip, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import {
   ArrowDownward,
@@ -6,14 +6,20 @@ import {
   Close,
   Delete,
   EditOutlined,
+  ExpandLess,
+  ExpandMore,
   HighlightOff,
   UploadFileOutlined,
   Visibility,
   VisibilityOff
 } from '@mui/icons-material';
-import { ReactNode } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
+import { ReactNode, useMemo, useState } from 'react';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { t } from 'i18next';
+import dayjs from 'dayjs';
+import { useTariff } from 'hooks/useTariff';
+import { colors } from 'store/constant';
+import { davrToMonth, periodMonthRange } from 'views/billing/CreateAbonentPetition.jsx/useStore';
 import useCustomizationStore from 'store/customizationStore';
 import { getArizaNextInhabitant, IRow } from '../../hooks/useFindedTableLogic';
 import { AdjustmentAlert } from './AdjustmentAlert';
@@ -395,9 +401,318 @@ export function ArizaMode({
   const nextInhabitant = getArizaNextInhabitant(ariza, rows[0]?.yashovchilar_soni);
   // "Ikkilamchi" yorlig'i faqat dvaynik arizada bor: unda o'chiriladigan hisob raqamining DHJ si ko'rinadi
   const showDublicateTab = isDvaynik && tabIndex === 1;
-  const visibleRows = (
-    showDublicateTab ? rowsDublicate : showSpoiler && rowAfterAkt ? [rowAfterAkt as IRow, ...rows.slice(1)] : rows
-  ).slice(0, DHJ_VISIBLE_MONTHS);
+
+  const { tariffs } = useTariff();
+  const [isTableExpanded, setIsTableExpanded] = useState(false);
+
+  // Recalculation periods from ariza
+  const periods: any[] = useMemo(() => {
+    if (Array.isArray(ariza?.recalculationPeriods) && ariza.recalculationPeriods.length > 0) {
+      return ariza.recalculationPeriods;
+    }
+    if (Array.isArray(ariza?.bosqichlar) && ariza.bosqichlar.length > 0) {
+      return ariza.bosqichlar.map((b: any, i: number) => {
+        const [fm, fy] = b.from.split('.').map(Number);
+        const [tm, ty] = b.to.split('.').map(Number);
+        return {
+          startDate: dayjs(new Date(fy, fm - 1, 1)),
+          endDate: dayjs(new Date(ty, tm - 1, 1)),
+          yashovchilar_soni: b.count,
+          color: colors[i % colors.length]
+        };
+      });
+    }
+    return [];
+  }, [ariza]);
+
+  const verifiedNextInhabitant = useMemo(() => {
+    if (ariza?.next_prescribed_cnt !== undefined && ariza?.next_prescribed_cnt !== null) {
+      return Number(ariza.next_prescribed_cnt);
+    }
+    return undefined;
+  }, [ariza?.next_prescribed_cnt]);
+
+  const marksByMonth = useMemo(() => {
+    const map = new Map<string, { color: string; count?: number; delta?: number; periodIndex: number }[]>();
+    periods.forEach((period, index) => {
+      const range = periodMonthRange(period);
+      if (!range) return;
+      for (let m = range.from; !m.isAfter(range.to, 'month'); m = m.add(1, 'month')) {
+        const key = m.format('M.YYYY');
+        const periodDelta =
+          period.yashovchiDelta !== undefined
+            ? Number(period.yashovchiDelta)
+            : period.periodType === 'kreditor'
+            ? -1
+            : period.periodType === 'debitor'
+            ? 1
+            : -1;
+
+        map.set(key, [
+          ...(map.get(key) || []),
+          {
+            color: period.color || colors[index % colors.length] || '2196f3',
+            count: period.yashovchilar_soni,
+            delta: periodDelta,
+            periodIndex: index + 1
+          }
+        ]);
+      }
+    });
+    return map;
+  }, [periods]);
+
+  const monthMarks = (davr: string) => {
+    const d = davrToMonth(davr);
+    return (d && marksByMonth.get(d.format('M.YYYY'))) || [];
+  };
+
+  const previewFor = (row: any) => {
+    if (!showSpoiler || showDublicateTab || row?.isAfterAktRow || row?.id === 'after-akt') return null;
+    const marks = monthMarks(row.davr);
+    const d = davrToMonth(row.davr);
+    if (!marks.length || !d) return null;
+    const oldCount = Number(row.yashovchilar_soni) || 0;
+
+    if (ariza?.document_type === 'gps') {
+      return {
+        count: oldCount,
+        oldCount,
+        newNachis: 0,
+        diff: Number(row.nachis) || 0,
+        periodIndex: marks[0]?.periodIndex || 1,
+        color: marks[0]?.color || '2196f3'
+      };
+    }
+
+    const y = d.year();
+    const m = d.month() + 1;
+    const foundTariff = tariffs.find((t) => t.year === y && t.month === m);
+    let rate = 4000;
+    if (foundTariff) rate = foundTariff.hisoblandi || 4000;
+    else if (y < 2021) rate = 2000;
+    else if (y < 2023) rate = 2600;
+    else if (y === 2023) rate = 3500;
+
+    let count = oldCount;
+    const absolute = marks.find((mark) => mark.count !== undefined && mark.count !== null);
+    if (absolute) {
+      count = Number(absolute.count);
+    } else if (verifiedNextInhabitant !== undefined && ariza?.document_type === 'odam_soni') {
+      count = verifiedNextInhabitant;
+    } else {
+      const delta = marks.reduce((acc, mark) => acc + (Number(mark.delta) || 0), 0);
+      count = Math.max(0, oldCount + delta);
+    }
+
+    const newNachis = count * rate;
+    const diff = (oldCount - count) * rate;
+
+    return {
+      count,
+      oldCount,
+      newNachis,
+      diff,
+      periodIndex: marks[0]?.periodIndex || 1,
+      color: marks[0]?.color || '2196f3'
+    };
+  };
+
+  const allActiveRows = useMemo(() => {
+    if (showDublicateTab) {
+      return rowsDublicate || [];
+    }
+    if (showSpoiler && rowAfterAkt) {
+      return [{ ...rowAfterAkt, id: 'after-akt', isAfterAktRow: true }, ...rows.slice(1)];
+    }
+    return rows || [];
+  }, [rows, rowAfterAkt, showSpoiler, showDublicateTab, rowsDublicate]);
+
+  const visibleRows = useMemo(() => {
+    if (isTableExpanded) {
+      return allActiveRows;
+    }
+    return allActiveRows.slice(0, DHJ_VISIBLE_MONTHS);
+  }, [allActiveRows, isTableExpanded]);
+
+  const enhancedColumns: GridColDef[] = useMemo(() => {
+    return [
+      {
+        field: 'id',
+        headerName: '№',
+        width: 34,
+        sortable: false,
+        renderCell: (params) => (params.row.isAfterAktRow || params.row.id === 'after-akt' ? '★' : params.value)
+      },
+      {
+        field: 'davr',
+        headerName: t('tableHeaders.period'),
+        width: 82,
+        sortable: false,
+        renderCell: (params) => {
+          const marks = monthMarks(params.row.davr);
+          const hasRecalc = showSpoiler && !showDublicateTab && marks.length > 0;
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', gap: 0.6 }}>
+              {hasRecalc && (
+                <Box
+                  sx={{
+                    width: 4,
+                    height: '70%',
+                    borderRadius: 1,
+                    bgcolor: '#' + (marks[0]?.color || '2196f3')
+                  }}
+                />
+              )}
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: hasRecalc || params.row.isAfterAktRow ? 800 : 500,
+                  fontSize: '0.8rem',
+                  color: hasRecalc ? '#' + (marks[0]?.color || '2196f3') : 'inherit'
+                }}
+              >
+                {params.row.davr}
+              </Typography>
+            </Box>
+          );
+        }
+      },
+      {
+        field: 'nachis',
+        headerName: t('tableHeaders.nachis'),
+        type: 'number',
+        flex: 1,
+        minWidth: 85,
+        sortable: false,
+        renderCell: (params) => {
+          const preview = previewFor(params.row);
+          if (!preview) {
+            return (
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: params.row.isAfterAktRow ? 800 : 500,
+                  fontSize: '0.8rem',
+                  color: params.row.isAfterAktRow ? 'warning.dark' : 'inherit'
+                }}
+              >
+                {Number(params.row.nachis || 0).toLocaleString()}
+              </Typography>
+            );
+          }
+          return (
+            <Tooltip
+              arrow
+              title={`${preview.oldCount} kishi o‘rniga ${preview.count} kishi · Farq: ${preview.diff > 0 ? '+' : ''}${Number(preview.diff).toLocaleString()} so'm`}
+            >
+              <Box sx={{ lineHeight: 1.15, textAlign: 'right' }}>
+                <Box
+                  component="span"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                    color: preview.diff > 0 ? 'success.main' : preview.diff < 0 ? 'error.main' : 'text.primary'
+                  }}
+                >
+                  {Number(preview.newNachis).toLocaleString()}
+                </Box>
+                <Box component="span" sx={{ display: 'block', fontSize: '9px', color: 'text.disabled', textDecoration: 'line-through' }}>
+                  {Number(params.row.nachis || 0).toLocaleString()}
+                </Box>
+              </Box>
+            </Tooltip>
+          );
+        }
+      },
+      {
+        field: 'allPaymentsSum',
+        headerName: t('tableHeaders.allPaymentsSum'),
+        type: 'number',
+        flex: 1,
+        minWidth: 80,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+            {Number(params.row.allPaymentsSum || 0).toLocaleString()}
+          </Typography>
+        )
+      },
+      {
+        field: 'saldo_k',
+        headerName: t('tableHeaders.kSaldo'),
+        type: 'number',
+        flex: 1.3,
+        minWidth: 95,
+        sortable: false,
+        cellClassName: 'saldo-k-cell',
+        headerClassName: 'saldo-k-cell',
+        renderCell: (params) => (
+          <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+            {Number(params.row.saldo_k || 0).toLocaleString()}
+          </Typography>
+        )
+      },
+      {
+        field: 'akt',
+        headerName: t('tableHeaders.act'),
+        type: 'number',
+        width: 80,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: params.row.akt !== 0 ? 700 : 500,
+              fontSize: '0.8rem',
+              color: params.row.akt < 0 ? 'error.main' : params.row.akt > 0 ? 'success.main' : 'inherit'
+            }}
+          >
+            {Number(params.row.akt || 0).toLocaleString()}
+          </Typography>
+        )
+      },
+      {
+        field: 'yashovchilar_soni',
+        headerName: '👥',
+        description: t('tableHeaders.inhabitantCount'),
+        type: 'number',
+        width: 55,
+        align: 'center',
+        headerAlign: 'center',
+        sortable: false,
+        renderCell: (params) => {
+          const preview = previewFor(params.row);
+          if (!preview || preview.count === preview.oldCount) {
+            return (
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: params.row.isAfterAktRow ? 800 : 600,
+                  fontSize: '0.8rem',
+                  color: params.row.isAfterAktRow ? 'warning.dark' : 'inherit'
+                }}
+              >
+                {params.row.yashovchilar_soni}
+              </Typography>
+            );
+          }
+          return (
+            <Tooltip title={`${preview.oldCount} → ${preview.count} kishi`} arrow>
+              <Box component="span" sx={{ whiteSpace: 'nowrap', fontWeight: 700, fontSize: '0.8rem' }}>
+                <Box component="span" sx={{ color: 'text.disabled', textDecoration: 'line-through', mr: 0.25 }}>
+                  {preview.oldCount}
+                </Box>
+                <Box component="b" sx={{ color: preview.count < preview.oldCount ? 'success.main' : 'error.main' }}>
+                  {preview.count}
+                </Box>
+              </Box>
+            </Tooltip>
+          );
+        }
+      }
+    ];
+  }, [showSpoiler, showDublicateTab, tariffs, marksByMonth, verifiedNextInhabitant, ariza]);
 
   const handleApplyAdjustment = (sum: string) => {
     setAktSumm(sum);
@@ -443,9 +758,9 @@ export function ArizaMode({
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: '100%', minHeight: 0 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: '100%', minHeight: 0, overflow: 'hidden' }}>
       {/* 1. Yuqori Ma'lumotlar Qismi — ixcham 2 ustunli */}
-      <Box sx={{ px: 1, pt: 0.5, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 2, rowGap: 0.75 }}>
+      <Box sx={{ flexShrink: 0, px: 1, pt: 0.5, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 2, rowGap: 0.75 }}>
         <InfoCell label="Hisob raqami">{ariza?.licshet || '—'}</InfoCell>
         <InfoCell label="Holat">
           <Box
@@ -495,14 +810,35 @@ export function ArizaMode({
         </InfoCell>
       </Box>
 
-      {isKuchirish && <KuchirishPanel ariza={ariza} />}
-      {isDvaynik && !isKuchirish && <DvaynikMergePanel ariza={ariza} rowsDublicate={rowsDublicate} transferAmount={Number(allPaymentsSumOnDublicate) || 0} />}
+      {isKuchirish && (
+        <Box sx={{ flexShrink: 0 }}>
+          <KuchirishPanel ariza={ariza} />
+        </Box>
+      )}
+      {isDvaynik && !isKuchirish && (
+        <Box sx={{ flexShrink: 0 }}>
+          <DvaynikMergePanel ariza={ariza} rowsDublicate={rowsDublicate} transferAmount={Number(allPaymentsSumOnDublicate) || 0} />
+        </Box>
+      )}
 
-      {!isKuchirish && <AdjustmentAlert adjustmentData={adjustmentData} aktSumm={aktSumm} onApplyRecommendedSum={handleApplyAdjustment} />}
+      {!isKuchirish && (
+        <Box sx={{ flexShrink: 0 }}>
+          <AdjustmentAlert adjustmentData={adjustmentData} aktSumm={aktSumm} onApplyRecommendedSum={handleApplyAdjustment} />
+        </Box>
+      )}
 
-      {/* 3. Jadval — faqat oxirgi oylar */}
-      <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* 3. Jadval */}
+      <Box
+        sx={{
+          flex: isTableExpanded ? 1 : 'none',
+          minHeight: isTableExpanded ? 0 : 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          overflow: 'hidden'
+        }}
+      >
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, mb: 0.5 }}>
           <Tabs
             value={isDvaynik ? tabIndex : 0}
             onChange={!isLoading ? handleTabChange : undefined}
@@ -525,31 +861,80 @@ export function ArizaMode({
             size="small"
             disabled={isLoading || showDublicateTab}
             onClick={() => setShowSpoiler(!showSpoiler)}
-            title="Akt kiritilgandan keyingi holat"
+            title="Akt kiritilgandan keyingi holat va qayta hisob auditi"
+            color={showSpoiler ? 'primary' : 'default'}
+            sx={{ bgcolor: showSpoiler ? 'action.selected' : 'transparent' }}
           >
             {showSpoiler ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
           </IconButton>
         </Stack>
-        <DataGrid
-          rows={visibleRows}
-          columns={columns}
-          hideFooter
-          density="compact"
-          disableColumnMenu
-          getRowId={(row) => row.id}
-          localeText={{ noRowsLabel: showDublicateTab ? "Ikkilamchi hisob raqamining DHJ si topilmadi" : "Ma'lumot yo'q" }}
-          sx={{
-            flex: 1,
-            minHeight: 0,
-            '.first-row': { bgcolor: isDark ? 'warning.dark' : 'warning.light' },
-            '.saldo-k-cell': { fontWeight: 700, fontSize: '0.85rem' }
-          }}
-          getRowClassName={(params) => (params.indexRelativeToCurrentPage === 0 && !showDublicateTab ? 'first-row' : '')}
-        />
+        <Box sx={{ height: isTableExpanded ? '100%' : 205, width: '100%', minHeight: 0 }}>
+          <DataGrid
+            rows={visibleRows}
+            columns={enhancedColumns}
+            hideFooter
+            density="compact"
+            disableColumnMenu
+            getRowId={(row) => row.id}
+            localeText={{ noRowsLabel: showDublicateTab ? "Ikkilamchi hisob raqamining DHJ si topilmadi" : "Ma'lumot yo'q" }}
+            sx={{
+              height: '100%',
+              width: '100%',
+              '.first-row': { bgcolor: isDark ? 'warning.dark' : 'warning.light' },
+              '.recalc-row': {
+                bgcolor: (theme) => alpha(theme.palette.primary.main, isDark ? 0.12 : 0.05),
+                '&:hover': {
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, isDark ? 0.18 : 0.09)
+                }
+              },
+              '.saldo-k-cell': { fontWeight: 700, fontSize: '0.85rem' }
+            }}
+            getRowClassName={(params) => {
+              if (params.row.isAfterAktRow || (params.indexRelativeToCurrentPage === 0 && !showDublicateTab && showSpoiler)) {
+                return 'first-row';
+              }
+              if (previewFor(params.row)) {
+                return 'recalc-row';
+              }
+              return '';
+            }}
+          />
+        </Box>
+
+        {/* DHJ jadvalidan keyin ochish/yopish tugmasi */}
+        {allActiveRows.length > DHJ_VISIBLE_MONTHS && (
+          <Button
+            size="small"
+            variant="outlined"
+            color="primary"
+            onClick={() => setIsTableExpanded(!isTableExpanded)}
+            startIcon={isTableExpanded ? <ExpandLess sx={{ fontSize: 18 }} /> : <ExpandMore sx={{ fontSize: 18 }} />}
+            sx={{
+              mt: 0.75,
+              py: 0.35,
+              minHeight: 28,
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              textTransform: 'none',
+              flexShrink: 0,
+              borderRadius: 1.5,
+              borderColor: 'divider',
+              bgcolor: isDark ? 'background.paper' : 'grey.50',
+              '&:hover': {
+                bgcolor: 'action.hover',
+                borderColor: 'primary.main'
+              }
+            }}
+          >
+            {isTableExpanded
+              ? `Jadvalni qisqartirish (5 ta oy)`
+              : `To‘liq DHJ jadvalini ko‘rish (${allActiveRows.length} ta oy)`}
+          </Button>
+        )}
       </Box>
 
       {/* 4. Pastki Tugmalar */}
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} sx={{ flexShrink: 0, pt: 0.5 }}>
         <Button
           id="tour-import-confirm-action"
           startIcon={<UploadFileOutlined />}

@@ -362,8 +362,8 @@ function AbonentPetition() {
                 overflow: 'hidden'
               }}
             >
-              <Box sx={{ flex: 1, p: currentTab === 'dhj' ? 0 : 1.5, overflowY: 'auto' }}>
-                {currentTab === 'dhj' && <AuditDHJTable ariza={ariza} maxHeight="calc(100vh - 300px)" />}
+              <Box sx={{ flex: 1, p: currentTab === 'dhj' ? 0 : 1.5, overflowY: currentTab === 'dhj' ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column' }}>
+                {currentTab === 'dhj' && <AuditDHJTable ariza={ariza} maxHeight="calc(100vh - 360px)" />}
                 {currentTab === 'aktInfo' && <AktInfoCard />}
                 {currentTab === 'calculator' && <Recalculate />}
               </Box>

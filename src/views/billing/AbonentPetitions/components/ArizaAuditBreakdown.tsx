@@ -1073,7 +1073,7 @@ export const ArizaAuditBreakdown: React.FC<ArizaAuditBreakdownProps> = ({
                 </Card>
 
                 {/* Audit DHJ Table (Showing recalculation impact on resident statements) */}
-                <AuditDHJTable ariza={ariza} />
+                <AuditDHJTable ariza={ariza} maxHeight={560} />
               </>
             )}
 
