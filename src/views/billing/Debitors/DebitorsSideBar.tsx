@@ -100,6 +100,9 @@ export function Sidebar({
   const [pendingJobAction, setPendingJobAction] = React.useState<{ endpoint: string; jobKey: string } | null>(null);
   const [skipSmsValue, setSkipSmsValue] = React.useState<boolean>(false);
   const [limitValue, setLimitValue] = React.useState<string>('');
+  const [verifiedDebtEnabled, setVerifiedDebtEnabled] = React.useState<boolean>(false);
+  const [verifiedDebtMin, setVerifiedDebtMin] = React.useState<string>('');
+  const [verifiedDebtMax, setVerifiedDebtMax] = React.useState<string>('');
 
   // Joblarning oxirgi ishga tushirilishi, Job 0 ning 3 soatlik cheklovi
   const [syncInfo, setSyncInfo] = React.useState<SyncInfo | null>(null);
@@ -214,15 +217,23 @@ export function Sidebar({
     setPendingJobAction({ endpoint, jobKey });
     setSkipSmsValue(false);
     setLimitValue('');
+    setVerifiedDebtEnabled(false);
+    setVerifiedDebtMin('');
+    setVerifiedDebtMax('');
     setSmsConfirmOpen(true);
   };
 
   const confirmAndStartJob = () => {
     if (pendingJobAction) {
       const parsedLimit = limitValue ? Number(limitValue) : undefined;
+      const minDebt = verifiedDebtEnabled && verifiedDebtMin ? Number(verifiedDebtMin) : undefined;
+      const maxDebt = verifiedDebtEnabled && verifiedDebtMax ? Number(verifiedDebtMax) : undefined;
+
       handleTriggerJob(pendingJobAction.endpoint, pendingJobAction.jobKey, {
         skipSms: skipSmsValue,
-        limit: parsedLimit && parsedLimit > 0 ? parsedLimit : undefined
+        limit: parsedLimit && parsedLimit > 0 ? parsedLimit : undefined,
+        verifiedDebtMin: minDebt,
+        verifiedDebtMax: maxDebt
       });
     }
     setSmsConfirmOpen(false);
@@ -505,6 +516,76 @@ export function Sidebar({
               />
             ))}
           </Stack>
+
+          <Divider sx={{ my: 2 }} />
+
+          {/* Qo'shimcha parametr: Ishlashi tekshirilgan raqamlarga qarzdorlik oralig'ida SMS */}
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+              border: '1px solid',
+              borderColor: 'divider',
+              mb: 1.5
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={verifiedDebtEnabled}
+                  onChange={(e) => setVerifiedDebtEnabled(e.target.checked)}
+                  color="primary"
+                  size="small"
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    🟢 Tasdiqlangan raqamlarga ham SMS yuborilsinmi?
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Ishlashi tekshirilgan raqamlardan qarzdorligi belgilangan oraliqdagi abonentlarga qo'shimcha ogohlantirish yuborish.
+                  </Typography>
+                </Box>
+              }
+            />
+
+            {verifiedDebtEnabled && (
+              <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 1 }}>
+                  Qarzdorlik miqdori oralig'i (so'm):
+                </Typography>
+                <Stack direction="row" spacing={1.5} sx={{ mb: 1 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type="number"
+                    label="Minimal qarz"
+                    placeholder="Masalan: 50000"
+                    value={verifiedDebtMin}
+                    onChange={(e) => setVerifiedDebtMin(e.target.value)}
+                  />
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type="number"
+                    label="Maksimal qarz"
+                    placeholder="Cheksiz (bo'sh)"
+                    value={verifiedDebtMax}
+                    onChange={(e) => setVerifiedDebtMax(e.target.value)}
+                  />
+                </Stack>
+                <Alert severity="warning" sx={{ py: 0.3, px: 1, fontSize: 11 }}>
+                  🔒 <b>1 oyda faqat 1 martagina SMS:</b> Hatto ushbu oraliqda bo'lsa ham, oxirgi 30 kun ichida SMS borgan raqamlarga takroriy SMS yuborilmaydi!
+                </Alert>
+              </Box>
+            )}
+          </Box>
+
+          <Alert severity="info" sx={{ mt: 1.5, py: 0.4, px: 1, fontSize: 11 }}>
+            ℹ️ <b>Yangi tekshiruv qoidalari:</b> 1 siklda 3 ta urinish (6 soatlik tanaffus bilan). 3 ta urinish yetkazilmasa 90 kun tanaffus. Yetkazilgan (Delivered) raqam 180 kun amal qiladi.
+          </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSmsConfirmOpen(false)} variant="outlined" color="inherit">
