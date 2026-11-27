@@ -3,6 +3,7 @@ import { Box, Chip, CircularProgress, IconButton, Tooltip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid';
 import { t } from 'i18next';
 import { Link } from 'react-router-dom';
+import { isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 
 interface ColumnsProps {
   onOpenRejectDialog: (row: any) => void;
@@ -144,6 +145,7 @@ export const getColumns = ({ onOpenRejectDialog, onMoveToInbox, onPrint, printin
         const isPrintingThis = printingId === e.row._id;
         const isCancelDisabled = e.row.status === 'tasdiqlangan' || e.row.status === 'bekor qilindi';
         const isAcceptDisabled = e.row.status !== 'yangi';
+        const isBlocked = isMahallaBlockedForPetition(e.row.mahallaId);
 
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -181,12 +183,12 @@ export const getColumns = ({ onOpenRejectDialog, onMoveToInbox, onPrint, printin
               </span>
             </Tooltip>
 
-            <Tooltip title={t('tableActions.print', 'Chop etish')} arrow enterDelay={200}>
+            <Tooltip title={isBlocked ? BLOCKED_MAHALLA_PETITION_MESSAGE : t('tableActions.print', 'Chop etish')} arrow enterDelay={200}>
               <span>
                 <IconButton
                   size="small"
                   color="info"
-                  disabled={isPrintingThis}
+                  disabled={isBlocked || isPrintingThis}
                   onClick={() => onPrint(e.row._id)}
                   sx={{
                     p: 0.6,

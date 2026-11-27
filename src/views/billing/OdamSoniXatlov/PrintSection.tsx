@@ -1,13 +1,16 @@
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, InputLabel, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { lotinga } from 'helpers/lotinKiril';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import fullNameToShortName from 'views/tools/fullNameToShortName';
 import odamSoniXatlovStore from './odamSoniXatlovStore';
 import { useReactToPrint } from 'react-to-print';
 import { QRCodeCanvas } from 'qrcode.react';
 import { reactToPrintDefaultOptions } from 'store/constant';
 import useCustomizationStore from 'store/customizationStore';
+import { getMahallaById } from 'services/getMahallaById';
+import { matchYettilikRole } from 'views/billing/CreateAbonentPetition.jsx/participantResolver';
+import { IMahalla } from 'types/billing';
 
 const oylar = ['Январ', 'Февраль', 'Март', 'Апрель', 'Май', 'Июн', 'Июл', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабр'];
 const raqamlar = [
@@ -49,14 +52,55 @@ function PrintSection() {
   const [mfyRaisi, setMfyRaisi] = useState(true);
   const { dalolatnoma, ui, setPrintModal } = odamSoniXatlovStore();
   const { mahalla } = dalolatnoma;
+  const [mahallaDetails, setMahallaDetails] = useState<IMahalla | null>(null);
+
   const printComponentRef = useRef(null);
   const printFunction = useReactToPrint({
     ...reactToPrintDefaultOptions,
-    documentTitle: mahalla?.name + 'xatlov',
+    documentTitle: (mahalla?.name || 'mahalla') + ' xatlov',
     contentRef: printComponentRef
   });
-  const { company, user } = useCustomizationStore();
+  const { company } = useCustomizationStore();
   const date = new Date();
+
+  useEffect(() => {
+    if (mahalla?.id && (!mahalla.employees || mahalla.employees.length === 0)) {
+      getMahallaById(String(mahalla.id))
+        .then((res) => {
+          if (res?.data) {
+            setMahallaDetails(res.data);
+          }
+        })
+        .catch((err) => {
+          console.error('Mahalla xodimlarini yuklashda xatolik:', err);
+        });
+    }
+  }, [mahalla?.id, mahalla?.employees]);
+
+  const currentMahalla = mahallaDetails || mahalla;
+  const employees = currentMahalla?.employees || [];
+
+  const findEmployee = (roleKey: string, fallbackKeywords: string[]) => {
+    const matchedEmp = employees.find((emp: any) => {
+      if (!emp?.fullName?.trim() || !emp?.position?.trim()) return false;
+      const matched = matchYettilikRole(emp.position);
+      if (matched && matched.roleKey === roleKey) return true;
+      const pos = emp.position.toLowerCase();
+      return fallbackKeywords.some((kw) => pos.includes(kw));
+    });
+    return matchedEmp?.fullName?.trim() || '';
+  };
+
+  const hokimYordamchisiName = findEmployee('hokim_yordamchisi', ['hokim', 'xokim', 'yordamchi']);
+  const yoshlarYetakchisiName = findEmployee('yoshlar_yetakchisi', ['yoshlar', 'yetakchi']);
+  const profilaktikaInspektoriName = findEmployee('profilaktika_inspektori', ['profilaktika', 'uchastkavoy', 'inspektor']);
+
+  const nazoratchiName =
+    currentMahalla?.biriktirilganNazoratchi?.inspector_name?.trim() ||
+    (currentMahalla as any)?.biriktirilganNazoratchi?.name?.trim() ||
+    findEmployee('aholi_nazoratchisi', ['nazoratchi', 'aholi nazoratchisi']) ||
+    '';
+
   return (
     <Dialog
       open={ui.isPrintModalOpen}
@@ -93,19 +137,19 @@ function PrintSection() {
                 &quot;{date.getDate()}&quot; {lotinga(oylar[date.getMonth()])} {date.getFullYear()} yil
               </div>
               <div>
-                {company?.locationName} {lotinga(mahalla?.name)}
+                {company?.locationName} {lotinga(currentMahalla?.name)}
               </div>
             </div>
-            <p style={{ textIndent: '25px' }}>
-              Bizlar kim imzo chekuvchilar {company?.locationName} {lotinga(mahalla?.name)} MFY raisi{' '}
-              {fullNameToShortName(mahalla?.mfy_rais_name) || '________________'}, {company.name} rahbari{' '}
-              {fullNameToShortName(company.managerName) || '________________'} va abonentlar bilan ishlash bo‘limi xodimi{' '}
-              {fullNameToShortName(
-                (dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName
-              ) || '________________'} mazkur dalolatnomani shu haqida tuzdik.
+            <p style={{ textIndent: '25px', lineHeight: '1.6' }}>
+              Bizlar kim imzo chekuvchilar {company?.locationName} {lotinga(currentMahalla?.name)} MFY raisi{' '}
+              {fullNameToShortName(currentMahalla?.mfy_rais_name) || '________________'}, Aholi nazoratchisi{' '}
+              {fullNameToShortName(nazoratchiName) || '________________'}, Yoshlar yetakchisi{' '}
+              {fullNameToShortName(yoshlarYetakchisiName) || '________________'}, Profilaktika inspektori{' '}
+              {fullNameToShortName(profilaktikaInspektoriName) || '________________'} va Hokim yordamchisi{' '}
+              {fullNameToShortName(hokimYordamchisiName) || '________________'} mazkur dalolatnomani shu haqida tuzdik.
             </p>
             <p style={{ textIndent: '25px' }}>
-              {lotinga(mahalla?.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma&#39;lum
+              {lotinga(currentMahalla?.name)} MFY-da xatlov o‘tkazilganda quyidagi jadvaldagi abonentlar yashovchi sonlari o‘zgarganligi ma&#39;lum
               bo‘ldi.
             </p>
             <table
@@ -154,28 +198,41 @@ function PrintSection() {
                 ))}
               </tbody>
             </table>
-            <p>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
-            <ImzoJoyiRow label={`${company.name} ${company.locationName} filiali rahbari:`} name={company.managerName} />
-            <br />
-            <ImzoJoyiRow
-              label="Abonentlar bilan ishlash bo‘limi xodimi:"
-              name={
-                (dalolatnoma as any)?.creatorName || (dalolatnoma as any)?.creator?.fullName || user?.fullName || company.billingAdminName
-              }
-            />
-            <br />
-            {mfyRaisi && <ImzoJoyiRow label={lotinga(mahalla?.name) + ' MFY raisi:'} name={fullNameToShortName(mahalla?.mfy_rais_name)} />}
-            <br />
-            <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+            <p style={{ marginTop: '20px', marginBottom: '12px' }}>Ushbu dalolatnomani to‘g‘ri deb imzo chekuvchilar:</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {mfyRaisi && (
+                <ImzoJoyiRow
+                  label={lotinga(currentMahalla?.name) + ' MFY raisi:'}
+                  name={currentMahalla?.mfy_rais_name || ''}
+                />
+              )}
+              <ImzoJoyiRow
+                label="Hokim yordamchisi:"
+                name={hokimYordamchisiName}
+              />
+              <ImzoJoyiRow
+                label="Yoshlar yetakchisi:"
+                name={yoshlarYetakchisiName}
+              />
+              <ImzoJoyiRow
+                label="Profilaktika inspektori:"
+                name={profilaktikaInspektoriName}
+              />
+              <ImzoJoyiRow
+                label="Aholi nazoratchisi:"
+                name={nazoratchiName}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
               <QRCodeCanvas
                 value={`XatlovOdamSoni_${dalolatnoma._id}_${dalolatnoma.documentNumber}`}
-                size={150}
+                size={140}
                 bgColor={'#ffffff'}
                 fgColor={'#000000'}
                 level={'Q'}
                 includeMargin={true}
               />
-              <p>{dalolatnoma?.documentNumber}</p>
+              <p style={{ margin: '4px 0 0 0', fontWeight: 600 }}>{dalolatnoma?.documentNumber}</p>
             </div>
           </div>
         </div>
@@ -202,10 +259,10 @@ function PrintSection() {
   );
 }
 const ImzoJoyiRow = ({ label, placeholder = '___________', name }: { label: string; placeholder?: string; name: string }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-    <div style={{ width: 300 }}>{label}</div>
-    <div>{placeholder}</div>
-    <div style={{ width: 200 }}>{fullNameToShortName(name)}</div>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ width: 300, fontWeight: 500 }}>{label}</div>
+    <div style={{ letterSpacing: '2px' }}>{placeholder}</div>
+    <div style={{ width: 200, textAlign: 'right' }}>{fullNameToShortName(name) || (name ? name : '________________')}</div>
   </div>
 );
 

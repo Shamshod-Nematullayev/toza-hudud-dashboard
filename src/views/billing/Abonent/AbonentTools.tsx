@@ -39,6 +39,7 @@ import { useAbonentLogic } from './hooks/useAbonentLogic';
 import MainPopper from 'ui-component/cards/MainPopper';
 import { IconCertificate, IconFileSpreadsheet } from '@tabler/icons-react';
 import BindingElectrAccountsModal from './modals/BindingElectrAccountsModal';
+import { isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 
 type TabType = 'details' | 'dhj' | 'ariza' | 'acts';
 
@@ -97,6 +98,7 @@ function AbonentTools() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isDark = theme.palette.mode === 'dark';
+  const isBlockedMahalla = isMahallaBlockedForPetition(abonentDetails?.mahallaId);
   const [anchorElMore, setAnchorElMore] = useState<null | HTMLElement>(null);
   const [anchorElActions, setAnchorElActions] = useState<null | HTMLElement>(null);
   const [anchorElPrint, setAnchorElPrint] = useState<null | HTMLElement>(null);
@@ -304,21 +306,27 @@ function AbonentTools() {
               >
                 <ElectricBolt sx={{ mr: 1 }} /> {t('tableHeaders.electricityAccountNumber')}
               </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  navigate('/billing/createAbonentAriza', {
-                    state: {
-                      abonentData: {
-                        ...abonentDetails,
-                        dhjRows: dhjRows
-                      }
-                    }
-                  });
-                  setAnchorElMore(null);
-                }}
-              >
-                <PetitionIcon sx={{ mr: 1 }} /> {t('buttons.createAbonentPetition')}
-              </MenuItem>
+              <Tooltip title={isBlockedMahalla ? BLOCKED_MAHALLA_PETITION_MESSAGE : ''} arrow placement="left">
+                <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                  <MenuItem
+                    disabled={isBlockedMahalla}
+                    onClick={() => {
+                      if (isBlockedMahalla) return;
+                      navigate('/billing/createAbonentAriza', {
+                        state: {
+                          abonentData: {
+                            ...abonentDetails,
+                            dhjRows: dhjRows
+                          }
+                        }
+                      });
+                      setAnchorElMore(null);
+                    }}
+                  >
+                    <PetitionIcon sx={{ mr: 1 }} /> {t('buttons.createAbonentPetition')}
+                  </MenuItem>
+                </Box>
+              </Tooltip>
               <MenuItem
                 onClick={() => {
                   handleRefreshDetails();
@@ -453,26 +461,31 @@ function AbonentTools() {
             <Button sx={btnStyle} startIcon={<ElectricBolt />} onClick={() => setOpenEditElectricAccountState(true)}>
               {t('tableHeaders.electricityAccountNumber')}
             </Button>
-            <Button
-              startIcon={<PetitionIcon />}
-              onClick={() =>
-                navigate('/billing/createAbonentAriza', {
-                  state: {
-                    abonentData: {
-                      ...abonentDetails
-                    },
-                    dhjRows: dhjRows
+            <Tooltip title={isBlockedMahalla ? BLOCKED_MAHALLA_PETITION_MESSAGE : ''} arrow placement="top">
+              <Box component="span" sx={{ display: 'inline-flex' }}>
+                <Button
+                  disabled={isBlockedMahalla}
+                  startIcon={<PetitionIcon />}
+                  onClick={() =>
+                    navigate('/billing/createAbonentAriza', {
+                      state: {
+                        abonentData: {
+                          ...abonentDetails
+                        },
+                        dhjRows: dhjRows
+                      }
+                    })
                   }
-                })
-              }
-              sx={{
-                ...btnStyle,
-                borderTopRightRadius: '12px !important',
-                borderBottomRightRadius: '12px !important'
-              }}
-            >
-              {t('buttons.createAbonentPetition')}
-            </Button>
+                  sx={{
+                    ...btnStyle,
+                    borderTopRightRadius: '12px !important',
+                    borderBottomRightRadius: '12px !important'
+                  }}
+                >
+                  {t('buttons.createAbonentPetition')}
+                </Button>
+              </Box>
+            </Tooltip>
           </ButtonGroup>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexShrink: 0 }}>
             <Tooltip title={t('buttons.refresh')}>

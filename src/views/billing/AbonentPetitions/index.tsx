@@ -16,6 +16,7 @@ import RejectPetitionDialog from './RejectPetitionDialog';
 import PrintSection from '../CreateAbonentPetition.jsx/PrintSection';
 import Loader from 'ui-component/Loader';
 import ViloyatTekshiruviView from './components/ViloyatTekshiruviView';
+import { isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 
 const STATUS_LABELS: Record<string, string> = {
   all: 'Barchasi',
@@ -290,6 +291,10 @@ function AbonentPetitions() {
 
         const abonentRes = await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet);
         const primaryAbonent = abonentRes.data?.abonentData;
+        if (isMahallaBlockedForPetition(primaryAbonent?.mahallaId)) {
+          toast.error(BLOCKED_MAHALLA_PETITION_MESSAGE);
+          return;
+        }
         setAbonentData(primaryAbonent);
 
         const mahallaPromise = primaryAbonent?.mahallaId

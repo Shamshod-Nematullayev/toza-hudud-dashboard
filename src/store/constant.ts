@@ -54,3 +54,16 @@ export const colors = [
   'ff00ff',
   'ff0080'
 ];
+
+export const BLOCKED_MAHALLA_IDS_FOR_PETITION: number[] = [52367];
+
+export const isMahallaBlockedForPetition = (mahallaId?: number | string | null): boolean => {
+  if (mahallaId === undefined || mahallaId === null || mahallaId === '') return false;
+  const num = Number(mahallaId);
+  if (Number.isNaN(num)) return false;
+  return BLOCKED_MAHALLA_IDS_FOR_PETITION.includes(num);
+};
+
+export const BLOCKED_MAHALLA_PETITION_MESSAGE =
+  "ushbu mahalla dalolatnoma yaratish taqiqlangan mahallalar ro'yxati bo'lganligi uchun ariza yaratib bo'lmaydi!";
+

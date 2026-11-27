@@ -47,8 +47,8 @@ export const REJECT_REASON_TYPES = [
   "Mahallada mavjud emas/yashamaydi bo'lgani uchun",
   "Eski hisoblagich hali zamonaviy hisob raqami yo'q",
   "Elektr hisoblagichi umuman yo'q! Pryaqmoy ishlatadi huquqbuzar",
-  "Yangi elektr hisoblagichi hali hisob raqami berilmagan",
-  "Boshqa sabab"
+  'Yangi elektr hisoblagichi hali hisob raqami berilmagan',
+  'Boshqa sabab'
 ];
 
 interface ICaotoItem {
@@ -63,13 +63,7 @@ export default function RejectTaskDialog() {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const {
-    openRejectDialog,
-    rejectTargetTask,
-    handleCloseRejectDialog,
-    triggerRefresh,
-    fetchStats
-  } = useTasksStore();
+  const { openRejectDialog, rejectTargetTask, handleCloseRejectDialog, triggerRefresh, fetchStats } = useTasksStore();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [reasonType, setReasonType] = useState<string>('');
@@ -89,16 +83,13 @@ export default function RejectTaskDialog() {
   const [checkError, setCheckError] = useState<string | null>(null);
 
   const cleanReason = (reasonType || '').toLowerCase();
-  const isLegalReason =
-    cleanReason.includes('yuridik') ||
-    cleanReason.includes('юридик') ||
-    cleanReason.includes('legal');
+  const isLegalReason = cleanReason.includes('yuridik') || cleanReason.includes('юридик') || cleanReason.includes('legal');
 
   // Korxona CAOTO larini yuklash
   useEffect(() => {
     if (openRejectDialog && rejectTargetTask?.companyId) {
       api
-        .get('/caoto', { params: { companyId: rejectTargetTask.companyId } })
+        .get('/caotos', { params: { companyId: rejectTargetTask.companyId } })
         .then((res) => {
           const list: ICaotoItem[] = res.data?.data || [];
           setCaotoList(list);
@@ -171,15 +162,12 @@ export default function RejectTaskDialog() {
         setCheckResult(res.data.data);
         toast.success("Click.uz orqali ma'lumotlar muvaffaqiyatli topildi!");
       } else {
-        const msg = res.data?.message || 'Abonent ma\'lumotlari topilmadi';
+        const msg = res.data?.message || "Abonent ma'lumotlari topilmadi";
         setCheckError(msg);
         toast.error(msg);
       }
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        'Click xizmati orqali hisob raqamini tekshirishda xatolik yuz berdi';
+      const msg = err?.response?.data?.message || err?.message || 'Click xizmati orqali hisob raqamini tekshirishda xatolik yuz berdi';
       setCheckError(msg);
       toast.error(msg);
     } finally {
@@ -590,7 +578,7 @@ export default function RejectTaskDialog() {
                             <span style={{ color: checkResult.isDebt ? '#d32f2f' : '#2e7d32', fontWeight: 700 }}>
                               {checkResult.balanceFormatted || checkResult.rawAmountString || '0'}
                             </span>{' '}
-                            ({checkResult.isDebt ? "Qarzdorlik" : "Haqdorlik / Saldo"})
+                            ({checkResult.isDebt ? 'Qarzdorlik' : 'Haqdorlik / Saldo'})
                           </Typography>
                         </Stack>
 
@@ -673,13 +661,7 @@ export default function RejectTaskDialog() {
                 }
               }}
             >
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                hidden
-                onChange={handleFileChange}
-                disabled={submitting}
-              />
+              <input type="file" accept="application/pdf,.pdf" hidden onChange={handleFileChange} disabled={submitting} />
               <PictureAsPdfOutlined sx={{ fontSize: 36, color: 'error.main' }} />
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 PDF hujjatni tanlash uchun bosing

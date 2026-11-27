@@ -59,8 +59,10 @@ import {
   AddLocationAlt,
   EditLocationAlt,
   Directions,
-  AddPhotoAlternateOutlined
+  AddPhotoAlternateOutlined,
+  EditCalendarOutlined
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from '@mui/x-date-pickers';
 import { useTranslation } from 'react-i18next';
@@ -177,6 +179,7 @@ export const ArizaAuditBreakdown: React.FC<ArizaAuditBreakdownProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const navigate = useNavigate();
   const { tariffs } = useTariff();
 
   const [pdfFileUrl, setPdfFileUrl] = useState<string | null>(initialPdfUrl || null);
@@ -437,6 +440,16 @@ export const ArizaAuditBreakdown: React.FC<ArizaAuditBreakdownProps> = ({
   const isConfirmed = ariza?.status === 'tasdiqlangan';
   const isPrintingThis = printingId === ariza?._id;
 
+  const canEditRecalculation =
+    !isCancelled &&
+    (['odam_soni', 'viza', 'death', 'vafot', 'cancelContract'].includes(docType) ||
+      (Array.isArray(ariza?.recalculationPeriods) && ariza.recalculationPeriods.length > 0));
+
+  const handleEditRecalculation = () => {
+    if (!ariza?._id) return;
+    navigate(`/billing/createAbonentAriza?editArizaId=${ariza._id}`);
+  };
+
   const handleCopyLicshet = () => {
     if (!ariza?.licshet) return;
     navigator.clipboard.writeText(ariza.licshet);
@@ -643,6 +656,19 @@ export const ArizaAuditBreakdown: React.FC<ArizaAuditBreakdownProps> = ({
               >
                 Billingdan yangilash
               </Button>
+
+              {canEditRecalculation && (
+                <Button
+                  variant="contained"
+                  color="warning"
+                  size="small"
+                  startIcon={<EditCalendarOutlined />}
+                  onClick={handleEditRecalculation}
+                  sx={{ textTransform: 'none', fontWeight: 700, boxShadow: 1 }}
+                >
+                  Hisob-kitobni tahrirlash
+                </Button>
+              )}
 
               {onPrint && (
                 <Button
@@ -960,19 +986,33 @@ export const ArizaAuditBreakdown: React.FC<ArizaAuditBreakdownProps> = ({
                   sx={{ p: 2, borderRadius: 2.5, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}
                 >
                   <Stack spacing={1.5}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                         <CalendarMonthOutlined color="primary" />
                         <Typography variant="h4" sx={{ fontWeight: 800 }}>
                           Qayta hisob davrlari va hisoblangan summa
                         </Typography>
                       </Stack>
-                      <Chip
-                        label={`${rawPeriods.length + (autoAdjustInfo ? 1 : 0)} ta davr`}
-                        size="small"
-                        color="primary"
-                        sx={{ fontWeight: 700 }}
-                      />
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                        <Chip
+                          label={`${rawPeriods.length + (autoAdjustInfo ? 1 : 0)} ta davr`}
+                          size="small"
+                          color="primary"
+                          sx={{ fontWeight: 700 }}
+                        />
+                        {canEditRecalculation && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            startIcon={<EditCalendarOutlined />}
+                            onClick={handleEditRecalculation}
+                            sx={{ textTransform: 'none', fontWeight: 700 }}
+                          >
+                            Hisob-kitobni to‘g‘rilash
+                          </Button>
+                        )}
+                      </Stack>
                     </Box>
 
                     <TableContainer component={Paper} elevation={0} variant="outlined" sx={{ borderRadius: 2 }}>

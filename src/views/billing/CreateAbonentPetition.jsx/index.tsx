@@ -94,7 +94,12 @@ function CreateAbonentPetition() {
 
   const searchParams = new URLSearchParams(location.search);
   const isAuditTab = searchParams.get('tab') === 'audit';
-  const activeNavTab = isAuditTab ? 2 : 0;
+  const editArizaId = searchParams.get('editArizaId');
+  const activeNavTab = isAuditTab && !editArizaId ? 2 : 0;
+
+  const isEditingRecalc = useStore((s) => s.isEditingRecalc);
+  const editingAriza = useStore((s) => s.editingAriza);
+  const startEditArizaRecalc = useStore((s) => s.startEditArizaRecalc);
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedRowForReject, setSelectedRowForReject] = useState<any>(null);
@@ -145,15 +150,20 @@ function CreateAbonentPetition() {
   };
 
   useEffect(() => {
-    setInitialState();
-    if (data) {
-      setAbonentData(data);
+    const params = new URLSearchParams(location.search);
+    const eId = params.get('editArizaId');
+    if (eId) {
+      startEditArizaRecalc(eId);
+    } else {
+      setInitialState();
+      if (data) {
+        setAbonentData(data);
+      }
+      if (params.get('type') === 'pul_kuchirish') {
+        setAktType('pul_kuchirish');
+      }
     }
-    const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get('type') === 'pul_kuchirish') {
-      setAktType('pul_kuchirish');
-    }
-  }, [location]);
+  }, [location.search]);
 
   const moneyTransferRows = [
     ...(abonentData.accountNumber
@@ -298,14 +308,16 @@ function CreateAbonentPetition() {
 
         <Chip
           label={
-            aktType === 'pul_kuchirish'
-              ? "Rejim: Pul ko'chirish"
-              : aktType
-                ? `Rejim: ${t(`documentTypes.${aktType}`, aktType)}`
-                : 'Ariza yaratish'
+            isEditingRecalc
+              ? `Rejim: Qayta hisob-kitobni tahrirlash (№${editingAriza?.document_number || editingAriza?._id?.slice(-6)})`
+              : aktType === 'pul_kuchirish'
+                ? "Rejim: Pul ko'chirish"
+                : aktType
+                  ? `Rejim: ${t(`documentTypes.${aktType}`, aktType)}`
+                  : 'Ariza yaratish'
           }
-          color={aktType === 'pul_kuchirish' ? 'secondary' : 'primary'}
-          variant="outlined"
+          color={isEditingRecalc ? 'warning' : aktType === 'pul_kuchirish' ? 'secondary' : 'primary'}
+          variant={isEditingRecalc ? 'filled' : 'outlined'}
           sx={{ fontWeight: 700, fontSize: '11px', height: 26 }}
         />
       </Card>

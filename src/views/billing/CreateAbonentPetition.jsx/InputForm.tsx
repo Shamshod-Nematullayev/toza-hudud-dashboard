@@ -56,10 +56,13 @@ import {
   WarningAmber,
   Public as PublicIcon,
   Business as BusinessIcon,
-  UploadFileOutlined
+  UploadFileOutlined,
+  EditCalendarOutlined,
+  SaveOutlined,
+  LockOutlined
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
   aktType,
@@ -72,7 +75,7 @@ import {
   validateKuchirish
 } from './useStore';
 import AccountNumberInput from 'ui-component/AccountNumberInput';
-import { documentTypes } from 'store/constant';
+import { documentTypes, isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 import { InhabitantTransferFields } from './InhabitantTransfer';
 import GpsLocationField from './GpsLocationField';
 import { TourHelpButton } from 'ui-component/tour';
@@ -181,10 +184,16 @@ export default function InputForm({ onStartTour }: InputFormProps) {
     kuchirish,
     bekorQilish,
     mahalla,
-    setBekorQilish
+    setBekorQilish,
+    isEditingRecalc,
+    editingAriza,
+    cancelEditArizaRecalc,
+    saveEditedArizaRecalc,
+    isSavingEditedAriza
   } = useStore();
 
   const theme = useTheme();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const location = useLocation();
   const abonentInputData = location.state?.abonentData;
@@ -304,6 +313,15 @@ export default function InputForm({ onStartTour }: InputFormProps) {
   }, []);
 
   useEffect(() => {
+    if (isEditingRecalc && editingAriza) {
+      const acc = editingAriza.account_number || editingAriza.licshet || editingAriza.asosiy_licshet || '';
+      if (acc) setAccountNumber(acc);
+      const dAcc = editingAriza.dublicat_account_number || editingAriza.ikkilamchi_licshet || '';
+      if (dAcc) setAccountNumber2(dAcc);
+    }
+  }, [isEditingRecalc, editingAriza]);
+
+  useEffect(() => {
     if (muzlatiladi && aktType === 'gps') {
       setYashovchiSoniInput(0);
       return;
@@ -384,7 +402,13 @@ export default function InputForm({ onStartTour }: InputFormProps) {
   };
 
   // Tekshiruv holati
+  const isBlockedMahalla =
+    isMahallaBlockedForPetition(abonentData?.mahallaId) ||
+    (aktType === 'dvaynik' && isMahallaBlockedForPetition(abonentData2?.mahallaId)) ||
+    (aktType === 'yashovchi_kuchirish' && isMahallaBlockedForPetition(abonentData2?.mahallaId));
+
   const isCreateDisabled =
+    isBlockedMahalla ||
     !abonentData.accountNumber ||
     !aktType ||
     isGlobalAbonent ||
@@ -398,6 +422,8 @@ export default function InputForm({ onStartTour }: InputFormProps) {
       (!transferDebitorAmount || Number(transferDebitorAmount) <= 0 || transferCreditors.length === 0 || !isAmountBalanced || !transferComment.trim()));
 
   const getCreateDisabledReason = (): string => {
+    if (isBlockedMahalla)
+      return BLOCKED_MAHALLA_PETITION_MESSAGE;
     if (isGlobalAbonent)
       return t("Boshqa tashkilot abonenti uchun ariza shakllantirish mumkin emas (faqat ma'lumot uchun ko'rish va chop etish mumkin)");
     if (aktType === 'dvaynik' && isGlobalAbonent2) return t('Ikkilamchi abonent boshqa tashkilotga tegishli');
@@ -431,6 +457,37 @@ export default function InputForm({ onStartTour }: InputFormProps) {
         overflowY: 'auto'
       }}
     >
+      {/* Tahrirlash rejimi ogohlantiruvchi banneri */}
+      {isEditingRecalc && (
+        <Alert
+          severity="warning"
+          variant="filled"
+          icon={<EditCalendarOutlined />}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                cancelEditArizaRecalc();
+                navigate(`/billing/createAbonentAriza?tab=audit&selectedId=${editingAriza?._id}`);
+              }}
+              sx={{ fontWeight: 700, textTransform: 'none', borderColor: 'rgba(255,255,255,0.7)' }}
+            >
+              Bekor qilish
+            </Button>
+          }
+          sx={{ borderRadius: 2 }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+            Qayta hisob-kitobni tahrirlash rejimi (№{editingAriza?.document_number || editingAriza?._id?.slice(-6)})
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', opacity: 0.95, mt: 0.2 }}>
+            Abonent va hujjat turi o'zgarmas qilib muzlatilgan. Hisob-kitob davrlarini to'g'rilab, pastdagi «Hisob-kitobni saqlash» tugmasini bosing.
+          </Typography>
+        </Alert>
+      )}
+
       {/* 1. Sarlavha va Tozalash */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -438,23 +495,25 @@ export default function InputForm({ onStartTour }: InputFormProps) {
             <CreditCard color="primary" />
           </Badge>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            {t('Ariza shakllantirish')}
+            {isEditingRecalc ? 'Hisob-kitobni tahrirlash' : t('Ariza shakllantirish')}
           </Typography>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           {onStartTour && <TourHelpButton onClick={onStartTour} />}
-          <Tooltip title={t('Barcha maydonlarni tozalash')}>
-            <Button
-              size="small"
-              color="error"
-              variant="text"
-              startIcon={<RestartAlt fontSize="small" />}
-              onClick={() => setClearConfirmOpen(true)}
-              sx={{ textTransform: 'none', fontWeight: 600 }}
-            >
-              {t('buttons.clear')}
-            </Button>
-          </Tooltip>
+          {!isEditingRecalc && (
+            <Tooltip title={t('Barcha maydonlarni tozalash')}>
+              <Button
+                size="small"
+                color="error"
+                variant="text"
+                startIcon={<RestartAlt fontSize="small" />}
+                onClick={() => setClearConfirmOpen(true)}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
+                {t('buttons.clear')}
+              </Button>
+            </Tooltip>
+          )}
         </Stack>
       </Box>
 
@@ -462,15 +521,27 @@ export default function InputForm({ onStartTour }: InputFormProps) {
 
       {/* 2. Asosiy Abonent qidirish (Hisob raqam) */}
       <Box id="tour-main-account">
-        <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 1, display: 'block' }}>
-          1. {t('Asosiy Abonent')}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700 }}>
+            1. {t('Asosiy Abonent')}
+          </Typography>
+          {isEditingRecalc && (
+            <Chip
+              size="small"
+              icon={<LockOutlined />}
+              label="O'zgartirib bo'lmaydi"
+              color="default"
+              sx={{ height: 20, fontSize: '11px', fontWeight: 700 }}
+            />
+          )}
+        </Box>
         <AccountNumberInput
           label={t('createAbonentPetitionPage.accountNumber')}
           value={accountNumber}
-          setFunc={setAccountNumber}
+          setFunc={isEditingRecalc ? () => {} : setAccountNumber}
           loading={abonentLookup.main.loading}
-          error={!abonentLookup.main.loading && !!abonentLookup.main.error && accountNumber.length === 12}
+          error={!abonentLookup.main.loading && !isEditingRecalc && !!abonentLookup.main.error && accountNumber.length === 12}
+          disabled={isEditingRecalc}
         />
 
         {accountNumber.length === 12 && (
@@ -654,15 +725,28 @@ export default function InputForm({ onStartTour }: InputFormProps) {
 
       {/* 3. Hujjat turi tanlash */}
       <Box id="tour-document-type">
-        <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, mb: 1, display: 'block' }}>
-          2. {t('Hujjat parametri')}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700 }}>
+            2. {t('Hujjat parametri')}
+          </Typography>
+          {isEditingRecalc && (
+            <Chip
+              size="small"
+              icon={<LockOutlined />}
+              label="O'zgartirib bo'lmaydi"
+              color="warning"
+              variant="outlined"
+              sx={{ height: 20, fontSize: '11px', fontWeight: 700 }}
+            />
+          )}
+        </Box>
         <FormControl fullWidth size="medium">
           <InputLabel>{t('tableHeaders.documentType')}</InputLabel>
           <Select
             label={t('tableHeaders.documentType')}
             value={aktType || ''}
-            onChange={(e) => setAktType(e.target.value as aktType)}
+            onChange={(e) => !isEditingRecalc && setAktType(e.target.value as aktType)}
+            disabled={isEditingRecalc}
             sx={{ borderRadius: 2 }}
           >
             {documentTypes.map((item) => (
@@ -1420,31 +1504,76 @@ export default function InputForm({ onStartTour }: InputFormProps) {
         )}
       </Box>
 
-      {/* 5. Asosiy Yaratish Tugmasi (Sticky Bottom) */}
+      {/* 5. Asosiy Yaratish / Tahrirlashni Saqlash Tugmasi (Sticky Bottom) */}
       <Box id="tour-submit-petition" sx={{ mt: 'auto', pt: 1 }}>
-        <Tooltip title={isCreateDisabled ? getCreateDisabledReason() : ''} arrow placement="top">
-          <span>
+        {isEditingRecalc ? (
+          <Stack spacing={1}>
             <Button
               fullWidth
               variant="contained"
-              color="primary"
+              color="warning"
               size="large"
-              disabled={isCreateDisabled || isCreatingAriza}
-              onClick={createAriza}
-              startIcon={isCreatingAriza ? <CircularProgress size={18} color="inherit" /> : <Send />}
+              disabled={isSavingEditedAriza}
+              onClick={() => saveEditedArizaRecalc(navigate)}
+              startIcon={isSavingEditedAriza ? <CircularProgress size={18} color="inherit" /> : <SaveOutlined />}
               sx={{
                 py: 1.4,
                 borderRadius: 2.5,
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: '15px',
                 textTransform: 'none',
                 boxShadow: theme.shadows[4]
               }}
             >
-              {isCreatingAriza ? t('Shakllantirilmoqda...') : t('Arizani shakllantirish')}
+              {isSavingEditedAriza ? 'Saqlanmoqda...' : 'Qayta hisob-kitobni saqlash'}
             </Button>
-          </span>
-        </Tooltip>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="inherit"
+              size="small"
+              disabled={isSavingEditedAriza}
+              onClick={() => {
+                cancelEditArizaRecalc();
+                navigate(`/billing/createAbonentAriza?tab=audit&selectedId=${editingAriza?._id}`);
+              }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+            >
+              Tahrirlashni bekor qilish (Auditga qaytish)
+            </Button>
+          </Stack>
+        ) : (
+          <>
+            {isBlockedMahalla && (
+              <Alert severity="error" sx={{ mb: 1.5, fontSize: '13px', fontWeight: 600 }}>
+                {BLOCKED_MAHALLA_PETITION_MESSAGE}
+              </Alert>
+            )}
+            <Tooltip title={isCreateDisabled ? getCreateDisabledReason() : ''} arrow placement="top">
+              <span>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  disabled={isCreateDisabled || isCreatingAriza}
+                  onClick={createAriza}
+                  startIcon={isCreatingAriza ? <CircularProgress size={18} color="inherit" /> : <Send />}
+                  sx={{
+                    py: 1.4,
+                    borderRadius: 2.5,
+                    fontWeight: 700,
+                    fontSize: '15px',
+                    textTransform: 'none',
+                    boxShadow: theme.shadows[4]
+                  }}
+                >
+                  {isCreatingAriza ? t('Shakllantirilmoqda...') : t('Arizani shakllantirish')}
+                </Button>
+              </span>
+            </Tooltip>
+          </>
+        )}
       </Box>
 
       {/* Tozalashni tasdiqlash dialogi */}

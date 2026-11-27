@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { getColumns } from './columns';
 import RejectPetitionDialog from '../RejectPetitionDialog';
+import { isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 
 interface DataTableProps {
   onOpenMobileFilter?: () => void;
@@ -123,6 +124,10 @@ function DataTable({ onOpenMobileFilter, showMobileFilterButton }: DataTableProp
         // Parallel fetch for primary abonent data
         const abonentRes = await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet);
         const primaryAbonent = abonentRes.data?.abonentData;
+        if (isMahallaBlockedForPetition(primaryAbonent?.mahallaId)) {
+          toast.error(BLOCKED_MAHALLA_PETITION_MESSAGE);
+          return;
+        }
         setAbonentData(primaryAbonent);
 
         const mahallaPromise = primaryAbonent?.mahallaId

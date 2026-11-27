@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import RejectPetitionDialog from 'views/billing/AbonentPetitions/RejectPetitionDialog';
 import PrintSection from 'views/billing/CreateAbonentPetition.jsx/PrintSection';
+import { isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 
 function CustomNoRowsOverlay() {
   return (
@@ -96,6 +97,10 @@ function AbonentArizalar() {
 
   const handlePrint = useCallback(async (_id: string) => {
     try {
+      if (isMahallaBlockedForPetition(abonentDetails?.mahallaId)) {
+        toast.error(BLOCKED_MAHALLA_PETITION_MESSAGE);
+        return;
+      }
       setPrintingId(_id);
       const res = await api.get('/arizalar/' + _id);
       const ariza = res.data?.ariza;
@@ -104,6 +109,10 @@ function AbonentArizalar() {
       // Asosiy abonent ma'lumotlarini yuklash
       const abonentRes = await api.get('/billing/get-abonent-data-by-licshet/' + ariza.licshet);
       const primaryAbonent = abonentRes.data?.abonentData;
+      if (isMahallaBlockedForPetition(primaryAbonent?.mahallaId)) {
+        toast.error(BLOCKED_MAHALLA_PETITION_MESSAGE);
+        return;
+      }
       setAbonentData(primaryAbonent);
 
       const mahallaPromise = primaryAbonent?.mahallaId
@@ -131,7 +140,7 @@ function AbonentArizalar() {
     } finally {
       setPrintingId(null);
     }
-  }, []);
+  }, [abonentDetails?.mahallaId]);
 
   const handleMoveToInboxIconClick = async (_id: string) => {
     try {
@@ -184,6 +193,7 @@ function AbonentArizalar() {
           const isConfirmed = params.row.status === 'tasdiqlangan';
           const canCancel = !isCanceled && !isConfirmed;
           const isPrintingThis = printingId === params.row._id;
+          const isArizaBlocked = isMahallaBlockedForPetition(abonentDetails?.mahallaId) || isMahallaBlockedForPetition(params.row.mahallaId);
 
           return (
             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', height: '100%' }}>
@@ -214,12 +224,12 @@ function AbonentArizalar() {
 
               {/* Dastlabki ariza chiqarish (yangi bo'lsa) */}
               {isNew && (
-                <Tooltip title={t('tableActions.createPetition', 'Chop etish')} arrow>
+                <Tooltip title={isArizaBlocked ? BLOCKED_MAHALLA_PETITION_MESSAGE : t('tableActions.createPetition', 'Chop etish')} arrow>
                   <span>
                     <IconButton
                       size="small"
                       onClick={() => handlePrint(params.row._id)}
-                      disabled={isPrintingThis}
+                      disabled={isArizaBlocked || isPrintingThis}
                       color="primary"
                       sx={{ p: 0.6 }}
                     >
@@ -231,12 +241,12 @@ function AbonentArizalar() {
 
               {/* Qayta chop etish (barcha faol arizalar uchun) */}
               {!isNew && !isCanceled && (
-                <Tooltip title={t('tableActions.reprint', 'Qayta chop etish')} arrow>
+                <Tooltip title={isArizaBlocked ? BLOCKED_MAHALLA_PETITION_MESSAGE : t('tableActions.reprint', 'Qayta chop etish')} arrow>
                   <span>
                     <IconButton
                       size="small"
                       onClick={() => handlePrint(params.row._id)}
-                      disabled={isPrintingThis}
+                      disabled={isArizaBlocked || isPrintingThis}
                       color="info"
                       sx={{ p: 0.6 }}
                     >
@@ -668,7 +678,7 @@ function AbonentArizalar() {
         }
       }
     ],
-    [currentAccountNumber, residentId, printingId, handlePrint]
+    [currentAccountNumber, residentId, printingId, handlePrint, abonentDetails?.mahallaId]
   );
 
   return (

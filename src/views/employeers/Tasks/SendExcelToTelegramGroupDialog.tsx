@@ -9,6 +9,7 @@ import { useMutation } from '@tanstack/react-query';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
 import FileInputDrop from 'ui-component/FileInputDrop';
+import TelegramGroupSelect from 'views/billing/Reports/components/TelegramGroupSelect';
 
 function SendExcelToTelegramGroupDialog() {
   const { t } = useTranslation();
@@ -16,13 +17,17 @@ function SendExcelToTelegramGroupDialog() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sendType, setSendType] = useState<'excel' | 'image'>('excel');
+  const [selectedChatId, setSelectedChatId] = useState<string>('');
 
   // 1. React Query useMutation - Telegramga yuborish
   const sendMutation = useMutation({
-    mutationFn: async ({ file, sendType }: { file: File; sendType: 'excel' | 'image' }) => {
+    mutationFn: async ({ file, sendType, chatId }: { file: File; sendType: 'excel' | 'image'; chatId: string }) => {
       const formData = new FormData();
-      formData.append('file', file);
       formData.append('sendType', sendType);
+      if (chatId) {
+        formData.append('chatId', chatId);
+      }
+      formData.append('file', file);
       const response = await api.post('/fetchTelegram/send-excel-to-telegram', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -60,6 +65,7 @@ function SendExcelToTelegramGroupDialog() {
   const handleClose = () => {
     setSelectedFile(null);
     setSendType('excel');
+    setSelectedChatId('');
     setOpenSETTDialogDate(false);
   };
 
@@ -77,7 +83,11 @@ function SendExcelToTelegramGroupDialog() {
 
   const handleSubmit = () => {
     if (selectedFile) {
-      sendMutation.mutate({ file: selectedFile, sendType });
+      if (!selectedChatId) {
+        toast.warning(t('buttons.selectGroupWarning') || 'Iltimos, Telegram guruhni tanlang');
+        return;
+      }
+      sendMutation.mutate({ file: selectedFile, sendType, chatId: selectedChatId });
     }
   };
 
@@ -167,6 +177,21 @@ function SendExcelToTelegramGroupDialog() {
           </Box>
         </Box>
 
+        {/* Telegram guruh tanlash */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            {t('buttons.targetTelegramGroup') || 'Yuboriladigan Telegram guruh'}
+          </Typography>
+          <TelegramGroupSelect
+            value={selectedChatId}
+            onChange={(chatId) => setSelectedChatId(chatId)}
+            label={t('buttons.selectTelegramGroup') || 'Telegram guruhni tanlang'}
+            helperText={t('buttons.selectTelegramGroupHelper') || 'Fayl tashkilot profilidan tanlangan ushbu guruhga yuboriladi'}
+            onlyConfigured
+            required
+          />
+        </Box>
+
         {!selectedFile ? (
           <FileInputDrop setFiles={handleFilesChange} fileType="excel" />
         ) : (
@@ -223,7 +248,7 @@ function SendExcelToTelegramGroupDialog() {
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!selectedFile || sendMutation.isPending}
+          disabled={!selectedFile || !selectedChatId || sendMutation.isPending}
           startIcon={sendMutation.isPending ? <CircularProgress size={18} color="inherit" /> : null}
         >
           {sendMutation.isPending ? t('buttons.sending') || 'Yuborilmoqda...' : t('buttons.continue')}

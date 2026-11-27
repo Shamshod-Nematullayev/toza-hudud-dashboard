@@ -32,6 +32,7 @@ import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import api from 'utils/api';
 import { toast } from 'react-toastify';
+import { isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 
 interface CatalogDrillDownViewProps {
   category: string | null;
@@ -392,19 +393,24 @@ const CatalogDrillDownView: React.FC<CatalogDrillDownViewProps> = ({
               </Tooltip>
 
               {/* Print button */}
-              <Tooltip title={t('tableActions.print', 'Chop etish')}>
-                <span>
-                  <IconButton
-                    size="small"
-                    color="info"
-                    disabled={isPrintingThis}
-                    onClick={() => onPrint(params.row._id)}
-                    sx={{ p: 0.6, '&:hover': { backgroundColor: 'info.lighter' } }}
-                  >
-                    {isPrintingThis ? <CircularProgress size={17} /> : <PrintOutlined sx={{ fontSize: 19 }} />}
-                  </IconButton>
-                </span>
-              </Tooltip>
+              {(() => {
+                const isBlocked = isMahallaBlockedForPetition(params.row.mahallaId);
+                return (
+                  <Tooltip title={isBlocked ? BLOCKED_MAHALLA_PETITION_MESSAGE : t('tableActions.print', 'Chop etish')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        color="info"
+                        disabled={isBlocked || isPrintingThis}
+                        onClick={() => onPrint(params.row._id)}
+                        sx={{ p: 0.6, '&:hover': { backgroundColor: 'info.lighter' } }}
+                      >
+                        {isPrintingThis ? <CircularProgress size={17} /> : <PrintOutlined sx={{ fontSize: 19 }} />}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                );
+              })()}
             </Stack>
           );
         }

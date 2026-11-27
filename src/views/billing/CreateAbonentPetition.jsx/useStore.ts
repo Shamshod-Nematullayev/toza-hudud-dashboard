@@ -10,6 +10,7 @@ import api from 'utils/api';
 import { AutoMobile } from 'views/gpsMonitoring/VisitGrafikPage/useVisitGrafikStore';
 import { create } from 'zustand';
 import type { LatLngPoint } from 'services/abonentLocation';
+import { isMahallaBlockedForPetition, BLOCKED_MAHALLA_PETITION_MESSAGE } from 'store/constant';
 
 export interface dhjRow {
   id: number;
@@ -475,6 +476,9 @@ interface StoreActionsState {
   setRecalcMode: (mode: RecalcMode) => void;
   setStages: (stages: IStageInput[]) => void;
   setKuchirish: (patch: Partial<IKuchirishInput>) => void;
+  startEditArizaRecalc: (arizaId: string) => Promise<boolean>;
+  cancelEditArizaRecalc: () => void;
+  saveEditedArizaRecalc: (navigate?: (path: string) => void) => Promise<boolean>;
 }
 
 interface UIState {
@@ -526,6 +530,9 @@ interface StoreDataState {
   kuchirish: IKuchirishInput;
   /** Shartnomani bekor qilish formasi */
   bekorQilish: { sabab: CancelContractReason; asos: string };
+  isEditingRecalc: boolean;
+  editingAriza: any | null;
+  isSavingEditedAriza: boolean;
 }
 
 const initialStoreDataState: StoreDataState = {
@@ -580,6 +587,9 @@ const initialStoreDataState: StoreDataState = {
   stages: [emptyStage()],
   kuchirish: emptyKuchirish(),
   bekorQilish: emptyBekorQilish(),
+  isEditingRecalc: false,
+  editingAriza: null,
+  isSavingEditedAriza: false,
   ui: { abonentCardOpenState: false, globalAbonentAccountNumber: '' }
 };
 
@@ -696,6 +706,11 @@ export const useStore = create<StoreState>((set, get) => ({
   setMahallaDublicat: (mfy) => set({ mahallaDublicat: mfy }),
   setRecalculationPeriods: (data: IRecalculationPeriod[]) => {
     const { aktType, recalcMode, abonentData } = get();
+    const total = data.reduce((acc, p) => acc + (Number(p.total) || 0), 0);
+    const withQQSTotal = data.reduce((acc, p) => acc + (Number(p.withQQSTotal ?? p.total) || 0), 0);
+    const withoutQQSTotal = data.reduce((acc, p) => acc + (Number(p.withoutQQSTotal ?? p.total) || 0), 0);
+    const updatedSumma = { total, totalWithQQS: withQQSTotal, withoutQQSTotal };
+
     if (aktType === 'odam_soni' && recalcMode === 'oddiy') {
       const initialCnt = Number(abonentData?.house?.inhabitantCnt || 0);
       const delta = data.reduce((acc, p) => {
@@ -703,9 +718,9 @@ export const useStore = create<StoreState>((set, get) => ({
         return acc + (p.periodType === 'debitor' ? 1 : -1);
       }, 0);
       const nextCnt = Math.max(0, initialCnt + delta);
-      set({ recalculationPeriods: data, yashovchiSoniInput: String(nextCnt) });
+      set({ recalculationPeriods: data, yashovchiSoniInput: String(nextCnt), aktSumma: updatedSumma });
     } else {
-      set({ recalculationPeriods: data });
+      set({ recalculationPeriods: data, aktSumma: updatedSumma });
     }
   },
   setYashovchiSoniInput: (data) => set({ yashovchiSoniInput: String(data) }),
@@ -742,6 +757,15 @@ export const useStore = create<StoreState>((set, get) => ({
         setShowPrintSection
       } = get();
       const { setIsLoading } = useLoaderStore.getState();
+
+      if (
+        isMahallaBlockedForPetition(abonentData?.mahallaId) ||
+        (aktType === 'dvaynik' && isMahallaBlockedForPetition(abonentData2?.mahallaId)) ||
+        (aktType === 'yashovchi_kuchirish' && isMahallaBlockedForPetition(abonentData2?.mahallaId))
+      ) {
+        toast.error(BLOCKED_MAHALLA_PETITION_MESSAGE);
+        return;
+      }
 
       if (aktType === 'pul_kuchirish') {
         const {
@@ -1274,7 +1298,143 @@ export const useStore = create<StoreState>((set, get) => ({
     });
     set({ autoMobile: data[0] });
   },
-  setShouldBeMoneyTransfer: (shouldBeMoneyTransfer: boolean) => set({ shouldBeMoneyTransfer })
+  setShouldBeMoneyTransfer: (shouldBeMoneyTransfer: boolean) => set({ shouldBeMoneyTransfer }),
+
+  startEditArizaRecalc: async (arizaId: string) => {
+    try {
+      set({ isEditingRecalc: true });
+      const res = await api.get('/arizalar/' + arizaId);
+      const a = res.data?.ariza;
+      if (!a) {
+        toast.error('Ariza topilmadi');
+        set({ isEditingRecalc: false, editingAriza: null });
+        return false;
+      }
+      set({ editingAriza: a });
+
+      const accNum = a.account_number || a.licshet || a.asosiy_licshet || '';
+      if (accNum) {
+        await get().updateAbonentDataByAccNum(accNum, 'main');
+      }
+
+      if (a.ikkilamchi_licshet || a.dublicat_account_number) {
+        await get().updateAbonentDataByAccNum(a.ikkilamchi_licshet || a.dublicat_account_number, 'dublicate');
+      }
+
+      // Hujjat turi
+      const docType = a.document_type as aktType;
+      get().setAktType(docType);
+
+      // Yashovchi soni
+      if (a.next_prescribed_cnt != null) {
+        set({ yashovchiSoniInput: String(a.next_prescribed_cnt) });
+      }
+
+      // Davrlar
+      const periods = Array.isArray(a.recalculationPeriods) ? a.recalculationPeriods : [];
+      set({ recalculationPeriods: periods });
+
+      // Summa
+      const total = Number(a.aktSummasi ?? a.aktSummCounts?.total ?? 0);
+      const withQQSTotal = Number(a.aktSummCounts?.withQQSTotal ?? total);
+      const withoutQQSTotal = Number(a.aktSummCounts?.withoutQQSTotal ?? total);
+      set({ aktSumma: { total, totalWithQQS: withQQSTotal, withoutQQSTotal } });
+
+      // Bosqichlar (agar ko'p bosqichli bo'lsa)
+      if (Array.isArray(a.bosqichlar) && a.bosqichlar.length > 0) {
+        set({ recalcMode: 'kop_bosqichli' });
+        const parsedStages = a.bosqichlar.map((b: any, idx: number) => {
+          const [fm, fy] = (b.from || '').split('.').map(Number);
+          const [tm, ty] = (b.to || '').split('.').map(Number);
+          return {
+            id: `stage-${idx}`,
+            from: fm && fy ? dayjs(`${fy}-${String(fm).padStart(2, '0')}-01`) : null,
+            to: tm && ty ? dayjs(`${ty}-${String(tm).padStart(2, '0')}-01`) : null,
+            count: b.count != null ? String(b.count) : '',
+            hozirgacha: !!b.hozirgacha
+          };
+        });
+        set({ stages: parsedStages });
+      }
+
+      return true;
+    } catch (err: any) {
+      console.error('[startEditArizaRecalc] error:', err);
+      toast.error(err?.response?.data?.message || 'Arizani yuklashda xatolik yuz berdi');
+      set({ isEditingRecalc: false, editingAriza: null });
+      return false;
+    }
+  },
+
+  cancelEditArizaRecalc: () => {
+    set({ isEditingRecalc: false, editingAriza: null });
+  },
+
+  saveEditedArizaRecalc: async (navigate?: (path: string) => void) => {
+    const { editingAriza, recalculationPeriods, aktSumma, yashovchiSoniInput, abonentData, aktType, stages, recalcMode } = get();
+    if (!editingAriza?._id) {
+      toast.error('Tahrirlanayotgan ariza topilmadi');
+      return false;
+    }
+
+    set({ isSavingEditedAriza: true });
+    try {
+      let bosqichlar: any;
+      if (aktType === 'odam_soni' && recalcMode === 'kop_bosqichli') {
+        bosqichlar = [...stages]
+          .sort((a, b) => (a.from && b.from ? a.from.valueOf() - b.from.valueOf() : 0))
+          .map((stage) => ({
+            from: stage.from ? stage.from.format('MM.YYYY') : '',
+            to: stage.to ? stage.to.format('MM.YYYY') : '',
+            count: Number(stage.count || 0),
+            hozirgacha: !!stage.hozirgacha
+          }));
+      }
+
+      const payload: any = {
+        recalculationPeriods,
+        akt_summasi: {
+          total: aktSumma.total,
+          withQQSTotal: aktSumma.totalWithQQS,
+          withoutQQSTotal: aktSumma.withoutQQSTotal
+        },
+        aktSummasi: aktSumma.total,
+        aktSummCounts: {
+          total: aktSumma.total,
+          withQQSTotal: aktSumma.totalWithQQS,
+          withoutQQSTotal: aktSumma.withoutQQSTotal
+        },
+        current_prescribed_cnt: abonentData?.house?.inhabitantCnt ?? editingAriza.current_prescribed_cnt,
+        next_prescribed_cnt:
+          aktType === 'viza'
+            ? undefined
+            : yashovchiSoniInput === '' || yashovchiSoniInput === null || yashovchiSoniInput === undefined
+              ? undefined
+              : Number(yashovchiSoniInput),
+        bosqichlar
+      };
+
+      const res = await api.put(`/arizalar/${editingAriza._id}`, payload);
+      if (!res.data?.ok) {
+        toast.error(res.data?.message || "O'zgartirishni saqlab bo'lmadi");
+        return false;
+      }
+
+      toast.success("Ariza hisob-kitobi muvaffaqiyatli o'zgartirildi!");
+      const savedId = editingAriza._id;
+      set({ isEditingRecalc: false, editingAriza: null });
+      if (navigate) {
+        navigate(`/billing/createAbonentAriza?tab=audit&selectedId=${savedId}`);
+      }
+      return true;
+    } catch (err: any) {
+      console.error('[saveEditedArizaRecalc] error:', err);
+      toast.error(err?.response?.data?.message || "O'zgartirishni saqlashda xatolik yuz berdi");
+      return false;
+    } finally {
+      set({ isSavingEditedAriza: false });
+    }
+  }
 }));
 
 /** Yashovchi ko'chirish formasini tekshiradi: xato matni yoki null */

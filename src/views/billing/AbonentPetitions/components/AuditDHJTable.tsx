@@ -200,26 +200,54 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
     // 1. Agar rasmiy qayta hisob davri bo'lsa
     if (marks.length > 0) {
       if (ariza?.document_type === 'gps') {
-        return { count: oldCount, oldCount, newNachis: 0, diff: Number(row.nachis) || 0, periodIndex: marks[0]?.periodIndex || 1, isAutoAdjust: false };
+        return {
+          count: oldCount,
+          oldCount,
+          newNachis: 0,
+          diff: Number(row.nachis) || 0,
+          periodsInfo: marks.map((m) => ({
+            periodIndex: m.periodIndex,
+            color: m.color,
+            diff: Number(row.nachis) || 0
+          })),
+          periodIndex: marks[0]?.periodIndex || 1,
+          color: marks[0]?.color || '2196f3',
+          isAutoAdjust: false
+        };
       }
 
-      // Agar next_prescribed_cnt mavjud bo'lsa, xonadondagi haqiqiy kutilgan yangi son shu!
+      // Mutlaq kishi soni belgilangan bo'lsa (masalan ko'p bosqichli rejim)
+      const absoluteMark = marks.find((m) => m.count !== undefined && m.count !== null);
+
       let count = oldCount;
-      if (verifiedNextInhabitant !== undefined) {
-        count = verifiedNextInhabitant;
+      if (absoluteMark) {
+        count = Number(absoluteMark.count);
       } else {
-        const delta = marks.reduce((acc, mark) => acc + (Number(mark.delta) || 0), 0);
-        count = Math.max(0, oldCount + delta);
+        // Har bir qamrab olingan davrning deltasi yig'iladi
+        const totalDelta = marks.reduce((acc, m) => acc + (Number(m.delta) || 0), 0);
+        count = Math.max(0, oldCount + totalDelta);
       }
 
       const newNachis = count * rate;
-      const diff = (oldCount - count) * rate;
+      const totalDiff = (oldCount - count) * rate;
+
+      // Har bir qamrab oluvchi davr haqida alohida ma'lumot (chiplar uchun)
+      const periodsInfo = marks.map((m) => {
+        const delta = Math.abs(Number(m.delta) || 1);
+        const periodDiff = delta * rate;
+        return {
+          periodIndex: m.periodIndex,
+          color: m.color,
+          diff: periodDiff
+        };
+      });
 
       return {
         count,
         oldCount,
         newNachis,
-        diff,
+        diff: totalDiff,
+        periodsInfo,
         periodIndex: marks[0]?.periodIndex || 1,
         color: marks[0]?.color || '2196f3',
         isAutoAdjust: false
@@ -257,6 +285,13 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
           oldCount,
           newNachis,
           diff,
+          periodsInfo: [
+            {
+              periodIndex: 0,
+              color: 'f59e0b',
+              diff
+            }
+          ],
           periodIndex: 0,
           color: 'f59e0b',
           isAutoAdjust: true
@@ -315,71 +350,77 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
     {
       field: 'davr',
       headerName: t('tableHeaders.period', 'Davr'),
-      width: 110,
+      width: 120,
       renderCell: (params) => {
-        const marks = monthMarks(params.row.davr);
-        const hasRecalc = marks.length > 0;
-        return (
+        const preview = previewFor(params.row);
+        const hasRecalc = Boolean(preview);
+
+        const content = (
           <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', gap: 1 }}>
-            {/* Davr rangi indikatori */}
-            <Box
+            {hasRecalc && (
+              <Box
+                sx={{
+                  width: 4,
+                  height: 18,
+                  borderRadius: 1,
+                  bgcolor: 'primary.main',
+                  flexShrink: 0
+                }}
+              />
+            )}
+            <Typography
+              variant="body2"
               sx={{
-                width: 5,
-                height: 24,
-                borderRadius: 1,
-                bgcolor: hasRecalc ? '#' + (marks[0]?.color || '2196f3') : 'transparent'
+                fontWeight: hasRecalc ? 800 : 500,
+                fontFamily: 'monospace',
+                color: hasRecalc ? 'primary.dark' : 'text.primary',
+                ml: hasRecalc ? 0 : 1.5
               }}
-            />
-            <Typography variant="body2" sx={{ fontWeight: hasRecalc ? 800 : 500, fontFamily: 'monospace' }}>
+            >
               {params.row.davr}
             </Typography>
           </Box>
         );
-      }
-    },
-    {
-      field: 'recalc_status',
-      headerName: 'Qayta hisob',
-      width: 160,
-      renderCell: (params) => {
-        const preview = previewFor(params.row);
-        if (!preview) {
-          return (
-            <Typography variant="caption" color="text.disabled">
-              —
-            </Typography>
-          );
-        }
-        if (preview.isAutoAdjust) {
-          return (
-            <Tooltip
-              title={`AutoAdjust (Kechikkan oy): Ariza va akt oralig‘idagi oy (${preview.oldCount} → ${preview.newCount} kishi) · Qo‘shimcha tuzatish: -${fmt(preview.diff)} so'm`}
-              arrow
-            >
-              <Chip
-                label={`AutoAdjust (-${fmt(preview.diff)})`}
-                size="small"
-                color="warning"
-                variant="filled"
-                sx={{ height: 22, fontSize: '11px', fontWeight: 800 }}
-              />
-            </Tooltip>
-          );
-        }
+
+        if (!hasRecalc || !preview) return content;
+
         return (
-          <Tooltip title={`Qayta hisob davri #${preview.periodIndex} (${preview.oldCount} → ${preview.newCount} kishi) · Tafovut: -${fmt(preview.diff)} so'm`} arrow>
-            <Chip
-              label={`#${preview.periodIndex}-davr (-${fmt(preview.diff)})`}
-              size="small"
-              sx={{
-                height: 22,
-                fontSize: '11px',
-                fontWeight: 700,
-                bgcolor: '#' + (preview.color || '2196f3') + '22',
-                color: '#' + (preview.color || '2196f3'),
-                border: '1px solid #' + (preview.color || '2196f3')
-              }}
-            />
+          <Tooltip
+            arrow
+            placement="right"
+            title={
+              preview.isAutoAdjust ? (
+                `AutoAdjust: ${preview.oldCount} → ${preview.count} kishi (-${fmt(preview.diff)})`
+              ) : (
+                <Box sx={{ p: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.5, color: '#fff' }}>
+                    Qayta hisob davrlari:
+                  </Typography>
+                  {preview.periodsInfo.map((p, idx) => (
+                    <Typography key={idx} variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
+                      • #{p.periodIndex}-davr: -{fmt(p.diff)}
+                    </Typography>
+                  ))}
+                  {preview.periodsInfo.length > 1 && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: 'block',
+                        fontWeight: 800,
+                        mt: 0.5,
+                        pt: 0.5,
+                        borderTop: '1px dashed rgba(255,255,255,0.3)',
+                        color: '#90caf9'
+                      }}
+                    >
+                      Jami kamaytirish: -{fmt(preview.diff)}
+                    </Typography>
+                  )}
+                </Box>
+              )
+            }
+          >
+            {content}
           </Tooltip>
         );
       }
@@ -387,7 +428,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
     {
       field: 'yashovchilar_soni',
       headerName: t('tableHeaders.inhabitantCount', 'Yashovchi'),
-      width: 110,
+      width: 120,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
@@ -413,14 +454,14 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
       headerName: t('tableHeaders.nachis', 'Hisoblandi'),
       type: 'number',
       flex: 1.1,
-      minWidth: 110,
+      minWidth: 105,
       renderCell: (params) => {
         const preview = previewFor(params.row);
-        if (!preview) return <span>{fmt(params.row.nachis)} so'm</span>;
+        if (!preview) return <span>{fmt(params.row.nachis)}</span>;
         return (
           <Tooltip
             arrow
-            title={`${preview.oldCount} kishi o‘rniga ${preview.count} kishi · Farq: ${preview.diff > 0 ? '+' : ''}${fmt(preview.diff)} so'm`}
+            title={`${preview.oldCount} kishi o‘rniga ${preview.count} kishi · Farq: ${preview.diff > 0 ? '+' : ''}${fmt(preview.diff)}`}
           >
             <Box sx={{ lineHeight: 1.2, textAlign: 'right' }}>
               <Box
@@ -430,10 +471,10 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
                   color: preview.diff > 0 ? 'success.main' : preview.diff < 0 ? 'error.main' : 'text.primary'
                 }}
               >
-                {fmt(preview.newNachis)} so'm
+                {fmt(preview.newNachis)}
               </Box>
               <Box component="span" sx={{ display: 'block', fontSize: '10px', color: 'text.disabled', textDecoration: 'line-through' }}>
-                {fmt(params.row.nachis)} so'm
+                {fmt(params.row.nachis)}
               </Box>
             </Box>
           </Tooltip>
@@ -446,7 +487,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
       type: 'number',
       flex: 1,
       minWidth: 95,
-      valueFormatter: (v) => `${fmt(v)} so'm`
+      valueFormatter: (v) => fmt(v)
     },
     {
       field: 'allPaymentsSum',
@@ -454,7 +495,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
       type: 'number',
       flex: 0.9,
       minWidth: 90,
-      valueFormatter: (v) => `${fmt(v)} so'm`
+      valueFormatter: (v) => fmt(v)
     },
     {
       field: 'akt',
@@ -470,7 +511,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
             <Tooltip title={`Ushbu arizaning Tozamakondagi rasmiy akti (№${params.row.arizaActId || ariza?.akt_id || ''})`} arrow>
               <Chip
                 size="small"
-                label={`Akt #${params.row.arizaActId || ariza?.akt_id || ''}: ${fmt(Math.abs(val))} so'm`}
+                label={`Akt #${params.row.arizaActId || ariza?.akt_id || ''}: ${fmt(Math.abs(val))}`}
                 color="primary"
                 variant="filled"
                 sx={{ fontWeight: 800, fontSize: '11px', height: 22 }}
@@ -484,7 +525,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
             <Tooltip title="Ushbu ariza bo‘yicha kutilayotgan akt simulyatsiyasi (hali Tozamakonga kiritilmagan)" arrow>
               <Chip
                 size="small"
-                label={`Kutilayotgan: ${fmt(Math.abs(val))} so'm`}
+                label={`Kutilayotgan: ${fmt(Math.abs(val))}`}
                 color="warning"
                 variant="outlined"
                 sx={{ fontWeight: 800, fontSize: '11px', height: 22, borderStyle: 'dashed' }}
@@ -495,10 +536,10 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
 
         if (val !== 0) {
           return (
-            <Tooltip title={`Tozamakonda mavjud boshqa akt: ${fmt(val)} so'm`} arrow>
+            <Tooltip title={`Tozamakonda mavjud boshqa akt: ${fmt(val)}`} arrow>
               <Chip
                 size="small"
-                label={`Akt: ${fmt(val)} so'm`}
+                label={`Akt: ${fmt(val)}`}
                 color="default"
                 variant="outlined"
                 sx={{ fontSize: '11px', height: 20 }}
@@ -507,7 +548,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
           );
         }
 
-        return <span style={{ color: '#aaa' }}>0 so'm</span>;
+        return <span style={{ color: '#aaa' }}>0</span>;
       }
     },
     {
@@ -523,7 +564,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
             color: Number(params.value) > 0 ? '#d32f2f' : '#2e7d32'
           }}
         >
-          {fmt(params.value)} so'm
+          {fmt(params.value)}
         </span>
       )
     }
@@ -599,7 +640,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
 
       {/* Notice info */}
       <Typography variant="caption" color="text.secondary">
-        Quyidagi jadvalda har bir oydagi rasmiy harakatlar, yashovchilar soni va qayta hisob kiritilgan oylar rangli belgilar bilan ajratib ko‘rsatilgan:
+        Quyidagi jadvalda har bir oydagi rasmiy harakatlar, qayta hisob natijasida o‘zgargan yashovchilar soni va tafovut aks ettirilgan:
       </Typography>
 
       {/* Main Table Container */}
@@ -643,6 +684,7 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
             columns={columns}
             rows={displayedRows}
             density="compact"
+            getRowClassName={(params) => (previewFor(params.row) ? 'row-recalculated' : '')}
             pageSizeOptions={[15, 25, 50, 100]}
             initialState={{
               pagination: { paginationModel: { pageSize: 25 } }
@@ -653,6 +695,12 @@ export const AuditDHJTable: React.FC<AuditDHJTableProps> = ({
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 2,
+              '& .row-recalculated': {
+                bgcolor: 'rgba(25, 118, 210, 0.04)',
+                '&:hover': {
+                  bgcolor: 'rgba(25, 118, 210, 0.08) !important'
+                }
+              },
               '& .MuiDataGrid-main': {
                 overflow: 'hidden'
               },

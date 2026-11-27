@@ -18,6 +18,8 @@ import {
   SupervisorAccount as NazoratchilarIcon,
   HowToReg as XatlovchilarIcon,
   AdminPanelSettings as ManagersIcon,
+  QuestionAnswer as MurojaatlarIcon,
+  SupportAgent as DispatcherIcon,
   Telegram as TelegramIcon,
   LockOutlined as LockIcon
 } from '@mui/icons-material';
@@ -39,6 +41,7 @@ interface TelegramGroupSelectProps {
   disabled?: boolean;
   required?: boolean;
   helperText?: string;
+  onlyConfigured?: boolean;
 }
 
 export default function TelegramGroupSelect({
@@ -49,7 +52,8 @@ export default function TelegramGroupSelect({
   label = 'Telegram Guruh',
   disabled = false,
   required = false,
-  helperText
+  helperText,
+  onlyConfigured = false
 }: TelegramGroupSelectProps) {
   const theme = useTheme();
   const [groups, setGroups] = useState<ICompanyTelegramGroup[]>(initialGroups || []);
@@ -87,6 +91,18 @@ export default function TelegramGroupSelect({
               name: 'Boshqaruv tizimi guruhi (Menejerlar)',
               chatId: (comp.GROUP_ID_MANAGERS || '').trim(),
               description: 'Rahbariyat va boshqaruv tizimi guruhi'
+            },
+            {
+              key: 'GROUP_ID_MUROJAATLAR',
+              name: 'Murojaatlar guruhi',
+              chatId: (comp.GROUP_ID_MUROJAATLAR || '').trim(),
+              description: 'Aholining murojaatlari uchun rasmiy guruh'
+            },
+            {
+              key: 'GROUP_ID_DISPETCHER',
+              name: 'Dispetcher guruhi',
+              chatId: (comp.GROUP_ID_DISPETCHER || '').trim(),
+              description: 'Dispetcherlik xizmati uchun guruh'
             }
           ];
           setGroups(loadedGroups);
@@ -152,6 +168,10 @@ export default function TelegramGroupSelect({
         return <XatlovchilarIcon fontSize="small" sx={{ color: theme.palette.warning.main }} />;
       case 'GROUP_ID_MANAGERS':
         return <ManagersIcon fontSize="small" sx={{ color: theme.palette.success.main }} />;
+      case 'GROUP_ID_MUROJAATLAR':
+        return <MurojaatlarIcon fontSize="small" sx={{ color: theme.palette.warning.dark }} />;
+      case 'GROUP_ID_DISPETCHER':
+        return <DispatcherIcon fontSize="small" sx={{ color: theme.palette.primary.light }} />;
       default:
         return <TelegramIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />;
     }
@@ -237,7 +257,7 @@ export default function TelegramGroupSelect({
           }
         }}
       >
-        {groups.map((grp) => {
+        {(onlyConfigured ? configuredGroups : groups).map((grp) => {
           const isConfigured = Boolean(grp.chatId);
           return (
             <MenuItem
